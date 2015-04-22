@@ -87,7 +87,7 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 
 		navigateToDepositedFolderInUA30();
 		assertThatAllAreEnabled();
-		
+
 		navigateToActiveFolderInUA10();
 		assertThatAllAreEnabled();
 
@@ -216,7 +216,7 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 		assertThat(getButtonState("Ajouter un document")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Ajouter un sous-dossier")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Supprimer ce dossier")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Éditer la fiche du dossier")).isSameAs(ComponentState.ENABLED);
+		assertThat(getButtonState("Modifier la fiche dossier")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Dupliquer ce dossier")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Partager ce dossier")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Imprimer l'étiquette")).isSameAs(ComponentState.ENABLED);
@@ -226,17 +226,17 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 		assertThat(getButtonState("Ajouter un document")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Ajouter un sous-dossier")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Supprimer ce dossier")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Éditer la fiche du dossier")).isSameAs(ComponentState.ENABLED);
+		assertThat(getButtonState("Modifier la fiche dossier")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Dupliquer ce dossier")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Partager ce dossier")).isSameAs(ComponentState.INVISIBLE);
 		assertThat(getButtonState("Imprimer l'étiquette")).isSameAs(ComponentState.ENABLED);
 	}
-	
+
 	private void assertThatAllAreDisabledExceptDeleteAndShareEnabled() {
 		assertThat(getButtonState("Ajouter un document")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Ajouter un sous-dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Supprimer ce dossier")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Éditer la fiche du dossier")).isSameAs(ComponentState.DISABLED);
+		assertThat(getButtonState("Modifier la fiche dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Dupliquer ce dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Partager ce dossier")).isSameAs(ComponentState.ENABLED);
 		assertThat(getButtonState("Imprimer l'étiquette")).isSameAs(ComponentState.DISABLED);
@@ -246,17 +246,17 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 		assertThat(getButtonState("Ajouter un document")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Ajouter un sous-dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Supprimer ce dossier")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Éditer la fiche du dossier")).isSameAs(ComponentState.DISABLED);
+		assertThat(getButtonState("Modifier la fiche dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Dupliquer ce dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Partager ce dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Imprimer l'étiquette")).isSameAs(ComponentState.DISABLED);
 	}
-	
+
 	private void assertThatAllAreDisabledExceptDeleteEnabledAndShareInvisible() {
 		assertThat(getButtonState("Ajouter un document")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Ajouter un sous-dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Supprimer ce dossier")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Éditer la fiche du dossier")).isSameAs(ComponentState.DISABLED);
+		assertThat(getButtonState("Modifier la fiche dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Dupliquer ce dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Partager ce dossier")).isSameAs(ComponentState.INVISIBLE);
 		assertThat(getButtonState("Imprimer l'étiquette")).isSameAs(ComponentState.DISABLED);
@@ -266,7 +266,7 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 		assertThat(getButtonState("Ajouter un document")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Ajouter un sous-dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Supprimer ce dossier")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Éditer la fiche du dossier")).isSameAs(ComponentState.DISABLED);
+		assertThat(getButtonState("Modifier la fiche dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Dupliquer ce dossier")).isSameAs(ComponentState.DISABLED);
 		assertThat(getButtonState("Partager ce dossier")).isSameAs(ComponentState.INVISIBLE);
 		assertThat(getButtonState("Imprimer l'étiquette")).isSameAs(ComponentState.DISABLED);
@@ -276,7 +276,7 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 		assertThat(getButtonState("Ajouter un document")).isSameAs(ComponentState.INVISIBLE);
 		assertThat(getButtonState("Ajouter un sous-dossier")).isSameAs(ComponentState.INVISIBLE);
 		assertThat(getButtonState("Supprimer ce dossier")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Éditer la fiche du dossier")).isSameAs(ComponentState.INVISIBLE);
+		assertThat(getButtonState("Modifier la fiche dossier")).isSameAs(ComponentState.INVISIBLE);
 		assertThat(getButtonState("Dupliquer ce dossier")).isSameAs(ComponentState.INVISIBLE);
 		assertThat(getButtonState("Partager ce dossier")).isSameAs(ComponentState.INVISIBLE);
 		assertThat(getButtonState("Imprimer l'étiquette")).isSameAs(ComponentState.DISABLED);
