@@ -1,0 +1,153 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.ui.pages.globalGroup;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Map;
+
+import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.TextField;
+
+public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditGlobalGroupView {
+
+	public static final String PARENT_GLOBAL_GROUP_CODE = "parentGlobalGroupCode";
+	public static final String GLOBAL_GROUP_CODE = "globalGroupCode";
+	private AddEditGlobalGroupPresenter presenter;
+
+	private GlobalGroupVO globalGroupVO;
+
+	private Map<String, String> paramsMap;
+
+	private boolean addActionMode = true;
+
+	@PropertyId("code")
+	private TextField codeField;
+
+	@PropertyId("name")
+	private TextField nameField;
+
+	@PropertyId("collections")
+	private OptionGroup collectionsField;
+
+	@PropertyId("status")
+	private OptionGroup statusField;
+
+	public AddEditGlobalGroupViewImpl() {
+		this.presenter = new AddEditGlobalGroupPresenter(this);
+	}
+
+	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		setupParamsAndVO(event);
+	}
+
+	private void setupParamsAndVO(ViewChangeEvent event) {
+		String parameters = event.getParameters();
+		int indexOfSlash = parameters.lastIndexOf("/");
+		String breadCrumb = "";
+		if (indexOfSlash != -1) {
+			breadCrumb = parameters.substring(0, indexOfSlash);
+		}
+		paramsMap = ParamUtils.getParamsMap(parameters);
+		//		if (paramsMap.containsKey(GLOBAL_GROUP_CODE) && !paramsMap.containsKey(PARENT_GLOBAL_GROUP_CODE)) {
+		if (paramsMap.containsKey(GLOBAL_GROUP_CODE)) {
+			globalGroupVO = presenter.getGlobalGroupVO(paramsMap.get(GLOBAL_GROUP_CODE));
+			addActionMode = false;
+		} else {
+			String parent = null;
+			if (paramsMap.containsKey(PARENT_GLOBAL_GROUP_CODE)) {
+				parent = paramsMap.get(PARENT_GLOBAL_GROUP_CODE);
+			}
+			globalGroupVO = new GlobalGroupVO(parent);
+		}
+		presenter.setParamsMap(paramsMap);
+		presenter.setBreadCrumb(breadCrumb);
+	}
+
+	@Override
+	protected String getTitle() {
+		return $("AddEditGlobalGroupView.viewTitle");
+	}
+
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
+		codeField = new TextField();
+		codeField.setCaption($("GlobalGroup.Code"));
+		codeField.setRequired(true);
+		codeField.setNullRepresentation("");
+		codeField.setId("code");
+		codeField.addStyleName("code");
+		codeField.addStyleName("code-" + globalGroupVO.getCode());
+		codeField.setEnabled(addActionMode && presenter.canAndOrModify());
+
+		nameField = new TextField();
+		nameField.setCaption($("GlobalGroup.Name"));
+		nameField.setRequired(true);
+		nameField.setNullRepresentation("");
+		nameField.setId("name");
+		nameField.addStyleName("name");
+		nameField.addStyleName("name-" + globalGroupVO.getCode());
+		nameField.setEnabled(presenter.canAndOrModify());
+
+		collectionsField = new OptionGroup("Collections");
+		collectionsField.addStyleName("collections");
+		collectionsField.addStyleName("collections-username");
+		collectionsField.setImmediate(true);
+		collectionsField.setId("collections");
+		collectionsField.setMultiSelect(true);
+		for (String collection : presenter.getAllCollections()) {
+			collectionsField.addItem(collection);
+			if (globalGroupVO.getCollections() != null && globalGroupVO.getCollections().contains(collection)) {
+				collectionsField.select(collection);
+			}
+		}
+		collectionsField.setEnabled(presenter.canAndOrModify());
+
+		statusField = new OptionGroup($("GlobalGroupView.status"));
+		statusField.addStyleName("status");
+		statusField.setId("status");
+		for (GlobalGroupStatus status : GlobalGroupStatus.values()) {
+			statusField.addItem(status);
+			statusField.setItemCaption(status, $("GlobalGroupView.status." + status.name()));
+		}
+		statusField.setEnabled(presenter.canAndOrModify());
+
+		return new BaseForm<GlobalGroupVO>(globalGroupVO, this, codeField, nameField, collectionsField, statusField) {
+			@Override
+			protected void saveButtonClick(GlobalGroupVO globalGroupVO)
+					throws ValidationException {
+				presenter.saveButtonClicked(globalGroupVO);
+			}
+
+			@Override
+			protected void cancelButtonClick(GlobalGroupVO globalGroupVO) {
+				presenter.cancelButtonClicked();
+			}
+		};
+	}
+}

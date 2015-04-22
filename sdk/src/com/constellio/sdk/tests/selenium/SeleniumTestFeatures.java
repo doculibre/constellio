@@ -1,0 +1,303 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.sdk.tests.selenium;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.impl.XMLResponseParser;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxBinary;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+
+import com.constellio.app.client.services.AdminServicesSession;
+import com.constellio.app.start.ApplicationStarter;
+import com.constellio.client.cmis.client.CmisSessionBuilder;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.tests.FactoriesTestFeatures;
+import com.constellio.sdk.tests.SkipTestsRule;
+import com.constellio.sdk.tests.ZeUltimateFirefoxDriver;
+import com.constellio.sdk.tests.ZeUltimateFirefoxProfile;
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+
+public class SeleniumTestFeatures {
+
+	private static boolean applicationStarted = false;
+	private static ConstellioWebDriver openedWebDriver;
+	private boolean waitUntilICloseTheBrowsers = false;
+	private FactoriesTestFeatures factoriesTestFeatures;
+	SkipTestsRule skipTestsRule;
+
+	private Map<String, String> sdkProperties;
+
+	private int port = 8080;
+
+	public static void afterAllTests() {
+		if (applicationStarted) {
+			ApplicationStarter.stopApplication();
+			applicationStarted = false;
+		}
+
+		if (openedWebDriver != null) {
+			closeOpenedWebDriver();
+		}
+	}
+
+	private static void closeOpenedWebDriver() {
+		openedWebDriver.quit();
+		openedWebDriver = null;
+	}
+
+	public void afterTest(boolean failed) {
+
+		if (waitUntilICloseTheBrowsers) {
+			waitForWebDriversToClose();
+		} else if (openedWebDriver != null) {
+			if (failed) {
+				Dimension dimension = openedWebDriver.manage().window().getSize();
+				openedWebDriver.manage().window().setSize(new Dimension(dimension.getWidth(), 1800));
+				openedWebDriver.snapshot("failure");
+			}
+			closeOpenedWebDriver();
+		}
+
+		waitUntilICloseTheBrowsers = false;
+	}
+
+	public void beforeTest(Map<String, String> theSdkProperties, FactoriesTestFeatures factoriesTestFeatures,
+			SkipTestsRule skipTestsRule) {
+		this.sdkProperties = theSdkProperties;
+		this.factoriesTestFeatures = factoriesTestFeatures;
+		this.skipTestsRule = skipTestsRule;
+		if (sdkProperties.containsKey("port")) {
+			try {
+				port = Integer.valueOf(sdkProperties.get("port"));
+			} catch (Exception e) {
+				port = 8080;
+			}
+		}
+	}
+
+	public CmisSessionBuilder newCmisSessionBuilder() {
+		disableAllServices();
+		System.setProperty("cmisEnabled", "true");
+		if (!applicationStarted) {
+			startApplication();
+
+		}
+		String url = "http://localhost:" + port + "/constellio/";
+
+		return CmisSessionBuilder.forAppUrl(url);
+
+	}
+
+	public AdminServicesSession newRestClient(String serviceKey, String username, String password) {
+		disableAllServices();
+		System.setProperty("driverEnabled", "true");
+		if (!applicationStarted) {
+			startApplication();
+		}
+		String url = "http://localhost:" + port + "/constellio/rest";
+		return AdminServicesSession.connect(url, serviceKey, username, password);
+	}
+
+	public WebTarget newWebTarget() {
+		return newWebTarget("/rest");
+	}
+
+	public WebTarget newWebTarget(String path) {
+
+		if (!path.isEmpty() && !path.startsWith("/")) {
+			path = "/" + path;
+		}
+
+		disableAllServices();
+		System.setProperty("driverEnabled", "true");
+		if (!applicationStarted) {
+			startApplication();
+		}
+		String url = "http://localhost:" + port + "/constellio/rest" + path;
+		javax.ws.rs.client.Client client = ClientBuilder.newClient();
+		return client.register(JacksonFeature.class).target(url);
+	}
+
+	public SolrClient newSearchClient() {
+		disableAllServices();
+		if (!applicationStarted) {
+			startApplication();
+		}
+		String url = "http://localhost:" + port + "/constellio";
+		SolrClient solrServer = new HttpSolrClient(url, null, new XMLResponseParser());
+
+		return solrServer;
+
+	}
+
+	public ConstellioWebDriver newWebDriver(boolean preferFirefox) {
+		disableAllServices();
+		if (!applicationStarted) {
+			startApplication();
+		}
+
+		String url = "http://localhost:" + port + "/constellio";
+
+		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
+		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
+
+		String currentPageLoadTime;
+		if (openedWebDriver == null) {
+			WebDriver webDriver;
+			if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
+				throw new RuntimeException(
+						"You need to configure 'phantomJSBinary' or 'firefoxBinary' properties in sdk.properties file");
+			} else if (phantomJSBinaryDir == null || (firefoxBinaryDir != null && preferFirefox)) {
+				webDriver = newFirefoxWebDriver(firefoxBinaryDir);
+
+			} else {
+				webDriver = newPhantomJSWebDriver(phantomJSBinaryDir);
+			}
+			FoldersLocator foldersLocator = factoriesTestFeatures.getFoldersLocator();
+			openedWebDriver = new ConstellioWebDriver(webDriver, url, foldersLocator, skipTestsRule);
+			currentPageLoadTime = "";
+
+		} else {
+			currentPageLoadTime = openedWebDriver.getPageLoadTimeAsString(2000);
+			openedWebDriver.manage().deleteAllCookies();
+		}
+
+		openedWebDriver.manage().window().setSize(new Dimension(1200, 1024));
+		
+		boolean ready = false;
+
+		Exception exception = null;
+		for (int i = 0; i < 10 && !ready; i++) {
+			try {
+				openedWebDriver.gotoConstellio();
+				openedWebDriver.waitForPageReload(20, currentPageLoadTime);
+				ready = true;
+			} catch (Exception e) {
+				exception = e;
+			}
+		}
+		if (!ready) {
+			throw new RuntimeException(exception);
+		}
+
+		return openedWebDriver;
+	}
+
+	private WebDriver newPhantomJSWebDriver(String phantomJSBinaryDir) {
+		System.setProperty("phantomjs.binary.path", phantomJSBinaryDir);
+
+		try {
+			return new PhantomJSDriver(DesiredCapabilities.phantomjs());
+		} catch (Exception e) {
+			throw new RuntimeException("Could not start PhantomJS in directory '" + phantomJSBinaryDir + "'", e);
+		}
+	}
+
+	private WebDriver newFirefoxWebDriver(String firefoxBinaryDir) {
+		WebDriver webDriver;
+		if (firefoxBinaryDir.equals("detect")) {
+			webDriver = newDefaultFirefoxWebDriver();
+		} else {
+			webDriver = newFirefoxWebDriverWithSpecificBinDirectory(firefoxBinaryDir);
+		}
+		return webDriver;
+	}
+
+	private ZeUltimateFirefoxDriver newDefaultFirefoxWebDriver() {
+		try {
+			return new ZeUltimateFirefoxDriver();
+		} catch (Exception e) {
+			throw new RuntimeException("Could not detect or start Firefox", e);
+		}
+	}
+
+	private ZeUltimateFirefoxDriver newFirefoxWebDriverWithSpecificBinDirectory(String firefoxBinaryDir) {
+		try {
+			FirefoxBinary firefoxBinary = new FirefoxBinary(new File(firefoxBinaryDir));
+			ZeUltimateFirefoxProfile firefoxSchema = new ZeUltimateFirefoxProfile();
+			return new ZeUltimateFirefoxDriver(firefoxBinary, firefoxSchema);
+		} catch (Exception e) {
+			throw new RuntimeException("Could not start Firefox in directory '" + firefoxBinaryDir + "'", e);
+		}
+	}
+
+	public void waitUntilICloseTheBrowsers() {
+		waitUntilICloseTheBrowsers = true;
+	}
+
+	private void startApplication() {
+		File webContent = new FoldersLocator().getAppProjectWebContent();
+		long time = new Date().getTime();
+
+		assertThat(webContent).exists().isDirectory();
+
+		File webInf = new File(webContent, "WEB-INF");
+		assertThat(webInf).exists().isDirectory();
+		assertThat(new File(webInf, "web.xml")).exists();
+		assertThat(new File(webInf, "sun-jaxws.xml")).exists();
+
+		File cmis11 = new File(webInf, "cmis11");
+		assertThat(cmis11).exists().isDirectory();
+		assertThat(cmis11.listFiles()).isNotEmpty();
+
+		ApplicationStarter.startApplication(false, webContent, port);
+
+		applicationStarted = true;
+		System.out.println("Application started in " + (new Date().getTime() - time) + "ms");
+	}
+
+	private void waitForWebDriversToClose() {
+
+		try {
+			while (true) {
+				openedWebDriver.getCurrentUrl();
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		} catch (RuntimeException e) {
+			return;
+			// Web driver closed
+		}
+	}
+
+	private void disableAllServices() {
+		System.setProperty("driverEnabled", "false");
+		System.setProperty("cmisEnabled", "false");
+		System.setProperty("benchmarkServiceEnabled", "false");
+
+	}
+
+}

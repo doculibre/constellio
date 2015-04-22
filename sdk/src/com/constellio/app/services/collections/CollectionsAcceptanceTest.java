@@ -1,0 +1,306 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.services.collections;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionNotFound;
+import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
+import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
+import com.constellio.sdk.tests.setups.Users;
+
+public class CollectionsAcceptanceTest extends ConstellioTest {
+
+	Users users = new Users();
+	CollectionsManager collectionsManager;
+	UserServices userServices;
+	RolesManager rolesManager;
+	SearchServices searchServices;
+	MetadataSchemasManager metadataSchemasManager;
+	AuthorizationsServices authorizationsServices;
+	RecordServices recordServices;
+	TaxonomiesManager taxonomiesManager;
+	TwoTaxonomiesContainingFolderAndDocumentsSetup constellioSchemas = new TwoTaxonomiesContainingFolderAndDocumentsSetup(
+			"constellio");
+	FolderSchema constellioFolderSchema = constellioSchemas.new FolderSchema();
+	TwoTaxonomiesContainingFolderAndDocumentsSetup doculibreSchemas = new TwoTaxonomiesContainingFolderAndDocumentsSetup(
+			"doculibre");
+	FolderSchema doculibreFolderSchema = doculibreSchemas.new FolderSchema();
+	TaxonomyRecords constellioTaxos;
+	TaxonomyRecords doculibreTaxos;
+	TaxonomiesSearchServices taxonomiesSearchServices;
+
+	@Before
+	public void setUp()
+			throws Exception {
+		collectionsManager = getAppLayerFactory().getCollectionsManager();
+		userServices = getModelLayerFactory().newUserServices();
+		rolesManager = getModelLayerFactory().getRolesManager();
+		searchServices = getModelLayerFactory().newSearchServices();
+		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
+		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+		recordServices = getModelLayerFactory().newRecordServices();
+		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
+	}
+
+	@Test(expected = CollectionsManagerRuntimeException_InvalidCode.class)
+	public void whenCreateCollectionWithInvalidNameThenException()
+			throws Exception {
+		givenCollection("constellio.com");
+	}
+
+	@Test(expected = CollectionsManagerRuntimeException_InvalidCode.class)
+	public void whenCreateCollectionWithAnotherInvalidNameThenException()
+			throws Exception {
+		givenCollection("constellio com");
+	}
+
+	@Test
+	public void whenCreateCollectionThenCollectionRecordCreated()
+			throws Exception {
+
+		givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre();
+
+		Collection constellioCollection = collectionsManager.getCollection("constellio");
+		Collection doculibreCollection = collectionsManager.getCollection("doculibre");
+		recordServices.update(constellioCollection.setName("Constellio 5").getWrappedRecord());
+		recordServices.update(doculibreCollection.setName("Doculibre").getWrappedRecord());
+
+		assertThat(collectionsManager.getCollection("constellio").getName()).isEqualTo("Constellio 5");
+		assertThat(collectionsManager.getCollection("doculibre").getName()).isEqualTo("Doculibre");
+
+	}
+
+	@Test
+	public void whenCreatingCollectionThenAsSpecifiedLanguages()
+			throws Exception {
+
+		String mainDataLanguage = getModelLayerFactory().getConfiguration().getMainDataLanguage();
+
+		givenCollection("constellio", Arrays.asList("fr", "en"));
+		givenCollection("doculibre", Arrays.asList(mainDataLanguage));
+
+		assertThat(collectionsManager.getCollection("constellio").getLanguages()).isEqualTo(Arrays.asList("fr", "en"));
+		assertThat(collectionsManager.getCollection("doculibre").getLanguages()).isEqualTo(Arrays.asList(mainDataLanguage));
+
+	}
+
+	@Test(expected = CollectionsManagerRuntimeException_CollectionNotFound.class)
+	public void whenGetInexistentCollectionThenException()
+			throws Exception {
+
+		collectionsManager.getCollection("InexistentCollection");
+	}
+
+	@Test
+	public void givenTwoCollectionsWhenAssignAuthorizationsThenOnlyWorkForGivenCollection()
+			throws Exception {
+		givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre();
+		givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2();
+		givenDoculibreUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2();
+		waitForBatchProcess();
+
+		givenFolderInConstellio();
+		givenFolderInDoculibre();
+
+		assertThat(resultCountWhenSearchingHas(users.aliceIn("constellio"))).isEqualTo(1);
+		assertThat(resultCountWhenSearchingHas(users.bobIn("constellio"))).isEqualTo(0);
+		assertThat(users.charles().getCollections()).doesNotContain("constellio");
+		assertThat(users.dakotaLIndien().getCollections()).doesNotContain("constellio");
+		assertThat(resultCountWhenSearchingHas(users.edouardLechatIn("constellio"))).isEqualTo(1);
+		assertThat(resultCountWhenSearchingHas(users.gandalfLeblancIn("constellio"))).isEqualTo(1);
+		assertThat(resultCountWhenSearchingHas(users.chuckNorrisIn("constellio"))).isEqualTo(1);
+
+		assertThat(resultCountWhenSearchingHas(users.aliceIn("doculibre"))).isEqualTo(1);
+		assertThat(users.bob().getCollections()).doesNotContain("doculibre");
+		assertThat(resultCountWhenSearchingHas(users.charlesIn("doculibre"))).isEqualTo(1);
+		assertThat(resultCountWhenSearchingHas(users.dakotaLIndienIn("doculibre"))).isEqualTo(1);
+		assertThat(resultCountWhenSearchingHas(users.edouardLechatIn("doculibre"))).isEqualTo(1);
+		assertThat(resultCountWhenSearchingHas(users.gandalfLeblancIn("doculibre"))).isEqualTo(1);
+		assertThat(resultCountWhenSearchingHas(users.chuckNorrisIn("doculibre"))).isEqualTo(1);
+	}
+
+	@Test
+	public void givenTwoCollectionsWhenDeleteCollectionThenOnlyDeleteTheCollection()
+			throws Exception {
+		givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre();
+		givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2();
+		givenDoculibreUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2();
+		waitForBatchProcess();
+
+		givenFolderInConstellio();
+		givenFolderInDoculibre();
+		Set<String> collectionsInUserCredentialFile = getAllCollectionsInUserCredentialFile();
+		Set<String> collectionsInVersionProperties = getAllCollectionsInVersionPropertiesFile();
+
+		assertThat(collectionsInUserCredentialFile).contains("constellio");
+		assertThat(collectionsInVersionProperties).contains("constellio_version");
+		recordServices.flush();
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(31);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(32);
+		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isTrue();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isTrue();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isTrue();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/taxonomies.xml")).isTrue();
+
+		assertThat(userServices.getUser(bobGratton).getCollections()).contains("constellio");
+
+		collectionsManager.deleteCollection("constellio");
+		recordServices.flush();
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(32);
+		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isFalse();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isFalse();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isFalse();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/taxonomies.xml")).isFalse();
+		collectionsInUserCredentialFile = getAllCollectionsInUserCredentialFile();
+		collectionsInVersionProperties = getAllCollectionsInVersionPropertiesFile();
+		assertThat(collectionsInUserCredentialFile).doesNotContain("constellio");
+		assertThat(collectionsInVersionProperties).doesNotContain("constellio_version");
+
+		assertThat(userServices.getUser(bobGratton).getCollections()).doesNotContain("constellio");
+		assertThat(userServices.getGroup("legends").getUsersAutomaticallyAddedToCollections()).doesNotContain("constellio")
+				.contains("doculibre");
+	}
+
+	private Set<String> getAllCollectionsInUserCredentialFile() {
+		Set<String> collections = new HashSet<>();
+		List<UserCredential> userCredentials = getModelLayerFactory().getUserCredentialsManager().getActifUserCredentials();
+		for (UserCredential userCredential : userCredentials) {
+			collections.addAll(userCredential.getCollections());
+		}
+		return collections;
+	}
+
+	private Set<String> getAllCollectionsInVersionPropertiesFile() {
+		PropertiesConfiguration propertiesConfiguration = getDataLayerFactory().getConfigManager()
+				.getProperties("version.properties");
+		Set<String> collectionsInVersionProperties = propertiesConfiguration.getProperties().keySet();
+		return collectionsInVersionProperties;
+	}
+
+	private int resultCountWhenSearchingHas(User user) {
+		MetadataSchema folderSchema = metadataSchemasManager.getSchemaTypes(user.getCollection()).getSchema("folder_default");
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema).returnAll();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.filteredWithUser(user);
+		return searchServices.searchRecordIds(query).size();
+	}
+
+	private void givenFolderInConstellio()
+			throws RecordServicesException {
+		TestRecord constellioFolderInItem2 = new TestRecord(constellioFolderSchema.instance(), "constellioFolderInItem2");
+		constellioFolderInItem2.set(constellioFolderSchema.taxonomy1(), constellioTaxos.taxo1_firstTypeItem2_secondTypeItem1);
+		constellioFolderInItem2.set(constellioFolderSchema.title(), "My constellio folder");
+		recordServices.add(constellioFolderInItem2);
+	}
+
+	private void givenFolderInDoculibre()
+			throws RecordServicesException {
+		TestRecord doculibreFolderInItem2 = new TestRecord(doculibreFolderSchema.instance(), "doculibreFolderInItem2");
+		doculibreFolderInItem2.set(doculibreFolderSchema.taxonomy1(), doculibreTaxos.taxo1_firstTypeItem2_secondTypeItem1);
+		doculibreFolderInItem2.set(doculibreFolderSchema.title(), "My doculibre folder");
+		recordServices.add(doculibreFolderInItem2);
+	}
+
+	private void givenDoculibreUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
+			throws RolesManagerRuntimeException {
+		AuthorizationDetails doculibreUserAuthorizationDetails = AuthorizationDetails.create(aString(),
+				Arrays.asList(Role.WRITE), "doculibre");
+		List<String> doculibreUserAuthorizationPrincipals = Arrays.asList(users.chuckNorrisIn("doculibre").getId(), users
+				.legendsIn("doculibre").getId(), users.heroesIn("doculibre").getId());
+		List<String> doculibreUserAuthorizationRecords = Arrays.asList(doculibreTaxos.taxo1_firstTypeItem1.getId(),
+				doculibreTaxos.taxo1_firstTypeItem2.getId());
+		authorizationsServices.add(new Authorization(doculibreUserAuthorizationDetails, doculibreUserAuthorizationPrincipals,
+				doculibreUserAuthorizationRecords), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+	}
+
+	private void givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
+			throws RolesManagerRuntimeException {
+
+		AuthorizationDetails constellioUserAuthorizationDetails = AuthorizationDetails.create(aString(),
+				Arrays.asList(Role.READ), "constellio");
+		List<String> constellioUserAuthorizationPrincipals = Arrays.asList(users.chuckNorrisIn("constellio").getId(), users
+				.legendsIn("constellio").getId(), users.heroesIn("constellio").getId());
+		List<String> constellioUserAuthorizationRecords = Arrays.asList(constellioTaxos.taxo1_firstTypeItem1.getId(),
+				constellioTaxos.taxo1_firstTypeItem2.getId());
+		authorizationsServices.add(new Authorization(constellioUserAuthorizationDetails, constellioUserAuthorizationPrincipals,
+				constellioUserAuthorizationRecords), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
+	}
+
+	private void givenConstellioAndDoculibreCollectionsWithBobAndLegendsInConstellioAndLegendsAndHeroesInDoculibre() {
+		users.setUp(userServices);
+
+		givenCollection("constellio");
+		givenCollection("doculibre");
+
+		userServices.addUserToCollection(users.bob(), "constellio");
+		userServices.addUserToCollection(users.chuckNorris(), "constellio");
+		userServices.addUserToCollection(users.chuckNorris(), "doculibre");
+
+		userServices.addUpdateGlobalGroup(users.legends().withUsersAutomaticallyAddedToCollections(
+				Arrays.asList("constellio", "doculibre")));
+		userServices
+				.addUpdateGlobalGroup(users.heroes().withUsersAutomaticallyAddedToCollections(Arrays.asList("doculibre")));
+
+		defineSchemasManager().using(constellioSchemas);
+		defineSchemasManager().using(doculibreSchemas);
+		taxonomiesManager.addTaxonomy(constellioSchemas.getTaxo1(), metadataSchemasManager);
+		taxonomiesManager.setPrincipalTaxonomy(constellioSchemas.getTaxo1(), metadataSchemasManager);
+		taxonomiesManager.addTaxonomy(doculibreSchemas.getTaxo1(), metadataSchemasManager);
+		taxonomiesManager.setPrincipalTaxonomy(doculibreSchemas.getTaxo1(), metadataSchemasManager);
+		constellioTaxos = constellioSchemas.givenTaxonomyRecords(recordServices);
+		doculibreTaxos = doculibreSchemas.givenTaxonomyRecords(recordServices);
+	}
+}

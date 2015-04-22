@@ -1,0 +1,255 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.entities.records;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import com.constellio.model.entities.records.TransactionRuntimeException.RecordIdCollision;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class TransactionTest extends ConstellioTest {
+
+	@Mock Record record1, record2, record3;
+
+	Transaction transaction;
+
+	@Before
+	public void setUp()
+			throws Exception {
+		transaction = spy(new Transaction());
+	}
+
+	@Test
+	public void givenRecordHasAnIdWhenAddingUpdateThenRecordUpdated()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record1.isSaved()).thenReturn(true);
+
+		transaction.addUpdate(record1);
+
+		verify(transaction).update(record1);
+	}
+
+	@Test
+	public void givenRecordHasNoIdWhenAddingUpdateThenRecordUpdated()
+			throws Exception {
+		transaction.addUpdate(record1);
+
+		assertThat(transaction.getRecords()).containsOnly(record1);
+	}
+
+	@Test
+	public void whenAddingMultipleUpdatesThenAllRecordUpdated()
+			throws Exception {
+		transaction.addUpdate(asList(record1, record2, record3));
+
+		verify(transaction).addUpdate(record1);
+		verify(transaction).addUpdate(record2);
+		verify(transaction).addUpdate(record3);
+	}
+
+	@Test
+	public void whenAddingListOfUpdatesThenAllRecordUpdated()
+			throws Exception {
+		transaction.addUpdate(Arrays.asList(record1, record2, record3));
+
+		verify(transaction).addUpdate(record1);
+		verify(transaction).addUpdate(record2);
+		verify(transaction).addUpdate(record3);
+	}
+
+	@Test
+	public void givenRecordNotInUpdatedMapWhenUpdatingThenRecordAddedToMapAndRecords()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+
+		transaction.update(record1);
+
+		assertThat(transaction.getRecords()).containsOnly(record1);
+		assertThat(transaction.updatedRecordsMap).containsEntry("id1", record1);
+	}
+
+	@Test(expected = RecordIdCollision.class)
+	public void givenIdCollisionWhenUpdatingThenExceptionThrown()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record2.getId()).thenReturn("id1");
+
+		transaction.update(record1);
+		transaction.update(record2);
+	}
+
+	@Test
+	public void givenRecordsNotInUpdatedMapWhenUpdatingMultipleRecordsThenRecordsAddedToMapAndRecords()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record2.getId()).thenReturn("id2");
+		when(record3.getId()).thenReturn("id3");
+
+		transaction.update(asList(record1, record2, record3));
+
+		assertThat(transaction.getRecords()).containsOnly(record1, record2, record3);
+		assertThat(transaction.updatedRecordsMap).containsEntry("id1", record1).containsEntry("id2", record2)
+				.containsEntry("id3", record3);
+	}
+
+	@Test
+	public void givenRecordsNotInUpdatedMapWhenUpdatingListOfRecordsThenRecordsAddedToMapAndRecords()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record2.getId()).thenReturn("id2");
+		when(record3.getId()).thenReturn("id3");
+
+		transaction.update(Arrays.asList(record1, record2, record3));
+
+		assertThat(transaction.getRecords()).containsOnly(record1, record2, record3);
+		assertThat(transaction.updatedRecordsMap).containsEntry("id1", record1).containsEntry("id2", record2)
+				.containsEntry("id3", record3);
+	}
+
+	// ---------
+	@Test
+	public void whenAddUpdateRecordThenValidateCollections()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record1.getCollection()).thenReturn("collection1");
+		doNothing().when(transaction).validateCollection(anyString());
+
+		transaction.addUpdate(record1);
+
+		verify(transaction, times(1)).validateCollection("collection1");
+	}
+
+	@Test
+	public void whenAddUpdateRecordsThenValidateCollections()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record2.getId()).thenReturn("id2");
+		when(record3.getId()).thenReturn("id3");
+		when(record1.getCollection()).thenReturn("collection1");
+		when(record2.getCollection()).thenReturn("collection1");
+		when(record3.getCollection()).thenReturn("collection2");
+		doNothing().when(transaction).validateCollection(anyString());
+
+		transaction.addUpdate(record1, record2, record3);
+
+		verify(transaction, times(2)).validateCollection("collection1");
+		verify(transaction, times(1)).validateCollection("collection2");
+	}
+
+	@Test
+	public void whenAddUpdateRecordsListThenValidateCollections()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record2.getId()).thenReturn("id2");
+		when(record3.getId()).thenReturn("id3");
+		when(record1.getCollection()).thenReturn("collection1");
+		when(record2.getCollection()).thenReturn("collection1");
+		when(record3.getCollection()).thenReturn("collection2");
+		doNothing().when(transaction).validateCollection(anyString());
+
+		transaction.addUpdate(Arrays.asList(record1, record2, record3));
+
+		verify(transaction, times(2)).validateCollection("collection1");
+		verify(transaction, times(1)).validateCollection("collection2");
+	}
+
+	@Test
+	public void whenAddRecordThenValidateCollections()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record1.getCollection()).thenReturn("collection1");
+		doNothing().when(transaction).validateCollection(anyString());
+
+		transaction.add(record1);
+
+		verify(transaction, times(1)).validateCollection("collection1");
+	}
+
+	@Test
+	public void whenUpdateRecordThenValidateCollections()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record1.getCollection()).thenReturn("collection1");
+		doNothing().when(transaction).validateCollection(anyString());
+
+		transaction.update(record1);
+
+		verify(transaction, times(1)).validateCollection("collection1");
+	}
+
+	@Test
+	public void whenUpdateRecordsThenValidateCollections()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record2.getId()).thenReturn("id2");
+		when(record3.getId()).thenReturn("id3");
+		when(record1.getCollection()).thenReturn("collection1");
+		when(record2.getCollection()).thenReturn("collection1");
+		when(record3.getCollection()).thenReturn("collection2");
+		doNothing().when(transaction).validateCollection(anyString());
+
+		transaction.update(record1, record2, record3);
+
+		verify(transaction, times(2)).validateCollection("collection1");
+		verify(transaction, times(1)).validateCollection("collection2");
+	}
+
+	@Test
+	public void whenUpdateRecordsListThenValidateCollections()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record2.getId()).thenReturn("id2");
+		when(record3.getId()).thenReturn("id3");
+		when(record1.getCollection()).thenReturn("collection1");
+		when(record2.getCollection()).thenReturn("collection1");
+		when(record3.getCollection()).thenReturn("collection2");
+		doNothing().when(transaction).validateCollection(anyString());
+
+		transaction.update(Arrays.asList(record1, record2, record3));
+
+		verify(transaction, times(2)).validateCollection("collection1");
+		verify(transaction, times(1)).validateCollection("collection2");
+	}
+
+	@Test(expected = TransactionRuntimeException.DifferentCollectionsInRecords.class)
+	public void whenNewTransactionWithRecordsThenValidateCollectionsFromRecordsList()
+			throws Exception {
+		when(record1.getId()).thenReturn("id1");
+		when(record2.getId()).thenReturn("id2");
+		when(record3.getId()).thenReturn("id3");
+		when(record1.getCollection()).thenReturn("collection1");
+		when(record2.getCollection()).thenReturn("collection1");
+		when(record3.getCollection()).thenReturn("collection2");
+
+		transaction = new Transaction(record1, record2, record3);
+	}
+}

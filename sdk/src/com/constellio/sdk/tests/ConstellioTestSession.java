@@ -1,0 +1,204 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.sdk.tests;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
+
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
+import com.constellio.sdk.tests.selenium.SeleniumTestFeatures;
+
+public class ConstellioTestSession {
+
+	private Map<String, String> sdkProperties;
+	private FileSystemTestFeatures fileSystemTestFeatures;
+	private SeleniumTestFeatures seleniumTestFeatures;
+	private StreamsTestFeatures streamsTestFeatures;
+	private SchemaTestFeatures schemaTestFeatures;
+	private BatchProcessTestFeature batchProcessTestFeature;
+	private FactoriesTestFeatures factoriesTestFeatures;
+	private AfterTestValidationsTestFeature afterTestValidationsTestFeature;
+	private SaveStateFeature saveStateFeature;
+	private SkipTestsRule skipTestsRule;
+
+	//It is singletone pattern for all the test cases
+	private ConstellioTestSession() {
+
+	}
+
+	public static ConstellioTestSession build(boolean isUniTest, Map<String, String> sdkProperties,
+			SkipTestsRule skipTestsRule, Class<? extends AbstractConstellioTest> constellioTest) {
+		ConstellioTestSession session = new ConstellioTestSession();
+		i18n.setLocale(Locale.FRENCH);
+		TimeProvider.setTimeProvider(new DefaultTimeProvider());
+		session.sdkProperties = sdkProperties;
+		session.skipTestsRule = skipTestsRule;
+		if (!isUniTest) {
+
+			ensureLog4jAndRepositoryProperties();
+
+			session.fileSystemTestFeatures = new FileSystemTestFeatures("temp-test", sdkProperties,
+					constellioTest);
+			session.factoriesTestFeatures = new FactoriesTestFeatures(session.fileSystemTestFeatures, sdkProperties);
+			session.afterTestValidationsTestFeature = new AfterTestValidationsTestFeature(session.fileSystemTestFeatures,
+					session.factoriesTestFeatures, sdkProperties);
+			session.streamsTestFeatures = new StreamsTestFeatures();
+			session.seleniumTestFeatures = new SeleniumTestFeatures();
+			session.schemaTestFeatures = new SchemaTestFeatures(session.factoriesTestFeatures);
+			session.batchProcessTestFeature = new BatchProcessTestFeature(session.factoriesTestFeatures);
+			session.seleniumTestFeatures.beforeTest(sdkProperties, session.factoriesTestFeatures, skipTestsRule);
+			session.saveStateFeature = new SaveStateFeature(session.factoriesTestFeatures, session.fileSystemTestFeatures);
+		} else {
+			session.schemaTestFeatures = new SchemaTestFeatures();
+		}
+		if (TimeProvider.getLocalDate().getYear() < 2015) {
+			throw new RuntimeException(
+					"Cannot start the test, since the local date returned by the system is invalid : " + TimeProvider
+							.getLocalDate());
+		}
+		return session;
+	}
+
+	private static boolean propertiesChecked = false;
+
+	private static void ensureLog4jAndRepositoryProperties() {
+		if (!propertiesChecked) {
+			propertiesChecked = true;
+
+			File sdkProject = new FoldersLocator().getSDKProject();
+			File buildFolder = new File(sdkProject, "build");
+			File classesFolder = new File(buildFolder, "classes");
+			File classesTestFolder = new File(classesFolder, "test");
+
+			File classesLog4J = new File(classesTestFolder, "log4j.properties");
+			File sdkLog4J = new File(sdkProject, "log4j.properties");
+			if (!classesLog4J.exists()) {
+				try {
+					FileUtils.copyFile(sdkLog4J, classesLog4J);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			File classesRepository = new File(classesTestFolder, "repository.properties");
+			File sdkRepository = new File(sdkProject, "repository.properties");
+			if (!classesRepository.exists()) {
+				try {
+					FileUtils.copyFile(sdkRepository, classesRepository);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+		}
+	}
+
+	public static void closeAfterTestClass() {
+		SeleniumTestFeatures.afterAllTests();
+	}
+
+	public void close(boolean firstClean, boolean failed) {
+		Throwable exception = null;
+
+		if (seleniumTestFeatures != null) {
+			seleniumTestFeatures.afterTest(failed);
+		}
+
+		if (batchProcessTestFeature != null) {
+			batchProcessTestFeature.afterTest();
+		}
+
+		if (saveStateFeature != null) {
+			saveStateFeature.afterTest();
+		}
+
+		if (afterTestValidationsTestFeature != null) {
+			exception = afterTestValidationsTestFeature.afterTest(firstClean, failed);
+		}
+		if (factoriesTestFeatures != null) {
+			factoriesTestFeatures.afterTest();
+		}
+		if (streamsTestFeatures != null) {
+			streamsTestFeatures.afterTest();
+		}
+		if (fileSystemTestFeatures != null) {
+			fileSystemTestFeatures.close();
+		}
+		if (schemaTestFeatures != null) {
+			schemaTestFeatures.afterTest(firstClean);
+		}
+
+		if (streamsTestFeatures != null) {
+			List<String> unClosedResources = streamsTestFeatures.getUnClosedResources();
+			if (!unClosedResources.isEmpty()) {
+				throw new RuntimeException("Resources were not closed : " + unClosedResources.toString());
+			}
+		}
+
+		TimeProvider.setTimeProvider(new DefaultTimeProvider());
+		if (TimeProvider.getLocalDate().getYear() < 2015) {
+			throw new RuntimeException(
+					"The local date returned by the system is invalid : " + TimeProvider.getLocalDate());
+		}
+
+		if (exception != null) {
+			throw new RuntimeException(exception);
+		}
+	}
+
+	public AfterTestValidationsTestFeature getAfterTestValidationsTestFeature() {
+		return afterTestValidationsTestFeature;
+	}
+
+	public FileSystemTestFeatures getFileSystemTestFeatures() {
+		return fileSystemTestFeatures;
+	}
+
+	public SeleniumTestFeatures getSeleniumTestFeatures() {
+		return seleniumTestFeatures;
+	}
+
+	public StreamsTestFeatures getStreamsTestFeatures() {
+		return streamsTestFeatures;
+	}
+
+	public SchemaTestFeatures getSchemaTestFeatures() {
+		return schemaTestFeatures;
+	}
+
+	public BatchProcessTestFeature getBatchProcessTestFeature() {
+		return batchProcessTestFeature;
+	}
+
+	public FactoriesTestFeatures getFactoriesTestFeatures() {
+		return factoriesTestFeatures;
+	}
+
+	public SaveStateFeature getSaveStateFeature() {
+		return saveStateFeature;
+	}
+}

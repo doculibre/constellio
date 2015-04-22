@@ -1,0 +1,10 @@
+<aspectj>
+    <aspects>
+<!--  
+        <aspect name="com.constellio.app.ui.aspects.BasicAspect"/>
+-->    
+        <aspect name="com.constellio.app.ui.aspects.ButtonClickListenerAspect"/>
+        <aspect name="com.constellio.app.ui.aspects.UIInitAspect"/>
+        <aspect name="com.constellio.app.ui.aspects.ViewEnterAspect"/>
+    </aspects>
+</aspectj>

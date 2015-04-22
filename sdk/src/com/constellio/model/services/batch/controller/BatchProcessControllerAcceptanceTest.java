@@ -1,0 +1,313 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.batch.controller;
+
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.AddToBatchProcessImpactHandler;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
+
+//@SlowTest
+public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
+
+	String anotherSchemaRecordText = "this is a text";
+	String anotherSchemaRecordNewText = "this is an other text";
+
+	RecordDao recordDao;
+	RecordDao eventsDao;
+	RecordDao notificationsDao;
+	RecordServices recordServices;
+	BatchProcessControllerAcceptanceTestSchemasSetup schemas = new BatchProcessControllerAcceptanceTestSchemasSetup();
+	BatchProcessControllerAcceptanceTestSchemasSetup.ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
+	BatchProcessControllerAcceptanceTestSchemasSetup.AnotherSchemaMetadatas anotherSchema = schemas.new AnotherSchemaMetadatas();
+	BatchProcessControllerAcceptanceTestSchemasSetup.ThirdSchemaMetadatas thirdSchema = schemas.new ThirdSchemaMetadatas();
+	// BatchProcessController controller;
+	BatchProcessesManager batchProcessManager;
+
+	ModelLayerFactory modelFactory;
+
+	Record zeSchemaRecord;
+	List<String> recordIds;
+
+	@Before
+	public void setUp()
+			throws Exception {
+
+		withSpiedServices(ModelLayerFactory.class);
+
+		eventsDao = spy(getDataLayerFactory().newEventsDao());
+		recordDao = spy(getDataLayerFactory().newRecordDao());
+		notificationsDao = spy(getDataLayerFactory().newNotificationsDao());
+		DataStoreTypesFactory typesFactory = getDataLayerFactory().newTypesFactory();
+		UniqueIdGenerator uniqueIdGenerator = getDataLayerFactory().getUniqueIdGenerator();
+		recordServices = spy(new RecordServices(recordDao, eventsDao, notificationsDao, getModelLayerFactory(), typesFactory,
+				uniqueIdGenerator));
+
+		modelFactory = getModelLayerFactory();
+		batchProcessManager = modelFactory.getBatchProcessesManager();
+		// controller = getModelLayerFactory().getBatchProcessesController();
+		// controller.start();
+
+		defineSchemasManager().using(schemas.withCopiedTextMetadataFromAnotherSchema().withATitle().withAStringMetadata());
+
+		zeSchemaRecord = createZeSchemaFirstRecord();
+		recordIds = addAnotherSchemaAndThirdSchemaRecords(zeSchemaRecord);
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		doReturn(new AddToBatchProcessImpactHandler(batchProcessManager, searchServices)).when(recordServices)
+				.addToBatchProcessModificationImpactHandler();
+	}
+
+	// @After
+	// public void tearDown()
+	// throws InterruptedException {
+	// controller.clear();
+	// }
+
+	@Test
+	public void whenReindexingCopiedValueInOneTransactionThenReindexedForAllRecords()
+			throws Exception {
+
+		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
+		recordServices.update(zeSchemaRecord);
+
+		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordNewText);
+	}
+
+	@Test
+	public void whenReindexingCopiedValueInBatchProcessThenReindexedForAllRecords()
+			throws Exception {
+
+		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
+		List<BatchProcess> batchProcesses = recordServices.updateAsync(zeSchemaRecord);
+		waitForBatchProcess();
+
+		assertThat(batchProcesses).hasSize(1);
+		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordNewText);
+	}
+
+	@Test
+	public void givenSystemErrorWhenAddingBatchProcessThenNoModifications()
+			throws Exception {
+
+		batchProcessManager = spy(batchProcessManager);
+		doThrow(Error.class).when(batchProcessManager).add(anyList(), anyString(), any(BatchProcessAction.class));
+		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessManager);
+		recordServices = new RecordServices(recordDao, eventsDao, notificationsDao, modelFactory,
+				getDataLayerFactory().newTypesFactory(), getDataLayerFactory().getUniqueIdGenerator());
+
+		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
+		try {
+			recordServices.updateAsync(zeSchemaRecord);
+			fail("Error expected");
+		} catch (Error e) {
+		}
+
+		assertThat(batchProcessManager.getCurrentBatchProcess()).isNull();
+		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
+		assertThat(batchProcessManager.getFinishedBatchProcesses()).isEmpty();
+		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).get(zeSchema.text()))
+				.isEqualTo(anotherSchemaRecordText);
+		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordText);
+	}
+
+	@Test
+	public void givenSystemErrorWhenExecutingTransactionDTOThenNoModifications()
+			throws Exception {
+
+		doThrow(Error.class).when(recordDao).execute(any(TransactionDTO.class));
+
+		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
+		try {
+			recordServices.updateAsync(zeSchemaRecord);
+			fail("Error expected");
+		} catch (Error e) {
+
+		}
+
+		assertThat(batchProcessManager.getCurrentBatchProcess()).isNull();
+		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
+		assertThat(batchProcessManager.getFinishedBatchProcesses()).isEmpty();
+		assertThat(batchProcessManager.getStandbyBatchProcesses()).hasSize(1);
+		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).get(zeSchema.text()))
+				.isEqualTo(anotherSchemaRecordText);
+		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordText);
+	}
+
+	@Test
+	public void givenMultipleOptimisticLockingThenSystemErrorWhenExecutingTransactionDTOThenNoModificationsAndOnlyOneStandbyBatchProcess()
+			throws Exception {
+
+		// A really bad day...
+		doThrow(RecordDaoException.OptimisticLocking.class).doThrow(RecordDaoException.OptimisticLocking.class)
+				.doThrow(Error.class).when(recordDao).execute(any(TransactionDTO.class));
+
+		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
+		try {
+			recordServices.updateAsync(zeSchemaRecord);
+			fail("Error expected");
+		} catch (Error e) {
+
+		}
+
+		assertThat(batchProcessManager.getCurrentBatchProcess()).isNull();
+		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
+		assertThat(batchProcessManager.getFinishedBatchProcesses()).isEmpty();
+		assertThat(batchProcessManager.getStandbyBatchProcesses()).hasSize(1);
+		assertThat(recordServices.getDocumentById(zeSchemaRecord.getId()).get(zeSchema.text()))
+				.isEqualTo(anotherSchemaRecordText);
+		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordText);
+
+	}
+
+	@Test
+	public void givenMultipleOptimisticLockingWhenExecutingTransactionDTOThenOnlyOneStandbyBatchProcess()
+			throws Exception {
+
+		// A bad day...
+		doThrow(RecordDaoException.OptimisticLocking.class).doThrow(RecordDaoException.OptimisticLocking.class)
+				.doCallRealMethod().when(recordDao).execute(any(TransactionDTO.class));
+
+		zeSchemaRecord.set(zeSchema.text(), anotherSchemaRecordNewText);
+		List<BatchProcess> batchProcesses = recordServices.updateAsync(zeSchemaRecord);
+
+		assertThat(batchProcesses).hasSize(1);
+		assertThat(batchProcessManager.getAllBatchProcessesCount()).isEqualTo(1);
+
+		waitForBatchProcess();
+		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordNewText);
+	}
+
+	@Test
+	public void whenChangingValueInOneTransactionThenChangedForAllRecords()
+			throws Exception {
+
+		Record zeSchemaRecord1 = createZeSchemaRecordWithTitleAndString();
+		Record zeSchemaRecord2 = createZeSchemaRecordWithTitleAndString();
+		List<String> recordIds = new ArrayList<>();
+		recordIds.add(zeSchemaRecord1.getId());
+		recordIds.add(zeSchemaRecord2.getId());
+
+		Map<String, Object> changedMetadataValues = new HashMap<>();
+		changedMetadataValues.put(zeSchema.title().getCode(), "changedTitle");
+		changedMetadataValues.put(zeSchema.stringMetadata().getCode(), "changedString");
+
+		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changedMetadataValues);
+
+		BatchProcess batchProcess = batchProcessManager.add(recordIds, zeCollection, action);
+		batchProcessManager.markAsPending(batchProcess);
+
+		waitForBatchProcess();
+
+		for (Record record : recordServices.getRecordsById(zeCollection, recordIds)) {
+			assertThat(record.get(zeSchema.title())).isEqualTo("changedTitle");
+			assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("changedString");
+		}
+
+	}
+
+	private Record createZeSchemaRecordWithTitleAndString()
+			throws RecordServicesException {
+		Record zeSchemaRecord = recordServices.newRecordWithSchema(zeSchema.instance());
+		zeSchemaRecord.set(zeSchema.title(), "initialTitle");
+		zeSchemaRecord.set(zeSchema.stringMetadata(), "initialString");
+		recordServices.add(zeSchemaRecord);
+		return zeSchemaRecord;
+	}
+
+	private List<String> addAnotherSchemaAndThirdSchemaRecords(Record zeSchemaRecord)
+			throws Exception {
+
+		List<String> recordIds = new ArrayList<>();
+		Transaction transaction = new Transaction();
+		for (int i = 0; i < 30; i++) {
+			Record anotherSchemaRecord = new TestRecord(anotherSchema, "_" + (i + 1));
+			anotherSchemaRecord.set(anotherSchema.referenceToZeSchema(), zeSchemaRecord.getId());
+			transaction.addUpdate(anotherSchemaRecord);
+
+			for (int j = 0; j < 10; j++) {
+				Record thirdSchemaRecord = new TestRecord(thirdSchema, anotherSchemaRecord.getId() + "_" + (i + 1));
+				thirdSchemaRecord.set(thirdSchema.referenceToAnotherSchema(), anotherSchemaRecord.getId());
+				transaction.addUpdate(thirdSchemaRecord);
+			}
+		}
+
+		recordServices.execute(transaction);
+
+		recordIds.addAll(transaction.getRecordIds());
+
+		assertThatAllRecordsHaveCorrectTextAndLength(recordIds, anotherSchemaRecordText);
+
+		return recordIds;
+	}
+
+	private void assertThatAllRecordsHaveCorrectTextAndLength(List<String> recordIds, String text) {
+		for (String recordId : recordIds) {
+			Record record = recordServices.getDocumentById(recordId);
+
+			if (record.getSchemaCode().equals(anotherSchema.code())) {
+				assertThat(record.get(anotherSchema.copiedText())).isEqualTo(text);
+				assertThat(record.get(anotherSchema.copiedTextLength())).isEqualTo(Double.valueOf(text.length()));
+			} else {
+				assertThat(record.get(thirdSchema.copiedText())).isEqualTo(text);
+				assertThat(record.get(thirdSchema.copiedTextLength())).isEqualTo(Double.valueOf(text.length()));
+			}
+		}
+	}
+
+	private Record createZeSchemaFirstRecord()
+			throws RecordServicesException {
+		Record anotherSchemaFirstRecord = new TestRecord(zeSchema);
+		anotherSchemaFirstRecord.set(zeSchema.text(), anotherSchemaRecordText);
+		recordServices.add(anotherSchemaFirstRecord);
+		return anotherSchemaFirstRecord;
+	}
+
+}

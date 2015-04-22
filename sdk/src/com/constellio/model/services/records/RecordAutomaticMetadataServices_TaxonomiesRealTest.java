@@ -1,0 +1,346 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.records;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
+import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
+import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.DocumentSchema;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1FirstSchemaType;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1SecondSchemaType;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2CustomSchema;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2DefaultSchema;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
+
+public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends ConstellioTest {
+
+	TwoTaxonomiesContainingFolderAndDocumentsSetup schemas =
+			new TwoTaxonomiesContainingFolderAndDocumentsSetup(zeCollection);
+	FolderSchema folderSchema = schemas.new FolderSchema();
+	DocumentSchema documentSchema = schemas.new DocumentSchema();
+	Taxonomy1FirstSchemaType taxonomy1FirstSchema = schemas.new Taxonomy1FirstSchemaType();
+	Taxonomy1SecondSchemaType taxonomy1SecondSchema = schemas.new Taxonomy1SecondSchemaType();
+	Taxonomy2DefaultSchema taxonomy2DefaultSchema = schemas.new Taxonomy2DefaultSchema();
+	Taxonomy2CustomSchema taxonomy2CustomSchema = schemas.new Taxonomy2CustomSchema();
+
+	TestRecord rootFolderWithTaxonomy;
+	TestRecord subFolderWithTaxonomy;
+	TestRecord document;
+
+	TaxonomyRecords records;
+
+	RecordAutomaticMetadataServices services;
+
+	MetadataSchemasManager schemaManager;
+	RecordServices recordServices;
+	ConfigManager configManager;
+	@Mock RecordProvider recordProvider;
+
+	Map<Dependency, Object> values;
+	List<String> expectedPaths;
+	List<String> authorizations = new ArrayList<>();
+
+	private static String taxo1Path(Record... records) {
+		String collection = ""; // = "/zeCollection"
+		StringBuilder sb = new StringBuilder(collection + "/taxo1");
+		for (Record record : records) {
+			sb.append("/");
+			sb.append(record.getId());
+		}
+		return sb.toString();
+	}
+
+	private static String taxo2Path(Record... records) {
+		String collection = ""; // = "/zeCollection"
+		StringBuilder sb = new StringBuilder(collection + "/taxo2");
+		for (Record record : records) {
+			sb.append("/");
+			sb.append(record.getId());
+		}
+		return sb.toString();
+	}
+
+	@Before
+	public void setUp()
+			throws Exception {
+
+		authorizations.add(aString());
+		authorizations.add(aString());
+
+		expectedPaths = new ArrayList<>();
+		values = new HashMap<>();
+		schemaManager = getModelLayerFactory().getMetadataSchemasManager();
+		recordServices = getModelLayerFactory().newRecordServices();
+		configManager = getDataLayerFactory().getConfigManager();
+
+		defineSchemasManager().using(schemas);
+
+		MetadataSchemaTypesBuilder types = MetadataSchemaTypesBuilder.modify(schemaManager.getSchemaTypes(zeCollection));
+		types.getSchema(taxonomy1FirstSchema.code()).create("taxo1FirstSchemaMetaWithTaxoDependency")
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+		types.getSchema(taxonomy1SecondSchema.code()).create("taxo1SecondSchemaMetaWithTaxoDependency")
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+		types.getSchema(folderSchema.code()).create("folderMetaWithTaxoDependency")
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+		types.getSchema(documentSchema.code()).create("documentMetaWithTaxoDependency")
+				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
+		schemas.onSchemaBuilt(schemaManager.saveUpdateSchemaTypes(types));
+
+		for (Taxonomy taxonomy : schemas.getTaxonomies()) {
+			getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, schemaManager);
+		}
+
+		records = schemas.givenTaxonomyRecords(recordServices);
+
+		rootFolderWithTaxonomy = new TestRecord(folderSchema, "rootFolderWithTaxonomy");
+		rootFolderWithTaxonomy.set(folderSchema.taxonomy1(), records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1);
+		rootFolderWithTaxonomy.set(folderSchema.conceptReferenceWithoutTaxonomyRelationship(),
+				records.taxo1_firstTypeItem2_secondTypeItem1);
+
+		subFolderWithTaxonomy = new TestRecord(folderSchema, "subFolderWithTaxonomy");
+		subFolderWithTaxonomy.set(folderSchema.parent(), rootFolderWithTaxonomy);
+		subFolderWithTaxonomy.set(folderSchema.taxonomy1(), records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2);
+		subFolderWithTaxonomy.set(folderSchema.conceptReferenceWithoutTaxonomyRelationship(),
+				records.taxo1_firstTypeItem2_secondTypeItem2);
+
+		document = new TestRecord(documentSchema, "document");
+		document.set(documentSchema.parent(), subFolderWithTaxonomy);
+
+		services = new RecordAutomaticMetadataServices(schemaManager, getModelLayerFactory().getTaxonomiesManager(),
+				getModelLayerFactory().getSystemConfigurationsManager());
+
+		records.mockRecordProviderToReturnRecordsById(recordProvider);
+		records.mockRecordProviderToReturnRecordById(recordProvider, rootFolderWithTaxonomy);
+		records.mockRecordProviderToReturnRecordById(recordProvider, subFolderWithTaxonomy);
+		records.mockRecordProviderToReturnRecordById(recordProvider, document);
+
+		recordServices.execute(new Transaction(rootFolderWithTaxonomy, subFolderWithTaxonomy, document));
+
+	}
+
+	@Test
+	public void whenCalculatingValueForTaxonomyDependencyThenValueCalculated()
+			throws Exception {
+
+		Metadata calculatedMetadata = schemas
+				.getMetadata(taxonomy1FirstSchema.code() + "_taxo1FirstSchemaMetaWithTaxoDependency");
+
+		when(recordProvider.getRecord(records.taxo1_firstTypeItem1.getId())).thenReturn(records.taxo1_firstTypeItem1);
+
+		services.calculateValueInRecord((RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
+				recordProvider);
+
+		assertThat(records.taxo1_firstTypeItem1.get(calculatedMetadata)).isEqualTo("calculatedValue");
+	}
+
+	@Test
+	public void givenRootFolderWithAReferenceToAConceptWithoutTaxonomyRelationshipWhenPreparingParentPathsThenEmpty() {
+
+		records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1
+				.updateAutomaticValue(taxonomy1SecondSchema.allAuthorizations(), authorizations);
+
+		services.addValueForTaxonomyDependency((RecordImpl) rootFolderWithTaxonomy, recordProvider, values,
+				SpecialDependencies.HIERARCHY);
+
+		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1));
+		String expectedTaxonomyCode = null;
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations, expectedTaxonomyCode);
+	}
+
+	@Test
+	public void givenRootFolderUsingTaxonomiesWhenPreparingParentPathsThenReturnPathsOfTaxonomyElements() {
+
+		records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1
+				.updateAutomaticValue(taxonomy1SecondSchema.allAuthorizations(), authorizations);
+
+		services.addValueForTaxonomyDependency((RecordImpl) rootFolderWithTaxonomy, recordProvider, values,
+				SpecialDependencies.HIERARCHY);
+
+		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1));
+		String expectedTaxonomyCode = null;
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations, expectedTaxonomyCode);
+	}
+
+	@Test
+	public void givenChildFolderUsingTaxonomiesWhenPreparingParentPathsThenReturnPathsOfParentUsingIsChildOfRelationshipAndPathsOfTaxonomyElements() {
+
+		records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2
+				.updateAutomaticValue(taxonomy1SecondSchema.allAuthorizations(), Arrays.asList("a", "b"));
+		rootFolderWithTaxonomy
+				.updateAutomaticValue(folderSchema.allAuthorizations(), Arrays.asList("c"));
+
+		services.addValueForTaxonomyDependency((RecordImpl) subFolderWithTaxonomy, recordProvider, values,
+				SpecialDependencies.HIERARCHY);
+
+		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1, rootFolderWithTaxonomy));
+		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2));
+		String expectedTaxonomyCode = null;
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, Arrays.asList("a", "b", "c"),
+				expectedTaxonomyCode);
+
+	}
+
+	@Test
+	public void givenDocumentNotUsingTaxonomiesWhenPreparingParentPathsThenReturnPathsOfParentUsingIsChildOfRelationship() {
+
+		subFolderWithTaxonomy
+				.updateAutomaticValue(folderSchema.allAuthorizations(), authorizations);
+
+		services.addValueForTaxonomyDependency((RecordImpl) document, recordProvider, values,
+				SpecialDependencies.HIERARCHY);
+
+		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1, rootFolderWithTaxonomy, subFolderWithTaxonomy));
+		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2,
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2, subFolderWithTaxonomy));
+		String expectedTaxonomyCode = null;
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations,
+				expectedTaxonomyCode);
+
+	}
+
+	@Test
+	public void givenFirstTypeTaxonomyElementWhenPreparingParentPathThenReturnPathsOfParentWithChildOfRelation() {
+
+		records.taxo1_firstTypeItem2.updateAutomaticValue(taxonomy1FirstSchema.allAuthorizations(), authorizations);
+
+		services.addValueForTaxonomyDependency((RecordImpl) records.taxo1_firstTypeItem2_firstTypeItem2, recordProvider, values,
+				SpecialDependencies.HIERARCHY);
+
+		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2));
+		String expectedTaxonomyCode = "taxo1";
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations, expectedTaxonomyCode);
+
+	}
+
+	@Test
+	public void givenSecondTypeTaxonomyElementWhenPreparingParentPathThenReturnPathsOfParentWithChildOfRelation() {
+
+		records.taxo1_firstTypeItem2_firstTypeItem2
+				.updateAutomaticValue(taxonomy1FirstSchema.allAuthorizations(), authorizations);
+
+		services.addValueForTaxonomyDependency((RecordImpl) records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1,
+				recordProvider, values, SpecialDependencies.HIERARCHY);
+
+		expectedPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem2));
+		String expectedTaxonomyCode = "taxo1";
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, authorizations, expectedTaxonomyCode);
+
+	}
+
+	@Test
+	public void givenRootFirstTypeTaxonomyElementWhenPreparingParentPathThenReturnTaxonomyPathAndAuthorizations() {
+
+		services.addValueForTaxonomyDependency((RecordImpl) records.taxo1_firstTypeItem2,
+				recordProvider, values, SpecialDependencies.HIERARCHY);
+
+		String expectedTaxonomyCode = "taxo1";
+		assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(expectedPaths, new ArrayList<String>(),
+				expectedTaxonomyCode);
+	}
+
+	private void assertThatValuesOnlyContainsSpecialObjectWithPathsAndTaxonomies(List<String> expectedPaths,
+			List<String> expectedParentAuthorizations, String expectedTaxonomyCode) {
+
+		assertThat(values).containsKey(SpecialDependencies.HIERARCHY).hasSize(1);
+		HierarchyDependencyValue hierarchyDependencyValue = (HierarchyDependencyValue) values.get(SpecialDependencies.HIERARCHY);
+
+		if (expectedTaxonomyCode == null) {
+			assertThat(hierarchyDependencyValue.getTaxonomy()).isNull();
+		} else {
+			assertThat(hierarchyDependencyValue.getTaxonomy()).isNotNull();
+			assertThat(hierarchyDependencyValue.getTaxonomy().getCode()).isEqualTo(expectedTaxonomyCode);
+		}
+
+		assertThat(hierarchyDependencyValue.getPaths()).containsAll(expectedPaths).hasSize(expectedPaths.size());
+		assertThat(hierarchyDependencyValue.getParentAuthorizations()).containsAll(expectedParentAuthorizations)
+				.hasSize(expectedParentAuthorizations.size());
+	}
+
+	private void assertThatPathIsEqualTo(Record record, String path) {
+		Metadata pathMetadata = schemas.getMetadata(record.getSchemaCode() + "_path");
+		assertThat(record.get(pathMetadata)).isEqualTo(Arrays.asList(path));
+	}
+
+	private void assertThatPathIsEqualTo(Record record, List<String> paths) {
+		Metadata pathMetadata = schemas.getMetadata(record.getSchemaCode() + "_path");
+		assertThat(record.get(pathMetadata)).isEqualTo(paths);
+	}
+
+	public static class DummyCalculatorWithTaxonomyDependency implements MetadataValueCalculator<String> {
+
+		SpecialDependency<HierarchyDependencyValue> taxonomies = SpecialDependencies.HIERARCHY;
+
+		@Override
+		public String calculate(CalculatorParameters parameters) {
+			return "calculatedValue";
+		}
+
+		@Override
+		public String getDefaultValue() {
+			return null;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return MetadataValueType.STRING;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(taxonomies);
+		}
+	}
+}

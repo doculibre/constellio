@@ -1,0 +1,434 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.schemas.builders;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.schemas.SchemaComparators;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.DependencyUtils;
+import com.constellio.model.utils.DependencyUtilsRuntimeException;
+
+public class MetadataSchemaTypesBuilder {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataSchemaTypesBuilder.class);
+
+	private static final String UNDERSCORE = "_";
+	private static final String DEFAULT = "default";
+	private final int version;
+	private final Set<MetadataSchemaTypeBuilder> schemaTypes = new HashSet<MetadataSchemaTypeBuilder>();
+	private final String collection;
+
+	private MetadataSchemaTypesBuilder(String collection, int version) {
+		super();
+		this.collection = collection;
+		this.version = version;
+	}
+
+	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types) {
+		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollection(), types.getVersion());
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			typesBuilder.schemaTypes.add(MetadataSchemaTypeBuilder.modifySchemaType(type));
+		}
+		return typesBuilder;
+	}
+
+	public static MetadataSchemaTypesBuilder createWithVersion(String collection, int version) {
+		return new MetadataSchemaTypesBuilder(collection, version);
+	}
+
+	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, TaxonomiesManager taxonomiesManager) {
+
+		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
+		validateAutomaticMetadatas();
+
+		List<MetadataSchemaType> buildedSchemaTypes = new ArrayList<>();
+		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
+			buildedSchemaTypes.add(schemaType.build(typesFactory, taxonomiesManager));
+		}
+
+		Collections.sort(buildedSchemaTypes, SchemaComparators.SCHEMA_TYPE_COMPARATOR_BY_ASC_CODE);
+
+		return new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies);
+	}
+
+	public MetadataSchemaTypeBuilder createNewSchemaType(String code) {
+		return createNewSchemaType(code, true);
+	}
+
+	public MetadataSchemaTypeBuilder createNewSchemaType(String code, boolean initialize) {
+		MetadataSchemaTypeBuilder typeBuilder;
+		if (hasSchemaType(code)) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent(code);
+		}
+
+		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collection, code, this, initialize).setLabel(code);
+
+		schemaTypes.add(typeBuilder);
+		return typeBuilder;
+	}
+
+	public boolean hasSchemaType(String code) {
+		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
+			if (schemaType.getCode().equals(code)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public MetadataSchemaTypeBuilder getSchemaType(String code) {
+		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
+			if (schemaType.getCode().equals(code)) {
+				return schemaType;
+			}
+		}
+		throw new MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType(code);
+	}
+
+	public List<MetadataSchemaTypeBuilder> getTypes() {
+		List<MetadataSchemaTypeBuilder> types = new ArrayList<>();
+		types.addAll(schemaTypes);
+		return Collections.unmodifiableList(types);
+	}
+
+	public MetadataSchemaTypeBuilder getOrCreateNewSchemaType(String code) {
+		try {
+			return getSchemaType(code);
+		} catch (Exception e) {
+			LOGGER.debug("No schema type with code '{}', creating one", code, e);
+			return createNewSchemaType(code);
+		}
+	}
+
+	public MetadataSchemaBuilder getDefaultSchema(String typeCode) {
+		return getSchemaType(typeCode).getDefaultSchema();
+	}
+
+	public MetadataSchemaBuilder getSchema(String code) {
+
+		String[] parsedCode = code.split(UNDERSCORE);
+
+		if (parsedCode.length > 2) {
+			throw new InvalidCodeFormat(code);
+		}
+
+		String typeCode = parsedCode[0];
+		String schemaCode = parsedCode[1];
+
+		MetadataSchemaTypeBuilder schemaType = getSchemaType(typeCode);
+		MetadataSchemaBuilder schema = null;
+		if (schemaCode.equals(DEFAULT)) {
+			schema = schemaType.getDefaultSchema();
+		} else {
+			schema = schemaType.getCustomSchema(schemaCode);
+		}
+
+		if (schema == null) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.NoSuchSchema(code);
+		} else {
+			return schema;
+		}
+	}
+
+	public MetadataBuilder getMetadata(String code) {
+		String[] parsedCode = code.split(UNDERSCORE);
+
+		String typeCode;
+		String schemaCode;
+		String metadataCode;
+
+		if (parsedCode.length == 3) {
+			typeCode = parsedCode[0];
+			schemaCode = parsedCode[1];
+			metadataCode = parsedCode[2];
+		} else {
+			throw new InvalidCodeFormat(code);
+		}
+
+		MetadataSchemaTypeBuilder schemaType = getSchemaType(typeCode);
+		MetadataBuilder metadata = null;
+		if (schemaCode.equals(DEFAULT)) {
+			metadata = schemaType.getDefaultSchema().getMetadata(metadataCode);
+		} else {
+			metadata = schemaType.getCustomSchema(schemaCode).getMetadata(metadataCode);
+		}
+		if (metadata == null) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.NoSuchMetadata(metadataCode);
+		} else {
+			return metadata;
+		}
+	}
+
+	public int getVersion() {
+		return version;
+	}
+
+	@Override
+	public String toString() {
+		return "MetadataSchemaTypesBuilder [version=" + version + ", schemaTypes=" + schemaTypes + "]";
+	}
+
+	public Set<MetadataBuilder> getAllMetadatas() {
+		Set<MetadataBuilder> metadatas = new HashSet<>();
+		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
+			add(metadatas, schemaType);
+		}
+		return metadatas;
+	}
+
+	public Set<MetadataBuilder> getAllCopiedMetadatas() {
+		Set<MetadataBuilder> copiedMetadatas = new HashSet<>();
+		for (MetadataBuilder metadataBuilder : getAllMetadatas()) {
+			if (metadataBuilder.getDataEntry() != null && metadataBuilder.getDataEntry().getType() == DataEntryType.COPIED) {
+				copiedMetadatas.add(metadataBuilder);
+			}
+		}
+		return copiedMetadatas;
+	}
+
+	public Set<MetadataBuilder> getAllCalculatedMetadatas() {
+		Set<MetadataBuilder> calculatedMetadatas = new HashSet<>();
+		for (MetadataBuilder metadataBuilder : getAllMetadatas()) {
+			if (metadataBuilder.getDataEntry() != null && metadataBuilder.getDataEntry().getType() == DataEntryType.CALCULATED) {
+				calculatedMetadatas.add(metadataBuilder);
+			}
+		}
+		return calculatedMetadatas;
+	}
+
+	List<String> validateNoCyclicDependenciesBetweenSchemas() {
+		Map<String, Set<String>> typesDependencies = new HashMap<>();
+		for (MetadataSchemaTypeBuilder metadataSchemaType : schemaTypes) {
+			Set<String> types = new HashSet<>();
+			for (MetadataBuilder metadata : metadataSchemaType.getAllMetadatas()) {
+				if (metadata.getType() == REFERENCE) {
+					if (metadata.allowedReferencesBuilder == null) {
+						throw new MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences(metadata.getCode());
+					}
+					types.add(metadata.allowedReferencesBuilder.getSchemaType());
+					for (String schema : metadata.allowedReferencesBuilder.getSchemas()) {
+						types.add(newSchemaUtils().getSchemaTypeCode(schema));
+					}
+				}
+			}
+			typesDependencies.put(metadataSchemaType.getCode(), types);
+		}
+		try {
+			return newDependencyUtils().sortByDependency(typesDependencies, null);
+		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas(e);
+		}
+	}
+
+	SchemaUtils newSchemaUtils() {
+		return new SchemaUtils();
+	}
+
+	DependencyUtils<String> newDependencyUtils() {
+		return new DependencyUtils<>();
+	}
+
+	public Map<String, Set<String>> getTypesDependencies() {
+		Map<String, Set<String>> typesDepencencies = new HashMap<>();
+		for (MetadataSchemaTypeBuilder type : this.schemaTypes) {
+			Set<String> dependencies = getSchemaDependenciesOf(type);
+			if (!dependencies.isEmpty()) {
+				typesDepencencies.put(type.getCode(), dependencies);
+			}
+		}
+		return typesDepencencies;
+
+	}
+
+	public Set<String> getSchemaDependenciesOf(MetadataSchemaTypeBuilder type) {
+		Set<String> otherSchemaTypesReferences = new HashSet<>();
+		for (MetadataBuilder metadata : type.getAllMetadatas()) {
+			if (metadata.getType() == REFERENCE) {
+				otherSchemaTypesReferences.addAll(getSchemaTypeReferences(metadata));
+			}
+		}
+		return otherSchemaTypesReferences;
+	}
+
+	private void add(Set<MetadataBuilder> metadatas, MetadataSchemaTypeBuilder schemaType) {
+		for (MetadataSchemaBuilder schemaBuilder : schemaType.getAllSchemas()) {
+			metadatas.addAll(schemaBuilder.getMetadatas());
+		}
+	}
+
+	private void validateAutomaticMetadatas() {
+		validateCopiedMetadatas();
+		validateCalculedMetadatas();
+	}
+
+	private void validateCopiedMetadatas() {
+		for (MetadataBuilder metadataBuilder : getAllCopiedMetadatas()) {
+			CopiedDataEntry copiedDataEntry = (CopiedDataEntry) metadataBuilder.getDataEntry();
+			String referenceMetadataCode = copiedDataEntry.getReferenceMetadata();
+			MetadataBuilder referenceMetadata = getMetadata(referenceMetadataCode);
+			String copiedMetadataCode = copiedDataEntry.getCopiedMetadata();
+			MetadataBuilder copiedMetadata = getMetadata(copiedMetadataCode);
+			validateCopiedMetadataMultiValues(metadataBuilder, referenceMetadataCode, referenceMetadata, copiedMetadataCode,
+					copiedMetadata);
+			validateCopiedMetadataType(metadataBuilder, copiedMetadata);
+		}
+	}
+
+	private void validateCalculedMetadatas() {
+		for (MetadataBuilder metadataBuilder : getAllCalculatedMetadatas()) {
+			CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadataBuilder.getDataEntry();
+			validateCalculatedMultivalue(metadataBuilder, calculatedDataEntry);
+			MetadataValueType valueTypeMetadataCalculated = calculatedDataEntry.getCalculator().getReturnType();
+			List<? extends Dependency> dependencies = calculatedDataEntry.getCalculator().getDependencies();
+			if (dependencies == null || dependencies.size() == 0) {
+				throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
+						.getCalculator().getClass().getName());
+			}
+			if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
+				String valueTypeName = valueTypeMetadataCalculated == null ? "'null'" : valueTypeMetadataCalculated.name();
+				throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
+						metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeName);
+			}
+			validateDependenciesTypes(metadataBuilder, dependencies, valueTypeMetadataCalculated);
+		}
+	}
+
+	private void validateCalculatedMultivalue(MetadataBuilder metadataBuilder, CalculatedDataEntry calculatedDataEntry) {
+		if (metadataBuilder.isMultivalue() && !calculatedDataEntry.getCalculator().isMultiValue()) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateASingleValueInAMultiValueMetadata(
+					metadataBuilder.getCode(), calculatedDataEntry.getCalculator().getClass().getName());
+		} else if (!metadataBuilder.isMultivalue() && calculatedDataEntry.getCalculator().isMultiValue()) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateAMultiValueInASingleValueMetadata(
+					metadataBuilder.getCode(), calculatedDataEntry.getCalculator().getClass().getName());
+		}
+	}
+
+	private void validateDependenciesTypes(MetadataBuilder metadataBuilder, List<? extends Dependency> dependencies,
+			MetadataValueType valueTypeMetadataCalculated) {
+		for (Dependency dependency : dependencies) {
+			if (dependency instanceof ReferenceDependency) {
+				validateReferencedDependency(metadataBuilder, valueTypeMetadataCalculated, dependency);
+			} else if (dependency instanceof LocalDependency) {
+				validateLocalDependency(metadataBuilder, valueTypeMetadataCalculated, dependency);
+			}
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	private void validateLocalDependency(MetadataBuilder metadataBuilder, MetadataValueType valueTypeMetadataCalculated,
+			Dependency dependency) {
+		LocalDependency localDependency = (LocalDependency) dependency;
+		String schemaCompleteCode = new SchemaUtils().getSchemaCode(metadataBuilder);
+		MetadataBuilder dependencyMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
+		if (dependencyMetadataBuilder.getType() != localDependency.getReturnType()) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
+					metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated.name());
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	private void validateReferencedDependency(MetadataBuilder metadataBuilder, MetadataValueType valueTypeMetadataCalculated,
+			Dependency dependency) {
+
+		ReferenceDependency referenceDependency = (ReferenceDependency) dependency;
+		String schemaCompleteCode = new SchemaUtils().getSchemaCode(metadataBuilder);
+		MetadataBuilder dependencyRefMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
+		if (dependencyRefMetadataBuilder.getAllowedReferencesBuider() != null) {
+			String dependencyMetaCompleteCode = dependencyRefMetadataBuilder.getAllowedReferencesBuider()
+					.getMetadataCompleteCode(referenceDependency.getDependentMetadataCode());
+			MetadataBuilder dependencyMetadata;
+			try {
+				dependencyMetadata = getMetadata(dependencyMetaCompleteCode);
+			} catch (MetadataSchemaBuilderRuntimeException e) {
+				throw new MetadataSchemaTypesBuilderRuntimeException.InvalidDependencyMetadata(dependencyMetaCompleteCode, e);
+			}
+			if (dependencyMetadata.getType() != referenceDependency.getReturnType()
+					|| dependencyRefMetadataBuilder.getType() != MetadataValueType.REFERENCE) {
+				throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
+						metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated.name());
+			} else if (!dependencyMetadata.getCode().contains(DEFAULT)) {
+				throw new MetadataSchemaTypesBuilderRuntimeException.CannotUseACustomMetadataForCalculation(
+						dependencyMetadata.getCode());
+			}
+		} else {
+			throw new MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences(
+					dependencyRefMetadataBuilder.getCode());
+		}
+
+	}
+
+	private void validateCopiedMetadataType(MetadataBuilder metadataBuilder, MetadataBuilder copiedMetadata) {
+		if (metadataBuilder.getType() != copiedMetadata.getType()) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCopyADifferentTypeInMetadata(
+					metadataBuilder.getCode(), metadataBuilder.getType().name(), copiedMetadata.getCode(),
+					copiedMetadata.getType().name());
+		} else if (!copiedMetadata.getCode().contains(DEFAULT)) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCopyACustomMetadata(copiedMetadata.getCode());
+		}
+	}
+
+	private void validateCopiedMetadataMultiValues(MetadataBuilder metadataBuilder, String referenceMetadataCode,
+			MetadataBuilder referenceMetadata, String copiedMetadataCode, MetadataBuilder copiedMetadata) {
+		if (!metadataBuilder.isMultivalue() && (referenceMetadata.isMultivalue() || copiedMetadata.isMultivalue())) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCopyMultiValueInSingleValueMetadata(
+					metadataBuilder.getCode(), referenceMetadataCode, copiedMetadataCode);
+		} else if (metadataBuilder.isMultivalue() && !referenceMetadata.isMultivalue() && !copiedMetadata.isMultivalue()) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCopySingleValueInMultiValueMetadata(
+					metadataBuilder.getCode(), referenceMetadataCode, copiedMetadataCode);
+		}
+	}
+
+	private Set<String> getSchemaTypeReferences(MetadataBuilder metadata) {
+		Set<String> schemas = new HashSet<>();
+		for (String schemaCode : metadata.allowedReferencesBuilder.getSchemas()) {
+			schemas.add(schemaCode.split("_")[0]);
+		}
+		if (metadata.allowedReferencesBuilder.getSchemaType() != null) {
+			schemas.add(metadata.allowedReferencesBuilder.getSchemaType());
+		}
+		return schemas;
+	}
+
+	public String getCollection() {
+		return collection;
+	}
+}

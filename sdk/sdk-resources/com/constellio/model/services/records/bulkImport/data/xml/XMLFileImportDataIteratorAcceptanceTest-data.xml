@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records datetimePattern="yyyy-MM-dd HH:mm:ss:SSS" datePattern="yyyy-MM-dd" >
+    <record id = "1" schema = "default">
+        <title>Ze title</title>
+        <createdOn type="datetime">2010-04-29 09:31:46:235</createdOn>
+        <referenceToAnotherSchema>42</referenceToAnotherSchema>
+    </record>
+    <record id = "42">
+        <title>Another title</title>
+        <referenceToAThirdSchema>666</referenceToAThirdSchema>
+        <zeEmptyField> </zeEmptyField>
+    </record>
+    <record id = "666" schema = "customSchema">
+        <title>A third title</title>
+        <createdOn type="date">2010-04-29</createdOn>
+        <modifyOn type="date" multivalue="true">
+        	<item>2010-05-15</item>
+        	<item>2010-05-16</item> 
+        </modifyOn>
+        <zeNullField>null</zeNullField>
+        <keywords multivalue = "true">
+        	<item>keyword1</item>
+        	<item>keyword2</item>
+        </keywords>
+    </record>
+    <record id = "22">
+        <createdOn type="date">2015/04/31</createdOn>
+    </record>
+</records>

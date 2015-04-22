@@ -1,0 +1,206 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.contents;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.MetadataList;
+
+public class ContentModificationsBuilder {
+
+	MetadataSchemaTypes metadataSchemaTypes;
+
+	public ContentModificationsBuilder(MetadataSchemaTypes metadataSchemaTypes) {
+		this.metadataSchemaTypes = metadataSchemaTypes;
+	}
+
+	public ContentModifications buildForModifiedRecords(List<Record> records) {
+		Set<String> originalRecordHashes = new HashSet<>();
+		Set<String> recordHashes = new HashSet<>();
+
+		for (Record record : records) {
+			if (record.isSaved()) {
+				originalRecordHashes.addAll(getContentHashesOf(record.getCopyOfOriginalRecord()));
+			}
+			recordHashes.addAll(getContentHashesOf(record));
+		}
+
+		ListComparisonResults<String> comparisonResults = LangUtils.compare(originalRecordHashes, recordHashes);
+		return new ContentModifications(comparisonResults.getRemovedItems(), comparisonResults.getNewItems());
+	}
+
+	public List<String> buildForDeletedRecords(List<Record> records) {
+
+		Set<String> allHashes = new HashSet<>();
+		for (Record record : records) {
+			if (record.isSaved()) {
+				allHashes.addAll(getContentHashesOf(record.getCopyOfOriginalRecord()));
+			}
+			allHashes.addAll(getContentHashesOf(record));
+		}
+
+		return new ArrayList<>(allHashes);
+	}
+
+	List<Content> getAllContentsOfRecords(Record record) {
+		List<Content> contents = new ArrayList<>();
+		MetadataSchema schema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+		for (Metadata metadata : new MetadataList(schema.getMetadatas()).onlyWithType(MetadataValueType.CONTENT)) {
+			if (metadata.isMultivalue()) {
+				List<ContentImpl> metadataContents = record.getList(metadata);
+				for (ContentImpl metadataContent : metadataContents) {
+					contents.add(metadataContent);
+				}
+			} else {
+				ContentImpl metadataContent = record.get(metadata);
+				if (metadataContent != null) {
+					contents.add(metadataContent);
+				}
+			}
+		}
+		return contents;
+	}
+	//
+	//	List<Metadata> getModifiedContentMetadatas(Record record) {
+	//		RecordImpl recordImpl = (RecordImpl) record;
+	//		List<Metadata> schemaMetadatas = metadataSchemaTypes.getSchema(record.getSchemaCode()).getMetadatas();
+	//		List<Metadata> modifiedContentMetadatas = new ArrayList<>();
+	//		Map<String, Object> modifiedMetadatas = recordImpl.getModifiedValues();
+	//		for (Metadata schemaMetadata : schemaMetadatas) {
+	//			if (schemaMetadata.getType() == MetadataValueType.CONTENT && modifiedMetadatas
+	//					.containsKey(schemaMetadata.getDataStoreCode())) {
+	//				modifiedContentMetadatas.add(schemaMetadata);
+	//			}
+	//		}
+	//		return modifiedContentMetadatas;
+	//	}
+	//
+	//	List<Content> getModifiedContentsOfModifiedRecords(Record record) {
+	//		List<Content> modifiedContents = new ArrayList<>();
+	//		for (Metadata metadata : getModifiedContentMetadatas(record)) {
+	//			if (metadata.isMultivalue()) {
+	//				List<ContentImpl> metadataContents = record.getList(metadata);
+	//				for (ContentImpl metadataContent : metadataContents) {
+	//					if (metadataContent.getNextContentVersionInputStream() != null) {
+	//						modifiedContents.add(metadataContent);
+	//					}
+	//				}
+	//			} else {
+	//				ContentImpl metadataContent = record.get(metadata);
+	//				if (metadataContent != null && metadataContent.getNextContentVersionInputStream() != null) {
+	//					modifiedContents.add(metadataContent);
+	//				}
+	//			}
+	//		}
+	//		return modifiedContents;
+	//	}
+	//
+	//	List<String> getRemovedContentsOfModifiedRecords(RecordImpl record) {
+	//		List<String> removedContentHashes = new ArrayList<>();
+	//		List<Content> previousDeletedMetadataContents = new ArrayList<>();
+	//		for (Metadata metadata : getModifiedContentMetadatas(record)) {
+	//			if (metadata.isMultivalue()) {
+	//				List<Content> metadataContents = record.getList(metadata);
+	//				for (Content metadataContent : metadataContents) {
+	//					if (metadataContent.isDirty() && metadataContent.getCurrentCheckedOutVersion() != null) {
+	//						removedContentHashes.add(metadataContent.getCurrentCheckedOutVersion().getHash());
+	//					}
+	//				}
+	//				if (record.getLoadedStructuredValues() != null) {
+	//					List<Content> previousMetadataContents = (List<Content>) record.getLoadedStructuredValues()
+	//							.get(metadata.getDataStoreCode());
+	//					previousDeletedMetadataContents.addAll(getPreviousDeleteContents(previousMetadataContents,
+	//							metadataContents));
+	//				}
+	//
+	//			} else {
+	//				Content metadataContent = record.get(metadata);
+	//				if (metadataContent != null && metadataContent.isDirty()
+	//						&& metadataContent.getCurrentCheckedOutVersion() != null && !metadataContent.getCurrentCheckedOutVersion()
+	//						.hasSameHash(metadataContent.getCurrentVersion())) {
+	//					removedContentHashes.add(metadataContent.getCurrentCheckedOutVersion().getHash());
+	//				}
+	//				if (record.getLoadedStructuredValues() != null) {
+	//					Content previousContent = (Content) record.getLoadedStructuredValues().get(metadata.getDataStoreCode());
+	//					if (previousContent != null && (metadataContent == null || !metadataContent.getId().equals(
+	//							previousContent.getId()))) {
+	//						previousDeletedMetadataContents.add(previousContent);
+	//					}
+	//				}
+	//			}
+	//		}
+	//		for (Content previousContent : previousDeletedMetadataContents) {
+	//			addAllVersionHashes(removedContentHashes, previousContent);
+	//		}
+	//		return removedContentHashes;
+	//	}
+
+	private void addAllVersionHashes(List<String> removedContentHashes, Content previousContent) {
+
+		removedContentHashes.add(previousContent.getCurrentVersion().getHash());
+		if (previousContent.getCurrentCheckedOutVersion() != null) {
+			removedContentHashes.add(previousContent.getCurrentCheckedOutVersion().getHash());
+		}
+		for (ContentVersion historyVersion : previousContent.getHistoryVersions()) {
+			removedContentHashes.add(historyVersion.getHash());
+		}
+	}
+
+	private List<Content> getPreviousDeleteContents(List<Content> previousMetadataContents, List<Content> metadataContents) {
+		List<Content> removedContents = new ArrayList<>();
+		for (Content previousMetadataContent : previousMetadataContents) {
+			if (!hasContentWithId(metadataContents, previousMetadataContent.getId())) {
+				removedContents.add(previousMetadataContent);
+			}
+		}
+
+		return removedContents;
+	}
+
+	private boolean hasContentWithId(List<Content> contents, String id) {
+		for (Content current : contents) {
+			if (id.equals(current.getId())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	List<String> getContentHashesOf(Record record) {
+		List<String> hashes = new ArrayList<>();
+
+		for (Content content : getAllContentsOfRecords(record)) {
+			addAllVersionHashes(hashes, content);
+		}
+
+		return hashes;
+	}
+
+}

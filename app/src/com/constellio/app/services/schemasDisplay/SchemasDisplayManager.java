@@ -1,0 +1,281 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.services.schemasDisplay;
+
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jdom2.Document;
+
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
+import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
+import com.constellio.model.utils.XMLConfigReader;
+
+public class SchemasDisplayManager
+		implements OneXMLConfigPerCollectionManagerListener<SchemasDisplayManagerCache>, StatefulService {
+
+	private static final String SCHEMAS_DISPLAY_CONFIG = "/schemasDisplay.xml";
+
+	private ConfigManager configManager;
+
+	private CollectionsListManager collectionsListManager;
+
+	private OneXMLConfigPerCollectionManager<SchemasDisplayManagerCache> oneXMLConfigPerCollectionManager;
+
+	private MetadataSchemasManager metadataSchemasManager;
+
+	public SchemasDisplayManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
+			MetadataSchemasManager metadataSchemasManager) {
+		this.configManager = configManager;
+		this.collectionsListManager = collectionsListManager;
+		this.metadataSchemasManager = metadataSchemasManager;
+	}
+
+	public void execute(final SchemaDisplayManagerTransaction transaction) {
+		String collection = transaction.getCollection();
+		if (collection != null) {
+			oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
+				@Override
+				public void alter(Document document) {
+					SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+					if (transaction.getModifiedCollectionTypes() != null) {
+						writer.saveTypes(transaction.getModifiedCollectionTypes());
+					}
+
+					for (SchemaTypeDisplayConfig typeDisplayConfig : transaction.getModifiedTypes()) {
+						writer.saveType(typeDisplayConfig);
+					}
+
+					for (SchemaDisplayConfig schemaDisplayConfig : transaction.getModifiedSchemas()) {
+						writer.saveSchema(schemaDisplayConfig);
+					}
+
+					for (MetadataDisplayConfig metadataDisplayConfig : transaction.getModifiedMetadatas()) {
+						writer.saveMetadata(metadataDisplayConfig);
+					}
+				}
+			});
+		}
+	}
+
+	public void saveTypes(final SchemaTypesDisplayConfig config) {
+		String collection = config.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+				writer.saveTypes(config);
+			}
+		});
+	}
+
+	public void saveType(final SchemaTypeDisplayConfig config) {
+		String collection = config.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+				writer.saveType(config);
+			}
+		});
+	}
+
+	public void saveSchema(final SchemaDisplayConfig config) {
+		String collection = config.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+				writer.saveSchema(config);
+			}
+		});
+	}
+
+	public void saveMetadata(final MetadataDisplayConfig config) {
+		String collection = config.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+				writer.saveMetadata(config);
+			}
+		});
+	}
+
+	public SchemasDisplayManagerCache getCacheForCollection(String collection) {
+		return oneXMLConfigPerCollectionManager.get(collection);
+	}
+
+	public SchemaTypesDisplayConfig getTypes(String collection) {
+		return getCacheForCollection(collection).getTypes();
+	}
+
+	public SchemaTypeDisplayConfig getType(String collection, String typeCode) {
+		if (typeCode.split("_").length != 1) {
+			throw new RuntimeException("Invalid code : " + typeCode);
+		}
+		return getCacheForCollection(collection).getType(typeCode);
+	}
+
+	public SchemaDisplayConfig getSchema(String collection, String schemaCode) {
+		if (schemaCode.split("_").length != 2) {
+			throw new RuntimeException("Invalid code : " + schemaCode);
+		}
+		return getCacheForCollection(collection).getSchema(schemaCode, metadataSchemasManager);
+	}
+
+	public MetadataDisplayConfig getMetadata(String collection, String metadataCode) {
+		if (metadataCode.split("_").length != 3) {
+			throw new RuntimeException("Invalid code : " + metadataCode);
+		}
+		return getCacheForCollection(collection).getMetadata(metadataCode, metadataSchemasManager);
+	}
+
+	public List<SchemaTypeDisplayConfig> getSimpleSearchSchemaTypeConfigs(String collection) {
+		List<SchemaTypeDisplayConfig> simpleSearchSchemaTypes = new ArrayList<>();
+
+		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+			SchemaTypeDisplayConfig typeDisplayConfig = getType(collection, type.getCode());
+			if (typeDisplayConfig.isSimpleSearch()) {
+				simpleSearchSchemaTypes.add(typeDisplayConfig);
+			}
+		}
+
+		return simpleSearchSchemaTypes;
+	}
+
+	public List<SchemaTypeDisplayConfig> getAdvancedSearchSchemaTypeConfigs(String collection) {
+		List<SchemaTypeDisplayConfig> simpleSearchSchemaTypes = new ArrayList<>();
+
+		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+			SchemaTypeDisplayConfig typeDisplayConfig = getType(collection, type.getCode());
+			if (typeDisplayConfig.isAdvancedSearch()) {
+				simpleSearchSchemaTypes.add(typeDisplayConfig);
+			}
+		}
+
+		return simpleSearchSchemaTypes;
+	}
+
+	public List<MetadataDisplayConfig> getAdvancedSearchMetadatas(String collection, String type) {
+		List<MetadataDisplayConfig> metadataDisplayConfigs = new ArrayList<>();
+
+		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(type).getAllMetadatas()) {
+			MetadataDisplayConfig metadataDisplayConfig = getMetadata(collection, metadata.getCode());
+			if (metadataDisplayConfig.isVisibleInAdvancedSearch()) {
+				metadataDisplayConfigs.add(metadataDisplayConfig);
+			}
+		}
+
+		return metadataDisplayConfigs;
+	}
+
+	@Override
+	public void initialize() {
+		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager,
+				SCHEMAS_DISPLAY_CONFIG, xmlConfigReader(), this, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+				writer.writeEmptyDocument();
+			}
+		});
+	}
+
+	private XMLConfigReader<SchemasDisplayManagerCache> xmlConfigReader() {
+		return new XMLConfigReader<SchemasDisplayManagerCache>() {
+			@Override
+			public SchemasDisplayManagerCache read(String collection, Document document) {
+				SchemasDisplayReader5_0_1 reader = new SchemasDisplayReader5_0_1(document);
+				return reader.readSchemaTypesDisplay(collection);
+			}
+		};
+	}
+
+	@Override
+	public void close() {
+		//Nothing to do
+	}
+
+	@Override
+	public void onValueModified(String collection, SchemasDisplayManagerCache newValue) {
+
+	}
+
+	private SchemasDisplayWriter newSchemasDisplayWriter(Document document) {
+		return new SchemasDisplayWriter(document);
+	}
+
+	public void enableAllMetadatasInAdvancedSearch(String collection, String schemaType) {
+
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+
+		SchemaTypeDisplayConfig schemaTypeDisplayConfig = getType(collection, schemaType);
+		if (!schemaTypeDisplayConfig.isAdvancedSearch()) {
+			transaction.getModifiedTypes().add(schemaTypeDisplayConfig.withAdvancedSearchStatus(true));
+		}
+
+		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
+		List<MetadataValueType> restrictedTypes = asList(MetadataValueType.CONTENT, MetadataValueType.STRUCTURE);
+		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
+			if ("id".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered") && !restrictedTypes
+					.contains(metadata.getType()) && !metadata
+					.isSystemReserved())) {
+				transaction.getModifiedMetadatas().add(
+						getMetadata(collection, metadata.getCode()).withVisibleInAdvancedSearchStatus(true));
+			}
+		}
+
+		execute(transaction);
+	}
+
+	public void enableMetadatasInAdvancedSearch(String collection, String schemaType, String... metadatas) {
+
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+
+		SchemaTypeDisplayConfig schemaTypeDisplayConfig = getType(collection, schemaType);
+		if (!schemaTypeDisplayConfig.isAdvancedSearch()) {
+			transaction.getModifiedTypes().add(schemaTypeDisplayConfig.withAdvancedSearchStatus(true));
+		}
+
+		List<String> metadatasToEnable = asList(metadatas);
+		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
+		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
+			if (metadatasToEnable.contains(metadata.getLocalCode()) || metadatasToEnable.contains(metadata.getCode())) {
+				transaction.getModifiedMetadatas().add(
+						getMetadata(collection, metadata.getCode()).withVisibleInAdvancedSearchStatus(true));
+			}
+		}
+
+		execute(transaction);
+	}
+}

@@ -1,0 +1,202 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.api.cmis.accept;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.FolderSchema;
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.DriverTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.setups.Users;
+
+@SlowTest
+@DriverTest
+public class MoveObjectAcceptTest extends ConstellioTest {
+
+	UserServices userServices;
+	TaxonomiesManager taxonomiesManager;
+	MetadataSchemasManager schemasManager;
+	RecordServices recordServices;
+	Users users = new Users();
+	CmisAcceptanceTestSetup zeCollectionSchemas = new CmisAcceptanceTestSetup(zeCollection);
+	FolderSchema folderSchema = zeCollectionSchemas.new FolderSchema();
+	Records zeCollectionRecords;
+	TaxonomiesSearchServices taxonomiesSearchServices;
+
+	Session cmisSession;
+
+	@Before
+	public void setUp()
+			throws Exception {
+
+		userServices = getModelLayerFactory().newUserServices();
+		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
+		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		recordServices = getModelLayerFactory().newRecordServices();
+
+		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
+
+		users.setUp(userServices);
+
+		defineSchemasManager().using(zeCollectionSchemas);
+		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
+		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
+		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
+
+		userServices.addUserToCollection(users.bob(), zeCollection);
+		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
+
+		cmisSession = givenAdminSessionOnZeCollection();
+		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
+	}
+
+	@Test
+	public void whenChangeParentOfSubFolderThenItIsMoved()
+			throws Exception {
+		Record record = zeCollectionRecords.folder2_1;
+		String parentTargetId = zeCollectionRecords.folder1.getId();
+
+		moveObject(record, parentTargetId);
+		assertThat(record.getParentId()).isEqualTo(parentTargetId);
+		assertParentAndPrincipalPath(record, parentTargetId);
+	}
+
+	@Test
+	public void whenChangeParentOfSubCategoryThenItIsMoved()
+			throws Exception {
+		Record record = zeCollectionRecords.taxo1_category2_1;
+		String parentTargetId = zeCollectionRecords.taxo1_category1.getId();
+
+		moveObject(record, parentTargetId);
+		assertThat(record.getParentId()).isEqualTo(parentTargetId);
+		assertParentAndPrincipalPath(record, parentTargetId);
+	}
+
+	@Test
+	public void whenChangeParentOfFolderThenItIsMoved()
+			throws Exception {
+
+		Record record = zeCollectionRecords.folder4;
+		String parentTargetId = zeCollectionRecords.taxo1_category1.getId();
+
+		recordServices.update(record.set(folderSchema.taxonomy1(), parentTargetId));
+
+		//moveObject(record, parentTargetId);
+		assertParentAndPrincipalPath(record, parentTargetId);
+	}
+
+	@Test
+	public void whenChangeParentOfCategoryThenItIsMoved()
+			throws Exception {
+		Record record = zeCollectionRecords.taxo1_category2;
+		String parentTargetId = zeCollectionRecords.taxo1_fond1_1.getId();
+
+		moveObject(record, parentTargetId);
+		assertParentAndPrincipalPath(record, parentTargetId);
+	}
+
+	@Test
+	public void whenChangeParentOfFolderToNonPrincipalConceptTaxonomyThenException()
+			throws Exception {
+		Record record = zeCollectionRecords.folder4;
+		String parentTargetId = zeCollectionRecords.taxo2_station2.getId();
+
+		try {
+			moveObject(record, parentTargetId);
+		} catch (Exception e) {
+			assertThat(e.getMessage()).isEqualTo("Target " + parentTargetId + " record is not in a principal taxonomy");
+		}
+	}
+
+	@Test
+	public void whenChangeParentOfCategoryToNonPrincipalConceptTaxonomyThenException()
+			throws Exception {
+		Record record = zeCollectionRecords.taxo1_category2;
+		String parentTargetId = zeCollectionRecords.taxo2_unit1.getId();
+
+		try {
+			moveObject(record, parentTargetId);
+		} catch (Exception e) {
+			assertThat(e.getMessage()).isEqualTo("Target " + parentTargetId + " record is not in a principal taxonomy");
+		}
+	}
+
+	private void moveObject(Record record, String parentTargetId) {
+		CmisObject object = cmisSession.getObject(record.getId());
+		Holder<String> objectIdHolder = new Holder<String>(object.getId());
+
+		cmisSession.getBinding().getObjectService()
+				.moveObject(cmisSession.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
+
+		recordServices.refresh(record);
+	}
+
+	private Session givenAdminSessionOnZeCollection()
+			throws RecordServicesException {
+		getModelLayerFactory().newAuthenticationService().changePassword(chuckNorris, "1qaz2wsx");
+		return newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
+	}
+
+	private void assertParentAndPrincipalPath(Record record, String parentTargetId) {
+		boolean flag = false;
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		List<Metadata> parentReferencesMetadatas = schema.getParentReferences();
+		List<Metadata> referencesMetadatas = schema.getTaxonomyRelationshipReferences(Arrays.asList(taxonomiesManager
+				.getPrincipalTaxonomy(record.getCollection())));
+
+		List<Metadata> allReferencesMetadatas = new ArrayList<>();
+		allReferencesMetadatas.addAll(parentReferencesMetadatas);
+		allReferencesMetadatas.addAll(referencesMetadatas);
+
+		for (Metadata referenceMetadata : allReferencesMetadatas) {
+			if (record.get(referenceMetadata) != null) {
+				assertThat(record.get(referenceMetadata)).isEqualTo(parentTargetId);
+				assertThat(((String) record.get(Schemas.PRINCIPAL_PATH)).contains(parentTargetId)).isTrue();
+				flag = true;
+			}
+		}
+		if (!flag) {
+			fail();
+		}
+	}
+}

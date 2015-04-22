@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<client>
+    <code>zeCode</code>
+    <name>zeName</name>
+    <plan>zePlan</plan>
+    <installationDate>2014-11-10</installationDate>
+    <supportPlanStart>2014-11-11</supportPlanStart>
+    <supportPlanEnd>2015-11-11</supportPlanEnd>
+</client>
+

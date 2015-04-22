@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="WebApp_ID"
+        version="2.4"
+        xmlns="http://java.sun.com/xml/ns/j2ee"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+     http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+    <context-param>
+        <description>Vaadin production mode</description>
+        <param-name>productionMode</param-name>
+        <param-value>false</param-value>
+    </context-param>
+
+    <servlet>
+        <servlet-name>VaadinServlet</servlet-name>
+        <servlet-class>
+            com.constellio.app.ui.application.ConstellioVaadinServlet
+        </servlet-class>
+
+        <init-param>
+            <param-name>UI</param-name>
+            <param-value>com.constellio.app.ui.application.ConstellioUI</param-value>
+        </init-param>
+        <init-param>
+            <description>
+                Application widgetset
+            </description>
+            <param-name>widgetset</param-name>
+            <param-value>com.constellio.app.ui.application.widgetset.AppWidgetset</param-value>
+        </init-param>
+    </servlet>
+
+    <listener>
+        <listener-class>org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>com.constellio.app.servlet.ConstellioWSServletContextListener</listener-class>
+    </listener>
+
+    <!--
+         A servlet filter that logs all requests in files. Useful for monitoring and debugging.
+         Use it with care! It can generate a huge amount of files and will slow down performance
+         significantly.
+    -->
+    <!--
+    <filter>
+        <filter-name>LoggingFilter</filter-name>
+        <filter-class>org.apache.chemistry.opencmis.server.support.filter.LoggingFilter</filter-class>
+        <init-param>
+            <param-name>LogDir</param-name>
+            <param-value></param-value>
+        </init-param>
+        <init-param>
+            <param-name>PrettyPrint</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>LogHeader</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>Indent</param-name>
+            <param-value>4</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>LoggingFilter</filter-name>
+        <servlet-name>cmisatom10</servlet-name>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>LoggingFilter</filter-name>
+        <servlet-name>cmisatom11</servlet-name>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>LoggingFilter</filter-name>
+        <servlet-name>cmisws10</servlet-name>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>LoggingFilter</filter-name>
+        <servlet-name>cmisws11</servlet-name>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>LoggingFilter</filter-name>
+        <servlet-name>cmisbrowser</servlet-name>
+    </filter-mapping>
+    -->
+
+    <servlet>
+        <servlet-name>cmisws10</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioCmisWebServicesServlet</servlet-class>
+        <init-param>
+            <param-name>cmisVersion</param-name>
+            <param-value>1.0</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>cmisws11</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioCmisWebServicesServlet</servlet-class>
+        <init-param>
+            <param-name>cmisVersion</param-name>
+            <param-value>1.1</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>cmisatom10</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioCmisAtomPubServlet</servlet-class>
+        <init-param>
+            <param-name>callContextHandler</param-name>
+            <param-value>org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler</param-value>
+        </init-param>
+        <init-param>
+            <param-name>cmisVersion</param-name>
+            <param-value>1.0</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>cmisatom11</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioCmisAtomPubServlet</servlet-class>
+        <init-param>
+            <param-name>callContextHandler</param-name>
+            <param-value>org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler</param-value>
+        </init-param>
+        <init-param>
+            <param-name>cmisVersion</param-name>
+            <param-value>1.1</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>cmisbrowser</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioCmisBrowserBindingServlet</servlet-class>
+        <init-param>
+            <param-name>callContextHandler</param-name>
+            <param-value>org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioServletContainer</servlet-class>
+        <!-- Register resources and providers under com.constellio.app.api.admin.services package. -->
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>com.constellio.app.api.admin.services;sct.scc.services.document.rest</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.feature.TracePerRequest</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>Search Service</servlet-name>
+        <servlet-class>com.constellio.app.api.search.SearchWebService</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>Benchmark Service</servlet-name>
+        <servlet-class>com.constellio.app.api.benchmarks.BenchmarkWebService</servlet-class>
+        <init-param>
+            <param-name>numberOfRootCategories</param-name>
+            <param-value>10</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfLevel1Categories</param-name>
+            <param-value>20</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfLevel2Categories</param-name>
+            <param-value>20</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfRootRubrics</param-name>
+            <param-value>10</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfLevel1Rubrics</param-name>
+            <param-value>20</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfLevel2Rubrics</param-name>
+            <param-value>20</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfAdministrativeUnits</param-name>
+            <param-value>10</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfLevel1AdministrativeUnits</param-name>
+            <param-value>10</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfLevel2AdministrativeUnits</param-name>
+            <param-value>100</param-value>
+        </init-param>
+        <init-param>
+            <param-name>numberOfFolders</param-name>
+            <param-value>1000</param-value>
+        </init-param>
+        <init-param>
+            <param-name>contentSamples</param-name>
+            <param-value>C:\constellio-eim-samples</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>VaadinServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>cmisws10</servlet-name>
+        <url-pattern>/services/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>cmisws11</servlet-name>
+        <url-pattern>/services11/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>cmisatom10</servlet-name>
+        <url-pattern>/atom/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>cmisatom11</servlet-name>
+        <url-pattern>/atom11/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>cmisbrowser</servlet-name>
+        <url-pattern>/browser/*</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>60</session-timeout>
+    </session-config>
+
+    <servlet-mapping>
+        <servlet-name>Jersey REST Service</servlet-name>
+        <url-pattern>/rest/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>Search Service</servlet-name>
+        <url-pattern>/select</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>Benchmark Service</servlet-name>
+        <url-pattern>/benchmark</url-pattern>
+    </servlet-mapping>
+</web-app>

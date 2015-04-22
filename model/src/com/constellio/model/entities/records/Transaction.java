@@ -1,0 +1,277 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.entities.records;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.model.entities.records.TransactionRuntimeException.RecordIdCollision;
+import com.constellio.model.entities.records.TransactionRuntimeException.RecordsWithoutIds;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordUtils;
+
+public class Transaction {
+
+	private String id = UUIDV1Generator.newRandomId();
+
+	boolean skippingRequiredValuesValidation = false;
+
+	Map<String, Record> updatedRecordsMap = new HashMap<>();
+	List<Record> records = new ArrayList<>();
+	RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
+
+	Map<String, Record> referencedRecords = new HashMap<>();
+
+	private User user;
+	private String collection;
+
+	public Transaction() {
+	}
+
+	public Transaction(String id) {
+		this.id = id;
+	}
+
+	public Transaction(Record... records) {
+		this(Arrays.asList(records));
+	}
+
+	public Transaction(List<Record> records) {
+		this.records = records;
+
+		if (!records.isEmpty()) {
+			collection = records.get(0).getCollection();
+			validateCollections();
+		}
+	}
+
+	public Transaction(Transaction transaction) {
+		this.records = new ArrayList<>();
+		for (Record record : transaction.getRecords()) {
+			addUpdate(record);
+		}
+		this.recordUpdateOptions = transaction.recordUpdateOptions;
+	}
+
+	public boolean isContainingUpdatedRecord(Record record) {
+		return updatedRecordsMap.containsKey(record.getId());
+	}
+
+	public Transaction addUpdate(Record addUpdateRecord) {
+		if (!addUpdateRecord.isSaved()) {
+			add(addUpdateRecord);
+		} else {
+			update(addUpdateRecord);
+		}
+		return this;
+	}
+
+	public Transaction addUpdate(Record... addUpdateRecords) {
+		for (Record addUpdateRecord : addUpdateRecords) {
+			addUpdate(addUpdateRecord);
+		}
+		return this;
+	}
+
+	public Transaction addUpdate(List<Record> addUpdateRecords) {
+		for (Record addUpdateRecord : addUpdateRecords) {
+			addUpdate(addUpdateRecord);
+		}
+		return this;
+	}
+
+	public <T extends RecordWrapper> T add(T recordWrapper) {
+		this.add(recordWrapper.getWrappedRecord());
+		return recordWrapper;
+	}
+
+	public Transaction addAll(RecordWrapper... recordWrappers) {
+		for (RecordWrapper recordWrapper : recordWrappers) {
+			this.add(recordWrapper.getWrappedRecord());
+		}
+		return this;
+	}
+
+	public Record add(Record addUpdateRecord) {
+		records.add(addUpdateRecord);
+		validateCollection(addUpdateRecord.getCollection());
+		collection = addUpdateRecord.getCollection();
+		return addUpdateRecord;
+	}
+
+	public Transaction update(Record addUpdateRecord) {
+		if (updatedRecordsMap.containsKey(addUpdateRecord.getId())) {
+			if (updatedRecordsMap.get(addUpdateRecord.getId()) != addUpdateRecord) {
+				throw new RecordIdCollision();
+			}
+		} else {
+			updatedRecordsMap.put(addUpdateRecord.getId(), addUpdateRecord);
+			records.add(addUpdateRecord);
+		}
+		validateCollection(addUpdateRecord.getCollection());
+		collection = addUpdateRecord.getCollection();
+		return this;
+	}
+
+	public Transaction update(Record... addUpdateRecords) {
+		for (Record addUpdateRecord : addUpdateRecords) {
+			update(addUpdateRecord);
+		}
+		return this;
+	}
+
+	public Transaction update(List<Record> addUpdateRecords) {
+		for (Record addUpdateRecord : addUpdateRecords) {
+			update(addUpdateRecord);
+		}
+		return this;
+	}
+
+	public RecordUpdateOptions onOptimisticLocking(OptimisticLockingResolution resolution) {
+		return recordUpdateOptions.onOptimisticLocking(resolution);
+	}
+
+	public Transaction setRecordFlushing(RecordsFlushing recordsFlushing) {
+		recordUpdateOptions.setRecordsFlushing(recordsFlushing);
+		return this;
+	}
+
+	public void setOptions(RecordUpdateOptions recordUpdateOptions) {
+		this.recordUpdateOptions = recordUpdateOptions;
+	}
+
+	public List<Record> getSavedRecordWithModification() {
+		List<Record> recordsWithModification = new ArrayList<>();
+		for (Record record : records) {
+			if (record.isSaved() && record.isDirty()) {
+				recordsWithModification.add(record);
+			}
+		}
+		return recordsWithModification;
+	}
+
+	public List<Record> getRecords() {
+		return Collections.unmodifiableList(records);
+	}
+
+	public RecordUpdateOptions getRecordUpdateOptions() {
+		return recordUpdateOptions;
+	}
+
+	public void sortRecords(MetadataSchemaTypes schemaTypes) {
+		records = new RecordUtils().sortRecordsOnDependencies(records, schemaTypes);
+
+	}
+
+	public Transaction setOptimisticLockingResolution(OptimisticLockingResolution resolution) {
+		this.recordUpdateOptions.setOptimisticLockingResolution(resolution);
+		return this;
+	}
+
+	public List<String> getRecordIds() {
+
+		List<String> recordIds = new ArrayList<>();
+
+		for (Record record : records) {
+			if (record.getId() == null) {
+				throw new RecordsWithoutIds();
+			}
+			recordIds.add(record.getId());
+		}
+
+		return Collections.unmodifiableList(recordIds);
+	}
+
+	public List<Record> getModifiedRecords() {
+
+		if (recordUpdateOptions.isFullRewrite()) {
+			return Collections.unmodifiableList(records);
+		} else {
+
+			List<Record> modifiedRecords = new ArrayList<>();
+
+			for (Record record : records) {
+				if (!record.isSaved() || record.isDirty()) {
+					modifiedRecords.add(record);
+				}
+			}
+
+			return Collections.unmodifiableList(modifiedRecords);
+		}
+	}
+
+	public String getCollection() {
+		return collection;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public Transaction setUser(User user) {
+		this.user = user;
+		return this;
+	}
+
+	public boolean isSkippingRequiredValuesValidation() {
+		return skippingRequiredValuesValidation;
+	}
+
+	public Transaction setSkippingRequiredValuesValidation(boolean skippingRequiredValuesValidation) {
+		this.skippingRequiredValuesValidation = skippingRequiredValuesValidation;
+		return this;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	void validateCollection(String collection) {
+		if (this.collection != null && !this.collection.equals(collection)) {
+			throw new TransactionRuntimeException.DifferentCollectionsInRecords(this.collection, collection);
+		}
+	}
+
+	void validateCollections() {
+		for (Record record : records) {
+			validateCollection(record.getCollection());
+		}
+	}
+
+	public void addReferencedRecord(Record record) {
+		referencedRecords.put(record.getId(), record);
+	}
+
+	public Map<String, Record> getReferencedRecords() {
+		return referencedRecords;
+	}
+
+	public Record getReferencedRecord(String id) {
+		return referencedRecords.get(id);
+	}
+
+}

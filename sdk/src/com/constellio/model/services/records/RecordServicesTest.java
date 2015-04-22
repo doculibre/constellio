@@ -1,0 +1,989 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.records;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
+import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
+import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
+import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.ModificationImpact;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentModifications;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
+import com.constellio.model.services.records.RecordServicesRuntimeException.UserCannotReadDocument;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.ModificationImpactCalculator;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+
+public class RecordServicesTest extends ConstellioTest {
+
+	private final Long theDocumentCount = aLong();
+	long theNewVersion = 9L;
+
+	Map<String, Object> dtoValues = asMap("schema_string", (Object) "schematype_default", "collection_s", "zeCollection");
+	RecordDTO firstSearchResult = new RecordDTO("1", 1, null, dtoValues);
+	RecordDTO secondSearchResult = new RecordDTO("2", 1, null, dtoValues);
+	List<RecordDTO> theSearchResults = Arrays.asList(firstSearchResult, secondSearchResult);
+	RecordDTO recordDTO = new RecordDTO("3", 1, null, dtoValues);
+	@Mock RecordDeltaDTO deltaDTO;
+	DataStoreTypesFactory typesFactory = new FakeDataStoreTypeFactory();
+	@Mock MetadataSchemasManager schemaManager;
+	@Mock RecordDao recordDao;
+	@Mock RecordDao eventsDao;
+	@Mock RecordDao notificationsDao;
+	@Mock RecordValidationServices validationServices;
+	@Mock RecordAutomaticMetadataServices automaticMetadataServices;
+	@Mock ContentManager contentManager;
+	@Mock RecordModificationImpactHandler recordModificationImpactHandler;
+	@Mock CollectionsListManager collectionsListManager;
+	ModelLayerExtensions extensions = new ModelLayerExtensions();
+
+	long firstVersion = anInteger();
+	long secondVersion = anInteger();
+	TestRecord record, otherRecord, savedRecord, otherSavedRecord, recordWithATitleAndStringMetadataValue,
+			anotherRecordWithATitleAndStringMetadataValue;
+	String theFreeTextSearch = aString();
+	String theId = aString();
+	String anotherSavedDocumentId = aString();
+	TestsSchemasSetup schemas;
+	ZeSchemaMetadatas zeSchema;
+	RecordServices recordServices;
+	String theTitle = aString();
+	String theStringMetadata = aString();
+	String anotherTitle = aString();
+	String anotherStringMetadata = aString();
+
+	@Mock Metadata firstReindexedMetadata, secondReindexedMetadata;
+	TransactionRecordsReindexation reindexedMetadata;
+	long firstUpdatedRecordVersion = aLong();
+	long secondUpdatedRecordVersion = aLong();
+	long firstAddedRecordVersion = aLong();
+	long secondAddedRecordVersion = aLong();
+	String firstUpdatedRecordId = "firstUpdatedRecordId";
+	String secondUpdatedRecordId = "secondUpdatedRecordId";
+	String firstAddedRecordId = "firstAddedRecordId";
+	String secondAddedRecordId = "secondAddedRecordId";
+
+	@Mock ModificationImpact aModificationImpact;
+	@Mock ModificationImpact anotherModificationImpact;
+
+	@Mock BatchProcessesManager batchProcessesManager;
+
+	@Mock SearchServices searchServices;
+
+	@Mock ModelLayerFactory modelFactory;
+
+	@Mock Metadata firstMetadataToReindex;
+	@Mock Metadata secondMetadataToReindex;
+	@Mock Metadata thirdMetadataToReindex;
+
+	@Mock LogicalSearchCondition firstSearchCondition;
+	@Mock LogicalSearchCondition secondSearchCondition;
+
+	@Mock RecordImpl firstRecordConditionRecord1;
+	@Mock RecordImpl firstRecordConditionRecord2;
+	@Mock RecordImpl secondRecordConditionRecord1;
+	@Mock RecordImpl secondRecordConditionRecord2;
+
+	@Mock TransactionRecordsReindexation alreadyReindexedMetadata;
+
+	@Mock OptimisticLocking optimisticLockingException;
+
+	@Mock TransactionResponseDTO transactionResponseDTO;
+
+	String firstRecordId = aString();
+	String secondRecordId = aString();
+	String thirdRecordId = aString();
+
+	long firstRecordVersion = aLong();
+	long secondRecordVersion = aLong();
+	long thirdRecordVersion = aLong();
+
+	@Mock RecordImpl firstRecord;
+	@Mock RecordImpl secondRecord;
+	@Mock RecordImpl thirdRecord;
+
+	@Mock RecordImpl newFirstRecordVersion;
+	@Mock RecordImpl newSecondRecordVersion;
+
+	@Mock TaxonomiesManager taxonomiesManager;
+	@Mock LoggingServices loggingServices;
+
+	@Mock CollectionsManager collectionsManager;
+
+	MetadataSchemaTypes metadataSchemaTypes;
+
+	@Before
+	public void setUp()
+			throws Exception {
+
+		schemas = new TestsSchemasSetup();
+		zeSchema = schemas.new ZeSchemaMetadatas();
+
+		UniqueIdGenerator uniqueIdGenerator = new UniqueIdGenerator() {
+
+			int i = 0;
+
+			@Override
+			public synchronized String next() {
+				return "" + (++i);
+			}
+		};
+
+		recordServices = spy(new RecordServices(recordDao, eventsDao, notificationsDao, modelFactory, typesFactory,
+				uniqueIdGenerator));
+
+		when(newFirstRecordVersion.getId()).thenReturn(firstRecordId);
+		when(newSecondRecordVersion.getId()).thenReturn(secondRecordId);
+		when(newFirstRecordVersion.getSchemaCode()).thenReturn(zeSchema.code());
+		when(newSecondRecordVersion.getSchemaCode()).thenReturn(zeSchema.code());
+		when(newFirstRecordVersion.getCollection()).thenReturn(zeCollection);
+		when(newSecondRecordVersion.getCollection()).thenReturn(zeCollection);
+
+		when(firstRecord.getId()).thenReturn(firstRecordId);
+		when(secondRecord.getId()).thenReturn(secondRecordId);
+		when(thirdRecord.getId()).thenReturn(thirdRecordId);
+		when(firstRecord.getCollection()).thenReturn(zeCollection);
+		when(secondRecord.getCollection()).thenReturn(zeCollection);
+		when(thirdRecord.getCollection()).thenReturn(zeCollection);
+
+		when(firstRecord.getSchemaCode()).thenReturn(zeSchema.code());
+		when(secondRecord.getSchemaCode()).thenReturn(zeSchema.code());
+		when(thirdRecord.getSchemaCode()).thenReturn(zeSchema.code());
+		when(firstRecord.getVersion()).thenReturn(firstRecordVersion);
+		when(secondRecord.getVersion()).thenReturn(secondRecordVersion);
+		when(thirdRecord.getVersion()).thenReturn(thirdRecordVersion);
+
+		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessesManager);
+		when(modelFactory.getMetadataSchemasManager()).thenReturn(schemaManager);
+		when(modelFactory.newSearchServices()).thenReturn(searchServices);
+		when(modelFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
+		when(modelFactory.getContentManager()).thenReturn(contentManager);
+		when(modelFactory.newLoggingServices()).thenReturn(loggingServices);
+		when(modelFactory.getExtensions()).thenReturn(extensions);
+
+		when(collectionsManager.getCollectionLanguages(zeCollection)).thenReturn(Arrays.asList("fr", "en"));
+
+		doReturn(validationServices).when(recordServices).newRecordValidationServices();
+		doReturn(automaticMetadataServices).when(recordServices).newAutomaticMetadataServices();
+		define(schemaManager).using(schemas.withATitle().withAStringMetadata());
+
+		record = spy(new TestRecord(zeSchema, "record"));
+		otherRecord = spy(new TestRecord(zeSchema, "otherRecord"));
+
+		savedRecord = spy(new TestRecord(zeSchema, "savedRecord"));
+		theId = savedRecord.getId();
+		savedRecord.refresh(firstVersion, TestUtils.newRecordDTO("savedRecord", zeSchema));
+
+		otherSavedRecord = spy(new TestRecord(zeSchema, "otherSavedRecord"));
+		anotherSavedDocumentId = otherSavedRecord.getId();
+		otherSavedRecord.refresh(firstVersion, TestUtils.newRecordDTO("otherSavedRecord", zeSchema));
+
+		recordWithATitleAndStringMetadataValue = spy(new TestRecord(zeSchema, "recordWithATitleAndStringMetadataValue"));
+		recordWithATitleAndStringMetadataValue.set(zeSchema.title(), theTitle);
+		recordWithATitleAndStringMetadataValue.set(zeSchema.stringMetadata(), theStringMetadata);
+
+		anotherRecordWithATitleAndStringMetadataValue = spy(new TestRecord(zeSchema, "recordWithATitleAndStringMetadataValue"));
+		anotherRecordWithATitleAndStringMetadataValue.set(zeSchema.title(), anotherTitle);
+		anotherRecordWithATitleAndStringMetadataValue.set(zeSchema.stringMetadata(), anotherStringMetadata);
+
+		reindexedMetadata = new TransactionRecordsReindexation(Arrays.asList(firstReindexedMetadata, secondReindexedMetadata));
+
+		when(firstRecordConditionRecord1.getSchemaCode()).thenReturn(schemas.anotherDefaultSchemaCode());
+		when(firstRecordConditionRecord2.getSchemaCode()).thenReturn(schemas.anotherDefaultSchemaCode());
+		when(secondRecordConditionRecord1.getSchemaCode()).thenReturn(schemas.anotherDefaultSchemaCode());
+		when(secondRecordConditionRecord2.getSchemaCode()).thenReturn(schemas.anotherDefaultSchemaCode());
+		when(firstRecordConditionRecord1.getId()).thenReturn("firstRecordConditionRecord1");
+		when(firstRecordConditionRecord2.getId()).thenReturn("firstRecordConditionRecord2");
+		when(secondRecordConditionRecord1.getId()).thenReturn("secondRecordConditionRecord1");
+		when(secondRecordConditionRecord2.getId()).thenReturn("secondRecordConditionRecord2");
+		when(firstRecordConditionRecord1.getCollection()).thenReturn("zeCollection");
+		when(firstRecordConditionRecord2.getCollection()).thenReturn("zeCollection");
+		when(secondRecordConditionRecord1.getCollection()).thenReturn("zeCollection");
+		when(secondRecordConditionRecord2.getCollection()).thenReturn("zeCollection");
+
+		when(firstRecord.getCollection()).thenReturn("zeCollection");
+		when(secondRecord.getCollection()).thenReturn("zeCollection");
+		when(thirdRecord.getCollection()).thenReturn("zeCollection");
+
+		metadataSchemaTypes = schemaManager.getSchemaTypes(zeCollection);
+		when(modelFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
+		when(collectionsListManager.getCollectionLanguages(anyString())).thenReturn(asList("fr"));
+	}
+
+	@Test
+	public void whenGettingDocumentsCountTheReturnDaoDocumentsCount() {
+		when(recordDao.documentsCount()).thenReturn(theDocumentCount);
+
+		assertThat(recordServices.documentsCount()).isEqualTo(theDocumentCount);
+	}
+
+	@Test
+	public void givenRecordDTOWhenGetDocumentByIdThenRecordHasRecordDTO()
+			throws Exception {
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+
+		RecordImpl recordObtained = (RecordImpl) recordServices.getDocumentById(theId);
+
+		assertThat(recordObtained.getRecordDTO()).isEqualTo(recordDTO);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test(expected = RecordServicesRuntimeException.NoSuchRecordWithId.class)
+	public void givenInexistentIdWhenGetDocumentByIdThenThrowException()
+			throws Exception {
+
+		when(recordDao.get(theId)).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
+
+		recordServices.getDocumentById(theId);
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test(expected = UserCannotReadDocument.class)
+	public void givenUnauthorizedIdWhenGetDocumentByIdThenThrowException()
+			throws Exception {
+		User theUser = mock(User.class, "theUser");
+
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+		AuthorizationsServices authorizationServices = mock(AuthorizationsServices.class);
+		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
+		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
+
+		recordServices.getDocumentById(theId, theUser);
+	}
+
+	@Test
+	public void givenAuthorizedIdWhenGetDocumentByIdThenRecordReturned()
+			throws Exception {
+		User theUser = mock(User.class, "theUser");
+
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+		AuthorizationsServices authorizationServices = mock(AuthorizationsServices.class);
+		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(true);
+		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
+
+		assertThat(recordServices.getDocumentById(theId, theUser)).isNotNull();
+	}
+
+	@Test
+	public void whenAddingRecordThenSaveInTransaction()
+			throws Exception {
+		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
+
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+		doNothing().when(recordServices).execute(any(Transaction.class));
+
+		recordServices.add(record);
+
+		verify(recordServices).execute(transaction.capture());
+
+		assertThat(transaction.getValue().getRecords()).containsOnly(record);
+	}
+
+	@Test
+	public void whenUpdatingRecordThenSaveInTransaction()
+			throws Exception {
+		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+		doNothing().when(recordServices).execute(any(Transaction.class));
+
+		RecordUpdateOptions options = mock(RecordUpdateOptions.class);
+
+		record.set(zeSchema.title(), "value");
+		recordServices.update(record, options);
+
+		verify(recordServices).execute(transaction.capture());
+
+		assertThat(transaction.getValue().getRecords()).containsOnly(record);
+		assertThat(transaction.getValue().getRecordUpdateOptions()).isSameAs(options);
+	}
+
+	@Test
+	public void whenUpdatingUnsavedRecordThenExecuteInTransactionAnyway()
+			throws Exception {
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+		doNothing().when(recordServices).execute(any(Transaction.class));
+
+		RecordUpdateOptions options = mock(RecordUpdateOptions.class);
+
+		recordServices.update(record, options);
+
+		verify(recordServices).execute(any(Transaction.class));
+		verifyZeroInteractions(recordDao);
+
+	}
+
+	@Test
+	public void whenUpdatingRecordHandlingImpactsAsyncThenExecuteWithDefaultOptions()
+			throws Exception {
+		List<BatchProcess> batchProcesses = mock(List.class);
+		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+		doReturn(batchProcesses).when(recordServices).executeHandlingImpactsAsync(any(Transaction.class));
+
+		RecordUpdateOptions options = mock(RecordUpdateOptions.class);
+		List<BatchProcess> returnedBatchProcesses = recordServices.updateAsync(record, options);
+
+		verify(recordServices).executeHandlingImpactsAsync(transaction.capture());
+		assertThat(transaction.getValue().getRecords()).containsOnly(record);
+		assertThat(transaction.getValue().getRecordUpdateOptions()).isEqualTo(options);
+		assertThat(returnedBatchProcesses).isEqualTo(batchProcesses);
+
+	}
+
+	@Test
+	public void whenUpdatingRecordHandlingImpactsAsyncThenExecuteInAsyncTransaction()
+			throws Exception {
+		List<BatchProcess> batchProcesses = mock(List.class);
+		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+		doReturn(batchProcesses).when(recordServices).executeHandlingImpactsAsync(any(Transaction.class));
+
+		List<BatchProcess> returnedBatchProcesses = recordServices.updateAsync(record);
+
+		verify(recordServices).executeHandlingImpactsAsync(transaction.capture());
+		assertThat(transaction.getValue().getRecords()).containsOnly(record);
+		assertThat(transaction.getValue().getRecordUpdateOptions()).isNotNull();
+		assertThat(returnedBatchProcesses).isEqualTo(batchProcesses);
+
+	}
+
+	@Test
+	public void whenExecutingAsyncThenReturnHandlerBatchProcesses()
+			throws Exception {
+		List<BatchProcess> batchProcesses = mock(List.class);
+		Transaction transaction = mock(Transaction.class);
+		AddToBatchProcessImpactHandler handler = mock(AddToBatchProcessImpactHandler.class);
+		doReturn(handler).when(recordServices).addToBatchProcessModificationImpactHandler();
+
+		when(handler.getAllCreatedBatchProcesses()).thenReturn(batchProcesses);
+		doNothing().when(recordServices).executeWithImpactHandler(any(Transaction.class),
+				any(AddToBatchProcessImpactHandler.class));
+
+		List<BatchProcess> returnedBatchProcesses = recordServices.executeHandlingImpactsAsync(transaction);
+
+		verify(recordServices).executeWithImpactHandler(transaction, handler);
+		assertThat(returnedBatchProcesses).isEqualTo(batchProcesses);
+
+	}
+
+	@Test
+	public void whenPreparingRecordThenInOrderValidateManualEntriesUpdateAndValidateAutomaticEntriesAndRunCustomValidators()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(reindexedMetadata);
+		transaction.addUpdate(asList((Record) record, otherRecord));
+
+		RecordProvider recordProvider = mock(RecordProvider.class);
+		doReturn(recordProvider).when(recordServices).newRecordProvider(null, transaction);
+
+		recordServices.prepareRecords(transaction);
+
+		InOrder inOrder = Mockito.inOrder(validationServices, automaticMetadataServices, recordServices);
+		inOrder.verify(validationServices).validateManualMetadatas(record, recordProvider, transaction);
+		inOrder.verify(automaticMetadataServices).updateAutomaticMetadatas(record, recordProvider, reindexedMetadata);
+		inOrder.verify(validationServices).validateAutomaticMetadatas(record, recordProvider, transaction);
+		inOrder.verify(validationServices).validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
+		inOrder.verify(validationServices).validateManualMetadatas(otherRecord, recordProvider, transaction);
+		inOrder.verify(automaticMetadataServices).updateAutomaticMetadatas(otherRecord, recordProvider, reindexedMetadata);
+		inOrder.verify(validationServices).validateAutomaticMetadatas(otherRecord, recordProvider, transaction);
+		inOrder.verify(validationServices).validateSchemaUsingCustomSchemaValidator(otherRecord, recordProvider, transaction);
+	}
+
+	@Test
+	public void whenCreatingTransactionDTOThenAddRecordsAndUpdateRecords()
+			throws Exception {
+		record.set(zeSchema.stringMetadata(), "recordString");
+		record.set(zeSchema.title(), "recordTitle");
+		otherRecord.set(zeSchema.stringMetadata(), "otherRecordString");
+		otherRecord.set(zeSchema.title(), "otherRecordTitle");
+		savedRecord.set(zeSchema.stringMetadata(), "savedRecordString");
+		savedRecord.set(zeSchema.title(), "savedRecordTitle");
+		otherSavedRecord.set(zeSchema.stringMetadata(), "otherSavedRecordString");
+		otherSavedRecord.set(zeSchema.title(), "otherSavedRecordTitle");
+
+		RecordsFlushing recordsFlushing = mock(RecordsFlushing.class);
+		Transaction transaction = new Transaction();
+		transaction.addUpdate(record);
+		transaction.addUpdate(otherRecord);
+		transaction.addUpdate(savedRecord);
+		transaction.addUpdate(otherSavedRecord);
+
+		TransactionDTO transactionDTO = recordServices.createTransactionDTO(transaction, transaction.getModifiedRecords());
+
+		assertThat(transactionDTO.getNewRecords()).hasSize(2);
+		assertThat(transactionDTO.getModifiedRecords()).hasSize(2);
+		RecordDTO firstRecordDTO = transactionDTO.getNewRecords().get(0);
+		RecordDTO secondRecordDTO = transactionDTO.getNewRecords().get(1);
+		RecordDeltaDTO firstDeltaRecordDTO = transactionDTO.getModifiedRecords().get(0);
+		RecordDeltaDTO secondDeltaRecordDTO = transactionDTO.getModifiedRecords().get(1);
+		assertThat(firstRecordDTO.getFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(), "recordString");
+		assertThat(firstRecordDTO.getFields()).containsEntry(zeSchema.title().getDataStoreCode(), "recordTitle");
+		assertThat(secondRecordDTO.getFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(), "otherRecordString");
+		assertThat(secondRecordDTO.getFields()).containsEntry(zeSchema.title().getDataStoreCode(), "otherRecordTitle");
+		assertThat(firstDeltaRecordDTO.getModifiedFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(),
+				"savedRecordString");
+		assertThat(firstDeltaRecordDTO.getModifiedFields())
+				.containsEntry(zeSchema.title().getDataStoreCode(), "savedRecordTitle");
+		assertThat(secondDeltaRecordDTO.getModifiedFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(),
+				"otherSavedRecordString");
+		assertThat(secondDeltaRecordDTO.getModifiedFields()).containsEntry(zeSchema.title().getDataStoreCode(),
+				"otherSavedRecordTitle");
+	}
+
+	@Test
+	public void whenCreatingTransactionDTOThenDotNotUpdateRecordsWithoutModifications()
+			throws Exception {
+		record.set(zeSchema.stringMetadata(), "recordString");
+		record.set(zeSchema.title(), "recordTitle");
+
+		Transaction transaction = new Transaction();
+		transaction.addUpdate(record);
+		transaction.addUpdate(savedRecord);
+		transaction.addUpdate(otherSavedRecord);
+
+		TransactionDTO transactionDTO = recordServices.createTransactionDTO(transaction, transaction.getModifiedRecords());
+
+		assertThat(transactionDTO.getNewRecords()).hasSize(1);
+		assertThat(transactionDTO.getModifiedRecords()).hasSize(0);
+		RecordDTO firstRecordDTO = transactionDTO.getNewRecords().get(0);
+		assertThat(firstRecordDTO.getFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(), "recordString");
+		assertThat(firstRecordDTO.getFields()).containsEntry(zeSchema.title().getDataStoreCode(), "recordTitle");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void whenExecutingTransactionThenPrepareRecordsAndAddThemInATransaction()
+			throws Exception {
+
+		RecordsFlushing recordsFlushing = mock(RecordsFlushing.class);
+		TransactionDTO transactionDTO = mock(TransactionDTO.class);
+		Transaction transaction = new Transaction();
+		transaction.addUpdate(record);
+		transaction.addUpdate(otherRecord);
+		transaction.addUpdate(savedRecord);
+		transaction.addUpdate(otherSavedRecord);
+		transaction.setRecordFlushing(recordsFlushing);
+		doReturn(transactionDTO).when(recordServices).createTransactionDTO(eq(transaction), anyList());
+		doReturn(transactionResponseDTO).when(recordDao).execute(transactionDTO);
+		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+				any(MetadataSchemaTypes.class));
+
+		recordServices.execute(transaction);
+
+		verify(recordDao).execute(transactionDTO);
+		verify(recordServices).prepareRecords(transaction);
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void givenOptimisticLockingExceptionWhenExecutingTransactionThenHandleIt()
+			throws Exception {
+
+		RecordsFlushing recordsFlushing = mock(RecordsFlushing.class);
+		TransactionDTO transactionDTO = mock(TransactionDTO.class);
+		Transaction transaction = new Transaction();
+		transaction.addUpdate(record);
+		transaction.addUpdate(otherRecord);
+		transaction.addUpdate(savedRecord);
+		transaction.addUpdate(otherSavedRecord);
+		transaction.setRecordFlushing(recordsFlushing);
+		doReturn(transactionDTO).when(recordServices)
+				.createTransactionDTO(eq(transaction), anyList());
+		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+				any(MetadataSchemaTypes.class));
+		doNothing().when(recordServices).handleOptimisticLocking(any(Transaction.class),
+				any(RecordModificationImpactHandler.class), any(OptimisticLocking.class));
+		RecordDaoException.OptimisticLocking exception = mock(RecordDaoException.OptimisticLocking.class);
+		doThrow(exception).when(recordDao).execute(transactionDTO);
+
+		recordServices.execute(transaction);
+
+		verify(recordServices).handleOptimisticLocking(transaction, null, exception);
+
+	}
+
+	@Test
+	public void whenHandlingOptimisticLockingWithExceptionThenThrowException()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+
+		try {
+			recordServices.handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+			fail("Exception expected");
+		} catch (RecordServicesException.OptimisticLocking e) {
+			// OK
+		}
+		verify(recordServices).handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+		verifyZeroInteractions(recordDao);
+	}
+
+	@Test
+	public void whenHandlingOptimisticLockingKeepingOlderThenDoNothing()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.KEEP_OLDER);
+
+		recordServices.handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+
+		verify(recordServices).handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+		verifyZeroInteractions(recordDao);
+	}
+
+	@Test
+	public void givenOptimisticLockingInAsyncTransactionWhenHandlingOptimisticLockingWithMergeThenMergeAndExecuteNewTransactionAsync()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
+
+		doNothing().when(recordServices).mergeRecords(transaction);
+		doNothing().when(recordServices).executeWithImpactHandler(any(Transaction.class),
+				any(RecordModificationImpactHandler.class));
+
+		recordServices.handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+
+		InOrder inOrder = inOrder(recordServices);
+		inOrder.verify(recordServices).mergeRecords(transaction);
+		inOrder.verify(recordServices).executeWithImpactHandler(transaction, recordModificationImpactHandler);
+	}
+
+	@Test
+	public void givenOptimisticLockingInTransactionWhenHandlingOptimisticLockingWithMergeThenMergeAndExecuteNewTransaction()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
+
+		doNothing().when(recordServices).mergeRecords(transaction);
+		doNothing().when(recordServices).execute(any(Transaction.class));
+
+		recordServices.handleOptimisticLocking(transaction, null, optimisticLockingException);
+
+		InOrder inOrder = inOrder(recordServices);
+		inOrder.verify(recordServices).mergeRecords(transaction);
+		inOrder.verify(recordServices).execute(transaction);
+	}
+
+	@Test
+	public void whenMergingThenGetListOfModifiedDocumentsAndMergeEachDocument()
+			throws Exception {
+
+		ArgumentCaptor<LogicalSearchQuery> query = ArgumentCaptor.forClass(LogicalSearchQuery.class);
+
+		when(firstRecord.isSaved()).thenReturn(true);
+		when(secondRecord.isSaved()).thenReturn(true);
+		when(thirdRecord.isSaved()).thenReturn(true);
+
+		Transaction transaction = new Transaction();
+		transaction.addUpdate(asList((Record) firstRecord, secondRecord, thirdRecord));
+
+		List<Record> modifiedRecords = Arrays.asList((Record) newFirstRecordVersion, newSecondRecordVersion);
+
+		when(searchServices.search(query.capture())).thenReturn(modifiedRecords);
+
+		recordServices.mergeRecords(transaction);
+
+		verify(firstRecord).merge(eq(newFirstRecordVersion), any(MetadataSchema.class));
+		verify(secondRecord).merge(eq(newSecondRecordVersion), any(MetadataSchema.class));
+		verify(thirdRecord, never()).merge(any(RecordImpl.class), any(MetadataSchema.class));
+
+		LogicalSearchCondition condition = query.getValue().getCondition();
+		LogicalSearchCondition firstRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(firstRecordId)
+				.andWhere(Schemas.VERSION).isNotEqual(firstRecordVersion);
+		LogicalSearchCondition secondRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(secondRecordId)
+				.andWhere(Schemas.VERSION).isNotEqual(secondRecordVersion);
+		LogicalSearchCondition thirdRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(thirdRecordId)
+				.andWhere(Schemas.VERSION).isNotEqual(thirdRecordVersion);
+
+		assertThat(condition.getSolrQuery()).isEqualTo(
+				LogicalSearchQueryOperators.fromAllSchemasIn(condition.getCollection())
+						.whereAnyCondition(Arrays.asList(firstRecordCondition, secondRecordCondition, thirdRecordCondition))
+						.getSolrQuery());
+	}
+
+	@Test(expected = RecordServicesException.UnresolvableOptimisticLockingConflict.class)
+	public void givenOneDocumentCannotBeMergedWhenMergingThenException()
+			throws Exception {
+
+		List<Record> modifiedRecords = Arrays.asList((Record) newFirstRecordVersion, newSecondRecordVersion);
+
+		Transaction transaction = new Transaction();
+		transaction.addUpdate(asList((Record) firstRecord, secondRecord, thirdRecord));
+
+		doThrow(RecordServicesException.UnresolvableOptimisticLockingConflict.class).when(secondRecord).merge(
+				eq(newSecondRecordVersion), any(MetadataSchema.class));
+		when(searchServices.search(any(LogicalSearchQuery.class))).thenReturn(modifiedRecords);
+
+		recordServices.mergeRecords(transaction);
+	}
+
+	@Test
+	public void whenRefreshRecordsThenRefreshRecords()
+			throws Exception {
+
+		when(transactionResponseDTO.getNewDocumentVersion(firstAddedRecordId)).thenReturn(firstAddedRecordVersion);
+		when(transactionResponseDTO.getNewDocumentVersion(secondAddedRecordId)).thenReturn(secondAddedRecordVersion);
+		when(transactionResponseDTO.getNewDocumentVersion(firstUpdatedRecordId)).thenReturn(firstUpdatedRecordVersion);
+		when(transactionResponseDTO.getNewDocumentVersion(secondUpdatedRecordId)).thenReturn(secondUpdatedRecordVersion);
+
+		RecordImpl firstUpdatedRecord = spy(new TestRecord(zeSchema, firstUpdatedRecordId));
+		RecordImpl firstAddedRecord = spy(new TestRecord(zeSchema, firstAddedRecordId));
+		RecordImpl secondAddedRecord = spy(new TestRecord(zeSchema, secondAddedRecordId));
+		RecordImpl secondUpdatedRecord = spy(new TestRecord(zeSchema, secondUpdatedRecordId));
+
+		List<Record> records = asList((Record) firstUpdatedRecord, firstAddedRecord, secondAddedRecord, secondUpdatedRecord);
+
+		recordServices.refreshRecords(records, transactionResponseDTO, metadataSchemaTypes);
+
+		verify(firstAddedRecord).markAsSaved(firstAddedRecordVersion, zeSchema.instance());
+		verify(secondAddedRecord).markAsSaved(secondAddedRecordVersion, zeSchema.instance());
+		verify(firstUpdatedRecord).markAsSaved(firstUpdatedRecordVersion, zeSchema.instance());
+		verify(secondUpdatedRecord).markAsSaved(secondUpdatedRecordVersion, zeSchema.instance());
+
+	}
+
+	private Record recordWithIdAndDTO(String id, RecordDTO dto) {
+		RecordImpl record = mock(RecordImpl.class, id);
+		when(record.getId()).thenReturn(id);
+		when(record.getRecordDTO()).thenReturn(dto);
+		return record;
+	}
+
+	@Test
+	public void givenRecordNotDirtyUpdatedInTransactionThenNotSaved()
+			throws Exception {
+
+		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
+		when(zeRecord.getId()).thenReturn("anId");
+		when(zeRecord.isDirty()).thenReturn(false);
+
+		Transaction transaction = new Transaction();
+		transaction.update(zeRecord);
+		verifyZeroInteractions(recordDao);
+	}
+
+	@Test
+	public void givenNoModificationImpactHandlerDefinedWhenExecutingTransactionUpdatingRecordWithModificationImpactThenException()
+			throws Exception {
+
+		AddToBatchProcessImpactHandler defaultHandler = mock(AddToBatchProcessImpactHandler.class);
+
+		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
+		when(zeRecord.getId()).thenReturn("anId");
+		when(zeRecord.isDirty()).thenReturn(true);
+		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+				any(MetadataSchemaTypes.class));
+		Transaction transaction = new Transaction();
+		transaction.update(zeRecord);
+		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(alreadyReindexedMetadata);
+		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).calculateImpactOfModification(
+				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
+		doReturn(defaultHandler).when(recordServices).addToBatchProcessModificationImpactHandler();
+
+		recordServices.executeHandlingImpactsAsync(transaction);
+
+		verify(defaultHandler).prepareToHandle(aModificationImpact);
+		verify(defaultHandler).prepareToHandle(anotherModificationImpact);
+		verify(defaultHandler).handle();
+	}
+
+	@Test
+	public void whenExecutingWithImpactHandlerATransactionWithModificationImpactThenImpactHandledAfterTransaction()
+			throws Exception {
+
+		RecordsFlushing recordsFlushing = mock(RecordsFlushing.class);
+		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
+		when(zeRecord.getId()).thenReturn("anId");
+		when(zeRecord.isDirty()).thenReturn(true);
+
+		Transaction transaction = new Transaction();
+		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(alreadyReindexedMetadata);
+		transaction.update(zeRecord);
+		transaction.setRecordFlushing(recordsFlushing);
+
+		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+				any(MetadataSchemaTypes.class));
+		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).calculateImpactOfModification(
+				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
+		RecordModificationImpactHandler handler = mock(RecordModificationImpactHandler.class);
+
+		TransactionDTO transactionDTO = mock(TransactionDTO.class);
+		doReturn(transactionDTO).when(recordServices)
+				.createTransactionDTO(eq(transaction), anyList());
+
+		recordServices.executeWithImpactHandler(transaction, handler);
+
+		InOrder inOrder = inOrder(recordDao, handler);
+		inOrder.verify(handler).prepareToHandle(aModificationImpact);
+		inOrder.verify(handler).prepareToHandle(anotherModificationImpact);
+		inOrder.verify(recordDao).execute(transactionDTO);
+		inOrder.verify(handler).handle();
+	}
+
+	@Test
+	public void whenExecutingTransactionAndUpdatedRecordHasModificationImpactThenExecuteWithImpactedRecordsInNewTransaction()
+			throws RecordServicesException {
+		ArgumentCaptor<Transaction> nestedTransaction = ArgumentCaptor.forClass(Transaction.class);
+		when(aModificationImpact.getMetadataToReindex()).thenReturn(asList(firstReindexedMetadata, secondReindexedMetadata));
+		when(aModificationImpact.getLogicalSearchCondition()).thenReturn(firstSearchCondition);
+		when(anotherModificationImpact.getMetadataToReindex()).thenReturn(asList(firstReindexedMetadata, thirdMetadataToReindex));
+		when(anotherModificationImpact.getLogicalSearchCondition()).thenReturn(secondSearchCondition);
+
+		when(searchServices.search(new LogicalSearchQuery(firstSearchCondition))).thenReturn(
+				asList((Record) firstRecordConditionRecord1, firstRecordConditionRecord2));
+		when(searchServices.search(new LogicalSearchQuery(secondSearchCondition))).thenReturn(
+				asList((Record) secondRecordConditionRecord1, secondRecordConditionRecord2));
+
+		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
+		when(zeRecord.getId()).thenReturn("anId");
+		when(zeRecord.isDirty()).thenReturn(true);
+
+		Transaction transaction = spy(new Transaction());
+		transaction.update(zeRecord);
+
+		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).getModificationImpacts(transaction,
+				false);
+		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+				any(MetadataSchemaTypes.class));
+		doNothing().when(recordServices).prepareRecords(any(Transaction.class));
+		doNothing().when(recordServices).saveContentsAndRecords(any(Transaction.class),
+				any(RecordModificationImpactHandler.class));
+		recordServices.execute(transaction);
+
+		InOrder inOrder = inOrder(recordServices, transaction);
+		inOrder.verify(recordServices).execute(transaction);
+		inOrder.verify(transaction).sortRecords(schemaManager.getSchemaTypes(zeCollection));
+		inOrder.verify(recordServices).execute(nestedTransaction.capture());
+		inOrder.verify(recordServices).saveContentsAndRecords(nestedTransaction.getValue(), null);
+
+		verify(recordServices, never()).saveContentsAndRecords(transaction, null);
+		assertThat(nestedTransaction.getValue().getRecords()).containsExactly(firstRecordConditionRecord1,
+				firstRecordConditionRecord2, secondRecordConditionRecord1, secondRecordConditionRecord2, zeRecord);
+
+	}
+
+	@Test
+	public void whenRefreshingRecordThenObtainRecordDTOAndRefreshRecord()
+			throws Exception {
+
+		Record firstRecord = mock(RecordImpl.class);
+		String firstRecordId = aString();
+		when(firstRecord.getId()).thenReturn(firstRecordId);
+		when(firstRecord.isSaved()).thenReturn(true);
+
+		Record deletedRecord = mock(RecordImpl.class);
+		String deletedRecordId = aString();
+		when(deletedRecord.getId()).thenReturn(deletedRecordId);
+		when(deletedRecord.isSaved()).thenReturn(true);
+
+		Record newRecord = mock(RecordImpl.class);
+
+		RecordDTO currentFirstRecordDTO = mock(RecordDTO.class);
+		long currentFirstRecordDTOVersion = aLong();
+		when(currentFirstRecordDTO.getVersion()).thenReturn(currentFirstRecordDTOVersion);
+
+		when(recordDao.get(firstRecordId)).thenReturn(currentFirstRecordDTO);
+		when(recordDao.get(deletedRecordId)).thenThrow(NoSuchRecordWithId.class);
+
+		recordServices.refresh(asList(firstRecord, deletedRecord, newRecord));
+
+		verify((RecordImpl) firstRecord).refresh(currentFirstRecordDTOVersion, currentFirstRecordDTO);
+		verify((RecordImpl) firstRecord, never()).markAsDisconnected();
+		verify((RecordImpl) deletedRecord, never()).refresh(currentFirstRecordDTOVersion, currentFirstRecordDTO);
+		verify((RecordImpl) deletedRecord).markAsDisconnected();
+		verify((RecordImpl) newRecord, never()).refresh(anyLong(), any(RecordDTO.class));
+		verify((RecordImpl) newRecord, never()).markAsDisconnected();
+	}
+
+	@Test
+	public void whenCalculatingModificationImpactThenCallModificationImpactCalculator()
+			throws Exception {
+
+		List<String> transactionIds = new ArrayList<>();
+
+		Record zeRecord = mock(Record.class);
+		List<ModificationImpact> zeModifications = mock(List.class);
+		ModificationImpactCalculator impactCalculator = mock(ModificationImpactCalculator.class);
+		List<Metadata> alreadyReindexedMetadata = new ArrayList<>();
+
+		Transaction transaction = new Transaction(zeRecord);
+
+		when(impactCalculator.findTransactionImpact(transaction, true)).thenReturn(zeModifications);
+		doReturn(impactCalculator).when(recordServices).newModificationImpactCalculator(taxonomiesManager, metadataSchemaTypes,
+				searchServices);
+
+		assertThat(
+				recordServices.calculateImpactOfModification(transaction, taxonomiesManager, searchServices, metadataSchemaTypes,
+						true)).isEqualTo(zeModifications);
+
+	}
+
+	@Test
+	public void givenRecordServicesExceptionCausedByDTOWhenSavingContentAndRecordsThenDeleteAllNewContents()
+			throws Exception {
+
+		String firstHash = "firstHash";
+		String secondHash = "secondHash";
+		List<String> newContents = Arrays.asList(firstHash, secondHash);
+		RecordServicesException zeException = new RecordServicesException("test");
+		Transaction transaction = mock(Transaction.class);
+		when(transaction.getCollection()).thenReturn(zeCollection);
+		doReturn(new ContentModifications(new ArrayList<String>(), newContents)).when(recordServices)
+				.findContentsModificationsIn(metadataSchemaTypes, transaction);
+		doThrow(zeException).when(recordServices).saveTransactionDTO(transaction, recordModificationImpactHandler);
+
+		try {
+			recordServices.saveContentsAndRecords(transaction, recordModificationImpactHandler);
+			fail("Exception expected");
+		} catch (Exception e) {
+			assertThat(e).isEqualTo(zeException);
+			verify(contentManager).silentlyMarkForDeletionIfNotReferenced(firstHash);
+			verify(contentManager).silentlyMarkForDeletionIfNotReferenced(secondHash);
+		}
+	}
+
+	@Test
+	public void givenRecordServicesRuntimeExceptionCausedByDTOWhenSavingContentAndRecordsThenDeleteAllNewContents()
+			throws Exception {
+
+		String firstHash = "firstHash";
+		String secondHash = "secondHash";
+		List<String> newContents = Arrays.asList(firstHash, secondHash);
+		RecordServicesRuntimeException zeException = new RecordServicesRuntimeException("test");
+		Transaction transaction = mock(Transaction.class);
+		when(transaction.getCollection()).thenReturn(zeCollection);
+		doReturn(new ContentModifications(new ArrayList<String>(), newContents)).when(recordServices)
+				.findContentsModificationsIn(metadataSchemaTypes, transaction);
+		doThrow(zeException).when(recordServices).saveTransactionDTO(transaction, recordModificationImpactHandler);
+
+		try {
+			recordServices.saveContentsAndRecords(transaction, recordModificationImpactHandler);
+			fail("Exception expected");
+		} catch (Exception e) {
+			assertThat(e).isEqualTo(zeException);
+			verify(contentManager).silentlyMarkForDeletionIfNotReferenced(firstHash);
+			verify(contentManager).silentlyMarkForDeletionIfNotReferenced(secondHash);
+		}
+	}
+
+	@Test
+	public void whenFlushingThenFlushInDao()
+			throws Exception {
+
+		recordServices.flush();
+
+		verify(recordDao).flush();
+		verify(eventsDao).flush();
+
+	}
+
+	@Test(expected = RecordServicesRuntimeException_RecordsFlushingFailed.class)
+	public void givenRecordDaoRuntimeExceptionWhenFlushingThenFlushInDao()
+			throws Exception {
+
+		doThrow(RecordDaoRuntimeException_RecordsFlushingFailed.class).when(recordDao).flush();
+
+		recordServices.flush();
+
+	}
+
+	@Test(expected = RecordServicesRuntimeException_RecordsFlushingFailed.class)
+	public void givenEventsDaoRuntimeExceptionWhenFlushingThenFlushInDao()
+			throws Exception {
+
+		doThrow(RecordDaoRuntimeException_RecordsFlushingFailed.class).when(eventsDao).flush();
+
+		recordServices.flush();
+
+	}
+}

@@ -1,0 +1,652 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.data.dao.services.transactionLog;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.dto.records.QueryResponseDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
+
+	@Mock DataLayerConfiguration dataLayerConfiguration;
+
+	@Mock BigVaultServer bigVaultServer;
+
+	@Mock RecordDao recordDao;
+
+	LocalDateTime shishOclockLocalDateTime = new LocalDateTime().plusHours(1);
+	LocalDateTime tockOClockLocalDateTime = shishOclockLocalDateTime.plusMinutes(1);
+	String shishOclock = SolrUtils.convertLocalDateTimeToSolrDate(shishOclockLocalDateTime);
+	String tockOClock = SolrUtils.convertLocalDateTimeToSolrDate(tockOClockLocalDateTime);
+
+	SolrInputDocument record1, record2, record5, record3, record4 = new SolrInputDocument();
+	String deletedRecord6 = "deletedRecord6";
+	String deletedRecord7 = "deletedRecord7";
+	@Mock QueryResponseDTO queryResponseDTO;
+	@Mock BackgroundThreadsManager backgroundThreadsManager;
+	ContentDao contentDao;
+
+	File baseFolder, unflushed, flushed;
+
+	IOServices ioServices;
+
+	XMLSecondTransactionLogManager transactionLog;
+
+	String deleteByQueryParams;
+	RecordsFlushing recordsFlushing = RecordsFlushing.LATER();
+
+	String firstTransactionId = "firstTransaction";
+	List<SolrInputDocument> firstTransactionNewRecords = new ArrayList<>();
+	List<SolrInputDocument> firstTransactionModifiedRecords = new ArrayList<>();
+	List<String> firstTransactionDeletedRecords = new ArrayList<>();
+	List<String> firstTransactionDeletedByQueries = new ArrayList<>();
+
+	BigVaultServerTransaction firstTransaction = new BigVaultServerTransaction(firstTransactionId, recordsFlushing,
+			firstTransactionNewRecords,
+			firstTransactionModifiedRecords, firstTransactionDeletedRecords, firstTransactionDeletedByQueries);
+
+	String secondTransactionId = "secondTransaction";
+	List<SolrInputDocument> secondTransactionNewRecords = new ArrayList<>();
+	List<SolrInputDocument> secondTransactionModifiedRecords = new ArrayList<>();
+	List<String> secondTransactionDeletedRecords = new ArrayList<>();
+	List<String> secondTransactionDeletedByQueries = new ArrayList<>();
+	BigVaultServerTransaction secondTransaction = new BigVaultServerTransaction(secondTransactionId, recordsFlushing,
+			secondTransactionNewRecords,
+			secondTransactionModifiedRecords, secondTransactionDeletedRecords, secondTransactionDeletedByQueries);
+
+	String expectedLogOfFirstTransaction, expectedLogOfSecondTransaction;
+
+	File firstTransactionTempFile, secondTransactionTempFile, flushedTransaction1, flushedTransaction2, flushedTransaction42;
+
+	@Before
+	public void setUp()
+			throws Exception {
+		givenDisabledAfterTestValidations();
+		withSpiedServices(ContentDao.class);
+
+		baseFolder = newTempFolder();
+		when(dataLayerConfiguration.getSecondTransactionLogBaseFolder()).thenReturn(baseFolder);
+		flushed = new File(baseFolder, "flushed");
+		unflushed = new File(baseFolder, "unflushed");
+		ioServices = getIOLayerFactory().newIOServices();
+		contentDao = getDataLayerFactory().getContentsDao();
+		when(recordDao.getBigVaultServer()).thenReturn(bigVaultServer);
+		when(bigVaultServer.countDocuments()).thenReturn(42L);
+		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
+				backgroundThreadsManager));
+		transactionLog.initialize();
+
+		record1 = newSolrInputDocument("record1", -1L);
+		record1.setField("text_s", "aValue");
+		record1.setField("date_dt", shishOclock);
+
+		record2 = newSolrInputDocument("record2", -1L);
+		record2.setField("text_s", "anotherValue");
+		record2.setField("otherfield_ss", asList(true, false));
+
+		record3 = newSolrInputDocument("record3", 34L);
+		record3.setField("text_s", "line1\nline2");
+
+		record4 = newSolrInputDocument("record4", 45L);
+		record4.setField("text_s", "value3");
+		record4.setField("otherfield_ss", asList(false, true));
+
+		record5 = newSolrInputDocument("record5", 56L);
+		record5.setField("text_s", "aValue");
+		record5.setField("date_dt", tockOClock);
+
+		firstTransactionNewRecords.add(record1);
+		firstTransactionNewRecords.add(record2);
+		firstTransactionModifiedRecords.add(record3);
+		firstTransactionModifiedRecords.add(record4);
+		firstTransactionDeletedByQueries.add(deleteByQueryParams = SolrUtils.toDeleteQueries(new ModifiableSolrParams()
+				.set("q", "zeQuery").add("fq", "firstFilter").add("fq", "secondFilter")));
+		firstTransactionDeletedByQueries.add(SolrUtils.toDeleteQueries(new ModifiableSolrParams()
+				.set("q", "anotherQuery").add("fq", "firstFilter").add("fq", "secondFilter").add("fq", "thirdFilter")));
+
+		secondTransactionNewRecords.add(record5);
+		secondTransactionModifiedRecords.add(record3);
+		secondTransactionDeletedRecords.add(deletedRecord6);
+		secondTransactionDeletedRecords.add(deletedRecord7);
+
+		StringBuilder expectedLogOfFirstTransactionBuilder = new StringBuilder();
+		expectedLogOfFirstTransactionBuilder.append("--transaction--\n");
+		expectedLogOfFirstTransactionBuilder.append("addUpdate record1 -1\n");
+		expectedLogOfFirstTransactionBuilder.append("text_s=aValue\n");
+		expectedLogOfFirstTransactionBuilder.append("date_dt=" + shishOclock + "\n");
+		expectedLogOfFirstTransactionBuilder.append("addUpdate record2 -1\n");
+		expectedLogOfFirstTransactionBuilder.append("text_s=anotherValue\n");
+		expectedLogOfFirstTransactionBuilder.append("otherfield_ss=true\n");
+		expectedLogOfFirstTransactionBuilder.append("otherfield_ss=false\n");
+		expectedLogOfFirstTransactionBuilder.append("addUpdate record3 34\n");
+		expectedLogOfFirstTransactionBuilder.append("text_s=line1__LINEBREAK__line2\n");
+		expectedLogOfFirstTransactionBuilder.append("addUpdate record4 45\n");
+		expectedLogOfFirstTransactionBuilder.append("text_s=value3\n");
+		expectedLogOfFirstTransactionBuilder.append("otherfield_ss=false\n");
+		expectedLogOfFirstTransactionBuilder.append("otherfield_ss=true\n");
+		expectedLogOfFirstTransactionBuilder.append("deletequery ((zeQuery) AND (firstFilter) AND (secondFilter))\n");
+		expectedLogOfFirstTransactionBuilder
+				.append("deletequery ((anotherQuery) AND (firstFilter) AND (secondFilter) AND (thirdFilter))\n");
+		expectedLogOfFirstTransaction = expectedLogOfFirstTransactionBuilder.toString();
+
+		StringBuilder expectedLogOfSecondTransactionBuilder = new StringBuilder();
+		expectedLogOfSecondTransactionBuilder.append("--transaction--\n");
+		expectedLogOfSecondTransactionBuilder.append("addUpdate record5 56\n");
+		expectedLogOfSecondTransactionBuilder.append("text_s=aValue\n");
+		expectedLogOfSecondTransactionBuilder.append("date_dt=" + tockOClock + "\n");
+		expectedLogOfSecondTransactionBuilder.append("addUpdate record3 34\n");
+		expectedLogOfSecondTransactionBuilder.append("text_s=line1__LINEBREAK__line2\n");
+		expectedLogOfSecondTransactionBuilder.append("delete deletedRecord6 deletedRecord7\n");
+		expectedLogOfSecondTransaction = expectedLogOfSecondTransactionBuilder.toString();
+
+		firstTransactionTempFile = new File(unflushed, firstTransactionId);
+		secondTransactionTempFile = new File(unflushed, secondTransactionId);
+		flushedTransaction1 = new File(flushed, "000000000001");
+		flushedTransaction2 = new File(flushed, "000000000002");
+		flushedTransaction42 = new File(flushed, "000000000042");
+
+		contentDao = getDataLayerFactory().getContentsDao();
+	}
+
+	private SolrInputDocument newSolrInputDocument(String id, long version) {
+		SolrInputDocument solrInputDocument = new ConstellioSolrInputDocument();
+		solrInputDocument.setField("id", id);
+		solrInputDocument.setField("_version_", version);
+		return solrInputDocument;
+	}
+
+	@Test
+	public void whenPrepareLogThenCreateFileWithTransactionModifications()
+			throws Exception {
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+
+		File firstTransactionTempFile = new File(unflushed, firstTransactionId);
+
+		assertThat(firstTransactionTempFile).has(content(expectedLogOfFirstTransaction));
+		assertThat(flushedTransaction1).doesNotExist();
+		assertThat(flushedTransaction2).doesNotExist();
+
+	}
+
+	@Test
+	public void givenTwoTransactionArePreparedThenAreSavedInSeparateFiles()
+			throws Exception {
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+
+		assertThat(FileUtils.readFileToString(firstTransactionTempFile)).isEqualTo(expectedLogOfFirstTransaction);
+		assertThat(FileUtils.readFileToString(secondTransactionTempFile)).isEqualTo(expectedLogOfSecondTransaction);
+		assertThat(flushedTransaction1).doesNotExist();
+		assertThat(flushedTransaction2).doesNotExist();
+	}
+
+	@Test
+	public void givenTwoPreparedTransactionsWhenATransactionIsFlushedThenAppendToLogAndKeepOtherUnflushed()
+			throws Exception {
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+
+		transactionLog.flush(secondTransactionId);
+
+		assertThat(firstTransactionTempFile).has(content(expectedLogOfFirstTransaction));
+		assertThat(secondTransactionTempFile).doesNotExist();
+		assertThat(flushedTransaction1).has(content(expectedLogOfSecondTransaction));
+		assertThat(flushedTransaction2).doesNotExist();
+	}
+
+	@Test
+	public void givenTwoPreparedTransactionsWhenTheSecondIsFlushedBeforeTheSecondThenWritenInLogFileFirst()
+			throws Exception {
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+
+		transactionLog.flush(secondTransactionId);
+		transactionLog.flush(firstTransactionId);
+
+		assertThat(firstTransactionTempFile).doesNotExist();
+		assertThat(secondTransactionTempFile).doesNotExist();
+		assertThat(flushedTransaction1).has(content(expectedLogOfSecondTransaction));
+		assertThat(flushedTransaction2).has(content(expectedLogOfFirstTransaction));
+	}
+
+	@Test
+	public void givenTwoPreparedTransactionsWhenTheFirstIsCancelledAndTheSecondFlushedThenGetSequentialId1()
+			throws Exception {
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+
+		transactionLog.cancel(secondTransactionId);
+		transactionLog.flush(firstTransactionId);
+
+		assertThat(firstTransactionTempFile).doesNotExist();
+		assertThat(secondTransactionTempFile).doesNotExist();
+		assertThat(flushedTransaction1).has(content(expectedLogOfFirstTransaction));
+		assertThat(flushedTransaction2).doesNotExist();
+	}
+
+	@Test
+	public void givenAnExceptionOccurWhenFlushingThenThrowExceptionAndBlockFutureTransactions()
+			throws Exception {
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		File firstTransactionTempFile = new File(unflushed, firstTransactionId);
+		doThrow(IOException.class).when(transactionLog).doFlush(firstTransactionId);
+
+		try {
+			transactionLog.flush(firstTransactionId);
+			fail("SecondTransactionLogHandlerRuntimeException_CouldNotFlushTransaction expected");
+		} catch (SecondTransactionLogRuntimeException_CouldNotFlushTransaction e) {
+			//OK
+		}
+
+		assertThat(firstTransactionTempFile).exists();
+
+		try {
+			transactionLog.prepare(secondTransactionId, secondTransaction);
+			fail("SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException expected");
+		} catch (SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException e) {
+			//OK
+		}
+
+	}
+
+	@Test
+	public void givenTwoUnflushedTransactionThenOnlyFlushOnesThatWereCommitted()
+			throws Exception {
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+
+		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
+				backgroundThreadsManager));
+
+		doReturn(true).when(transactionLog).isCommitted(firstTransactionTempFile, recordDao);
+		doReturn(false).when(transactionLog).isCommitted(secondTransactionTempFile, recordDao);
+		doReturn(new AtomicInteger(41)).when(transactionLog).newIdSequence();
+
+		transactionLog.initialize();
+
+		assertThat(firstTransactionTempFile).doesNotExist();
+		assertThat(secondTransactionTempFile).doesNotExist();
+		assertThat(flushedTransaction42).has(content(expectedLogOfFirstTransaction));
+		assertThat(flushedTransaction2).doesNotExist();
+	}
+
+	@Test(expected = SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized.class)
+	public void givenPreparedIsCalledBeforeInitializingTheTransactionLogThenException() {
+
+		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
+				backgroundThreadsManager));
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+
+	}
+
+	@Test(expected = SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized.class)
+	public void givenInitializedTransactionLogWhenStartASecondTimeThenException() {
+
+		transactionLog.initialize();
+
+	}
+
+	@Test
+	public void givenNoFlushedFolderWhenCreateIdSequenceThenSetToZero()
+			throws Exception {
+
+		assertThat(transactionLog.newIdSequence().get()).isEqualTo(0);
+
+	}
+
+	@Test
+	public void givenFlushedFolderWhenCreateIdSequenceThenSetToZero()
+			throws Exception {
+
+		FileUtils.write(new File(transactionLog.getFlushedFolder(), ".000110000666"), "content");
+		FileUtils.write(new File(transactionLog.getFlushedFolder(), "000000000666"), "content");
+		FileUtils.write(new File(transactionLog.getFlushedFolder(), "000000000042"), "content");
+		FileUtils.write(new File(transactionLog.getFlushedFolder(), "thumb.db"), "content");
+
+		assertThat(transactionLog.newIdSequence().get()).isEqualTo(666);
+
+	}
+
+	@Test
+	public void givenFirstChangeOfTransactionWasRecordAddAndRecordDoesNotExistThenNotCommitted()
+			throws Exception {
+
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(-1L);
+		SolrInputDocument zeRecord = newSolrInputDocument("zeRecord", -1L);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setNewDocuments(asList(zeRecord));
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isFalse();
+
+	}
+
+	@Test
+	public void givenFirstChangeOfTransactionWasRecordAddAndRecordDoesExistThenCommitted()
+			throws Exception {
+
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(42L);
+		SolrInputDocument zeRecord = newSolrInputDocument("zeRecord", -1L);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setNewDocuments(asList(zeRecord));
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isTrue();
+
+	}
+
+	@Test
+	public void givenFirstChangeOfTransactionWasRecordUpdateAndRecordDoesNotExistThenNotCommitted()
+			throws Exception {
+
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(-1L);
+		SolrInputDocument zeRecordUpdate = newSolrInputDocument("zeRecord", 123L);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setUpdatedDocuments(asList(zeRecordUpdate));
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isFalse();
+
+	}
+
+	@Test
+	public void givenFirstChangeOfTransactionWasRecordUpdateAndRecordExistWithSameVersionThenNotCommitted()
+			throws Exception {
+
+		SolrInputDocument zeRecordUpdate = newSolrInputDocument("zeRecord", 123L);
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(123L);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setUpdatedDocuments(asList(zeRecordUpdate));
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isFalse();
+
+	}
+
+	@Test
+	public void givenFirstChangeOfTransactionWasRecordUpdateAndRecordDoesExistWithDifferentVersionThenCommitted()
+			throws Exception {
+
+		SolrInputDocument zeRecordUpdate = newSolrInputDocument("zeRecord", 123L);
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(42L);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setUpdatedDocuments(asList(zeRecordUpdate));
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isTrue();
+
+	}
+
+	@Test
+	public void givenFirstChangeOfTransactionWasDeleteByIdAndFirstRecordExistThenNotCommitted()
+			throws Exception {
+
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(42L);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setDeletedRecords(asList("zeRecord"));
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isFalse();
+
+	}
+
+	@Test
+	public void givenFirstChangeOfTransactionWasDeleteByIdAndFirstRecordDoesNotExistThenCommitted()
+			throws Exception {
+
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(-1L);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setDeletedRecords(asList("zeRecord"));
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isTrue();
+
+	}
+
+	@Test
+	public void givenTransactionOfMultipleDeleteQueryAndRecordsForFirstQueryFoundThenNotCommitted()
+			throws Exception {
+
+		ArgumentCaptor<SolrParams> solrParamsArgumentCaptor = ArgumentCaptor.forClass(SolrParams.class);
+		when(queryResponseDTO.getNumFound()).thenReturn(2L);
+		when(recordDao.query(solrParamsArgumentCaptor.capture())).thenReturn(queryResponseDTO);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setDeletedQueries(firstTransactionDeletedByQueries);
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isFalse();
+		assertThat(solrParamsArgumentCaptor.getValue()).is(sameAsFirstQuery());
+	}
+
+	@Test
+	public void givenTransactionOfMultipleDeleteQueryAndNoRecordForFirstQueryFoundThenCommitted()
+			throws Exception {
+
+		ArgumentCaptor<SolrParams> solrParamsArgumentCaptor = ArgumentCaptor.forClass(SolrParams.class);
+		when(queryResponseDTO.getNumFound()).thenReturn(0L);
+		when(recordDao.query(solrParamsArgumentCaptor.capture())).thenReturn(queryResponseDTO);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.setDeletedQueries(firstTransactionDeletedByQueries);
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isTrue();
+		assertThat(solrParamsArgumentCaptor.getValue()).is(sameAsFirstQuery());
+	}
+
+	@Test
+	public void givenTransactionOfOnlyOneDeleteQueryAndRecordFoundThenNoCommitted()
+			throws Exception {
+
+		SolrInputDocument zeRecord = newSolrInputDocument("zeRecord", 42L);
+		SolrInputDocument zeRecordUpdate = newSolrInputDocument("zeRecord", 123L);
+		ArgumentCaptor<SolrParams> solrParamsArgumentCaptor = ArgumentCaptor.forClass(SolrParams.class);
+		when(queryResponseDTO.getNumFound()).thenReturn(2L);
+		when(recordDao.query(solrParamsArgumentCaptor.capture())).thenReturn(queryResponseDTO);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.addDeletedQuery(deleteByQueryParams);
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isFalse();
+		assertThat(solrParamsArgumentCaptor.getValue()).is(sameAsFirstQuery());
+
+	}
+
+	@Test
+	public void givenTransactionOfOnlyOneDeleteQueryAndNoRecordFoundThenCommitted()
+			throws Exception {
+
+		SolrInputDocument zeRecord = newSolrInputDocument("zeRecord", 42L);
+		SolrInputDocument zeRecordUpdate = newSolrInputDocument("zeRecord", 123L);
+		ArgumentCaptor<SolrParams> solrParamsArgumentCaptor = ArgumentCaptor.forClass(SolrParams.class);
+		when(queryResponseDTO.getNumFound()).thenReturn(0L);
+		when(recordDao.query(solrParamsArgumentCaptor.capture())).thenReturn(queryResponseDTO);
+		when(recordDao.get("zeRecord")).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
+		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
+				.addDeletedQuery(deleteByQueryParams);
+
+		transactionLog.prepare(firstTransactionId, transaction);
+
+		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isTrue();
+		assertThat(solrParamsArgumentCaptor.getValue()).is(sameAsFirstQuery());
+	}
+
+	@Test
+	public void whenRegroupAndMoveToContentDaoThenCreateLogFileWithCurrentTimeAsTheNameAndDeleteFiles()
+			throws Exception {
+
+		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.flush(firstTransactionId);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+		transactionLog.flush(secondTransactionId);
+
+		String id = transactionLog.regroupAndMoveInVault();
+		assertThat(id).isEqualTo("tlogs/2345-06-07T08-09-10-011.tlog");
+
+		String content = IOUtils.toString(getDataLayerFactory().getContentsDao().getContentInputStream(id, SDK_STREAM));
+		assertThat(content).isEqualTo(expectedLogOfFirstTransaction + expectedLogOfSecondTransaction);
+		assertThat(flushedTransaction1).doesNotExist();
+		assertThat(flushedTransaction2).doesNotExist();
+	}
+
+	@Test
+	public void givenNoFlushedTransactionsWhenRegroupAndMoveToContentDaoThenDoNothingAndReturnNull()
+			throws Exception {
+
+		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+
+		String id = transactionLog.regroupAndMoveInVault();
+		assertThat(id).isNull();
+
+		verify(contentDao, never()).add(anyString(), any(InputStream.class));
+		assertThat(flushedTransaction1).doesNotExist();
+		assertThat(flushedTransaction2).doesNotExist();
+	}
+
+	@Test
+	public void givenRecordDaoExceptionWhenRegroupAndMoveToContentDaoThenDoesNotDeleteFilesAndFuturePrepareFails()
+			throws Exception {
+
+		givenTimeIs(new LocalDateTime(2345, 6, 7, 8, 9, 10, 11));
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.flush(firstTransactionId);
+		transactionLog.prepare(secondTransactionId, secondTransaction);
+		transactionLog.flush(secondTransactionId);
+
+		doThrow(ContentDaoRuntimeException.class).when(contentDao).add(anyString(), any(InputStream.class));
+
+		try {
+			transactionLog.regroupAndMoveInVault();
+			fail("SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault expected");
+		} catch (SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault e) {
+			//OK
+		}
+
+		assertThat(flushedTransaction1).exists();
+		assertThat(flushedTransaction2).exists();
+
+		try {
+			transactionLog.prepare(firstTransactionId, firstTransaction);
+			fail("SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException");
+		} catch (SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException e) {
+			//OK
+		}
+	}
+
+	//TODO Test flush exception
+
+	private Condition<? super SolrParams> sameAsFirstQuery() {
+		return new Condition<SolrParams>() {
+			@Override
+			public boolean matches(SolrParams value) {
+				String strQueryValue = value.get("q");
+				List<String> allParamNames = new ArrayList<>();
+				for (Iterator<String> nameIterator = value.getParameterNamesIterator(); nameIterator.hasNext(); ) {
+					allParamNames.add(nameIterator.next());
+				}
+				assertThat(allParamNames).containsOnly("q");
+				assertThat(value.getParams("q")).isEqualTo(new String[] { strQueryValue });
+				return true;
+			}
+		};
+	}
+
+	private Condition<? super File> content(final String expectedContent) {
+		return new Condition<File>() {
+			@Override
+			public boolean matches(File value) {
+
+				try {
+					String content = FileUtils.readFileToString(value);
+					assertThat(content).isEqualTo(expectedContent);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+
+				return true;
+			}
+		};
+	}
+}

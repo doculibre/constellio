@@ -1,0 +1,195 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.services.migrations.scripts;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+
+import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.ApprovalTask;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.Task;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.calculators.AllUserAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.RolesCalculator;
+import com.constellio.model.services.schemas.calculators.UserTokensCalculator;
+import com.constellio.model.services.schemas.validators.DecisionValidator;
+import com.constellio.model.services.schemas.validators.EmailValidator;
+
+public class CoreMigrationTo_5_0_1 implements MigrationScript {
+
+	@Override
+	public String getVersion() {
+		return "5.0.1";
+	}
+
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+			AppLayerFactory appLayerFactory) {
+		new CoreSchemaAlterationFor5_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
+	}
+}
+
+class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
+
+	protected CoreSchemaAlterationFor5_0_1(String collection,
+			MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+		super(collection, migrationResourcesProvider, appLayerFactory);
+	}
+
+	@Override
+	protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+		MetadataSchemaTypeBuilder groupSchemaType = createGroupSchemaType(typesBuilder);
+
+		MetadataSchemaTypeBuilder userSchemaType = createUserSchemaType(typesBuilder, groupSchemaType);
+
+		MetadataSchemaTypeBuilder eventSchemaType = createEventSchemaType(typesBuilder);
+
+		MetadataSchemaTypeBuilder userDocument = createUserDocumentType(typesBuilder, userSchemaType);
+
+		createCollectionSchemaType(typesBuilder);
+		createTaskSchemaType(typesBuilder, userSchemaType);
+	}
+
+	private MetadataSchemaTypeBuilder createUserDocumentType(MetadataSchemaTypesBuilder typesBuilder,
+			MetadataSchemaTypeBuilder userSchemaType) {
+		MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(UserDocument.SCHEMA_TYPE);
+		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
+		type.setSecurity(false);
+		defaultSchema.createUndeletable(UserDocument.USER).defineReferencesTo(userSchemaType);
+		defaultSchema.createUndeletable(UserDocument.CONTENT).setType(CONTENT).setSearchable(true);
+
+		return type;
+	}
+
+	private MetadataSchemaTypeBuilder createEventSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
+		MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(Event.SCHEMA_TYPE);
+		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
+
+		//FIXME labels
+		defaultSchema.createUndeletable(Event.RECORD_ID).setType(STRING);
+		defaultSchema.createUndeletable(Event.TYPE).setType(STRING);
+		defaultSchema.createUndeletable(Event.USERNAME).setType(STRING);
+		defaultSchema.createUndeletable(Event.EVENT_PRINCIPAL_PATH).setType(STRING);
+		defaultSchema.createUndeletable(Event.USER_ROLES).setType(STRING);
+		defaultSchema.createUndeletable(Event.DELTA).setType(STRING);
+		defaultSchema.createUndeletable(Event.PERMISSION_DATE_RANGE).setType(STRING);
+		defaultSchema.createUndeletable(Event.PERMISSION_ROLES).setType(STRING);
+		defaultSchema.createUndeletable(Event.PERMISSION_USERS).setType(STRING);
+		defaultSchema.createUndeletable(Event.IP).setType(STRING);
+		defaultSchema.createUndeletable(Event.REASON).setType(STRING).setLabel("Justification");
+
+		return type;
+	}
+
+	private void createCollectionSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
+		typesBuilder.createNewSchemaType(Collection.SCHEMA_TYPE);
+		MetadataSchemaBuilder collectionSchema = typesBuilder.getSchemaType("collection").getDefaultSchema();
+		collectionSchema.createUndeletable(Collection.NAME).setType(STRING);
+		collectionSchema.createUndeletable(Collection.CODE).setType(STRING).setUniqueValue(true).setUnmodifiable(true);
+		collectionSchema.createUndeletable(Collection.LANGUAGES).setType(STRING).setMultivalue(true).setUnmodifiable(true);
+	}
+
+	private MetadataSchemaTypeBuilder createUserSchemaType(MetadataSchemaTypesBuilder typesBuilder,
+			MetadataSchemaTypeBuilder groupSchemaType) {
+		typesBuilder.createNewSchemaType(User.SCHEMA_TYPE);
+		MetadataSchemaTypeBuilder userSchemaType = typesBuilder.getSchemaType("user");
+		MetadataSchemaBuilder userSchema = userSchemaType.getDefaultSchema();
+		userSchema.createUndeletable(User.USERNAME).setType(STRING).setUniqueValue(true)
+				.setUnmodifiable(true);
+		userSchema.createUndeletable(User.FIRSTNAME).setType(STRING);
+		userSchema.createUndeletable(User.LASTNAME).setType(STRING);
+		userSchema.createUndeletable(User.LAST_LOGIN).setType(DATE_TIME).setSystemReserved(true);
+		userSchema.createUndeletable(User.LAST_IP_ADDRESS).setType(STRING).setSystemReserved(true);
+		userSchema.createUndeletable(User.EMAIL).setType(STRING).setUniqueValue(true).addValidator(EmailValidator.class);
+		userSchema.createUndeletable(User.ROLES).setType(STRING).setMultivalue(true);
+		userSchema.createUndeletable(User.COLLECTION_READ_ACCESS).setType(BOOLEAN);
+		userSchema.createUndeletable(User.COLLECTION_WRITE_ACCESS).setType(BOOLEAN);
+		userSchema.createUndeletable(User.COLLECTION_DELETE_ACCESS).setType(BOOLEAN);
+		userSchema.createUndeletable(User.SYSTEM_ADMIN).setType(BOOLEAN);
+		MetadataBuilder groupsReference = userSchema.createUndeletable(User.GROUPS).setType(REFERENCE).setMultivalue(true)
+				.defineReferencesTo(groupSchemaType);
+		userSchema.createUndeletable(User.ALL_ROLES).setType(STRING).setMultivalue(true).defineDataEntry()
+				.asCalculated(RolesCalculator.class);
+
+		userSchema.createUndeletable(User.GROUPS_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
+				.asCopied(groupsReference, groupSchemaType.getMetadata("group_default_allauthorizations"));
+
+		userSchema.createUndeletable(User.ALL_USER_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
+				.asCalculated(AllUserAuthorizationsCalculator.class);
+		userSchema.createUndeletable(User.USER_TOKENS).setType(STRING).setMultivalue(true).defineDataEntry()
+				.asCalculated(UserTokensCalculator.class);
+
+		userSchema.createUndeletable(User.JOB_TITLE).setType(STRING);
+		userSchema.createUndeletable(User.PHONE).setType(STRING);
+		userSchema.createUndeletable(User.START_TAB).setType(STRING);
+		userSchema.createUndeletable(User.DEFAULT_TAXONOMY).setType(STRING);
+		//		userSchema.createUndeletable(User.STATUS).setType(STRING);
+		userSchema.createUndeletable(User.STATUS).defineAsEnum(UserCredentialStatus.class);
+		return userSchemaType;
+	}
+
+	private MetadataSchemaTypeBuilder createGroupSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
+		MetadataSchemaTypeBuilder groupSchemaType = typesBuilder.createNewSchemaType(Group.SCHEMA_TYPE);
+		MetadataSchemaBuilder groupSchema = groupSchemaType.getDefaultSchema();
+		groupSchema.get(Group.TITLE).setSchemaAutocomplete(true);
+		groupSchema.createUndeletable(Group.CODE).setType(STRING).setUniqueValue(true).setSchemaAutocomplete(true);
+		groupSchema.createUndeletable(Group.IS_GLOBAL).setType(BOOLEAN);
+		groupSchema.createUndeletable(Group.ROLES).setType(STRING).setMultivalue(true);
+		MetadataBuilder parentGroup = groupSchema.createUndeletable(Group.PARENT).setType(REFERENCE)
+				.defineReferencesTo(groupSchema);
+		MetadataBuilder allAuthorizations = groupSchema.get(Schemas.ALL_AUTHORIZATIONS.getCode());
+		groupSchema.get(Schemas.INHERITED_AUTHORIZATIONS.getCode()).defineDataEntry().asCopied(parentGroup, allAuthorizations);
+		return groupSchemaType;
+	}
+
+	private MetadataSchemaTypeBuilder createTaskSchemaType(MetadataSchemaTypesBuilder typesBuilder,
+			MetadataSchemaTypeBuilder userSchema) {
+		MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.createNewSchemaType(Task.SCHEMA_TYPE);
+		MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
+		taskSchema.createUndeletable(Task.ASSIGNED_TO).setType(REFERENCE).defineReferencesTo(userSchema);
+		taskSchema.createUndeletable(Task.ASSIGNED_ON).setType(DATE_TIME);
+		taskSchema.createUndeletable(Task.ASSIGN_CANDIDATES).setType(REFERENCE).defineReferencesTo(userSchema)
+				.setMultivalue(true);
+		taskSchema.createUndeletable(Task.FINISHED_BY).setType(REFERENCE).defineReferencesTo(userSchema);
+		taskSchema.createUndeletable(Task.FINISHED_ON).setType(DATE_TIME);
+		taskSchema.createUndeletable(Task.WORKFLOW_ID).setType(STRING);
+		taskSchema.createUndeletable(Task.WORKFLOW_RECORD_IDS).setType(STRING).setMultivalue(true);
+		taskSchema.createUndeletable(Task.DUE_DATE).setType(DATE_TIME);
+
+		MetadataSchemaBuilder approvalTaskSchema = taskSchemaType.createCustomSchema(ApprovalTask.SCHEMA_LOCAL_CODE);
+		approvalTaskSchema.createUndeletable(ApprovalTask.DECISION).setType(STRING).addValidator(DecisionValidator.class);
+
+		return taskSchemaType;
+	}
+}

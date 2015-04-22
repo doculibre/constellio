@@ -1,0 +1,31 @@
+package com.customers.customer1;
+
+import com.constellio.model.packaging.custom.ConstellioLicense;
+
+public class License implements ConstellioLicense {
+
+	@Override
+	public String getInstallationDateYYYYMMDD() {
+		return "2013-10-01";
+	}
+
+	@Override
+	public String getSupportPlanStartYYYYMMDD() {
+		return "2014-11-02";
+	}
+
+	@Override
+	public String getSupportPlanEndYYYYMMDD() {
+		return "2015-12-03";
+	}
+
+	@Override
+	public String getCustomerName() {
+		return "Customer 1";
+	}
+	
+	@Override
+	public String getCustomerCode() {
+		return "customer1";
+	}
+}

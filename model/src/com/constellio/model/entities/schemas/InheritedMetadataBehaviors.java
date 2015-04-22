@@ -1,0 +1,101 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.entities.schemas;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+public class InheritedMetadataBehaviors {
+
+	final boolean undeletable;
+
+	final boolean multivalue;
+	final boolean systemReserved;
+	final boolean unmodifiable;
+	final boolean uniqueValue;
+	final boolean childOfRelationship;
+	final boolean taxonomyRelationship;
+	final boolean sortable;
+	final boolean searchable;
+	final boolean schemaAutocomplete;
+
+	public InheritedMetadataBehaviors(boolean undeletable, boolean multivalue, boolean systemReserved, boolean unmodifiable,
+			boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship, boolean sortable,
+			boolean searchable, boolean schemaAutocomplete) {
+		this.undeletable = undeletable;
+		this.multivalue = multivalue;
+		this.systemReserved = systemReserved;
+		this.unmodifiable = unmodifiable;
+		this.uniqueValue = uniqueValue;
+		this.childOfRelationship = childOfRelationship;
+		this.taxonomyRelationship = taxonomyRelationship;
+		this.sortable = sortable;
+		this.searchable = searchable;
+		this.schemaAutocomplete = schemaAutocomplete;
+	}
+
+	public boolean isUndeletable() {
+		return undeletable;
+	}
+
+	public boolean isMultivalue() {
+		return multivalue;
+	}
+
+	@Override
+	public int hashCode() {
+		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return EqualsBuilder.reflectionEquals(this, obj);
+	}
+
+	public boolean isSystemReserved() {
+		return systemReserved;
+	}
+
+	public boolean isUnmodifiable() {
+		return unmodifiable;
+	}
+
+	public boolean isUniqueValue() {
+		return uniqueValue;
+	}
+
+	public boolean isChildOfRelationship() {
+		return childOfRelationship;
+	}
+
+	public boolean isTaxonomyRelationship() {
+		return taxonomyRelationship;
+	}
+
+	public boolean isSortable() {
+		return sortable;
+	}
+
+	public boolean isSearchable() {
+		return searchable;
+	}
+
+	public boolean isSchemaAutocomplete() {
+		return schemaAutocomplete;
+	}
+}

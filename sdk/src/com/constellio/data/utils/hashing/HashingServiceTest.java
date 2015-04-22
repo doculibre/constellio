@@ -1,0 +1,326 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.data.utils.hashing;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.apache.commons.io.input.ReaderInputStream;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import com.constellio.data.io.EncodingService;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.Factory;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class HashingServiceTest extends ConstellioTest {
+
+	String stringContent = "This a message";
+	byte[] bytesContent = stringContent.getBytes();
+	String expectedMD5Hash = "pjOAZQLkFvZxSS1u9mXnDQ==";
+	String expectedSHA1Hash = "NlWk4A0G3n9XSi43FGoWLwHXq50=";
+
+	EncodingService encodingService;
+	HashingService md5HashingService;
+	HashingService sha1HashingService;
+
+	@Before
+	public void setUp() {
+		encodingService = new EncodingService();
+		md5HashingService = spy(HashingService.forMD5(encodingService));
+		sha1HashingService = spy(HashingService.forSHA1(encodingService));
+	}
+
+	@Test
+	public void whenHashingContentThenReceivedCorrectHash()
+			throws Exception {
+		assertThat(md5HashingService.getHashFromString(stringContent)).isEqualTo(expectedMD5Hash);
+		assertThat(sha1HashingService.getHashFromString(stringContent)).isEqualTo(expectedSHA1Hash);
+	}
+
+	@Test
+	public void whenHashingBytesThenReceivedCorrectHash()
+			throws Exception {
+		assertThat(md5HashingService.getHashFromBytes(bytesContent)).isEqualTo(expectedMD5Hash);
+		assertThat(sha1HashingService.getHashFromBytes(bytesContent)).isEqualTo(expectedSHA1Hash);
+	}
+
+	@Test
+	public void whenHashingBytesFactoryThenReceivedCorrectHash()
+			throws Exception {
+		Factory<byte[]> bytesFactory = new Factory<byte[]>() {
+
+			@Override
+			public byte[] get() {
+				return bytesContent;
+			}
+
+		};
+
+		assertThat(md5HashingService.getHashFromBytes(bytesFactory)).isEqualTo(expectedMD5Hash);
+		assertThat(sha1HashingService.getHashFromBytes(bytesFactory)).isEqualTo(expectedSHA1Hash);
+	}
+
+	@Test
+	public void whenHashingReaderThenReceivedCorrectHashAndReaderNotClosed()
+			throws Exception {
+		StringReader reader1 = spy(new StringReader(stringContent));
+		StringReader reader2 = spy(new StringReader(stringContent));
+
+		assertThat(md5HashingService.getHashFromReader(reader1)).isEqualTo(expectedMD5Hash);
+		assertThat(sha1HashingService.getHashFromReader(reader2)).isEqualTo(expectedSHA1Hash);
+		verify(reader1, never()).close();
+		verify(reader2, never()).close();
+	}
+
+	@Test
+	public void whenHashingReaderFactoryThenReceivedCorrectHashAndOpenedReadersClosed()
+			throws Exception {
+		final List<Reader> returnReaders = new ArrayList<Reader>();
+
+		StreamFactory<Reader> readerFactory = new StreamFactory<Reader>() {
+
+			@Override
+			public Reader create(String name)
+					throws IOException {
+				Reader reader = spy(new StringReader(stringContent));
+				returnReaders.add(reader);
+				return reader;
+			}
+		};
+
+		assertThat(md5HashingService.getHashFromReader(readerFactory)).isEqualTo(expectedMD5Hash);
+		assertThat(sha1HashingService.getHashFromReader(readerFactory)).isEqualTo(expectedSHA1Hash);
+		verify(returnReaders.get(0)).close();
+		verify(returnReaders.get(1)).close();
+	}
+
+	@Test
+	public void givenReadExceptionWhenHashingReaderFactoryThenReceivedCorrectHashAndOpenedReadersClosed()
+			throws Exception {
+		final AtomicReference<Reader> readerRef = new AtomicReference<Reader>();
+
+		StreamFactory<Reader> readerFactory = new StreamFactory<Reader>() {
+
+			@Override
+			public Reader create(String name)
+					throws IOException {
+				Reader reader = spy(new StringReader(stringContent) {
+					@Override
+					public int read()
+							throws IOException {
+						throw new IOException();
+					}
+
+					@Override
+					public int read(char[] cbuf)
+							throws IOException {
+						throw new IOException();
+					}
+
+					@Override
+					public int read(char[] cbuf, int off, int len)
+							throws IOException {
+						throw new IOException();
+					}
+
+					@Override
+					public int read(CharBuffer target)
+							throws IOException {
+						throw new IOException();
+					}
+				});
+				readerRef.set(reader);
+				return reader;
+			}
+		};
+
+		try {
+			md5HashingService.getHashFromReader(readerFactory);
+			fail("Exception expected");
+		} catch (HashingServiceException.CannotReadContent e) {
+
+		}
+		verify(readerRef.get()).close();
+	}
+
+	@Test(expected = HashingServiceException.CannotReadContent.class)
+	public void givenStreamReaderWhenGetHashFromReaderAndIOExceptionThenHashingServiceExceptionThrown()
+			throws Exception {
+		final StreamFactory<Reader> readerFactory = Mockito.mock(StreamFactory.class, "IOExceptionReader");
+		when(readerFactory.create(SDK_STREAM)).thenThrow(new IOException());
+
+		md5HashingService.getHashFromReader(readerFactory);
+	}
+
+	@Test
+	public void givenHashExceptionWhenHashingReaderFactoryThenReceivedCorrectHashAndOpenedReadersClosed()
+			throws Exception {
+		final Reader reader = spy(new StringReader(stringContent));
+		StreamFactory<Reader> readerFactory = new StreamFactory<Reader>() {
+
+			@Override
+			public Reader create(String name)
+					throws IOException {
+				return reader;
+			}
+		};
+
+		when(md5HashingService.doHash(stringContent.getBytes())).thenThrow(new RuntimeException());
+
+		try {
+			md5HashingService.getHashFromReader(readerFactory);
+			fail("Exception expected");
+		} catch (HashingServiceException.CannotHashContent e) {
+
+		}
+		verify(reader).close();
+	}
+
+	@Test
+	public void whenHashingStreamThenReceivedCorrectHashAndStreamNotClosed()
+			throws Exception {
+		InputStream reader1 = spy(new ReaderInputStream(new StringReader(stringContent)));
+		InputStream reader2 = spy(new ReaderInputStream(new StringReader(stringContent)));
+
+		assertThat(md5HashingService.getHashFromStream(reader1)).isEqualTo(expectedMD5Hash);
+		assertThat(sha1HashingService.getHashFromStream(reader2)).isEqualTo(expectedSHA1Hash);
+		verify(reader1, never()).close();
+		verify(reader2, never()).close();
+	}
+
+	@Test
+	public void whenHashingStreamFactoryThenReceivedCorrectHashAndOpenedStreamsClosed()
+			throws Exception {
+		final List<InputStream> returnReaders = new ArrayList<>();
+
+		StreamFactory<InputStream> readerFactory = new StreamFactory<InputStream>() {
+
+			@Override
+			public InputStream create(String name)
+					throws IOException {
+				InputStream reader = spy(new ReaderInputStream(new StringReader(stringContent)));
+				returnReaders.add(reader);
+				return reader;
+			}
+		};
+
+		assertThat(md5HashingService.getHashFromStream(readerFactory)).isEqualTo(expectedMD5Hash);
+		assertThat(sha1HashingService.getHashFromStream(readerFactory)).isEqualTo(expectedSHA1Hash);
+		verify(returnReaders.get(0)).close();
+		verify(returnReaders.get(1)).close();
+	}
+
+	@Test
+	public void givenReadExceptionWhenHashingStreamFactoryThenReceivedCorrectHashAndOpenedStreamsClosed()
+			throws Exception {
+		final AtomicReference<InputStream> readerRef = new AtomicReference<InputStream>();
+
+		StreamFactory<InputStream> readerFactory = new StreamFactory<InputStream>() {
+
+			@Override
+			public InputStream create(String name)
+					throws IOException {
+				InputStream reader = spy(new ReaderInputStream(new StringReader(stringContent) {
+					@Override
+					public int read()
+							throws IOException {
+						throw new IOException();
+					}
+
+					@Override
+					public int read(char[] cbuf)
+							throws IOException {
+						throw new IOException();
+					}
+
+					@Override
+					public int read(char[] cbuf, int off, int len)
+							throws IOException {
+						throw new IOException();
+					}
+
+					@Override
+					public int read(CharBuffer target)
+							throws IOException {
+						throw new IOException();
+					}
+				}));
+				readerRef.set(reader);
+				return reader;
+			}
+		};
+
+		try {
+			md5HashingService.getHashFromStream(readerFactory);
+			fail("Exception expected");
+		} catch (HashingServiceException.CannotReadContent e) {
+
+		}
+		verify(readerRef.get()).close();
+	}
+
+	@Test(expected = HashingServiceException.CannotReadContent.class)
+	public void givenStreamFactoryWhenGetHashFromStreamAndIOExceptionThenHashingServiceExceptionThrown()
+			throws Exception {
+		final StreamFactory<InputStream> readerFactory = Mockito.mock(StreamFactory.class, "IOExceptionReader");
+		when(readerFactory.create(SDK_STREAM)).thenThrow(new IOException());
+
+		md5HashingService.getHashFromStream(readerFactory);
+	}
+
+	@Test
+	public void givenHashExceptionWhenHashingStreamFactoryThenReceivedCorrectHashAndOpenedStreamsClosed()
+			throws Exception {
+		final InputStream reader = spy(new ReaderInputStream(new StringReader(stringContent)));
+		StreamFactory<InputStream> readerFactory = new StreamFactory<InputStream>() {
+
+			@Override
+			public InputStream create(String name)
+					throws IOException {
+				return reader;
+			}
+		};
+
+		when(md5HashingService.doHash(stringContent.getBytes())).thenThrow(new RuntimeException());
+
+		try {
+			md5HashingService.getHashFromStream(readerFactory);
+			fail("Exception expected");
+		} catch (HashingServiceException.CannotHashContent e) {
+
+		}
+		verify(reader).close();
+	}
+
+}

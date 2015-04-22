@@ -1,0 +1,193 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.security.roles;
+
+import java.util.List;
+
+import org.jdom2.Document;
+
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.security.RoleValidator;
+import com.constellio.model.services.security.roles.RolesManagerRuntimeException.RolesManagerRuntimeException_Validation;
+import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
+import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
+import com.constellio.model.utils.XMLConfigReader;
+
+public class RolesManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<List<Role>> {
+
+	private static String ROLES_CONFIG = "/roles.xml";
+	private OneXMLConfigPerCollectionManager<List<Role>> oneXMLConfigPerCollectionManager;
+	private ConfigManager configManager;
+	private CollectionsListManager collectionsListManager;
+
+	public RolesManager(ConfigManager configManager, CollectionsListManager collectionsListManager) {
+		this.configManager = configManager;
+		this.collectionsListManager = collectionsListManager;
+	}
+
+	@Override
+	public void initialize() {
+		this.oneXMLConfigPerCollectionManager = new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager,
+				ROLES_CONFIG, xmlConfigReader(), this);
+	}
+
+	public void createCollectionRole(String collection) {
+		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				RolesManagerWriter writer = newRoleWriter(document);
+				writer.createEmptyRoles();
+			}
+		};
+		oneXMLConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
+	}
+
+	public Role addRole(final Role role) {
+		validate(role.getCollection(), false, role);
+		DocumentAlteration alteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				RolesManagerWriter writer = newRoleWriter(document);
+				writer.addRole(role);
+			}
+		};
+		String collection = role.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, alteration);
+		return role;
+	}
+
+	public void deleteRole(final Role role)
+			throws RolesManagerRuntimeException {
+		validate(role.getCollection(), true, role);
+		DocumentAlteration alteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				RolesManagerWriter writer = newRoleWriter(document);
+				writer.deleteRole(role);
+			}
+		};
+		String collection = role.getCollection();
+		oneXMLConfigPerCollectionManager.updateXML(collection, alteration);
+	}
+
+	public void updateRole(final Role role)
+			throws RolesManagerRuntimeException {
+		validate(role.getCollection(), true, role.getCode());
+		DocumentAlteration alteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				RolesManagerWriter writer = newRoleWriter(document);
+				writer.updateRole(role);
+			}
+		};
+		oneXMLConfigPerCollectionManager.updateXML(role.getCollection(), alteration);
+	}
+
+	public List<Role> getAllRoles(String collection) {
+		return oneXMLConfigPerCollectionManager.get(collection);
+	}
+
+	public Roles getCollectionRoles(String collection) {
+		return new Roles(getAllRoles(collection));
+	}
+
+	public Role getRole(String collection, String code)
+			throws RolesManagerRuntimeException {
+
+		// TODO quick fix for roles
+		if (Role.READ.equals(code)) {
+			return Role.READ_ROLE;
+		}
+		if (Role.WRITE.equals(code)) {
+			return Role.WRITE_ROLE;
+		}
+		if (Role.DELETE.equals(code)) {
+			return Role.DELETE_ROLE;
+		}
+
+		validate(collection, true, code);
+
+		for (Role role : getAllRoles(collection)) {
+			if (role.getCode().equals(code)) {
+				return role;
+			}
+		}
+		return null;
+	}
+
+	private void validate(String collection, boolean updateValidation, String code)
+			throws RolesManagerRuntimeException {
+		ValidationErrors validationErrors = new ValidationErrors();
+		new RoleValidator(getAllRoles(collection), true).validate(code, validationErrors);
+
+		if (!validationErrors.getValidationErrors().isEmpty()) {
+			throw new RolesManagerRuntimeException_Validation(validationErrors);
+		}
+	}
+
+	private void validate(String collection, boolean updateValidation, Role role)
+			throws RolesManagerRuntimeException_Validation {
+		ValidationErrors validationErrors = new ValidationErrors();
+		new RoleValidator(getAllRoles(collection), updateValidation).validate(role, validationErrors);
+		if (!validationErrors.getValidationErrors().isEmpty()) {
+			throw new RolesManagerRuntimeException_Validation(validationErrors);
+		}
+	}
+
+	private RolesManagerWriter newRoleWriter(Document document) {
+		return new RolesManagerWriter(document);
+	}
+
+	private RolesManagerReader newRoleReader(Document document) {
+		return new RolesManagerReader(document);
+	}
+
+	private XMLConfigReader<List<Role>> xmlConfigReader() {
+		return new XMLConfigReader<List<Role>>() {
+			@Override
+			public List<Role> read(String collection, Document document) {
+				return newRoleReader(document).getAllRoles();
+			}
+		};
+	}
+
+	public boolean hasPermission(String collection, String roleCode, String operationPermission) {
+		try {
+			Role role = getRole(collection, roleCode);
+			return role.hasOperationPermission(operationPermission);
+		} catch (RolesManagerRuntimeException rme) {
+			return false;
+		}
+	}
+
+	@Override
+	public void onValueModified(String collection, List<Role> newValue) {
+
+	}
+
+	@Override
+	public void close() {
+
+	}
+
+}

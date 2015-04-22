@@ -1,0 +1,238 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.schemas.builders;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.services.schemas.SchemaComparators;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+public class MetadataSchemaTypeBuilder {
+
+	private static final String DEFAULT = "default";
+
+	private static final String UNDERSCORE = "_";
+	private final Set<MetadataSchemaBuilder> allSchemas = new HashSet<MetadataSchemaBuilder>();
+	private String code;
+	private String collection;
+	private String label;
+	private boolean security = true;
+	private MetadataSchemaBuilder defaultSchema;
+	private Set<MetadataSchemaBuilder> customSchemas = new HashSet<MetadataSchemaBuilder>();
+	private Boolean undeletable = false;
+
+	MetadataSchemaTypeBuilder() {
+	}
+
+	static MetadataSchemaTypeBuilder createNewSchemaType(String collection, String code,
+			MetadataSchemaTypesBuilder typesBuilder) {
+		return createNewSchemaType(collection, code, typesBuilder, true);
+	}
+
+	static MetadataSchemaTypeBuilder createNewSchemaType(String collection, String code,
+			MetadataSchemaTypesBuilder typesBuilder, boolean initialize) {
+		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
+		builder.code = code;
+		builder.collection = collection;
+		builder.label = code;
+		builder.customSchemas = new HashSet<MetadataSchemaBuilder>();
+		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(builder, typesBuilder, initialize);
+		return builder;
+	}
+
+	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType) {
+		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
+		builder.code = schemaType.getCode();
+		builder.collection = schemaType.getCollection();
+		builder.label = schemaType.getLabel();
+		builder.undeletable = schemaType.isUndeletable();
+		builder.defaultSchema = MetadataSchemaBuilder.modifyDefaultSchema(schemaType.getDefaultSchema(), builder);
+		builder.security = schemaType.hasSecurity();
+		builder.customSchemas = new HashSet<MetadataSchemaBuilder>();
+		for (MetadataSchema schema : schemaType.getSchemas()) {
+			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
+		}
+		return builder;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public String getCollection() {
+		return collection;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public MetadataSchemaTypeBuilder setLabel(String label) {
+		this.label = label;
+		return this;
+	}
+
+	public MetadataSchemaBuilder getDefaultSchema() {
+		return defaultSchema;
+	}
+
+	public Set<MetadataSchemaBuilder> getCustomSchemas() {
+		return customSchemas;
+	}
+
+	public Boolean isUndeletable() {
+		return undeletable;
+	}
+
+	public void setUndeletable(Boolean undeletable) {
+		this.undeletable = undeletable;
+	}
+
+	public Set<MetadataSchemaBuilder> getAllSchemas() {
+		allSchemas.addAll(customSchemas);
+		allSchemas.add(defaultSchema);
+		return allSchemas;
+	}
+
+	public MetadataSchemaBuilder getCustomSchema(String localCode) {
+		for (MetadataSchemaBuilder customSchema : customSchemas) {
+			if (localCode.equals(customSchema.getLocalCode())) {
+				return customSchema;
+			}
+		}
+		throw new MetadataSchemaTypeBuilderRuntimeException.NoSuchSchema(localCode);
+	}
+
+	public MetadataSchemaBuilder createCustomSchema(String localCode) {
+		for (MetadataSchemaBuilder customSchema : customSchemas) {
+			if (localCode.equals(customSchema.getLocalCode())) {
+				throw new MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined(localCode);
+			}
+		}
+
+		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode);
+		customSchema.setLocalCode(localCode);
+		customSchema.setCollection(collection);
+		customSchema.setCode(code + UNDERSCORE + localCode);
+		customSchemas.add(customSchema);
+		return customSchema;
+	}
+
+	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, TaxonomiesManager taxonomiesManager) {
+		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, taxonomiesManager);
+
+		List<MetadataSchema> schemas = new ArrayList<MetadataSchema>();
+		for (MetadataSchemaBuilder metadataSchemaBuilder : this.customSchemas) {
+			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, typesFactory, taxonomiesManager));
+		}
+
+		if (StringUtils.isBlank(label)) {
+			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
+		}
+
+		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
+		return new MetadataSchemaType(code, collection, label, schemas, defaultSchema, undeletable, security);
+	}
+
+	public MetadataBuilder getMetadata(String metadataCode) {
+		String[] parsedCode = metadataCode.split(UNDERSCORE);
+		String typeCode = parsedCode[0];
+		String schemaCode = parsedCode[1];
+		String metadataLocalCode = parsedCode[2];
+
+		if (!typeCode.equals(code)) {
+			throw new CannotGetMetadatasOfAnotherSchemaType(typeCode, code);
+		}
+
+		MetadataBuilder metadata = null;
+		if (schemaCode.equals(DEFAULT)) {
+			metadata = getDefaultSchema().getMetadata(metadataLocalCode);
+		} else {
+			metadata = getCustomSchema(schemaCode).getMetadata(metadataLocalCode);
+		}
+		if (metadata == null) {
+			throw new MetadataSchemaTypesBuilderRuntimeException.NoSuchMetadata(metadataLocalCode);
+		} else {
+			return metadata;
+		}
+	}
+
+	public MetadataSchemaBuilder getSchema(String codeOrCode) {
+		MetadataSchemaBuilder schema = null;
+		if (codeOrCode.contains(UNDERSCORE)) {
+			schema = getSchemaWithCompleteCode(codeOrCode);
+		} else {
+			schema = getSchemaWithCode(codeOrCode);
+		}
+		if (schema == null) {
+			throw new MetadataSchemaTypeBuilderRuntimeException.NoSuchSchema(codeOrCode);
+		} else {
+			return schema;
+		}
+	}
+
+	private MetadataSchemaBuilder getSchemaWithCode(String code) {
+		return code.equals(DEFAULT) ? getDefaultSchema() : getCustomSchema(code);
+	}
+
+	private MetadataSchemaBuilder getSchemaWithCompleteCode(String schemaCode) {
+		String[] parsedCode = schemaCode.split(UNDERSCORE);
+		String type = parsedCode[0];
+		if (!type.equals(code)) {
+			throw new ImpossibleRuntimeException("Cannot obtain schema from other type");
+		}
+		String schemaLocalCode = parsedCode[1];
+		return getSchemaWithCode(schemaLocalCode);
+	}
+
+	@Override
+	public String toString() {
+		return "MetadataSchemaTypeBuilder [code=" + code + ", label=" + label + ", defaultSchema=" + defaultSchema
+				+ ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
+	}
+
+	Set<MetadataBuilder> getAllMetadatas() {
+		Set<MetadataBuilder> metadatas = new HashSet<>();
+		metadatas.addAll(defaultSchema.getMetadatas());
+		for (MetadataSchemaBuilder customSchema : customSchemas) {
+			metadatas.addAll(customSchema.getMetadatasWithoutInheritance());
+		}
+		return metadatas;
+	}
+
+	public MetadataSchemaTypeBuilder setSecurity(boolean security) {
+		this.security = security;
+		return this;
+	}
+
+	public boolean isSecurity() {
+		return security;
+	}
+
+}

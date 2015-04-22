@@ -1,0 +1,125 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.ui.util;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.SingleComponentContainer;
+
+/**
+ * Adapted from https://vaadin.com/forum/#!/thread/217291/217290
+ * 
+ * @author Vincent
+ */
+public class ComponentTreeUtils {
+	
+	public static <T> T getFirstChild(Component component, Class<T> clazz) {
+		List<T> matches = getChildren(component, clazz);
+		return !matches.isEmpty() ? matches.get(0) : null;
+	}
+	
+	public static <T> List<T> getChildren(Component component, Class<T> clazz) {
+		final List<T> matches = new ArrayList<T>();
+		traverse(component, new FindByClass<T>(clazz, matches));
+		return matches;
+	}
+
+	/**
+	 * Traverse all components under a given component.
+	 * 
+	 * @param component
+	 * @param invocation
+	 */
+	public static void traverse(Component component, MethodInvoker invocation) {
+		traverse("Self", component, invocation);
+	}
+
+	private static void traverse(String theCaller, Component component, MethodInvoker invocation) {
+		// Self
+		invocation.invokeMethod(theCaller, component);
+
+		// Content of Panel and children of Window
+		if (component instanceof SingleComponentContainer) {
+			final SingleComponentContainer singleComponentContainer = (SingleComponentContainer) component;
+			if (singleComponentContainer.getContent() != null) {
+				traverse(singleComponentContainer.toString(), singleComponentContainer.getContent(), invocation);
+			}
+		} else if (component instanceof CustomComponent) {
+			final CustomComponent customComponent = (CustomComponent) component;
+			// All the contained components
+			final Iterator<Component> subComponents = customComponent.iterator();
+			while (subComponents.hasNext()) {
+				Component subComponent = subComponents.next();
+				traverse(component.toString(), subComponent, invocation);
+			}
+		} else if (component instanceof ComponentContainer) {
+			ComponentContainer componentContainer = (ComponentContainer) component;
+			// All the contained components
+			final Iterator<Component> subComponents = componentContainer.iterator();
+			while (subComponents.hasNext()) {
+				Component subComponent = subComponents.next();
+				traverse(component.toString(), subComponent, invocation);
+			}
+		}
+	}
+
+	/**
+	 * Just invoke any method on a component of the Application graph, just implement the only method
+	 * {@link #invokeMethod(String, Object)}.
+	 * 
+	 * @version $Id: ComponentTraverser.java,v 1.11 2010/09/14 19:40:32 tettoni Exp $
+	 */
+	public static interface MethodInvoker {
+		/**
+		 * Invoke a method on theTarget.
+		 * 
+		 * @param theCaller
+		 *            Only for logging - not functional
+		 * @param theTarget
+		 *            The target object to invoke on.
+		 */
+		public void invokeMethod(String theCaller, Object theTarget);
+	}
+	
+	public static class FindByClass<C> implements MethodInvoker {
+		
+		private Class<C> clazz;
+		
+		private List<C> matches;
+		
+		public FindByClass(Class<C> clazz, List<C> matches) {
+			this.clazz = clazz;
+			this.matches = matches;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void invokeMethod(String theCaller, Object theTarget) {
+			if (clazz.isAssignableFrom(theTarget.getClass())) {
+				matches.add((C) theTarget);
+			}
+		}
+		
+	}
+
+}

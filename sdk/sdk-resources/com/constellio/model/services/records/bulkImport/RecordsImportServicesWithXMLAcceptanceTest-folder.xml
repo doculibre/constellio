@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records datetimePattern="yyyy-MM-dd HH:mm:ss:SSS" datePattern="yyyy-MM-dd">
+    <record id="660">
+        <administrativeUnitEntered>title:Administrative Unit Wonderful</administrativeUnitEntered>
+        <categoryEntered>22231</categoryEntered>
+        <copyStatusEntered>null</copyStatusEntered>
+        <filingSpaceEntered>code:23COLD</filingSpaceEntered>
+        <keywords multivalues="true">
+            <item>frozen</item>
+            <item>wonderland</item>
+        </keywords>
+        <mediumTypes multivalues="true">
+            <item>pa</item>
+            <item>md</item>
+        </mediumTypes>
+        <actualTransferDate type="date">2015-05-21</actualTransferDate>
+        <retentionRuleEntered>code:O</retentionRuleEntered>
+        <title>A Wonderful and Cold Folder</title>
+    </record>
+    <record id="670">
+        <administrativeUnitEntered>title:Administrative Unit Wonderful</administrativeUnitEntered>
+        <categoryEntered>code:X2223</categoryEntered>
+        <copyStatusEntered>660</copyStatusEntered>
+        <filingSpaceEntered>00</filingSpaceEntered>
+        <keywords></keywords>
+        <mediumTypes>null</mediumTypes>
+        <actualTransferDate type="datetime">2010-04-29 09:31:46:235</actualTransferDate>
+        <retentionRuleEntered></retentionRuleEntered>
+        <title>A Wonderful |#!/$%?*()_+ Folder</title>
+    </record>
+    <record id="661">
+        <parentFolder>660</parentFolder>
+        <title>A Wonderful and Cold (Sub)Folder</title>
+        <keywords multivalue="true"></keywords>
+    </record>
+    <record id="662">
+        <parentFolder>660</parentFolder>
+        <title>A Wonderful and Cold (Sub)Folder Again</title>
+        <keywords multivalue="true"></keywords>
+    </record>
+</records>

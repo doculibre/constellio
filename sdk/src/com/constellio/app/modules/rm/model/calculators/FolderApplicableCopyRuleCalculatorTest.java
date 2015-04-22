@@ -1,0 +1,176 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.modules.rm.model.calculators;
+
+import static com.constellio.app.modules.rm.model.CopyRetentionRule.newPrincipal;
+import static com.constellio.app.modules.rm.model.CopyRetentionRule.newSecondary;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class FolderApplicableCopyRuleCalculatorTest extends ConstellioTest {
+
+	CopyRetentionRule principal, secondPrincipal, thirdPrincipal, secondary;
+	List<String> mediumTypes;
+	CopyType folderCopyType;
+
+	List<String> PA_DM = asList("PA", "DM");
+
+	FolderApplicableCopyRuleCalculator calculator;
+
+	@Mock CalculatorParameters parameters;
+
+	@Before
+	public void setUp()
+			throws Exception {
+		calculator = spy(new FolderApplicableCopyRuleCalculator());
+
+	}
+
+	@Test
+	public void givenFolderHasSecondaryCopyTypeThenReturnTheSecondary() {
+		principal = newPrincipal(PA_DM, "888-0-D");
+		secondary = newSecondary(PA_DM, "888-0-C");
+		mediumTypes = PA_DM;
+		folderCopyType = CopyType.SECONDARY;
+
+		assertThat(calculatedValue()).containsOnlyOnce(secondary);
+
+	}
+
+	@Test
+	public void givenFolderHasPrincipalCopyTypeAndRuleWithSinglePrincipalCopyThenReturThePrincipal() {
+		principal = newPrincipal(PA_DM, "888-0-D");
+		secondary = newSecondary(PA_DM, "888-0-C");
+		mediumTypes = PA_DM;
+		folderCopyType = CopyType.PRINCIPAL;
+
+		assertThat(calculatedValue()).containsOnlyOnce(principal);
+
+	}
+
+	@Test
+	public void givenFolderHasASingleMediumTypeMatchWithARuleCopyThenMatchReturned() {
+		secondary = newSecondary(asList("PA", "FI"), "888-0-C");
+		principal = newPrincipal(asList("PA"), "888-0-D");
+		secondPrincipal = newPrincipal(asList("FI"), "888-0-D");
+		folderCopyType = CopyType.PRINCIPAL;
+
+		mediumTypes = Arrays.asList("PA");
+		assertThat(calculatedValue()).containsOnlyOnce(principal);
+
+		mediumTypes = Arrays.asList("FI");
+		assertThat(calculatedValue()).containsOnlyOnce(secondPrincipal);
+
+		mediumTypes = Arrays.asList("DM", "PA");
+		assertThat(calculatedValue()).containsOnlyOnce(principal);
+
+		mediumTypes = Arrays.asList("DM", "FI");
+		assertThat(calculatedValue()).containsOnlyOnce(secondPrincipal);
+
+		mediumTypes = Arrays.asList("PA", "DM");
+		assertThat(calculatedValue()).containsOnlyOnce(principal);
+
+		mediumTypes = Arrays.asList("FI", "DM");
+		assertThat(calculatedValue()).containsOnlyOnce(secondPrincipal);
+
+		mediumTypes = Arrays.asList("Z6", "PA", "Z2");
+		principal = newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
+		secondPrincipal = newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
+		assertThat(calculatedValue()).containsOnlyOnce(principal);
+
+		mediumTypes = Arrays.asList("Z6", "FI", "Z2");
+		principal = newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
+		secondPrincipal = newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
+		assertThat(calculatedValue()).containsOnlyOnce(secondPrincipal);
+
+		mediumTypes = Arrays.asList("Z6", "FI", "Z5");
+		principal = newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
+		secondPrincipal = newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
+		assertThat(calculatedValue()).containsOnlyOnce(secondPrincipal);
+
+	}
+
+	@Test
+	public void givenFolderHasNoMatchWithARuleCopyThenPrincipalCopyChoosedAmongAllCopyRulesBasedOnTheDecommissioningDate() {
+		secondary = newSecondary(asList("PA", "FI"), "888-0-C");
+		principal = newPrincipal(asList("PA"), "888-0-D");
+		secondPrincipal = newPrincipal(asList("FI"), "888-0-D");
+		thirdPrincipal = newPrincipal(asList("PA", "FI"), "888-0-D");
+		folderCopyType = CopyType.PRINCIPAL;
+		mediumTypes = Arrays.asList("DM");
+
+		assertThat(calculatedValue()).containsExactly(principal, secondPrincipal, thirdPrincipal);
+
+	}
+
+	@Test
+	public void givenFolderHasTwoMatchWithARuleCopyThenPrincipalCopyChoosedAmongMatchedRulesBasedOnTheDecommissioningDate() {
+		secondary = newSecondary(asList("PA", "FI"), "888-0-C");
+		principal = newPrincipal(asList("PA"), "888-0-D");
+		secondPrincipal = newPrincipal(asList("FI"), "888-0-D");
+		thirdPrincipal = newPrincipal(asList("PA", "FI"), "888-0-D");
+		folderCopyType = CopyType.PRINCIPAL;
+		mediumTypes = Arrays.asList("PA");
+
+		assertThat(calculatedValue()).containsExactly(principal, thirdPrincipal);
+
+	}
+
+	// --------------------
+
+	private List<CopyRetentionRule> calculatedValue() {
+		when(parameters.get(calculator.folderCopyTypeParam)).thenReturn(folderCopyType);
+		when(parameters.get(calculator.folderMediumTypesParam)).thenReturn(mediumTypes);
+
+		List<CopyRetentionRule> copyRetentionRules = new ArrayList<>();
+		if (principal != null) {
+			copyRetentionRules.add(principal);
+		}
+		if (secondPrincipal != null) {
+			copyRetentionRules.add(secondPrincipal);
+		}
+
+		if (thirdPrincipal != null) {
+			copyRetentionRules.add(thirdPrincipal);
+		}
+
+		if (secondary != null) {
+			copyRetentionRules.add(secondary);
+		}
+
+		when(parameters.get(calculator.ruleCopyRulesParam)).thenReturn(copyRetentionRules);
+
+		return calculator.calculate(new CalculatorParametersValidatingDependencies(parameters, calculator));
+	}
+}

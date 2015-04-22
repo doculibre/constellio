@@ -1,0 +1,180 @@
+apply plugin: 'war'
+apply plugin: 'sonar-runner'
+apply plugin: 'application'
+
+defaultTasks 'clean', 'compileJava'
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+    apply plugin: 'eclipse'
+
+    applicationDefaultJvmArgs = ["-XX:MaxPermSize=256m"]
+
+    sourceCompatibility = 1.7
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.fork = true
+        options.forkOptions.setMemoryMaximumSize("2g")
+        options.forkOptions.setJvmArgs(["-XX:MaxPermSize=256m"])
+    }
+
+    tasks.withType(Javadoc) {
+        options.encoding = 'UTF-8'
+    }
+
+    test {
+        minHeapSize = "128m"
+        maxHeapSize = "3g"
+        jvmArgs '-XX:MaxPermSize=256m'
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "http://maven.restlet.org"
+        }
+        maven {
+            name "vaadin-addons"
+            url "http://maven.vaadin.com/vaadin-addons"
+        }
+        maven {
+            name "sonatype vaadin"
+            url "https://oss.sonatype.org/content/repositories/vaadin/"
+        }
+
+        flatDir {
+            dirs 'libs/'
+        }
+    }
+
+    dependencies {
+        testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
+        testCompile 'org.jacoco:org.jacoco.agent:0.7.1.201405082137'
+        testCompile 'org.jacoco:org.jacoco.ant:0.7.1.201405082137'
+
+        compile "com.cybozu.labs:langdetect:1.1-20120112"
+        compile "com.eaio.uuid:uuid:3.2"
+        compile "org.jdom:jdom:2.0.2"
+        compile "org.apache.poi:poi-ooxml:3.10-FINAL"
+        compile "org.apache.poi:poi:3.10-FINAL"
+        compile "org.eclipse.jetty.aggregate:jetty-all-server:8.1.10.v20130312"
+        compile "org.slf4j:slf4j-log4j12:1.7.7"
+        compile "org.slf4j:slf4j-api:1.7.7"
+        compile "jspf:jspf.core:1.0.2"
+        compile "commons-io:commons-io:2.4"
+        compile "org.apache.solr:solr-solrj:5.0.0"
+        compile "org.apache.solr:solr-core:5.0.0"
+        compile "org.apache.commons:commons-lang3:3.0"
+        compile "org.jboss.spec.javax.servlet:jboss-servlet-api_3.0_spec:1.0.2.Final"
+        compile "commons-logging:commons-logging:1.1.3"
+        compile "org.apache.tika:tika-core:1.5"
+        compile "org.apache.tika:tika-parsers:1.5"
+        compile "org.databene:contiperf:2.2.0"
+        compile "commons-httpclient:commons-httpclient:3.1"
+        compile "org.seleniumhq.selenium.fluent:fluent-selenium:1.14.5"
+        compile "org.apache.curator:curator-framework:2.7.0"
+        compile "org.apache.curator:curator-recipes:2.7.0"
+        compile "org.apache.curator:curator-client:2.7.0"
+        compile "org.apache.curator:curator-test:2.7.0"
+        compile "commons-beanutils:commons-beanutils:1.9.2"
+        compile "com.itextpdf:itextpdf:5.0.6"
+        compile "javax.servlet.jsp:jsp-api:2.2"
+    }
+}
+
+war {
+    baseName = "constellio"
+    version = "5.0.2"
+
+    webInf {
+        from("resources_i18n/") {
+            into("resources_i18n")
+        }
+    }
+
+    webAppDirName = "app/WebContent"
+}
+
+dependencies {
+    compile project(":data")
+    compile project(":model")
+    compile project(":app")
+}
+
+task compileData() {
+    dependsOn project(":data").compileJava
+}
+
+task compileModel() {
+    dependsOn project(":model").compileJava
+}
+
+task compileApp() {
+    dependsOn project(":app").compileJava
+}
+
+task compileWeb() {
+    dependsOn project(":app").build
+}
+
+task unWar(type: Copy) {
+    def outputDir = buildDir.getAbsolutePath() + "/tmp/war_tmp/"
+
+    from zipTree(war.archivePath)
+    into outputDir
+}
+
+task installer(type: Zip, dependsOn: [build, unWar]) {
+    from(buildDir.getAbsolutePath() + "/tmp/war_tmp/") {
+        exclude "WEB-INF/lib/tika-app*.jar"
+        into("webapp")
+    }
+
+    from "dist/install/"
+    into "intelligid"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.0'
+}
+
+eclipse {
+    project {
+        name = 'Constellio'
+        buildCommand 'compileJava'
+    }
+}
+
+sonarRunner {
+    sonarProperties {
+        property "sonar.host.url", "http://192.168.1.100:81"
+        property "sonar.jdbc.url", "jdbc:mysql://192.168.1.100/sonar"
+        property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
+        property "sonar.jdbc.username", "sonar"
+        property "sonar.jdbc.password", "6BKWMnLtrSNH"
+        property "sonar.jacoco.reportPath", "$projectDir/sdk/build/jacoco/test.exec"
+        property "sonar.java.coveragePlugin", "jacoco"
+        property "sonar.junit.reportsPath", "$projectDir/sdk/build/reports/"
+        property "sonar.projectName", "intelligid-dev"
+        property "sonar.projectKey", "intelligid-dev"
+        property "sonar.sources", "src/main/java"
+        property "sonar.skipPackageDesign", "true"
+    }
+}
+
+jacocoTestReport {
+    group = "reporting"
+    reports {
+        xml.enabled false
+        html.enabled true
+        csv.enabled false
+    }
+}
+
+test {
+    jacoco {
+        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+    }
+}

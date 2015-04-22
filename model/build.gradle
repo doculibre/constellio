@@ -1,0 +1,26 @@
+dependencies {
+    compile project(":data")
+    compile project(":connector-api")
+    compile "org.jsoup:jsoup:1.7.2"
+    compile "com.cybozu.labs:langdetect:1.1-20120112"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/'
+        }
+    }
+}
+
+eclipse {
+    project {
+        name = 'model'
+        buildCommand 'compileJava'
+    }
+}
+
+jar {
+    baseName = 'core-model'
+    version = '5.0.2'
+}

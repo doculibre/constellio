@@ -1,0 +1,159 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.records;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class RecordProviderTest extends ConstellioTest {
+
+	@Mock Record firstRecord;
+	String firstRecordId = aString();
+
+	@Mock Record secondRecord;
+	String secondRecordId = aString();
+
+	@Mock RecordServices recordServices;
+
+	@Mock Transaction transaction;
+
+	@Before
+	public void setUp()
+			throws Exception {
+
+		when(firstRecord.getId()).thenReturn(firstRecordId);
+		when(secondRecord.getId()).thenReturn(secondRecordId);
+
+		when(recordServices.getDocumentById(firstRecordId)).thenReturn(firstRecord);
+		when(recordServices.getDocumentById(secondRecordId)).thenReturn(secondRecord);
+
+	}
+
+	@Test
+	public void givenRecordProviderWithMetadatasWhenGettingOnOfTheseMetadataThenReturnDoNotCallService()
+			throws Exception {
+
+		RecordProvider recordProvider = new RecordProvider(recordServices, null, asList(firstRecord), null);
+
+		assertThat(recordProvider.getRecord(firstRecordId)).isEqualTo(firstRecord);
+
+		verifyZeroInteractions(recordServices);
+	}
+
+	@Test
+	public void givenRecordProviderWithMetadatasWhenGettingAnotherMetadataThenReturnCallService()
+			throws Exception {
+
+		RecordProvider recordProvider = new RecordProvider(recordServices, null, asList(firstRecord), null);
+
+		assertThat(recordProvider.getRecord(secondRecordId)).isEqualTo(secondRecord);
+
+		verify(recordServices).getDocumentById(secondRecordId);
+	}
+
+	@Test
+	public void givenRecordProviderCreatedFromAnotherOneWithMetadatasWhenGettingOnOfTheseMetadataThenReturnDoNotCallService()
+			throws Exception {
+
+		RecordProvider nestedRecordProvider = new RecordProvider(recordServices, null, asList(firstRecord), null);
+		RecordProvider recordProvider = new RecordProvider(recordServices, nestedRecordProvider, asList(secondRecord), null);
+		assertThat(recordProvider.getRecord(firstRecordId)).isEqualTo(firstRecord);
+		assertThat(recordProvider.getRecord(secondRecordId)).isEqualTo(secondRecord);
+
+		verifyZeroInteractions(recordServices);
+	}
+
+	@Test
+	public void givenRecordInMemoryListWhenCheckingSingleValueInMemoryListThenTrue() {
+		RecordProvider recordProvider = new RecordProvider(recordServices, null, asList(firstRecord), null);
+
+		assertThat(recordProvider.hasRecordInMemoryList(firstRecordId)).isTrue();
+	}
+
+	@Test
+	public void givenRecordInMemoryListWhenCheckingMultiValueInMemoryListThenTrue() {
+		RecordProvider recordProvider = new RecordProvider(recordServices, null, asList(firstRecord), null);
+
+		assertThat(recordProvider.hasRecordInMemoryList(asList(firstRecordId))).isTrue();
+	}
+
+	@Test
+	public void givenRecordNotInMemoryListWhenCheckingSingleValueInMemoryListThenFalse() {
+		RecordProvider recordProvider = new RecordProvider(recordServices, null, asList(firstRecord), null);
+
+		assertThat(recordProvider.hasRecordInMemoryList(secondRecordId)).isFalse();
+	}
+
+	@Test
+	public void givenRecordNotMemoryListWhenCheckingMultiValueInMemoryListThenFalse() {
+		RecordProvider recordProvider = new RecordProvider(recordServices, null, asList(firstRecord), null);
+
+		assertThat(recordProvider.hasRecordInMemoryList(asList(secondRecordId))).isFalse();
+	}
+
+	@Test
+	public void givenTransactionWithReferencedRecordThenCopiedInMemoryList() {
+
+		Map<String, Record> referencedRecords = new HashMap<>();
+		referencedRecords.put(firstRecordId, firstRecord);
+		referencedRecords.put(secondRecordId, secondRecord);
+		when(transaction.getReferencedRecords()).thenReturn(referencedRecords);
+		RecordProvider recordProvider = new RecordProvider(recordServices, null, new ArrayList<Record>(), transaction);
+
+		assertThat(recordProvider.hasRecordInMemoryList(asList(firstRecordId))).isTrue();
+		assertThat(recordProvider.hasRecordInMemoryList(asList(secondRecordId))).isTrue();
+		assertThat(recordProvider.getRecord(firstRecordId)).isEqualTo(firstRecord);
+		assertThat(recordProvider.getRecord(secondRecordId)).isEqualTo(secondRecord);
+	}
+
+	@Test
+	public void givenSameRecordReferencedInTransactionAndModifiedThenModifiedInstanceInMemoryList() {
+
+		Map<String, Record> referencedRecords = new HashMap<>();
+		referencedRecords.put(firstRecordId, firstRecord);
+		referencedRecords.put(secondRecordId, secondRecord);
+		when(transaction.getReferencedRecords()).thenReturn(referencedRecords);
+		Record modifiedSecondRecord = mock(Record.class);
+		when(modifiedSecondRecord.getId()).thenReturn(secondRecordId);
+		RecordProvider recordProvider = new RecordProvider(recordServices, null, Arrays.asList(modifiedSecondRecord),
+				transaction);
+
+		assertThat(recordProvider.hasRecordInMemoryList(asList(firstRecordId))).isTrue();
+		assertThat(recordProvider.hasRecordInMemoryList(asList(secondRecordId))).isTrue();
+		assertThat(recordProvider.getRecord(firstRecordId)).isEqualTo(firstRecord);
+		assertThat(recordProvider.getRecord(secondRecordId)).isEqualTo(modifiedSecondRecord);
+	}
+
+}

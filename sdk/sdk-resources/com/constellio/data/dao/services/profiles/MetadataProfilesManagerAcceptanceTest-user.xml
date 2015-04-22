@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profileType>
+    <code>Zecode</code>
+    <label>Zelabel</label>
+    <defaultProfile>
+        <code>Zecode_default</code>
+        <label>Zedefaultprofilelabel</label>
+        <dataStoreFields>
+        <metadata>
+                <code>Zecode_default_titre</code>
+                <label>Titre</label>
+                <enabled>true</enabled>
+            </metadata>
+        </dataStoreFields>
+    </defaultProfile>
+    <customProfiles>
+        <profile>
+            <code>Zecode_Zecustomprofilecode</code>
+            <label>Zecustomprofilelabel</label>
+            <dataStoreFields>
+            <metadata>
+                    <code>Zecode_default_titre</code>
+                    <label>Titre</label>
+                    <enabled>false</enabled>
+                </metadata>
+                <metadata>
+                    <code>Zecode_Zecustomprofilecode_aCustomMetadata</code>
+                    <label>zeMetadataTitre</label>
+                    <enabled>true</enabled>
+                </metadata>
+            </dataStoreFields>
+        </profile>
+    </customProfiles>
+</profileType>

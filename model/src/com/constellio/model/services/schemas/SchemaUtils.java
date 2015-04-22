@@ -1,0 +1,261 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.schemas;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.schemas.SchemaUtilsRuntimeException.SchemaUtilsRuntimeException_NoMetadataWithDatastoreCode;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.NoSuchMetadata;
+
+public class SchemaUtils {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaUtils.class);
+
+	private static Map<String, String[]> underscoreSplitCache = new HashMap<>();
+
+	public static String[] underscoreSplitWithCache(String text) {
+		String[] cached = underscoreSplitCache.get(text);
+		if (cached == null) {
+			cached = text.split("_");
+			underscoreSplitCache.put(text, cached);
+		}
+		return cached;
+	}
+
+	public List<String> toMetadataLocalCodes(List<Metadata> metadatas) {
+		List<String> localCodes = new ArrayList<>();
+		for (Metadata metadata : metadatas) {
+			localCodes.add(this.toLocalMetadataCode(metadata.getCode()));
+		}
+		return localCodes;
+	}
+
+	public String toLocalMetadataCode(String codeOrLocalCode) {
+		String simpleCode = codeOrLocalCode;
+		if (codeOrLocalCode != null) {
+			String[] parts = underscoreSplitWithCache(codeOrLocalCode);
+			if (parts.length == 3) {
+				simpleCode = parts[2];
+			}
+		}
+
+		return simpleCode;
+	}
+
+	public Set<String> getLocalDependencies(Metadata metadata) {
+		Set<String> localDependencies = new HashSet<>();
+		if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
+			CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
+			localDependencies.add(toLocalMetadataCode(dataEntry.getReferenceMetadata()));
+
+		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+			CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
+			for (Dependency dependency : dataEntry.getCalculator().getDependencies()) {
+				localDependencies.add(toLocalMetadataCode(dependency.getLocalMetadataCode()));
+			}
+		}
+		return localDependencies;
+	}
+
+	public Map<String, Set<String>> calculatedMetadataDependencies(List<Metadata> metadatas) {
+		Map<String, Set<String>> dependenciesMap = new HashMap<>();
+
+		for (Metadata metadata : metadatas) {
+			Set<String> localDependencies = getLocalDependencies(metadata);
+			if (!localDependencies.isEmpty()) {
+				dependenciesMap.put(metadata.getLocalCode(), localDependencies);
+			}
+		}
+
+		return dependenciesMap;
+	}
+
+	public String getSchemaTypeCode(Metadata metadata) {
+		return underscoreSplitWithCache(metadata.getCode())[0];
+	}
+
+	public String getSchemaTypeCode(String schema) {
+		return underscoreSplitWithCache(schema)[0];
+	}
+
+	public String getSchemaLocalCode(String schema) {
+		return schema.split("_")[1];
+	}
+
+	public String getSchemaCode(Metadata metadata) {
+		return getSchemaCode(metadata.getCode());
+	}
+
+	public String getSchemaCode(String metadataCompleteCode) {
+		String[] parts = underscoreSplitWithCache(metadataCompleteCode);
+		return parts[0] + "_" + parts[1];
+	}
+
+	public String getSchemaCode(MetadataBuilder builder) {
+		String[] parts = underscoreSplitWithCache(builder.getCode());
+		return parts[0] + "_" + parts[1];
+	}
+
+	public String getReferenceCode(Metadata automaticMetadata, ReferenceDependency<?> referenceDependency) {
+		String referenceCode = referenceDependency.getLocalMetadataCode();
+		if (!referenceCode.contains("_")) {
+			referenceCode = automaticMetadata.getCode().replace(automaticMetadata.getLocalCode(), referenceCode);
+		}
+		return referenceCode;
+	}
+
+	public String getDependencyCode(ReferenceDependency<?> referenceDependency, Metadata reference) {
+		String dependencyCode = referenceDependency.getDependentMetadataCode();
+		if (!dependencyCode.contains("_")) {
+			String schemaType = reference.getAllowedReferences().getAllowedSchemaType();
+			if (schemaType == null) {
+				schemaType = underscoreSplitWithCache(
+						reference.getAllowedReferences().getAllowedSchemas().iterator().next())[0];
+			}
+
+			dependencyCode = schemaType + "_default_" + dependencyCode;
+		}
+		return dependencyCode;
+	}
+
+	public Metadata getMetadataFromDataStoreCode(String metadataDataStoreCode, MetadataSchemaType schemaType) {
+		String code = getLocalCodeFromDataStoreCode(metadataDataStoreCode);
+		try {
+			return schemaType.getDefaultSchema().getMetadata(code);
+		} catch (NoSuchMetadata e) {
+			LOGGER.debug("Metadata not found in default schema, searching in ");
+			for (MetadataSchema customSchema : schemaType.getCustomSchemas()) {
+				Metadata customMetadata = customSchema.getMetadata(code);
+				if (customMetadata != null) {
+					return customMetadata;
+				}
+			}
+		}
+
+		throw new SchemaUtilsRuntimeException_NoMetadataWithDatastoreCode(metadataDataStoreCode);
+	}
+
+	public String getLocalCodeFromDataStoreCode(String metadataDataStoreCode) {
+		int indexOfUnderscore = metadataDataStoreCode.indexOf("_");
+		String firstPart;
+		if (indexOfUnderscore == -1) {
+			firstPart = metadataDataStoreCode;
+		} else {
+			firstPart = metadataDataStoreCode.substring(0, indexOfUnderscore);
+		}
+
+		if (firstPart.endsWith("PId")) {
+			return firstPart.substring(0, firstPart.length() - 3);
+
+		} else if (firstPart.endsWith("Id")) {
+			return firstPart.substring(0, firstPart.length() - 2);
+		} else {
+			return firstPart;
+		}
+	}
+
+	public Map<String, Metadata> buildMetadataByLocalCodeIndex(List<MetadataSchema> customSchemas,
+			MetadataSchema defaultSchema) {
+		//TODO Test that default schema metadata are returned instead of an inheritance in a custom schema
+		Map<String, Metadata> index = new HashMap<>();
+		for (MetadataSchema customSchema : customSchemas) {
+			index.putAll(customSchema.getIndexByAtomicCode());
+		}
+		index.putAll(defaultSchema.getIndexByAtomicCode());
+		return index;
+	}
+
+	public Map<String, Metadata> buildIndexByLocalCode(List<Metadata> metadatas) {
+		Map<String, Metadata> index = new HashMap<>();
+		for (Metadata metadata : metadatas) {
+			index.put(metadata.getLocalCode(), metadata);
+		}
+		return index;
+	}
+
+	public String getLocalCode(String codeOrLocalCode, String schemaCode) {
+		String partialCode;
+		String[] codeOrLocalCodeSplitted = underscoreSplitWithCache(codeOrLocalCode);
+		if (codeOrLocalCodeSplitted.length == 3) {
+			partialCode = codeOrLocalCodeSplitted[2];
+			String requestedSchemaType = codeOrLocalCodeSplitted[0];
+
+			if (!Schemas.GLOBAL_SCHEMA_TYPE.equals(requestedSchemaType) && !schemaCode.startsWith(requestedSchemaType)) {
+				throw new CannotGetMetadatasOfAnotherSchemaType(requestedSchemaType, schemaCode);
+			}
+			String requestedSchema = codeOrLocalCodeSplitted[1];
+			String schemaLocalCode = underscoreSplitWithCache(schemaCode)[1];
+			if (!requestedSchema.equals(MetadataSchemaType.DEFAULT) && !requestedSchema.equals(schemaLocalCode)) {
+				throw new CannotGetMetadatasOfAnotherSchema(requestedSchema, schemaLocalCode);
+			}
+
+			if (codeOrLocalCodeSplitted.length != 3) {
+				throw new MetadataSchemasRuntimeException.InvalidCode(schemaCode);
+			}
+		} else {
+			partialCode = codeOrLocalCode;
+		}
+
+		if (partialCode.endsWith("PId")) {
+			partialCode = partialCode.substring(0, partialCode.length() - 3);
+		}
+
+		if (partialCode.endsWith("Id")) {
+			partialCode = partialCode.substring(0, partialCode.length() - 2);
+		}
+		return partialCode;
+	}
+
+	public List<String> toMetadataCodes(List<Metadata> metadatas) {
+		List<String> codes = new ArrayList<>();
+		for (Metadata metadata : metadatas) {
+			codes.add(metadata.getCode());
+		}
+		return codes;
+	}
+
+	public List<String> toSchemaTypeCodes(List<MetadataSchemaType> types) {
+		List<String> codes = new ArrayList<>();
+		for (MetadataSchemaType type : types) {
+			codes.add(type.getCode());
+		}
+		return codes;
+	}
+
+}

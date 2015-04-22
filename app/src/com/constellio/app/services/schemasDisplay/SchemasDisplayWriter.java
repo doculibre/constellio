@@ -1,0 +1,204 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.services.schemasDisplay;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+
+public class SchemasDisplayWriter {
+	private static final String ROOT = "display";
+	private static final String SCHEMA_TYPES_DISPLAY_CONFIG = "SchemaTypesDisplayConfig";
+	private static final String COLLECTION = "collection";
+	private static final String SCHEMA_TYPE_DISPLAY_CONFIGS = "SchemaTypeDisplayConfigs";
+	private static final String MANAGEABLE = "manageable";
+	private static final String SIMPLE_SEARCH = "simpleSearch";
+	private static final String ADVANCED_SEARCH = "advancedSearch";
+	private static final String TRUE = "true";
+	private static final String FALSE = "false";
+	private static final String SCHEMA_DISPLAY_CONFIGS = "SchemaDisplayConfigs";
+	private static final String DISPLAY_METADATA_CODES = "DisplayMetadataCodes";
+	private static final String SCHEMA_CODE = "SchemaCode";
+	private static final String FORM_METADATA_CODES = "FormMetadataCodes";
+	private static final String SEARCH_RESULTS_METADATA_CODES = "SearchResultsMetadataCodes";
+	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
+	private static final String INPUT_TYPE = "InputType";
+	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
+	private static final String HIGHLIGHT = "Highlight";
+	private static final String METADATA_GROUP_LABEL = "MetadataGroupLabel";
+	private static final String METADATA_GROUPS_LABELS = "MetadataGroupsLabels";
+	private static final String METADATA_GROUP_NAME = "name";
+	private static final String METADATA_GROUP = "metadataGroup";
+
+	Document document;
+
+	public SchemasDisplayWriter(Document document) {
+		this.document = document;
+	}
+
+	public void writeEmptyDocument() {
+		Element display = new Element(ROOT);
+		document.setRootElement(display);
+	}
+
+	public void saveTypes(SchemaTypesDisplayConfig config) {
+		Element rootElement = document.getRootElement();
+
+		Element schemaTypesDisplayConfigElement = getOrCreateElementFromParent(rootElement, SCHEMA_TYPES_DISPLAY_CONFIG);
+
+		for (String facetMetadataCode : config.getFacetMetadataCodes()) {
+			Element facetMetadataCodeElement = schemaTypesDisplayConfigElement.getChild(facetMetadataCode);
+
+			if (facetMetadataCodeElement == null) {
+				facetMetadataCodeElement = new Element(facetMetadataCode);
+				schemaTypesDisplayConfigElement.addContent(facetMetadataCodeElement);
+			}
+		}
+
+		Set<String> codesToKeep = new HashSet<>(config.getFacetMetadataCodes());
+		for (Element elementToCheckForRemoval : schemaTypesDisplayConfigElement.getChildren()) {
+			if (!codesToKeep.contains(elementToCheckForRemoval.getName())) {
+				schemaTypesDisplayConfigElement.removeChild(elementToCheckForRemoval.getName());
+			}
+		}
+	}
+
+	private Element getOrCreateElementFromParent(Element rootElement, String elementName) {
+		return getOrCreateElementFromParent(rootElement, elementName, "", "");
+	}
+
+	private Element getOrCreateElementFromParent(Element rootElement, String elementName, String attributeName,
+			String attributeValue) {
+		Element newElement = null;
+		List<Element> elements = rootElement.getChildren(elementName);
+		for (Element element : elements) {
+			if (StringUtils.isNotBlank(attributeName)) {
+				if (attributeValue.equals(element.getAttributeValue(attributeName))) {
+					newElement = element.clone();
+					rootElement.addContent(newElement);
+					element.detach();
+					return newElement;
+				}
+			} else {
+				newElement = element.clone();
+				rootElement.addContent(newElement);
+				element.detach();
+				return newElement;
+			}
+		}
+		if (newElement == null) {
+			newElement = createAndAddElement(rootElement, elementName, attributeName, attributeValue);
+		}
+		return newElement;
+	}
+
+	private Element createAndAddElement(Element rootElement, String elementName, String attributeName, String attributeValue) {
+		Element newElement;
+		newElement = new Element(elementName);
+		if (StringUtils.isNotBlank(attributeName)) {
+			newElement.setAttribute(attributeName, attributeValue);
+		}
+		rootElement.addContent(newElement);
+		return newElement;
+	}
+
+	public void saveType(SchemaTypeDisplayConfig config) {
+		Element rootElement = document.getRootElement();
+
+		Element schemaTypeDisplayConfigs = getOrCreateElementFromParent(rootElement, SCHEMA_TYPE_DISPLAY_CONFIGS);
+
+		Element schemaTypeDisplayConfig = schemaTypeDisplayConfigs.getChild(config.getSchemaType());
+
+		if (schemaTypeDisplayConfig == null) {
+			schemaTypeDisplayConfig = new Element(config.getSchemaType());
+			schemaTypeDisplayConfigs.addContent(schemaTypeDisplayConfig);
+		}
+		schemaTypeDisplayConfig.setAttribute(MANAGEABLE, config.isManageable() ? TRUE : FALSE);
+		schemaTypeDisplayConfig.setAttribute(SIMPLE_SEARCH, config.isSimpleSearch() ? TRUE : FALSE);
+		schemaTypeDisplayConfig.setAttribute(ADVANCED_SEARCH, config.isAdvancedSearch() ? TRUE : FALSE);
+
+		Element metadataGroups = getOrCreateElementFromParent(schemaTypeDisplayConfig, METADATA_GROUPS_LABELS);
+
+		for (Element child : metadataGroups.getChildren()) {
+			metadataGroups.removeChildren(METADATA_GROUP_LABEL);
+		}
+
+		for (String group : config.getMetadataGroup()) {
+			createAndAddElement(metadataGroups, METADATA_GROUP_LABEL, METADATA_GROUP_NAME, group);
+		}
+	}
+
+	public void saveSchema(SchemaDisplayConfig config) {
+		Element rootElement = document.getRootElement();
+
+		Element schemaDisplayConfigsElement = getOrCreateElementFromParent(rootElement, SCHEMA_DISPLAY_CONFIGS,
+				SCHEMA_CODE, config.getSchemaCode());
+
+		process(config, schemaDisplayConfigsElement, DISPLAY_METADATA_CODES, config.getDisplayMetadataCodes());
+		process(config, schemaDisplayConfigsElement, FORM_METADATA_CODES, config.getFormMetadataCodes());
+		process(config, schemaDisplayConfigsElement, SEARCH_RESULTS_METADATA_CODES,
+				config.getSearchResultsMetadataCodes());
+	}
+
+	private void process(SchemaDisplayConfig config, Element schemaDisplayConfigsElement, String metadataCodeName,
+			List<String> metadataCodes) {
+		Element metadataCodesElement = getOrCreateElementFromParent(schemaDisplayConfigsElement, metadataCodeName);
+
+		for (String metadataCode : metadataCodes) {
+			Element formMetadataCodeElement = getOrCreateElementFromParent(metadataCodesElement, metadataCode);
+		}
+		removeInvalidStringsFromElement(metadataCodes, metadataCodesElement);
+	}
+
+	private void removeInvalidStringsFromElement(List<String> validStrings, Element existingStringsElement) {
+		List<Element> elementsToRemove = new ArrayList<>();
+		Set<String> stringsToKeep = new HashSet<>(validStrings);
+		for (Element elementToCheckForRemoval : existingStringsElement.getChildren()) {
+			if (!stringsToKeep.contains(elementToCheckForRemoval.getName())) {
+				//				existingStringsElement.removeChild(elementToCheckForRemoval.getName());
+				elementsToRemove.add(existingStringsElement.getChild(elementToCheckForRemoval.getName()));
+			}
+		}
+		for (Element elementoRemove : elementsToRemove) {
+			elementoRemove.detach();
+		}
+	}
+
+	public void saveMetadata(MetadataDisplayConfig config) {
+		Element rootElement = document.getRootElement();
+
+		Element metadataDisplayConfigs = getOrCreateElementFromParent(rootElement, METADATA_DISPLAY_CONFIGS);
+
+		Element metadata = getOrCreateElementFromParent(metadataDisplayConfigs, config.getMetadataCode());
+		metadata.setAttribute(VISIBLE_IN_ADVANCED_SEARCH, config.isVisibleInAdvancedSearch() ? TRUE : FALSE);
+		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
+		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
+		metadata.setAttribute(METADATA_GROUP, config.getMetadataGroup());
+	}
+
+}

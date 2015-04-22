@@ -1,0 +1,398 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.entities;
+
+import static com.constellio.sdk.tests.TestUtils.assertThatToEqualsAndToStringThrowNoException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+
+import org.junit.Test;
+
+import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
+import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.AllowedReferences;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.ManualDataEntry;
+import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class POJOEntitiesTest extends ConstellioTest {
+
+	@Test
+	public void testThatRecordWrapperHasValidEqualsHashcodeAndToStringBehaviors() {
+		Record record = mock(Record.class);
+		when(record.getSchemaCode()).thenReturn("folder_default");
+		MetadataSchemaTypes types1 = mock(MetadataSchemaTypes.class);
+		MetadataSchemaTypes types2 = mock(MetadataSchemaTypes.class);
+		RecordWrapper o = new RecordWrapper(record, types1, "folder");
+		RecordWrapper o2 = new RecordWrapper(record, types1, "folder");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+		assertThat(o).isInstanceOf(Serializable.class);
+	}
+
+	@Test
+	public void testThatCalculatedDataEntryHasValidEqualsHashcodeAndToStringBehaviors() {
+		MetadataValueCalculator calculator = mock(MetadataValueCalculator.class);
+		CalculatedDataEntry o = new CalculatedDataEntry(calculator);
+		CalculatedDataEntry o2 = new CalculatedDataEntry(calculator);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+
+	}
+
+	@Test
+	public void testThatCopiedDataEntryHasValidEqualsHashcodeAndToStringBehaviors() {
+		CopiedDataEntry o = new CopiedDataEntry("a", "b");
+		CopiedDataEntry o2 = new CopiedDataEntry("a", "b");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatManualDataEntryHasValidEqualsHashcodeAndToStringBehaviors() {
+		ManualDataEntry o = new ManualDataEntry();
+		ManualDataEntry o2 = new ManualDataEntry();
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatLocalDependencyHasValidEqualsHashcodeAndToStringBehaviors() {
+		LocalDependency o = LocalDependency.toABoolean("a");
+		LocalDependency o2 = LocalDependency.toABoolean("a");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatReferenceDependencyHasValidEqualsHashcodeAndToStringBehaviors() {
+		ReferenceDependency o = ReferenceDependency.toABoolean("a", "b");
+		ReferenceDependency o2 = ReferenceDependency.toABoolean("a", "b");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatAllowedReferencesHasValidEqualsHashcodeAndToStringBehaviors() {
+		AllowedReferences o = new AllowedReferences("type", null);
+		AllowedReferences o2 = new AllowedReferences("type", null);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatMetadataHasValidEqualsHashcodeAndToStringBehaviors() {
+		Metadata o = Schemas.IDENTIFIER;
+		Metadata o2 = Schemas.IDENTIFIER;
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+		assertThat(o).isNotInstanceOf(Serializable.class);
+	}
+
+	@Test
+	public void testThatMetadataSchemaHasValidEqualsHashcodeAndToStringBehaviors() {
+		MetadataSchema o = new MetadataSchema("a", "a", "a", "a", new ArrayList<Metadata>(), true,
+				new HashSet<RecordValidator>(),
+				new ArrayList<Metadata>());
+		MetadataSchema o2 = new MetadataSchema("a", "a", "a", "a", new ArrayList<Metadata>(), true,
+				new HashSet<RecordValidator>(),
+				new ArrayList<Metadata>());
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+		assertThat(o).isNotInstanceOf(Serializable.class);
+	}
+
+	@Test
+	public void testThatMetadataSchemaTypeHasValidEqualsHashcodeAndToStringBehaviors() {
+		MetadataSchema defaultSchema = new MetadataSchema("a", "a", "a", "a", new ArrayList<Metadata>(), true,
+				new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+		MetadataSchema defaultSchema2 = new MetadataSchema("a", "a", "a", "a", new ArrayList<Metadata>(), true,
+				new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+		MetadataSchemaType o = new MetadataSchemaType("a", "a", "a", new ArrayList<MetadataSchema>(), defaultSchema, true, true);
+		MetadataSchemaType o2 = new MetadataSchemaType("a", "a", "a", new ArrayList<MetadataSchema>(), defaultSchema2, true,
+				true);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+		assertThat(o).isNotInstanceOf(Serializable.class);
+	}
+
+	@Test
+	public void testThatMetadataSchemaTypesHasValidEqualsHashcodeAndToStringBehaviors() {
+		MetadataSchemaTypes o = new MetadataSchemaTypes(zeCollection, 1, new ArrayList<MetadataSchemaType>(),
+				new ArrayList<String>());
+		MetadataSchemaTypes o2 = new MetadataSchemaTypes(zeCollection, 1, new ArrayList<MetadataSchemaType>(),
+				new ArrayList<String>());
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+		assertThat(o).isNotInstanceOf(Serializable.class);
+	}
+
+	@Test
+	public void testThatMetadataAccessRestrictionsHasValidEqualsHashcodeAndToStringBehaviors() {
+		MetadataValueCalculator calculator = mock(MetadataValueCalculator.class);
+		MetadataAccessRestriction o = new MetadataAccessRestriction(Arrays.asList("a"), Arrays.asList("b"), Arrays.asList("c"),
+				Arrays.asList("d"));
+		MetadataAccessRestriction o2 = new MetadataAccessRestriction(Arrays.asList("a"), Arrays.asList("b"), Arrays.asList("c"),
+				Arrays.asList("d"));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+
+	}
+
+	@Test
+	public void testThatBinaryConfigurationHasValidEqualsHashcodeAndToStringBehaviors() {
+		BinaryConfiguration o = new BinaryConfiguration("a", null);
+		BinaryConfiguration o2 = new BinaryConfiguration("a", null);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatXMLConfigurationHasValidEqualsHashcodeAndToStringBehaviors() {
+		XMLConfiguration o = new XMLConfiguration("a", null);
+		XMLConfiguration o2 = new XMLConfiguration("a", null);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatPropertiesConfigurationHasValidEqualsHashcodeAndToStringBehaviors() {
+		PropertiesConfiguration o = new PropertiesConfiguration("a", null);
+		PropertiesConfiguration o2 = new PropertiesConfiguration("a", null);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatTaxonomiesHasValidEqualsHashcodeAndToStringBehaviors() {
+		Taxonomy o = Taxonomy.createPublic("a", "b", "zeCollection", Arrays.asList("c"));
+		Taxonomy o2 = Taxonomy.createPublic("a", "b", "zeCollection", Arrays.asList("c"));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_AllConditions_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchCondition nested = mock(LogicalSearchCondition.class);
+		LogicalSearchCondition o = LogicalSearchQueryOperators.allConditions(Arrays.asList(nested));
+		LogicalSearchCondition o2 = LogicalSearchQueryOperators.allConditions(Arrays.asList(nested));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_AnyConditions_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchCondition nested = mock(LogicalSearchCondition.class);
+		LogicalSearchCondition o = LogicalSearchQueryOperators.anyConditions(Arrays.asList(nested));
+		LogicalSearchCondition o2 = LogicalSearchQueryOperators.anyConditions(Arrays.asList(nested));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_Is_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.is("4");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.is("4");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_IsNotEqual_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.isNotEqual("4");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.isNotEqual("4");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_In_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.in(Arrays.asList("4", "5"));
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.in(Arrays.asList("4", "5"));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_NotIn_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.notIn(Arrays.asList("4", "5"));
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.notIn(Arrays.asList("4", "5"));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_Containing_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.containing(Arrays.asList("4", "5"));
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.containing(Arrays.asList("4", "5"));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_notContainingElements_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.notContainingElements(Arrays.asList("4", "5"));
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.notContainingElements(Arrays.asList("4", "5"));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_isNull_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.isNull();
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.isNull();
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_isNotNull_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.isNotNull();
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.isNotNull();
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_containingText_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.containingText("a");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.containingText("a");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_startingWithText_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.startingWithText("a");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.startingWithText("a");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_endingWithText_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.endingWithText("a");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.endingWithText("a");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_all_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.all(new ArrayList<LogicalSearchValueCondition>());
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.all(new ArrayList<LogicalSearchValueCondition>());
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_any_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.any(new ArrayList<LogicalSearchValueCondition>());
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.any(new ArrayList<LogicalSearchValueCondition>());
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_not_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.not(LogicalSearchQueryOperators.startingWithText("text"));
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.not(LogicalSearchQueryOperators.startingWithText("text"));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_isTrue_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.isTrue();
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.isTrue();
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_isTrueOrNull_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.isTrueOrNull();
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.isTrueOrNull();
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_isFalse_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.isFalse();
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.isFalse();
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_isFalseOrNull_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.isFalseOrNull();
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.isFalseOrNull();
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_valueInRange_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.valueInRange("1", "2");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.valueInRange("1", "2");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_lessThan_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.lessThan("1");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.lessThan("1");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_greaterThan_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.greaterThan("1");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.greaterThan("1");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_lessOrEqualThan_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.lessOrEqualThan("1");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.lessOrEqualThan("1");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_greaterOrEqualThan_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.greaterOrEqualThan("1");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.greaterOrEqualThan("1");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_equal_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.equal("1");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.equal("1");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_notEqual_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.notEqual("1");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.notEqual("1");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_query_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.query("1");
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.query("1");
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatMetadataSchemaTypesIsNotSerializable() {
+	}
+
+}

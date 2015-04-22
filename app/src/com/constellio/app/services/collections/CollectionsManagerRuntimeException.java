@@ -1,0 +1,91 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.services.collections;
+
+@SuppressWarnings("serial")
+public class CollectionsManagerRuntimeException extends RuntimeException {
+
+	public CollectionsManagerRuntimeException(String message) {
+		super(message);
+	}
+
+	public CollectionsManagerRuntimeException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public CollectionsManagerRuntimeException(Throwable cause) {
+		super(cause);
+	}
+
+	public static class CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists
+			extends CollectionsManagerRuntimeException {
+
+		public CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists(String code) {
+			super("A collection with the code '" + code + "' already exist.");
+		}
+	}
+
+	public static class CollectionsManagerRuntimeException_CollectionNotFound extends CollectionsManagerRuntimeException {
+
+		public CollectionsManagerRuntimeException_CollectionNotFound(String code, Exception e) {
+			super("A collection not found: " + code, e);
+		}
+	}
+
+	public static class CollectionsManagerRuntimeException_CannotCreateCollectionRecord
+			extends CollectionsManagerRuntimeException {
+
+		public CollectionsManagerRuntimeException_CannotCreateCollectionRecord(String code, Exception e) {
+			super("Cannot create collection record: " + code, e);
+		}
+	}
+
+	public static class CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage
+			extends CollectionsManagerRuntimeException {
+
+		public CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage(String mainDataLanguage) {
+			super("Collection's languages must include system main data language '" + mainDataLanguage + "'");
+		}
+	}
+
+	public static class CollectionsManagerRuntimeException_InvalidLanguage
+			extends CollectionsManagerRuntimeException {
+
+		public CollectionsManagerRuntimeException_InvalidLanguage(String language) {
+			super("Language '" + language + "' is not supported.");
+		}
+	}
+
+	public static class CollectionsManagerRuntimeException_InvalidCode extends CollectionsManagerRuntimeException {
+		public CollectionsManagerRuntimeException_InvalidCode(String code) {
+			super("Invalid code: " + code);
+		}
+	}
+
+	public static class CollectionsManagerRuntimeException_CannotRemoveCollection extends CollectionsManagerRuntimeException {
+		public CollectionsManagerRuntimeException_CannotRemoveCollection(String collection, Throwable cause) {
+			super("Cannot remove collection from big vault: " + collection, cause);
+		}
+	}
+
+	public static class CollectionsManagerRuntimeException_CannotMigrateCollection extends CollectionsManagerRuntimeException {
+		public CollectionsManagerRuntimeException_CannotMigrateCollection(String collection, String version, Throwable cause) {
+			super("Cannot migrate collection '" + collection + "' to version " + version, cause);
+		}
+	}
+}

@@ -1,0 +1,246 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.ui.pages.globalGroup;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.entities.UserCredentialVO;
+import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
+import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
+import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
+import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
+import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.UserServices;
+
+@SuppressWarnings("serial")
+public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGroupView> {
+
+	transient UserServices userServices;
+
+	private Map<String, String> paramsMap;
+	private String breadCrumb;
+
+	public DisplayGlobalGroupPresenter(DisplayGlobalGroupView view) {
+		super(view);
+		init();
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		init();
+	}
+
+	private void init() {
+		userServices = modelLayerFactory.newUserServices();
+	}
+
+	public GlobalGroupVO getGlobalGroupVO(String code) {
+		GlobalGroup globalGroup = userServices.getGroup(code);
+		GlobalGroupToVOBuilder voBuilder = new GlobalGroupToVOBuilder();
+		return voBuilder.build(globalGroup);
+	}
+
+	public void backButtonClicked() {
+		navigateToBackPage();
+	}
+
+	public void editButtonClicked(GlobalGroupVO entity) {
+		paramsMap.put("globalGroupCode", entity.getCode());
+		String parameters = getParameters();
+		view.navigateTo().editGlobalGroup(parameters);
+	}
+
+	public void deleteButtonClicked(GlobalGroupVO globalGroupVO) {
+		String username = view.getSessionContext().getCurrentUser().getUsername();
+		UserCredential userCredential = modelLayerFactory.getUserCredentialsManager().getUserCredential(username);
+		GlobalGroup globalGroup = userServices.getGroup(globalGroupVO.getCode());
+		userServices.logicallyRemoveGroupHierarchy(userCredential, globalGroup);
+
+		cleanInvalidBackPages();
+
+		navigateToBackPage();
+	}
+
+	void cleanInvalidBackPages() {
+		if (paramsMap.containsKey("globalGroupCode")) {
+			paramsMap.remove("globalGroupCode");
+		}
+		breadCrumb = breadCrumb.replace(NavigatorConfigurationService.GROUP_ADD_EDIT, "");
+		breadCrumb = breadCrumb.replace(NavigatorConfigurationService.GROUP_DISPLAY, "");
+		breadCrumb = breadCrumb.replace("//", "/");
+	}
+
+	public UserCredentialVODataProvider getUserCredentialVODataProvider(String groupCode) {
+		UserCredentialToVOBuilder voBuilder = newUserCredentialVOBuilder();
+		return newUserCredentialVODataProvider(groupCode, voBuilder);
+	}
+
+	public GlobalGroupVODataProvider getGlobalGroupVODataProvider() {
+		GlobalGroupToVOBuilder voBuilder = newGlobalGroupVOBuilder();
+		return newGlobalGroupVODataProvider(voBuilder);
+	}
+
+	public void displayUserCredentialButtonClicked(UserCredentialVO entity, String globalGroupCode) {
+		paramsMap.put("username", entity.getUsername());
+		paramsMap.put("globalGroupCode", globalGroupCode);
+		String parameters = getParameters();
+		view.navigateTo().displayUserCredential(parameters);
+
+	}
+
+	public void editUserCredentialButtonClicked(UserCredentialVO entity, String globalGroupCode) {
+		paramsMap.put("username", entity.getUsername());
+		paramsMap.put("globalGroupCode", globalGroupCode);
+		String parameters = getParameters();
+		view.navigateTo().editUserCredential(parameters);
+	}
+
+	public void deleteUserCredentialButtonClicked(UserCredentialVO userCredentialVO, String globalGroupCode) {
+		userServices.removeUserFromGlobalGroup(userCredentialVO.getUsername(), globalGroupCode);
+		view.refreshTable();
+	}
+
+	public void addUserCredentialButtonClicked(String globalGroupCode, String username) {
+		List<String> newGlobalGroups = new ArrayList<>();
+		UserCredential userCredential = userServices.getUserCredential(username);
+		List<String> globalGroups = userCredential.getGlobalGroups();
+		newGlobalGroups.addAll(globalGroups);
+		newGlobalGroups.add(globalGroupCode);
+		userCredential = userCredential.withGlobalGroups(newGlobalGroups);
+		userServices.addUpdateUserCredential(userCredential);
+		view.refreshTable();
+	}
+
+	public void addSubGroupClicked(GlobalGroupVO entity) {
+		paramsMap.put("parentGlobalGroupCode", entity.getCode());
+		paramsMap.remove("globalGroupCode");
+		String parameters = ParamUtils.addParams(breadCrumb + "/" + NavigatorConfigurationService.GROUP_DISPLAY, paramsMap);
+		view.navigateTo().addGlobalGroup(parameters);
+	}
+
+	public void setParamsMap(Map<String, String> paramsMap) {
+		this.paramsMap = paramsMap;
+	}
+
+	public void setBreadCrumb(String breadCrumb) {
+		this.breadCrumb = breadCrumb;
+	}
+
+	private String getParameters() {
+		Map<String, Object> newParamsMap = new HashMap<>();
+		newParamsMap.putAll(paramsMap);
+		return ParamUtils.addParams(breadCrumb + "/" + NavigatorConfigurationService.GROUP_DISPLAY, newParamsMap);
+	}
+
+	private void navigateToBackPage() {
+		String viewNames[] = breadCrumb.split("/");
+		String backPage = viewNames[viewNames.length - 1];
+		breadCrumb = breadCrumb.replace(backPage, "");
+		if (breadCrumb.endsWith("/")) {
+			breadCrumb = breadCrumb.substring(0, breadCrumb.length() - 1);
+		}
+		if (paramsMap.containsKey("parentGlobalGroupCode")) {
+			paramsMap.put("globalGroupCode", paramsMap.get("parentGlobalGroupCode"));
+			paramsMap.remove("parentGlobalGroupCode");
+		}
+		Map<String, Object> newParamsMap = new HashMap<>();
+		newParamsMap.putAll(paramsMap);
+		String parameters = ParamUtils.addParams(breadCrumb, newParamsMap);
+		parameters = correctSlashs(parameters);
+		backPage = correctUrl(backPage, parameters);
+
+		view.navigateTo().url(backPage + parameters);
+	}
+
+	private String correctUrl(String backPage, String parameters) {
+		if (!backPage.endsWith("/") && !parameters.startsWith("/")) {
+			backPage += "/";
+		}
+		return backPage;
+	}
+
+	private String correctSlashs(String parameters) {
+		while (parameters.contains("//")) {
+			parameters = parameters.replace("//", "/");
+		}
+		return parameters;
+	}
+
+	UserCredentialVODataProvider newUserCredentialVODataProvider(String groupCode, UserCredentialToVOBuilder voBuilder) {
+		return new UserCredentialVODataProvider(voBuilder, modelLayerFactory, groupCode);
+	}
+
+	UserCredentialToVOBuilder newUserCredentialVOBuilder() {
+		return new UserCredentialToVOBuilder();
+	}
+
+	GlobalGroupVODataProvider newGlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder) {
+		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory);
+	}
+
+	GlobalGroupToVOBuilder newGlobalGroupVOBuilder() {
+		return new GlobalGroupToVOBuilder();
+	}
+
+	public void displaySubGroupCliked(GlobalGroupVO entity) {
+		String parameters = getParameters(entity);
+		view.navigateTo().displayGlobalGroup(parameters);
+	}
+
+	public void editSubGroupButtonClicked(GlobalGroupVO entity) {
+		String parameters = getParameters(entity);
+		view.navigateTo().editGlobalGroup(parameters);
+	}
+
+	public void deleteSubGroupButtonClicked(GlobalGroupVO entity) {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		String username = view.getSessionContext().getCurrentUser().getUsername();
+		UserCredential userCredential = modelLayerFactory.getUserCredentialsManager().getUserCredential(username);
+		GlobalGroup globalGroup = userServices.getGroup(entity.getCode());
+		userServices.logicallyRemoveGroupHierarchy(userCredential, globalGroup);
+
+		//TODO refresh table
+		view.refreshTable();
+	}
+
+	private String getParameters(GlobalGroupVO entity) {
+		Map<String, Object> params = new HashMap<>();
+		params.putAll(paramsMap);
+		if (entity.getParent() != null) {
+			params.put("parentGlobalGroupCode", entity.getParent());
+		} else if (params.containsKey("parentGlobalGroupCode")) {
+			params.remove("parentGlobalGroupCode");
+		}
+		params.put("globalGroupCode", entity.getCode());
+		return ParamUtils.addParams(breadCrumb + "/" + NavigatorConfigurationService.GROUP_DISPLAY, params);
+	}
+
+	public boolean canAndOrModify() {
+		return userServices.canAddOrModifyUserAndGroup();
+	}
+}

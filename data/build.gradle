@@ -1,0 +1,23 @@
+dependencies {
+    compile "jodconverter-core:jodconverter-core:3.0-beta-4"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/'
+        }
+    }
+}
+
+eclipse {
+    project {
+        name = 'data'
+        buildCommand 'compileJava'
+    }
+}
+
+jar {
+    baseName = 'core-data'
+    version = '5.0.2'
+}

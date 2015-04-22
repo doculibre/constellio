@@ -1,0 +1,15 @@
+include "data",
+        "model",
+        "app",
+        "custom",
+        "sdk",
+        "connector-api",
+        "connector-cmis"
+
+project(":data").projectDir = file("./data")
+project(":model").projectDir = file("./model")
+project(":app").projectDir = file("./app")
+project(":custom").projectDir = file("./custom")
+project(":sdk").projectDir = file("./sdk")
+project(":connector-api").projectDir = file("./connectors/connector-api")
+project(":connector-cmis").projectDir = file("./connectors/connector-cmis")

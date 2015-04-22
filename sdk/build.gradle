@@ -1,0 +1,107 @@
+apply from: 'http://plugins.jasoft.fi/vaadin-groovy.plugin?version=0.9.7'
+
+vaadin {
+    version '7.3.9'
+    addon.title = "constellio"
+
+    widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
+    manageWidgetset true
+
+    debug true
+    debugPort 8000
+    profiler true
+
+    manageRepositories = true
+    manageDependencies true
+
+    serverPort 8080
+
+    jvmArgs()
+
+    //mainSourceSet sourceSets.main.allJava
+
+    vaadin.plugin.themesDirectory 'VAADIN/themes/constellio'
+    vaadin.plugin.themeAutoRecompile true
+}
+
+dependencies {
+    testCompile project(":data")
+    testCompile project(":model")
+    testCompile project(":app")
+
+    testCompile "com.h2database:h2:1.4.182"
+    testCompile "com.carrotsearch:junit-benchmarks:0.7.2"
+    testCompile "org.glassfish.jersey.core:jersey-client:2.13"
+    testCompile "org.apache.chemistry.opencmis:chemistry-opencmis-client-bindings:0.12.0"
+    testCompile "org.apache.chemistry.opencmis:chemistry-opencmis-client-impl:0.12.0"
+    testCompile "org.databene:contiperf:2.2.0"
+    testCompile "commons-httpclient:commons-httpclient:3.1"
+    testCompile "org.seleniumhq.selenium.fluent:fluent-selenium:1.14.5"
+    testCompile "org.eclipse.jetty.aggregate:jetty-all-server:8.1.10.v20130312"
+    testCompile "org.slf4j:slf4j-log4j12:1.7.7"
+    testCompile "org.slf4j:slf4j-api:1.7.7"
+    testCompile "javax.servlet:javax.servlet-api:3.1.0"
+    testCompile "com.vaadin:vaadin-shared:7.3.9"
+    testCompile "com.vaadin:vaadin-client:7.3.9"
+    testCompile "com.vaadin:vaadin-server:7.3.9"
+    testCompile "com.vaadin:vaadin-themes:7.3.9"
+    testCompile "com.vaadin:vaadin-client-compiled:7.3.9"
+    testCompile "com.vaadin:vaadin-client-compiler:7.3.9"
+    testCompile "com.vaadin:vaadin-themes:7.3.9"
+    testCompile "com.vaadin:vaadin-sass-compiler:0.9.11"
+    testCompile "javax.servlet:javax.servlet-api:3.1.0"
+    testCompile "javax.servlet.jsp:jsp-api:2.2"
+    testCompile "junit:junit:4.11"
+    testCompile "org.mockito:mockito-all:1.10.8"
+    testCompile "commons-logging:commons-logging:1.1.3"
+    testCompile "org.apache.tika:tika-core:1.5"
+    testCompile "org.assertj:assertj-core:1.6.0"
+    testCompile "com.github.detro.ghostdriver:phantomjsdriver:1.1.0"
+    testCompile "org.apache.zookeeper:zookeeper:3.4.6"
+    testCompile "javax.validation:validation-api:1.1.0.Final";
+
+    compile project(":data")
+    compile project(":model")
+    compile project(":app")
+
+    compile "com.cybozu.labs:langdetect:1.1-20120112"
+    compile "org.apache.chemistry.opencmis:chemistry-opencmis-client-bindings:0.12.0"
+    compile "org.apache.chemistry.opencmis:chemistry-opencmis-client-impl:0.12.0"
+    compile "junit:junit:4.11"
+    compile "org.mockito:mockito-all:1.10.8"
+    compile "org.assertj:assertj-core:1.6.0"
+    compile "com.github.detro.ghostdriver:phantomjsdriver:1.1.0"
+    compile "javax.servlet:javax.servlet-api:3.1.0"
+    compile "javax.servlet.jsp:jsp-api:2.2"
+    compile "com.vaadin:vaadin-shared:7.3.9"
+    compile "com.vaadin:vaadin-client:7.3.9"
+    compile "com.vaadin:vaadin-server:7.3.9"
+    compile "com.vaadin:vaadin-themes:7.3.9"
+    compile "com.vaadin:vaadin-client-compiled:7.3.9"
+    compile "com.vaadin:vaadin-client-compiler:7.3.9"
+    compile "com.vaadin:vaadin-themes:7.3.9"
+    compile "com.vaadin:vaadin-sass-compiler:0.9.11"
+    compile "org.apache.solr:solr-solrj:5.0.0"
+    compile "org.apache.solr:solr-core:5.0.0"
+    compile "org.apache.zookeeper:zookeeper:3.4.6"
+    compile "javax.validation:validation-api:1.1.0.Final";
+}
+
+eclipse {
+    project {
+        name = 'sdk'
+        buildCommand 'compileJava'
+    }
+}
+
+
+sourceSets {
+    test {
+        java {
+            srcDir "src/"
+        }
+        resources {
+            srcDir "sdk-resources"
+        }
+    }
+}

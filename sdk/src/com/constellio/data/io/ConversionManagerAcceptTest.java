@@ -1,0 +1,77 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.data.io;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class ConversionManagerAcceptTest extends ConstellioTest {
+	IOServices ioServices;
+	ConversionManager manager;
+	File tempFolder;
+
+	@Before
+	public void setUp() {
+		ioServices = getIOLayerFactory().newIOServices();
+		tempFolder = ioServices.newTemporaryFolder("ConversionManagerAcceptTest");
+	}
+
+	@After
+	public void tearDown() {
+		manager.close();
+	}
+
+	@Test
+	public void givenInputStreamThenCreatePDF() {
+		manager = new ConversionManager(ioServices, 1, tempFolder);
+		for (int i = 1; i < 9; i++) {
+			String originalName = "test" + i + ".odt";
+			InputStream input = getTestResourceInputStream(originalName);
+			File result = manager.convertToPDF(input, originalName);
+			assertThat(result.isFile());
+		}
+	}
+
+	@Test
+	public void givenInputStreamThenCreatePDFAsync()
+			throws ExecutionException, InterruptedException {
+		manager = new ConversionManager(ioServices, 4, tempFolder);
+		List<Future<File>> results = new ArrayList<>();
+		for (int i = 1; i < 9; i++) {
+			String originalName = "test" + i + ".odt";
+			InputStream input = getTestResourceInputStream(originalName);
+			results.add(manager.convertToPDFAsync(input, originalName));
+		}
+		for (Future<File> result : results) {
+			assertThat(result.get().isFile());
+		}
+	}
+}

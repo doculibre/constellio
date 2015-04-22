@@ -1,0 +1,36 @@
+# === WEB DRIVERS CONFIGURATION ===
+# if both are specified, phantomjs is used, unless you call newFirefoxWebDriver() in the test
+#firefoxBinary=detect
+#firefoxBinary=
+#phantomJSBinary=
+port=7070
+
+
+# === DATASTORE CONFIGURATION ===
+# *** WARNING : collections will be deleted ***3
+dao.records.type=http
+dao.records.http.url=http://localhost:8983/solr/
+dao.contents.type=filesystem
+dao.settings.type=filesystem
+
+# === RUN/SKIP TESTS CONFIGURATION ===
+skip.realTests=false
+skip.slowtests=false
+skip.uitests=false
+skip.drivertests=false
+skip.loadtests=true
+skip.alltests=false
+skip.indevelopment=true
+run.performancetests=false
+
+tests.whitelist=
+tests.blacklist=
+
+
+smtpServer.mail.smtp.account.user=Corp
+smtpServer.mail.smtp.account.email=your.email@gmail.com
+smtpServer.mail.smtp.account.password=p@ssword
+smtpServer.mail.smtp.auth=true
+smtpServer.mail.smtp.starttls.enable=true
+smtpServer.mail.smtp.host=smtp.gmail.com
+smtpServer.mail.smtp.port=587

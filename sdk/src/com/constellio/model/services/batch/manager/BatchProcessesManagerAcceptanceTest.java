@@ -1,0 +1,299 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.services.batch.manager;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.BatchProcessPart;
+import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
+
+	String aRecordId = aString();
+	String aSecondRecordId = aString();
+	String aThirdRecordId = aString();
+	List<String> indexedRecords = asList(aRecordId, aSecondRecordId, aThirdRecordId);
+	String aRecordIdThatIsNotReindexed = aString();
+	String otherBatchFirstRecordId = aString();
+	String otherBatchSecondRecordId = aString();
+	List<String> otherIndexedRecords = asList(otherBatchFirstRecordId, otherBatchSecondRecordId);
+
+	@Mock Metadata firstMetadata;
+	@Mock Metadata secondMetadata;
+	@Mock Metadata otherMetadata;
+	BatchProcessAction action = new ReindexMetadatasBatchProcessAction(new ArrayList<String>(Arrays.asList("a", "b")));
+	List<Metadata> indexMetadatas;
+
+	LocalDateTime currentDate = aDateTime();
+	LocalDateTime startDate = aDateTime();
+
+	String zeComputer = "zeComputer";
+	String secondComputer = "secondComputer";
+	String thirdComputer = "thirdComputer";
+	BatchProcessesManager batchProcessManager;
+	BatchProcessesManager secondComputerBatchProcessManager;
+	BatchProcessesManager thirdComputerBatchProcessManager;
+
+	List<String> noErrors = asList();
+
+	@Mock ParametrizedInstanceUtils parametrizedInstanceUtils;
+
+	@Before
+	public void setUp() {
+		getModelLayerFactory().getBatchProcessesController().close();
+		when(firstMetadata.getCode()).thenReturn("first");
+		when(secondMetadata.getCode()).thenReturn("second");
+		when(otherMetadata.getCode()).thenReturn("other");
+
+		indexMetadatas = asList(firstMetadata, secondMetadata);
+
+		batchProcessManager = newBatchProcessManager(zeComputer, 2);
+		secondComputerBatchProcessManager = newBatchProcessManager(secondComputer, 2);
+		thirdComputerBatchProcessManager = newBatchProcessManager(thirdComputer, 2);
+
+		doReturn(currentDate).doReturn(startDate).when(batchProcessManager).getCurrentTime();
+	}
+
+	private BatchProcessesManager newBatchProcessManager(String computer, int partsSize) {
+		BatchProcessesManager batchProcessesManager = spy(
+				new BatchProcessesManager(computer, partsSize, getModelLayerFactory().newRecordServices(),
+						getModelLayerFactory().newSearchServices(),
+						getDataLayerFactory().getConfigManager()));
+		batchProcessesManager.initialize();
+		return batchProcessesManager;
+	}
+
+	@Test
+	public void givenXMLAlreadyExistingAndBatchProcessThenManagerLoadThem()
+			throws Exception {
+
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		batchProcessManager.markAsPending(batchProcess);
+
+		BatchProcessesManager newBatchProcessManager = newBatchProcessManager(zeComputer, 2);
+
+		BatchProcess loadedBatchProcess = newBatchProcessManager.get(batchProcess.getId());
+
+		assertThat(loadedBatchProcess.getId()).isNotNull();
+		assertThat(loadedBatchProcess.getHandledRecordsCount()).isEqualTo(0);
+		assertThat(loadedBatchProcess.getTotalRecordsCount()).isEqualTo(3);
+		assertThat(loadedBatchProcess.getRequestDateTime()).isEqualTo(currentDate);
+		assertThat(loadedBatchProcess.getStartDateTime()).isNull();
+		assertThat(loadedBatchProcess.getErrors()).isZero();
+		assertThat(loadedBatchProcess.getAction().getClass()).isEqualTo(ReindexMetadatasBatchProcessAction.class);
+		assertThat(loadedBatchProcess.getStatus()).isEqualTo(BatchProcessStatus.PENDING);
+	}
+
+	@Test
+	public void whenAddingBatchProcessThenAddedToBatchProcessList()
+			throws Exception {
+
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		assertThat(batchProcess.getStatus()).isEqualTo(BatchProcessStatus.STANDBY);
+		batchProcessManager.markAsPending(batchProcess);
+		BatchProcess loadedBatchProcess = batchProcessManager.get(batchProcess.getId());
+
+		assertThat(loadedBatchProcess.getId()).isNotNull();
+		assertThat(loadedBatchProcess.getHandledRecordsCount()).isEqualTo(0);
+		assertThat(loadedBatchProcess.getTotalRecordsCount()).isEqualTo(3);
+		assertThat(loadedBatchProcess.getRequestDateTime()).isEqualTo(currentDate);
+		assertThat(loadedBatchProcess.getStartDateTime()).isNull();
+		assertThat(loadedBatchProcess.getErrors()).isZero();
+		assertThat(loadedBatchProcess.getAction().getClass()).isEqualTo(ReindexMetadatasBatchProcessAction.class);
+		assertThat(loadedBatchProcess.getStatus()).isEqualTo(BatchProcessStatus.PENDING);
+
+	}
+
+	@Test
+	public void whenAddingMultipleBatchProcessThenAllAddedToListAndSortedByFIFO()
+			throws Exception {
+		BatchProcess batchProcess1 = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		BatchProcess batchProcess2 = batchProcessManager.add(otherIndexedRecords, "zeCollection", action);
+		batchProcessManager.markAllStandbyAsPending();
+		List<BatchProcess> loadedBatchProcess = batchProcessManager.getPendingBatchProcesses();
+
+		assertThat(loadedBatchProcess.get(0).getId()).isEqualTo(batchProcess1.getId());
+		assertThat(loadedBatchProcess.get(1).getId()).isEqualTo(batchProcess2.getId());
+	}
+
+	@Test
+	public void givenNoCurrentBatchProcessAndBatchProcessesInTodoListWhenGetCurrentBatchProcessThenReturnNext()
+			throws Exception {
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		batchProcessManager.markAsPending(batchProcess);
+		assertThat(batchProcessManager.get(batchProcess.getId()).getStatus()).isEqualTo(BatchProcessStatus.PENDING);
+
+		BatchProcess startedBatchProcess = batchProcessManager.getCurrentBatchProcess();
+		BatchProcess loadedStartedBatchProcess = batchProcessManager.get(batchProcess.getId());
+		assertThat(loadedStartedBatchProcess.getStatus()).isEqualTo(BatchProcessStatus.CURRENT);
+		assertThat(loadedStartedBatchProcess.getStartDateTime()).isEqualTo(startDate);
+		assertThat(loadedStartedBatchProcess).isEqualTo(startedBatchProcess);
+	}
+
+	@Test
+	public void givenOnlyStandByBatchProcessesWhenGetCurrentBatchProcessPartThenNull()
+			throws Exception {
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		assertThat(batchProcessManager.getCurrentBatchProcessPart()).isNull();
+	}
+
+	@Test
+	public void givenStandByBatchProcessWhenGetStandbyBatchProcessesListThenOneElement()
+			throws Exception {
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		assertThat(batchProcessManager.getStandbyBatchProcesses()).containsOnly(batchProcess);
+		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
+	}
+
+	@Test
+	public void givenStandByBatchProcessWhenMarkAsPendingThenPending()
+			throws Exception {
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		batchProcessManager.markAsPending(batchProcess);
+		assertThat(batchProcessManager.getStandbyBatchProcesses()).isEmpty();
+		assertThat(batchProcessManager.getPendingBatchProcesses()).hasSize(1);
+	}
+
+	@Test
+	public void givenStandByBatchProcessWhenCancelThenListEmpty()
+			throws Exception {
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		batchProcessManager.cancelStandByBatchProcess(batchProcess);
+		assertThat(batchProcessManager.getStandbyBatchProcesses()).isEmpty();
+		assertThat(batchProcessManager.getPendingBatchProcesses()).isEmpty();
+	}
+
+	@Test
+	public void givenCurrentBatchProcessWhenGetCurrentBatchProcessThenReturnCurrent()
+			throws Exception {
+
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		batchProcessManager.markAsPending(batchProcess);
+		BatchProcess startedBatchProcess = batchProcessManager.getCurrentBatchProcess();
+
+		BatchProcess currentBatchProcess = batchProcessManager.getCurrentBatchProcess();
+		assertThat(currentBatchProcess).isEqualTo(startedBatchProcess);
+	}
+
+	@Test
+	public void givenCurrentBatchProcessWhenGetBatchProcessPartThenReturnCorrectRecords()
+			throws Exception {
+		BatchProcess theAddedBatchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+
+		// An an other batch process, that should not be started before the first is finished
+		BatchProcess batchProcess = batchProcessManager.add(otherIndexedRecords, "zeCollection", action);
+		batchProcessManager.markAllStandbyAsPending();
+
+		BatchProcessPart partOfComputer1 = batchProcessManager.getCurrentBatchProcessPart();
+		assertThat(partOfComputer1.getRecordIds()).containsExactly(aRecordId, aSecondRecordId);
+		assertThat(partOfComputer1.getBatchProcess().getId()).isEqualTo(theAddedBatchProcess.getId());
+
+		BatchProcessPart partOfComputer2 = secondComputerBatchProcessManager.getCurrentBatchProcessPart();
+		assertThat(partOfComputer2.getRecordIds()).containsExactly(aThirdRecordId);
+		assertThat(partOfComputer2.getBatchProcess().getId()).isEqualTo(theAddedBatchProcess.getId());
+
+		BatchProcessPart partOfComputer3 = thirdComputerBatchProcessManager.getCurrentBatchProcessPart();
+		assertThat(partOfComputer3).isNull();
+
+		BatchProcessPart nextPartOfComputer2 = batchProcessManager.markBatchProcessPartAsFinishedAndGetAnotherPart(
+				partOfComputer2, noErrors);
+		assertThat(nextPartOfComputer2).isNull();
+
+	}
+
+	@Test
+	public void givenCurrentBatchProcessWhenFinishBatchProcessPartAndGetAnotherPartThenStatusUpdatedAndNewPartReceived()
+			throws Exception {
+		BatchProcess theAddedBatchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		BatchProcess otherBatchProcess = batchProcessManager.add(otherIndexedRecords, "zeCollection", action);
+		batchProcessManager.markAllStandbyAsPending();
+
+		BatchProcessPart part1 = batchProcessManager.getCurrentBatchProcessPart();
+		assertThat(part1.getRecordIds()).containsExactly(aRecordId, aSecondRecordId);
+		assertThat(part1.getBatchProcess().getId()).isEqualTo(theAddedBatchProcess.getId());
+		assertThat(batchProcessManager.get(theAddedBatchProcess.getId()).getHandledRecordsCount()).isEqualTo(0);
+		assertThat(batchProcessManager.get(theAddedBatchProcess.getId()).getStatus()).isEqualTo(BatchProcessStatus.CURRENT);
+
+		BatchProcessPart part2 = batchProcessManager.markBatchProcessPartAsFinishedAndGetAnotherPart(part1, noErrors);
+		assertThat(part2.getRecordIds()).containsExactly(aThirdRecordId);
+		assertThat(part2.getBatchProcess().getId()).isEqualTo(theAddedBatchProcess.getId());
+		assertThat(batchProcessManager.get(theAddedBatchProcess.getId()).getHandledRecordsCount()).isEqualTo(2);
+		assertThat(batchProcessManager.get(theAddedBatchProcess.getId()).getStatus()).isEqualTo(BatchProcessStatus.CURRENT);
+
+		BatchProcessPart part3 = batchProcessManager.markBatchProcessPartAsFinishedAndGetAnotherPart(part2, noErrors);
+		assertThat(part3.getRecordIds()).containsExactly(otherBatchFirstRecordId, otherBatchSecondRecordId);
+		assertThat(part3.getBatchProcess().getId()).isEqualTo(otherBatchProcess.getId());
+		assertThat(batchProcessManager.get(theAddedBatchProcess.getId()).getHandledRecordsCount()).isEqualTo(3);
+		assertThat(batchProcessManager.get(theAddedBatchProcess.getId()).getStatus()).isEqualTo(BatchProcessStatus.FINISHED);
+
+	}
+
+	@Test
+	public void givenBatchProcessFinishedThenCurrentBatchProcessIsANewOneAndPreviousBatchProcessInFinishedList()
+			throws Exception {
+		batchProcessManager = newBatchProcessManager(zeComputer, 3);
+		batchProcessManager.add(indexedRecords, "zeCollection", action);
+		batchProcessManager.add(otherIndexedRecords, "zeCollection", action);
+		batchProcessManager.markAllStandbyAsPending();
+		BatchProcess startedBatchProcess = batchProcessManager.getCurrentBatchProcess();
+
+		BatchProcessPart firstPart = batchProcessManager.getCurrentBatchProcessPart();
+		batchProcessManager.markBatchProcessPartAsFinishedAndGetAnotherPart(firstPart, noErrors);
+		BatchProcess nextBatchProcess = batchProcessManager.getCurrentBatchProcess();
+
+		BatchProcess previousBatchProcess = batchProcessManager.get(startedBatchProcess.getId());
+		assertThat(previousBatchProcess.getStatus()).isEqualTo(BatchProcessStatus.FINISHED);
+		assertThat(batchProcessManager.getFinishedBatchProcesses()).containsOnly(previousBatchProcess);
+		assertThat(nextBatchProcess.getTotalRecordsCount()).isEqualTo(2);
+
+	}
+
+	@Test
+	public void givenErrorsWhileExecutingBatchSchemaThenErrorCounterSavedInBatchProcessListAndListOfRecordsWithErrorObtainable()
+			throws Exception {
+		batchProcessManager = newBatchProcessManager(zeComputer, 3);
+		BatchProcess batchProcess = batchProcessManager.add(indexedRecords, "zeCollection", action);
+		batchProcessManager.markAsPending(batchProcess);
+		BatchProcess startedBatchProcess = batchProcessManager.getCurrentBatchProcess();
+
+		BatchProcessPart firstPart = batchProcessManager.getCurrentBatchProcessPart();
+		batchProcessManager.markBatchProcessPartAsFinishedAndGetAnotherPart(firstPart, asList(aSecondRecordId, aThirdRecordId));
+		assertThat(batchProcessManager.get(startedBatchProcess.getId()).getErrors()).isEqualTo(2);
+		assertThat(batchProcessManager.getRecordsWithError(startedBatchProcess)).containsOnly(aSecondRecordId, aThirdRecordId);
+	}
+
+}
