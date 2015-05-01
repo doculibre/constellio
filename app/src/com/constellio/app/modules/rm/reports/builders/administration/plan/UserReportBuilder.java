@@ -21,7 +21,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Locale;
 
 import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
@@ -30,7 +29,6 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.UserRepor
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_FilingSpace;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_User;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -66,26 +64,26 @@ public class UserReportBuilder implements ReportBuilder {
 
 	private PdfTableUtils pdfTableUtils;
 	private FoldersLocator foldersLocator;
-	
-	public  UserReportBuilder(UserReportModel model, FoldersLocator foldersLocator){
+
+	public UserReportBuilder(UserReportModel model, FoldersLocator foldersLocator) {
 		this.model = model;
 		this.pdfTableUtils = new PdfTableUtils();
 		this.foldersLocator = foldersLocator;
-		
-		i18n.setLocale(new Locale("fr"));
+
 	}
 
 	public String getFileExtension() {
 		return pdfTableUtils.PDF;
 	}
 
-	public void build(OutputStream output) throws IOException {
+	public void build(OutputStream output)
+			throws IOException {
 		Document document = new Document(PageSize.A4.rotate(), MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM);
 
 		try {
 			PdfWriter writer = PdfWriter.getInstance(document, output);
 			configPageEvents(writer);
-			
+
 			document.open();
 			document.add(createReport(writer));
 			document.close();
@@ -97,18 +95,17 @@ public class UserReportBuilder implements ReportBuilder {
 
 	private void configPageEvents(PdfWriter writer)
 			throws BadElementException, IOException {
-		
+
 		PageEvent pageEvent = new PageEvent(foldersLocator);
-		
+
 		pageEvent.setTitle($("UserReport.Title"));
 		// TODO Rida get logo from model
 		pageEvent.setLogo("constellio-logo.png");
 		pageEvent.setFooter(TimeProvider.getLocalDateTime().toString("yyyy-MM-dd HH:mm"));
 		pageEvent.setLandscape();
-		
+
 		writer.setPageEvent(pageEvent);
 	}
-
 
 	private PdfPTable createReport(PdfWriter writer) {
 
@@ -149,7 +146,7 @@ public class UserReportBuilder implements ReportBuilder {
 		addHeaderCell(tableHeader, $("UserReport.gradingStations"), Rectangle.ALIGN_LEFT);
 		addHeaderCell(tableHeader, $("UserReport.unit"), Rectangle.ALIGN_CENTER);
 		addHeaderCell(tableHeader, $("UserReport.status"), Rectangle.ALIGN_CENTER);
-		
+
 		PdfPCell headerCell = new PdfPCell(tableHeader);
 		headerCell.setBorder(Rectangle.NO_BORDER);
 

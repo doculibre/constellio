@@ -29,6 +29,8 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public UpdateManagerPresenter(UpdateManagerView view) {
@@ -100,5 +102,11 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		} catch (WarFileNotFound e) {
 			view.showError($("UpdateManagerViewImpl.error.upload"));
 		}
+	}
+	
+	@Override
+	protected boolean hasPageAccess(String params, final User user) {
+		return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
+
 	}
 }

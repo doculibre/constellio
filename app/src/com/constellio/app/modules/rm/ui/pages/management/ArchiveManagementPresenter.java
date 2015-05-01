@@ -17,8 +17,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.management;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementView> {
@@ -49,4 +53,15 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 	public void reportsButtonClicked() {
 		view.navigateTo().reports();
 	}
+
+	
+	
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.hasAny(RMPermissionsTo.MANAGE_REPORTS,
+				RMPermissionsTo.MANAGE_DECOMMISSIONING,
+				RMPermissionsTo.MANAGE_ROBOTS,
+				RMPermissionsTo.MANAGE_CONTAINERS).globally();
+	}
+
 }

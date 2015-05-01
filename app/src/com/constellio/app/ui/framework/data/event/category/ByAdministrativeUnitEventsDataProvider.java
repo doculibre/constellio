@@ -40,7 +40,7 @@ public class ByAdministrativeUnitEventsDataProvider extends DefaultEventsDataPro
 			LocalDateTime startDate,
 			LocalDateTime endDate, String id) {
 		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
-		return rmSchemasRecordsServices.newFindEventByDateRangeAndByAdministrativeUnitIdQuery(currentUser, eventType, startDate, endDate, id);
+		return rmSchemasRecordsServices.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate, endDate, id);
 	}
 
 	@Override

@@ -24,7 +24,9 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -76,6 +78,11 @@ public class CollectionGroupPresenter extends SingleSchemaBasePresenter<Collecti
 
 	private RolesManager roleManager() {
 		return modelLayerFactory.getRolesManager();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_SECURITY).globally();
 	}
 }
 

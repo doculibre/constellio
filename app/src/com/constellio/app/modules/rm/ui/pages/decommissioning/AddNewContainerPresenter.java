@@ -21,6 +21,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.Arrays;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -29,6 +30,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class AddNewContainerPresenter extends SingleSchemaBasePresenter<AddNewContainerView> {
 	private transient RMSchemasRecordsServices rmRecordsServices;
@@ -41,6 +43,11 @@ public class AddNewContainerPresenter extends SingleSchemaBasePresenter<AddNewCo
 	public AddNewContainerPresenter forRecordId(String recordId) {
 		this.recordId = recordId;
 		return this;
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
 	}
 
 	public RecordVO getContainer() {

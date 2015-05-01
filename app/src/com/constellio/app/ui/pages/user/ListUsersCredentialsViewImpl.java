@@ -48,6 +48,7 @@ import com.vaadin.ui.Button.ClickListener;
 
 public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUsersCredentialsView {
 
+	public static final String ADMIN = "admin";
 	private ListUserCredentialsPresenter presenter;
 	private static final String PROPERTY_BUTTONS = "buttons";
 	private VerticalLayout viewLayout;
@@ -82,7 +83,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 				presenter.addButtonClicked();
 			}
 		};
-		addButton.setEnabled(presenter.canAndOrModify());
+		addButton.setEnabled(presenter.canAddOrModify());
 		table = buildTable(UserCredentialStatus.ACTIVE);
 		tableFilter = new TableStringFilter(table);
 		OptionGroup statusFilter = new OptionGroup();
@@ -164,14 +165,22 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
-				return new EditButton() {
+				final UserCredentialVO entity = getUserCredentialVO((Integer) itemId, provider);
+				Button editButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						UserCredentialVO entity = getUserCredentialVO((Integer) itemId, provider);
 						presenter.editButtonClicked(entity);
 
 					}
 				};
+				if (ADMIN.equals(entity.getUsername())) {
+					editButton.setEnabled(presenter.canModifyPassword(entity.getUsername()));
+					editButton.setVisible(presenter.canModifyPassword(entity.getUsername()));
+				} else {
+					editButton.setEnabled(presenter.canAddOrModify());
+					editButton.setVisible(presenter.canAddOrModify());
+				}
+				return editButton;
 			}
 		});
 	}

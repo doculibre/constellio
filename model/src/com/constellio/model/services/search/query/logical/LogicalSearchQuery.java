@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.FilterUtils;
+import com.constellio.model.services.search.query.ResultsProjection;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -56,6 +57,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private Map<DataStoreField, Set<String>> facetFilters;
 	private boolean highlighting = false;
 	private boolean spellcheck = false;
+	private ResultsProjection resultsProjection;
 
 	public LogicalSearchQuery(LogicalSearchQuery query) {
 		condition = query.condition;
@@ -84,6 +86,15 @@ public class LogicalSearchQuery implements SearchQuery {
 		filterUser = null;
 		filterStatus = null;
 		facetFilters = new HashMap<>();
+	}
+
+	public ResultsProjection getResultsProjection() {
+		return resultsProjection;
+	}
+
+	public LogicalSearchQuery setResultsProjection(ResultsProjection resultsProjection) {
+		this.resultsProjection = resultsProjection;
+		return this;
 	}
 
 	public void clearSort() {
@@ -154,7 +165,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		return stringBuilder.toString();
 	}
-	
+
 	private String sortFieldName(LogicalSearchQuerySort sort) {
 		String fieldName = sort.getFieldName();
 		if (fieldName != null && fieldName.endsWith("_s")) {
@@ -267,7 +278,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	public String getHighlightingFields() {
 		return HIGHLIGHTING_FIELDS;
 	}
-	
+
 	public LogicalSearchQuery setSpellcheck(boolean spellcheck) {
 		this.spellcheck = spellcheck;
 		return this;

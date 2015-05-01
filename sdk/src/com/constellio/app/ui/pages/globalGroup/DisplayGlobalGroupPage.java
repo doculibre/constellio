@@ -77,8 +77,8 @@ public class DisplayGlobalGroupPage extends PageHelper {
 		return getButtonByClassName(EditButton.BUTTON_STYLE, index);
 	}
 
-	public ButtonWebElement getAddSubGlobalGroupButtonOnIndex(int index) {
-		return getButtonByClassName("DisplayGlobalGroupView.addSubGroup", index);
+	public ButtonWebElement getAddSubGlobalGroupButtonMenuAction() {
+		return getButtonByClassName("DisplayGlobalGroupView.addSubGroup", 0);
 	}
 
 	public ButtonWebElement getEditSubGlobalGroupButtonOnIndex(int index) {
@@ -89,7 +89,7 @@ public class DisplayGlobalGroupPage extends PageHelper {
 		return getButtonByClassName("DisplayGlobalGroupView.deleteSubGroup", index);
 	}
 
-	public ButtonWebElement getEditGlobalGroupButton() {
+	public ButtonWebElement getEditGlobalGroupButtonMenuAction() {
 		return getButtonByCssSelector("." + EditButton.BUTTON_STYLE + ".action-menu-button");
 	}
 
@@ -99,7 +99,7 @@ public class DisplayGlobalGroupPage extends PageHelper {
 		return new ButtonWebElement(element);
 	}
 
-	public ButtonWebElement getDeleteGlobalGroupButtonOnIndex() {
+	public ButtonWebElement getDeleteGlobalGroupButtonMenuAction() {
 		return getButtonByCssSelector("." + DeleteButton.BUTTON_STYLE + ".action-menu-button");
 	}
 

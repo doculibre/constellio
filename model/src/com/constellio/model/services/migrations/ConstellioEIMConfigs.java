@@ -33,7 +33,7 @@ public class ConstellioEIMConfigs {
 	public static List<SystemConfiguration> configurations;
 
 	//Retention calendar configs
-	public static final SystemConfiguration USER_TITLE_PATTERN;
+	public static final SystemConfiguration USER_TITLE_PATTERN, ENTERED_VALUES_OVER_EXTRACTED_VALUES;
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
 
@@ -41,6 +41,7 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
 				.withDefaultValue("${firstName} ${lastName}"));
+		add(ENTERED_VALUES_OVER_EXTRACTED_VALUES = others.createBooleanTrueByDefault("enteredValuesOverExtractedValues"));
 
 		// Associer ou non des rôles utilisateur aux autorisations
 		add(USER_ROLES_IN_AUTHORIZATIONS = others.createBooleanFalseByDefault("userRolesInAuthorizations"));
@@ -59,6 +60,10 @@ public class ConstellioEIMConfigs {
 	public ConstellioEIMConfigs(SystemConfigurationsManager manager, String collection) {
 		this.manager = manager;
 		this.collection = collection;
+	}
+
+	public boolean isEnteredValuesOverExtractedValues() {
+		return manager.getValue(ENTERED_VALUES_OVER_EXTRACTED_VALUES);
 	}
 
 	public String getUserTitlePattern() {

@@ -115,12 +115,12 @@ public class OptionGroupAcceptanceTest extends ConstellioTest {
 
 		assertThat(radioGroupField.isMultiSelect()).isFalse();
 		assertThat(radioGroupField.getAllValues()).hasSize(3);
-		assertThat(radioGroupField.getEnabledValues()).isEmpty();
+		assertThat(radioGroupField.getCheckedValues()).isEmpty();
 		assertThat(radioGroupField.getAllValues())
 				.containsExactly("Chuck", "Dakota", "Bob");
 		assertThat(checkboxGroupField.isMultiSelect()).isTrue();
 		assertThat(checkboxGroupField.getAllValues()).hasSize(3);
-		assertThat(checkboxGroupField.getEnabledValues()).isEmpty();
+		assertThat(checkboxGroupField.getCheckedValues()).isEmpty();
 		assertThat(checkboxGroupField.getAllValues())
 				.containsExactly("Chuck", "Dakota", "Bob");
 	}
@@ -133,10 +133,10 @@ public class OptionGroupAcceptanceTest extends ConstellioTest {
 
 		assertThat(checkboxGroupField.isMultiSelect()).isTrue();
 		assertThat(checkboxGroupField.getAllValues()).hasSize(3);
-		assertThat(checkboxGroupField.getEnabledValues()).hasSize(2);
+		assertThat(checkboxGroupField.getCheckedValues()).hasSize(2);
 		assertThat(checkboxGroupField.getAllValues())
 				.containsExactly("Chuck", "Dakota", "Bob");
-		assertThat(checkboxGroupField.getEnabledValues())
+		assertThat(checkboxGroupField.getCheckedValues())
 				.containsExactly("Dakota", "Bob");
 	}
 
@@ -148,10 +148,10 @@ public class OptionGroupAcceptanceTest extends ConstellioTest {
 
 		assertThat(radioGroupField.isMultiSelect()).isFalse();
 		assertThat(radioGroupField.getAllValues()).hasSize(3);
-		assertThat(radioGroupField.getEnabledValues()).hasSize(1);
+		assertThat(radioGroupField.getCheckedValues()).hasSize(1);
 		assertThat(radioGroupField.getAllValues())
 				.containsExactly("Chuck", "Dakota", "Bob");
-		assertThat(radioGroupField.getEnabledValues())
+		assertThat(radioGroupField.getCheckedValues())
 				.containsExactly("Bob");
 	}
 

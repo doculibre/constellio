@@ -18,53 +18,76 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.constellio.app.modules.rm.ui.components.document.DocumentActionsComponentPresenter;
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
+import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class DisplayDocumentPresenter extends DocumentActionsComponentPresenter<DisplayDocumentView> {
+public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
+	protected DocumentToVOBuilder voBuilder = new DocumentToVOBuilder();
+	protected ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder();
+	private DocumentActionsPresenterUtils<DisplayDocumentView> presenterUtils;
 
-	private DisplayDocumentView view;
-
-	public DisplayDocumentPresenter(DisplayDocumentView view) {
+	public DisplayDocumentPresenter(final DisplayDocumentView view) {
 		super(view);
-		this.view = view;
-	}
-
-	public void forParams(String params) {
-		Record record = presenterUtils.getRecord(params);
-		this.documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY);
-		view.setRecordVO(documentVO);
-		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
-		User user = presenterUtils.getCurrentUser();
-		modelLayerFactory.newLoggingServices().logRecordView(record, user);
-	}
-
-	public void viewAssembled() {
-		updateActionsComponent();
-
+		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
+			@Override
+			public void updateActionsComponent() {
+				super.updateActionsComponent();
+				view.refreshMetadataDisplay();
+				updateContentVersions();
+			}
+		};
 	}
 
 	@Override
-	protected void updateActionsComponent() {
-		super.updateActionsComponent();
-		view.refreshMetadataDisplay();
-		updateContentVersions();
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
+	}
+
+	public void forParams(String params) {
+		Record record = getRecord(params);
+		DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY);
+		view.setRecordVO(documentVO);
+		presenterUtils.setRecordVO(documentVO);
+		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
+		User user = getCurrentUser();
+		modelLayerFactory.newLoggingServices().logRecordView(record, user);
+	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		return user.hasReadAccess().on(restrictedRecord);
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		return Arrays.asList(documentVO.getId());
+	}
+
+	public void viewAssembled() {
+		presenterUtils.updateActionsComponent();
 	}
 
 	private void updateContentVersions() {
 		List<ContentVersionVO> contentVersionVOs = new ArrayList<ContentVersionVO>();
-		Record record = presenterUtils.getRecord(documentVO.getId());
-		Document document = new Document(record, presenterUtils.types());
+		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		Record record = getRecord(documentVO.getId());
+		Document document = new Document(record, types());
 
 		Content content = document.getContent();
 		if (content != null) {
@@ -72,7 +95,7 @@ public class DisplayDocumentPresenter extends DocumentActionsComponentPresenter<
 				ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content, contentVersion);
 				contentVersionVOs.add(contentVersionVO);
 			}
-			ContentVersion currentVersion = content.getCurrentVersionSeenBy(presenterUtils.getCurrentUser());
+			ContentVersion currentVersion = content.getCurrentVersionSeenBy(getCurrentUser());
 			ContentVersionVO currentVersionVO = contentVersionVOBuilder.build(content, currentVersion);
 			contentVersionVOs.remove(currentVersionVO);
 			contentVersionVOs.add(currentVersionVO);
@@ -81,4 +104,65 @@ public class DisplayDocumentPresenter extends DocumentActionsComponentPresenter<
 		view.setContentVersions(contentVersionVOs);
 	}
 
+	public void backButtonClicked() {
+		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		String parentId = documentVO.get(Document.FOLDER);
+		if (parentId != null) {
+			view.navigateTo().displayFolder(parentId);
+		} else {
+			view.navigateTo().recordsManagement();
+		}
+	}
+
+	public boolean isDeleteContentVersionPossible() {
+		return presenterUtils.isDeleteContentVersionPossible();
+	}
+
+	public boolean isDeleteContentVersionPossible(ContentVersionVO contentVersionVO) {
+		return presenterUtils.isDeleteContentVersionPossible(contentVersionVO);
+	}
+
+	public void deleteContentVersionButtonClicked(ContentVersionVO contentVersionVO) {
+		presenterUtils.deleteContentVersionButtonClicked(contentVersionVO);
+	}
+
+	public void editDocumentButtonClicked() {
+		presenterUtils.editDocumentButtonClicked();
+	}
+
+	public void deleteDocumentButtonClicked() {
+		presenterUtils.deleteDocumentButtonClicked();
+	}
+
+	public void linkToDocumentButtonClicked() {
+		presenterUtils.linkToDocumentButtonClicked();
+	}
+
+	public void addAuthorizationButtonClicked() {
+		presenterUtils.addAuthorizationButtonClicked();
+	}
+
+	public void shareDocumentButtonClicked() {
+		presenterUtils.shareDocumentButtonClicked();
+	}
+
+	public void uploadButtonClicked() {
+		presenterUtils.uploadButtonClicked();
+	}
+
+	public void checkInButtonClicked() {
+		presenterUtils.checkInButtonClicked();
+	}
+
+	public void checkOutButtonClicked() {
+		presenterUtils.checkOutButtonClicked();
+	}
+
+	public void finalizeButtonClicked() {
+		presenterUtils.finalizeButtonClicked();
+	}
+
+	public void updateWindowClosed() {
+		presenterUtils.updateWindowClosed();
+	}
 }

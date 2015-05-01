@@ -82,6 +82,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		configButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		configButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		configButton.addStyleName("configButton");
 
 		ldapConfigButton = new Button($("AdminRMModuleView.ldapConfig"),
 				new ThemeResource("images/icons/experience/address_book3.png"));
@@ -93,6 +94,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		ldapConfigButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		ldapConfigButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		ldapConfigButton.addStyleName("ldapButton");
 
 		modulesButton = new Button($("AdminRMModuleView.modules"), new ThemeResource("images/icons/experience/module.png"));
 		modulesButton.addClickListener(new ClickListener() {
@@ -103,6 +105,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		modulesButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		modulesButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		modulesButton.addStyleName("modulesButton");
 		modulesButton.setEnabled(false);
 
 		filingSpacesButton = new Button($("AdminRMModuleView.filingSpaces"),
@@ -115,6 +118,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		filingSpacesButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		filingSpacesButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		filingSpacesButton.addStyleName("filingSpacesButton");
 
 		taxonomiesButton = new Button($("AdminRMModuleView.taxonomies"),
 				new ThemeResource("images/icons/experience/taxonomy.png"));
@@ -126,6 +130,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		taxonomiesButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		taxonomiesButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		taxonomiesButton.addStyleName("taxonomiesButton");
 
 		valueDomainButton = new Button($("AdminRMModuleView.valueDomains"),
 				new ThemeResource("images/icons/experience/value-domain.png"));
@@ -137,6 +142,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		valueDomainButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		valueDomainButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		valueDomainButton.addStyleName("valueDomainButton");
 
 		//		classificationFilePlanButton = new Button($("AdminRMModuleView.classificationFilePlan"),
 		//				new ThemeResource("images/icons/classification.png"));
@@ -159,6 +165,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		retentionCalendarButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		retentionCalendarButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		retentionCalendarButton.addStyleName("retentionCalendarButton");
 
 		metadataSchemasButton = new Button($("AdminRMModuleView.metadataSchemas"),
 				new ThemeResource("images/icons/experience/metadata.png"));
@@ -170,6 +177,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		metadataSchemasButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		metadataSchemasButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		metadataSchemasButton.addStyleName("metadataSchemasButton");
 
 		uniformSubdivisionsButton = new Button($("AdminRMModuleView.uniformSubdivisions"),
 				new ThemeResource("images/icons/experience/uniform-subdivision.png"));
@@ -182,6 +190,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		uniformSubdivisionsButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		uniformSubdivisionsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		uniformSubdivisionsButton.addStyleName("uniformSubdivisionsButton");
 
 		importButton = new Button($("AdminRMModuleView.importFile"), new ThemeResource("images/icons/experience/import.png"));
 		importButton.addClickListener(new ClickListener() {
@@ -192,7 +201,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		importButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		importButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		importButton.setEnabled(false);
+		importButton.addStyleName("importButton");
 
 		// TODO Change icon for trash bin
 		trashBinButton = new Button($("AdminRMModuleView.trashBin"), new ThemeResource("images/icons/experience/garbage.png"));
@@ -204,6 +213,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		trashBinButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		trashBinButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		trashBinButton.addStyleName("trashBinButton");
 		trashBinButton.setEnabled(false);
 
 		manageUsersButton = new Button($("AdminRMModuleView.manageUsers"),
@@ -216,6 +226,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		manageUsersButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		manageUsersButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		manageUsersButton.addStyleName("manageUsersButton");
 
 		manageRolesButton = new Button($("AdminRMModuleView.manageRoles"),
 				new ThemeResource("images/icons/experience/crown.png"));
@@ -227,6 +238,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		manageRolesButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		manageRolesButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		manageRolesButton.addStyleName("manageRolesButton");
 
 		manageGroupsButton = new Button($("AdminRMModuleView.manageGroups"),
 				new ThemeResource("images/icons/experience/group.png"));
@@ -238,6 +250,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		manageGroupsButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		manageGroupsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		manageGroupsButton.addStyleName("manageGroupsButton");
 
 		manageUserCredentialsButton = new Button($("AdminRMModuleView.manageUserCredentials"),
 				new ThemeResource("images/icons/experience/user.png"));
@@ -249,6 +262,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		manageUserCredentialsButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		manageUserCredentialsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		manageUserCredentialsButton.addStyleName("manageUserCredentialButton");
 
 		manageCollectionsButton = new Button($("AdminRMModuleView.manageCollections"),
 				new ThemeResource("images/icons/experience/collections.png"));
@@ -260,6 +274,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		manageCollectionsButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		manageCollectionsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		manageCollectionsButton.addStyleName("manageCollectionsButton");
 		//manageCollectionsButton.setEnabled(false);
 
 		dataExtractorButton = new Button($("AdminRMModuleView.dataExtractor"),
@@ -272,6 +287,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		dataExtractorButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		dataExtractorButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		dataExtractorButton.addStyleName("dataExtractorButton");
 		dataExtractorButton.setEnabled(false);
 
 		connectorsButton = new Button($("AdminRMModuleView.connectors"),
@@ -284,6 +300,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		connectorsButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		connectorsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		connectorsButton.addStyleName("connectorsButton");
 		connectorsButton.setEnabled(false);
 
 		searchEngineButton = new Button($("AdminRMModuleView.searchEngine"),
@@ -296,6 +313,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		searchEngineButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		searchEngineButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		searchEngineButton.addStyleName("searchEngineButton");
 		searchEngineButton.setEnabled(false);
 
 		bigDataButton = new Button($("AdminRMModuleView.bigData"), new ThemeResource("images/icons/experience/big-data.png"));
@@ -307,6 +325,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		bigDataButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		bigDataButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		bigDataButton.addStyleName("bigDataButton");
 		bigDataButton.setEnabled(false);
 
 		updateCenterButton = new Button($("AdminRMModuleView.updateCenter"),
@@ -319,6 +338,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		updateCenterButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		updateCenterButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		updateCenterButton.addStyleName("updateCenterButton");
 
 		mainLayout.addComponent(buttonsLayout);
 
@@ -419,6 +439,10 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 	@Override
 	public void setManageSystemConfiguration(boolean visible) {
 		configButton.setVisible(visible);
+	}
+
+	@Override
+	public void setManageLdapConfiguration(boolean visible) {
 		ldapConfigButton.setVisible(visible);
 	}
 

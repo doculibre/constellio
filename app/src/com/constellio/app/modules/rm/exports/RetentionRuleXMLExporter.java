@@ -38,11 +38,16 @@ import org.jdom2.output.XMLOutputter;
 import org.xml.sax.SAXException;
 
 import com.constellio.app.modules.rm.exports.RetentionRuleXMLExporterRuntimeException.RetentionRuleXMLExporterRuntimeException_InvalidFile;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -75,13 +80,75 @@ public class RetentionRuleXMLExporter {
 		Document document = new Document();
 		Element rowset = new Element("ROWSET");
 		document.setRootElement(rowset);
+
 		for (RetentionRule rule : rules) {
 
 			Element row = new Element("ROW");
 			rowset.addContent(row);
 
-			//Element numRegle = new Element("NUMREGLE");
+			row.addContent(new Element("ID_ORGANISME").setText("60523"));
 			row.addContent(new Element("NUMREGLE").setText(rule.getCode()));
+
+			//can have A, M or S values (Ajout, Modifier, Supprimer)
+			row.addContent(new Element("TYPE_TRANS").setText("A"));
+			row.addContent(new Element("RECUEIL").setText(rule.getCorpus()));
+			row.addContent(new Element("TITRESER").setText(rule.getTitle()));
+			row.addContent(new Element("REFLEGALE").setText(rule.getJuridicReference()));
+			row.addContent(new Element("NO_RECUEIL").setText(rule.getCorpusRuleNumber()));
+			row.addContent(new Element("PROCACTIVI").setText(getCategoriesTitlesToString(rule)));
+			row.addContent(new Element("CODECLASS").setText(getCategoriesCodeToString(rule)));
+			row.addContent(new Element("NOMUNITE").setText(getAdministrativesUnitsNames(rule)));
+			row.addContent(new Element("DESCSERIE").setText(rule.getDescription()));
+			row.addContent(new Element("TYPESDOC").setText(getDocumentTypesToString(rule)));
+			row.addContent(new Element("DOCUMESSEN").setText(isDocumentsEssentialToString(rule)));
+			row.addContent(new Element("DOCUMCONFI").setText(isDocumentConfidentialToString(rule)));
+			row.addContent(new Element("REMARQDELA").setText(getCopyRetentionRulesCommentsToString(rule)));
+			row.addContent(new Element("REMARQGEN").setText(rule.getGeneralComment()));
+			row.addContent(new Element("GRILLECHAN").setText("N"));
+
+			Element delai = new Element("DELAI");
+			row.addContent(delai);
+
+			List<CopyRetentionRule> allCopyRetentionRules = rule.getCopyRetentionRules();
+
+			for (CopyRetentionRule currentCopyRetentionRule : allCopyRetentionRules) {
+
+				Element delaiRow = new Element("DELAI_ROW");
+				delai.addContent(delaiRow);
+
+				delaiRow.addContent(new Element("NUMDELAI"));
+				delaiRow.addContent(new Element("NUMREGLE").setText(currentCopyRetentionRule.getCode()));
+				delaiRow.addContent(new Element("TYPEDOSS").setText(getCopyTypeToString(currentCopyRetentionRule)));
+				delaiRow.addContent(new Element("SUPPDOSS").setText(getMediumTypesCodesToString(currentCopyRetentionRule)));
+
+				if (currentCopyRetentionRule.getContentTypesComment() != null) {
+					delaiRow.addContent(new Element("REM_SUPPDOSS").setText(currentCopyRetentionRule.getContentTypesComment()));
+				}
+
+				delaiRow.addContent(
+						new Element("PERIOACTIF").setText(getActiveRetentionPeriodToString(currentCopyRetentionRule)));
+
+				if (currentCopyRetentionRule.getActiveRetentionComment() != null) {
+					delaiRow.addContent(
+							new Element("REM_PERIOACTIF").setText(currentCopyRetentionRule.getActiveRetentionComment()));
+				}
+
+				delaiRow.addContent(
+						new Element("PERIOSMACT").setText(getSemiActiveRetentionPeriodToString(currentCopyRetentionRule)));
+
+				if (currentCopyRetentionRule.getSemiActiveRetentionComment() != null) {
+					delaiRow.addContent(
+							new Element("REM_PERIOSMACT").setText(currentCopyRetentionRule.getSemiActiveRetentionComment()));
+				}
+
+				delaiRow.addContent(
+						new Element("ID_REF_DISPOSITION").setText(getInactiveDisposalTypeCode(currentCopyRetentionRule)));
+
+				if (currentCopyRetentionRule.getInactiveDisposalComment() != null) {
+					delaiRow.addContent(
+							new Element("REM_DISPOINACT").setText(currentCopyRetentionRule.getInactiveDisposalComment()));
+				}
+			}
 
 		}
 
@@ -94,13 +161,160 @@ public class RetentionRuleXMLExporter {
 		}
 	}
 
+	private String getAdministrativesUnitsNames(RetentionRule rule) {
+
+		if (rule.isResponsibleAdministrativeUnits()) {
+			return "unités administratives responsables";
+		}
+
+		List<AdministrativeUnit> allAdministrativesUnits = rm.getAdministrativesUnits(rule.getAdministrativeUnits());
+		String administrativesUnitsNamesString = "";
+
+		for (AdministrativeUnit anAdministrativeUnit : allAdministrativesUnits) {
+			if (administrativesUnitsNamesString == "") {
+				administrativesUnitsNamesString = anAdministrativeUnit.getTitle();
+			} else {
+				administrativesUnitsNamesString = administrativesUnitsNamesString + "; " + anAdministrativeUnit.getTitle();
+			}
+		}
+		return administrativesUnitsNamesString;
+	}
+
+	private String getInactiveDisposalTypeCode(CopyRetentionRule copyRetentionRule) {
+		String inactiveDisposalTypeCode = copyRetentionRule.getInactiveDisposalType().getCode();
+		if (inactiveDisposalTypeCode.isEmpty()) {
+			return "--";
+		}
+		return inactiveDisposalTypeCode;
+	}
+
+	private String getSemiActiveRetentionPeriodToString(CopyRetentionRule copyRetentionRule) {
+		String semiActiveRetentionPeriodToString = copyRetentionRule.getSemiActiveRetentionPeriod().toString();
+		if (semiActiveRetentionPeriodToString.isEmpty()) {
+			return "--";
+		}
+		return semiActiveRetentionPeriodToString;
+	}
+
+	private String getActiveRetentionPeriodToString(CopyRetentionRule copyRetentionRule) {
+		String activeRetentionPeriodToString = copyRetentionRule.getActiveRetentionPeriod().toString();
+		if (activeRetentionPeriodToString.isEmpty()) {
+			return "--";
+		}
+		return activeRetentionPeriodToString;
+	}
+
+	private String getCopyTypeToString(CopyRetentionRule copyRetentionRule) {
+		String copyTypeToString = copyRetentionRule.getCopyType().getCode();
+		if (copyTypeToString.isEmpty()) {
+			return "--";
+		}
+		return copyTypeToString;
+	}
+
+	private String isDocumentsEssentialToString(RetentionRule rule) {
+		if (rule.isEssentialDocuments()) {
+			return "O";
+		}
+		return "N";
+	}
+
+	private String isDocumentConfidentialToString(RetentionRule rule) {
+		if (rule.isConfidentialDocuments()) {
+			return "O";
+		}
+		return "N";
+	}
+
+	private String getMediumTypesCodesToString(CopyRetentionRule currentCopyRetentionRule) {
+		List<String> mediumTypesIds = currentCopyRetentionRule.getMediumTypeIds();
+		List<MediumType> mediumTypesCodes = rm.getMediumTypes(mediumTypesIds);
+		String mediumTypeCode = "";
+
+		for (MediumType aMediumType : mediumTypesCodes) {
+			if (mediumTypeCode == "") {
+				mediumTypeCode = aMediumType.getCode().toLowerCase();
+			} else {
+				mediumTypeCode = mediumTypeCode + ", " + aMediumType.getCode().toLowerCase();
+			}
+		}
+		return mediumTypeCode;
+	}
+
+	private String getCopyRetentionRulesCommentsToString(RetentionRule rule) {
+		List<String> copyRetentionRules = rule.getCopyRulesComment();
+		String copyRetentionRulesComments = "";
+
+		for (String aCopyRetentionRule : copyRetentionRules) {
+			if (copyRetentionRulesComments == "") {
+				copyRetentionRulesComments = aCopyRetentionRule;
+			} else {
+				copyRetentionRulesComments = copyRetentionRulesComments + "; " + aCopyRetentionRule;
+			}
+		}
+		return copyRetentionRulesComments;
+	}
+
+	private String getDocumentTypesToString(RetentionRule rule) {
+		List<String> docTypesId = rule.getDocumentTypes();
+		String docTypes = "";
+
+		for (String aDocType : docTypesId) {
+			if (docTypes == "") {
+				docTypes = rm.getDocumentType(aDocType).getTitle();
+			} else {
+				docTypes = docTypes + "; " + rm.getDocumentType(aDocType).getTitle();
+			}
+		}
+		return docTypes;
+	}
+
+	private String getCategoriesTitlesToString(RetentionRule rule) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<Record> records = searchServices.search(new LogicalSearchQuery()
+				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)));
+
+		List<Category> categories = rm.wrapCategories(records);
+		String categoriesTitles = "";
+
+		for (Category zeCategory : categories) {
+
+			if (categoriesTitles == "") {
+				categoriesTitles = zeCategory.getTitle();
+			} else {
+				categoriesTitles = categoriesTitles + "; " + zeCategory.getTitle();
+			}
+		}
+		return categoriesTitles;
+	}
+
+	private String getCategoriesCodeToString(RetentionRule rule) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<Record> records = searchServices.search(new LogicalSearchQuery()
+				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)));
+
+		List<Category> categories = rm.wrapCategories(records);
+		String categoriesCodes = "";
+
+		for (Category zeCategory : categories) {
+
+			if (categoriesCodes == "") {
+				categoriesCodes = zeCategory.getCode();
+			} else {
+				categoriesCodes = categoriesCodes + "; " + zeCategory.getCode();
+			}
+		}
+		return categoriesCodes;
+	}
+
 	public static RetentionRuleXMLExporter forAllApprovedRulesInCollection(String collection,
 			File exportFile, ModelLayerFactory modelLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		List<Record> records = searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.retentionRuleSchemaType()).where(rm.retentionRuleApproved()).isTrue())
-				.sortAsc(CODE));
+		List<Record> records = searchServices.search(new LogicalSearchQuery(
+				from(rm.retentionRuleSchemaType())
+						.where(rm.retentionRuleApproved()).isTrue()
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).sortAsc(CODE));
 
 		return new RetentionRuleXMLExporter(rm.wrapRetentionRules(records), exportFile, collection, modelLayerFactory);
 	}

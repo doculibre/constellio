@@ -367,6 +367,30 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenDeleteFolderThenReturnValidEvents()
+			throws Exception {
+		getDataLayerFactory().getDataLayerLogger().monitor("00000000279");
+		Folder folder_A01 = records.getFolder_A01();
+		User adminUser = users.adminIn(zeCollection);
+		loggingServices.logDeleteRecordWithJustification(folder_A01.getWrappedRecord(), adminUser, "");
+
+		recordServices.flush();
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(
+				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
+						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.DELETE_FOLDER));
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		List<Record> folders = searchServices.search(query);
+		assertThat(folders.size()).isEqualTo(1);
+		Event event = schemas.wrapEvent(folders.get(0));
+		assertThat(event.getType()).isEqualTo(EventType.DELETE_FOLDER);
+		//assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
+
+	}
+
+	//TODO Nouha
+	//@Test
 	public void whenLoggingPermissionModificationThenReturnValidEvents()
 			throws Exception {
 		//List<Role> roles = getRolesWithReadPermissions();

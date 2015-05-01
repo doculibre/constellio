@@ -38,23 +38,24 @@ public interface DocumentActionsComponent extends Serializable {
 	ConstellioFactories getConstellioFactories();
 
 	void setRecordVO(RecordVO recordVO);
-	
-	void openUploadWindow(boolean checkingIn);
-	
-	void setEditDocumentButtonState(ComponentState state);
-	
-	void setDeleteDocumentButtonState(ComponentState state);
-	
-	void setAddAuthorizationButtonState(ComponentState state);
-	
-	void setUploadButtonState(ComponentState state);
-	
-	void setCheckInButtonState(ComponentState state);
-	
-	void setCheckOutButtonState(ComponentState state);
-	
-	void setFinalizeButtonVisible(boolean visible);
-	
-	void setBorrowedMessage(String borrowedMessageKey, String...args);
 
+	void openUploadWindow(boolean checkingIn);
+
+	void setEditDocumentButtonState(ComponentState state);
+
+	void setDeleteDocumentButtonState(ComponentState state);
+
+	void setAddAuthorizationButtonState(ComponentState state);
+
+	void setShareDocumentButtonState(ComponentState state);
+
+	void setUploadButtonState(ComponentState state);
+
+	void setCheckInButtonState(ComponentState state);
+
+	void setCheckOutButtonState(ComponentState state);
+
+	void setFinalizeButtonVisible(boolean visible);
+
+	void setBorrowedMessage(String borrowedMessageKey, String... args);
 }

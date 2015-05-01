@@ -339,9 +339,9 @@ public abstract class BaseForm<T> extends CustomComponent {
 	}
 
 	protected void showErrorMessage(String message) {
-		Notification notification = new Notification(message, Type.WARNING_MESSAGE + "\n\n" + $("clickToClose"));
+		Notification notification = new Notification(message + "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
 		notification.setHtmlContentAllowed(true);
-		Notification.show(message, Type.WARNING_MESSAGE);
+		notification.show(Page.getCurrent());
 	}
 
 	protected abstract void saveButtonClick(T viewObject)

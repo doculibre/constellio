@@ -40,4 +40,8 @@ public enum ComponentState {
 	public static ComponentState enabledIf(boolean state) {
 		return state ? ENABLED : DISABLED;
 	}
+
+	public static ComponentState visibleIf(boolean state) {
+		return state ? ENABLED : INVISIBLE;
+	}
 }

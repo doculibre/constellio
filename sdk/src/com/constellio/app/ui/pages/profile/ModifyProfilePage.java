@@ -36,7 +36,7 @@ public class ModifyProfilePage extends PageHelper {
 		super(driver);
 	}
 
-	void navigateToPage() {
+	public void navigateToPage() {
 		driver.navigateTo().home();
 		Map<String, Object> paramMap = new HashMap<>();
 		paramMap.put("locale", Locale.FRENCH);

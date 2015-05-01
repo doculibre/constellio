@@ -24,7 +24,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
@@ -49,11 +48,11 @@ public class i18n {
 
 	public static String $(String key, Object... args) {
 		String message;
-		try {
-			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		} catch (Exception e) {
-			locale = getLocale();
-		}
+		//		try {
+		//			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+		//		} catch (Exception e) {
+		//			locale = getLocale();
+		//		}
 
 		ResourceBundle messages = getBundle(locale);
 
@@ -74,11 +73,11 @@ public class i18n {
 
 	public static String $(String key, Map<String, String> args) {
 		String message;
-		try {
-			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		} catch (Exception e) {
-			locale = getLocale();
-		}
+		//		try {
+		//			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+		//		} catch (Exception e) {
+		//			locale = getLocale();
+		//		}
 
 		ResourceBundle messages = getBundle(locale);
 

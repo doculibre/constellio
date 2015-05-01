@@ -24,6 +24,8 @@ import java.util.List;
 
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -32,6 +34,11 @@ public class PermissionsManagementPresenter extends BasePresenter<PermissionsMan
 
 	public PermissionsManagementPresenter(PermissionsManagementView view) {
 		super(view);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_SECURITY).globally();
 	}
 
 	public List<String> getPermissionGroups() {

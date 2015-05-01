@@ -90,18 +90,6 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.APP_MANAGEMENT);
 	}
 
-	public void listAdministrativeUnits() {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADMINISTRATIVE_UNIT_LIST);
-	}
-
-	public void displayAdministrativeUnit(String id) {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADMINISTRATIVE_UNIT_DISPLAY + "/" + id);
-	}
-
-	public void addAdministrativeUnit() {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADMINISTRATIVE_UNIT_ADD_EDIT);
-	}
-
 	public void addGlobalGroup(String params) {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.GROUP_ADD_EDIT + "/" + params);
 	}
@@ -202,10 +190,6 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADVANCED_SEARCH);
 	}
 
-	public void editAdministrativeUnit(String code) {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADMINISTRATIVE_UNIT_ADD_EDIT + "/" + code);
-	}
-
 	public void listGlobalGroups() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.GROUP_LIST);
 	}
@@ -290,6 +274,10 @@ public class ConstellioNavigator {
 
 	public void listObjectAuthorizations(String entityId) {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_OBJECT_AUTHORIZATIONS + "/" + entityId);
+	}
+
+	public void shareContent(String entityId) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.SHARE_CONTENT + "/" + entityId);
 	}
 
 	public void archivesManagement() {
@@ -431,9 +419,18 @@ public class ConstellioNavigator {
 	}
 
 	public void modifyProfil(String params) {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.MODIFY_PROFILE + "/" + params);
+		String path = NavigatorConfigurationService.MODIFY_PROFILE;
+		if (params != null) {
+			path += "/" + params;
+		}
+		vaadinNavigator.navigateTo(path);
 	}
+
 	public void updateManager() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.UPDATE_MANAGER);
+	}
+
+	public void importFile() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.IMPORT_FILE);
 	}
 }

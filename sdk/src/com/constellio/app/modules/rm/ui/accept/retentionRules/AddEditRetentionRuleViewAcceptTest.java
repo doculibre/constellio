@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -47,4 +48,13 @@ public class AddEditRetentionRuleViewAcceptTest extends ConstellioTest {
 	public void openThePage() {
 		waitUntilICloseTheBrowsers();
 	}
+
+	@Test
+	@InDevelopmentTest
+	public void loadRetentionRuleForm() {
+		RecordFormWebElement form = page.getForm();
+		
+		waitUntilICloseTheBrowsers();
+	}
+	
 }

@@ -46,7 +46,7 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
 		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		driver = newWebDriver(loggedAsUserInCollection(gandalf, zeCollection));
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		page = new SchemaTypePage(driver).navigateToPage();
 		types = schemasManager.getSchemaTypes(zeCollection).getSchemaTypes();
 	}
@@ -54,10 +54,18 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenBaseConfigurationThenDisplayCorrectInformation() {
 		RecordContainerWebElement typeTable = page.getTypeTable();
-		assertThat(typeTable.countRows()).isEqualTo(types.size());
+		assertThat(typeTable.countRows()).isEqualTo(10);
 
-		for (MetadataSchemaType type : types) {
-			assertThat(typeTable.hasRowWithValueInColumn(type.getLabel(), 0)).isTrue();
-		}
+		assertThat(typeTable.hasRowWithValueInColumn("Rubrique du plans", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Contenant", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Types de contenants", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Types de documents", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Types de dossiers", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Types de supports", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Types d'emplacement", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Document", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Dossier", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Emplacement", 0)).isTrue();
+
 	}
 }

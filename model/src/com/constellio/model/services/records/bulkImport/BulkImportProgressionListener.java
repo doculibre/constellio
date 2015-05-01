@@ -17,7 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.bulkImport;
 
-public interface BulkImportProgressionListener {
+import java.io.Serializable;
+
+public interface BulkImportProgressionListener extends Serializable {
 
 	public void updateTotal(int newTotal);
 

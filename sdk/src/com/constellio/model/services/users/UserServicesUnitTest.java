@@ -17,6 +17,28 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.entities.records.Record;
@@ -25,6 +47,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
@@ -41,19 +64,6 @@ import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
-import java.util.Arrays;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Mockito.*;
 
 public class UserServicesUnitTest extends ConstellioTest {
 
@@ -65,6 +75,9 @@ public class UserServicesUnitTest extends ConstellioTest {
 	@Mock Metadata collection1UsernameMetadata;
 	@Mock Metadata collection1UserGroupsMetadata;
 	@Mock Metadata collection1GroupCodeMetadata;
+
+	@Mock MetadataSchemaType collection1UserType;
+	@Mock MetadataSchemaType collection1GroupType;
 
 	@Mock MetadataSchemaTypes collection2Types;
 	@Mock MetadataSchema collection2UserSchema;
@@ -103,7 +116,8 @@ public class UserServicesUnitTest extends ConstellioTest {
 
 		when(rolesManager.getCollectionRoles(zeCollection)).thenReturn(roles);
 		userServices = spy(new UserServices(userCredentialsManager, globalGroupsManager, collectionsListManager, recordServices,
-				searchServices, metadataSchemasManager, authenticationService, rolesManager, modelLayerConfiguration, configurationManager));
+				searchServices, metadataSchemasManager, authenticationService, rolesManager, modelLayerConfiguration,
+				configurationManager));
 
 		doReturn("group1Collection1Id").when(userServices).getGroupIdInCollection("group1", "collection1");
 		doReturn("group2Collection1Id").when(userServices).getGroupIdInCollection("group2", "collection1");
@@ -165,6 +179,11 @@ public class UserServicesUnitTest extends ConstellioTest {
 		when(legendsInCollection2.getWrappedRecord()).thenReturn(legendsInCollection2Record);
 		when(legendsInCollection1Record.getCollection()).thenReturn("collection1");
 		when(legendsInCollection2Record.getCollection()).thenReturn("collection2");
+
+		doReturn(collection1GroupSchema).when(userServices).groupSchema("collection1");
+		doReturn(collection1UserSchema).when(userServices).userSchema("collection1");
+		doReturn(collection2GroupSchema).when(userServices).groupSchema("collection2");
+		doReturn(collection2UserSchema).when(userServices).userSchema("collection2");
 	}
 
 	@Test
@@ -393,6 +412,8 @@ public class UserServicesUnitTest extends ConstellioTest {
 		verify(userCredentialsManager).getActifUserCredentials();
 	}
 
+	//
+
 	@Test
 	public void givenLDAPAuthenticationAndSyncWhenCanModifyUserAndGroupThenFalse()
 			throws Exception {
@@ -408,7 +429,17 @@ public class UserServicesUnitTest extends ConstellioTest {
 			throws Exception {
 
 		when(configurationManager.isLDAPAuthentication()).thenReturn(true);
-		when(configurationManager.idUsersSynchActivated()).thenReturn(null);
+		when(configurationManager.idUsersSynchActivated()).thenReturn(false);
+
+		assertThat(userServices.canAddOrModifyUserAndGroup()).isTrue();
+	}
+
+	@Test
+	public void givenNotLDAPAuthenticationAndSyncWhenCanModifyUserAndGroupThenTrue()
+			throws Exception {
+
+		when(configurationManager.isLDAPAuthentication()).thenReturn(false);
+		when(configurationManager.idUsersSynchActivated()).thenReturn(true);
 
 		assertThat(userServices.canAddOrModifyUserAndGroup()).isTrue();
 	}
@@ -418,7 +449,7 @@ public class UserServicesUnitTest extends ConstellioTest {
 			throws Exception {
 
 		when(configurationManager.isLDAPAuthentication()).thenReturn(false);
-		when(configurationManager.idUsersSynchActivated()).thenReturn(null);
+		when(configurationManager.idUsersSynchActivated()).thenReturn(false);
 
 		assertThat(userServices.canAddOrModifyUserAndGroup()).isTrue();
 	}
@@ -426,43 +457,42 @@ public class UserServicesUnitTest extends ConstellioTest {
 	//
 
 	@Test
-	public void givenAdminWhenCanModifyPasswordThenTrue()
+	public void givenLDPADAuthAndCurrentUserAdminWhenCanModifyHimSelfPasswordThenTrue()
 			throws Exception {
 
 		when(configurationManager.isLDAPAuthentication()).thenReturn(true);
-		when(configurationManager.idUsersSynchActivated()).thenReturn(true);
 
-		assertThat(userServices.canModifyPassword(admin)).isTrue();
+		assertThat(userServices.canModifyPassword(admin, admin)).isTrue();
 
 	}
 
 	@Test
-	public void givenAliceAndLDAPAuthenticationAndSyncWhenCanModifyPasswordThenFalse()
+	public void givenLDPADAuthAndCurrentUserAdminWhenCanModifyAlicesPasswordThenFalse()
 			throws Exception {
 
 		when(configurationManager.isLDAPAuthentication()).thenReturn(true);
-		when(configurationManager.idUsersSynchActivated()).thenReturn(true);
 
-		assertThat(userServices.canModifyPassword(alice)).isFalse();
+		assertThat(userServices.canModifyPassword(admin, alice)).isFalse();
+
 	}
 
 	@Test
-	public void givenAliceAndLDAPAuthenticationAndNotSyncWhenCanModifyPasswordThenFalse()
+	public void givenLDPADAuthAndCurrentUserAliceWhenCanModifyPasswordThenFalse()
 			throws Exception {
 
 		when(configurationManager.isLDAPAuthentication()).thenReturn(true);
-		when(configurationManager.idUsersSynchActivated()).thenReturn(null);
 
-		assertThat(userServices.canModifyPassword(alice)).isFalse();
+		assertThat(userServices.canModifyPassword(alice, alice)).isFalse();
+
 	}
 
 	@Test
-	public void givenAliceAndNotLDAPAuthenticationAndNotSyncWhenCanModifyPasswordThenTrue()
+	public void givenNotLDPADAuthAndCurrentUserAliceWhenCanModifyPasswordThenTrue()
 			throws Exception {
 
 		when(configurationManager.isLDAPAuthentication()).thenReturn(false);
-		when(configurationManager.idUsersSynchActivated()).thenReturn(null);
 
-		assertThat(userServices.canModifyPassword(alice)).isTrue();
+		assertThat(userServices.canModifyPassword(alice, alice)).isTrue();
+
 	}
 }

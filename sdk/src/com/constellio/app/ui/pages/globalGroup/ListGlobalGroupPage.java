@@ -40,7 +40,7 @@ public class ListGlobalGroupPage extends PageHelper {
 		super(driver);
 	}
 
-	void navigateToListGlobalGroupsPage() {
+	public void navigateToListGlobalGroupsPage() {
 		driver.navigateTo()
 				.url(NavigatorConfigurationService.GROUP_LIST);
 	}
@@ -71,8 +71,8 @@ public class ListGlobalGroupPage extends PageHelper {
 		return getButtonByClassName(EditButton.BUTTON_STYLE, index);
 	}
 
-	public ButtonWebElement getDeleteHeroesButton() {
-		return getButtonByClassName(DeleteButton.BUTTON_STYLE, 0);
+	public ButtonWebElement getDeleteButtonOnIndex(int index) {
+		return getButtonByClassName(DeleteButton.BUTTON_STYLE, index);
 	}
 
 	public List<ConstellioWebElement> getTableRows() {

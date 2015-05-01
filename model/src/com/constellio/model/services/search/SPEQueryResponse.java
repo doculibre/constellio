@@ -17,8 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.search;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,13 +39,25 @@ public class SPEQueryResponse {
 	private final long numFound;
 
 	private final List<Record> records;
-	
+
 	private final boolean correctlySpelled;
 	private final List<String> spellcheckerSuggestions;
 
+	public SPEQueryResponse(List<Record> records) {
+		this.fieldFacetValues = new HashMap<>();
+		this.queryFacetsValues = new HashMap<>();
+		this.qtime = -1;
+		this.numFound = records.size();
+		this.records = records;
+		this.highlights = new HashMap<>();
+		this.correctlySpelled = true;
+		this.spellcheckerSuggestions = new ArrayList<>();
+	}
+
 	public SPEQueryResponse(
 			Map<DataStoreField, List<FacetValue>> fieldFacetValues, Map<String, Integer> queryFacetsValues, long qtime,
-			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelled, List<String> spellcheckerSuggestions) {
+			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelled,
+			List<String> spellcheckerSuggestions) {
 		this.fieldFacetValues = fieldFacetValues;
 		this.queryFacetsValues = queryFacetsValues;
 		this.qtime = qtime;
@@ -97,11 +109,13 @@ public class SPEQueryResponse {
 	}
 
 	public SPEQueryResponse withModifiedRecordList(List<Record> records) {
-		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelled, spellcheckerSuggestions);
+		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelled,
+				spellcheckerSuggestions);
 	}
 
 	public SPEQueryResponse withNumFound(int numFound) {
-		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelled, spellcheckerSuggestions);
+		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelled,
+				spellcheckerSuggestions);
 	}
 
 	public Map<String, Map<String, List<String>>> getHighlights() {

@@ -39,6 +39,7 @@ import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
@@ -156,8 +157,10 @@ public class MigrationServices {
 		LOGGER.info("Running migration script '" + script.getClass().getSimpleName() +
 				"' updating to version '" + script.getVersion() + "'");
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
 		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(
-				migration.getModuleId() == null ? "core" : migration.getModuleId(), migration.getVersion(), null, ioServices);
+				migration.getModuleId() == null ? "core" : migration.getModuleId(), language, migration.getVersion(), null,
+				ioServices);
 		script.migrate(migration.getCollection(), migrationResourcesProvider, appLayerFactory);
 		setCurrentDataVersion(migration.getCollection(), migration.getVersion());
 		markMigrationAsCompleted(migration);

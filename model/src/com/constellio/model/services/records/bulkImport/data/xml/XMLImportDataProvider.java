@@ -35,8 +35,6 @@ public class XMLImportDataProvider implements ImportDataProvider {
 
 	private static final String FILE_READER_STREAM_NAME = "XMLImportDataProvider-FileReader";
 
-	private ModelLayerFactory modelLayerFactory;
-
 	private IOServicesFactory ioServicesFactory;
 
 	private File xmlFile;
@@ -48,7 +46,6 @@ public class XMLImportDataProvider implements ImportDataProvider {
 	public static XMLImportDataProvider forZipFile(ModelLayerFactory modelLayerFactory, File zipFile) {
 
 		XMLImportDataProvider instance = new XMLImportDataProvider();
-		instance.modelLayerFactory = modelLayerFactory;
 		instance.zipFile = zipFile;
 		instance.ioServicesFactory = modelLayerFactory.getIOServicesFactory();
 		return instance;
@@ -57,7 +54,6 @@ public class XMLImportDataProvider implements ImportDataProvider {
 	public static XMLImportDataProvider forSingleXMLFile(ModelLayerFactory modelLayerFactory, File xmlFile) {
 
 		XMLImportDataProvider instance = new XMLImportDataProvider();
-		instance.modelLayerFactory = modelLayerFactory;
 		instance.xmlFile = xmlFile;
 		instance.ioServicesFactory = modelLayerFactory.getIOServicesFactory();
 		return instance;

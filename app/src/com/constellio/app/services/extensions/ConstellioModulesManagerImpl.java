@@ -87,6 +87,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	@Override
 	public void initialize() {
 		createModulesConfigFileIfNotExist();
+
+		CollectionsListManager collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		for (String collection : collectionsListManager.getCollections()) {
+			startModules(collection);
+		}
+
 	}
 
 	public List<Module> getInstalledModules() {

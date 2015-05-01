@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.schemas;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,12 +32,19 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpact;
+import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpactsCalculator;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
@@ -50,13 +59,18 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private final CollectionsListManager collectionsListManager;
 	KeyListMap<String, MetadataSchemasManagerListener> listeners = new KeyListMap<String, MetadataSchemasManagerListener>();
 	private OneXMLConfigPerCollectionManager<MetadataSchemaTypes> oneXmlConfigPerCollectionManager;
+	private BatchProcessesManager batchProcessesManager;
+	private SearchServices searchServices;
 
 	public MetadataSchemasManager(ConfigManager configManager, DataStoreTypesFactory typesFactory,
-			TaxonomiesManager taxonomiesManager, CollectionsListManager collectionsListManager) {
+			TaxonomiesManager taxonomiesManager, CollectionsListManager collectionsListManager,
+			BatchProcessesManager batchProcessesManager, SearchServices searchServices) {
 		this.configManager = configManager;
 		this.typesFactory = typesFactory;
 		this.taxonomiesManager = taxonomiesManager;
 		this.collectionsListManager = collectionsListManager;
+		this.batchProcessesManager = batchProcessesManager;
+		this.searchServices = searchServices;
 	}
 
 	@Override
@@ -103,14 +117,56 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		return MetadataSchemaTypesBuilder.modify(getSchemaTypes(collection));
 	}
 
+	public void modify(String collection, MetadataSchemaTypesAlteration alteration) {
+
+		MetadataSchemaTypesBuilder builder = modify(collection);
+		alteration.alter(builder);
+
+		try {
+			saveUpdateSchemaTypes(builder);
+		} catch (OptimistickLocking optimistickLocking) {
+			modify(collection, alteration);
+		}
+
+	}
+
 	public MetadataSchemaTypes saveUpdateSchemaTypes(MetadataSchemaTypesBuilder schemaTypesBuilder)
 			throws OptimistickLocking {
 		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, taxonomiesManager);
 
 		Document document = new MetadataSchemaXMLWriter().write(schemaTypes);
-		saveSchemaTypesDocument(schemaTypesBuilder, document);
+		List<SchemaTypesAlterationImpact> impacts = calculateImpactsOf(schemaTypesBuilder);
+		List<BatchProcess> batchProcesses = prepareBatchProcesses(impacts, schemaTypesBuilder.getCollection());
+
+		try {
+			saveSchemaTypesDocument(schemaTypesBuilder, document);
+			batchProcessesManager.markAsPending(batchProcesses);
+		} catch (Throwable t) {
+			batchProcessesManager.cancelStandByBatchProcesses(batchProcesses);
+			throw t;
+		}
 
 		return schemaTypes;
+	}
+
+	private List<BatchProcess> prepareBatchProcesses(List<SchemaTypesAlterationImpact> impacts, String collection) {
+		List<BatchProcess> batchProcesses = new ArrayList<>();
+		for (SchemaTypesAlterationImpact impact : impacts) {
+			List<String> ids = getRecordIds(impact, collection);
+			if (!ids.isEmpty()) {
+				batchProcesses.add(batchProcessesManager.add(ids, collection, impact.getAction()));
+			}
+		}
+		return batchProcesses;
+	}
+
+	private List<String> getRecordIds(SchemaTypesAlterationImpact impact, String collection) {
+		MetadataSchemaType type = getSchemaTypes(collection).getSchemaType(impact.getSchemaType());
+		return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(from(type).returnAll()));
+	}
+
+	private List<SchemaTypesAlterationImpact> calculateImpactsOf(MetadataSchemaTypesBuilder schemaTypesBuilder) {
+		return new SchemaTypesAlterationImpactsCalculator().calculatePotentialImpacts(schemaTypesBuilder);
 	}
 
 	private void saveSchemaTypesDocument(MetadataSchemaTypesBuilder schemaTypesBuilder, Document document) {
@@ -143,4 +199,5 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	public void close() {
 
 	}
+
 }

@@ -26,22 +26,24 @@ import java.util.ResourceBundle;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 public class MigrationResourcesProvider {
 
 	String module;
 	String version;
-	Locale defaultLocale;
 	Utf8ResourceBundles bundles;
 	IOServices ioServices;
 	File moduleVersionFolder;
+	Language language;
 
-	public MigrationResourcesProvider(String module, String version, Locale defaultLocale, IOServices ioServices) {
+	public MigrationResourcesProvider(String module, Language language, String version, Locale defaultLocale,
+			IOServices ioServices) {
 		this.module = module;
 		this.version = version;
-		this.defaultLocale = defaultLocale;
 		this.ioServices = ioServices;
+		this.language = language;
 		String versionWithUnderscores = version.replace(".", "_");
 		File migrations = new File(new FoldersLocator().getI18nFolder(), "migrations");
 		File moduleFolder = new File(migrations, module);
@@ -61,8 +63,9 @@ public class MigrationResourcesProvider {
 
 	public String getDefaultLanguageString(String key) {
 		ensureBundles();
-		//TODO
-		ResourceBundle bundle = bundles.getBundle(Locale.FRENCH);
+
+		Locale locale = language.getLocale();
+		ResourceBundle bundle = bundles.getBundle(locale);
 
 		return bundle.containsKey(key) ? bundle.getString(key) : key;
 	}
@@ -90,7 +93,7 @@ public class MigrationResourcesProvider {
 	public boolean containsKey(String key) {
 		ensureBundles();
 		//TODO
-		ResourceBundle bundle = bundles.getBundle(Locale.FRENCH);
+		ResourceBundle bundle = bundles.getBundle(language.getLocale());
 
 		return bundle.containsKey(key);
 	}

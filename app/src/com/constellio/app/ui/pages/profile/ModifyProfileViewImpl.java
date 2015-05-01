@@ -131,7 +131,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		usernameField.setNullRepresentation("");
 		usernameField.setId("username");
 		usernameField.addStyleName("username");
-		usernameField.setVisible(false);
+		usernameField.setVisible(true);
+		usernameField.setEnabled(false);
 
 		imageResource = new StreamResource(readSourceStream(), presenter.getUsername() + ".png");
 		image = new Embedded("", imageResource);
@@ -174,32 +175,32 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 				}
 			}
 		});
-		imageField.setEnabled(presenter.canAndOrModify());
+		imageField.setEnabled(presenter.canModify());
 
 		firstNameField = new TextField();
 		firstNameField.setCaption($("ModifyPofilView.firstName"));
-		firstNameField.setRequired(true);
+		firstNameField.setRequired(!presenter.isLDAPAuthentication());
 		firstNameField.setNullRepresentation("");
 		firstNameField.setId("firstName");
 		firstNameField.addStyleName("firstName");
-		firstNameField.setEnabled(presenter.canAndOrModify());
+		firstNameField.setEnabled(presenter.canModify());
 
 		lastNameField = new TextField();
 		lastNameField.setCaption($("ModifyPofilView.lastName"));
-		lastNameField.setRequired(true);
+		lastNameField.setRequired(!presenter.isLDAPAuthentication());
 		lastNameField.setNullRepresentation("");
 		lastNameField.setId("lastName");
 		lastNameField.addStyleName("lastName");
-		lastNameField.setEnabled(presenter.canAndOrModify());
+		lastNameField.setEnabled(presenter.canModify());
 
 		emailField = new TextField();
 		emailField.setCaption($("ModifyPofilView.email"));
-		emailField.setRequired(true);
+		emailField.setRequired(!presenter.isLDAPAuthentication());
 		emailField.setNullRepresentation("");
 		emailField.setId("email");
 		emailField.addStyleName("email");
 		emailField.addValidator(new EmailValidator($("ModifyPofilView.invalidEmail")));
-		emailField.setEnabled(presenter.canAndOrModify());
+		emailField.setEnabled(presenter.canModify());
 
 		phoneField = new TextField();
 		phoneField.setCaption($("ModifyPofilView.phone"));
@@ -207,7 +208,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		phoneField.setNullRepresentation("");
 		phoneField.setId("phone");
 		phoneField.addStyleName("phone");
-		phoneField.setEnabled(presenter.canAndOrModify());
+		phoneField.setEnabled(presenter.canModify());
 
 		passwordField = new PasswordField();
 		passwordField.setCaption($("ModifyPofilView.password"));
@@ -260,7 +261,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		startTabField.setItemCaption(StartTab.RECENT_FOLDERS, $("ModifyPofilView." + StartTab.RECENT_FOLDERS));
 		startTabField.setItemCaption(StartTab.RECENT_DOCUMENTS, $("ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
 		startTabField.setItemCaption(StartTab.TAXONOMIES, $("ModifyPofilView." + StartTab.TAXONOMIES));
-		startTabField.setEnabled(presenter.canAndOrModify());
 
 		taxonomyField = new ListOptionGroup($("ModifyPofilView.defaultTaxonomy"));
 		taxonomyField.addStyleName("defaultTaxonomy");
@@ -271,7 +271,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			taxonomyField.addItem(value.getCode());
 			taxonomyField.setItemCaption(value.getCode(), value.getTitle());
 		}
-		taxonomyField.setEnabled(presenter.canAndOrModify());
 
 		form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField,
 				phoneField, passwordField, confirmPasswordField, oldPasswordField, startTabField, taxonomyField) {

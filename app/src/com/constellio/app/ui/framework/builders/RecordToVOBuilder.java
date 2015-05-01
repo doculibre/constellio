@@ -76,7 +76,7 @@ public class RecordToVOBuilder implements Serializable {
 			String metadataCode = metadataVO.getCode();
 			Metadata metadata = schema.getMetadata(metadataCode);
 
-			Object recordVOValue = record.get(metadata);
+			Object recordVOValue = getValue(record, metadata);
 			if (recordVOValue instanceof Content) {
 				recordVOValue = contentVersionVOBuilder.build((Content) recordVOValue);
 			} else if (recordVOValue instanceof List) {
@@ -100,10 +100,14 @@ public class RecordToVOBuilder implements Serializable {
 		return newRecordVO(id, metadataValueVOs, viewMode);
 	}
 
+	protected Object getValue(Record record, Metadata metadata) {
+		return record.get(metadata);
+	}
+
 	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
 		return new RecordVO(id, metadataValueVOs, viewMode);
 	}
-	
+
 	protected int getIndexOfMetadataCode(String metadataCode, List<MetadataValueVO> metadataValueVOs) {
 		int index = -1;
 		for (int i = 0; i < metadataValueVOs.size(); i++) {

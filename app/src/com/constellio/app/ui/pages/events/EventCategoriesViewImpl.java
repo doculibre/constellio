@@ -44,27 +44,34 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		mainLayout.addStyleName("view-group");
 
 		Button systemUsageLink = newSystemUsageLink();
+		systemUsageLink.addStyleName("systemUsageLinkButton");
 		mainLayout.addComponent(systemUsageLink);
 
 		Button usersAndGroupsLink = newUsersAndGroupsAddOrRemoveLink();
+		usersAndGroupsLink.addStyleName("usersAndGroupsLinkButton");
 		mainLayout.addComponent(usersAndGroupsLink);
 
 		Button recordsCreationLink = newRecordsCreationLink();
+		recordsCreationLink.addStyleName("recordsCreationLinkButton");
 		mainLayout.addComponent(recordsCreationLink);
 
 		Button recordsModificationLink = newRecordsModificationLink();
+		recordsModificationLink.addStyleName("recordsModificationLinkButton");
 		mainLayout.addComponent(recordsModificationLink);
 
 		Button recordsDeletionLink = newRecordsDeletionLink();
+		recordsDeletionLink.addStyleName("recordsDeletionLinkButton");
 		mainLayout.addComponent(recordsDeletionLink);
 
 		Button currentlyBorrowedDocumentsLink = newCurrentlyBorrowedDocumentsLink();
+		currentlyBorrowedDocumentsLink.addStyleName("currentlyBorrowedDocumentsLinkButton");
 		mainLayout.addComponent(currentlyBorrowedDocumentsLink);
 
 		//		Button currentlyBorrowedFoldersLink = newCurrentlyBorrowedFoldersLink();
 		//		page.addComponent(currentlyBorrowedFoldersLink);
 
 		Button borrowedDocumentsLink = newBorrowedOrReturnedDocumentsEventsLink();
+		borrowedDocumentsLink.addStyleName("borrowedDocumentsLinkButton");
 		mainLayout.addComponent(borrowedDocumentsLink);
 
 		//		Button borrowedFoldersLink = newBorrowedOrReturnedFoldersEventsLink();
@@ -74,18 +81,22 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		//		page.addComponent(borrowedContainersLink);
 
 		Button filingSpaceEventsLink = newByFilingSpaceEventsLink();
+		filingSpaceEventsLink.addStyleName("filingSpaceEventsLinkButton");
 		mainLayout.addComponent(filingSpaceEventsLink);
 
 		Button byFolderEventsLink = newByFolderEventsLink();
+		byFolderEventsLink.addStyleName("byFolderEventsLinkButton");
 		mainLayout.addComponent(byFolderEventsLink);
 
 		Button byUserEventsLink = newByUserEventsLink();
+		byUserEventsLink.addStyleName("byUserEventsLinkButton");
 		mainLayout.addComponent(byUserEventsLink);
 
 		//		Button connectedUsersLink = newConnectedUsersLink();
 		//		page.addComponent(connectedUsersLink);
 
 		Button decommissioningEventsLink = newDecommissioningEventsLink();
+		decommissioningEventsLink.addStyleName("decommissioningEventsLinkButton");
 		mainLayout.addComponent(decommissioningEventsLink);
 
 		return mainLayout;

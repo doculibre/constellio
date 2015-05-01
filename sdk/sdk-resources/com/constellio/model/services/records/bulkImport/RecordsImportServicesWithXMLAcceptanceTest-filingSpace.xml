@@ -9,6 +9,7 @@
         </users>
         <administrators multivalue="true">
         	<item>username:admin</item>
+        	<item>username:bob</item>
         </administrators>
     </record>
     <record id="23">
@@ -26,7 +27,7 @@
     <record id="00">
         <code>3RR0R_B0X : S@S</code>
         <description>I am a Sick Box.</description>
-        <users multivalue="true"></users>
-        <administrators multivalue="true">null</administrators>
+        <users></users>
+        <administrators>null</administrators>
     </record>
 </records>

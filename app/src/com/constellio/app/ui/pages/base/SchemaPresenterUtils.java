@@ -106,10 +106,16 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final void delete(Record record, String reason) {
+		delete(record, reason, true);
+	}
+
+	public final void delete(Record record, String reason, boolean physically) {
 		User currentUser = getCurrentUser();
 		recordServices().logicallyDelete(record, currentUser);
 		modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, currentUser, reason);
-		recordServices().physicallyDelete(record, currentUser);
+		if (physically) {
+			recordServices().physicallyDelete(record, currentUser);
+		}
 	}
 
 	@SuppressWarnings("unchecked")

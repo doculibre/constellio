@@ -28,10 +28,10 @@ public class TaxonomyComboBox extends ComboBox implements TaxonomyField {
 
 	private TaxonomyFieldPresenter presenter;
 
-	public TaxonomyComboBox(String taxonomyCode) {
+	public TaxonomyComboBox(String taxonomyCode, String schemaTypeCode) {
 		super();
 		presenter = new TaxonomyFieldPresenter(this);
-		presenter.forTaxonomyCode(taxonomyCode);
+		presenter.forTaxonomyAndSchemaTypeCodes(taxonomyCode, schemaTypeCode);
 	}
 
 	@Override

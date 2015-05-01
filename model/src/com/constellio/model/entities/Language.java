@@ -17,9 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.entities;
 
+import java.util.Locale;
+
 public enum Language {
 
-	UNKNOWN("unknown"),
+	UNKNOWN("unknown", null),
 	//Arabic("ar"),
 	//	Armenian,
 	//	Basque,
@@ -31,9 +33,9 @@ public enum Language {
 	//	Czech,
 	//	Danish,
 	//	Dutch,
-	English("en"),
+	English("en", Locale.ENGLISH),
 	//	Finnish,
-	French("fr");
+	French("fr", Locale.FRENCH);
 	//	Galician,
 	//  German("de"),
 	//	Greek,
@@ -53,10 +55,13 @@ public enum Language {
 	//	Thai,
 	//	Turkish;
 
+	final Locale locale;
+
 	final String code;
 
-	Language(String code) {
+	Language(String code, Locale locale) {
 		this.code = code;
+		this.locale = locale;
 	}
 
 	public static boolean isSupported(String languageCode) {
@@ -73,4 +78,16 @@ public enum Language {
 		return code;
 	}
 
+	public Locale getLocale() {
+		return locale;
+	}
+
+	public static Language withCode(String code) {
+		for (Language language : values()) {
+			if (code.equals(language.getCode())) {
+				return language;
+			}
+		}
+		return French;
+	}
 }

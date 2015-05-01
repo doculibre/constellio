@@ -17,6 +17,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.rm.document;
 
+import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.AUTHORIZATIONS;
+import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.DELETE;
+import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.MODIFY;
+import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.UPLOAD;
+import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcceptanceTest.DocumentContextMenuAction.VIEW;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -29,6 +35,7 @@ import org.openqa.selenium.Keys;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.ComponentState;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.model.services.records.RecordServices;
@@ -39,6 +46,10 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElemen
 
 @UiTest
 public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
+
+	enum DocumentContextMenuAction {
+		VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD
+	}
 
 	RecordFormWebElement zeForm;
 	RecordServices recordServices;
@@ -62,18 +73,18 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	/** Admin is a RGD 
 	 */
 	public void givenAdminThenDisplayDocumentContextMenuIsOk() {
-		logAsInZeCollection(admin);
-		
+		logAsInZeCollectionAndSetupLastViewedDocuments(admin);
+
 		getMaisDocument().rightClick();
-		assertThatAllAreEnabled();
-		
+		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
+
 		getMaisDocument().sendKeys(Keys.ESCAPE);
 		getPoivronDocument().rightClick();
-		assertThatAllAreEnabled();
-		
+		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
+
 		getPoivronDocument().sendKeys(Keys.ESCAPE);
 		getPoisDocument().rightClick();
-		assertThatAllAreEnabled();
+		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
 	}
 
 	@Test
@@ -81,18 +92,18 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	 *  Alice can READ  
 	 */
 	public void givenAliceThenDisplayDocumentContextMenuIsOk() {
-		logAsInZeCollection(aliceWonderland);
-		
+		logAsInZeCollectionAndSetupLastViewedDocuments(aliceWonderland);
+
 		getMaisDocument().rightClick();
-		assertThatAllAreInvisibleExceptCheckEnabled();
-		
+		assertThatEnabledActionsAre(UPLOAD, VIEW);
+
 		getMaisDocument().sendKeys(Keys.ESCAPE);
 		getPoivronDocument().rightClick();
-		assertThatAllAreInvisibleExceptCheckEnabled();
-		
+		assertThatEnabledActionsAre(VIEW);
+
 		getPoivronDocument().sendKeys(Keys.ESCAPE);
 		getPoisDocument().rightClick();
-		assertThatAllAreInvisibleExceptCheckEnabled();
+		assertThatEnabledActionsAre(VIEW);
 	}
 
 	@Test
@@ -100,10 +111,10 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	 *  Bob can READ/WRITE in UA 30
 	 */
 	public void givenBobThenDisplayDocumentMenuIsOk() {
-		logAsInZeCollection(bobGratton);
+		logAsInZeCollectionAndSetupLastViewedDocuments(bobGratton);
 
 		getPoivronDocument().rightClick();
-		assertThatAllAreInvisibleExceptCheckEnabled();
+		assertThatEnabledActionsAre(VIEW);
 	}
 
 	@Test
@@ -111,14 +122,14 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	 *  Edouard can READ/WRITE in UA 30
 	 */
 	public void givenEdouardThenDisplayDocumentMenuIsOk() {
-		logAsInZeCollection(edouard);
-		
+		logAsInZeCollectionAndSetupLastViewedDocuments(edouard);
+
 		getPoivronDocument().rightClick();
-		assertThatAllAreInvisibleExceptCheckEnabled();
-		
+		assertThatEnabledActionsAre(VIEW);
+
 		getPoivronDocument().sendKeys(Keys.ESCAPE);
 		getPoisDocument().rightClick();
-		assertThatAllAreInvisibleExceptCheckEnabled();
+		assertThatEnabledActionsAre(VIEW);
 	}
 
 	@Test
@@ -126,62 +137,100 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	 *  Gandalf can READ/WRITE/DELETE in UA 30
 	 */
 	public void givenGandalfThenDisplayDocumentMenuIsOk() {
-		logAsInZeCollection(gandalf);
-		
+		logAsInZeCollectionAndSetupLastViewedDocuments(gandalf);
+
 		getMaisDocument().rightClick();
-		assertThatAllAreEnabledExceptEditInvisible();
-		
+		assertThatEnabledActionsAre(VIEW, AUTHORIZATIONS, UPLOAD, DELETE);
+
 		getMaisDocument().sendKeys(Keys.ESCAPE);
 		getPoivronDocument().rightClick();
-		assertThatAllAreInvisibleExceptCheckEnabled();
-		
+		assertThatEnabledActionsAre(VIEW, AUTHORIZATIONS);
+
 		getPoivronDocument().sendKeys(Keys.ESCAPE);
 		getPoisDocument().rightClick();
-		assertThatAllAreInvisibleExceptCheckEnabled();
+		assertThatEnabledActionsAre(VIEW, AUTHORIZATIONS);
 	}
 
 	@Test
 	/** Chuck is a RGD
 	 */
 	public void givenChuckThenDisplayDocumentMenuIsOk() {
-		logAsInZeCollection(chuckNorris);
-		
+		logAsInZeCollectionAndSetupLastViewedDocuments(chuckNorris);
+
 		getMaisDocument().rightClick();
-		assertThatAllAreEnabled();
-		
+		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
+
 		getMaisDocument().sendKeys(Keys.ESCAPE);
 		getPoivronDocument().rightClick();
-		assertThatAllAreEnabled();
-		
+		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
+
 		getPoivronDocument().sendKeys(Keys.ESCAPE);
 		getPoisDocument().rightClick();
-		assertThatAllAreEnabled();
+		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
 	}
 
-	private void assertThatAllAreEnabled() {
-		assertThat(getButtonState("Consulter la fiche de ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Éditer la fiche de ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.ENABLED);
+	//----------------------------------------------------------------------------------------
+
+	private void assertThatEnabledActionsAre(DocumentContextMenuAction... actions) {
+		List<DocumentContextMenuAction> expectedActionsList = asList(actions);
+
+		if (expectedActionsList.contains(VIEW)) {
+			assertThatCheckButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatCheckButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+
+		if (expectedActionsList.contains(MODIFY)) {
+			assertThatModifyButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatModifyButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+
+		if (expectedActionsList.contains(DELETE)) {
+			assertThatDeleteButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatDeleteButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+
+		if (expectedActionsList.contains(AUTHORIZATIONS)) {
+			assertThatAuthorizationsButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatAuthorizationsButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+
+		if (expectedActionsList.contains(UPLOAD)) {
+			assertThatUploadButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatUploadButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
 	}
-	
-	private void assertThatAllAreInvisibleExceptCheckEnabled() {
-		assertThat(getButtonState("Consulter la fiche de ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Éditer la fiche de ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.INVISIBLE);
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatCheckButtonState() {
+		return assertThatButtonState("Consulter la fiche de ce document");
 	}
-	
-	private void assertThatAllAreEnabledExceptEditInvisible() {
-		assertThat(getButtonState("Consulter la fiche de ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Éditer la fiche de ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.ENABLED);
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatModifyButtonState() {
+		return assertThatButtonState("Éditer la fiche de ce document");
 	}
-	
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatDeleteButtonState() {
+		return assertThatButtonState("Supprimer ce document");
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatAuthorizationsButtonState() {
+		return assertThatButtonState("Autorisations");
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatUploadButtonState() {
+		return assertThatButtonState("Téléverser");
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatButtonState(String label) {
+		return assertThat(getButtonState(label)).describedAs(label);
+	}
+
+	//-------------------------------------------------------------------------------------------------------------
+
 	//Semi-Actif Document
 	private ConstellioWebElement getMaisDocument() {
 		List<ConstellioWebElement> listRows = getListRows();
@@ -192,7 +241,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 		}
 		return null;
 	}
-	
+
 	//Versé Document
 	private ConstellioWebElement getPoisDocument() {
 		List<ConstellioWebElement> listRows = getListRows();
@@ -213,6 +262,12 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 			}
 		}
 		return null;
+	}
+
+	private void navigateToLastViewDocuments() {
+		driver.navigateTo().url(NavigatorConfigurationService.HOME);
+		List<ConstellioWebElement> listTabMenu = driver.findAdaptElements(By.className("v-caption"));
+		listTabMenu.get(2).clickAndWaitForElementRefresh(driver.findElement(By.className("record-table")));
 	}
 
 	private List<ConstellioWebElement> getListRows() {
@@ -239,10 +294,34 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 		return ComponentState.INVISIBLE;
 	}
 
-	private void logAsInZeCollection(String user) {
+	private void logAsInZeCollectionAndSetupLastViewedDocuments(String user) {
 		driver = newWebDriver(loggedAsUserInCollection(user, zeCollection));
-		List<ConstellioWebElement> listTabMenu = driver.findAdaptElements(By.className("v-caption"));
-		listTabMenu.get(2).clickAndWaitForElementRefresh(driver.findElement(By.className("record-table")));
+
+		addPoivronToLastViewedDocuments();
+		addPoisToLastViewedDocuments();
+		addMaisToLastViewedDocuments();
+	}
+
+	private void addPoivronToLastViewedDocuments() {
+		String id = recordIdWithTitleInCollection("Poivron - Livre de recettes", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		getModelLayerFactory().newRecordServices().flush();
+
+		navigateToLastViewDocuments();
+	}
+
+	private void addPoisToLastViewedDocuments() {
+		String id = recordIdWithTitleInCollection("Pois - Livre de recettes", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		getModelLayerFactory().newRecordServices().flush();
+		navigateToLastViewDocuments();
+	}
+
+	private void addMaisToLastViewedDocuments() {
+		String id = recordIdWithTitleInCollection("Maïs - Livre de recettes", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		getModelLayerFactory().newRecordServices().flush();
+		navigateToLastViewDocuments();
 	}
 
 }

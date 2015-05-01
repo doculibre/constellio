@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users;
 
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +43,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -58,6 +61,7 @@ import com.constellio.model.services.search.query.logical.ongoing.OngoingLogical
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidToken;
@@ -184,9 +188,7 @@ public class UserServices {
 	}
 
 	public User getUserRecordInCollection(String username, String collection) {
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(userSchema(collection))
-				.where(usernameMetadata(collection))
-				.is(username);
+		LogicalSearchCondition condition = fromUsersIn(collection).where(usernameMetadata(collection)).is(username);
 
 		return User.wrapNullable(searchServices.searchSingleResult(condition), schemaTypes(collection),
 				rolesManager.getCollectionRoles(collection));
@@ -209,9 +211,7 @@ public class UserServices {
 	}
 
 	public Group getGroupInCollection(String groupCode, String collection) {
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(groupSchema(collection))
-				.where(groupCodeMetadata(collection))
-				.is(groupCode);
+		LogicalSearchCondition condition = fromGroupsIn(collection).where(groupCodeMetadata(collection)).is(groupCode);
 		return Group.wrapNullable(searchServices.searchSingleResult(condition), schemaTypes(collection));
 	}
 
@@ -237,9 +237,8 @@ public class UserServices {
 
 		userCredentialsManager.removeUserCredentialFromCollection(userCredential, collection);
 
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection)
-				.where(usernameMetadata(collection))
-				.is(userCredential.getUsername());
+		LogicalSearchCondition condition = fromUsersIn(collection)
+				.where(usernameMetadata(collection)).is(userCredential.getUsername());
 		Record userCredentialRecord = searchServices.searchSingleResult(condition);
 		recordServices.logicallyDelete(userCredentialRecord, User.GOD);
 	}
@@ -284,8 +283,8 @@ public class UserServices {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		LogicalSearchCondition condition;
 		for (String collection : collections) {
-			condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(usernameMetadata(collection))
-					.isEqualTo(username).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
+			condition = fromUsersIn(collection).where(usernameMetadata(collection))
+					.isEqualTo(username).andWhere(LOGICALLY_DELETED_STATUS).isTrue();
 			query.setCondition(condition);
 			Record recordGroup = searchServices.searchSingleResult(condition);
 			if (recordGroup != null) {
@@ -299,8 +298,9 @@ public class UserServices {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			LogicalSearchCondition condition;
 			for (String collection : collections) {
-				condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(groupCodeMetadata(collection))
-						.isEqualTo(group.getCode()).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
+				condition = fromGroupsIn(collection)
+						.where(groupCodeMetadata(collection)).isEqualTo(group.getCode())
+						.andWhere(LOGICALLY_DELETED_STATUS).isTrue();
 				query.setCondition(condition);
 				Record recordGroup = searchServices.searchSingleResult(condition);
 				if (recordGroup != null) {
@@ -386,21 +386,25 @@ public class UserServices {
 	}
 
 	public boolean canAddOrModifyUserAndGroup() {
-		if (ldapConfigurationManager.isLDAPAuthentication()
-				&& ldapConfigurationManager.idUsersSynchActivated() != null) {
+		if (ldapConfigurationManager.isLDAPAuthentication() && ldapConfigurationManager.idUsersSynchActivated()) {
 			return false;
 		} else {
 			return true;
 		}
 	}
 
-	public boolean canModifyPassword(UserCredential currentUser) {
-		if (!currentUser.getUsername().equals("admin") && (ldapConfigurationManager.isLDAPAuthentication()
-				|| ldapConfigurationManager.idUsersSynchActivated() != null)) {
-			return false;
-		} else {
+	public boolean canModifyPassword(UserCredential userInEdition, UserCredential currentUser) {
+		if ((userInEdition.getUsername().equals("admin") && currentUser.getUsername().equals("admin"))
+				|| !ldapConfigurationManager.isLDAPAuthentication()) {
 			return true;
+		} else {
+			return false;
 		}
+	}
+
+	//TODO Thiago
+	public boolean isLDAPAuthentication() {
+		return ldapConfigurationManager.isLDAPAuthentication();
 	}
 
 	private List<String> toUserNames(List<UserCredential> users) {
@@ -423,6 +427,7 @@ public class UserServices {
 		userInCollection.setLastName(user.getLastName());
 		userInCollection.setUsername(user.getUsername());
 		userInCollection.setSystemAdmin(user.isSystemAdmin());
+		setRoles(userInCollection);
 		changeUserStatus(userInCollection, user);
 		List<String> groupIds = getGroupIds(user.getGlobalGroups(), collection);
 		List<String> UserInCollectionGroupIds = userInCollection.getUserGroups();
@@ -431,6 +436,19 @@ public class UserServices {
 		}
 		if (userInCollection.isDirty()) {
 			transaction.add(userInCollection.getWrappedRecord());
+		}
+	}
+
+	private void setRoles(User userInCollection) {
+		if (userInCollection.getUserRoles() != null && userInCollection.getUserRoles().isEmpty()) {
+			try {
+				Role role = rolesManager.getRole(userInCollection.getCollection(), "U");
+				if (role != null) {
+					userInCollection.setUserRoles("U");
+				}
+			} catch (RolesManagerRuntimeException e) {
+				//
+			}
 		}
 	}
 
@@ -509,11 +527,19 @@ public class UserServices {
 		return parentId;
 	}
 
+	private OngoingLogicalSearchCondition fromUsersIn(String collection) {
+		return LogicalSearchQueryOperators.from(userSchema(collection));
+	}
+
+	private OngoingLogicalSearchCondition fromGroupsIn(String collection) {
+		return LogicalSearchQueryOperators.from(groupSchema(collection));
+	}
+
 	private MetadataSchemaTypes schemaTypes(String collection) {
 		return metadataSchemasManager.getSchemaTypes(collection);
 	}
 
-	private MetadataSchema userSchema(String collection) {
+	MetadataSchema userSchema(String collection) {
 		return schemaTypes(collection).getSchema(User.SCHEMA_TYPE + "_default");
 	}
 
@@ -525,7 +551,7 @@ public class UserServices {
 		return userSchema(collection).getMetadata(User.GROUPS);
 	}
 
-	private MetadataSchema groupSchema(String collection) {
+	MetadataSchema groupSchema(String collection) {
 		return schemaTypes(collection).getSchema(Group.SCHEMA_TYPE + "_default");
 	}
 
@@ -695,12 +721,20 @@ public class UserServices {
 		String parentId = getGroupIdInCollection(groupParentCode, collection);
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(groupSchema(collection))
 				.where(groupParentMetadata(collection))
-				.is(parentId).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+				.is(parentId).andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition);
 		for (Record record : searchServices.search(query)) {
 			groups.add(Group.wrapNullable(record, schemaTypes(collection)));
 		}
 		return groups;
+	}
+
+	public CredentialUserPermissionChecker has(User user) {
+		return has(user.getUsername());
+	}
+
+	public CredentialUserPermissionChecker has(UserCredential userCredential) {
+		return has(userCredential.getUsername());
 	}
 
 	public CredentialUserPermissionChecker has(String username) {
@@ -710,5 +744,15 @@ public class UserServices {
 			users.add(getUserInCollection(username, collection));
 		}
 		return new CredentialUserPermissionChecker(users);
+	}
+
+	public List<User> getAllUsersInCollection(String collection) {
+		List<User> usersInCollection = new ArrayList<>();
+		for (UserCredential userCredential : getAllUserCredentials()) {
+			if (userCredential.getCollections().contains(collection)) {
+				usersInCollection.add(getUserInCollection(userCredential.getUsername(), collection));
+			}
+		}
+		return usersInCollection;
 	}
 }

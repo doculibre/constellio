@@ -26,6 +26,8 @@ import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -112,6 +114,11 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 
 	public void backButtonClicked() {
 		view.navigateTo().adminModule();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_VALUELIST).globally();
 	}
 
 }

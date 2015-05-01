@@ -48,6 +48,8 @@ public interface AdminRMModuleView extends BaseView, AdminModuleViewGroup {
 
 	void setManageSystemConfiguration(boolean visible);
 
+	void setManageLdapConfiguration(boolean visible);
+
 	void setManageSystemGroups(boolean visible);
 
 	void setManageSystemUsers(boolean visible);

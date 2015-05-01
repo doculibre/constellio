@@ -34,7 +34,8 @@ public abstract class ConfirmDialogButton extends IconButton {
 	static {
 		ConfirmDialog.setFactory(new ConfirmDialog.Factory() {
 			@Override
-			public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle, String notOKCaption) {
+			public ConfirmDialog create(String windowCaption, String message, String okTitle, String cancelTitle,
+					String notOKCaption) {
 				ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
 				confirmDialog.addAttachListener(new AttachListener() {
 					@Override
@@ -45,6 +46,10 @@ public abstract class ConfirmDialogButton extends IconButton {
 				return confirmDialog;
 			}
 		});
+	}
+
+	public ConfirmDialogButton(String caption) {
+		this(null, caption, false);
 	}
 
 	public ConfirmDialogButton(Resource iconResource, String caption) {

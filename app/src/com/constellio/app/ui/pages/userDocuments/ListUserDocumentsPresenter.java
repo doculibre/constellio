@@ -60,6 +60,11 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		super(view, UserDocument.DEFAULT_SCHEMA);
 	}
 
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
+	}
+
 	public void viewAssembled() {
 		List<UserDocumentVO> currentUserUploadVOs = getCurrentUserDocumentVOs();
 		view.setUserDocuments(currentUserUploadVOs);
@@ -141,7 +146,8 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 			if (cause != null && StringUtils.isNotBlank(cause.getMessage()) && cause instanceof ValidationException) {
 				view.showErrorMessage(cause.getMessage());
 			} else {
-				view.showErrorMessage(MessageUtils.toMessage(e));;
+				view.showErrorMessage(MessageUtils.toMessage(e));
+				;
 			}
 		}
 	}

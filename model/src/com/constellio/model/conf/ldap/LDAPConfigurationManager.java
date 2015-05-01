@@ -21,12 +21,18 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
+import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
+import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.sync.LDAPFastBind;
+import com.constellio.model.services.users.sync.RuntimeNamingException;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Duration;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
+import javax.naming.NamingException;
+import javax.naming.ldap.LdapContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +40,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class LDAPConfigurationManager implements StatefulService {
     private static final String LDAP_CONFIGS = "ldapConfigs.properties";
+    private static final long MIN_DURATION = 1000 * 60 * 10;//10mns
     private final ModelLayerFactory modelLayerFactory;
     LDAPUserSyncConfiguration userSyncConfiguration;
     LDAPServerConfiguration serverConfiguration;
@@ -97,7 +104,7 @@ public class LDAPConfigurationManager implements StatefulService {
                     properties.put("ldap.syncConfiguration.groupFilter.rejectedRegex", ldapUserSyncConfiguration.getGroupsFilterRejectionRegex());
                 }
                 if (ldapUserSyncConfiguration.getDurationBetweenExecution() != null) {
-                    if (ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() > 10000) {
+                    if (ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() >= MIN_DURATION) {
                         properties.put("ldap.syncConfiguration.durationBetweenExecution", format(ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis()) + "");
                     } else {
                         //FIXME
@@ -126,7 +133,32 @@ public class LDAPConfigurationManager implements StatefulService {
     }
 
     private void validateLDAPConfiguration(LDAPServerConfiguration configs, LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-       //TODO
+        Boolean authenticationActive = configs.getLdapAuthenticationActive();
+        if(authenticationActive){
+            for(String url : configs.getUrls()){
+                try{
+                    LDAPFastBind fastBind = new LDAPFastBind(url);
+                    fastBind.close();
+                }catch(RuntimeNamingException e){
+                    throw new InvalidUrlRuntimeException(url, e.getMessage());
+                }
+            }
+            if(configs.getDomains() == null || configs.getDomains().isEmpty()){
+                throw new EmptyDomainsRuntimeException();
+            }
+            if(configs.getUrls() == null || configs.getUrls().isEmpty()){
+                throw new EmptyUrlsRuntimeException();
+            }
+            if(ldapUserSyncConfiguration.getDurationBetweenExecution()!= null && ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() != 0l){
+                if(ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() < MIN_DURATION){
+                    throw new TooShortDurationRuntimeException(ldapUserSyncConfiguration.getDurationBetweenExecution());
+                }
+                LDAPServices ldapServices = new LDAPServices();
+                for(String url : configs.getUrls()){
+                    ldapServices.connectToLDAP(configs.getDomains(), url, ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword());
+                }
+            }
+        }
     }
 
     public LDAPServerConfiguration getLDAPServerConfiguration() {

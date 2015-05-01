@@ -67,4 +67,5 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 			}
 		};
 	}
+
 }

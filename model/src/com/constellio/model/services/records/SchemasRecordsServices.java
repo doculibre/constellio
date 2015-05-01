@@ -31,6 +31,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -98,6 +99,18 @@ public class SchemasRecordsServices {
 
 	public MetadataSchemaType eventSchemaType() {
 		return getTypes().getSchemaType(Event.SCHEMA_TYPE);
+	}
+
+	public Metadata eventType() {
+		return eventSchema().getMetadata(Event.TYPE);
+	}
+
+	public Metadata eventUsername() {
+		return eventSchema().getMetadata(Event.USERNAME);
+	}
+
+	public Metadata eventCreation() {
+		return eventSchema().getMetadata(Schemas.CREATED_ON.getLocalCode());
 	}
 
 	public Event wrapEvent(Record record) {

@@ -48,8 +48,8 @@ public class DisplayUserCredentialPage extends PageHelper {
 		return new TextFieldWebElement(element);
 	}
 
-	public ButtonWebElement getAddButton() {
-		return getButtonByClassName(AddButton.BUTTON_STYLE, 0);
+	public ButtonWebElement getAddButtonOnIndex(int index) {
+		return getButtonByClassName(AddButton.BUTTON_STYLE, index);
 	}
 
 	public ButtonWebElement getBackButton() {
@@ -68,9 +68,21 @@ public class DisplayUserCredentialPage extends PageHelper {
 		return getButtonByClassName(EditButton.BUTTON_STYLE, index);
 	}
 
-	public ButtonWebElement getEditGlobalGroupButtonOnIndex() {
+	public ButtonWebElement getEditGlobalGroupButtonMenuAction() {
 		return getButtonByCssSelector("." + EditButton.BUTTON_STYLE + ".action-menu-button");
 	}
+
+	public ButtonWebElement getEditUserCredentialButtonOnIndex(int index) {
+		return getButtonByClassName(EditButton.BUTTON_STYLE, index);
+	}
+
+//	public List<ConstellioWebElement> findEditButtonElements() {
+	//		return driver.findAdaptElements(By.className(EditButton.BUTTON_STYLE));
+	//	}
+	//
+	//	public List<ConstellioWebElement> findAddButtonElements() {
+	//		return driver.findAdaptElements(By.className(AddButton.BUTTON_STYLE));
+	//	}
 
 	private ButtonWebElement getButtonByCssSelector(String cssSelectors) {
 		ConstellioWebElement element = driver

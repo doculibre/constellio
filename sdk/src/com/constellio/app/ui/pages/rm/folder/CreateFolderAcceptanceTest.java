@@ -82,7 +82,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 	public void testsInCollectionDeRida()
 			throws Exception {
 		collection = "LaCollectionDeRida";
-		classificationFinder = "23";
+		classificationFinder = "23 ";
 		administrativeUnitFinder = "Salle B";
 
 		givenUserAddFolderWhenAllFieldsAreCompleteAndClickSaveThenFolderIsCreated();

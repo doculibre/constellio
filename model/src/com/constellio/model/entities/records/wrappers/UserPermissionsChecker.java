@@ -74,4 +74,5 @@ public abstract class UserPermissionsChecker {
 		}
 		return false;
 	}
+
 }

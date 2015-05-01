@@ -17,14 +17,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
-import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.services.FolderDocumentMetadataSyncServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -49,52 +52,48 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
-
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
-
 	private RecordVODataProvider documentsDataProvider;
-
 	private RecordVODataProvider subFoldersDataProvider;
-
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
-
 	private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
-
 	private DocumentToVOBuilder documentVOBuilder = new DocumentToVOBuilder();
-
 	private SchemaPresenterUtils documentPresenterUtils;
-
 	private FolderVO folderVO;
 
 	public DisplayFolderPresenter(DisplayFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
-		initTransientObjects();
 
 		ConstellioFactories constellioFactories = view.getConstellioFactories();
 		SessionContext sessionContext = view.getSessionContext();
 		documentPresenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, constellioFactories, sessionContext);
 	}
 
-	private void readObject(java.io.ObjectInputStream stream)
-			throws IOException, ClassNotFoundException {
-		stream.defaultReadObject();
-		initTransientObjects();
-	}
-
-	private void initTransientObjects() {
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
 	}
 
 	public void forParams(String params) {
 		Record record = getRecord(params);
 		this.folderVO = voBuilder.build(record, VIEW_MODE.DISPLAY);
 		view.setRecord(folderVO);
+	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		return user.hasReadAccess().on(restrictedRecord);
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		return asList(folderVO.getId());
 	}
 
 	private void disableMenuItems(Folder folder) {
@@ -104,6 +103,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
 		view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
 		view.setDuplicateFolderButtonState(getDuplicateFolderButtonState(user, folder));
+		view.setAuthorizationButtonState(getAuthorizationButtonState(user, folder));
 		view.setShareFolderButtonState(getShareButtonState(user, folder));
 		view.setPrintButtonState(getPrintButtonState(user, folder));
 	}
@@ -111,17 +111,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getPrintButtonState(User user, Folder folder) {
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		if (authorizationsServices.canRead(user, folder.getWrappedRecord())) {
-			
 			if (folder.getArchivisticStatus().isInactive()) {
-				return ComponentState.enabledIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
-			} else {
-				
-				if(folder.getArchivisticStatus().isSemiActive()) {
-					return ComponentState.enabledIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				
-				return ComponentState.ENABLED;
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
 			}
+			if (folder.getArchivisticStatus().isSemiActive()) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
+			}
+			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
 	}
@@ -129,102 +125,84 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getDuplicateFolderButtonState(User user, Folder folder) {
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		if (authorizationsServices.canWrite(user, folder.getWrappedRecord())) {
-			
 			if (folder.getArchivisticStatus().isInactive()) {
-				return ComponentState.enabledIf(user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder));
-			} else {
-				
-				if(folder.getArchivisticStatus().isSemiActive()) {
-					return ComponentState.enabledIf(user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder));
-				}
-				
-				return ComponentState.ENABLED;
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder));
 			}
+			if (folder.getArchivisticStatus().isSemiActive()) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder));
+			}
+			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
 	}
 
+	private ComponentState getAuthorizationButtonState(User user, Folder folder) {
+		return ComponentState.visibleIf(user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder));
+	}
+
 	private ComponentState getShareButtonState(User user, Folder folder) {
-		if (user.has(RMPermissionsTo.SHARE_A_FOLDER).on(folder)) {
-			
+		if (user.has(RMPermissionsTo.SHARE_FOLDER).on(folder)) {
 			if (folder.getArchivisticStatus().isInactive()) {
-				return ComponentState.enabledIf(user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder));
-			} else {
-				
-				if(folder.getArchivisticStatus().isSemiActive()) {
-					return ComponentState.enabledIf(user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder));
-				}
-				
-				return ComponentState.ENABLED;
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder));
 			}
+			if (folder.getArchivisticStatus().isSemiActive()) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder));
+			}
+			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
 	}
 
 	private ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasAll(RMPermissionsTo.DELETE_FOLDERS).on(folder)) {
-			
+		if (user.hasDeleteAccess().on(folder)) {
 			if (folder.getArchivisticStatus().isInactive()) {
-				return ComponentState.enabledIf(user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder));
-			} else {
-				
-				if(folder.getArchivisticStatus().isSemiActive()) {
-					return ComponentState.enabledIf(user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				
-				return ComponentState.ENABLED;
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder));
 			}
+			if (folder.getArchivisticStatus().isSemiActive()) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder));
+			}
+			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
 	}
 
 	private ComponentState getEditButtonState(User user, Folder folder) {
-		if (user.has(RMPermissionsTo.MODIFY_FOLDERS).on(folder)) {
-			
+		if (user.hasWriteAccess().on(folder)) {
 			if (folder.getArchivisticStatus().isInactive()) {
-				return ComponentState.enabledIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
-			} else {
-				
-				if(folder.getArchivisticStatus().isSemiActive()) {
-					return ComponentState.enabledIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				
-				return ComponentState.ENABLED;
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
 			}
+			if (folder.getArchivisticStatus().isSemiActive()) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
+			}
+			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
 	}
 
 	private ComponentState getAddFolderButtonState(User user, Folder folder) {
-		if (user.hasAll(RMPermissionsTo.CREATE_SUB_FOLDERS, RMPermissionsTo.CREATE_FOLDERS).on(folder)) {
-			
+		if (user.hasWriteAccess().on(folder) &&
+				user.hasAll(RMPermissionsTo.CREATE_SUB_FOLDERS, RMPermissionsTo.CREATE_FOLDERS).on(folder)) {
 			if (folder.getArchivisticStatus().isInactive()) {
-				return ComponentState.enabledIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
-			} else {
-				
-				if(folder.getArchivisticStatus().isSemiActive()) {
-					return ComponentState.enabledIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				
-				return ComponentState.ENABLED;
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
 			}
+			if (folder.getArchivisticStatus().isSemiActive()) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
+			}
+			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
 	}
 
 	private ComponentState getAddDocumentButtonState(User user, Folder folder) {
-		if (user.has(RMPermissionsTo.CREATE_DOCUMENTS).on(folder)) {
-			
+		if (user.hasWriteAccess().on(folder) &&
+				user.has(RMPermissionsTo.CREATE_DOCUMENTS).on(folder)) {
 			if (folder.getArchivisticStatus().isInactive()) {
-				return ComponentState.enabledIf(user.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder));
-			} else {
-				
-				if(folder.getArchivisticStatus().isSemiActive()) {
-					return ComponentState.enabledIf(user.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder));
-				}
-				
-				return ComponentState.ENABLED;
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder));
 			}
+			if (folder.getArchivisticStatus().isSemiActive()) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder));
+			}
+			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
 	}
@@ -315,7 +293,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		Folder duplicatedFolder = decommissioningService().duplicateStructureAndSave(folder);
 		view.navigateTo().displayFolder(duplicatedFolder.getId());
-		view.showMessage("Le dossier et son arborescence ont été dupliqués");
+		view.showMessage($("DisplayFolderView.duplicated"));
 	}
 
 	public void linkToFolderButtonClicked() {
@@ -325,6 +303,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void addAuthorizationButtonClicked() {
 		view.navigateTo().listObjectAuthorizations(folderVO.getId());
+	}
+
+	public void shareFolderButtonClicked() {
+		view.navigateTo().shareContent(folderVO.getId());
 	}
 
 	public void printLabelButtonClicked() {
@@ -374,6 +356,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				documentVO.setTitle(fileName);
 				documentVO.setContent(uploadedContentVO);
 				newRecord = documentPresenterUtils.toRecord(documentVO);
+
+				new FolderDocumentMetadataSyncServices(appLayerFactory, collection)
+						.updateFolderWithContentProperties(newRecord);
+
 				documentPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 			} catch (Exception e) {
@@ -381,5 +367,4 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		}
 	}
-
 }

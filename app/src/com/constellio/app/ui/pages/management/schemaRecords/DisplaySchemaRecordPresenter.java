@@ -22,6 +22,8 @@ import java.io.IOException;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 
 @SuppressWarnings("serial")
 public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<DisplaySchemaRecordView> {
@@ -61,5 +63,11 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	public void deleteButtonClicked(RecordVO recordVO) {
 		String schemaCode = getSchemaCode();
 		view.navigateTo().listSchemaRecords(schemaCode);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		Record restrictedRecord = recordServices().getDocumentById(params);
+		return new SchemaRecordsPresentersServices(appLayerFactory).canViewSchemaTypeRecord(restrictedRecord, user);
 	}
 }

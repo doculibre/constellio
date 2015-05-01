@@ -19,16 +19,22 @@ package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import org.vaadin.dialogs.ConfirmDialog;
+
+import com.constellio.app.modules.rm.ui.components.retentionRule.ExportRetentionRulesLink;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.ButtonsContainer;
+import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -37,18 +43,12 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
 public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRetentionRulesView {
+	public static final String STYLE_NAME = "list-retention-rules";
 
-	public static final String STYLE_NAME = "liste-retention-rules";
-
+	private final ListRetentionRulesPresenter presenter;
 	private RecordVODataProvider dataProvider;
-
-	private VerticalLayout mainLayout;
-
-	private Button addButton;
-
-	private RecordVOTable table;
-
-	private ListRetentionRulesPresenter presenter;
+	
+	private ExportRetentionRulesLink exportRetentionRulesLink;
 
 	public ListRetentionRulesViewImpl() {
 		presenter = new ListRetentionRulesPresenter(this);
@@ -60,52 +60,8 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 	}
 
 	@Override
-	protected void afterViewAssembled(ViewChangeEvent event) {
-	}
-
-	@Override
 	public void setDataProvider(RecordVODataProvider dataProvider) {
 		this.dataProvider = dataProvider;
-	}
-
-	@Override
-	protected String getTitle() {
-		return $("ListRetentionRulesView.viewTitle");
-	}
-
-	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
-		mainLayout = new VerticalLayout();
-		mainLayout.setSizeFull();
-		mainLayout.setSpacing(true);
-
-		addButton = new AddButton() {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addButtonClicked();
-			}
-		};
-
-		table = new RecordVOTable(dataProvider);
-		table.setSizeFull();
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				if (event.getButton() == MouseButton.LEFT) {
-					Object itemId = event.getItemId();
-					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-					RecordVO retentionRuleVO = item.getRecord();
-					presenter.retentionRuleClicked(retentionRuleVO);
-				}
-			}
-		});
-		table.setPageLength(table.size());
-
-		mainLayout.addComponents(addButton, table);
-		mainLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
-		mainLayout.setExpandRatio(table, 1);
-
-		return mainLayout;
 	}
 
 	@Override
@@ -116,6 +72,79 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 				presenter.backButtonClicked();
 			}
 		};
+	}
+
+	@Override
+	protected String getTitle() {
+		return $("ListRetentionRulesView.viewTitle");
+	}
+
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
+		Button add = new AddButton() {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addButtonClicked();
+			}
+		};
+		
+		exportRetentionRulesLink = new ExportRetentionRulesLink($("ListRetentionRulesView.exportRetentionRules"));
+
+		RecordVOTable table = new RecordVOTable("", buildContainer());
+		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 120);
+		table.setSizeFull();
+		table.setPageLength(table.size());
+
+		VerticalLayout mainLayout = new VerticalLayout(exportRetentionRulesLink, add, table);
+		mainLayout.setComponentAlignment(exportRetentionRulesLink, Alignment.TOP_RIGHT);
+		mainLayout.setComponentAlignment(add, Alignment.TOP_RIGHT);
+		mainLayout.setExpandRatio(table, 1);
+		mainLayout.setSpacing(true);
+		mainLayout.setSizeFull();
+
+		return mainLayout;
+	}
+
+	private Container buildContainer() {
+		final ButtonsContainer<RecordVOLazyContainer> rules = new ButtonsContainer<>(new RecordVOLazyContainer(dataProvider));
+		rules.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new DisplayButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						RecordVO recordVO = rules.getNestedContainer().getRecordVO((int) itemId);
+						presenter.displayButtonClicked(recordVO);
+					}
+				};
+			}
+		});
+		rules.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new EditButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						RecordVO recordVO = rules.getNestedContainer().getRecordVO((int) itemId);
+						presenter.editButtonClicked(recordVO);
+					}
+				};
+			}
+		});
+		rules.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						RecordVO recordVO = rules.getNestedContainer().getRecordVO((int) itemId);
+						presenter.deleteButtonClicked(recordVO);
+					}
+				};
+			}
+		});
+		return rules;
 	}
 
 }

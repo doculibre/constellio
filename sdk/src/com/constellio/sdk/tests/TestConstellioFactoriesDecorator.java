@@ -36,6 +36,7 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 
 public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorator {
 
+	String systemLanguage;
 	File setupProperties;
 	File importationFolder;
 	File configManagerFolder;
@@ -63,6 +64,11 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
 		ModelLayerConfiguration spiedModelLayerConfiguration = spy(modelLayerConfiguration);
 		doReturn(importationFolder).when(spiedModelLayerConfiguration).getImportationFolder();
+		if (systemLanguage != null) {
+			doReturn(systemLanguage).when(spiedModelLayerConfiguration).getMainDataLanguage();
+		} else {
+			doReturn("fr").when(spiedModelLayerConfiguration).getMainDataLanguage();
+		}
 
 		for (ModelLayerConfigurationAlteration alteration : modelLayerConfigurationAlterations) {
 			alteration.alter(spiedModelLayerConfiguration);
@@ -143,5 +149,9 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 			List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations) {
 		this.appLayerConfigurationAlterations = appLayerConfigurationAlterations;
 		return this;
+	}
+
+	public void setSystemLanguage(String systemLanguage) {
+		this.systemLanguage = systemLanguage;
 	}
 }

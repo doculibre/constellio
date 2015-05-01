@@ -26,6 +26,8 @@ import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
@@ -38,6 +40,11 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 
 	public AddEditSchemaPresenter(AddEditSchemaView view) {
 		super(view);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
 	}
 
 	public void setParameters(Map<String, String> params) {

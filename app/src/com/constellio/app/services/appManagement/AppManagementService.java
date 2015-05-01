@@ -79,7 +79,7 @@ public class AppManagementService {
 		}
 	}
 
-	public void update(ProgressInfo progressInfo) 
+	public void update(ProgressInfo progressInfo)
 			throws AppManagementServiceException {
 
 		File warFile = foldersLocator.getUploadConstellioWarFile();
@@ -88,7 +88,7 @@ public class AppManagementService {
 		if (!warFile.exists()) {
 			throw new WarFileNotFound();
 		}
-		
+
 		String task = "Updating web application using war '" + warFile.getAbsolutePath() + "' with size " + warFile.length();
 		progressInfo.reset();
 		progressInfo.setEnd(1);
@@ -106,11 +106,12 @@ public class AppManagementService {
 			}
 			String warVersion = findWarVersion(tempFolder);
 			String currentWarVersion = getWarVersion();
-			
-			currentStep = "Based on jar file, the version of the new war is '" + warVersion + "', current version is '" + currentWarVersion + "'";
+
+			currentStep = "Based on jar file, the version of the new war is '" + warVersion + "', current version is '"
+					+ currentWarVersion + "'";
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
-			if (VersionsComparator.isFirstVersionBeforeOrEqualToSecond(warVersion, currentWarVersion)) {
+			if (VersionsComparator.isFirstVersionBeforeSecond(warVersion, currentWarVersion)) {
 				throw new WarFileVersionMustBeHigher();
 			}
 
@@ -246,10 +247,10 @@ public class AppManagementService {
 
 			progressInfo.setProgressMessage("Creating WAR file");
 			OutputStream warFileOutput = getWarFileDestination().create("war upload");
-			
+
 			try {
 				progressInfo.setProgressMessage("Copying downloaded WAR");
-				
+
 				byte[] buffer = new byte[8 * 1024];
 				int bytesRead;
 				while ((bytesRead = countingInputStream.read(buffer)) != -1) {
@@ -273,20 +274,4 @@ public class AppManagementService {
 		return foldersLocator.getConstellioWebappFolder().getName();
 	}
 
-	boolean isValidDeployFolder(File deployFolder) {
-		boolean isValid = false;
-		try {
-			File webInf = new File(deployFolder, "WEB-INF");
-			File lib = new File(webInf, "lib");
-			for (File file : lib.listFiles()) {
-				if (file.getName().startsWith("core-")) {
-					isValid = true;
-					break;
-				}
-			}
-		} catch (Exception e) {
-			return isValid;
-		}
-		return isValid;
-	}
 }

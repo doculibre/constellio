@@ -46,6 +46,8 @@ public interface Record extends Serializable {
 
 	MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes);
 
+	//MetadataList getMetadatasWithValue(MetadataSchemaTypes schemaTypes);
+
 	boolean isSaved();
 
 	String getCollection();
@@ -58,4 +60,9 @@ public interface Record extends Serializable {
 
 	Record getCopyOfOriginalRecord();
 
+	String getIdTitle();
+
+	void removeAllFieldsStartingWith(String field);
+
+	void markAsModified(Metadata metadata);
 }

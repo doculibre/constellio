@@ -264,7 +264,9 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			@Override
 			public void menuSelected(final MenuItem selectedItem) {
 				String params = Page.getCurrent().getUriFragment();
-				params = params.replace("!", "");
+				if (params != null) {
+					params = params.replace("!", "");
+				}
 				presenter.editProfileButtonClicked(params);
 			}
 		});

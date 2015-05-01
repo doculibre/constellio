@@ -50,7 +50,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).isEqualTo("application/msword");
 		assertThat(parsedContent.getLength()).isEqualTo(22528L);
-		assertThat(parsedContent.getProperties()).containsEntry("Company", "DocuLibre"); 
+		assertThat(parsedContent.getProperties()).containsEntry("Company", "DocuLibre");
 	}
 
 	@Test
@@ -66,7 +66,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getMimeType())
 				.isEqualTo("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
 		assertThat(parsedContent.getLength()).isEqualTo(13771L);
-		assertThat(parsedContent.getProperties()).containsEntry("Title", "Document sans titre.docx"); 
+		assertThat(parsedContent.getProperties()).containsEntry("Title", "Document sans titre.docx");
 	}
 
 	@Test
@@ -80,7 +80,6 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("a html file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).startsWith("text/html;");
-		assertThat(parsedContent.getLength()).isEqualTo(72L);
 		assertThat(parsedContent.getProperties()).isEmpty();
 	}
 
@@ -96,7 +95,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).isEqualTo("application/pdf");
 		assertThat(parsedContent.getLength()).isEqualTo(27171L);
-		assertThat(parsedContent.getProperties()).containsEntry("Title", "Untitled"); 
+		assertThat(parsedContent.getProperties()).containsEntry("Title", "Untitled");
 	}
 
 	@Test
@@ -128,7 +127,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).isEqualTo("application/vnd.ms-excel");
 		assertThat(parsedContent.getLength()).isEqualTo(23552L);
-		assertThat(parsedContent.getProperties()).containsEntry("Title", "zeTitle"); 
+		assertThat(parsedContent.getProperties()).containsEntry("Title", "zeTitle");
 		assertThat(parsedContent.getProperties()).containsEntry("List:Keywords", asList("zeKeywords"));
 		assertThat(parsedContent.getProperties()).containsEntry("Comments", "zeComments");
 		assertThat(parsedContent.getProperties()).containsEntry("Author", "zeAuthor");
@@ -161,10 +160,9 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("the xml file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
 		assertThat(parsedContent.getMimeType()).startsWith("text/html;");
-		assertThat(parsedContent.getLength()).isEqualTo(141L);
 		assertThat(parsedContent.getProperties()).isEmpty();
 	}
-	
+
 	@Test
 	public void givenStreamOfDOCWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
@@ -172,12 +170,12 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		long length = getLengthOf("testFileWithProperties.doc");
 
 		ParsedContent parsedContent = fileParser.parse(inputStream, length);
-		
+
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 		assertThatAllLessCommunPropertiesAreCatchIn(parsedContent);
-	}	
-	
+	}
+
 	@Test
 	public void givenStreamOfDOCXWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
@@ -189,8 +187,8 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 		assertThatAllLessCommunPropertiesAreCatchIn(parsedContent);
-	}	
-	
+	}
+
 	@Test
 	public void givenStreamOfPDFWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
@@ -202,7 +200,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 	}
-	
+
 	@Test
 	public void givenStreamOfPPTWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
@@ -215,7 +213,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 		assertThatAllLessCommunPropertiesAreCatchIn(parsedContent);
 	}
-	
+
 	@Test
 	public void givenStreamOfPPTXWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
@@ -228,7 +226,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 		assertThatAllLessCommunPropertiesAreCatchIn(parsedContent);
 	}
-	
+
 	@Test
 	public void givenStreamOfXLSWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
@@ -241,7 +239,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 		assertThatAllLessCommunPropertiesAreCatchIn(parsedContent);
 	}
-	
+
 	@Test
 	public void givenStreamOfXLSXWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
@@ -253,11 +251,11 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 		assertThatAllLessCommunPropertiesAreCatchIn(parsedContent);
 	}
-	
-	
+
 	private void assertThatAllCommunPropertiesAreCatchIn(ParsedContent parsedContent) {
-		assertThat(parsedContent.getProperties()).containsEntry("Title", "Ze title"); 
-		assertThat(parsedContent.getProperties()).containsEntry("List:Keywords", asList("Ze keyword1", "Ze keyword2","Ze keyword 3"));
+		assertThat(parsedContent.getProperties()).containsEntry("Title", "Ze title");
+		assertThat(parsedContent.getProperties())
+				.containsEntry("List:Keywords", asList("Ze keyword1", "Ze keyword2", "Ze keyword 3"));
 		assertThat(parsedContent.getProperties()).containsEntry("Author", "Ze author");
 		assertThat(parsedContent.getProperties()).containsEntry("Subject", "Ze subject");
 	}
@@ -268,7 +266,7 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getProperties()).containsEntry("Manager", "Ze ultimate manager");
 		assertThat(parsedContent.getProperties()).containsEntry("Comments", "Ze very useful comments Line2");
 	}
-		
+
 	@Before
 	public void setup() {
 		fileParser = getModelLayerFactory().newFileParser();

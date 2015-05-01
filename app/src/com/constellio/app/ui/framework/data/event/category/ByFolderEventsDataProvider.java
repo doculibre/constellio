@@ -40,7 +40,7 @@ public class ByFolderEventsDataProvider extends DefaultEventsDataProvider implem
 			LocalDateTime startDate,
 			LocalDateTime endDate, String id) {
 		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
-		return rmSchemasRecordsServices.newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
+		return rmSchemasRecordsServices.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate, endDate, id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
 	}
 
 	@Override

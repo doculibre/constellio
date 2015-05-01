@@ -527,6 +527,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		fields.put("field_d", 1.1);
 		fields.put("field_ds", Arrays.asList(2.2));
 		fields.put("fields_ds", Arrays.asList(2.2, 3.3));
+		fields.put("field5_d", null);
 
 		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
 
@@ -723,7 +724,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 			Object expected = entry.getValue();
 			Object was = record.getFields().get(entry.getKey());
 
-			assertEquals(expected, was);
+			assertThat(was).describedAs("Field " + entry.getKey()).isEqualTo(expected);
 		}
 		Map<String, Object> recordFieldsWithoutSysS = new HashMap<>(record.getFields());
 		recordFieldsWithoutSysS.remove("sys_s");

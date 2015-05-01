@@ -84,11 +84,4 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 		verify(view.navigateTo()).taxonomyManagement("taxoCode");
 	}
 
-	@Test
-	public void whenGetTaxonomiesThenOk()
-			throws Exception {
-		presenter.getTaxonomies();
-
-		verify(valueListServices).getTaxonomies();
-	}
 }

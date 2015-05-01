@@ -38,7 +38,8 @@ public class ClassificationPlanReportPresenterManualAcceptTest extends ReportBui
 	ClassificationPlanReportPresenter presenter;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp()
+			throws Exception {
 		givenCollection(zeCollection).withConstellioRMModule();
 
 		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
@@ -133,7 +134,13 @@ public class ClassificationPlanReportPresenterManualAcceptTest extends ReportBui
 		assertThat(z200Category.getLabel()).isEqualTo("Z200");
 		assertThat(z200Category.getCategories()).isEmpty();
 
-		ClassificationPlanReportModel_Category ze42Category = zeCategory.getCategories().get(2);
+		ClassificationPlanReportModel_Category z999Category = zeCategory.getCategories().get(2);
+		assertThat(z999Category.getCode()).isEqualTo("Z999");
+		assertThat(z999Category.getDescription()).isEmpty();
+		assertThat(z999Category.getLabel()).isEqualTo("Z999");
+		assertThat(z999Category.getCategories()).isEmpty();
+
+		ClassificationPlanReportModel_Category ze42Category = zeCategory.getCategories().get(3);
 		assertThat(ze42Category.getCode()).isEqualTo("ZE42");
 		assertThat(ze42Category.getDescription()).isEmpty();
 		assertThat(ze42Category.getLabel()).isEqualTo("Ze 42");

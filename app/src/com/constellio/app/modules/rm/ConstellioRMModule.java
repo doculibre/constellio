@@ -24,19 +24,22 @@ import java.util.Map;
 
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.extensions.AppLayerCollectionEventsListeners;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.AdministrativeUnitRecordSynchronization;
+import com.constellio.app.modules.rm.extensions.RMModulePageAccessExtension;
+import com.constellio.app.modules.rm.extensions.RMSchemaTypeAccessExtension;
+import com.constellio.app.modules.rm.extensions.RMTaxonomyTypeAccessExtension;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ConstellioRMModule implements InstallableModule {
-
 	public static final String ID = "rm";
-
 	public static final String NAME = "Constellio RM";
 
 	@Override
@@ -60,6 +63,7 @@ public class ConstellioRMModule implements InstallableModule {
 
 		migrationScripts.add(new RMMigrationTo5_0_1());
 		migrationScripts.add(new RMMigrationTo5_0_2());
+		migrationScripts.add(new RMMigrationTo5_0_3());
 
 		return migrationScripts;
 	}
@@ -81,7 +85,19 @@ public class ConstellioRMModule implements InstallableModule {
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
-		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		setupModelLayerExtensions(collection, appLayerFactory.getModelLayerFactory());
+		setupAppLayerExtensions(collection, appLayerFactory);
+	}
+
+	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		AppLayerCollectionEventsListeners listeners = appLayerFactory.getExtensions().getCollectionListeners(collection);
+
+		listeners.schemaTypeAccessExtensions.add(new RMSchemaTypeAccessExtension());
+		listeners.taxonomyAccessExtensions.add(new RMTaxonomyTypeAccessExtension());
+		listeners.pageAccessExtensions.add(new RMModulePageAccessExtension());
+	}
+
+	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
 		ModelLayerCollectionEventsListeners listeners = modelLayerFactory.getExtensions().getCollectionListeners(collection);
 
 		AdministrativeUnitRecordSynchronization synchronization =

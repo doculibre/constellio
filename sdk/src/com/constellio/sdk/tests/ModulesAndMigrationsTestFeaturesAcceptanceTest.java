@@ -328,8 +328,6 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(rolesManager.getRole("zeCollection", RMRoles.MANAGER)).isNotNull();
 		assertThat(rolesManager.getRole("zeCollection", RMRoles.RGD)).isNotNull();
 
-		assertThat(getAppLayerFactory().newMigrationServices().getCurrentVersion(zeCollection)).isEqualTo("5.0.2");
-
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		assertThat(schemaTypesOf(schemasDisplayManager.getSimpleSearchSchemaTypeConfigs(zeCollection)))

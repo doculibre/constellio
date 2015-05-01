@@ -201,4 +201,8 @@ public class ConstellioTestSession {
 	public SaveStateFeature getSaveStateFeature() {
 		return saveStateFeature;
 	}
+
+	public String getProperty(String key) {
+		return sdkProperties.get(key);
+	}
 }

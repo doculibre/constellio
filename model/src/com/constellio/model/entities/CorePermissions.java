@@ -57,19 +57,16 @@ public class CorePermissions {
 	public static final String VIEW_EVENTS = permission("system", "viewEvents");
 
 	public static final String MANAGE_TAXONOMIES = permission("management.collection", "manageTaxonomies");
-	public static final String MANAGE_UNIFORMSUBDIVISIONS = permission("management.collection", "manageUniformSubdivisions");
-	public static final String MANAGE_RETENTIONRULE = permission("management.collection", "manageRetentionRule");
 	public static final String MANAGE_VALUELIST = permission("management.collection", "manageValueList");
 	public static final String MANAGE_METADATASCHEMAS = permission("management.collection", "manageMetadataSchemas");
-	public static final String MANAGE_FILINGSPACE = permission("management.collection", "manageFilingSpace");
 	public static final String MANAGE_SECURITY = permission("management.collection", "manageSecurity");
-	public static final String MANAGE_ROLES = permission("management.collection", "manageRoles");
+	//public static final String MANAGE_ROLES = permission("management.collection", "manageRoles");
 	public static final String MANAGE_METADATAEXTRACTOR = permission("management.collection", "manageMetadataExtractor");
 	public static final String MANAGE_CONNECTORS = permission("management.collection", "manageConnectors");
 	public static final String MANAGE_SEARCHENGINE = permission("management.collection", "manageSearchEngine");
 	public static final String MANAGE_TRASH = permission("management.collection", "manageTrash");
-	public static final List<String> COLLECTION_MANAGEMENT_PERMISSIONS = asList(MANAGE_TAXONOMIES, MANAGE_UNIFORMSUBDIVISIONS,
-			MANAGE_RETENTIONRULE, MANAGE_VALUELIST, MANAGE_METADATASCHEMAS, MANAGE_FILINGSPACE, MANAGE_SECURITY, MANAGE_ROLES,
+	public static final List<String> COLLECTION_MANAGEMENT_PERMISSIONS = asList(MANAGE_TAXONOMIES, MANAGE_VALUELIST,
+			MANAGE_METADATASCHEMAS, MANAGE_SECURITY,
 			MANAGE_METADATAEXTRACTOR, MANAGE_CONNECTORS, MANAGE_SEARCHENGINE, MANAGE_TRASH);
 
 	public static final String MANAGE_SYSTEM_CONFIGURATION = permission("management.system", "manageSystemConfiguration");
@@ -80,7 +77,9 @@ public class CorePermissions {
 	public static final String MANAGE_SYSTEM_DATA_IMPORTS = permission("management.system", "manageSystemDataImports");
 	public static final String MANAGE_SYSTEM_SERVERS = permission("management.system", "manageSystemServers");
 	public static final String MANAGE_SYSTEM_UPDATES = permission("management.system", "manageSystemUpdates");
+	public static final String MANAGE_LDAP = permission("management.system", "ldapConfigurationManagement");
 	public static final List<String> SYSTEM_MANAGEMENT_PERMISSIONS = asList(MANAGE_SYSTEM_CONFIGURATION, MANAGE_SYSTEM_GROUPS,
 			MANAGE_SYSTEM_USERS, MANAGE_SYSTEM_COLLECTIONS, MANAGE_SYSTEM_MODULES, MANAGE_SYSTEM_DATA_IMPORTS,
-			MANAGE_SYSTEM_SERVERS, MANAGE_SYSTEM_UPDATES);
+			MANAGE_SYSTEM_SERVERS, MANAGE_SYSTEM_UPDATES, MANAGE_LDAP);
+
 }

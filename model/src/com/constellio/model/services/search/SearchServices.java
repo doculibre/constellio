@@ -143,9 +143,16 @@ public class SearchServices {
 				queryResponseDTO.getFieldFacetValues());
 		Map<String, Integer> queryFacetValues = queryResponseDTO.getQueryFacetValues();
 
-		return new SPEQueryResponse(fieldFacetValues, queryFacetValues, queryResponseDTO.getQtime(),
+		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, queryFacetValues, queryResponseDTO.getQtime(),
 				queryResponseDTO.getNumFound(), records, queryResponseDTO.getHighlights(),
 				queryResponseDTO.isCorrectlySpelled(), queryResponseDTO.getSpellCheckerSuggestions());
+
+		if (query.getResultsProjection() != null) {
+			return query.getResultsProjection().project(query, response);
+		} else {
+			return response;
+		}
+
 	}
 
 	private Map<DataStoreField, List<FacetValue>> buildFacets(
@@ -180,7 +187,6 @@ public class SearchServices {
 			String qf = Schemas.FRENCH_SEARCH_FIELD.getLocalCode() + "_" + Schemas.FRENCH_SEARCH_FIELD.getDataStoreType() + " "
 					+ Schemas.ENGLISH_SEARCH_FIELD.getLocalCode() + "_" + Schemas.ENGLISH_SEARCH_FIELD.getDataStoreType();
 			params.add("qf", qf);
-			params.add("mm", "1");
 			params.add("defType", "edismax");
 		}
 		params.add("q", StringUtils.defaultString(freeTextQuery, "*:*"));

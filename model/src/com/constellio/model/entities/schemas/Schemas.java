@@ -24,6 +24,8 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
+
 public class Schemas {
 
 	private static List<Metadata> allGlobalMetadatas = new ArrayList<>();
@@ -108,4 +110,25 @@ public class Schemas {
 		return Arrays.asList(FRENCH_SEARCH_FIELD, ENGLISH_SEARCH_FIELD);
 	}
 
+	public static Metadata dummyMultiValueMetadata(Metadata metadata) {
+		String dataStoreCode = SolrDataStoreTypesUtils.getMultivalueFieldCode(metadata.getDataStoreCode());
+		return new Metadata(dataStoreCode, metadata.getType(), true);
+	}
+
+	public static Metadata dummySingleValueMetadata(Metadata metadata) {
+		String dataStoreCode = SolrDataStoreTypesUtils.getSinglevalueFieldCode(metadata.getDataStoreCode());
+		return new Metadata(dataStoreCode, metadata.getType(), false);
+	}
+
+	public static Metadata getSearchableMetadata(Metadata metadata, String languageCode) {
+
+		String dataStoreCode = metadata.getDataStoreCode();
+		dataStoreCode = dataStoreCode.replace("_t", "_t_" + languageCode);
+		dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
+		dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
+		dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
+
+		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
+		return new Metadata(schemaCode, dataStoreCode, MetadataValueType.TEXT, metadata.isMultivalue());
+	}
 }

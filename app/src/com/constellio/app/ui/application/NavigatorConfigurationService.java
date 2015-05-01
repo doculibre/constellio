@@ -21,9 +21,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.ui.pages.administrativeUnit.AddEditAdministrativeUnitViewImpl;
-import com.constellio.app.modules.rm.ui.pages.administrativeUnit.DisplayAdministrativeUnitViewImpl;
-import com.constellio.app.modules.rm.ui.pages.administrativeUnit.ListAdministrativeUnitsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrativeUnitViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
@@ -39,6 +36,7 @@ import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.RecordsManagementViewImpl;
+import com.constellio.app.modules.rm.ui.pages.imports.ImportFileViewImpl;
 import com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
@@ -59,6 +57,7 @@ import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.app.ui.pages.management.authorizations.ListContentAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAuthorizationsViewImpl;
+import com.constellio.app.ui.pages.management.authorizations.ShareContentViewImpl;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionViewImpl;
 import com.constellio.app.ui.pages.management.collections.CollectionManagementViewImpl;
 import com.constellio.app.ui.pages.management.configs.ConfigManagementViewImpl;
@@ -102,9 +101,6 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_TAXONOMY = "taxonomies";
 	public static final String TAXONOMY_ADD_EDIT = "taxonomyAddEdit";
 	public static final String TAXONOMY_MANAGEMENT = "taxonomyManagement";
-	public static final String ADMINISTRATIVE_UNIT_LIST = "administrativeUnitList";
-	public static final String ADMINISTRATIVE_UNIT_DISPLAY = "administrativeUnitDisplay";
-	public static final String ADMINISTRATIVE_UNIT_ADD_EDIT = "administrativeUnitAddEdit";
 	public static final String TAXONOMY_CONCEPT_ADD_EDIT = "taxonomyConceptAddEdit";
 	public static final String LIST_VALUE_DOMAINS = "valueDomains";
 	public static final String GROUP_LIST = "groupList";
@@ -122,6 +118,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String USER_DISPLAY = "userDisplay";
 	public static final String LIST_PRINCIPAL_AUTHORIZATIONS = "principalAuthorizations";
 	public static final String LIST_OBJECT_AUTHORIZATIONS = "objectAuthorizations";
+	public static final String SHARE_CONTENT = "shareContent";
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String COLLECTION_USER_LIST = "collectionSecurity";
 	public static final String COLLECTION_USER = "collectionUser";
@@ -168,6 +165,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String MODIFY_PROFILE = "modifyProfile";
 	public static final String UPDATE_MANAGER = "updateManager";
 	public static final String LDAP_CONFIG_MANAGEMENT = "ldapConfigManagement";
+	public static final String IMPORT_FILE = "importFile";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -190,9 +188,9 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(HOME, RecordsManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(APP_MANAGEMENT, AppManagementView.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_MANAGEMENT, TaxonomyManagementViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(ADMINISTRATIVE_UNIT_LIST, ListAdministrativeUnitsViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(ADMINISTRATIVE_UNIT_DISPLAY, DisplayAdministrativeUnitViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(ADMINISTRATIVE_UNIT_ADD_EDIT, AddEditAdministrativeUnitViewImpl.class));
+		//		viewProviders.add(new ClassBasedViewProvider(ADMINISTRATIVE_UNIT_LIST, ListAdministrativeUnitsViewImpl.class));
+		//		viewProviders.add(new ClassBasedViewProvider(ADMINISTRATIVE_UNIT_DISPLAY, DisplayAdministrativeUnitViewImpl.class));
+		//		viewProviders.add(new ClassBasedViewProvider(ADMINISTRATIVE_UNIT_ADD_EDIT, AddEditAdministrativeUnitViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_CONCEPT_ADD_EDIT, AddEditTaxonomyConceptViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(GROUP_LIST, ListGlobalGroupsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(GROUP_ADD_EDIT, AddEditGlobalGroupViewImpl.class));
@@ -215,6 +213,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(FORM_DISPLAY_FORM, FormDisplayConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_PRINCIPAL_AUTHORIZATIONS, ListPrincipalAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_AUTHORIZATIONS, ListContentAuthorizationsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SHARE_CONTENT, ShareContentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, ListCollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER, CollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_ROLES, CollectionUserRolesViewImpl.class));
@@ -262,6 +261,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_RETENTION_RULE, DisplayRetentionRuleViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(IMPORT_FILE, ImportFileViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_MANAGEMENT, CollectionManagementViewImpl.class));

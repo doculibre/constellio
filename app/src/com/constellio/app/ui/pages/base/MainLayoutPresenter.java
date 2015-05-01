@@ -18,6 +18,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.base;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -89,7 +91,11 @@ public class MainLayoutPresenter implements Serializable {
 
 	public boolean isAdminModuleViewVisible() {
 		User currentUser = getUser();
-		boolean canManageCollection = currentUser.hasAny(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS).globally();
+		List<String> permissions = new ArrayList<>();
+		permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
+		permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);
+
+		boolean canManageCollection = currentUser.hasAny(permissions).globally();
 
 		UserServices userServices = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory().newUserServices();
 		boolean canManageSystem = userServices.has(currentUser.getUsername())
@@ -112,12 +118,15 @@ public class MainLayoutPresenter implements Serializable {
 		String version = appLayerFactory.newMigrationServices().getCurrentVersion(collection);
 
 		if (version != null) {
-			String[] versionSplitted = version.split("\\.");
-			return versionSplitted[0] + "." + versionSplitted[1];
+			return version + (isBeta() ? " beta" : "");
 		} else {
-			return null;
+			return isBeta() ? "beta" : "";
 		}
 
+	}
+
+	public boolean isBeta() {
+		return "t".equals(System.getProperty("b"));
 	}
 
 }

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static java.util.Arrays.asList;
 
 import java.io.Reader;
+import java.util.List;
 
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDate;
@@ -31,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.bulkImport.data.ImportData;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIterator;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate;
@@ -58,7 +60,6 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ConstellioTest {
 		LocalDate anOtherLocalDate = new LocalDate(2010, 05, 15);
 		LocalDate aThirdLocalDate = new LocalDate(2010, 05, 16);
 		
-
 		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("data.xml"), ioServices);
 
 		assertThat(importDataIterator.next()).has(id("1")).has(index(1)).has(schema("default"))
@@ -81,6 +82,33 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ConstellioTest {
 				.has(noField("zeNullField"))
 				.has(field("title", "A third title"));
 				
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void givenContentThenOK() 
+			throws Exception{
+		
+		String url = "https://www.gutenberg.org/cache/epub/338/pg338.txt";
+		
+		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("content.xml"), ioServices);
+		
+		ContentImport currentImport = (ContentImport) importDataIterator.next().getFields().get("content");
+		assertThat(currentImport.getUrl()).isEqualTo(url);
+		assertThat(currentImport.getFileName()).isEqualTo("aName");
+		assertThat(currentImport.isMajor()).isFalse();
+		
+		List<ContentImport> currentImportList = (List<ContentImport>) importDataIterator.next().getFields().get("content");
+				
+		currentImport = currentImportList.get(0);
+		assertThat(currentImport.getUrl()).isEqualTo(url);
+		assertThat(currentImport.getFileName()).isEqualTo("anOtherName");
+		assertThat(currentImport.isMajor()).isTrue();
+		
+		currentImport = currentImportList.get(1);
+		assertThat(currentImport.getUrl()).isEqualTo(url);
+		assertThat(currentImport.getFileName()).isEqualTo("aThirdName");
+		assertThat(currentImport.isMajor()).isFalse();
 	}
 
 	@Test (expected=ImportDataIteratorRuntimeException_InvalidDate.class) 

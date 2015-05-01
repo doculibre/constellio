@@ -31,10 +31,9 @@ import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
-public class Folder extends RecordWrapper {
+public class Folder extends RMObject {
 
 	public static final String SCHEMA_TYPE = "folder";
 

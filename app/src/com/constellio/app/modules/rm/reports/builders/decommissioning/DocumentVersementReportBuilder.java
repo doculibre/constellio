@@ -29,7 +29,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -40,7 +39,6 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentRepor
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Identification;
 import com.constellio.app.modules.rm.reports.model.decommissioning.ReportBooleanField;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -83,13 +81,12 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 	private IOServices ioServices;
 
 	private FoldersLocator foldersLocator;
-	
+
 	public DocumentVersementReportBuilder(DocumentReportModel model, IOServices ioServices, FoldersLocator foldersLocator) {
 		this.model = model;
 		this.ioServices = ioServices;
 		this.foldersLocator = foldersLocator;
-		
-		i18n.setLocale(new Locale("fr"));
+
 	}
 
 	public String getFileExtension() {
@@ -255,19 +252,19 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 		table.completeRow();
 	}
 
-	private void addIdentificationTableTop(PdfPTable table, DocumentTransfertModel_Identification modelId){
+	private void addIdentificationTableTop(PdfPTable table, DocumentTransfertModel_Identification modelId) {
 		int alignment = Element.ALIGN_LEFT;
-		
+
 		String title = $("DocumentTransfertReport.IdentificationSentDate");
 		String value = getFormatedDate(modelId.getSentDate());
 		addDataCell(table, title, value, alignment);
-		
+
 		title = $("DocumentTransfertReport.IdentificationBoxNumber");
 		value = modelId.getBoxNumber();
 		addDataCell(table, title, value, alignment);
-		
+
 		table.completeRow();
-		
+
 		title = $("DocumentTransfertReport.IdentificationOrganismName");
 		value = modelId.getOrganisationName();
 		addDataCell(table, title, value, alignment);
@@ -275,17 +272,17 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 		title = $("DocumentTransfertReport.IdentificationOrganismNumber");
 		value = modelId.getPublicOrganisationNumber();
 		addDataCell(table, title, value, alignment);
-		
+
 		table.completeRow();
-		
+
 		title = $("DocumentTransfertReport.IdentificationClassificationSpace");
 		value = modelId.getEspaceClassement();
 		addDataCell(table, title, value, alignment);
-		
+
 		title = $("DocumentTransfertReport.IdentificationClassificationSpaceCode");
 		value = modelId.getCodeEspaceClassement();
 		addDataCell(table, title, value, alignment);
-		
+
 		table.completeRow();
 	}
 
@@ -300,29 +297,27 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 		table.addCell(newDataCell("N� de t�l�phonne", modelId.getPhoneNumber(), alignment));
 		table.completeRow();
 	}*/
-	
+
 	private void addIdentificationTableBottom(PdfPTable table, DocumentTransfertModel_Identification modelId) {
 		int alignment = Element.ALIGN_LEFT;
-		
+
 		String title = $("DocumentTransfertReport.IdentificationDocumentResponsibleName");
 		String value = modelId.getResponsible();
 		addDataCell(table, title, value, alignment);
 
 		table.completeRow();
-		
+
 		title = $("DocumentTransfertReport.IdentificationDocumentResponsibleEmail");
 		value = modelId.getEmail();
 		addDataCell(table, title, value, alignment);
-		
+
 		title = $("DocumentTransfertReport.IdentificationDocumentResponsiblePhone");
 		value = modelId.getPhoneNumber();
 		addDataCell(table, title, value, alignment);
 
 		table.completeRow();
 	}
-	
-	
-	
+
 	private PdfPTable createReservedTable() {
 		PdfPTable reservedTable = new PdfPTable(3);
 		reservedTable.setWidthPercentage(50);
@@ -354,14 +349,14 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 	private void addReservedTableTop(PdfPTable table) {
 		float height = 50f;
 		int alignment = Element.ALIGN_CENTER;
-		
+
 		table.addCell(getReservedTableCell($("DocumentTransfertReport.DocumentTransfertDate"), 1, height, alignment));
 		table.addCell(getReservedTableCell("", 1, height, alignment));
 		table.addCell(getReservedTableCell($("DocumentTransfertReport.DocumentTransfertContainerNumber"), 1, height, alignment));
 
 		table.completeRow();
 	}
-	
+
 	/*private void printReservedTableBottom(PdfPTable table) {
 		int alignment = Element.ALIGN_LEFT;
 
@@ -426,24 +421,24 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		table.completeRow();
 	}*/
-	
+
 	private void addCalendarTableFirstRow(PdfPTable table, DocumentTransfertModel_Calendar modelCalendar) {
 		int alignment = Element.ALIGN_CENTER;
-		
+
 		String title = $("DocumentTransfertReport.ConservationCalendarNumber");
 		String value = modelCalendar.getCalendarNumber();
 		addDataCell(table, title, value, alignment);
-		
+
 		title = $("DocumentTransfertReport.ConservationCalendarRuleNumber");
 		value = modelCalendar.getRuleNumber();
 		addDataCell(table, title, value, alignment);
-		
+
 		table.addCell(new PdfPCell());
-		
+
 		title = $("DocumentTransfertReport.ConservationCalendarDispositionYear");
 		value = modelCalendar.getDispositionYear();
 		addDataCell(table, title, value, alignment);
-		
+
 		table.completeRow();
 	}
 	
@@ -459,29 +454,29 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		table.completeRow();
 	}*/
-	
+
 	private void addCalendarTableSecondRow(PdfPTable table, DocumentTransfertModel_Calendar modelCalendar) {
 		int alignment = Element.ALIGN_LEFT;
 
 		PdfPCell dispoMode = getCalendarDispoMode(modelCalendar.getConservationDisposition());
 		dispoMode.setColspan(2);
 		table.addCell(dispoMode);
-		
+
 		String title = $("DocumentTransfertReport.ConservationCalendarFolderQuantity");
 		String value = modelCalendar.getQuantity();
 		addDataCell(table, title, value, alignment);
-		
+
 		title = $("DocumentTransfertReport.ConservationCalendarExtremeDate");
 		value = modelCalendar.getExtremeDate();
 		addDataCell(table, title, value, alignment);
 
 		table.completeRow();
 	}
-	
 
 	private void addCalendarTableThirdRow(PdfPTable table, DocumentTransfertModel_Calendar modelCalendar) {
 
-		PdfPCell supportTitleCell = newDataCell($("DocumentTransfertReport.ConservationCalendarInformationSupportTitle"), "", Element.ALIGN_CENTER);
+		PdfPCell supportTitleCell = newDataCell($("DocumentTransfertReport.ConservationCalendarInformationSupportTitle"), "",
+				Element.ALIGN_CENTER);
 		supportTitleCell.setColspan(4);
 		table.addCell(supportTitleCell);
 
@@ -587,7 +582,7 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		return yearCell;
 	}
-	
+
 	private void addDocumentTableHeader(PdfPTable table) {
 		int alignment = Element.ALIGN_CENTER;
 
@@ -597,7 +592,7 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 		table.addCell(newHeaderCell($("DocumentTransfertReport.DocumentTitle"), alignment));
 		table.addCell(getDocumentTableYearsHeaderCell());
 		table.addCell(newHeaderCell($("DocumentTransfertReport.DocumentRestriction"), alignment));
-		
+
 		table.completeRow();
 	}
 
@@ -623,7 +618,8 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 		boolean tri = options.get(1).getValue();
 		boolean construction = options.get(2).getValue();
 
-		PdfPCell constructionCell = getCheckCell($("DocumentTransfertReport.ConservationCalendarDispositionModeConservation"), construction);
+		PdfPCell constructionCell = getCheckCell($("DocumentTransfertReport.ConservationCalendarDispositionModeConservation"),
+				construction);
 		PdfPCell triCell = getCheckCell($("DocumentTransfertReport.ConservationCalendarDispositionModeSort"), tri);
 
 		dispoModeChecks.addCell(constructionCell);
@@ -633,12 +629,12 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		return dispoModeChecksCell;
 	}
-	
-	private void addDataCell(PdfPTable table, String title, String value, int alignment){
+
+	private void addDataCell(PdfPTable table, String title, String value, int alignment) {
 		PdfPCell dataCell = newDataCell(title, value, alignment);
 		table.addCell(dataCell);
 	}
-	
+
 	private PdfPCell getCheckCell(String option, boolean check) {
 
 		PdfPTable tableCheckOption = new PdfPTable(2);
@@ -665,15 +661,15 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		PdfPCell cell = invisibleCell();
 
-		try{
+		try {
 			Image img;
 			String imgCheckName;
-			
-			if(check)
+
+			if (check)
 				imgCheckName = "check.png";
 			else
 				imgCheckName = "uncheck.png";
-			
+
 			img = Image.getInstance(foldersLocator.getReportsResourceFolder() + "/" + imgCheckName);
 			img.scalePercent(120);
 			cell.addElement(new Chunk(img, 0, 2));
@@ -919,7 +915,6 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 			header.setTotalWidth(585);
 
 			Image logo;
-
 
 			try {
 				File reportResourceFolder = foldersLocator.getReportsResourceFolder();

@@ -151,7 +151,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				MetadataValueTypeChanged((MetadataValueType) event.getProperty().getValue(), multivalueType.getValue(),
-						inherited);
+						inherited, editMode);
 			}
 		});
 
@@ -192,7 +192,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				MetadataValueTypeChanged((MetadataValueType) valueType.getValue(),
-						(Boolean) event.getProperty().getValue(), inherited);
+						(Boolean) event.getProperty().getValue(), inherited, editMode);
 			}
 		});
 		multivalueType.setReadOnly(editMode);
@@ -214,7 +214,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		searchableField.setRequired(false);
 		searchableField.setId("searchable");
 		searchableField.addStyleName("searchable");
-		searchableField.setEnabled(!inherited);
+		searchableField.setEnabled(!inherited && !editMode);
 
 		sortableField = new CheckBox();
 		sortableField.setCaption($("AddEditMetadataView.sortable"));
@@ -249,7 +249,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		autocomplete.setRequired(false);
 		autocomplete.setId("autocomplete");
 		autocomplete.addStyleName("autocomplete");
-		autocomplete.setEnabled(!inherited);
+		autocomplete.setEnabled(!inherited && !editMode);
 
 		return new BaseForm<FormMetadataVO>(formMetadataVO, this, localcodeField, titleField, valueType, multivalueType,
 				inputType, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
@@ -267,7 +267,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		};
 	}
 
-	private void MetadataValueTypeChanged(MetadataValueType value, Boolean multivalue, boolean inherited) {
+	private void MetadataValueTypeChanged(MetadataValueType value, Boolean multivalue, boolean inherited, boolean editMode) {
 		if (value != null) {
 			if (multivalue == null) {
 				multivalue = false;
@@ -287,14 +287,14 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			}
 
 			if (!inherited) {
-				this.enableCorrectFields(value);
+				this.enableCorrectFields(value, inherited, editMode);
 			}
 
 			this.setValueFields(value);
 		}
 	}
 
-	private void enableCorrectFields(MetadataValueType value) {
+	private void enableCorrectFields(MetadataValueType value, boolean inherited, boolean editMode) {
 
 		refType.setEnabled(false);
 		refType.setRequired(false);
@@ -313,12 +313,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		case TEXT:
 			multivalueType.setEnabled(true);
 			sortableField.setEnabled(false);
-			searchableField.setEnabled(true);
+			searchableField.setEnabled(!inherited && !editMode);
 			break;
 		case CONTENT:
 			multivalueType.setEnabled(true);
 			sortableField.setEnabled(false);
-			searchableField.setEnabled(true);
+			searchableField.setEnabled(!inherited && !editMode);
 			facetField.setEnabled(false);
 			break;
 		case DATE:
@@ -331,7 +331,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			break;
 		case INTEGER:
 			multivalueType.setEnabled(true);
-			searchableField.setEnabled(true);
+			searchableField.setEnabled(!inherited && !editMode);
 			break;
 		case REFERENCE:
 			multivalueType.setEnabled(true);
@@ -341,11 +341,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			break;
 		case STRING:
 			multivalueType.setEnabled(true);
-			searchableField.setEnabled(true);
+			searchableField.setEnabled(!inherited && !editMode);
 			break;
 		case NUMBER:
 			multivalueType.setEnabled(true);
-			searchableField.setEnabled(true);
+			searchableField.setEnabled(!inherited && !editMode);
 			break;
 		case STRUCTURE:
 			multivalueType.setEnabled(true);

@@ -18,8 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.events;
 
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 
-public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>{
+public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView> {
 
 	public EventCategoriesPresenter(EventCategoriesView view) {
 		super(view);
@@ -28,4 +30,10 @@ public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>
 	public void eventButtonClicked(EventCategory eventCategory) {
 		view.navigateTo().showEventCategory(eventCategory);
 	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.VIEW_EVENTS).globally();
+	}
+
 }

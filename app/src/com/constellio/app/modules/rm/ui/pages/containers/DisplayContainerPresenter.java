@@ -18,8 +18,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -37,6 +37,7 @@ import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -48,6 +49,11 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public DisplayContainerPresenter(DisplayContainerView view) {
 		super(view);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
 	}
 
 	public RecordVODataProvider getFoldersDataProvider(final String containerId) {
@@ -73,7 +79,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	public List<String> getSupportedReports() {
-		return Arrays.asList($("Reports.ContainerRecordReport"));
+		return asList($("Reports.ContainerRecordReport"));
 	}
 
 	@Override
@@ -115,4 +121,15 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public String getContainerId() {
 		return containerId;
 	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		return user.hasReadAccess().on(restrictedRecord);
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		return asList(params);
+	}
+
 }

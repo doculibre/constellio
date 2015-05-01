@@ -36,7 +36,7 @@ public class PermissionsManagementPage extends PageHelper {
 
 	public PermissionsManagementPage navigateToPage() {
 		driver.navigateTo().url(NavigatorConfigurationService.PERMISSION_MANAGEMENT);
-		return this;
+		return new PermissionsManagementPage(driver);
 	}
 
 	public CheckboxWebElement getPermission(String roleCode, String permissionCode) {

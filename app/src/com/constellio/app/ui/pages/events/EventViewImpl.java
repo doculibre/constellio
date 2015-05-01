@@ -90,14 +90,13 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		return table;
 	}
 
-	private Component recordLink(MetadataValueVO metadataValue, RecordVO recordVO) {
-		final String recordId = metadataValue.getValue().toString();
-		String title = (String)recordVO.get(Schemas.TITLE.getLocalCode());
-		LinkButton recordLink =  new LinkButton(recordId + " : " + title
+	private Component recordLink(final MetadataValueVO metadataValue, final RecordVO recordVO) {
+		String linkTitle = presenter.getRecordLinkTitle(metadataValue, recordVO);
+		LinkButton recordLink =  new LinkButton(linkTitle
 		) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.recordLinkClicked(recordId);
+				presenter.recordLinkClicked(metadataValue);
 			}
 		};
 		return recordLink;

@@ -165,4 +165,14 @@ public class MetadataSchemaTypes {
 	public MetadataList getAllContentMetadatas() {
 		return getAllMetadatas().onlyWithType(MetadataValueType.CONTENT);
 	}
+
+	public boolean hasMetadata(String metadataCode) {
+
+		try {
+			getMetadata(metadataCode);
+			return true;
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			return false;
+		}
+	}
 }

@@ -47,7 +47,7 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withAllTestUsers().andUsersWithWriteAndDeleteAccess(chuckNorris);
+		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers().andUsersWithWriteAndDeleteAccess(admin);
 
 		permissions = new ArrayList<>();
 		ConstellioModulesManager modulesManager = getAppLayerFactory().getModulesManager();
@@ -62,14 +62,8 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 		roleManager.addRole(loser);
 		roleManager.addRole(god);
 
-		driver = newWebDriver(loggedAsUserInCollection(chuckNorris, zeCollection));
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		page = new PermissionsManagementPage(driver).navigateToPage();
-	}
-
-	@Test
-	@InDevelopmentTest
-	public void openThePage() {
-		waitUntilICloseTheBrowsers();
 	}
 
 	@Test
@@ -97,6 +91,7 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenPermissionsModifiedAndRevertedThenDisplayCorrectPermissions() {
 		for (String permission : permissions) {
 			page.getPermission("L", permission).toggle();
@@ -107,6 +102,7 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenPermissionsModifiedAndSavedThenDisplayCorrectPermissions() {
 		for (String permission : permissions) {
 			page.getPermission("L", permission).toggle();
@@ -142,7 +138,7 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	}
 
 	private void verifyInvertedPermissionState() {
-		for (String permission : permissions) {
+		for (String permission : permissions) {			
 			assertThat(page.getPermission("L", permission).isChecked()).isTrue();
 			assertThat(page.getPermission("G", permission).isChecked()).isFalse();
 		}

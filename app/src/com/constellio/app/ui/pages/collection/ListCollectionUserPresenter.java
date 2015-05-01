@@ -38,6 +38,7 @@ import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -257,21 +258,6 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		return modelLayerFactory.getRolesManager();
 	}
 
-	public List<String> getUserRoles(String username) {
-		List<String> result = new ArrayList<>();
-		User user = userServices().getUserRecordInCollection(username, view.getCollection());
-		if (user != null) {
-			for (String role : user.getUserRoles()) {
-				result.add(role);
-			}
-		}
-		return result;
-	}
-
-	private UserServices userServices() {
-		return modelLayerFactory.newUserServices();
-	}
-
 	void roleUserAdditionRequested(String username, String roleCode) {
 		User user = userServices().getUserRecordInCollection(username, view.getCollection());
 		List<String> roles = new ArrayList<>(user.getUserRoles());
@@ -286,5 +272,10 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		roles.add(roleCode);
 		group.setRoles(roles);
 		addOrUpdate(group.getWrappedRecord());
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_SECURITY).globally();
 	}
 }

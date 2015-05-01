@@ -619,17 +619,17 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 		userPermissions.add(RMPermissionsTo.CREATE_DOCUMENTS);
 		userPermissions.add(RMPermissionsTo.CREATE_FOLDERS);
 		userPermissions.add(RMPermissionsTo.CREATE_SUB_FOLDERS);
-		userPermissions.add(RMPermissionsTo.MODIFY_DOCUMENTS);
-		userPermissions.add(RMPermissionsTo.MODIFY_FOLDERS);
-		userPermissions.add(RMPermissionsTo.DELETE_DOCUMENTS);
-		userPermissions.add(RMPermissionsTo.DELETE_FOLDERS);
+		//		userPermissions.add(RMPermissionsTo.MODIFY_DOCUMENTS);
+		//		userPermissions.add(RMPermissionsTo.MODIFY_FOLDERS);
+		//		userPermissions.add(RMPermissionsTo.DELETE_DOCUMENTS);
+		//		userPermissions.add(RMPermissionsTo.DELETE_FOLDERS);
 
 		List<String> managerPermissions = new ArrayList<>();
 		managerPermissions.addAll(userPermissions);
 		managerPermissions.add(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
 		managerPermissions.add(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
-		managerPermissions.add(RMPermissionsTo.SHARE_A_FOLDER);
-		managerPermissions.add(RMPermissionsTo.SHARE_A_DOCUMENT);
+		managerPermissions.add(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
+		managerPermissions.add(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 		managerPermissions.add(RMPermissionsTo.MANAGE_CONTAINERS);
 		managerPermissions.add(RMPermissionsTo.MANAGE_DECOMMISSIONING);
 

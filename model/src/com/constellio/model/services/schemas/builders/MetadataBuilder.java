@@ -68,6 +68,7 @@ public class MetadataBuilder {
 	private MetadataAccessRestrictionBuilder accessRestrictionBuilder;
 	private Class<? extends StructureFactory> structureFactoryClass;
 	private Class<? extends Enum<?>> enumClass;
+	private Metadata originalMetadata;
 
 	MetadataBuilder() {
 	}
@@ -119,6 +120,7 @@ public class MetadataBuilder {
 		builder.setLocalCode(metadata.getLocalCode());
 		builder.setCollection(metadata.getCollection());
 		builder.setCode(metadata.getCode());
+		builder.originalMetadata = metadata;
 		builder.label = metadata.getLabel();
 		builder.enabled = metadata.isEnabled();
 		builder.type = metadata.getType();
@@ -149,6 +151,7 @@ public class MetadataBuilder {
 	@SuppressWarnings("unchecked")
 	private static void setBuilderPropertiesOfMetadataWithInheritance(Metadata metadata, MetadataBuilder inheritanceMetadata,
 			MetadataBuilder builder) {
+		builder.originalMetadata = metadata;
 		builder.localCode = metadata.getLocalCode();
 		builder.code = metadata.getCode();
 		builder.collection = metadata.getCollection();
@@ -694,4 +697,7 @@ public class MetadataBuilder {
 		return allowedReferencesBuilder;
 	}
 
+	public Metadata getOriginalMetadata() {
+		return originalMetadata;
+	}
 }

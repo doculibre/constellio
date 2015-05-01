@@ -56,6 +56,7 @@ import com.vaadin.ui.VerticalLayout;
 public class DisplayUserCredentialViewImpl extends BaseViewImpl implements DisplayUserCredentialView {
 
 	public static final String PROPERTY_BUTTONS = "buttons";
+	public static final String ADMIN = "admin";
 
 	private DisplayUserCredentialPresenter presenter;
 
@@ -172,12 +173,8 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		tableFilterUserGlobalGroups = new TableStringFilter(userGlobalGroupTable);
 		tableFilterAvailableGlobalGroups = new TableStringFilter(availableGlobalGroupTable);
 
-		if (userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAndOrModify()) {
-			viewLayout.addComponents(userCredentialDisplay, filterAndAddButtonLayoutUserGlobalGroups, userGlobalGroupTable,
-					filterAndAddButtonLayoutAvailableGlobalGroups, availableGlobalGroupTable);
-		} else {
-			viewLayout.addComponents(userCredentialDisplay);
-		}
+		viewLayout.addComponents(userCredentialDisplay, filterAndAddButtonLayoutUserGlobalGroups, userGlobalGroupTable,
+				filterAndAddButtonLayoutAvailableGlobalGroups, availableGlobalGroupTable);
 
 		viewLayout.setExpandRatio(userCredentialDisplay, 1);
 
@@ -219,6 +216,8 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 					}
 				};
+				addButton.setEnabled(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
+				addButton.setVisible(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
 				return addButton;
 			}
 		});
@@ -256,6 +255,8 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 					}
 				};
+				editButton.setEnabled(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
+				editButton.setVisible(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
 				return editButton;
 			}
 		});
@@ -270,6 +271,10 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 						presenter.deleteGlobalGroupButtonClicked(userCredentialVO.getUsername(), entity.getCode());
 					}
 				};
+				deleteButton
+						.setEnabled(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
+				deleteButton
+						.setVisible(userCredentialVO.getStatus() == UserCredentialStatus.ACTIVE && presenter.canAddOrModify());
 				return deleteButton;
 			}
 		});
@@ -288,12 +293,18 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<>();
-		actionMenuButtons.add(new EditButton(false) {
+		Button editButton = new EditButton(false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.editButtonClicked(userCredentialVO);
 			}
-		});
+		};
+		actionMenuButtons.add(editButton);
+		if (ADMIN.equals(userCredentialVO.getUsername())) {
+			editButton.setEnabled(presenter.canModifyPassword(userCredentialVO.getUsername()));
+		} else {
+			editButton.setEnabled(presenter.canAddOrModify());
+		}
 		return actionMenuButtons;
 	}
 

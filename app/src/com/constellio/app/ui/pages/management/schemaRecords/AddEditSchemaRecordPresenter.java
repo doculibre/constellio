@@ -41,8 +41,10 @@ import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 @SuppressWarnings("serial")
 public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddEditSchemaRecordView>
@@ -105,6 +107,12 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 	@Override
 	public List<Choice> getChoices(String metadataCode) {
 		return getSchemaChoices(getLinkedSchemaType(metadataCode));
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, final User user) {
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(params);
+		return new SchemaRecordsPresentersServices(appLayerFactory).canManageSchemaType(schemaTypeCode, user);
 	}
 
 	private List<Choice> getSchemaChoices(String schemaTypeCode) {

@@ -93,8 +93,20 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		return newBatchProcessListReader(getProcessListXMLDocument()).read(id);
 	}
 
+	public void markAsPending(List<BatchProcess> batchProcesses) {
+		for (BatchProcess batchProcess : batchProcesses) {
+			markAsPending(batchProcess);
+		}
+	}
+
 	public void markAsPending(BatchProcess batchProcess) {
 		updateBatchProcesses(markBatchProcessAsPendingDocumentAlteration(batchProcess.getId()));
+	}
+
+	public void cancelStandByBatchProcesses(List<BatchProcess> batchProcesses) {
+		for (BatchProcess batchProcess : batchProcesses) {
+			cancelStandByBatchProcess(batchProcess);
+		}
 	}
 
 	public void cancelStandByBatchProcess(BatchProcess batchProcess) {

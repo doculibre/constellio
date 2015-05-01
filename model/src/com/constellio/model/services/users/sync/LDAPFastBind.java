@@ -69,7 +69,7 @@ public class LDAPFastBind {
  
 		}
 		catch (NamingException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeNamingException(e.getMessage());
 		}
 	}
 	
@@ -96,7 +96,8 @@ public class LDAPFastBind {
 			ctx.close();
 		}
 		catch (NamingException e) {
-			throw new RuntimeException("Context close failure ", e);
+			throw new RuntimeNamingException(e.getMessage());
 		}
 	}
+
 }

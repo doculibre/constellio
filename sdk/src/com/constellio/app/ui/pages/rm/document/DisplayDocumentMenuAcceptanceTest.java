@@ -17,8 +17,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.rm.document;
 
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.DELETE;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.MANAGE_AUTHORIZATIONS;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.MODIFY;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.SHARE;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.UPLOAD;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -26,11 +33,14 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.RecordFormWebElement;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -39,6 +49,10 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElemen
 
 @UiTest
 public class DisplayDocumentMenuAcceptanceTest extends ConstellioTest {
+
+	enum AddEditDocumentAction {
+		MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE
+	}
 
 	RecordFormWebElement zeForm;
 	RecordServices recordServices;
@@ -56,49 +70,50 @@ public class DisplayDocumentMenuAcceptanceTest extends ConstellioTest {
 
 		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
 				.withEvents();
+
 	}
 
 	@Test
 	/** Alice is a USER
-	 *  Alice can READ  
+	 *  Alice can READ
 	 */
 	public void givenAliceThenDisplayFolderMenuIsOk() {
 		logAsInZeCollection(aliceWonderland);
 
 		navigateToADocumentInUA10();
-		assertThatAllAreInvisibleExceptUploadEnabled();
-		
+		assertThatOnlyAvailableActionsAre(UPLOAD, SHARE);
+
 		navigateToSemiActiveDocumentInUA10();
-		assertThatAllAreInvisibleExceptUploadDisabled();
-		
+		assertThatOnlyAvailableActionsAre(UPLOAD, SHARE);
+
 		navigateToDestroyedDocumentInUA30();
-		assertThatAllAreInvisibleExceptUploadDisabled();
-		
+		assertThatOnlyAvailableActionsAre();
+
 		navigateToDepositedFolderInUA30();
-		assertThatAllAreInvisibleExceptUploadDisabled();
+		assertThatOnlyAvailableActionsAre();
 	}
 
 	@Test
-	/** Admin is a RGD 
+	/** Admin is a RGD
 	 */
 	public void givenAdminThenDisplayDocumentMenuIsOk() {
 		logAsInZeCollection(admin);
 
 		navigateToADocumentInUA10();
-		assertThatAllAreEnabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToSemiActiveDocumentInUA10();
-		assertThatAllAreEnabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToDestroyedDocumentInUA30();
-		assertThatAllAreEnabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToDepositedFolderInUA30();
-		assertThatAllAreEnabled();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
 	}
 
 	@Test
-	/** Bob is a USER 
+	/** Bob is a USER
 	 *  Bob can READ/WRITE in UA 10
 	 *  Bob can READ/WRITE in UA 30
 	 */
@@ -106,78 +121,148 @@ public class DisplayDocumentMenuAcceptanceTest extends ConstellioTest {
 		logAsInZeCollection(bobGratton);
 
 		navigateToADocumentInUA10();
-		assertThatAllAreEnabledExceptShareInvisible();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, UPLOAD, SHARE);
+
 		navigateToSemiActiveDocumentInUA10();
-		assertThatAllAreEnabledExceptEditDisabledAndShareInvisible();
-		
+		assertThatOnlyAvailableActionsAre(UPLOAD, SHARE);
+
 		navigateToDestroyedDocumentInUA30();
-		assertThatAllAreDisabledExceptShareInvisible();
-		
+		assertThatOnlyAvailableActionsAre();
+
 		navigateToDepositedFolderInUA30();
-		assertThatAllAreDisabledExceptShareInvisible();
+		assertThatOnlyAvailableActionsAre();
 	}
 
 	@Test
-	/** Charles is a USER 
-	 * 	Charles can READ/WRITE in UA 10 
+	/** Bob is a USER
+	 *  Bob can READ/WRITE in UA 10
+	 *  Bob can READ/WRITE in UA 30
+	 */
+	public void givenBobWithShareInactivePermissionThenDisplayDocumentMenuIsOk() {
+		givenUserRoleHas(RMPermissionsTo.SHARE_A_INACTIVE_DOCUMENT);
+		logAsInZeCollection(bobGratton);
+
+		navigateToADocumentInUA10();
+		assertThatOnlyAvailableActionsAre(MODIFY, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA10();
+		assertThatOnlyAvailableActionsAre(UPLOAD, SHARE);
+
+		navigateToDestroyedDocumentInUA30();
+		assertThatOnlyAvailableActionsAre(SHARE);
+
+		navigateToDepositedFolderInUA30();
+		assertThatOnlyAvailableActionsAre(SHARE);
+	}
+
+	@Test
+	/** Bob is a USER
+	 *  Bob can READ/WRITE in UA 10
+	 *  Bob can READ/WRITE in UA 30
+	 */
+	public void givenBobWithoutShareSemiActivePermissionThenDisplayDocumentMenuIsOk() {
+		givenUserRoleHasNo(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT);
+		logAsInZeCollection(bobGratton);
+
+		navigateToADocumentInUA10();
+		assertThatOnlyAvailableActionsAre(MODIFY, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA10();
+		assertThatOnlyAvailableActionsAre(UPLOAD);
+
+		navigateToDestroyedDocumentInUA30();
+		assertThatOnlyAvailableActionsAre();
+
+		navigateToDepositedFolderInUA30();
+		assertThatOnlyAvailableActionsAre();
+	}
+
+	private void givenUserRoleHas(String permission) {
+		Role role = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.USER);
+		List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		permissions.add(permission);
+		getModelLayerFactory().getRolesManager().updateRole(role.withPermissions(permissions));
+	}
+
+	private void givenUserRoleHasNo(String permission) {
+		Role role = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.USER);
+		List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		permissions.remove(permission);
+		getModelLayerFactory().getRolesManager().updateRole(role.withPermissions(permissions));
+	}
+
+	@Test
+	/** Charles is a USER
+	 * 	Charles can READ/WRITE in UA 10
 	 */
 	public void givenCharlesThenDisplayDocumentMenuIsOk() {
 		logAsInZeCollection(charlesFrancoisXavier);
 
 		navigateToADocumentInUA10();
-		assertThatAllAreEnabledExceptShareInvisible();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, UPLOAD, SHARE);
+
 		navigateToSemiActiveDocumentInUA10();
-		assertThatAllAreEnabledExceptEditDisabledAndShareInvisible();
-		
+		assertThatOnlyAvailableActionsAre(UPLOAD, SHARE);
+
 		navigateToDestroyedDocumentInUA30();
-		assertThatAllAreDisabledExceptEditAndShareInvisible();
-		
+		assertThatOnlyAvailableActionsAre();
+
 		navigateToDepositedFolderInUA30();
-		assertThatAllAreDisabledExceptShareInvisible();
+		assertThatOnlyAvailableActionsAre();
 	}
 
 	@Test
 	/** Dakota is a MANAGER
-	 *  Dakota can READ/WRITE  in UA 10
-	 *  Dakota can READ/WRITE/DELETE in UA 10
+	 *  Dakota can READ/WRITE/DELETE  in UA 10, 11, 12
 	 */
 	public void givenDakotaThenDisplayDocumentMenuIsOk() {
 		logAsInZeCollection(dakota);
 
 		navigateToADocumentInUA10();
-		assertThatAllAreEnabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToSemiActiveDocumentInUA10();
-		assertThatAllAreEnabledExceptEditDisabled();
-		
-		navigateToDestroyedDocumentInUA30();
-		assertThatAllAreDisabledExceptEditInvisible();
-		
-		navigateToDepositedFolderInUA30();
-		assertThatAllAreDisabled();
+		assertThatOnlyAvailableActionsAre(MANAGE_AUTHORIZATIONS, UPLOAD, DELETE, SHARE);
+
+		navigateToDestroyedDocumentInUA10();
+		assertThatOnlyAvailableActionsAre(MANAGE_AUTHORIZATIONS);
 	}
 
 	@Test
 	/** Edouard is a USER, but manager in UA 11, 12
-	 *  Edouard can READ/WRITE/DELETE in UA 30
-	 *  Edouard can READ/WRITE in UA 10
+	 *  Edouard can READ/WRITE/DELETE in UA 11,12
+	 *  Edouard can READ/WRITE in UA 30
 	 */
 	public void givenEdouardThenDisplayDocumentMenuIsOk() {
 		logAsInZeCollection(edouard);
 
+		navigateToADocumentInUA11();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToADocumentInUA12();
-		assertThatAllAreEnabled();
-		
-		navigateToSemiActiveDocumentInUA10();
-		assertThatAllAreEnabledExceptEditDisabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToADocumentInUA30();
+		assertThatOnlyAvailableActionsAre(MODIFY, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA11();
+		assertThatOnlyAvailableActionsAre(DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA12();
+		assertThatOnlyAvailableActionsAre(DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA30();
+		assertThatOnlyAvailableActionsAre(UPLOAD, SHARE);
+
+		navigateToDestroyedDocumentInUA11();
+		assertThatOnlyAvailableActionsAre(MANAGE_AUTHORIZATIONS);
+
+		navigateToDestroyedDocumentInUA12();
+		assertThatOnlyAvailableActionsAre(MANAGE_AUTHORIZATIONS);
+
 		navigateToDestroyedDocumentInUA30();
-		assertThatAllAreDisabledExceptShareInvisible();
-		
-		navigateToDepositedFolderInUA30();
-		assertThatAllAreDisabledExceptEditAndShareInvisible();
+		assertThatOnlyAvailableActionsAre();
+
 	}
 
 	@Test
@@ -189,16 +274,25 @@ public class DisplayDocumentMenuAcceptanceTest extends ConstellioTest {
 		logAsInZeCollection(gandalf);
 
 		navigateToADocumentInUA10();
-		assertThatAllAreEnabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToADocumentInUA30();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToSemiActiveDocumentInUA10();
-		assertThatAllAreEnabledExceptEditDisabled();
-		
+		assertThatOnlyAvailableActionsAre(DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA30();
+		assertThatOnlyAvailableActionsAre(DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToDestroyedDocumentInUA10();
+		assertThatOnlyAvailableActionsAre(MANAGE_AUTHORIZATIONS);
+
 		navigateToDestroyedDocumentInUA30();
-		assertThatAllAreDisabled();
-		
+		assertThatOnlyAvailableActionsAre(MANAGE_AUTHORIZATIONS);
+
 		navigateToDepositedFolderInUA30();
-		assertThatAllAreDisabled();
+		assertThatOnlyAvailableActionsAre(MANAGE_AUTHORIZATIONS);
 	}
 
 	@Test
@@ -208,112 +302,91 @@ public class DisplayDocumentMenuAcceptanceTest extends ConstellioTest {
 		logAsInZeCollection(chuckNorris);
 
 		navigateToADocumentInUA10();
-		assertThatAllAreEnabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToADocumentInUA11();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToADocumentInUA12();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToADocumentInUA30();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToSemiActiveDocumentInUA10();
-		assertThatAllAreEnabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA11();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA12();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToSemiActiveDocumentInUA30();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToDestroyedDocumentInUA10();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToDestroyedDocumentInUA11();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
+		navigateToDestroyedDocumentInUA12();
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToDestroyedDocumentInUA30();
-		assertThatAllAreEnabled();
-		
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
+
 		navigateToDepositedFolderInUA30();
-		assertThatAllAreEnabled();
-	}
-	
-
-	private void assertThatAllAreEnabled() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.ENABLED);
-	}
-
-	private void assertThatAllAreEnabledExceptShareInvisible() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.ENABLED);
-	}
-	
-	private void assertThatAllAreDisabledExceptEditInvisible() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.DISABLED);
-	}
-	
-	private void assertThatAllAreDisabled() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.DISABLED);
-	}
-	
-	private void assertThatAllAreDisabledExceptEditAndShareInvisible() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.DISABLED);
-	}
-	
-	private void assertThatAllAreDisabledExceptShareInvisible() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.DISABLED);
-	}
-	
-	private void assertThatAllAreEnabledExceptEditDisabled() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.ENABLED);
-	}
-	
-	private void assertThatAllAreEnabledExceptEditDisabledAndShareInvisible() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.DISABLED);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.ENABLED);
-	}
-
-	private void assertThatAllAreInvisibleExceptUploadEnabled() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.ENABLED);
-	}
-	
-	public void assertThatAllAreInvisibleExceptUploadDisabled() {
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.DISABLED);
-	}
-	
-	public void assertThatAllAreInvisibleExceptShareEnabled() { 
-		assertThat(getButtonState("Éditer la fiche du document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Supprimer ce document")).isSameAs(ComponentState.INVISIBLE);
-		assertThat(getButtonState("Partager ce document")).isSameAs(ComponentState.ENABLED);
-		assertThat(getButtonState("Téléverser")).isSameAs(ComponentState.INVISIBLE);
+		assertThatOnlyAvailableActionsAre(MODIFY, DELETE, MANAGE_AUTHORIZATIONS, UPLOAD, SHARE);
 	}
 
 	private void logAsInZeCollection(String user) {
 		driver = newWebDriver(loggedAsUserInCollection(user, zeCollection));
 	}
-	
+
 	private void navigateToSemiActiveDocumentInUA10() {
 		String id = recordIdWithTitleInCollection("Orange - Petit guide", zeCollection);
 		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
 	}
-	
+
+	private void navigateToSemiActiveDocumentInUA11() {
+		String id = recordIdWithTitleInCollection("Poire - Typologie", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	private void navigateToSemiActiveDocumentInUA12() {
+		String id = recordIdWithTitleInCollection("Pomme - Petit guide", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	private void navigateToSemiActiveDocumentInUA30() {
+		String id = recordIdWithTitleInCollection("Laitue - Petit guide", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
 	private void navigateToDestroyedDocumentInUA30() {
 		String id = recordIdWithTitleInCollection("Epinard - Livre de recettes", zeCollection);
 		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
 	}
 
+	private void navigateToDestroyedDocumentInUA10() {
+		String id = recordIdWithTitleInCollection("Souris - Livre de recettes", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	private void navigateToDestroyedDocumentInUA11() {
+		String id = recordIdWithTitleInCollection("Cerise - Typologie", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	private void navigateToDestroyedDocumentInUA12() {
+		String id = recordIdWithTitleInCollection("Avocat - Petit guide", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
 	private void navigateToDepositedFolderInUA30() {
-		String id = recordIdWithTitleInCollection("Lynx - Livre de recettes", zeCollection);
+		String id = recordIdWithTitleInCollection("Pois - Livre de recettes", zeCollection);
 		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
 	}
 
@@ -322,9 +395,77 @@ public class DisplayDocumentMenuAcceptanceTest extends ConstellioTest {
 		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
 	}
 
-	private void navigateToADocumentInUA12() {
-		String id = recordIdWithTitleInCollection("Mangue - Livre de recettes", zeCollection);
+	private void navigateToADocumentInUA11() {
+		String id = recordIdWithTitleInCollection("Abricot - Livre de recettes", zeCollection);
 		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	private void navigateToADocumentInUA12() {
+		String id = recordIdWithTitleInCollection("Banane - Livre de recettes", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	private void navigateToADocumentInUA30() {
+		String id = recordIdWithTitleInCollection("Chou - Livre de recettes", zeCollection);
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatModifyButtonState() {
+		return assertThatButtonState("Éditer la fiche du document");
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatDeleteButtonState() {
+		return assertThatButtonState("Supprimer ce document");
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatAuthorizationsButtonState() {
+		return assertThatButtonState("Autorisations");
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatShareButtonState() {
+		return assertThatButtonState("Partager ce document");
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatUploadButtonState() {
+		return assertThatButtonState("Téléverser");
+	}
+
+	private void assertThatOnlyAvailableActionsAre(AddEditDocumentAction... expectedActions) {
+		List<AddEditDocumentAction> expectedActionsList = asList(expectedActions);
+
+		if (expectedActionsList.contains(MODIFY)) {
+			assertThatModifyButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatModifyButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+
+		if (expectedActionsList.contains(DELETE)) {
+			assertThatDeleteButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatDeleteButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+
+		if (expectedActionsList.contains(MANAGE_AUTHORIZATIONS)) {
+			assertThatAuthorizationsButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatAuthorizationsButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+
+		if (expectedActionsList.contains(UPLOAD)) {
+			assertThatUploadButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatUploadButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+
+		if (expectedActionsList.contains(SHARE)) {
+			assertThatShareButtonState().isEqualTo(ComponentState.ENABLED);
+		} else {
+			assertThatShareButtonState().isEqualTo(ComponentState.INVISIBLE);
+		}
+	}
+
+	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatButtonState(String label) {
+		return assertThat(getButtonState(label)).describedAs(label);
 	}
 
 	private ComponentState getButtonState(String buttonName) {

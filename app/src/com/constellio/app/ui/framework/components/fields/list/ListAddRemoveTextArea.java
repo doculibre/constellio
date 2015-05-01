@@ -17,9 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.framework.components.fields.list;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 
 @SuppressWarnings("unchecked")
@@ -39,6 +43,12 @@ public class ListAddRemoveTextArea extends ListAddRemoveField<String, TextArea> 
 		TextArea textArea = new BaseTextArea();
 		textArea.setImmediate(false);
 		return textArea;
+	}
+
+	protected Component newCaptionComponent(String itemId, String caption) {
+		caption = StringUtils.replace(caption, "\n", "<br/>");
+		Label captionLabel = new Label(caption, ContentMode.HTML);
+		return captionLabel;
 	}
 
 }

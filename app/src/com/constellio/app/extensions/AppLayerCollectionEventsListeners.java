@@ -17,6 +17,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.extensions;
 
+import com.constellio.app.api.extensions.PageAccessExtension;
+import com.constellio.app.api.extensions.SchemaTypeAccessExtension;
+import com.constellio.app.api.extensions.TaxonomyAccessExtension;
+import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+
 public class AppLayerCollectionEventsListeners {
+
+	public VaultBehaviorsList<PageAccessExtension> pageAccessExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<TaxonomyAccessExtension> taxonomyAccessExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SchemaTypeAccessExtension> schemaTypeAccessExtensions = new VaultBehaviorsList<>();
 
 }

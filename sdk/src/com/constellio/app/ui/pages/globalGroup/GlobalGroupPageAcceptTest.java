@@ -46,6 +46,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+
 		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
@@ -72,6 +73,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		givenAddPageWhenAddGlobalGroupAndCancelButtonClickedThenNavigateToListGroups();
 		givenAddPageWhenAddGlobalGroupThenOk();
+
 		givenEditPageWhenEditGlobalGroupThenOk();
 
 		givenDisplayPageWhenSearchAndAddUserInGroupThenCanSearchHimInUserGroupTable();
@@ -121,6 +123,8 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		givenAddPage();
 
+		assertThat(addEditGlobalGroupPage.getStatusElement().isEnabled()).isFalse();
+
 		addEditGlobalGroupPage.getCodeElement().setValue("zeGroup1");
 		addEditGlobalGroupPage.getNameElement().setValue("The zeGroup 1");
 		addEditGlobalGroupPage.getCollectionsElement().toggle(zeCollection);
@@ -155,6 +159,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 		addEditGlobalGroupPage.getNameElement().setValue("The heroes 1");
 		addEditGlobalGroupPage.getCollectionsElement().toggle(zeCollection);
 		addEditGlobalGroupPage.getCollectionsElement().toggle("otherCollection");
+		addEditGlobalGroupPage.getStatusElement().toggle(GlobalGroupStatus.ACTIVE.name());
 		addEditGlobalGroupPage.getSaveButton().click();
 		addEditGlobalGroupPage.waitForPageReload();
 
@@ -191,7 +196,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		givenDisplayPageForIndex(0);
 
-		displayGlobalGroupPage.getEditGlobalGroupButton().click();
+		displayGlobalGroupPage.getEditGlobalGroupButtonMenuAction().click();
 		displayGlobalGroupPage.waitForPageReload();
 
 		assertThat(driver.getCurrentPage())
@@ -210,7 +215,6 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 						+ "/groupList/groupDisplay/username%253Dadmin%253BglobalGroupCode%253Dheroes");
 	}
 
-	//	@Test
 	public void givenDisplayPageWhenClickInDeleteUserFromGroupThenCanSearchHimInUserTable()
 			throws Exception {
 
@@ -257,7 +261,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		givenDisplayPageForIndex(0);
 
-		displayGlobalGroupPage.getAddSubGlobalGroupButtonOnIndex(0).click();
+		displayGlobalGroupPage.getAddSubGlobalGroupButtonMenuAction().click();
 		displayGlobalGroupPage.waitForPageReload();
 
 		addEditGlobalGroupPage.getCodeElement().setValue("heroes1");
@@ -316,14 +320,14 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 		givenDisplayPageForIndex(2);
 		String currentPage = driver.getCurrentPage();
 
-		displayGlobalGroupPage.getDeleteGlobalGroupButtonOnIndex().click();
+		displayGlobalGroupPage.getDeleteGlobalGroupButtonMenuAction().click();
 		displayGlobalGroupPage.waitForPageReload();
 		displayGlobalGroupPage.getCancelConfirmationDialogButton().click();
 		displayGlobalGroupPage.waitForPageReload();
 
 		assertThat(driver.getCurrentPage()).isEqualTo(currentPage);
 
-		displayGlobalGroupPage.getDeleteGlobalGroupButtonOnIndex().click();
+		displayGlobalGroupPage.getDeleteGlobalGroupButtonMenuAction().click();
 		displayGlobalGroupPage.waitForPageReload();
 		displayGlobalGroupPage.getOkConfirmationDialogButton().click();
 		displayGlobalGroupPage.waitForPageReload();
@@ -338,7 +342,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		listGlobalGroupPage.navigateToListGlobalGroupsPage();
 
-		listGlobalGroupPage.getDeleteHeroesButton().click();
+		listGlobalGroupPage.getDeleteButtonOnIndex(0).click();
 		listGlobalGroupPage.waitForPageReload();
 		listGlobalGroupPage.getCancelConfirmationDialogButton().click();
 		listGlobalGroupPage.waitForPageReload();
@@ -352,7 +356,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		listGlobalGroupPage.navigateToListGlobalGroupsPage();
 
-		listGlobalGroupPage.getDeleteHeroesButton().click();
+		listGlobalGroupPage.getDeleteButtonOnIndex(0).click();
 		listGlobalGroupPage.waitForPageReload();
 		listGlobalGroupPage.getOkConfirmationDialogButton().click();
 		listGlobalGroupPage.waitForPageReload();

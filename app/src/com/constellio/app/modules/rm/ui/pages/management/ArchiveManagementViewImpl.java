@@ -57,6 +57,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		});
 		decommissioning.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		decommissioning.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		decommissioning.addStyleName("decommissioning-caption");
 
 		containers = new Button(
 				$("ArchiveManagementView.containers"), new ThemeResource("images/icons/experience/box.png"));
@@ -68,6 +69,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		});
 		containers.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		containers.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		containers.addStyleName("containers-caption");
 
 		robots = new Button($("ArchiveManagementView.robots"),
 				new ThemeResource("images/icons/experience/robot_platform_truck.png"));
@@ -79,6 +81,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		});
 		robots.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		robots.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		robots.addStyleName("robots-caption");
 		robots.setEnabled(false);
 
 		reportsButton = new Button($("AdminRMModuleView.reports"), new ThemeResource("images/icons/experience/report.png"));
@@ -90,6 +93,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		});
 		reportsButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		reportsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		reportsButton.addStyleName("reports-caption");
 
 		presenter.onViewAssembled();
 		return new CssLayout(decommissioning, containers, reportsButton, robots);

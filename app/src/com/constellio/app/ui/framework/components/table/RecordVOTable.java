@@ -19,6 +19,7 @@ package com.constellio.app.ui.framework.components.table;
 
 import java.util.List;
 
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
@@ -51,16 +52,13 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 
 public class RecordVOTable extends Table {
-	
 	public static final String STYLE_NAME = "record-table";
-	
 	public static final String CLICKABLE_ROW_STYLE_NAME = "clickable-row";
-	
 	private RecordContextMenu contextMenu;
-	
 	private MetadataSchemaVO schemaVO;
-	
 	private MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
+	
+	private boolean contextMenuPossible = true;
 
 	public RecordVOTable() {
 		super();
@@ -81,16 +79,16 @@ public class RecordVOTable extends Table {
 		super(caption);
 		init();
 	}
-	
+
 	public RecordVOTable(RecordVODataProvider dataProvider) {
 		setContainerDataSource(new RecordVOLazyContainer(dataProvider));
 		init();
 	}
-	
+
 	private void init() {
-		addStyleName(STYLE_NAME);	
-		setColumnCollapsingAllowed(true);
-		
+		addStyleName(STYLE_NAME);
+//		setColumnCollapsingAllowed(true);
+
 		setCellStyleGenerator(new CellStyleGenerator() {
 			@Override
 			public String getStyle(Table source, Object itemId, Object propertyId) {
@@ -100,10 +98,15 @@ public class RecordVOTable extends Table {
 					if (metadataVO.codeMatches(Schemas.TITLE_CODE)) {
 						RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);
 						RecordVO recordVO = recordVOItem.getRecord();
-						String extension = FileIconUtils.getExtension(recordVO);
-						if (extension != null) {
-							style = "file-icon-" + extension;
-						} else {
+						recordVO = getRecordVOForTitleColumn(recordVO);
+						try {
+							String extension = FileIconUtils.getExtension(recordVO);
+							if (extension != null) {
+								style = "file-icon-" + extension;
+							} else {
+								style = null;
+							}
+						} catch(Exception e) {
 							style = null;
 						}
 					} else {
@@ -117,6 +120,18 @@ public class RecordVOTable extends Table {
 		});
 	}
 	
+	protected RecordVO getRecordVOForTitleColumn(RecordVO rowRecordVO) {
+		return rowRecordVO;
+	}
+
+	public final boolean isContextMenuPossible() {
+		return contextMenuPossible;
+	}
+
+	public final void setContextMenuPossible(boolean contextMenuPossible) {
+		this.contextMenuPossible = contextMenuPossible;
+	}
+
 	public final MetadataSchemaVO getSchema() {
 		return schemaVO;
 	}
@@ -136,7 +151,7 @@ public class RecordVOTable extends Table {
 		findSchemaVO(newDataSource);
 		initSchemaVO();
 	}
-	
+
 	@Override
 	public Property<?> getContainerProperty(final Object itemId, final Object propertyId) {
 		Property<?> containerProperty;
@@ -146,8 +161,10 @@ public class RecordVOTable extends Table {
 			RecordVO recordVO = recordVOItem.getRecord();
 			MetadataValueVO metadataValue = recordVO.getMetadataValue(metadataVO);
 			Component metadataDisplay = buildMetadataComponent(metadataValue, recordVO);
-			if ((metadataDisplay instanceof Label) && metadataVO.codeMatches(Schemas.TITLE.getCode())) {
-				String prefix = SchemaCaptionUtils.getCaptionForSchema(schemaVO.getCode());
+			if ((metadataDisplay instanceof Label) && metadataVO.codeMatches(Schemas.TITLE_CODE)) {
+				recordVO = getRecordVOForTitleColumn(recordVO);
+				MetadataSchemaVO recordSchemaVO = recordVO.getSchema();
+				String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
 				if (StringUtils.isNotBlank(prefix)) {
 					Label titleLabel = (Label) metadataDisplay;
 					titleLabel.setValue(prefix + " " + titleLabel.getValue());
@@ -188,20 +205,22 @@ public class RecordVOTable extends Table {
 	private void initSchemaVO() {
 		if (schemaVO != null) {
 			MetadataVO titleMetadata = schemaVO.getMetadata(Schemas.TITLE.getCode());
-			setColumnExpandRatio(titleMetadata, 1);			
-			addContextMenu();
+			setColumnExpandRatio(titleMetadata, 1);
+			if (isContextMenuPossible()) {
+				addContextMenu();
+			}
 		}
 	}
-	
+
 	protected RecordVO getRecordVO(Object itemId) {
 		RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);
 		return recordVOItem.getRecord();
 	}
-	
+
 	protected void addContextMenu() {
 		String schemaCode = getSchema().getCode();
 		List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
-		for (final RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
+		for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
 			if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
 				contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
 				break;
@@ -232,7 +251,7 @@ public class RecordVOTable extends Table {
 	@Override
 	public void addItemClickListener(final ItemClickListener listener) {
 		addStyleName(CLICKABLE_ROW_STYLE_NAME);
-		
+
 		super.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
@@ -244,13 +263,13 @@ public class RecordVOTable extends Table {
 	}
 
 	public void collapseColumn(String metadataCode) {
-		if (!isColumnCollapsingAllowed()){
+		if (!isColumnCollapsingAllowed()) {
 			return;
 		}
 		Object[] metadataList = getVisibleColumns();
-		for(Object metadata : metadataList){
+		for (Object metadata : metadataList) {
 			MetadataVO metadataVO = (MetadataVO) metadata;
-			if (metadataVO.getCode().contains(metadataCode)){
+			if (metadataVO.getCode().contains(metadataCode)) {
 				setColumnCollapsed(metadata, true);
 			}
 		}

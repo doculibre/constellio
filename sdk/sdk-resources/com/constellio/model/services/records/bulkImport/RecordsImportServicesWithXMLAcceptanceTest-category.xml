@@ -11,8 +11,8 @@
             <item>gas</item>
         </keywords>
         <retentionRules multivalue="true">
-            <item>code:rule1</item>
-            <item>code:rule2</item>
+            <item>code:1</item>
+            <item>code:2</item>
         </retentionRules>
         <parent></parent>
     </record>
@@ -25,7 +25,7 @@
             <item>wet</item>
             <item>rain</item>
         </keywords>
-        <retentionRules multivalue="true"></retentionRules>
+        <retentionRules></retentionRules>
         <parent>22200</parent>
     </record>
     <record id="22231">
@@ -37,7 +37,9 @@
             <item>%wet%</item>
             <item>a_p_o_c_a_l_y_p_s_e</item>
         </keywords>
-        <retentionRules multivalue="true">code:rule1</retentionRules>
-        <parent>title:Water Category</parent>
+        <retentionRules multivalue="true">
+            <item>code:1</item>
+        </retentionRules>
+        <parent>22230</parent>
     </record>
 </records>

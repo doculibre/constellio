@@ -91,9 +91,9 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		assertThat(modifyProfilePage.getPasswordElement().getValue()).isEqualTo("");
 		assertThat(modifyProfilePage.getConfirmPasswordElement().getValue()).isEqualTo("");
 		assertThat(modifyProfilePage.getOldPasswordElement().getValue()).isEqualTo("");
-		assertThat(modifyProfilePage.getStartTabElement().getEnabledValues().get(0)).isEqualTo($(
+		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0)).isEqualTo($(
 				"ModifyPofilView." + StartTab.RECENT_FOLDERS));
-		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getEnabledValues()).isEmpty();
+		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getCheckedValues()).isEmpty();
 	}
 
 	private void givenUserInZePageWihtParamsWhenClickInModifyProfileAndClickCancelThenNavigateToZePageWithParams()
@@ -142,9 +142,9 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		assertThat(modifyProfilePage.getLastNameElement().getValue()).isEqualTo("Admin");
 		assertThat(modifyProfilePage.getEmailElement().getValue()).isEqualTo("admin@organization.com");
 		assertThat(modifyProfilePage.getPhoneElement().getValue()).isEqualTo("");
-		assertThat(modifyProfilePage.getStartTabElement().getEnabledValues().get(0)).isEqualTo($(
+		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0)).isEqualTo($(
 				"ModifyPofilView." + StartTab.RECENT_FOLDERS));
-		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getEnabledValues()).isEmpty();
+		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getCheckedValues()).isEmpty();
 	}
 
 	private void whenModifyInfosAndSaveThenInfosAreUpdated()
@@ -166,9 +166,9 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		assertThat(modifyProfilePage.getLastNameElement().getValue()).isEqualTo("Administrator");
 		assertThat(modifyProfilePage.getEmailElement().getValue()).isEqualTo("administrator@constellio.com");
 		assertThat(modifyProfilePage.getPhoneElement().getValue()).isEqualTo("33333333");
-		assertThat(modifyProfilePage.getStartTabElement().getEnabledValues().get(0)).isEqualTo($(
+		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0)).isEqualTo($(
 				"ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
-		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getEnabledValues().get(0)).isEqualTo("Plan de classification");
+		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getCheckedValues().get(0)).isEqualTo("Plan de classification");
 
 	}
 

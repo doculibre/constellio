@@ -22,6 +22,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -32,7 +33,10 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -97,11 +101,15 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 
 		if (classifiedObjects != null) {
 			if (classifiedObjects.contains("folderObject")) {
-				createMetadatasInDefaultSchemaIfInexistent(taxonomy, Folder.SCHEMA_TYPE);
+				if ((actionEdit && canEditClassifiedObjects(newTaxonomyVO(taxonomy))) || !actionEdit) {
+					createMetadatasInDefaultSchemaIfInexistent(taxonomy, Folder.SCHEMA_TYPE);
+				}
 			}
 
 			if (classifiedObjects.contains("documentObject")) {
-				createMetadatasInDefaultSchemaIfInexistent(taxonomy, Document.SCHEMA_TYPE);
+				if ((actionEdit && canEditClassifiedObjects(newTaxonomyVO(taxonomy))) || !actionEdit) {
+					createMetadatasInDefaultSchemaIfInexistent(taxonomy, Document.SCHEMA_TYPE);
+				}
 			}
 		}
 	}
@@ -197,4 +205,16 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	public boolean canEditClassifiedObjects(TaxonomyVO taxonomyVO) {
 		return !actionEdit || taxonomyVO.getClassifiedObjects().isEmpty();
 	}
+
+	@Override
+	protected boolean hasPageAccess(String parameters, User user) {
+		Map<String, String> params = ParamUtils.getParamsMap(parameters);
+		String taxonomyCode = params.get("taxonomyCode");
+		if (taxonomyCode == null) {
+			return user.has(CorePermissions.MANAGE_TAXONOMIES).globally();
+		} else {
+			return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user);
+		}
+	}
+
 }

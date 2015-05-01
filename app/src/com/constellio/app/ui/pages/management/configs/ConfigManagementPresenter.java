@@ -25,7 +25,9 @@ import com.constellio.app.ui.entities.SystemConfigurationGroupVO;
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -92,5 +94,10 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 
 	public void backButtonClick() {
 		view.navigateTo().adminModule();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION);
 	}
 }

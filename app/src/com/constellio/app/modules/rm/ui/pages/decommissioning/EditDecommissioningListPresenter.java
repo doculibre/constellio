@@ -17,11 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class EditDecommissioningListPresenter extends SingleSchemaBasePresenter<EditDecommissioningListView> {
 	String recordId;
@@ -33,6 +35,11 @@ public class EditDecommissioningListPresenter extends SingleSchemaBasePresenter<
 	public EditDecommissioningListPresenter forRecordId(String recordId) {
 		this.recordId = recordId;
 		return this;
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
 	}
 
 	public RecordVO getDecommissioningList() {

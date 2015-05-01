@@ -115,6 +115,7 @@ public class RMConfigs {
 		// Considérer ou non le statut "approuvé" de la category dans le calculateur
 		add(LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES = decommissioning
 				.createBooleanFalseByDefault("linkableCategoryMustHaveApprovedRules"));
+
 	}
 
 	static void add(SystemConfiguration configuration) {

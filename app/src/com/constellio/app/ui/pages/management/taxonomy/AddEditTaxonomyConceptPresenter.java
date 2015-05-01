@@ -28,6 +28,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 
 @SuppressWarnings("serial")
@@ -110,5 +111,11 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 
 	public String getConceptId() {
 		return conceptId;
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		forElementInTaxonomy(params);
+		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user);
 	}
 }

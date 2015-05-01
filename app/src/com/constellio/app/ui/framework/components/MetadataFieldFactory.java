@@ -126,7 +126,7 @@ public class MetadataFieldFactory implements Serializable {
 					if (enumClass != null) {
 						field = new EnumWithSmallCodeComboBox(enumClass);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyComboBox(firstTaxonomyCode);
+						field = new TaxonomyComboBox(firstTaxonomyCode, schemaTypeCode);
 					} else {
 						field = null;
 					}
@@ -135,7 +135,7 @@ public class MetadataFieldFactory implements Serializable {
 					if (enumClass != null) {
 						field = new EnumWithSmallCodeOptionGroup(enumClass);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
 					} else {
 						field = null;
 					}
@@ -164,7 +164,7 @@ public class MetadataFieldFactory implements Serializable {
 					if (enumClass != null) {
 						field = new EnumWithSmallCodeComboBox(enumClass);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyComboBox(firstTaxonomyCode);
+						field = new TaxonomyComboBox(firstTaxonomyCode, schemaTypeCode);
 					} else if (allowedReferences != null) {
 						String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);
 						if (firstSchemaCode != null) {
@@ -180,7 +180,7 @@ public class MetadataFieldFactory implements Serializable {
 					if (enumClass != null) {
 						field = new EnumWithSmallCodeOptionGroup(enumClass);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
 					} else if (allowedReferences != null) {
 						String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);
 						if (firstSchemaCode != null) {
@@ -267,7 +267,7 @@ public class MetadataFieldFactory implements Serializable {
 					if (enumClass != null) {
 						field = new ListAddRemoveEnumWithSmallCodeComboBox(enumClass);
 					} else if (firstTaxonomyCode != null) {
-						field = new ListAddRemoveTaxonomyComboBox(firstTaxonomyCode);
+						field = new ListAddRemoveTaxonomyComboBox(firstTaxonomyCode, schemaTypeCode);
 					} else {
 						field = null;
 					}
@@ -277,7 +277,7 @@ public class MetadataFieldFactory implements Serializable {
 						field = new EnumWithSmallCodeOptionGroup(enumClass);
 						((EnumWithSmallCodeOptionGroup) field).setMultiSelect(true);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
 						((TaxonomyOptionGroup) field).setMultiSelect(true);
 					} else {
 						field = null;
@@ -307,7 +307,7 @@ public class MetadataFieldFactory implements Serializable {
 					if (enumClass != null) {
 						field = new ListAddRemoveEnumWithSmallCodeComboBox(enumClass);
 					} else if (firstTaxonomyCode != null) {
-						field = new ListAddRemoveTaxonomyComboBox(firstTaxonomyCode);
+						field = new ListAddRemoveTaxonomyComboBox(firstTaxonomyCode, schemaTypeCode);
 					} else if (allowedReferences != null) {
 						String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);
 						if (firstSchemaCode != null) {
@@ -323,7 +323,7 @@ public class MetadataFieldFactory implements Serializable {
 					if (enumClass != null) {
 						field = new EnumWithSmallCodeOptionGroup(enumClass);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
 						((TaxonomyOptionGroup) field).setMultiSelect(true);
 					} else if (allowedReferences != null) {
 						String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);

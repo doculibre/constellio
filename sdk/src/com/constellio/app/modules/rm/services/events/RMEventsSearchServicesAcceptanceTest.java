@@ -116,8 +116,6 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		assertThat(events.get(0).getId().equals(expectedId));
 	}
 
-
-
 	//by folder
 	@Test
 	public void whenGetGrantedPermissionsByFolderThenReturnValidEvents()
@@ -198,7 +196,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 				.findLoggedUsers(users.adminIn(zeCollection));
 
 		assertThat(loggedUsers).hasSize(2);
-		for (Event event : loggedUsers){
+		for (Event event : loggedUsers) {
 			LocalDateTime currentDate = event.getCreatedOn();
 			assertThat(currentDate).isEqualTo(expectedOpenSessionDate);
 			String currentUsername = event.getUsername();
@@ -207,7 +205,8 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	//by filing space
-	@Test
+	//TODO Nouha : Le test utilise des path contenant plusieurs fois le même id, ce n'est pas possible
+	//@Test
 	public void whenGetCreatedFoldersByFilingSpaceThenReturnValidEvents()
 			throws Exception {
 		//saved paths null and /a/b/c/a/b /jk
@@ -226,19 +225,21 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 				.add(createFolderInFilingSpace(filingSpacePath3).setCreatedOn(testDate));
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		String[] nonAcceptedPaths = {"/c", "/ab", "/b", "/a/b/c/a/b/c"};
+		String[] nonAcceptedPaths = { "/c", "/ab", "/b", "/a/b/c/a/b/c" };
 		LogicalSearchQuery createdFoldersInFilingSpaceQuery;
-		for (String currentNonAcceptedPath : nonAcceptedPaths){
+		for (String currentNonAcceptedPath : nonAcceptedPaths) {
 			createdFoldersInFilingSpaceQuery = rmSchemasRecordsServices
-					.newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(users.adminIn(zeCollection), testDate, new LocalDateTime(), currentNonAcceptedPath);
+					.newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(users.adminIn(zeCollection), testDate,
+							new LocalDateTime(), currentNonAcceptedPath);
 			long count = searchServices.getResultsCount(createdFoldersInFilingSpaceQuery);
 			assertThat(count).isEqualTo(0l);
 		}
 
-		String[] acceptedPaths = {"/a/b/c/a/b", "/a/b/c/a/b/", "/a/b/c"};
-		for (String currentNonAcceptedPath : acceptedPaths){
+		String[] acceptedPaths = { "/a/b/c/a/b", "/a/b/c/a/b/", "/a/b/c" };
+		for (String currentNonAcceptedPath : acceptedPaths) {
 			createdFoldersInFilingSpaceQuery = rmSchemasRecordsServices
-					.newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(users.adminIn(zeCollection), testDate, new LocalDateTime(), currentNonAcceptedPath);
+					.newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(users.adminIn(zeCollection), testDate,
+							new LocalDateTime(), currentNonAcceptedPath);
 			List<Event> events = schemas.wrapEvents(searchServices.search(createdFoldersInFilingSpaceQuery));
 			assertThat(events.size()).isEqualTo(1);
 			assertThat(events.get(0).getEventPrincipalPath()).isEqualTo(filingSpacePath1);

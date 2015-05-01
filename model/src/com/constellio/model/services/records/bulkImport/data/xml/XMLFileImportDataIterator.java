@@ -28,13 +28,12 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.LazyIterator;
+import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.bulkImport.data.ImportData;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIterator;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate;
@@ -50,6 +49,9 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 	public static final String MULTIVALUE_ATTR = "multivalue";
 	public static final String ID_ATTR = "id";
 	public static final String SCHEMA_ATTR = "schema";
+	public static final String URL_ATTR = "url";
+	public static final String FILENAME_ATTR = "filename";
+	public static final String MAJOR_ATTR = "major";
 	
 	public static final String STRING_VALUE = "string";
 	public static final String CONTENT_VALUE = "content";
@@ -60,6 +62,9 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 	public static final String DATETIME_PATTERN = "datetimePattern";
 
 	String previousSystemId;
+	String url;
+	String filename;
+	String major;
 
 	private Reader reader;
 	private String schema = null;
@@ -102,7 +107,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 
 	private ImportData parseRecord()
 			throws XMLStreamException {
-		String type = null;
+		String type;
 		Object value;
 		index = 0;		 
 		
@@ -124,23 +129,30 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 							schema = "default";
 						}
 						previousSystemId = xmlReader.getAttributeValue("", ID_ATTR);
+						if(previousSystemId == null) {
+							return null;
+						}
 						fields = new HashMap<>();
 						break;
-											
+						
+					case CONTENT_VALUE:
+						url = xmlReader.getAttributeValue("", URL_ATTR);
+						filename = xmlReader.getAttributeValue("", FILENAME_ATTR);
+						major = xmlReader.getAttributeValue("", MAJOR_ATTR);
+						
 					default:
 						type = getType();
 						value = isMultivalue() ? parseMultivalue(xmlReader.getLocalName(), type) : parseScalar(type);
-	
-						if (value != null) {
+
+						if (value != "" && !value.equals("null")) {
 							fields.put(xmlReader.getLocalName(), value);
 						}
-		
+
 						break;
 				}
 			} else if (event == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals(RECORD_TAG)) {
 				return new ImportData(++index, schema, previousSystemId, fields);
 			}
-			
 		}
 		return null;
 	}
@@ -151,10 +163,16 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 		List<Object> values = new ArrayList<>();
 
 		while (xmlReader.hasNext()) {
+			
 			int event = xmlReader.next();
+
 			if (event == XMLStreamConstants.START_ELEMENT) {
+				url = xmlReader.getAttributeValue("", URL_ATTR);
+				filename = xmlReader.getAttributeValue("", FILENAME_ATTR);
+				major = xmlReader.getAttributeValue("", MAJOR_ATTR);
 				values.add(parseScalar(type));
 			} else if (event == XMLStreamConstants.END_ELEMENT) {
+				
 				if (xmlReader.getLocalName().equals(localName)) {
 					break;
 				}
@@ -165,9 +183,13 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 
 	private Object parseScalar(String type)
 			throws XMLStreamException {
+		
 		String content = "";
+		
 		while (xmlReader.hasNext()) {
+			
 			int event = xmlReader.next();
+			
 			if (event == XMLStreamConstants.CHARACTERS) {
 				content = xmlReader.getText().trim();
 			} else if (event == XMLStreamConstants.END_ELEMENT) {
@@ -175,16 +197,11 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 			}
 		}
 		
-		if(content.isEmpty() || content.equals("null")) {
-			return null;
-		}
-		
 		switch (type) {		
 			case DATE_VALUE:
 				DateTimeFormatter datePattern = DateTimeFormat.forPattern(patterns.get(DATE_PATTERN));
 				try {
-					LocalDate dateValue = datePattern.parseLocalDate(content);
-					return dateValue;
+					return datePattern.parseLocalDate(content);
 				} catch (IllegalArgumentException exception) {
 					throw new ImportDataIteratorRuntimeException_InvalidDate(patterns.get(DATE_PATTERN), content);
 				}
@@ -192,13 +209,21 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 			case DATETIME_VALUE:			
 				DateTimeFormatter datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));				
 				try {
-					LocalDateTime datetimeValue = datetimePattern.parseLocalDateTime(content);
-					return datetimeValue;
+					return datetimePattern.parseLocalDateTime(content);
 				} catch (IllegalArgumentException exception) {
 					throw new ImportDataIteratorRuntimeException_InvalidDate(patterns.get(DATETIME_PATTERN), content);
 				}
 				
+			case CONTENT_VALUE:
+				if(major == null) {
+					major = "false";
+				}
+				return new ContentImport(url, filename, Boolean.parseBoolean(major));
+				
 			default:
+				if(content.isEmpty()) {
+					return "";
+				}
 				return content;
 			}
 	}
@@ -210,14 +235,12 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 
 	private boolean isMultivalue() {
 		 String multivalue = xmlReader.getAttributeValue("", MULTIVALUE_ATTR);
-	     return Strings.isNullOrEmpty(multivalue) ? false : Boolean.parseBoolean(multivalue);
+	     return !Strings.isNullOrEmpty(multivalue) && Boolean.parseBoolean(multivalue);
 	}
 
 	private XMLStreamReader newXMLStreamReader(Reader reader) {
-
 		try {
-			XMLStreamReader streamReader = XMLInputFactory.newInstance().createXMLStreamReader(reader);
-			return streamReader;
+			return XMLInputFactory.newInstance().createXMLStreamReader(reader);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

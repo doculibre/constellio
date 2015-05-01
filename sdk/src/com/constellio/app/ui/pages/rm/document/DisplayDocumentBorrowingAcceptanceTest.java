@@ -59,14 +59,15 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		records = new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
-		
-		zeRecords = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent();
+
+		zeRecords = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
+				.withDocumentsHavingContent();
 
 		idDocument = recordIdWithTitleInCollection("assurance-EmiliePoulain.odt", "LaCollectionDeRida");
 	}
 
 	@Test
-	public void givenARGDUserThenBorrowingIsOk() 
+	public void givenARGDUserThenBorrowingIsOk()
 			throws Exception {
 		logAs(admin);
 
@@ -75,7 +76,7 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 
 		navigateToSemiActiveDocument();
 		assertThatBorrowingEnabled();
-		
+
 		navigateToInactiveDocument();
 		assertThatBorrowingEnabled();
 	}
@@ -89,7 +90,7 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 
 		navigateToSemiActiveDocument();
 		assertThatBorrowingInvisible();
-		
+
 		navigateToInactiveDocument();
 		assertThatBorrowingInvisible();
 	}
@@ -158,10 +159,9 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 
 	private void navigateToSemiActiveDocument() {
 		String id = recordIdWithTitleInCollection("Grenouille.odt", zeCollection);
-		System.out.println("Grenouille : " + id);
 		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
 	}
-	
+
 	private void navigateToInactiveDocument() {
 		String id = recordIdWithTitleInCollection("Lynx.odt", zeCollection);
 		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
@@ -187,7 +187,11 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 	}
 
 	private ConstellioWebElement getButton(String buttonName) {
-		driver.waitUntilElementExist(By.className("action-menu-button"));
+		try {
+			driver.waitUntilElementExist(By.className("action-menu-button"));
+		} catch (Exception e) {
+			return null;
+		}
 		List<ConstellioWebElement> listButtonActionMenu = driver.findAdaptElements(By.className("action-menu-button"));
 		for (ConstellioWebElement buttonElement : listButtonActionMenu) {
 			if (buttonElement.getText().contains(buttonName)) {

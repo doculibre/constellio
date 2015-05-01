@@ -22,6 +22,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
@@ -35,6 +36,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -48,6 +50,11 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 
 	public DecommissioningMainPresenter(DecommissioningMainView view) {
 		super(view, DecommissioningList.DEFAULT_SCHEMA);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
 	}
 
 	public List<String> getTabs() {

@@ -96,6 +96,7 @@ public class RMTestRecords {
 	public final String categoryId_Z120 = "categoryId_Z120";
 	public final String categoryId_Z200 = "categoryId_Z200";
 	public final String categoryId_ZE42 = "categoryId_ZE42";
+	public final String categoryId_Z999 = "categoryId_Z999";
 
 	public final String categoryId_X = "categoryId_X";
 	public final String categoryId_X100 = "categoryId_X100";
@@ -123,11 +124,16 @@ public class RMTestRecords {
 	public final String documentTypeId_2 = "documentTypeId_2";
 	public final String documentTypeId_3 = "documentTypeId_3";
 	public final String documentTypeId_4 = "documentTypeId_4";
+	public final String documentTypeId_5 = "documentTypeId_5";
+	public final String documentTypeId_6 = "documentTypeId_6";
+	public final String documentTypeId_7 = "documentTypeId_7";
+	public final String documentTypeId_8 = "documentTypeId_8";
 
 	public final String ruleId_1 = "ruleId_1";
 	public final String ruleId_2 = "ruleId_2";
 	public final String ruleId_3 = "ruleId_3";
 	public final String ruleId_4 = "ruleId_4";
+	public final String ruleId_5 = "ruleId_5";
 
 	public final String storageSpaceId_S01 = "S01";
 	public final String storageSpaceId_S01_01 = "S01-01";
@@ -335,9 +341,9 @@ public class RMTestRecords {
 		contentManager = modelLayerFactory.getContentManager();
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
-		PA = rm.getMediumTypeByCode("PA").getId();
-		MD = rm.getMediumTypeByCode("DM").getId();
-		MV = rm.getMediumTypeByCode("FI").getId();
+		PA = rm.PA();
+		MD = rm.DM();
+		MV = rm.FI();
 		PA_MD = asList(PA, MD);
 
 		Transaction transaction = new Transaction();
@@ -408,7 +414,12 @@ public class RMTestRecords {
 		transaction.add(rm.newDocumentTypeWithId(documentTypeId_2).setCode("2").setTitle("Typologie"));
 		transaction.add(rm.newDocumentTypeWithId(documentTypeId_3).setCode("3").setTitle("Petit guide"));
 		transaction.add(rm.newDocumentTypeWithId(documentTypeId_4).setCode("4").setTitle("Histoire"));
-
+		transaction.add(rm.newDocumentTypeWithId(documentTypeId_5).setCode("5").setTitle("Calendrier des réunions"));
+		transaction.add(rm.newDocumentTypeWithId(documentTypeId_6).setCode("6").setTitle(
+				"Dossier de réunion : avis de convocation, ordre du jour, procès-verbal, extraits de procès-verbaux, résolutions, documents déposés, correspondance"));
+		transaction.add(rm.newDocumentTypeWithId(documentTypeId_7).setCode("7").setTitle("Notes de réunion"));
+		transaction.add(rm.newDocumentTypeWithId(documentTypeId_8).setCode("8")
+				.setTitle("Dossiers des administrateurs : affirmations solennelles, serments de discrétion"));
 	}
 
 	private void waitForBatchProcesses(BatchProcessesManager batchProcessesManager) {
@@ -511,6 +522,9 @@ public class RMTestRecords {
 		transaction.add(rm.newCategoryWithId(categoryId_ZE42).setCode("ZE42").setTitle("Ze 42")
 				.setParent(categoryId_Z).setRetentionRules(asList(ruleId_1, ruleId_2, ruleId_3, ruleId_4)));
 
+		transaction.add(rm.newCategoryWithId(categoryId_Z999).setCode("Z999").setTitle("Z999")
+				.setParent(categoryId_Z).setRetentionRules(asList(ruleId_5)));
+
 	}
 
 	private void setupAdministrativeUnits(Transaction transaction) {
@@ -605,6 +619,80 @@ public class RMTestRecords {
 				new RetentionRuleDocumentType(documentTypeId_3),
 				new RetentionRuleDocumentType(documentTypeId_4)));
 
+		RetentionRule rule5 = rm.newRetentionRuleWithId(ruleId_5);
+		rule5.setCode("0122");
+		rule5.setTitle("Conseil d’administration");
+		rule5.setDocumentTypesDetails(asList(
+				new RetentionRuleDocumentType(documentTypeId_5),
+				new RetentionRuleDocumentType(documentTypeId_6),
+				new RetentionRuleDocumentType(documentTypeId_7),
+				new RetentionRuleDocumentType(documentTypeId_8)
+		));
+		rule5.setResponsibleAdministrativeUnits(true);
+
+		CopyRetentionRule principal888_5_C_rule5 = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "888-5-C");
+		principal888_5_C_rule5.setActiveRetentionComment("R1");
+		principal888_5_C_rule5.setSemiActiveRetentionComment("R2");
+		principal888_5_C_rule5.setInactiveDisposalComment("R3");
+		CopyRetentionRule secondary888_0_D_rule5 = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
+		secondary888_0_D_rule5.setActiveRetentionComment("R1");
+		secondary888_0_D_rule5.setInactiveDisposalComment("R3");
+
+		rule5.setCopyRetentionRules(asList(principal888_5_C_rule5, secondary888_0_D_rule5));
+
+		String r1_rule5 =
+				"R1:\n" +
+						"Valeur administrative" +
+						"Le conseil d’administration (CA) est responsable de la marche des affaires de l’organisme et prend des décisions à cet effet, tel que décrit dans le Règlement intérieur de l’OACIQ (art. 111).\n\n"
+						+
+						"Pour ce faire, les documents nécessaires à la bonne marche d’une réunion du conseil d’administration, selon les règles et procédures édictées par le Règlement intérieur, sont rassemblés, communiqués aux administrateurs et conservés dans un dossier. Ces documents permettent de documenter les points à discuter, les décisions à prendre et l’état d’avancement des sujets à l’étude1.\n\n"
+						+
+						"Chacune des séances doit faire l’objet d’un procès-verbal (art. 110 du Règlement intérieur). Les procès-verbaux sont régulièrement consultés pour connaître ou se référer aux décisions du CA. Par ailleurs, les documents transmis avant ou déposés lors de la séance aident à comprendre le procès-verbal qui peut y référer.\n\n"
+						+
+						"De plus, certaines résolutions sont transmises pour le suivi des dossiers ou suite à une demande particulière. Ces résolutions sont classées au dossier pertinent tenu par le service concerné.\n\n"
+						+
+						"Conseil d’administration\n\n" +
+						"Les dossiers des réunions peuvent être consultés pour répondre à une demande d’information ou une demande d’accès déposée en vertu de la Loi sur l’accès.\n\n"
+						+
+						"Les documents contenus aux dossiers de séances du conseil d’administration sont considérés comme des documents essentiels parce qu’ils rendent compte des décisions importantes de l’organisme.\n\n"
+						+
+						"Valeur de preuve\n\n" +
+						"Les documents rendent compte du suivi des procédures décrites au Règlement intérieur de l’OACIQ et de la validité des réunions du conseil.\n\n"
+						+
+						"Le procès-verbal atteste des décisions prises par le conseil et de ce fait, de la légalité des actions de l’organisme qui en découlent. Il peut être présenté comme preuve à cet effet dans un litige2.\n\n"
+						+
+						"Les documents attestent de l’application de la Loi sur le courtage immobilier, du Règlement intérieur de l’OACIQ (art. 116, 117 et 124), de la bonne gouvernance de l’organisme et peuvent être consultés à ce sujet lors d’une inspection par le ministre des Finances.\n\n";
+
+		String r2_rule5 =
+				"R2:\n" +
+						"Valeur administrative\n\n" +
+						"Les dossiers des réunions peuvent être consultés pour répondre à une demande d’information ou une demande d’accès déposée en vertu de la Loi sur l’accès aux documents et sur la protection des renseignements personnels (LRQ, c A-2.1).\n\n"
+						+
+						"Les procès-verbaux sont régulièrement consultés pour connaître ou se référer aux décisions du CA. Par ailleurs, les documents transmis avant ou déposés lors de la séance aident à comprendre le procès-verbal qui peut y référer.\n\n"
+						+
+						"Valeur de preuve\n\n" +
+						"Les documents rendent compte du suivi des procédures décrites au Règlement intérieur de l’OACIQ et de la validité des réunions du conseil.\n\n"
+						+
+						"Le procès-verbal atteste des décisions prises par le conseil et de ce fait, de la légalité des actions de l’organisme. Il peut être présenté comme preuve à cet effet dans un litige3.\n\n"
+						+
+						"Les documents attestent de l’application de la Loi sur le courtage immobilier, du Règlement intérieur de l’OACIQ, de la bonne gouvernance de l’organisme et peuvent être consultés à ce sujet lors d’une inspection par le ministre des Finances (art. 113 et 114 de la Loi sur le courtage\n\n"
+						+
+						"immobilier).\n\n";
+
+		String r3_rule5 =
+				"R3:\n" +
+						"Valeur historique\n\n" +
+						"Le dossier de réunion, et plus particulièrement le procès-verbal de la réunion, recense tous les événements qui ont marqué l’existence de l’organisation et témoigne des réflexions et des décisions du conseil. De plus, les documents afférents qui y sont conservés permettent également de mieux comprendre les résolutions et les discussions mentionnées au procès-verbal. Ainsi, le dossier de réunion informe sur l’évolution de l’organisme.\n\n"
+						+
+						"Toutefois, pour se conformer à la Loi sur l’accès aux documents (art. 73), les renseignements personnels contenus aux documents afférents devront être retirés.\n\n"
+						+
+						"N.B. Les documents afférents sont conservés au dossier de séance bien que leur conservation soit déjà assurée par l’application de leur propre règle de conservation. Il a été constaté qu’il pouvait être ardu de retrouver les documents présentés au CA dans leur dossier respectif en raison d’une application inégale des outils de gestion documentaire au cours des dernières années. Ainsi, la conservation du dossier de séance complet assure l’accès aux documents tels que présentés au CA.\n\n"
+						+
+						"Une révision de la règle dans cinq ans pourra permettre de réévaluer la pertinence de conserver les documents afférents de façon permanente.\n\n";
+
+		rule5.setCopyRulesComment(asList(r1_rule5, r2_rule5, r3_rule5));
+
+		transaction.add(rule5);
 	}
 
 	private void createGroupsEvents() {
@@ -1668,6 +1756,10 @@ public class RMTestRecords {
 		return rm.getCategory(categoryId_ZE42);
 	}
 
+	public Category getCategory_Z999() {
+		return rm.getCategory(categoryId_Z999);
+	}
+
 	public Category getCategory_X() {
 		return rm.getCategory(categoryId_X);
 	}
@@ -1750,6 +1842,14 @@ public class RMTestRecords {
 
 	public RetentionRule getRule3() {
 		return rm.getRetentionRule(ruleId_3);
+	}
+
+	public RetentionRule getRule4() {
+		return rm.getRetentionRule(ruleId_4);
+	}
+
+	public RetentionRule getRule5() {
+		return rm.getRetentionRule(ruleId_5);
 	}
 
 	public String getCollection() {
@@ -2391,7 +2491,7 @@ public class RMTestRecords {
 	public Document getDocumentWithContent_B33() {
 		return rm.getDocument(document_B33);
 	}
-	
+
 	public Document getDocumentWithContent_A79() {
 		return rm.getDocument(document_A49);
 	}

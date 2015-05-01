@@ -29,12 +29,13 @@ import static com.constellio.model.services.security.AuthorizationsServicesRunti
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import org.joda.time.LocalDate;
 
-import com.constellio.data.utils.LangUtils;
+import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -43,7 +44,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
@@ -66,25 +66,20 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 
 public class AuthorizationsServices {
-
 	MetadataSchemasManager schemasManager;
 	private LoggingServices loggingServices;
-
 	UserServices userServices;
-
 	AuthorizationDetailsManager manager;
-
 	RolesManager rolesManager;
-
 	TaxonomiesManager taxonomiesManager;
-
 	RecordServices recordServices;
-
 	SearchServices searchServices;
+	UniqueIdGenerator uniqueIdGenerator;
 
 	public AuthorizationsServices(AuthorizationDetailsManager manager, RolesManager rolesManager,
 			TaxonomiesManager taxonomiesManager, RecordServices recordServices, SearchServices searchServices,
-			UserServices userServices, MetadataSchemasManager schemasManager, LoggingServices loggingServices) {
+			UserServices userServices, MetadataSchemasManager schemasManager, LoggingServices loggingServices,
+			UniqueIdGenerator uniqueIdGenerator) {
 		this.manager = manager;
 		this.rolesManager = rolesManager;
 		this.taxonomiesManager = taxonomiesManager;
@@ -93,6 +88,7 @@ public class AuthorizationsServices {
 		this.userServices = userServices;
 		this.schemasManager = schemasManager;
 		this.loggingServices = loggingServices;
+		this.uniqueIdGenerator = uniqueIdGenerator;
 	}
 
 	public Authorization getAuthorization(String collection, String id) {
@@ -100,7 +96,7 @@ public class AuthorizationsServices {
 		if (authDetails == null) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
 		}
-		List<String> grantedToPrincipals = findAllPrincipalsWithAuthorization(authDetails);
+		List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
 		List<String> grantedOnRecords = findAllRecordsWithAuthorizations(authDetails, grantedToPrincipals);
 		return new Authorization(authDetails, grantedToPrincipals, grantedOnRecords);
 	}
@@ -185,8 +181,11 @@ public class AuthorizationsServices {
 		return new SchemaUtils();
 	}
 
-	public void add(Authorization authorization, CustomizedAuthorizationsBehavior behavior, User user) {
+	public String add(Authorization authorization, User user) {
+		return add(authorization, CustomizedAuthorizationsBehavior.LEAVE_AS_IS, user);
+	}
 
+	public String add(Authorization authorization, CustomizedAuthorizationsBehavior behavior, User user) {
 		List<Record> records = getAuthorizationGrantedOnRecords(authorization);
 		List<Record> principals = getAuthorizationGrantedToPrincipals(authorization);
 
@@ -207,6 +206,8 @@ public class AuthorizationsServices {
 		if (user != null) {
 			loggingServices.grantPermission(authorization, user);
 		}
+
+		return authId;
 	}
 
 	private void saveRecordsTargettedByAuthorization(List<Record> records, List<Record> principals) {
@@ -222,18 +223,7 @@ public class AuthorizationsServices {
 
 	private void addAuthorizationToPrincipals(List<Record> principals, String authId) {
 		for (Record principal : principals) {
-			if (principal.getSchemaCode().startsWith(User.SCHEMA_TYPE)) {
-				addAuthorizationToRecord(authId, principal);
-			} else {
-				detachIfNecessary(principal);
-				addAuthorizationToRecord(authId, principal);
-			}
-		}
-	}
-
-	private void detachIfNecessary(Record record) {
-		if (LangUtils.isFalseOrNull(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
-			setupAuthorizationsForDetachedRecord(record);
+			addAuthorizationToRecord(authId, principal);
 		}
 	}
 
@@ -304,16 +294,37 @@ public class AuthorizationsServices {
 	}
 
 	void setupAuthorizationsForDetachedRecord(Record record) {
-
-		List<String> inheritedAuthorizations = record.getList(Schemas.INHERITED_AUTHORIZATIONS);
-		List<String> currentAuthorizations = record.getList(Schemas.AUTHORIZATIONS);
+		List<String> inheritedAuthorizations = new ArrayList<>(record.<String>getList(Schemas.INHERITED_AUTHORIZATIONS));
 		List<String> removedAuthorizations = record.getList(Schemas.REMOVED_AUTHORIZATIONS);
+		inheritedAuthorizations.removeAll(removedAuthorizations);
 
-		List<String> auths = new ArrayList<>(currentAuthorizations);
-		auths.addAll(inheritedAuthorizations);
+		List<String> auths = new ArrayList<>(record.<String>getList(Schemas.AUTHORIZATIONS));
+		for (String id : inheritedAuthorizations) {
+			String copyId = inheritedToSpecific(record.getCollection(), id);
+			if (copyId != null) {
+				auths.add(copyId);
+			}
+		}
 		auths.removeAll(removedAuthorizations);
+
 		record.set(Schemas.AUTHORIZATIONS, auths);
 		record.set(Schemas.IS_DETACHED_AUTHORIZATIONS, true);
+	}
+
+	String inheritedToSpecific(String collection, String id) {
+		String newId = uniqueIdGenerator.next();
+		AuthorizationDetails inherited = manager.get(collection, id);
+		AuthorizationDetails detail = AuthorizationDetails.create(
+				newId, inherited.getRoles(), inherited.getStartDate(), inherited.getEndDate(), collection);
+		manager.add(detail);
+		List<Record> principals = findAllPrincipalsWithAuthorization(inherited);
+		if (principals.isEmpty()) {
+			return null;
+		} else {
+			addAuthorizationToPrincipals(principals, detail.getId());
+			saveRecordsTargettedByAuthorization(new ArrayList<Record>(), principals);
+			return detail.getId();
+		}
 	}
 
 	void addAuthorizationToRecord(String authorizationId, Record record) {
@@ -393,6 +404,10 @@ public class AuthorizationsServices {
 		}
 	}
 
+	public void modify(Authorization authorization, User user) {
+		modify(authorization, CustomizedAuthorizationsBehavior.LEAVE_AS_IS, user);
+	}
+
 	public void modify(Authorization authorization, CustomizedAuthorizationsBehavior behavior, User user) {
 		Authorization authBefore = authorization;
 		List<String> recordIds = withoutDuplicates(authorization.getGrantedOnRecords());
@@ -418,6 +433,11 @@ public class AuthorizationsServices {
 		}
 	}
 
+	public void detach(Record record) {
+		setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.DETACH, record);
+		saveRecordsTargettedByAuthorization(Arrays.asList(record), new ArrayList<Record>());
+	}
+
 	public List<Authorization> getRecordAuthorizations(Record record) {
 
 		List<String> authIds;
@@ -436,7 +456,7 @@ public class AuthorizationsServices {
 		List<Authorization> authorizations = new ArrayList<>();
 		for (String authId : authIds) {
 			AuthorizationDetails authDetails = manager.get(record.getCollection(), authId);
-			List<String> grantedToPrincipals = findAllPrincipalsWithAuthorization(authDetails);
+			List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
 			List<String> grantedOnRecords = findAllRecordsWithAuthorizations(authDetails, grantedToPrincipals);
 			authorizations.add(new Authorization(authDetails, grantedToPrincipals, grantedOnRecords));
 		}
@@ -452,17 +472,28 @@ public class AuthorizationsServices {
 		return records;
 	}
 
-	private List<String> findAllPrincipalsWithAuthorization(AuthorizationDetails authDetails) {
+	private List<String> findAllPrincipalIdsWithAuthorization(AuthorizationDetails authDetails) {
 		List<String> principals = new ArrayList<>();
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(authDetails.getCollection());
-		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType("user");
-		query.setCondition(from(userSchemaType).where(Schemas.AUTHORIZATIONS).isContaining(asList(authDetails.getId())));
-		principals.addAll(searchServices.searchRecordIds(query));
-		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType("group");
-		query.setCondition(from(groupSchemaType).where(Schemas.AUTHORIZATIONS).isContaining(asList(authDetails.getId())));
-		principals.addAll(searchServices.searchRecordIds(query));
+		//		LogicalSearchQuery query = new LogicalSearchQuery();
+		//		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(authDetails.getCollection());
+		//		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType("user");
+		//		query.setCondition(from(userSchemaType).where(Schemas.AUTHORIZATIONS).isContaining(asList(authDetails.getId())));
+		//		principals.addAll(searchServices.searchRecordIds(query));
+		//		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType("group");
+		//		query.setCondition(from(groupSchemaType).where(Schemas.AUTHORIZATIONS).isContaining(asList(authDetails.getId())));
+		//		principals.addAll(searchServices.searchRecordIds(query));
+		for (Record record : findAllPrincipalsWithAuthorization(authDetails)) {
+			principals.add(record.getId());
+		}
 		return principals;
+	}
+
+	private List<Record> findAllPrincipalsWithAuthorization(AuthorizationDetails detail) {
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(detail.getCollection());
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(Arrays.asList(types.getSchemaType(User.SCHEMA_TYPE), types.getSchemaType(Group.SCHEMA_TYPE)))
+						.where(Schemas.AUTHORIZATIONS).isEqualTo(detail.getId()));
+		return searchServices.search(query);
 	}
 
 	public void reset(Record record) {
@@ -476,71 +507,23 @@ public class AuthorizationsServices {
 		}
 	}
 
+	@Deprecated
+	//After user.hasReadAccess instead
 	public boolean canRead(User user, Record record) {
-
-		boolean hasPermission =
-				user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
-
-		if (!hasPermission) {
-
-			for (Authorization authorization : getRecordAuthorizations(record)) {
-				List<String> roles = authorization.getDetail().getRoles();
-				if (roles.contains(Role.READ) || roles.contains(Role.WRITE) || roles
-						.contains(Role.DELETE)) {
-					hasPermission |= user.getAllUserAuthorizations().contains(authorization.getDetail().getId());
-				}
-			}
-
-		}
-
-		return hasPermission;
+		return user.hasReadAccess().on(record);
 	}
 
+	@Deprecated
+	//After user.hasWriteAccess instead
 	public boolean canWrite(User user, Record record) {
-
-		boolean hasPermission = user.hasCollectionWriteAccess();
-
-		if (!hasPermission) {
-
-			for (Authorization authorization : getRecordAuthorizations(record)) {
-				List<String> roles = authorization.getDetail().getRoles();
-				if (roles.contains(Role.WRITE)) {
-					hasPermission |= user.getAllUserAuthorizations().contains(authorization.getDetail().getId());
-				}
-			}
-
-		}
-
-		return hasPermission;
+		return user.hasWriteAccess().on(record);
 	}
 
+	@Deprecated
+	//After user.hasDeleteAccess instead
 	public boolean canDelete(User user, Record record) {
-
-		boolean hasPermission = user.hasCollectionDeleteAccess();
-
-		if (!hasPermission) {
-
-			for (Authorization authorization : getRecordAuthorizations(record)) {
-				List<String> roles = authorization.getDetail().getRoles();
-				if (roles.contains(Role.DELETE)) {
-					hasPermission |= user.getAllUserAuthorizations().contains(authorization.getDetail().getId());
-				}
-			}
-
-		}
-
-		return hasPermission;
+		return user.hasDeleteAccess().on(record);
 	}
-
-	//
-	//	public boolean hasGlobalPermission(User user, Record record, String operationPermission) {
-	//		return false;
-	//	}
-	//
-	//	public boolean hasPermission(User user, Record record, String operationPermission) {
-	//		return false;
-	//	}
-	//
 
 	private List<Role> getAllAuthorizationRoleForUser(User user) {
 		List<String> allAuthorizations = new ArrayList<>();
@@ -700,5 +683,4 @@ public class AuthorizationsServices {
 					principalTaxonomyConcept.getId(), principalTaxonomy.getCode());
 		}
 	}
-
 }

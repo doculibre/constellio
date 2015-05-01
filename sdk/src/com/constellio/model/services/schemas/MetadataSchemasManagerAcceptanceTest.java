@@ -81,6 +81,7 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -120,9 +121,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	ZeCustomSchemaMetadatas zeCustomSchema;
 	AnotherSchemaMetadatas anotherSchema;
 
-	SearchServices searchServices;
 	DataStoreTypesFactory typesFactory;
 	CollectionsListManager collectionsListManager;
+	BatchProcessesManager batchProcessesManager;
+	SearchServices searchServices;
 
 	@Mock MetadataSchemasManagerListener schemasManagerFirstCollection1Listener, schemasManagerSecondCollection1Listener, otherSchemasManagerFirstCollection1Listener, otherSchemasManagerSecondCollection1Listener, schemasManagerCollection2Listener, otherSchemasManagerCollection2Listener;
 
@@ -141,6 +143,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		searchServices = getModelLayerFactory().newSearchServices();
 		typesFactory = getDataLayerFactory().newTypesFactory();
 		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 	}
 
 	@Test
@@ -186,7 +189,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		collection2Builder.createNewSchemaType("b");
 
 		MetadataSchemasManager otherManager = new MetadataSchemasManager(configManager, typesFactory, taxonomiesManager,
-				collectionsListManager);
+				collectionsListManager, batchProcessesManager, searchServices);
 		otherManager.initialize();
 
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
@@ -207,7 +210,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataSchemasManager otherManager = new MetadataSchemasManager(configManager, typesFactory, taxonomiesManager,
-				collectionsListManager);
+				collectionsListManager, batchProcessesManager, searchServices);
 		otherManager.initialize();
 
 		givenCollection("collection1");
@@ -237,7 +240,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataSchemasManager otherManager = new MetadataSchemasManager(configManager, typesFactory, taxonomiesManager,
-				collectionsListManager);
+				collectionsListManager, batchProcessesManager, searchServices);
 		otherManager.initialize();
 
 		givenCollection("collection1");

@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.HierarchicalValueListItem;
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
@@ -38,6 +39,7 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -91,6 +93,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return new AdministrativeUnit(get(id), getTypes());
 	}
 
+	public List<AdministrativeUnit> getAdministrativesUnits(List<String> stringList) {
+		return wrapAdministrativeUnits(get(stringList));
+	}
+
 	public AdministrativeUnit getAdministrativeUnitWithCode(String code) {
 		return new AdministrativeUnit(getByCode(administrativeUnitSchemaType(), code), getTypes());
 	}
@@ -117,6 +123,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public MetadataSchemaType categorySchemaType() {
 		return getTypes().getSchemaType(Category.SCHEMA_TYPE);
+	}
+
+	public Metadata categoryRetentionRules() {
+		return categorySchema().getMetadata(Category.RETENTION_RULES);
 	}
 
 	public Category wrapCategory(Record record) {
@@ -273,7 +283,7 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Document wrapDocument(Record record) {
-		return new Document(record, getTypes());
+		return record == null ? null : new Document(record, getTypes());
 	}
 
 	public List<Document> wrapDocuments(List<Record> records) {
@@ -418,7 +428,7 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Folder wrapFolder(Record record) {
-		return new Folder(record, getTypes());
+		return record == null ? null : new Folder(record, getTypes());
 	}
 
 	public List<Folder> wrapFolders(List<Record> records) {
@@ -609,7 +619,12 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public String DM() {
-		return getMediumTypeByCode("DM").getId();
+		MediumType frenchMediumType = getMediumTypeByCode("DM");
+		if (frenchMediumType == null) {
+			return getMediumTypeByCode("MD").getId();
+		} else {
+			return frenchMediumType.getId();
+		}
 	}
 
 	public List<MediumType> getMediumTypes(List<String> ids) {
@@ -844,4 +859,19 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return getTypes().getSchema(DecommissioningList.DEFAULT_SCHEMA);
 	}
 
+	public RMObject wrapRMObject(Record record) {
+		if (record == null) {
+			return null;
+
+		} else if (record.getSchemaCode().startsWith(Folder.SCHEMA_TYPE)) {
+			return wrapFolder(record);
+
+		} else if (record.getSchemaCode().startsWith(Document.SCHEMA_TYPE)) {
+			return wrapDocument(record);
+
+		} else {
+			throw new ImpossibleRuntimeException(
+					"Record '" + record.getIdTitle() + "' with schema '" + record.getSchemaCode() + "' is not an RMObject");
+		}
+	}
 }

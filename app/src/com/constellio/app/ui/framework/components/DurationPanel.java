@@ -42,11 +42,11 @@ public class DurationPanel extends Panel{
         horizontalLayout.addComponent(daysComponent);
 
         hoursComponent = new TextField($("hours"));
-        //daysComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 23));
+        //hoursComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 23));
         horizontalLayout.addComponent(hoursComponent);
 
         minComponent = new TextField($("mns"));
-        //daysComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 59));
+        //minComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 59));
 
         horizontalLayout.addComponent(minComponent);
 
@@ -74,7 +74,7 @@ public class DurationPanel extends Panel{
         if (duration != null){
             days = duration.getStandardDays();
             hours = duration.getStandardHours()%24;
-            mns = duration.getStandardHours()%60;
+            mns = duration.getStandardMinutes() %60;
         }
 
         daysComponent.setValue(days + "");

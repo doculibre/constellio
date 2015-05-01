@@ -21,11 +21,14 @@ import static com.constellio.app.modules.rm.exports.RetentionRuleXMLExporter.for
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.exports.RetentionRuleXMLExporterRuntimeException.RetentionRuleXMLExporterRuntimeException_InvalidFile;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -53,29 +56,43 @@ public class RetentionRuleXMLExporterAcceptanceTest extends ConstellioTest {
 		RetentionRule rule1 = records.getRule1();
 		rule1.getCopyRetentionRules().get(0).setCode("42");
 		rule1.getCopyRetentionRules().get(1).setCode("666");
+		rule1.setEssentialDocuments(true);
+		rule1.setConfidentialDocuments(true);
+		
 		transaction.add(rule1);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
-	//@Test
+	@Test
 	public void whenExportingRetentionRulesThenValidXMLIsProduced()
 			throws Exception {
 
 		RetentionRuleXMLExporter exporter = forAllApprovedRulesInCollection(zeCollection, builtXML, getModelLayerFactory());
 		exporter.run();
 
-		assertThat(FileUtils.readFileToString(builtXML)).isEqualTo(getTestResourceContent("expected.xml"));
+		assertThat(readWithoutIndent(builtXML)).isEqualTo(readWithoutIndent(getTestResourceFile("expected.xml")));
 
 	}
+	
+	private String readWithoutIndent(File file) throws IOException {
+		StringBuilder sb= new StringBuilder();
+		for(String line : FileUtils.readLines(file)) {
+			if (sb.length() > 0) {
+				sb.append("\n");
+			}
+			sb.append(line.trim());
+		}
+		return sb.toString();
+	}
 
-	//@Test
+	@Test
 	public void whenValidatingValidFileThenOK() {
 
 		RetentionRuleXMLExporter.validate(getTestResourceFile("expected.xml"));
 
 	}
 
-	//@Test(expected= RetentionRuleXMLExporterRuntimeException_InvalidFile.class)
+	@Test(expected= RetentionRuleXMLExporterRuntimeException_InvalidFile.class)
 	public void whenValidatingInvalidFileThenException() {
 
 		RetentionRuleXMLExporter.validate(getTestResourceFile("invalid.xml"));

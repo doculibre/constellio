@@ -18,10 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
-import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
 
-public interface AddEditRetentionRuleView extends BaseView, RecordsManagementViewGroup {
+public interface AddEditRetentionRuleView extends BaseView, AdminModuleViewGroup {
 
 	void setRetentionRule(RetentionRuleVO retentionRuleVO);
 	

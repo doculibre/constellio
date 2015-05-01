@@ -122,7 +122,12 @@ public class RecordsImportValidator {
 					MetadataSchema metadataSchema = type.getSchema(importData.getSchema());
 
 					validateFields(importData, metadataSchema);
-					validateMetadatasRequirement(importData, metadataSchema);
+
+					boolean isUpdate = resolverCache.isRecordUpdate(schemaType, importData.getLegacyId());
+
+					if (!isUpdate) {
+						validateMetadatasRequirement(importData, metadataSchema);
+					}
 				}
 
 			} catch (MetadataSchemasRuntimeException.NoSuchSchema | CannotGetMetadatasOfAnotherSchemaType e) {
@@ -187,25 +192,27 @@ public class RecordsImportValidator {
 
 	private void validateFields(ImportData importData, MetadataSchema metadataSchema) {
 		for (Entry<String, Object> entry : importData.getFields().entrySet()) {
-			try {
-				Metadata metadata = metadataSchema.getMetadata(entry.getKey());
-				String errorCode = validateMetadata(metadata);
-				if (errorCode != null) {
-					error(errorCode, importData, asMap("metadata", entry.getKey()));
-				}
-				if (validateValue(importData.getIndex(), importData.getLegacyId(), metadata, entry.getValue())) {
-					if (metadata.getType() == REFERENCE && metadata.isMultivalue()) {
-						for (String resolver : (List<String>) entry.getValue()) {
-							feedLegacyIdResolver(importData, metadata, resolver);
-						}
-
-					} else if (metadata.getType() == REFERENCE && !metadata.isMultivalue()) {
-						feedLegacyIdResolver(importData, metadata, (String) entry.getValue());
+			if (entry.getValue() != null) {
+				try {
+					Metadata metadata = metadataSchema.getMetadata(entry.getKey());
+					String errorCode = validateMetadata(metadata);
+					if (errorCode != null) {
+						error(errorCode, importData, asMap("metadata", entry.getKey()));
 					}
-				}
+					if (validateValue(importData.getIndex(), importData.getLegacyId(), metadata, entry.getValue())) {
+						if (metadata.getType() == REFERENCE && metadata.isMultivalue()) {
+							for (String resolver : (List<String>) entry.getValue()) {
+								feedLegacyIdResolver(importData, metadata, resolver);
+							}
 
-			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
-				error(INVALID_METADATA_CODE, importData, asMap("metadata", entry.getKey()));
+						} else if (metadata.getType() == REFERENCE && !metadata.isMultivalue()) {
+							feedLegacyIdResolver(importData, metadata, (String) entry.getValue());
+						}
+					}
+
+				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+					error(INVALID_METADATA_CODE, importData, asMap("metadata", entry.getKey()));
+				}
 			}
 		}
 	}

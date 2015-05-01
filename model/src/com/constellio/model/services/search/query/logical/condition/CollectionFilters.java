@@ -42,7 +42,7 @@ public class CollectionFilters implements DataStoreFilters {
 		filters.add("-type_s:index");
 		filters.add("collection_s:" + collection);
 		if (exceptEvents) {
-			filters.add("-schema_s:" + Event.SCHEMA_TYPE);
+			filters.add("-schema_s:" + Event.SCHEMA_TYPE + "*");
 		}
 
 		return filters;

@@ -25,6 +25,8 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaView> {
 
@@ -33,6 +35,11 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 
 	public ListSchemaPresenter(ListSchemaView view) {
 		super(view);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
 	}
 
 	public SchemaVODataProvider getDataProvider() {

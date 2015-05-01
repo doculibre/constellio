@@ -70,7 +70,6 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
 		autocompleteContainer = new AutocompleteContainer(prefixSize);
 		setContainerDataSource(autocompleteContainer);
-		setConverter(new AutocompleteConverter());
 		
 		addValueChangeListener(new ValueChangeListener() {
 			@SuppressWarnings("unchecked")
@@ -79,7 +78,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 				T newValue = (T) event.getProperty().getValue();
 				if (newValue != null && !autocompleteContainer.contains(newValue)) {
 					autocompleteContainer.addContainerFilter(null);
-					autocompleteContainer.addItem(newValue, autocompleteContainer.size());
+					autocompleteContainer.addSuggestion(newValue);
 				}
 			}
 		});
@@ -100,22 +99,6 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		} catch (InvalidValueException e) {
 			throw e;
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public boolean isSelected(Object itemId) {
-		boolean selected;
-		T fieldValue = (T) getValue();
-		Item autocompleteItem = autocompleteContainer.getItem(itemId);
-		if (autocompleteItem != null) {
-			Property<T> valueProperty = autocompleteItem.getItemProperty(AutocompleteContainer.VALUE_PROPERTY_ID);   
-			T itemObject = valueProperty.getValue();
-			selected = itemObject.equals(fieldValue);
-		} else {
-			selected = false;
-		}
-		return selected;
 	}
 
 	public AutocompleteSuggestionsProvider<T> getSuggestionsProvider() {
@@ -161,14 +144,11 @@ public class BaseAutocompleteField<T> extends ComboBox {
 
 	private class AutocompleteContainer extends IndexedContainer {
 
-		private static final String VALUE_PROPERTY_ID = "value";
-		
 		private final int subStringSize;
 		private String querySubString;
 
 		public AutocompleteContainer(int prefixSize) {
 			this.subStringSize = prefixSize;
-			addContainerProperty(VALUE_PROPERTY_ID, Object.class, null);
 			addContainerProperty(CAPTION_PROPERTY_ID, String.class, null);
 		} 
 		
@@ -176,8 +156,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		private boolean contains(T object) {
 			boolean inSuggestions = false;
 			for (Object itemId : getItemIds()) {
-				Item item = getItem(itemId);
-				T suggestion = (T) item.getItemProperty(VALUE_PROPERTY_ID).getValue();
+				T suggestion = (T) itemId;
 				inSuggestions = object.equals(suggestion);
 				if (inSuggestions) {
 					break;
@@ -213,7 +192,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 						// check the size on the sub string
 						if (querySubString.length() >= subStringSize) {
 							// get the results
-							queryDatabase(newFilterString);
+							querySuggestionsProvider(newFilterString);
 							// add the filter
 							super.addContainerFilter(filter);
 						} // end if the substring langth is long enough
@@ -222,7 +201,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 			} // end else
 		} // end addCoontainerFilter method
 
-		private void queryDatabase(String text) {
+		private void querySuggestionsProvider(String text) {
 			// Query the database here with the code you want
 			// Store it how ever you want this example uses a list to demonstrate how to get the data to display
 			List<T> dataList = suggestionsProvider.suggest(text);
@@ -232,60 +211,19 @@ public class BaseAutocompleteField<T> extends ComboBox {
 			Iterator<T> iterDataList = dataList.iterator();
 			while (iterDataList.hasNext()) {
 				T suggestion = iterDataList.next();
-				addItem(suggestion, i);
+				addSuggestion(suggestion);
 				i++;
 			}// end while iter has next
 
 		}// end queryDataBase method
 		
 		@SuppressWarnings("unchecked")
-		private void addItem(T suggestion, int index) {
+		private void addSuggestion(T suggestion) {
 			String suggestionCaption = getCaption(suggestion);
-			addItem(index);
-			this.getContainerProperty(index, CAPTION_PROPERTY_ID).setValue(suggestionCaption);
-			this.getContainerProperty(index, VALUE_PROPERTY_ID).setValue(suggestion);
+			Item item = addItem(suggestion);
+			item.getItemProperty(CAPTION_PROPERTY_ID).setValue(suggestionCaption);
 		}
 
 	} // end CustomLazyContainer class
-	
-	private class AutocompleteConverter implements Converter<Object, T> {
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public T convertToModel(Object value, Class<? extends T> targetType, Locale locale)
-				throws com.vaadin.data.util.converter.Converter.ConversionException {
-			T convertedValue;
-			if (value != null) {
-				Item autocompleteItem = autocompleteContainer.getItem(value);
-				if (autocompleteItem != null) {
-					Property<T> valueProperty = autocompleteItem.getItemProperty(AutocompleteContainer.VALUE_PROPERTY_ID);   
-					convertedValue = valueProperty.getValue();
-				} else {
-					convertedValue = (T) value;
-				}
-			} else {
-				convertedValue = null;
-			}
-			return convertedValue;
-		}
-
-		@Override
-		public Object convertToPresentation(T value, Class<? extends Object> targetType, Locale locale)
-				throws com.vaadin.data.util.converter.Converter.ConversionException {
-			return value;
-		}
-
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		@Override
-		public Class getModelType() {
-			return Object.class;
-		}
-
-		@Override
-		public Class<Object> getPresentationType() {
-			return Object.class;
-		}
-		
-	}
 
 }

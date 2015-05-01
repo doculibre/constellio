@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -25,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<DisplayRetentionRuleView> {
 	private RetentionRuleVO retentionRuleVO;
@@ -54,7 +56,12 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	public void deleteButtonClicked() {
 		Record record = getRecord(retentionRuleVO.getId());
-		delete(record);
+		delete(record, false);
 		view.navigateTo().listRetentionRules();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
 	}
 }

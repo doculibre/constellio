@@ -17,8 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.tools;
 
+import java.util.List;
+
 import org.openqa.selenium.By;
 
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
@@ -41,6 +46,19 @@ public abstract class PageHelper {
 
 	public String getErrorMessage(boolean dismissMessage) {
 		ConstellioWebElement message = driver.findRequiredElement(By.className("error"));
+		String result = message.getText();
+		if (dismissMessage) {
+			message.click();
+		}
+		return result;
+	}
+
+	public String getWarningMessage() {
+		return getWarningMessage(true);
+	}
+
+	public String getWarningMessage(boolean dismissMessage) {
+		ConstellioWebElement message = driver.findRequiredElement(By.className("warning"));
 		String result = message.getText();
 		if (dismissMessage) {
 			message.click();
@@ -101,5 +119,17 @@ public abstract class PageHelper {
 
 	public ButtonWebElement getSaveButton() {
 		return getButtonByClassName(BaseForm.SAVE_BUTTON, 0);
+	}
+
+	public List<ConstellioWebElement> findEditButtonElements() {
+		return driver.findAdaptElements(By.className(EditButton.BUTTON_STYLE));
+	}
+
+	public List<ConstellioWebElement> findAddButtonElements() {
+		return driver.findAdaptElements(By.className(AddButton.BUTTON_STYLE));
+	}
+
+	public List<ConstellioWebElement> findDeleteButtonElements() {
+		return driver.findAdaptElements(By.className(DeleteButton.BUTTON_STYLE));
 	}
 }

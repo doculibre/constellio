@@ -176,4 +176,26 @@ public class RecordUtils {
 		return listWithoutDuplicates;
 	}
 
+	public String getRecordsCollection(List<Record> records) {
+		String collection = null;
+
+		for (Record record : records) {
+			if (collection == null) {
+				collection = record.getCollection();
+			} else if (collection.equals(record.getCollection())) {
+				throw new RuntimeException("Records are in different collections");
+			}
+		}
+
+		return collection;
+	}
+
+	public Record findRecordWithId(List<Record> records, String id) {
+		for (Record record : records) {
+			if (record.getId().equals(id)) {
+				return record;
+			}
+		}
+		return null;
+	}
 }

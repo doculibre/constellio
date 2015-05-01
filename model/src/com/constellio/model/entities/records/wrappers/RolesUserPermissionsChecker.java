@@ -23,6 +23,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -31,6 +35,8 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.roles.Roles;
 
 public class RolesUserPermissionsChecker extends UserPermissionsChecker {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RolesUserPermissionsChecker.class);
 
 	MetadataSchemaTypes types;
 
@@ -85,9 +91,25 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 		Set<String> userPermissionsOnRecord = getUserPermissionsOnRecord(record);
 
 		if (anyRoles) {
-			return LangUtils.containsAny(asList(permissions), userPermissionsOnRecord);
+			boolean result = LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(userPermissionsOnRecord));
+
+			if (!result) {
+				LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
+						.join(userPermissionsOnRecord, ", ") + " on record '" + record.getIdTitle() + "'");
+			}
+
+			return result;
 		} else {
-			return userPermissionsOnRecord.containsAll(asList(permissions));
+
+			for (String permission : permissions) {
+				if (permission != null && !userPermissionsOnRecord.contains(permission)) {
+					LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission
+							+ "' on record '" + record.getIdTitle() + "'");
+					return false;
+				}
+
+			}
+			return true;
 		}
 
 	}

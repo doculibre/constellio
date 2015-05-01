@@ -519,10 +519,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				asList(RMPermissionsTo.CREATE_DOCUMENTS, RMPermissionsTo.CREATE_FOLDERS));
 
 		Role role2 = new Role(collection1, "role2", "Ze role2",
-				asList(RMPermissionsTo.MODIFY_DOCUMENTS, RMPermissionsTo.MODIFY_FOLDERS));
+				asList(RMPermissionsTo.CREATE_SUB_FOLDERS, RMPermissionsTo.CREATE_INACTIVE_DOCUMENT));
 
 		Role role3 = new Role(collection1, "role3", "Ze role3",
-				asList(RMPermissionsTo.SHARE_A_DOCUMENT, RMPermissionsTo.SHARE_A_FOLDER));
+				asList(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS, RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS));
 
 		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
 		rolesManager.addRole(role1);

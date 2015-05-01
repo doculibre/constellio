@@ -261,28 +261,34 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	@Test
 	public void whenGetRetentionRulesForCategoryOrUniformSubdivision()
 			throws Exception {
-
 		assertThat(service.getRetentionRulesForCategory(null, null))
 				.isEmpty();
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X100, null))
-				.containsOnlyOnce(test.ruleId_1);
+				.containsExactly(test.ruleId_1);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, null))
-				.containsOnlyOnce(test.ruleId_1, test.ruleId_2);
+				.containsExactly(test.ruleId_1, test.ruleId_2);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X100, test.subdivId_2))
-				.containsOnlyOnce(test.ruleId_1);
+				.containsExactly(test.ruleId_1);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, test.subdivId_2))
-				.containsOnlyOnce(test.ruleId_1, test.ruleId_2);
+				.containsExactly(test.ruleId_1, test.ruleId_2);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X100, test.subdivId_1))
-				.containsOnlyOnce(test.ruleId_2);
+				.containsExactly(test.ruleId_2);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, test.subdivId_1))
-				.containsOnlyOnce(test.ruleId_2);
+				.containsExactly(test.ruleId_2);
 
+		recordServices.logicallyDelete(test.getRule2().getWrappedRecord(), test.getAdmin());
+
+		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, null))
+				.containsExactly(test.ruleId_1);
+
+		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, test.subdivId_2))
+				.containsExactly(test.ruleId_1);
 	}
 
 	@Test

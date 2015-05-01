@@ -337,9 +337,9 @@ public class DemoTestRecords {
 
 		searchServices = modelLayerFactory.newSearchServices();
 
-		PA = schemas.getMediumTypeByCode("PA").getId();
-		MD = schemas.getMediumTypeByCode("DM").getId();
-		MV = schemas.getMediumTypeByCode("FI").getId();
+		PA = schemas.PA();
+		MD = schemas.DM();
+		MV = schemas.FI();
 		PA_MD = asList(PA, MD);
 
 		Transaction transaction = new Transaction();
@@ -352,7 +352,7 @@ public class DemoTestRecords {
 
 		recordServices.execute(transaction);
 
-		setupAuthorizations(modelLayerFactory.newAuthorizationsServices(), modelLayerFactory.getRolesManager());
+		//setupAuthorizations(modelLayerFactory.newAuthorizationsServices(), modelLayerFactory.getRolesManager());
 		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
@@ -412,12 +412,18 @@ public class DemoTestRecords {
 				.setCollectionReadAccess(true).setCollectionWriteAccess(true).setUserRoles(asList(RMRoles.RGD))
 				.setLastLogin(now).getId();
 
-		bob_userInAC = transaction.add(users.bobIn(collection)).setLastLogin(now).getId();
-		charles_userInA = transaction.add(users.charlesIn(collection)).setLastLogin(now).getId();
-		dakota_managerInA_userInB = transaction.add(users.dakotaLIndienIn(collection)).setLastLogin(now).getId();
-		edouard_managerInB_userInC = transaction.add(users.edouardLechatIn(collection)).setLastLogin(now).getId();
-		gandalf_managerInABC = transaction.add(users.gandalfLeblancIn(collection)).setLastLogin(now).getId();
-		chuckNorris = transaction.add(users.chuckNorrisIn(collection).setCollectionAllAccess(true)).setLastLogin(now).getId();
+		bob_userInAC = transaction.add(users.bobIn(collection)).setUserRoles(asList(RMRoles.USER)).setLastLogin(now).getId();
+		charles_userInA = transaction.add(users.charlesIn(collection)).setUserRoles(asList(RMRoles.USER)).setLastLogin(now)
+				.getId();
+		dakota_managerInA_userInB = transaction.add(users.dakotaLIndienIn(collection)).setUserRoles(asList(RMRoles.USER))
+				.setLastLogin(now).getId();
+		edouard_managerInB_userInC = transaction.add(users.edouardLechatIn(collection)).setUserRoles(asList(RMRoles.USER))
+				.setLastLogin(now).getId();
+		gandalf_managerInABC = transaction.add(users.gandalfLeblancIn(collection)).setUserRoles(asList(RMRoles.USER))
+				.setLastLogin(now).getId();
+		chuckNorris = transaction
+				.add(users.chuckNorrisIn(collection).setUserRoles(asList(RMRoles.USER)).setCollectionAllAccess(true))
+				.setLastLogin(now).getId();
 
 	}
 

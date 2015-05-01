@@ -44,7 +44,7 @@ public class TaxonomyFieldPresenter implements Serializable {
 		this.taxonomyField = taxonomyField;
 	}
 
-	public void forTaxonomyCode(String taxonomyCode) {
+	public void forTaxonomyAndSchemaTypeCodes(String taxonomyCode, String schemaTypeCode) {
 		SessionContext sessionContext = taxonomyField.getSessionContext();
 		String currentCollection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -58,7 +58,7 @@ public class TaxonomyFieldPresenter implements Serializable {
 
 		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions();
 		List<TaxonomySearchRecord> matches = taxonomiesSearchServices.getLinkableRootConcept(currentUser, currentCollection,
-				taxonomyCode, null, taxonomiesSearchOptions);
+				taxonomyCode, schemaTypeCode, taxonomiesSearchOptions);
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		List<RecordVO> recordVOs = new ArrayList<RecordVO>();
 		for (TaxonomySearchRecord match : matches) {

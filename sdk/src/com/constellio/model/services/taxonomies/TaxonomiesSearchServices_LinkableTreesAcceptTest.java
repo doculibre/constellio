@@ -369,9 +369,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(unlinkable(test.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z)
-				.hasSize(3)
+				.hasSize(4)
 				.has(unlinkable(test.categoryId_Z100, test.categoryId_Z200))
-				.has(linkable(test.categoryId_ZE42));
+				.has(linkable(test.categoryId_ZE42, test.categoryId_Z999));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z100)
 				.hasSize(2)
@@ -464,9 +464,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(unlinkable(test.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z)
-				.hasSize(3)
+				.hasSize(4)
 				.has(unlinkable(test.categoryId_Z100, test.categoryId_Z200))
-				.has(linkable(test.categoryId_ZE42));
+				.has(linkable(test.categoryId_ZE42, test.categoryId_Z999));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z100)
 				.hasSize(2)
@@ -509,9 +509,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(unlinkable(test.categoryId_X, test.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z)
-				.hasSize(3)
+				.hasSize(4)
 				.has(linkable(test.categoryId_ZE42))
-				.has(unlinkable(test.categoryId_Z100, test.categoryId_Z200));
+				.has(unlinkable(test.categoryId_Z100, test.categoryId_Z200, test.categoryId_Z999));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z100)
 				.hasSize(2)

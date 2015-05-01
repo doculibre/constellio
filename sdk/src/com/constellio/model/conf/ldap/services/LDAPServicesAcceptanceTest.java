@@ -23,6 +23,7 @@ import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import org.junit.Test;
 
+import javax.naming.directory.DirContext;
 import javax.naming.ldap.LdapContext;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class LDAPServicesAcceptanceTest {
     //TODO Nouha
 
     @Test
-    public void givenValidLdapConnexionInfothenConnectToServer(){
+    public void givenValidLdapConnexionInfoThenConnectToServer(){
         LdapContext ldapContext = getValidContext();
         assertThat(ldapContext).isNotNull();
     }
@@ -47,7 +48,7 @@ public class LDAPServicesAcceptanceTest {
     }
 
     @Test
-    public void whenSearchingGroupThenReturnValidGroupAttributes()
+         public void whenSearchingGroupThenReturnValidGroupAttributes()
             throws Exception{
         LdapContext ldapContext = getValidContext();
         String ouWithGroup1AndGroup2 = "OU=ouWithGroup1AndGroup2,OU=testSynchronization,DC=test,DC=doculibre,DC=ca";
@@ -59,7 +60,24 @@ public class LDAPServicesAcceptanceTest {
             groupsNames.add(group.getSimpleName());
         }
         assertThat(groupsNames).contains("group1", "group2", "group3", "group4");
+    }
 
+    @Test
+    public void whenSearchingMoreThan1000GroupsThenReturnAllGroups()
+            throws Exception{
+        LdapContext ldapContext = getValidContext();
+        String ouWith2997groups = "OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca";
+        Set<LDAPGroup> groups = new LDAPServices().getAllGroups(ldapContext, Arrays.asList(new String[]{ouWith2997groups}));
+        assertThat(groups.size()).isEqualTo(2997);
+    }
+
+    @Test
+    public void whenSearchingMoreThan1000UsersThenReturnAllUsers()
+            throws Exception{
+        LdapContext ldapContext = getValidContext();
+        String ouWith3001Users = "OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca";
+        List<String> users = new LDAPServices().searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, ouWith3001Users);
+        assertThat(users.size()).isEqualTo(3001);
     }
 
     @Test

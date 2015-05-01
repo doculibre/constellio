@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -38,6 +39,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AddExistingContainerPresenter extends SearchPresenter<AddExistingContainerView>
@@ -62,6 +64,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		view.addEmptyCriterion();
 		view.addEmptyCriterion();
 		return this;
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
 	}
 
 	@Override

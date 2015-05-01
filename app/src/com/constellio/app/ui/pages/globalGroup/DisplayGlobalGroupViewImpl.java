@@ -140,13 +140,9 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		tableFilterGlobalGroupsUser = new TableStringFilter(userTable);
 		tableFilterAvailableAvailableUsers = new TableStringFilter(availableUserTable);
 
-		if (globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAndOrModify()) {
-			viewLayout.addComponents(globalGroupDisplay, filterAndSearchButtonLayoutSubGroups, subGroupTable,
-					filterAndSearchButtonLayoutGlobalGroupsUser, userTable,
-					filterAndSearchButtonLayoutAvailableUsers, availableUserTable);
-		} else {
-			viewLayout.addComponents(globalGroupDisplay);
-		}
+		viewLayout.addComponents(globalGroupDisplay, filterAndSearchButtonLayoutSubGroups, subGroupTable,
+				filterAndSearchButtonLayoutGlobalGroupsUser, userTable,
+				filterAndSearchButtonLayoutAvailableUsers, availableUserTable);
 		viewLayout.setExpandRatio(globalGroupDisplay, 1);
 
 		filterAndSearchButtonLayoutSubGroups.addComponent(tableFilterSubGroups);
@@ -189,7 +185,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
-				return new AddButton() {
+				Button addButton = new AddButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
@@ -198,6 +194,9 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 					}
 				};
+				addButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				addButton.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				return addButton;
 			}
 		});
 		container = buttonsContainer;
@@ -236,7 +235,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
-				return new EditButton() {
+				Button editButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
@@ -245,6 +244,9 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 					}
 				};
+				editButton.setEnabled(presenter.canAddOrModify());
+				editButton.setVisible(presenter.canAddOrModify());
+				return editButton;
 			}
 		});
 		buttonsContainer.addButton(new ContainerButton() {
@@ -258,7 +260,8 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 						presenter.deleteUserCredentialButtonClicked(entity, globalGroupVO.getCode());
 					}
 				};
-				deleteButton.setEnabled(presenter.canAndOrModify());
+				deleteButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				deleteButton.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
 				return deleteButton;
 
 			}
@@ -295,6 +298,10 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 					}
 				};
 				editSubGroupButton.addStyleName("DisplayGlobalGroupView.editSubGroup");
+				editSubGroupButton
+						.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				editSubGroupButton
+						.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
 				return editSubGroupButton;
 			}
 		});
@@ -310,6 +317,10 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 					}
 				};
 				deleteSubGroupButton.addStyleName("DisplayGlobalGroupView.deleteSubGroup");
+				deleteSubGroupButton
+						.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				deleteSubGroupButton
+						.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
 				return deleteSubGroupButton;
 			}
 		});
@@ -335,21 +346,23 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 			}
 		};
 		addSubGroupButton.addStyleName("DisplayGlobalGroupView.addSubGroup");
-		addSubGroupButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAndOrModify());
+		addSubGroupButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
 		actionMenuButtons.add(addSubGroupButton);
-		actionMenuButtons.add(new EditButton(false) {
+		Button editButton = new EditButton(false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.editButtonClicked(globalGroupVO);
 			}
-		});
+		};
+		editButton.setEnabled(presenter.canAddOrModify());
+		actionMenuButtons.add(editButton);
 		Button deleteButton = new DeleteButton(false) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.deleteButtonClicked(globalGroupVO);
 			}
 		};
-		deleteButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAndOrModify());
+		deleteButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
 		actionMenuButtons.add(deleteButton);
 
 		return actionMenuButtons;

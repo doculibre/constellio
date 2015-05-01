@@ -166,7 +166,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.isEnabled()).isTrue();
 		assertThat(result.isSchemaAutocomplete()).isFalse();
 		assertThat(result.isMultivalue()).isFalse();
-		assertThat(result.isSortable()).isTrue();
+		assertThat(result.isSortable()).isFalse();
 	}
 
 	@Test

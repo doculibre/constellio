@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.conf.ldap;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.regex.Pattern;
 
 public class RegexFilter implements Filter {
@@ -28,11 +30,10 @@ public class RegexFilter implements Filter {
 	public RegexFilter(String acceptedRegex, String rejectedRegex) {
 		this.acceptedRegex = acceptedRegex;
 		this.rejectedRegex = rejectedRegex;
-		if(acceptedRegex != null){
+		if(acceptedRegex != null && StringUtils.isNotBlank(acceptedRegex)){
 			this.acceptedPattern = Pattern.compile(acceptedRegex);
-
 		}
-		if(rejectedRegex != null){
+		if(rejectedRegex != null && StringUtils.isNotBlank(rejectedRegex)){
 			this.rejectedPattern = Pattern.compile(rejectedRegex);
 		}
 	}

@@ -18,7 +18,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.management.authorizations;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -29,12 +28,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
-import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -47,14 +43,11 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -159,39 +152,6 @@ public class ListContentAuthorizationsPresenterTest extends ConstellioTest {
 		presenter.deleteButtonClicked(authorizationVO);
 		verify(authorizationsServices, times(1)).delete(details, user);
 		verify(view, times(1)).removeAuthorization(authorizationVO);
-	}
-
-	@Test
-	public void givenAuthorizationAddedThenAddTheAuthorizationAndRefreshTheView() {
-		String id = aString();
-		UniqueIdGenerator generator = mock(UniqueIdGenerator.class, "UniqueIdGenerator");
-		when(factories.getModelLayerFactory().getDataLayerFactory()).thenReturn(factories.getDataLayerFactory());
-		when(factories.getDataLayerFactory().getUniqueIdGenerator()).thenReturn(generator);
-		when(generator.next()).thenReturn(id);
-
-		LocalDate start = aDate();
-		LocalDate end = aDate().plusMonths(7);
-		List<String> users = Arrays.asList("USER_A", "USER_B");
-		List<String> accessRoles = Arrays.asList(Role.READ, Role.WRITE, Role.DELETE);
-		AuthorizationVO newAuthorization = new AuthorizationVO(
-				users, new ArrayList<String>(), Arrays.asList(ZE_SECURED_OBJECT), accessRoles, new ArrayList<String>(),
-				new ArrayList<String>(), null,
-				start, end, false);
-
-		presenter.authorizationCreationRequested(newAuthorization);
-
-		ArgumentCaptor<Authorization> captor = ArgumentCaptor.forClass(Authorization.class);
-		verify(authorizationsServices, times(1)).add(
-				captor.capture(), eq(CustomizedAuthorizationsBehavior.KEEP_ATTACHED), eq(user));
-		verify(view, times(1)).addAuthorization(newAuthorization);
-
-		Authorization authorization = captor.getValue();
-		assertThat(authorization.getGrantedToPrincipals()).containsExactlyElementsOf(users);
-		assertThat(authorization.getGrantedOnRecords()).containsOnly(ZE_SECURED_OBJECT);
-		assertThat(authorization.getDetail().getCollection()).isEqualTo(zeCollection);
-		assertThat(authorization.getDetail().getRoles()).containsExactlyElementsOf(accessRoles);
-		assertThat(authorization.getDetail().getStartDate()).isEqualTo(start);
-		assertThat(authorization.getDetail().getEndDate()).isEqualTo(end);
 	}
 
 	private void givenObjectWithTwoInheritedAndTwoOwnAuthorizations() {

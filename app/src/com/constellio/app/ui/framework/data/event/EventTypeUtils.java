@@ -59,7 +59,7 @@ public class EventTypeUtils implements Serializable {
 		} else if (eventType.equals(EventType.DELETE_DOCUMENT)) {
 			return $("ListEventsView.documentsDeletion");
 		} else if (eventType.equals(EventType.CURRENT_BORROW_DOCUMENT)) {
-			return $("ListEventsView.currentlyBorrowedDocument");
+			return $("ListEventsView.currentlyBorrowedDocuments");
 		}else if (eventType.equals(EventType.BORROW_DOCUMENT)) {
 			return $("ListEventsView.borrowedDocuments");
 		}else if (eventType.equals(EventType.RETURN_DOCUMENT)) {
@@ -135,6 +135,10 @@ public class EventTypeUtils implements Serializable {
 			metadataCodes.addAll(getEventPermissionMetadata(metadataSchema));
 		}else if (isRecordEvent(eventType)){
 			metadataCodes.addAll(getEventRecordMetadata(metadataSchema));
+			if(eventType.equals(EventType.DELETE_FOLDER) || eventType.equals(EventType.DELETE_DOCUMENT)){
+				Metadata reasonMetadata = metadataSchema.getMetadata(Event.REASON);
+				metadataCodes.add(reasonMetadata.getCode());
+			}
 		} else if (isUserEvent(eventType)||
 				 isGroupEvent(eventType)){
 			metadataCodes.addAll(getEventUserMetadata(metadataSchema));

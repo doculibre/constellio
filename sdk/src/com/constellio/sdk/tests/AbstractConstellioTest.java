@@ -154,6 +154,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 	}
 
+	protected void givenSystemLanguageIs(String languageCode) {
+		getCurrentTestSession().getFactoriesTestFeatures().setSystemLanguage(languageCode);
+	}
+
 	@AfterClass
 	public static void afterClass() {
 		ConstellioTestSession.closeAfterTestClass();
@@ -506,6 +510,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getSeleniumTestFeatures().newSearchClient();
 	}
 
+	protected ConstellioWebDriver newWebDriver() {
+		return newWebDriver(null);
+	}
+
 	protected ConstellioWebDriver newWebDriver(SessionContext sessionContext) {
 		ensureNotUnitTest();
 		ensureUITest();
@@ -599,6 +607,20 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected ModulesAndMigrationsTestFeatures givenCollectionWithTitle(String collection, String collectionTitle) {
 		ModulesAndMigrationsTestFeatures features = givenCollection(collection);
+
+		Record collectionRecord = getModelLayerFactory().newRecordServices().getDocumentById(collection);
+		try {
+			getModelLayerFactory().newRecordServices().update(collectionRecord.set(Schemas.TITLE, collectionTitle));
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+
+		return features;
+	}
+
+	protected ModulesAndMigrationsTestFeatures givenCollectionWithTitle(String collection, List<String> languages,
+			String collectionTitle) {
+		ModulesAndMigrationsTestFeatures features = givenCollection(collection, languages);
 
 		Record collectionRecord = getModelLayerFactory().newRecordServices().getDocumentById(collection);
 		try {

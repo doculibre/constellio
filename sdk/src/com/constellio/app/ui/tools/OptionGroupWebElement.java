@@ -45,6 +45,10 @@ public class OptionGroupWebElement {
 		return true;
 	}
 
+	public boolean isEnabled() {
+		return !nestedElement.getClassNames().contains("v-disabled");
+	}
+
 	public boolean isEnabled(String value) {
 		List<ConstellioWebElement> elements = nestedElement.getChildren();
 		for (ConstellioWebElement element : elements) {
@@ -66,11 +70,11 @@ public class OptionGroupWebElement {
 		}
 		return this;
 	}
-	
+
 	public void toggleContaining(String value) {
 		List<ConstellioWebElement> elements = nestedElement.getChildren();
 		for (ConstellioWebElement element : elements) {
-            CheckboxWebElement checkboxWebElement = new CheckboxWebElement(element);
+			CheckboxWebElement checkboxWebElement = new CheckboxWebElement(element);
 			if (checkboxWebElement.getCaptionText().contains(value)) {
 				checkboxWebElement.toggle();
 			}
@@ -87,7 +91,7 @@ public class OptionGroupWebElement {
 		return values;
 	}
 
-	public List<String> getEnabledValues() {
+	public List<String> getCheckedValues() {
 		List<String> values = new ArrayList<>();
 		List<ConstellioWebElement> elements = nestedElement.getChildren();
 		for (ConstellioWebElement element : elements) {

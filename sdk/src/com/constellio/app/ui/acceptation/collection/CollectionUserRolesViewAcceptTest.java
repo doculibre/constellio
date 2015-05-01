@@ -32,6 +32,7 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 @UiTest
 public class CollectionUserRolesViewAcceptTest extends ConstellioTest {
 	public static final String USER = "Utilisateur";
+	public static final String RGD = "Responsable de la gestion documentaire";
 	public static final String MANAGER = "Gestionnaire";
 
 	RMTestRecords records;
@@ -54,16 +55,21 @@ public class CollectionUserRolesViewAcceptTest extends ConstellioTest {
 	public void givenRolesAddedAndRemovedThenAddAndRemoveTheRoles() {
 		assertThat(page.getTitle()).contains(user.getTitle());
 		assertThat(page.getAddRoleButton().isEnabled()).isFalse();
-		assertThat(page.getRoleTable().countRows()).isEqualTo(0);
+		assertThat(page.getRoleTable().countRows()).isEqualTo(1);
 
-		page.addRole(USER);
 		assertThat(page.getRoleTable().hasRowWithValueInColumn(USER, 0)).isTrue();
+
+		page.addRole(RGD);
+		assertThat(page.getRoleTable().hasRowWithValueInColumn(USER, 0)).isTrue();
+		assertThat(page.getRoleTable().hasRowWithValueInColumn(RGD, 0)).isTrue();
 
 		page.addRole(MANAGER);
 		assertThat(page.getRoleTable().hasRowWithValueInColumn(USER, 0)).isTrue();
+		assertThat(page.getRoleTable().hasRowWithValueInColumn(RGD, 0)).isTrue();
 		assertThat(page.getRoleTable().hasRowWithValueInColumn(MANAGER, 0)).isTrue();
 
 		page.getRoleTable().getFirstRowWithValueInColumn(USER, 0).clickButtonAndConfirm(DeleteButton.BUTTON_STYLE);
 		assertThat(page.getRoleTable().hasRowWithValueInColumn(USER, 0)).isFalse();
+
 	}
 }

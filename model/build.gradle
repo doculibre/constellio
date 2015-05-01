@@ -3,6 +3,7 @@ dependencies {
     compile project(":connector-api")
     compile "org.jsoup:jsoup:1.7.2"
     compile "com.cybozu.labs:langdetect:1.1-20120112"
+    compile "net.sourceforge.jexcelapi:jxl:2.6.12"
 }
 
 sourceSets {
@@ -22,5 +23,5 @@ eclipse {
 
 jar {
     baseName = 'core-model'
-    version = '5.0.2'
+    version = '5.0.3'
 }

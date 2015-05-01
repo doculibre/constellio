@@ -28,7 +28,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 
-public class SingleSchemaBasePresenter<T extends BaseView> extends BasePresenter<T> {
+public abstract class SingleSchemaBasePresenter<T extends BaseView> extends BasePresenter<T> {
 
 	private SchemaPresenterUtils schemaPresenterUtils;
 
@@ -70,13 +70,21 @@ public class SingleSchemaBasePresenter<T extends BaseView> extends BasePresenter
 		return schemaPresenterUtils.addOrUpdate(record);
 	}
 
-	protected void delete(Record record) {
-		delete(record, null);
+	protected final void delete(Record record) {
+		delete(record, null, true);
 	}
 
-	protected void delete(Record record, String reason) {
+	protected final void delete(Record record, String reason) {
+		delete(record, reason, true);
+	}
+
+	protected final void delete(Record record, boolean physically) {
+		delete(record, null, physically);
+	}
+
+	protected final void delete(Record record, String reason, boolean physically) {
 		try {
-			schemaPresenterUtils.delete(record, reason);
+			schemaPresenterUtils.delete(record, reason, physically);
 		} catch (RecordServicesRuntimeException exception) {
 			view.showErrorMessage(MessageUtils.toMessage(exception));
 		}

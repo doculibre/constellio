@@ -17,17 +17,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import com.constellio.app.modules.rm.ui.components.document.DocumentActionsComponentPresenter;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.schemas.SchemaUtils;
 
-public class DocumentContextMenuPresenter extends DocumentActionsComponentPresenter<DocumentContextMenu> {
+public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<DocumentContextMenu> {
 
 	private DocumentContextMenu contextMenu;
 	
@@ -43,7 +43,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsComponentPresen
 	}
 
 	@Override
-	protected void updateActionsComponent() {
+	public void updateActionsComponent() {
 		super.updateActionsComponent();
 		Content content = getContent();
 		if (content != null) {
@@ -65,6 +65,15 @@ public class DocumentContextMenuPresenter extends DocumentActionsComponentPresen
 		Record record = presenterUtils.getRecord(recordId);
 		String recordSchemaCode = record.getSchemaCode();
 		String recordSchemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordSchemaCode);
+		
+		if (Event.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
+			Event event = new Event(record, presenterUtils.types());
+			recordSchemaCode = event.getType().split("_")[1];
+			recordSchemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordSchemaCode);
+			String linkedRecordId = event.getRecordId();
+			record = presenterUtils.getRecord(linkedRecordId);
+		}
+		
 		if (Document.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
 			this.documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY);
 			contextMenu.setRecordVO(documentVO);
@@ -78,19 +87,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsComponentPresen
 	}
 
 	public boolean openForRequested(RecordVO recordVO) {
-		boolean showContextMenu;
-		String recordSchemaCode = recordVO.getSchema().getCode();
-		String recordSchemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordSchemaCode);
-		if (Document.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
-			this.documentVO = new DocumentVO(recordVO);
-			contextMenu.setRecordVO(documentVO);
-			updateActionsComponent();
-			showContextMenu = true;
-		} else {
-			showContextMenu = false;
-		}
-		contextMenu.setVisible(showContextMenu);
-		return showContextMenu;
+		return openForRequested(recordVO.getId());
 	}
 
 }

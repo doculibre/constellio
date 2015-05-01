@@ -1053,7 +1053,9 @@ public class BigVaultRecordDao implements RecordDao {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	Object convertSolrValueToBigVaultValue(String fieldName, Object fieldValue) {
 		Object convertedValue = fieldValue;
-		if (fieldName.endsWith("_dt")) {
+		if (fieldName.endsWith("_d")) {
+			convertedValue = convertNumber(fieldValue);
+		} else if (fieldName.endsWith("_dt")) {
 			convertedValue = convertSolrDateToLocalDateTime((Date) fieldValue);
 		} else if (fieldName.endsWith("_da")) {
 			convertedValue = convertSolrDateToLocalDate((Date) fieldValue);
@@ -1125,6 +1127,14 @@ public class BigVaultRecordDao implements RecordDao {
 			}
 		}
 		return booleans.isEmpty() ? strings : booleans;
+	}
+
+	private Double convertNumber(Object fieldValue) {
+		if (fieldValue == null || fieldValue.equals((double) Integer.MIN_VALUE)) {
+			return null;
+		} else {
+			return ((Number) fieldValue).doubleValue();
+		}
 	}
 
 	private boolean isSolrNullValue(Object fieldValue) {

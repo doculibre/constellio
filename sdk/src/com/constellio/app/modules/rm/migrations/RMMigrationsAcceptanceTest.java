@@ -52,15 +52,18 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
 		assertThat(metadataSchemaTypes.getSchemaType(FilingSpace.SCHEMA_TYPE).hasSecurity()).isFalse();
+
+		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel()).isEqualTo("Date de l'événement");
+
 	}
 
 	@Test
 	public void whenMigratingToCurrentVersionThenHasValueListWithDefaultItems()
 			throws Exception {
 
-		assertThat(rm.getMediumTypeByCode("PA")).isNotNull();
-		assertThat(rm.getMediumTypeByCode("DM")).isNotNull();
-		assertThat(rm.getMediumTypeByCode("FI")).isNotNull();
+		assertThat(rm.PA()).isNotNull();
+		assertThat(rm.DM()).isNotNull();
+		assertThat(rm.FI()).isNotNull();
 	}
 
 	@Test
@@ -69,27 +72,30 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		Role managerRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.MANAGER);
 		Role rgdRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.RGD);
 
+		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_FOLDER);
+		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_DOCUMENT);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.CREATE_DOCUMENTS);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.CREATE_DOCUMENTS);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.CREATE_FOLDERS);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.CREATE_SUB_FOLDERS);
-		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.MODIFY_DOCUMENTS);
-		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.MODIFY_FOLDERS);
-		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.DELETE_DOCUMENTS);
-		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.DELETE_FOLDERS);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER);
 		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT);
+		assertThat(userRole.getOperationPermissions()).contains(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT);
+		assertThat(userRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
+		assertThat(userRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 
 		assertThat(managerRole.getOperationPermissions()).containsAll(userRole.getOperationPermissions());
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
-		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_A_FOLDER);
-		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_A_DOCUMENT);
+		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
+		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
+		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_FOLDER);
+		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_DOCUMENT);
+		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_CONTAINERS);
-		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_DECOMMISSIONING);
 
 		assertThat(rgdRole.getOperationPermissions()).containsAll(RMPermissionsTo.getAllPermissions());
 		assertThat(rgdRole.getOperationPermissions()).containsAll(CorePermissions.getAllPermissions());

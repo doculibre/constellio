@@ -31,6 +31,9 @@ public class AppLayerExtensions {
 	}
 
 	public AppLayerCollectionEventsListeners getCollectionListeners(String collection) {
+		if (!collectionListeners.containsKey(collection)) {
+			collectionListeners.put(collection, new AppLayerCollectionEventsListeners());
+		}
 		return collectionListeners.get(collection);
 	}
 

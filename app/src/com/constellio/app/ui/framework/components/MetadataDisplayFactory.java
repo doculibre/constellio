@@ -166,7 +166,8 @@ public class MetadataDisplayFactory implements Serializable {
 					displayComponent = new Label(displayValue.toString(), ContentMode.HTML);
 					break;
 				default:
-					displayComponent = new Label(displayValue.toString());
+					String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+					displayComponent = new Label(stringValue, ContentMode.HTML);
 					break;
 				}
 				break;

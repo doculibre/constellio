@@ -509,6 +509,17 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		captionLabel.setContentMode(ContentMode.HTML);
 		return captionLabel;
 	}
+	
+	protected String getItemCaption(Object itemId) {
+		String caption;
+		if (itemConverter != null) {
+			Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+			caption = itemConverter.convertToPresentation((T) itemId, String.class, locale);
+		} else {
+			caption = itemId.toString();
+		}
+		return caption;
+	}
 
 	private class ValuesContainer extends IndexedContainer {
 
@@ -528,14 +539,8 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		@Override
 		public Property<?> getContainerProperty(final Object itemId, Object propertyId) {
 			if (itemId != null) {
-				String caption;
 				if (CAPTION_PROPERTY_ID.equals(propertyId)) {
-					if (itemConverter != null) {
-						Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-						caption = itemConverter.convertToPresentation((T) itemId, String.class, locale);
-					} else {
-						caption = itemId.toString();
-					}
+					String caption = getItemCaption(itemId);
 					Component captionComponent = newCaptionComponent((T) itemId, caption);
 					return new ObjectProperty<Component>(captionComponent, Component.class);
 				} else {

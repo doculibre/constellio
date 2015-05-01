@@ -22,6 +22,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -387,7 +388,11 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 				@Override
 				public String convertToPresentation(UserCredentialVO value, Class<? extends String> targetType, Locale locale)
 						throws ConversionException {
-					return value.getFirstName() + " " + value.getLastName();
+					String title = value.getFirstName() + " " + value.getLastName();
+					if (StringUtils.isBlank(title)) {
+						title = value.getUsername();
+					}
+					return title;
 				}
 
 				@Override

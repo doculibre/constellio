@@ -31,7 +31,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -51,6 +50,10 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	}
 
 	public abstract void backButtonClicked(String schemaCode);
+
+	public abstract boolean isDetacheable();
+
+	public abstract boolean isAttached();
 
 	public RecordVO getRecordVO() {
 		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY);
@@ -82,13 +85,14 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {
 		Authorization authorization = toAuthorization(authorizationVO);
-		authorizationsServices().add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, getCurrentUser());
+		String id = authorizationsServices().add(authorization, getCurrentUser());
+		authorizationVO.setAuthId(id);
 		view.addAuthorization(authorizationVO);
 	}
 
 	public void authorizationModificationRequested(AuthorizationVO authorizationVO) {
 		Authorization authorization = toAuthorization(authorizationVO);
-		authorizationsServices().modify(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, getCurrentUser());
+		authorizationsServices().modify(authorization, getCurrentUser());
 		if (!isOwnAuthorization(authorization)) {
 			view.removeAuthorization(authorizationVO);
 		}
@@ -98,23 +102,29 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		Authorization authorization = authorizationsServices().getAuthorization(
 				view.getCollection(), authorizationVO.getAuthId());
 		removeAuthorization(authorization);
+		authorizations = null;
 		view.removeAuthorization(authorizationVO);
 	}
 
 	public abstract List<String> getAllowedAccesses();
 
 	public List<String> getAllowedRoles() {
-		List<String> allowedRoles = new ArrayList<>();
-
-		if (getCurrentUser().has(CorePermissions.MANAGE_ROLES).globally()) {
+		if (getCurrentUser().has(CorePermissions.MANAGE_SECURITY).globally()) {
+			List<String> roles = new ArrayList<>();
 			for (Role role : modelLayerFactory.getRolesManager().getAllRoles(view.getCollection())) {
-				allowedRoles.add(role.getCode());
+				roles.add(role.getCode());
 			}
-		} else {
-			allowedRoles.addAll(getCurrentUser().getUserRoles());
+			return roles;
 		}
 
-		return allowedRoles;
+		return getCurrentUser().getUserRoles();
+	}
+
+	public void detachRequested() {
+		Record record = recordServices().getDocumentById(recordId);
+		authorizationsServices().detach(record);
+		authorizations = null;
+		view.refresh();
 	}
 
 	protected abstract boolean isOwnAuthorization(Authorization authorization);
@@ -154,7 +164,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return authorizationsServices;
 	}
 
-	private List<Authorization> getAuthorizations() {
+	protected List<Authorization> getAuthorizations() {
 		if (authorizations == null) {
 			Record record = presenterService().getRecord(recordId);
 			authorizations = authorizationsServices().getRecordAuthorizations(record);
@@ -167,6 +177,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	}
 
 	public boolean seeRolesField() {
-		return new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager(),collection).seeUserRolesInAuthorizations();
+		return new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager(), collection)
+				.seeUserRolesInAuthorizations();
 	}
 }

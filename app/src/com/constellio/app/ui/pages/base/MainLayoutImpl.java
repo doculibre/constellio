@@ -310,7 +310,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	}
 
 	protected Component buildFooter() {
-		Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + " beta)",
+
+		Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + ")",
 				new ExternalResource("http://www.constellio.com"));
 		poweredByConstellioLink.setTargetName("_blank");
 		poweredByConstellioLink.addStyleName(ValoTheme.LINK_LARGE);
@@ -321,6 +322,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		Label licenseLabel = new Label($("MainLayout.footerLicense"));
 		licenseLabel.addStyleName(ValoTheme.LABEL_TINY);
 		licenseLabel.setContentMode(ContentMode.HTML);
+		licenseLabel.setVisible(presenter.isBeta());
 		return licenseLabel;
 	}
 

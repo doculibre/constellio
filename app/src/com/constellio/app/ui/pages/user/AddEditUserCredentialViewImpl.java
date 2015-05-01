@@ -110,7 +110,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		usernameField.setNullRepresentation("");
 		usernameField.setId("username");
 		usernameField.addStyleName("username");
-		usernameField.setEnabled(addActionMode && presenter.canAndOrModify());
+		usernameField.setEnabled(addActionMode && presenter.canAndOrModify(userCredentialVO.getUsername()));
 
 		firstNameField = new TextField();
 		firstNameField.setCaption($("UserCredentialView.firstName"));
@@ -118,7 +118,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		firstNameField.setNullRepresentation("");
 		firstNameField.setId("firstName");
 		firstNameField.addStyleName("firstName");
-		firstNameField.setEnabled(presenter.canAndOrModify());
+		firstNameField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
 		lastNameField = new TextField();
 		lastNameField.setCaption($("UserCredentialView.lastName"));
@@ -126,7 +126,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		lastNameField.setNullRepresentation("");
 		lastNameField.setId("lastName");
 		lastNameField.addStyleName("lastName");
-		lastNameField.setEnabled(presenter.canAndOrModify());
+		lastNameField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
 		emailField = new TextField();
 		emailField.setCaption($("UserCredentialView.email"));
@@ -135,7 +135,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		emailField.setId("email");
 		emailField.addStyleName("email");
 		emailField.addValidator(new EmailValidator($("AddEditUserCredentialView.invalidEmail")));
-		emailField.setEnabled(presenter.canAndOrModify());
+		emailField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
 		passwordField = new PasswordField();
 		passwordField.setCaption($("UserCredentialView.password"));
@@ -143,8 +143,14 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		passwordField.setNullRepresentation("");
 		passwordField.setId("password");
 		passwordField.addStyleName("password");
-		passwordField
-				.setEnabled(presenter.canModifyPassword());
+		if (addActionMode) {
+			passwordField.setVisible(!presenter.isLDAPAuthentication());
+			passwordField.setEnabled(!presenter.isLDAPAuthentication());
+			passwordField.setRequired(!presenter.isLDAPAuthentication());
+		} else {
+			passwordField.setEnabled(presenter.canModifyPassword(userCredentialVO.getUsername()));
+			passwordField.setVisible(presenter.canModifyPassword(userCredentialVO.getUsername()));
+		}
 
 		confirmPasswordField = new PasswordField();
 		confirmPasswordField.setCaption($("UserCredentialView.confirmPassword"));
@@ -163,8 +169,14 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 			}
 		};
 		confirmPasswordField.addValidator(passwordFieldsValidator);
-		confirmPasswordField
-				.setEnabled(presenter.canModifyPassword());
+		if (addActionMode) {
+			confirmPasswordField.setVisible(!presenter.isLDAPAuthentication());
+			confirmPasswordField.setEnabled(!presenter.isLDAPAuthentication());
+			confirmPasswordField.setRequired(!presenter.isLDAPAuthentication());
+		} else {
+			confirmPasswordField.setEnabled(presenter.canModifyPassword(userCredentialVO.getUsername()));
+			confirmPasswordField.setVisible(presenter.canModifyPassword(userCredentialVO.getUsername()));
+		}
 
 		collectionsField = new OptionGroup($("UserCredentialView.collections"));
 		collectionsField.addStyleName("collections");
@@ -177,7 +189,6 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 				collectionsField.select(collection);
 			}
 		}
-		collectionsField.setEnabled(presenter.canAndOrModify());
 
 		statusField = new OptionGroup($("UserCredentialView.status"));
 		statusField.addStyleName("status");
@@ -186,7 +197,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 			statusField.addItem(status);
 			statusField.setItemCaption(status, $("UserCredentialView.status." + status.getCode()));
 		}
-		//		statusField.setEnabled(presenter.canModifyStatus());
+		statusField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
 		return new BaseForm<UserCredentialVO>(userCredentialVO, this, usernameField, firstNameField, lastNameField, emailField,
 				passwordField, confirmPasswordField, collectionsField, statusField) {

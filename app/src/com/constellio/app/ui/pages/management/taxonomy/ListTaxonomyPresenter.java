@@ -24,7 +24,9 @@ import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 
@@ -37,10 +39,14 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 	public List<TaxonomyVO> getTaxonomies() {
 		titles = new ArrayList<>();
 		TaxonomyToVOBuilder builder = new TaxonomyToVOBuilder();
+		User user = getCurrentUser();
+		TaxonomyPresentersService presentersService = new TaxonomyPresentersService(appLayerFactory);
 		List<TaxonomyVO> result = new ArrayList<>();
 		for (Taxonomy taxonomy : valueListServices().getTaxonomies()) {
-			result.add(builder.build(taxonomy));
-			titles.add(taxonomy.getTitle());
+			if (presentersService.canManage(taxonomy.getCode(), user)) {
+				result.add(builder.build(taxonomy));
+				titles.add(taxonomy.getTitle());
+			}
 		}
 		return result;
 	}
@@ -60,4 +66,10 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 	public void displayButtonClicked(TaxonomyVO taxonomy) {
 		view.navigateTo().taxonomyManagement(taxonomy.getCode());
 	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_TAXONOMIES).globally();
+	}
+
 }

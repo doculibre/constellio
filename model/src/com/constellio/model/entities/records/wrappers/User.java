@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.entities.records.wrappers;
 
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 import static java.util.Arrays.asList;
 
 import java.util.List;
@@ -292,6 +295,26 @@ public class User extends RecordWrapper {
 		return getUsername();
 	}
 
+	public UserPermissionsChecker hasReadAccess() {
+		return new AccessUserPermissionsChecker(this, true, false, false);
+	}
+
+	public UserPermissionsChecker hasWriteAccess() {
+		return new AccessUserPermissionsChecker(this, false, true, false);
+	}
+
+	public UserPermissionsChecker hasDeleteAccess() {
+		return new AccessUserPermissionsChecker(this, false, false, true);
+	}
+
+	public UserPermissionsChecker hasWriteAndDeleteAccess() {
+		return new AccessUserPermissionsChecker(this, false, true, true);
+	}
+
+	public UserPermissionsChecker hasAllAccess(List<String> access) {
+		return new AccessUserPermissionsChecker(this, access.contains(READ), access.contains(WRITE), access.contains(DELETE));
+	}
+
 	public UserPermissionsChecker hasMetadataReadAccess() {
 		MetadataAccessUserPermissionsChecker checker = new MetadataAccessUserPermissionsChecker(this, types, roles);
 		checker.metadataRead = true;
@@ -317,9 +340,15 @@ public class User extends RecordWrapper {
 	}
 
 	public UserPermissionsChecker has(String permission) {
-		RolesUserPermissionsChecker checker = new RolesUserPermissionsChecker(this, types, roles);
-		checker.permissions = new String[] { permission };
-		return checker;
+
+		if (permission == null) {
+			return new AlwaysTrueUserPermissionsChecker(this);
+			
+		} else {
+			RolesUserPermissionsChecker checker = new RolesUserPermissionsChecker(this, types, roles);
+			checker.permissions = new String[] { permission };
+			return checker;
+		}
 	}
 
 	public UserPermissionsChecker hasAll(List<String> permissions) {
@@ -327,10 +356,16 @@ public class User extends RecordWrapper {
 	}
 
 	public UserPermissionsChecker hasAll(String... permissions) {
-		RolesUserPermissionsChecker checker = new RolesUserPermissionsChecker(this, types, roles);
-		checker.permissions = permissions;
-		checker.anyRoles = false;
-		return checker;
+
+		if (permissions.length == 0) {
+			return new AlwaysTrueUserPermissionsChecker(this);
+
+		} else {
+			RolesUserPermissionsChecker checker = new RolesUserPermissionsChecker(this, types, roles);
+			checker.permissions = permissions;
+			checker.anyRoles = false;
+			return checker;
+		}
 	}
 
 	public UserPermissionsChecker hasAny(List<String> permissions) {
@@ -338,10 +373,16 @@ public class User extends RecordWrapper {
 	}
 
 	public UserPermissionsChecker hasAny(String... permissions) {
-		RolesUserPermissionsChecker checker = new RolesUserPermissionsChecker(this, types, roles);
-		checker.permissions = permissions;
-		checker.anyRoles = true;
-		return checker;
+
+		if (permissions.length == 0) {
+			return new AlwaysTrueUserPermissionsChecker(this);
+
+		} else {
+			RolesUserPermissionsChecker checker = new RolesUserPermissionsChecker(this, types, roles);
+			checker.permissions = permissions;
+			checker.anyRoles = true;
+			return checker;
+		}
 	}
 
 }

@@ -78,7 +78,7 @@ public class CategoryIsLinkableCalculator implements MetadataValueCalculator<Boo
 
 		if (considerRulesApproved) {
 			for (Boolean ruleIsApproved : rulesApproved) {
-				if (ruleIsApproved.booleanValue()) {
+				if (ruleIsApproved != null && ruleIsApproved.booleanValue()) {
 					return true;
 				}
 			}

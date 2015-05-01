@@ -17,13 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.conf.ldap;
 
-import java.io.Serializable;
 import java.util.List;
 
-import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import org.joda.time.Duration;
 
-public class LDAPUserSyncConfiguration{
+import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
+
+public class LDAPUserSyncConfiguration {
 
 	String user;
 
@@ -60,20 +60,20 @@ public class LDAPUserSyncConfiguration{
 	}
 
 	public boolean isUserAccepted(String userName) {
-		if (userName == null){
+		if (userName == null) {
 			return false;
 		}
-		if(userName.equals(LDAPAuthenticationService.ADMIN_USERNAME)){
+		if (userName.equals(LDAPAuthenticationService.ADMIN_USERNAME)) {
 			return false;
 		}
-		if (this.userFilter == null){
+		if (this.userFilter == null) {
 			return true;
 		}
 		return this.userFilter.isAccepted(userName);
 	}
 
 	public boolean isGroupAccepted(String groupName) {
-		if (this.groupFilter == null){
+		if (this.groupFilter == null) {
 			return true;
 		}
 		return this.groupFilter.isAccepted(groupName);
@@ -81,6 +81,10 @@ public class LDAPUserSyncConfiguration{
 
 	public Duration getDurationBetweenExecution() {
 		return durationBetweenExecution;
+	}
+
+	public void setDurationBetweenExecution(Duration durationBetweenExecution) {
+		this.durationBetweenExecution = durationBetweenExecution;
 	}
 
 	public List<String> getGroupBaseContextList() {
@@ -92,28 +96,28 @@ public class LDAPUserSyncConfiguration{
 	}
 
 	public String getUsersFilterAcceptanceRegex() {
-		if (this.userFilter == null){
+		if (this.userFilter == null) {
 			return "";
 		}
 		return this.userFilter.getAcceptedRegex();
 	}
 
 	public String getUsersFilterRejectionRegex() {
-		if (this.userFilter == null){
+		if (this.userFilter == null) {
 			return "";
 		}
 		return this.userFilter.getRejectedRegex();
 	}
 
 	public String getGroupsFilterAcceptanceRegex() {
-		if (this.groupFilter == null){
+		if (this.groupFilter == null) {
 			return "";
 		}
 		return this.groupFilter.getAcceptedRegex();
 	}
 
 	public String getGroupsFilterRejectionRegex() {
-		if (this.groupFilter == null){
+		if (this.groupFilter == null) {
 			return "";
 		}
 		return this.groupFilter.getRejectedRegex();

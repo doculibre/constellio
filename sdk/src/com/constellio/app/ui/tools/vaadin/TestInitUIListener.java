@@ -31,40 +31,42 @@ import com.vaadin.ui.HasComponents.ComponentDetachListener;
 
 @SuppressWarnings("serial")
 public class TestInitUIListener implements InitUIListener {
-	
+
 	private SessionContext sessionContext;
-	
+
 	public TestInitUIListener(SessionContext testSessionContext) {
 		this.sessionContext = testSessionContext;
 	}
 
 	@Override
 	public void beforeInitialize(ConstellioUI ui) {
-		ui.setSessionContext(sessionContext);
-		
+		if (sessionContext != null) {
+			ui.setSessionContext(sessionContext);
+		}
+
 		ui.setErrorHandler(new TestErrorHandler());
-		
-//		ui.addAttachListener(new AttachListener() {
-//			@Override
-//			public void attach(AttachEvent event) {
-//				writePageLoadTime();
-//			}
-//		});
-//		
-//		ui.addDetachListener(new DetachListener() {
-//			@Override
-//			public void detach(DetachEvent event) {
-//				writePageLoadTime();
-//			}
-//		});
-		
+
+		//		ui.addAttachListener(new AttachListener() {
+		//			@Override
+		//			public void attach(AttachEvent event) {
+		//				writePageLoadTime();
+		//			}
+		//		});
+		//
+		//		ui.addDetachListener(new DetachListener() {
+		//			@Override
+		//			public void detach(DetachEvent event) {
+		//				writePageLoadTime();
+		//			}
+		//		});
+
 		ui.addComponentAttachListener(new ComponentAttachListener() {
 			@Override
 			public void componentAttachedToContainer(ComponentAttachEvent event) {
 				writePageLoadTime();
 			}
 		});
-		
+
 		ui.addComponentDetachListener(new ComponentDetachListener() {
 			@Override
 			public void componentDetachedFromContainer(ComponentDetachEvent event) {
@@ -72,7 +74,7 @@ public class TestInitUIListener implements InitUIListener {
 			}
 		});
 	}
-	
+
 	private void writePageLoadTime() {
 		new PageLoadTimeWriter().write(new Date());
 		validateSerializable(ConstellioUI.getCurrent());

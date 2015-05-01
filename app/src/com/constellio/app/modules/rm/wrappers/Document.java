@@ -19,14 +19,14 @@ package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
-public class Document extends RecordWrapper {
+public class Document extends RMObject {
 
 	public static final String SCHEMA_TYPE = "document";
 
@@ -56,6 +56,10 @@ public class Document extends RecordWrapper {
 	public static final String FOLDER_EXPECTED_TRANSFER_DATE = Folder.EXPECTED_TRANSFER_DATE;
 	public static final String FOLDER_OPENING_DATE = Folder.OPENING_DATE;
 	public static final String FOLDER_CLOSING_DATE = Folder.CLOSING_DATE;
+
+	public static final String AUTHOR = "author";
+	public static final String COMPANY = "company";
+	public static final String SUBJECT = "subject";
 
 	public Document(Record record,
 			MetadataSchemaTypes types) {
@@ -90,11 +94,11 @@ public class Document extends RecordWrapper {
 		return this;
 	}
 
-	public String getKeywords() {
-		return get(KEYWORDS);
+	public List<String> getKeywords() {
+		return getList(KEYWORDS);
 	}
 
-	public Document setKeywords(String keywords) {
+	public Document setKeywords(List<String> keywords) {
 		set(KEYWORDS, keywords);
 		return this;
 	}
@@ -134,5 +138,37 @@ public class Document extends RecordWrapper {
 	public Document setComments(List<Comment> comments) {
 		set(COMMENTS, comments);
 		return this;
+	}
+
+	public String getSubject() {
+		return get(SUBJECT);
+	}
+
+	public Document setSubject(String subject) {
+		set(SUBJECT, subject);
+		return this;
+	}
+
+	public String getCompany() {
+		return get(COMPANY);
+	}
+
+	public Document setCompany(String company) {
+		set(COMPANY, company);
+		return this;
+	}
+
+	public String getAuthor() {
+		return get(AUTHOR);
+	}
+
+	public Document setAuthor(String author) {
+		set(AUTHOR, author);
+		return this;
+	}
+
+	@Override
+	public FolderStatus getArchivisticStatus() {
+		return get(FOLDER_ARCHIVISTIC_STATUS);
 	}
 }

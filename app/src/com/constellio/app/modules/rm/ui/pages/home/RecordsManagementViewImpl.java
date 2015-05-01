@@ -20,12 +20,14 @@ package com.constellio.app.modules.rm.ui.pages.home;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
 
 import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -38,6 +40,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -59,30 +62,36 @@ public class RecordsManagementViewImpl extends BaseViewImpl implements RecordsMa
 	private TabSheet tabSheet;
 
 	private RecordsManagementPresenter presenter;
+	
+	private SelectedTabChangeListener selectedTabChangeListener;
 
 	public RecordsManagementViewImpl() {
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName("records-management");
-
-		tabSheet.addSelectedTabChangeListener(new SelectedTabChangeListener() {
+		presenter = new RecordsManagementPresenter(this);
+		
+		selectedTabChangeListener = new SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(SelectedTabChangeEvent event) {
 				Component selectedComponent = tabSheet.getSelectedTab();
 				Tab selectedTab = tabSheet.getTab(selectedComponent);
-				if (selectedTab != null) {
-					int indexOfSelectedTab = tabSheet.getTabPosition(selectedTab);
-					RecordsManagementViewTab tabSource = tabs.get(indexOfSelectedTab);
-					String tabName = tabSource.getTabName();
-					PlaceHolder tabComponent = (PlaceHolder) selectedTab.getComponent();
-					if (tabComponent.getComponentCount() == 0) {
-						tabComponent.setCompositionRoot(getTabComponent(selectedTab));
-					}
-					ParamUtils.setParams(tabName);
-				}
+				selectTab(selectedTab);
 			}
-		});
-
-		presenter = new RecordsManagementPresenter(this);
+		};
+	}
+	
+	private void selectTab(Tab selectedTab) {
+		if (selectedTab != null) {
+			int indexOfSelectedTab = tabSheet.getTabPosition(selectedTab);
+			tabSheet.setSelectedTab(indexOfSelectedTab);
+			RecordsManagementViewTab tabSource = tabs.get(indexOfSelectedTab);
+			String tabName = tabSource.getTabName();
+			PlaceHolder tabComponent = (PlaceHolder) selectedTab.getComponent();
+			if (tabComponent.getComponentCount() == 0) {
+				tabComponent.setCompositionRoot(getTabComponent(selectedTab));
+			}
+			ParamUtils.setParams(tabName);
+		}
 	}
 
 	@Override
@@ -131,16 +140,28 @@ public class RecordsManagementViewImpl extends BaseViewImpl implements RecordsMa
 	}
 
 	@Override
-	public void setTabs(List<RecordsManagementViewTab> tabs) {
-		this.tabs = tabs;
+	public void setTabs(List<RecordsManagementViewTab> viewTabs, RecordsManagementViewTab initialTab) {
+		this.tabs = viewTabs;
+		
 		tabSheet.removeAllComponents();
-		for (final RecordsManagementViewTab tab : tabs) {
-			String tabName = tab.getTabName();
+		tabSheet.removeSelectedTabChangeListener(selectedTabChangeListener);
+		
+		Tab selectedTab = null;
+		for (RecordsManagementViewTab viewTab : viewTabs) {
+			String tabName = viewTab.getTabName();
 			String tabCaption = $("RecordsManagementView.tab." + tabName);
-			tabSheet.addTab(new PlaceHolder(), tabCaption).setEnabled(tab.isEnabled());
+			TabSheet.Tab tab = tabSheet.addTab(new PlaceHolder(), tabCaption);
+			tab.setEnabled(viewTab.isEnabled());
+			if (viewTab == initialTab) {
+				selectedTab = tab;
+			}
 		}
-		if (tabs.isEmpty()) {
+		
+		tabSheet.addSelectedTabChangeListener(selectedTabChangeListener);
+		if (viewTabs.isEmpty()) {
 			tabSheet.setVisible(false);
+		} else {
+			selectTab(selectedTab);
 		}
 	}
 
@@ -171,6 +192,7 @@ public class RecordsManagementViewImpl extends BaseViewImpl implements RecordsMa
 		return lazyTree;
 	}
 
+	@SuppressWarnings("unchecked")
 	private Table newRecordListTable(RecordVODataProvider dataProvider) {
 		final Container recordsContainer = new RecordVOLazyContainer(dataProvider);
 		Table table = new RecordVOTable();
@@ -178,6 +200,12 @@ public class RecordsManagementViewImpl extends BaseViewImpl implements RecordsMa
 		table.setSizeFull();
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 47);
+		Collection<MetadataVO> properties = (Collection<MetadataVO>) recordsContainer.getContainerPropertyIds();
+		for (MetadataVO property : properties) {
+			if (property.getCode() != null && property.getCode().contains(Schemas.MODIFIED_ON.getLocalCode())) {
+				table.setColumnWidth(property, 180);
+			}
+		}
 
 		table.addItemClickListener(new ItemClickListener() {
 			@Override
@@ -203,12 +231,6 @@ public class RecordsManagementViewImpl extends BaseViewImpl implements RecordsMa
 				subTabSheet.setSelectedTab(i);
 			}
 		}
-	}
-
-	@Override
-	public void selectTab(RecordsManagementViewTab tab) {
-		int indexOfTab = tabs.indexOf(tab);
-		tabSheet.setSelectedTab(indexOfTab);
 	}
 
 	@Override

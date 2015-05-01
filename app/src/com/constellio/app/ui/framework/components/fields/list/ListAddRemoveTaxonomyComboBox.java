@@ -26,8 +26,10 @@ import com.constellio.app.ui.framework.components.fields.taxonomy.TaxonomyComboB
 public class ListAddRemoveTaxonomyComboBox extends ListAddRemoveField<RecordVO, TaxonomyComboBox> {
 
 	private String taxonomyCode;
+	
+	private String schemaTypeCode;
 
-	public ListAddRemoveTaxonomyComboBox(String taxonomyCode) {
+	public ListAddRemoveTaxonomyComboBox(String taxonomyCode, String schemaTypeCode) {
 		super();
 		this.taxonomyCode = taxonomyCode;
 		setItemConverter(new StringToRecordVOConverter(VIEW_MODE.TABLE));
@@ -35,7 +37,7 @@ public class ListAddRemoveTaxonomyComboBox extends ListAddRemoveField<RecordVO, 
 
 	@Override
 	protected TaxonomyComboBox newAddEditField() {
-		return new TaxonomyComboBox(taxonomyCode);
+		return new TaxonomyComboBox(taxonomyCode, schemaTypeCode);
 	}
 
 }

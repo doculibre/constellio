@@ -23,14 +23,15 @@ import java.util.Set;
 
 import javax.naming.ldap.LdapContext;
 
+import com.constellio.model.conf.ldap.*;
+import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.model.conf.ldap.LDAPConfigurationManager;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class LDAPConfigManagementPresenter extends
 										   BasePresenter<LDAPConfigManagementView> {
@@ -55,8 +56,22 @@ public class LDAPConfigManagementPresenter extends
 			LDAPUserSyncConfiguration ldapUserSyncConfigurationVO) {
 		LDAPConfigurationManager ldapConfigManager = view.getConstellioFactories().getModelLayerFactory()
 				.getLdapConfigurationManager();
-		ldapConfigManager.saveLDAPConfiguration(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
-		view.showMessage($("ldap.config.saved"));
+		try{
+			ldapConfigManager.saveLDAPConfiguration(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
+			view.showMessage($("ldap.config.saved"));
+		}catch(TooShortDurationRuntimeException e){
+			view.showErrorMessage($("ldap.TooShortDurationRuntimeException"));
+		}catch(EmptyDomainsRuntimeException e){
+			view.showErrorMessage($("ldap.EmptyDomainsRuntimeException"));
+		}catch(EmptyUrlsRuntimeException e){
+			view.showErrorMessage($("ldap.EmptyUrlsRuntimeException"));
+		}catch(LDAPConnectionFailure e){
+			view.showErrorMessage($("ldap.LDAPConnectionFailure") + "\n" + e.getUrl()
+			 +"\n" + e.getUser() +
+			"\n " + StringUtils.join(e.getDomains(), "; "));
+		}catch(InvalidUrlRuntimeException e){
+			view.showErrorMessage($("ldap.InvalidUrlRuntimeException") + ": " + e.getUrl());
+		}
 	}
 
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
@@ -97,4 +112,10 @@ public class LDAPConfigManagementPresenter extends
 
 		return result.toString();
 	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP);
+	}
+
 }

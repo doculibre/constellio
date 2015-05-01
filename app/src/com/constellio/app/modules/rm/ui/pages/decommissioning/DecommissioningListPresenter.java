@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
@@ -36,6 +37,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView> {
@@ -52,6 +54,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public DecommissioningListPresenter forRecordId(String recordId) {
 		this.recordId = recordId;
 		return this;
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
 	}
 
 	public RecordVO getDecommissioningList() {

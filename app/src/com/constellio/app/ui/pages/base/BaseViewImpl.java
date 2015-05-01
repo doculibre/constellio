@@ -22,12 +22,16 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -41,7 +45,10 @@ import com.vaadin.ui.themes.ValoTheme;
 @SuppressWarnings("serial")
 public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView {
 
+	private static Logger LOGGER = LoggerFactory.getLogger(BaseViewImpl.class);
+
 	public static final String BACK_BUTTON_CODE = "seleniumBackButtonCode";
+
 	private Label titleLabel;
 
 	private BackButton backButton;
@@ -51,9 +58,29 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private Component mainComponent;
 	private Component actionMenu;
 
+	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
+
 	@Override
 	public final void enter(ViewChangeEvent event) {
-		initBeforeCreateComponents(event);
+		for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+			viewEnterListener.viewEntered(event.getParameters());
+		}
+
+		//if (!(this instanceof RecordsManagementViewImpl)) {
+		try {
+			initBeforeCreateComponents(event);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			LOGGER.error(e.getMessage(), e);
+			navigateTo().home();
+			return;
+		}
+		//}
+
+		for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+			viewEnterListener.afterInit(event.getParameters());
+		}
 
 		addStyleName("main-component-wrapper");
 		setSizeFull();
@@ -112,6 +139,22 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		}
 
 		afterViewAssembled(event);
+
+	}
+
+	@Override
+	public void addViewEnterListener(ViewEnterListener listener) {
+		viewEnterListeners.add(listener);
+	}
+
+	@Override
+	public List<ViewEnterListener> getViewEnterListeners() {
+		return viewEnterListeners;
+	}
+
+	@Override
+	public void removeViewEnterListener(ViewEnterListener listener) {
+		viewEnterListeners.remove(listener);
 	}
 
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
@@ -169,13 +212,22 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	@Override
+	public void updateUI() {
+		ConstellioUI.getCurrent().updateContent();
+	}
+
+	@Override
 	public void showMessage(String message) {
-		Notification.show(message, Type.WARNING_MESSAGE);
+		Notification notification = new Notification(message, Type.WARNING_MESSAGE);
+		notification.setHtmlContentAllowed(true);
+		notification.show(Page.getCurrent());
 	}
 
 	@Override
 	public void showErrorMessage(String errorMessage) {
-		Notification.show(errorMessage + "\n\n" + $("clickToClose"), Type.ERROR_MESSAGE);
+		Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
+		notification.setHtmlContentAllowed(true);
+		notification.show(Page.getCurrent());
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,6 +140,21 @@ public class LangUtils {
 
 	public static List<String> withoutDuplicates(List<String> value) {
 		return new ArrayList<>(new HashSet<>(value));
+	}
+
+	public static <T> Collection<T> withoutNulls(Collection<T> userPermissionsOnRecord) {
+
+		List<T> withoutNulls = new ArrayList<>();
+
+		Iterator<T> valuesIterator = userPermissionsOnRecord.iterator();
+		while (valuesIterator.hasNext()) {
+			T value = valuesIterator.next();
+			if (value != null) {
+				withoutNulls.add(value);
+			}
+		}
+
+		return withoutNulls;
 	}
 
 	public static class ListComparisonResults<T> {

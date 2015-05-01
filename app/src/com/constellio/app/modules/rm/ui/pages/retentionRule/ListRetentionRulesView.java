@@ -17,11 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
 
-public interface ListRetentionRulesView extends BaseView, RecordsManagementViewGroup {
+public interface ListRetentionRulesView extends BaseView, AdminModuleViewGroup {
 
 	void setDataProvider(RecordVODataProvider dataProvider);
 

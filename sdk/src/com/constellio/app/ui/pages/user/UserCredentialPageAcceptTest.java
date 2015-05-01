@@ -25,6 +25,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
@@ -38,6 +39,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 	AddEditUserCredentialPage addEditUserCredentialPage;
 	ListUserCredentialPage listUserCredentialPage;
 	DisplayUserCredentialPage displayUserCredentialPage;
+	UserServices userServices;
 
 	@Before
 	public void setUp()
@@ -48,6 +50,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 		givenCollection("otherCollection");
 
 		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		userServices = getModelLayerFactory().newUserServices();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 
@@ -156,6 +159,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 
 		assertThat(listUserCredentialPage.getTableRows()).hasSize(11);
 		assertThat(listUserCredentialPage.getTableRows().get(10).getText()).contains("zeEdouard");
+		assertThat(userServices.getUserInCollection("zeEdouard", zeCollection).getUserRoles()).containsOnly("U");
 	}
 
 	private void givenEditPageWhenEditUserCredentialThenOk()
@@ -216,7 +220,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 		assertThat(displayUserCredentialPage.getTableRowsGroups().get(0).getText()).contains("heroes");
 		assertThat(displayUserCredentialPage.getTableRowsUsersGroups()).isEmpty();
 
-		displayUserCredentialPage.getAddButton().clickAndWaitForPageReload();
+		displayUserCredentialPage.getAddButtonOnIndex(0).clickAndWaitForPageReload();
 		//		displayUserCredentialPage.waitForPageReload();
 
 		assertThat(displayUserCredentialPage.getTableRowsUsersGroups()).hasSize(1);
@@ -232,7 +236,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 
 		givenDisplayPageForIndex(0);
 
-		displayUserCredentialPage.getEditGlobalGroupButtonOnIndex().clickAndWaitForPageReload();
+		displayUserCredentialPage.getEditGlobalGroupButtonMenuAction().clickAndWaitForPageReload();
 		//displayUserCredentialPage.waitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.USER_ADD_EDIT + "/" + NavigatorConfigurationService.USER_LIST

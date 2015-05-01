@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.base;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
@@ -35,5 +36,21 @@ public interface BaseView extends Serializable {
 	SessionContext getSessionContext();
 
 	ConstellioFactories getConstellioFactories();
+	
+	void addViewEnterListener(ViewEnterListener listener);
+	
+	List<ViewEnterListener> getViewEnterListeners();
+	
+	void updateUI();
+	
+	void removeViewEnterListener(ViewEnterListener listener);
+	
+	public interface ViewEnterListener extends Serializable {
+		
+		void viewEntered(String params);
+
+		void afterInit(String parameters);
+		
+	}
 	
 }

@@ -17,6 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.management;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -67,6 +71,7 @@ public class AdminRMModulePresenter extends BasePresenter<AdminRMModuleView> {
 	}
 
 	public void importFileButtonClicked() {
+		view.navigateTo().importFile();
 	}
 
 	public void optionsButtonClicked() {
@@ -130,14 +135,15 @@ public class AdminRMModulePresenter extends BasePresenter<AdminRMModuleView> {
 
 	public void onViewAssembled() {
 		User user = getCurrentUser();
-		view.setManageTaxonomiesVisible(user.has(CorePermissions.MANAGE_TAXONOMIES).globally());
-		view.setManageUniformSubdivisionsVisible(user.has(CorePermissions.MANAGE_UNIFORMSUBDIVISIONS).globally());
-		view.setManageRetentionRuleVisible(user.has(CorePermissions.MANAGE_RETENTIONRULE).globally());
+		view.setManageTaxonomiesVisible(user.hasAny(CorePermissions.MANAGE_TAXONOMIES, CorePermissions.MANAGE_SECURITY,
+				RMPermissionsTo.MANAGE_STORAGE_SPACES, RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
+		view.setManageUniformSubdivisionsVisible(user.has(RMPermissionsTo.MANAGE_UNIFORMSUBDIVISIONS).globally());
+		view.setManageRetentionRuleVisible(user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally());
 		view.setManageValueListVisible(user.has(CorePermissions.MANAGE_VALUELIST).globally());
 		view.setManageMetadataSchemasVisible(user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally());
-		view.setManageFilingSpaceVisible(user.has(CorePermissions.MANAGE_FILINGSPACE).globally());
 		view.setManageSecurityVisible(user.has(CorePermissions.MANAGE_SECURITY).globally());
-		view.setManageRolesVisible(user.has(CorePermissions.MANAGE_ROLES).globally());
+		view.setManageFilingSpaceVisible(user.has(CorePermissions.MANAGE_SECURITY).globally());
+		view.setManageRolesVisible(user.has(CorePermissions.MANAGE_SECURITY).globally());
 		view.setManageMetadataExtractorVisible(user.has(CorePermissions.MANAGE_METADATAEXTRACTOR).globally());
 		view.setManageConnectorsVisible(user.has(CorePermissions.MANAGE_CONNECTORS).globally());
 		view.setManageSearchEngineVisible(user.has(CorePermissions.MANAGE_SEARCHENGINE).globally());
@@ -152,6 +158,20 @@ public class AdminRMModulePresenter extends BasePresenter<AdminRMModuleView> {
 		view.setManageSystemDataImports(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 		view.setManageSystemServers(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_SERVERS));
 		view.setManageSystemUpdates(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_UPDATES));
+		view.setManageSystemConfiguration(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION));
+		view.setManageLdapConfiguration(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP));
 	}
 
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		List<String> permissions = new ArrayList<>();
+		permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);
+		permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
+
+		boolean collectionManagementAccess = user.hasAny(permissions).globally();
+		boolean systemManagementAccess = userServices().has(user).anyGlobalPermissionInAnyCollection(
+				CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
+
+		return collectionManagementAccess || systemManagementAccess;
+	}
 }

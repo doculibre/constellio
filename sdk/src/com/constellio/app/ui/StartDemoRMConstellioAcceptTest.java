@@ -41,13 +41,14 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenTransactionLogIsEnabled();
 		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
 		givenCollectionWithTitle("LaCollectionDeRida", "Collection d'entreprise").withConstellioRMModule().withAllTestUsers();
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
+		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory())
+				.withFoldersAndContainersOfEveryStatus();//				.withEvents();
 		new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 	}
 

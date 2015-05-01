@@ -25,4 +25,6 @@ public interface ListAuthorizationsView extends BaseView, AdminModuleViewGroup {
 	void removeAuthorization(AuthorizationVO authorization);
 
 	void addAuthorization(AuthorizationVO authorizationVO);
+
+	void refresh();
 }

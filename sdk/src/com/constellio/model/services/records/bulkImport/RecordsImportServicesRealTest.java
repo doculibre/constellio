@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.bulkImport;
 
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.records.bulkImport.RecordsImportServices.INVALID_SCHEMA_TYPE_CODE;
 import static com.constellio.model.services.records.bulkImport.RecordsImportValidator.AUTOMATIC_METADATA_CODE;
 import static com.constellio.model.services.records.bulkImport.RecordsImportValidator.DISABLED_METADATA_CODE;
@@ -71,7 +72,7 @@ import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.bulkImport.RecordsImportServicesRuntimeException.RecordsImportServicesRuntimeException_CyclicDependency;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIterator;
 import com.constellio.model.services.records.bulkImport.data.ImportDataProvider;
-import com.constellio.model.services.records.bulkImport.data.xml.DummyImportData;
+import com.constellio.model.services.records.bulkImport.data.builder.ImportDataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -92,10 +93,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	AnotherSchemaMetadatas anotherSchema = schemas.new AnotherSchemaMetadatas();
 	ThirdSchemaMetadatas thirdSchema = schemas.new ThirdSchemaMetadatas();
 
-	List<DummyImportData> zeSchemaTypeRecords = new ArrayList<>();
-	List<DummyImportData> anotherSchemaTypeRecords = new ArrayList<>();
-	List<DummyImportData> thirdSchemaTypeRecords = new ArrayList<>();
-	Map<String, List<DummyImportData>> data = new HashMap<>();
+	List<ImportDataBuilder> zeSchemaTypeRecords = new ArrayList<>();
+	List<ImportDataBuilder> anotherSchemaTypeRecords = new ArrayList<>();
+	List<ImportDataBuilder> thirdSchemaTypeRecords = new ArrayList<>();
+	Map<String, List<ImportDataBuilder>> data = new HashMap<>();
 
 	ContentManager contentManager;
 	ImportDataProvider importDataProvider;
@@ -123,6 +124,76 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenUpdatingPreviouslyAddedRecordThenUpdated()
+			throws Exception {
+
+		LocalDate aDate = new LocalDate().minusDays(1);
+		LocalDate anotherDate = new LocalDate().minusDays(2);
+		LocalDateTime aDateTime = new LocalDateTime().minusDays(1);
+		LocalDateTime anotherDateTime = new LocalDateTime().minusDays(2);
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withABooleanMetadata()
+				.withADateMetadata()
+				.withADateTimeMetadata()
+				.withANumberMetadata()
+				.withAnEnumMetadata(AValidEnum.class));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "yes")
+				.addField(zeSchema.dateMetadata().getLocalCode(), aDate)
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), aDateTime)
+				.addField(zeSchema.numberMetadata().getLocalCode(), "6.66")
+				.addField(zeSchema.enumMetadata().getLocalCode(), "S"));
+		bulkImport(importDataProvider, progressionListener, admin);
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "new title 2")
+				.addField(zeSchema.booleanMetadata().getLocalCode(), "no")
+				.addField(zeSchema.dateMetadata().getLocalCode(), anotherDate)
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), anotherDateTime)
+				.addField(zeSchema.numberMetadata().getLocalCode(), "7.77")
+				.addField(zeSchema.enumMetadata().getLocalCode(), "F"));
+		bulkImport(importDataProvider, progressionListener, admin);
+		Record record = recordWithLegacyId("1");
+		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 2");
+		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isFalse();
+		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
+		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(7.77);
+		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.FIRST_VALUE);
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "new title 3"));
+		bulkImport(importDataProvider, progressionListener, admin);
+		record = recordWithLegacyId("1");
+		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 3");
+		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isFalse();
+		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
+		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(7.77);
+		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(AValidEnum.FIRST_VALUE);
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
+				.addField(zeSchema.booleanMetadata().getLocalCode(), null)
+				.addField(zeSchema.dateMetadata().getLocalCode(), null)
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), null)
+				.addField(zeSchema.numberMetadata().getLocalCode(), null)
+				.addField(zeSchema.enumMetadata().getLocalCode(), null));
+		bulkImport(importDataProvider, progressionListener, admin);
+		record = recordWithLegacyId("1");
+		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 3");
+		assertThat(record.get(zeSchema.booleanMetadata())).isNull();
+		assertThat(record.get(zeSchema.dateMetadata())).isNull();
+		assertThat(record.get(zeSchema.dateTimeMetadata())).isNull();
+
+		//assertThat(record.get(zeSchema.numberMetadata())).isNull();
+		assertThat(record.get(zeSchema.enumMetadata())).isNull();
+
+	}
+
+	@Test
 	public void whenImportingRecordsWithVariousSingleValueTypesThenImportedCorrectly()
 			throws Exception {
 
@@ -143,10 +214,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.numberMetadata().getLocalCode(), "6.66")
 				.addField(zeSchema.enumMetadata().getLocalCode(), "S"));
 
-		services.bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record = recordWithLegacyId("1");
-		assertThat(record.get(Schemas.LEGACY_ID)).isEqualTo("1");
+		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isTrue();
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(aDate);
@@ -179,10 +250,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
 				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
 
-		services.bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record = recordWithLegacyId("1");
-		assertThat(record.get(Schemas.LEGACY_ID)).isEqualTo("1");
+		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
 		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
@@ -240,12 +311,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("19").addField("title", "Record 19")
 				.addField(zeSchema.booleanMetadata().getLocalCode(), "F"));
 
-		services.bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 
 		for (int i = 3; i <= 13; i++) {
 			Record record = recordWithLegacyId("" + i);
 			assertThat(record).describedAs("Record " + i + " should exist").isNotNull();
-			assertThat(record.get(Schemas.LEGACY_ID)).isEqualTo("" + i);
+			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
 			assertThat(record.get(Schemas.TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be true")
 					.isTrue();
@@ -254,7 +325,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		for (int i = 14; i <= 19; i++) {
 			Record record = recordWithLegacyId("" + i);
 			assertThat(record).describedAs("Record " + i + " should exist").isNotNull();
-			assertThat(record.get(Schemas.LEGACY_ID)).isEqualTo("" + i);
+			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
 			assertThat(record.get(Schemas.TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be false")
 					.isFalse();
@@ -290,7 +361,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		};
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -314,7 +385,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		zeSchemaTypeRecords.add(defaultSchemaData().setId(null).addField("title", "Record 5"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -341,7 +412,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("parentReferenceFromZeSchemaToZeSchema", "666"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -367,7 +438,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:666"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -398,7 +469,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:666"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -432,7 +503,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("parentReferenceFromZeSchemaToZeSchema", "otherInvalidMetadata:666"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -465,7 +536,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("stringMetadata", new ArrayList<>()));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -497,7 +568,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.booleanMetadata().getLocalCode(), "Oh yes"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -527,7 +598,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.enumMetadata().getLocalCode(), "FS"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -558,7 +629,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.enumMetadata().getLocalCode(), asList("FS", "F")));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -585,7 +656,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.stringMetadata().getLocalCode(), "value"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -608,7 +679,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.stringMetadata().getLocalCode(), "value"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -631,7 +702,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.stringCopiedFromFirstReferenceStringMeta().getLocalCode(), "value"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -660,7 +731,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.numberMetadata().getLocalCode(), "nan"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -693,7 +764,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.stringMetadata().getLocalCode(), "Ze value"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -726,7 +797,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.stringMetadata().getLocalCode(), new ArrayList<>()));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -757,7 +828,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.dateMetadata().getLocalCode(), "a text value"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -788,7 +859,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.dateTimeMetadata().getLocalCode(), "a text value"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -819,7 +890,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.stringMetadata().getLocalCode(), "anotherValue"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -850,7 +921,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.stringMetadata().getLocalCode(), asList("anotherValue", "thirdValue")));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -884,7 +955,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("anotherInexistentMetadata", "ze value"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -924,7 +995,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						.addField(zeSchema.stringMetadata().getLocalCode(), "aValue"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -963,7 +1034,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (RecordsImportServicesRuntimeException_CyclicDependency e) {
 			assertThat(e.getCyclicDependentIds()).containsOnly("1", "2", "3", "4");
@@ -979,7 +1050,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(Schemas.LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
@@ -1026,7 +1097,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 		anotherSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Ze record"));
 
-		services.bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 	}
 
 	@Test
@@ -1039,7 +1110,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 2"));
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin);
+			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
@@ -1070,7 +1141,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						new ContentImport(testResource2, "Ze ultimate document.pdf", false),
 						new ContentImport(testResource3, "Ze book.txt", true))));
 
-		BulkImportResults results = services.bulkImport(importDataProvider, progressionListener, admin);
+		BulkImportResults results = bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("1");
 		Record record2 = recordWithLegacyId("2");
@@ -1102,13 +1173,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(results.getInvalidContentUrls()).containsOnly(testResource1, testResource3);
 	}
 
-	//TODO Francis
-	//	@Test
+	@Test
 	public void whenImportingRecordsWithContentThenContentUploadedAndAddedToRecord()
 			throws Exception {
 		String testResource1 = getTestResourceFile("resource1.docx").getAbsolutePath();
 		String testResource2 = getTestResourceFile("resource2.pdf").getAbsolutePath();
-		String testResource3 = "https://www.gutenberg.org/cache/epub/338/pg338.txt";
+		String testResource3 = "https://dl.dropboxusercontent.com/u/422508/pg338.txt";
 		String testResource1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
 		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
 		String testResource3Hash = "jLWaqQbCOSAPT4G3P75XnJJOmmo=";
@@ -1127,7 +1197,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						new ContentImport(testResource2, "Ze ultimate document.pdf", false),
 						new ContentImport(testResource3, "Ze book.txt", true))));
 
-		BulkImportResults results = services.bulkImport(importDataProvider, progressionListener, admin);
+		BulkImportResults results = bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("1");
 		Record record2 = recordWithLegacyId("2");
@@ -1179,7 +1249,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(Schemas.LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
@@ -1199,7 +1269,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
 				.addField("referenceFromAnotherSchemaToZeSchema", "1"));
 
-		services.bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 
 		validateCorrectlyImported();
 
@@ -1215,7 +1285,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(Schemas.LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:2"));
@@ -1235,7 +1305,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
 				.addField("referenceFromAnotherSchemaToZeSchema", "legacyIdentifier:1"));
 
-		services.bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 
 		validateCorrectlyImported();
 
@@ -1252,7 +1322,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(Schemas.LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title")
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title")
 				.set(zeSchema.stringMetadata(), "previouslySavedRecordCode"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
@@ -1278,7 +1348,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
 				.addField("referenceFromAnotherSchemaToZeSchema", "stringMetadata:code1"));
 
-		services.bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 
 		validateCorrectlyImported();
 
@@ -1294,45 +1364,45 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		Record record666 = recordWithLegacyId("666");
 
 		assertThat(record1.getId()).isNotEqualTo("1");
-		assertThat(record1.get(Schemas.LEGACY_ID)).isEqualTo("1");
+		assertThat(record1.get(LEGACY_ID)).isEqualTo("1");
 		assertThat(record1.get(Schemas.TITLE)).isEqualTo("Record 1");
 		assertThat(record1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record2.getId());
 
 		assertThat(record2.getId()).isNotEqualTo("2");
-		assertThat(record2.get(Schemas.LEGACY_ID)).isEqualTo("2");
+		assertThat(record2.get(LEGACY_ID)).isEqualTo("2");
 		assertThat(record2.get(Schemas.TITLE)).isEqualTo("Record 2");
 		assertThat(record2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record3.getId());
 
 		assertThat(record3.getId()).isNotEqualTo("3");
-		assertThat(record3.get(Schemas.LEGACY_ID)).isEqualTo("3");
+		assertThat(record3.get(LEGACY_ID)).isEqualTo("3");
 		assertThat(record3.get(Schemas.TITLE)).isEqualTo("Record 3");
 		assertThat(record3.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record42.getId());
 
 		assertThat(record42.getId()).isNotEqualTo("42");
-		assertThat(record42.get(Schemas.LEGACY_ID)).isEqualTo("42");
+		assertThat(record42.get(LEGACY_ID)).isEqualTo("42");
 		assertThat(record42.get(Schemas.TITLE)).isEqualTo("Record 42");
 		assertThat(record42.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo("previouslySavedRecordId");
 
 		assertThat(record43.getId()).isNotEqualTo("43");
-		assertThat(record43.get(Schemas.LEGACY_ID)).isEqualTo("43");
+		assertThat(record43.get(LEGACY_ID)).isEqualTo("43");
 		assertThat(record43.get(Schemas.TITLE)).isEqualTo("Record 43");
 		assertThat(record43.get(zeCustomSchemaMetadatas.customStringMetadata())).isEqualTo("customFieldValue");
 		assertThat(record43.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isNull();
 		assertThat(record43.getSchemaCode()).isEqualTo("zeSchemaType_custom");
 
 		assertThat(record666.getId()).isNotEqualTo("666");
-		assertThat(record666.get(Schemas.LEGACY_ID)).isEqualTo("666");
+		assertThat(record666.get(LEGACY_ID)).isEqualTo("666");
 		assertThat(record666.get(Schemas.TITLE)).isEqualTo("Ze record");
 		assertThat(record666.get(anotherSchema.referenceFromAnotherSchemaToZeSchema())).isEqualTo(record1.getId());
 	}
 
-	private DummyImportData defaultSchemaData() {
-		return new DummyImportData().setSchema("default");
+	private ImportDataBuilder defaultSchemaData() {
+		return new ImportDataBuilder().setSchema("default");
 	}
 
 	private Record recordWithLegacyId(String legacyId) {
 		return getModelLayerFactory().newSearchServices().searchSingleResult(
-				fromAllSchemasIn(zeCollection).where(Schemas.LEGACY_ID).isEqualTo(legacyId));
+				fromAllSchemasIn(zeCollection).where(LEGACY_ID).isEqualTo(legacyId));
 	}
 
 	private ValidationError newZeSchemaValidationError(String code, Map<String, String> parameters) {
@@ -1342,6 +1412,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 	private ValidationError newValidationError(String code, Map<String, String> parameters) {
 		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
+	}
+
+	private BulkImportResults bulkImport(ImportDataProvider importDataProvider,
+			final BulkImportProgressionListener bulkImportProgressionListener,
+			final User user) {
+		BulkImportResults results = services.bulkImport(importDataProvider, bulkImportProgressionListener, user);
+
+		zeSchemaTypeRecords.clear();
+		anotherSchemaTypeRecords.clear();
+		thirdSchemaTypeRecords.clear();
+
+		return results;
 	}
 
 }

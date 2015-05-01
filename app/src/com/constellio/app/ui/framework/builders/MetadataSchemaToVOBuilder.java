@@ -83,6 +83,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			}
 		}
 
+		MetadataToVOBuilder metadataToVOBuilder = newMetadataToVOBuilder();
 		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, labels);
 		for (String metadataCode : metadataCodes) {
 			Metadata metadata = schema.getMetadata(metadataCode);
@@ -97,11 +98,15 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				ignored = !DISPLAYED_SYSTEM_RESERVED_METADATA_CODES.contains(metadataCodeWithoutPrefix);
 			}
 			if (!ignored) {
-				new MetadataToVOBuilder().build(metadata, schemaVO, sessionContext);
+				metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
 			}
 		}
 
 		return schemaVO;
+	}
+	
+	protected MetadataToVOBuilder newMetadataToVOBuilder() {
+		return new MetadataToVOBuilder();
 	}
 
 }

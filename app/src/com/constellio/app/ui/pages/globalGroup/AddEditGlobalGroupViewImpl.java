@@ -103,7 +103,7 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 		codeField.setId("code");
 		codeField.addStyleName("code");
 		codeField.addStyleName("code-" + globalGroupVO.getCode());
-		codeField.setEnabled(addActionMode && presenter.canAndOrModify());
+		codeField.setEnabled(addActionMode && presenter.canAddOrModify());
 
 		nameField = new TextField();
 		nameField.setCaption($("GlobalGroup.Name"));
@@ -112,7 +112,7 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 		nameField.setId("name");
 		nameField.addStyleName("name");
 		nameField.addStyleName("name-" + globalGroupVO.getCode());
-		nameField.setEnabled(presenter.canAndOrModify());
+		nameField.setEnabled(presenter.canAddOrModify());
 
 		collectionsField = new OptionGroup("Collections");
 		collectionsField.addStyleName("collections");
@@ -126,7 +126,7 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 				collectionsField.select(collection);
 			}
 		}
-		collectionsField.setEnabled(presenter.canAndOrModify());
+		//		collectionsField.setEnabled(presenter.canAddOrModify());
 
 		statusField = new OptionGroup($("GlobalGroupView.status"));
 		statusField.addStyleName("status");
@@ -135,7 +135,7 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 			statusField.addItem(status);
 			statusField.setItemCaption(status, $("GlobalGroupView.status." + status.name()));
 		}
-		statusField.setEnabled(presenter.canAndOrModify());
+		statusField.setEnabled(!addActionMode && presenter.canAddOrModify());
 
 		return new BaseForm<GlobalGroupVO>(globalGroupVO, this, codeField, nameField, collectionsField, statusField) {
 			@Override

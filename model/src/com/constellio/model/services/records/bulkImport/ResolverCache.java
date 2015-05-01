@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.bulkImport;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +32,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 public class ResolverCache {
 
@@ -69,6 +70,10 @@ public class ResolverCache {
 		return !getSchemaTypeCache(schemaType, metadata).recordsInFile.contains(legacyId);
 	}
 
+	public boolean isRecordUpdate(String schemaType, String legacyId) {
+		return getSchemaTypeCache(schemaType, Schemas.LEGACY_ID.getLocalCode()).isRecordUpdate(legacyId);
+	}
+
 	public String resolve(String schemaType, String resolver) {
 		if (resolver == null) {
 			return null;
@@ -80,7 +85,7 @@ public class ResolverCache {
 				MetadataSchemaType type = types.getSchemaType(schemaType);
 				Metadata metadata = type.getAllMetadatas().getMetadataWithLocalCode(resolverMetadata);
 				Record result = searchServices.searchSingleResult(
-						LogicalSearchQueryOperators.from(type).where(metadata).isEqualTo(resolverValue));
+						from(type).where(metadata).isEqualTo(resolverValue));
 				id = result == null ? null : result.getId();
 				getSchemaTypeCache(schemaType, resolverMetadata).mapSearch(resolver, id);
 			}
@@ -128,6 +133,8 @@ public class ResolverCache {
 
 		Set<String> unresolvedLegacyIds = new HashSet<>();
 
+		Map<String, Boolean> updatedRecords = new HashMap<>();
+
 		private SchemaTypeUniqueMetadataMappingCache(String schemaType, String metadata) {
 			this.schemaType = schemaType;
 			this.metadata = metadata;
@@ -167,5 +174,16 @@ public class ResolverCache {
 		public boolean isNewLegacyId(String legacyId) {
 			return !idsMapping.containsKey(legacyId) && !recordsInFile.contains(legacyId);
 		}
+
+		public boolean isRecordUpdate(String legacyId) {
+			Boolean value = updatedRecords.get(legacyId);
+			if (value == null) {
+				MetadataSchemaType type = types.getSchemaType(schemaType);
+				value = searchServices.searchSingleResult(from(type).where(Schemas.LEGACY_ID).isEqualTo(legacyId)) != null;
+				updatedRecords.put(legacyId, value);
+			}
+			return value;
+		}
 	}
+
 }

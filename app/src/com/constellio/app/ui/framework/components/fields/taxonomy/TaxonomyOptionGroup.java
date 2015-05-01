@@ -28,10 +28,10 @@ public class TaxonomyOptionGroup extends ListOptionGroup implements TaxonomyFiel
 
 	private TaxonomyFieldPresenter presenter;
 
-	public TaxonomyOptionGroup(String taxonomyCode) {
+	public TaxonomyOptionGroup(String taxonomyCode, String schemaTypeCode) {
 		super();
 		presenter = new TaxonomyFieldPresenter(this);
-		presenter.forTaxonomyCode(taxonomyCode);
+		presenter.forTaxonomyAndSchemaTypeCodes(taxonomyCode, schemaTypeCode);
 	}
 
 	@Override

@@ -124,10 +124,9 @@ public class AdministrativeUnitReportBuilder implements ReportBuilder {
 		subTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
 
 		printAdminUnitLabel(table, adminUnit, level, fontSize, rowHeight);
-		printFillingSpace(table, adminUnit, level, fontSize, rowHeight);
 
-		//recursivity
 		level = increaseLevel(level);
+		printFillingSpace(table, adminUnit, level, fontSize, rowHeight);
 
 		for (AdministrativeUnitReportModel_AdministrativeUnit childAdminUnit : adminUnit.getChildAdministrativeUnits()) {
 			createSubTable(table, childAdminUnit, level, fontSize, rowHeight);

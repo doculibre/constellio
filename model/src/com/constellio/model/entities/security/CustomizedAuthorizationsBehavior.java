@@ -18,7 +18,5 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.entities.security;
 
 public enum CustomizedAuthorizationsBehavior {
-
-	DETACH, KEEP_ATTACHED;
-
+	DETACH, KEEP_ATTACHED, LEAVE_AS_IS
 }

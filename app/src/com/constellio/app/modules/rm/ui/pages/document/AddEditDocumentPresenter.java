@@ -18,14 +18,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -37,6 +42,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
@@ -58,6 +64,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
 		super(view, Document.DEFAULT_SCHEMA);
 		initTransientObjects();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -97,6 +108,52 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			populateFromUserDocument(userDocumentId);
 		}
 		view.setRecord(documentVO);
+	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		RMObject restrictedRMObject = rmSchemas().wrapRMObject(restrictedRecord);
+
+		if (addView) {
+			List<String> requiredPermissions = new ArrayList<>();
+			requiredPermissions.add(RMPermissionsTo.CREATE_DOCUMENTS);
+			FolderStatus status = restrictedRMObject.getArchivisticStatus();
+			if (status != null && status.isSemiActive()) {
+				requiredPermissions.add(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT);
+			}
+
+			if (status != null && status.isInactive()) {
+				requiredPermissions.add(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT);
+			}
+
+			return user.hasAll(requiredPermissions).on(restrictedRMObject) && user.hasWriteAccess().on(restrictedRMObject);
+		} else {
+			List<String> requiredPermissions = new ArrayList<>();
+			FolderStatus status = restrictedRMObject.getArchivisticStatus();
+			if (status != null && status.isSemiActive()) {
+				requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT);
+			}
+
+			if (status != null && status.isInactive()) {
+				requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT);
+			}
+
+			return user.hasAll(requiredPermissions).on(restrictedRMObject) && user.hasWriteAccess().on(restrictedRMObject);
+		}
+
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+		String parentId = paramsMap.get("parentId");
+		List<String> ids = new ArrayList<>();
+		if (!addView) {
+			ids.add(documentVO.getId());
+		} else if (parentId != null) {
+			ids.add(parentId);
+		}
+		return ids;
 	}
 
 	protected void populateFromUserDocument(String userDocumentId) {
@@ -139,4 +196,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		view.navigateTo().displayDocument(record.getId());
 	}
 
+	private RMSchemasRecordsServices rmSchemas() {
+		return new RMSchemasRecordsServices(collection, modelLayerFactory);
+	}
 }

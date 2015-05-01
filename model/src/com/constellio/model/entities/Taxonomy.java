@@ -152,4 +152,8 @@ public class Taxonomy {
 			List<String> taxonomySchemaTypes, boolean isVisibleInHomePage) {
 		return new Taxonomy(code, title, collection, isVisibleInHomePage, userIds, groupIds, taxonomySchemaTypes);
 	}
+
+	public boolean hasSameCode(Taxonomy taxonomy) {
+		return taxonomy != null && code.equals(taxonomy.getCode());
+	}
 }

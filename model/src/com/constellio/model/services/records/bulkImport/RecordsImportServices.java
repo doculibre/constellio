@@ -20,6 +20,7 @@ package com.constellio.model.services.records.bulkImport;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.records.bulkImport.Resolver.toResolver;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.File;
 import java.io.InputStream;
@@ -46,7 +47,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
@@ -64,7 +64,7 @@ import com.constellio.model.utils.EnumWithSmallCodeUtils;
 public class RecordsImportServices {
 
 	public static final String INVALID_SCHEMA_TYPE_CODE = "invalidSchemaTypeCode";
-	public static final String LEGACY_ID_LOCAL_CODE = Schemas.LEGACY_ID.getLocalCode();
+	public static final String LEGACY_ID_LOCAL_CODE = LEGACY_ID.getLocalCode();
 
 	static final List<String> ALL_BOOLEAN_YES = Arrays.asList("o", "y", "t", "oui", "vrai", "yes", "true", "1");
 	static final List<String> ALL_BOOLEAN_NO = Arrays.asList("n", "f", "non", "faux", "no", "false", "0");
@@ -210,12 +210,18 @@ public class RecordsImportServices {
 			throws SkippedRecordException {
 		MetadataSchema schema = getMetadataSchema(collection, schemaType + "_" + toImport.getSchema());
 
-		Record record = recordServices.newRecordWithSchema(schema);
-		record.set(LEGACY_ID, toImport.getLegacyId());
+		Record record;
+		String legacyId = toImport.getLegacyId();
+		if (resolverCache.isRecordUpdate(schemaType, legacyId)) {
+			record = modelLayerFactory.newSearchServices().searchSingleResult(from(schema).where(LEGACY_ID).isEqualTo(legacyId));
+		} else {
+			record = recordServices.newRecordWithSchema(schema);
+		}
+		record.set(LEGACY_ID, legacyId);
 		for (Entry<String, Object> field : toImport.getFields().entrySet()) {
 			Metadata metadata = schema.getMetadata(field.getKey());
 			Object value = field.getValue();
-			Object convertedValue = convertValue(importResults, user, resolverCache, metadata, value);
+			Object convertedValue = value == null ? null : convertValue(importResults, user, resolverCache, metadata, value);
 			record.set(metadata, convertedValue);
 		}
 
@@ -269,6 +275,7 @@ public class RecordsImportServices {
 			}
 
 		} catch (Exception e) {
+			LOGGER.warn("Could not retrieve content with url '" + contentImport.getUrl() + "'");
 			importResults.getInvalidContentUrls().add(contentImport.getUrl());
 			return null;
 		}

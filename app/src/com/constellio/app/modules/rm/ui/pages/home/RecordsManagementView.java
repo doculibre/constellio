@@ -30,9 +30,7 @@ public interface RecordsManagementView extends BaseView, RecordsManagementViewGr
 
 	List<RecordsManagementViewTab> getTabs();
 
-	void setTabs(List<RecordsManagementViewTab> tabs);
-
-	void selectTab(RecordsManagementViewTab tab);
+	void setTabs(List<RecordsManagementViewTab> tabs, RecordsManagementViewTab initialTab);
 
 	public static class RecordsManagementViewTab implements Serializable {
 
@@ -41,14 +39,17 @@ public interface RecordsManagementView extends BaseView, RecordsManagementViewGr
 		private final TabType tabType;
 
 		private final List<DataProvider> dataProviders;
+		
+		private final boolean contextMenu;
 
-		public RecordsManagementViewTab(String tabName, TabType tabType, List<DataProvider> dataProviders) {
+		public RecordsManagementViewTab(String tabName, TabType tabType, List<DataProvider> dataProviders, boolean contextMenu) {
 			this.tabName = tabName;
 			this.tabType = tabType;
 			this.dataProviders = dataProviders;
+			this.contextMenu = contextMenu;
 		}
 
-		public boolean isEnabled() {
+		public final boolean isEnabled() {
 			return !dataProviders.isEmpty();
 		}
 
@@ -66,6 +67,10 @@ public interface RecordsManagementView extends BaseView, RecordsManagementViewGr
 
 		public final List<? extends DataProvider> getDataProviders() {
 			return dataProviders;
+		}
+
+		public final boolean isContextMenu() {
+			return contextMenu;
 		}
 
 		@Override

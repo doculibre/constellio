@@ -88,8 +88,8 @@ public class Category extends RecordWrapper {
 		return this;
 	}
 
-	public String getKeywords() {
-		return get(KEYWORDS);
+	public List<String> getKeywords() {
+		return getList(KEYWORDS);
 	}
 
 	public Category setKeywords(String keywords) {

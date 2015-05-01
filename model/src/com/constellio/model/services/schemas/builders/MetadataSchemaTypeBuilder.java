@@ -217,7 +217,7 @@ public class MetadataSchemaTypeBuilder {
 				+ ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
 	}
 
-	Set<MetadataBuilder> getAllMetadatas() {
+	public Set<MetadataBuilder> getAllMetadatas() {
 		Set<MetadataBuilder> metadatas = new HashSet<>();
 		metadatas.addAll(defaultSchema.getMetadatas());
 		for (MetadataSchemaBuilder customSchema : customSchemas) {

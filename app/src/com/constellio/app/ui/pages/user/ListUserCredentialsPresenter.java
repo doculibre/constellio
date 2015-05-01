@@ -26,6 +26,10 @@ import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 
 public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredentialsView> {
@@ -71,7 +75,18 @@ public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredent
 		return ParamUtils.addParams(NavigatorConfigurationService.USER_LIST, params);
 	}
 
-	public boolean canAndOrModify() {
+	public boolean canAddOrModify() {
 		return userServices.canAddOrModifyUserAndGroup();
+	}
+
+	public boolean canModifyPassword(String usernameInEdition) {
+		UserCredential userInEdition = userServices.getUserCredential(usernameInEdition);
+		UserCredential currentUser = userServices.getUserCredential(view.getSessionContext().getCurrentUser().getUsername());
+		return userServices.canModifyPassword(userInEdition, currentUser);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS);
 	}
 }

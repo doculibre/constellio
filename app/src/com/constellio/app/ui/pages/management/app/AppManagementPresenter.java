@@ -25,12 +25,19 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 
 @SuppressWarnings("serial")
 public class AppManagementPresenter extends BasePresenter<AppManagementView> {
 
 	public AppManagementPresenter(AppManagementView view) {
 		super(view);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.hasAny(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
 	}
 
 	public void restartApplicationButtonClicked() {

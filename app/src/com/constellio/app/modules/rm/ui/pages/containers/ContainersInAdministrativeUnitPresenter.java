@@ -20,6 +20,7 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
@@ -30,6 +31,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -107,6 +109,11 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 		String[] splitParams = params.split("/");
 		tabName = splitParams[0];
 		adminUnitId = splitParams[1];
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}
 
 	public void displayAdminUnitButtonClicked(String tabName, RecordVO adminUnit) {

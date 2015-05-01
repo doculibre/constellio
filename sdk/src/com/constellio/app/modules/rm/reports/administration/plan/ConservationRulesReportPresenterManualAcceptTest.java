@@ -57,7 +57,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		assertThat(model.getTitle()).isEqualTo("Liste des règles de conservation");
 
 		List<ConservationRulesReportModel_Rule> modelRules = model.getRules();
-		assertThat(modelRules.size()).isEqualTo(4);
+		assertThat(modelRules.size()).isEqualTo(5);
 
 		processRule1(modelRules);
 
@@ -74,7 +74,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 	private void processRule1(List<ConservationRulesReportModel_Rule> modelRules) {
 
-		ConservationRulesReportModel_Rule rule1 = modelRules.get(0);
+		ConservationRulesReportModel_Rule rule1 = modelRules.get(1);
 		assertThat(rule1.getRuleNumber()).isEqualTo("1");
 		assertThat(rule1.getTitle()).isEqualTo("Rule #1");
 		assertThat(rule1.getDescription()).isEqualTo("Description Rule 1");
@@ -104,7 +104,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 	private void processRule2(List<ConservationRulesReportModel_Rule> modelRules) {
 
-		ConservationRulesReportModel_Rule rule2 = modelRules.get(1);
+		ConservationRulesReportModel_Rule rule2 = modelRules.get(2);
 		assertThat(rule2.getRuleNumber()).isEqualTo("2");
 		assertThat(rule2.getTitle()).isEqualTo("Rule #2");
 		assertThat(rule2.getDescription()).isEmpty();
@@ -132,7 +132,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 	private void processRule3(List<ConservationRulesReportModel_Rule> modelRules) {
 
-		ConservationRulesReportModel_Rule rule3 = modelRules.get(2);
+		ConservationRulesReportModel_Rule rule3 = modelRules.get(3);
 		assertThat(rule3.getRuleNumber()).isEqualTo("3");
 		assertThat(rule3.getTitle()).isEqualTo("Rule #3");
 		assertThat(rule3.getDescription()).isEmpty();
@@ -159,7 +159,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 	}
 
 	private void processRule4(List<ConservationRulesReportModel_Rule> modelRules) {
-		ConservationRulesReportModel_Rule rule4 = modelRules.get(3);
+		ConservationRulesReportModel_Rule rule4 = modelRules.get(4);
 		assertThat(rule4.getRuleNumber()).isEqualTo("4");
 		assertThat(rule4.getTitle()).isEqualTo("Rule #4");
 		assertThat(rule4.getDescription()).isEmpty();

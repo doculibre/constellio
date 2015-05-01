@@ -28,7 +28,10 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
+import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
+import javax.naming.ldap.PagedResultsControl;
+import javax.naming.ldap.PagedResultsResponseControl;
 
 import com.constellio.model.conf.ldap.Filter;
 import com.constellio.model.conf.ldap.LDAPServerConfiguration;
@@ -216,32 +219,109 @@ public class LDAPServices {
 		return groups;
 	}
 
-	private List<LDAPGroup> searchGroupsFromContext(DirContext ctx, String groupsContainer)
+	private List<LDAPGroup> searchGroupsFromContext(LdapContext ctx, String groupsContainer)
 			throws NamingException {
 		List<LDAPGroup> groups = new ArrayList<>();
-		SearchControls ctls = new SearchControls();
-		ctls.setReturningAttributes(LDAPGroup.FETCHED_ATTRIBUTES);
-		ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+		try {
+			int pageSize = 100;
+			byte[] cookie = null;
+			ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, Control.NONCRITICAL) });
+			do {
+				//Query
+				SearchControls searchCtls = new SearchControls();
+				searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+				searchCtls.setReturningAttributes(LDAPGroup.FETCHED_ATTRIBUTES);
 
-		NamingEnumeration<?> answer = ctx.search(groupsContainer, "(objectclass=group)", ctls);
-		while (answer.hasMore()) {
-			SearchResult rslt = (SearchResult) answer.next();
-			Attributes attrs = rslt.getAttributes();
-			LDAPGroup group = buildLDAPGroup(attrs);
-			groups.add(group);
+				NamingEnumeration results = ctx.search(groupsContainer, "(objectclass=group)", searchCtls);
+
+					/* for each entry print out name + all attrs and values */
+				while (results != null && results.hasMore()) {
+					SearchResult entry = (SearchResult) results.next();
+					Attribute attribute = entry.getAttributes().get("cn");
+
+					Attributes attrs = entry.getAttributes();
+					LDAPGroup group = buildLDAPGroup(attrs);
+					groups.add(group);
+				}
+
+				// Examine the paged results control response
+				Control[] controls = ctx.getResponseControls();
+				if (controls != null) {
+					for (int i = 0; i < controls.length; i++) {
+						if (controls[i] instanceof PagedResultsResponseControl) {
+							PagedResultsResponseControl prrc = (PagedResultsResponseControl) controls[i];
+							cookie = prrc.getCookie();
+						}
+					}
+				} else {
+					System.out.println("No controls were sent from the server");
+				}
+				// Re-activate paged results
+				ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
+
+			} while (cookie != null);
+		} catch (Exception e) {
+			System.err.println("PagedSearch failed.");
+			e.printStackTrace();
 		}
 		return groups;
 	}
 
-	public List<String> searchUsersIdsFromContext(LDAPDirectoryType directoryType, DirContext ctx, String usersContainer)
+	public List<String> searchUsersIdsFromContext(LDAPDirectoryType directoryType, LdapContext ctx, String usersContainer)
 			throws NamingException {
 		List<String> usersIds = new ArrayList<>();
 		SearchControls ctls = new SearchControls();
 		String userIdAttributeName = LDAPUserBuilderFactory.getUserBuilder(directoryType).getUserIdAttribute();
 		ctls.setReturningAttributes(new String[] { userIdAttributeName });
 		ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+		/////////////////////////////
+		try {
+			int pageSize = 100;
+			byte[] cookie = null;
+			ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, Control.NONCRITICAL) });
+				do {
+					//Query
+					SearchControls searchCtls = new SearchControls();
+					searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+					String[] returnAttributes = { "cn" };
+					searchCtls.setReturningAttributes(returnAttributes);
 
-		NamingEnumeration<?> answer = ctx.search(usersContainer, "(objectclass=person)", ctls);
+					NamingEnumeration results = ctx.search(usersContainer, "(objectclass=person)", searchCtls);
+
+					/* for each entry print out name + all attrs and values */
+					while (results != null && results.hasMore()) {
+						SearchResult entry = (SearchResult) results.next();
+						String currentUserId = entry.getNameInNamespace();
+						if (StringUtils.isNotBlank(currentUserId)) {
+							usersIds.add(currentUserId);
+						}
+					}
+
+					// Examine the paged results control response
+					Control[] controls = ctx.getResponseControls();
+					if (controls != null) {
+						for (int i = 0; i < controls.length; i++) {
+							if (controls[i] instanceof PagedResultsResponseControl) {
+								PagedResultsResponseControl prrc = (PagedResultsResponseControl) controls[i];
+								cookie = prrc.getCookie();
+							}
+						}
+					} else {
+						System.out.println("No controls were sent from the server");
+					}
+					// Re-activate paged results
+					ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
+
+				} while (cookie != null);
+		} catch (Exception e) {
+			System.err.println("PagedSearch failed.");
+			e.printStackTrace();
+		}
+		Collections.sort(usersIds);
+		return usersIds;
+		////////////////////////////////////
+
+		/*NamingEnumeration<?> answer = ctx.search(usersContainer, "(objectclass=person)", ctls);
 		while (answer.hasMore()) {
 			SearchResult rslt = (SearchResult) answer.next();
 			//            Attributes attrs = rslt.getAttributes();
@@ -252,7 +332,7 @@ public class LDAPServices {
 				usersIds.add(currentUserId);
 			}
 		}
-		return usersIds;
+		return usersIds;*/
 	}
 
 	private LDAPGroup buildLDAPGroup(Attributes attrs)
@@ -281,9 +361,9 @@ public class LDAPServices {
 	public LdapContext connectToLDAP(List<String> domains, String url, String user, String password) {
 		LDAPFastBind ldapFastBind = new LDAPFastBind(url);
 		boolean authenticated = false;
-		for (String domaine : domains) {
-			String nomUtilisateurDomaine = user + "@" + domaine;
-			authenticated = ldapFastBind.authenticate(nomUtilisateurDomaine,
+		for (String domain : domains) {
+			String username = user + "@" + domain;
+			authenticated = ldapFastBind.authenticate(username,
 					password);
 			if (authenticated) {
 				break;
@@ -294,11 +374,7 @@ public class LDAPServices {
 		}
 		authenticated = ldapFastBind.authenticate(user, password);
 		if (!authenticated){
-			throw new RuntimeException("Impossible de se connecter avec les paramètres LDAP donnés:\n" +
-					StringUtils.join(domains.toArray(), "\n") + "\n" +
-					url + "\n" +
-					user + "\n" +
-					password);
+			throw new LDAPConnectionFailure(domains.toArray(), url, user);
 		}
 		return ldapFastBind.ctx;
 	}

@@ -35,6 +35,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -198,4 +199,12 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 			view.navigateTo().taxonomyManagement(taxonomy.getCode(), parentConceptId, null);
 		}
 	}
+
+	@Override
+	protected boolean hasPageAccess(String parameters, final User user) {
+		Map<String, String> params = ParamUtils.getParamsMap(parameters);
+		String taxonomyCode = params.get(TAXONOMY_CODE);
+		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user);
+	}
+
 }

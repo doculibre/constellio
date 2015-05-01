@@ -28,6 +28,8 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
@@ -45,7 +47,7 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 		String schemaCode = getSchemaCode();
 		List<String> metadataCodes = new ArrayList<String>();
 		metadataCodes.add(schemaCode + "_id");
-//		metadataCodes.add(schemaCode + "_code");
+		//		metadataCodes.add(schemaCode + "_code");
 		metadataCodes.add(schemaCode + "_title");
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE, metadataCodes);
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
@@ -77,4 +79,12 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 		delete(record);
 		view.refreshTable();
 	}
+
+	@Override
+	protected boolean hasPageAccess(String params, final User user) {
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(params);
+		return new SchemaRecordsPresentersServices(appLayerFactory).canManageSchemaType(schemaTypeCode, user);
+
+	}
+
 }

@@ -29,6 +29,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -73,7 +74,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	protected ListAuthorizationsPresenter presenter;
 	protected RecordVO record;
+	private VerticalLayout layout;
 	private Table authorizations;
+	private Button detach;
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
@@ -83,11 +86,29 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> result = super.buildActionMenuButtons(event);
+		result.add(buildDetachButton());
 		result.add(buildAddButton());
 		return result;
 	}
 
 	protected abstract Button buildAddButton();
+
+	private Button buildDetachButton() {
+		detach = new ConfirmDialogButton($("ListContentAuthorizationsView.detach")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ListContentAuthorizationsView.comfirmDetach");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.detachRequested();
+			}
+		};
+		detach.setVisible(presenter.isDetacheable());
+		detach.setEnabled(presenter.isAttached());
+		return detach;
+	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
@@ -101,7 +122,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		VerticalLayout layout = new VerticalLayout();
+		layout = new VerticalLayout();
 		layout.setSpacing(true);
 		layout.setWidth("100%");
 
@@ -112,6 +133,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	}
 
 	@Override
+	public void refresh() {
+		layout.removeAllComponents();
+		buildInheritedAuthorizations(layout);
+		buildOwnAuthorizations(layout);
+		detach.setEnabled(presenter.isAttached());
+	}
+
+	@Override
 	public void addAuthorization(AuthorizationVO authorizationVO) {
 		authorizations.addItem(authorizationVO);
 		updateAuthorizationsTable();
@@ -119,8 +148,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	@Override
 	public void removeAuthorization(AuthorizationVO authorization) {
-		authorizations.removeItem(authorization);
-		updateAuthorizationsTable();
+		refresh();
 	}
 
 	protected abstract DisplayMode getDisplayMode();
@@ -145,7 +173,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	}
 
 	private Table buildAuthorizationTable(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
-		Container container = buildAuthorizationContainer(authorizationVOs, source == AuthorizationSource.OWN);
+		Container container = buildAuthorizationContainer(authorizationVOs, source);
 		Table table = new Table($("ListAuthorizationsView.authorizations", container.size()), container);
 		table.setPageLength(container.size());
 		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
@@ -153,33 +181,35 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		return table;
 	}
 
-	private Container buildAuthorizationContainer(List<AuthorizationVO> authorizationVOs, boolean editable) {
+	private Container buildAuthorizationContainer(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
 		BeanItemContainer<AuthorizationVO> authorizations = new BeanItemContainer<>(AuthorizationVO.class, authorizationVOs);
-		return editable ? addButtons(authorizations) : authorizations;
+		return source == AuthorizationSource.OWN ?
+				addButtons(authorizations, source == AuthorizationSource.INHERITED) :
+				authorizations;
 	}
 
-	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations) {
+	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations, final boolean inherited) {
 		ButtonsContainer container = new ButtonsContainer<>(authorizations, Authorizations.BUTTONS);
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(Object itemId) {
 				AuthorizationVO authorization = (AuthorizationVO) itemId;
 				EditAuthorizationButton button = new EditAuthorizationButton(authorization);
-				button.setVisible(!authorization.isSynched());
+				button.setVisible(inherited || !authorization.isSynched());
 				return button;
 			}
 		});
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
-				AuthorizationVO authorization = (AuthorizationVO) itemId;
+				final AuthorizationVO authorization = (AuthorizationVO) itemId;
 				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.deleteButtonClicked((AuthorizationVO) itemId);
+						presenter.deleteButtonClicked(authorization);
 					}
 				};
-				deleteButton.setVisible(!authorization.isSynched());
+				deleteButton.setVisible(inherited || !authorization.isSynched());
 				return deleteButton;
 			}
 		});

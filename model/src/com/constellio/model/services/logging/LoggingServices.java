@@ -35,7 +35,6 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Authorization;
@@ -126,7 +125,6 @@ public class LoggingServices {
 		logRecordEvent(record, currentUser, EventType.RETURN);
 	}
 
-
 	public void login(User user) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
 		Event event = schemasRecords.newEvent();
@@ -158,7 +156,6 @@ public class LoggingServices {
 	public void removeGroup(Record record, User user) {
 		logRecordEvent(record, user, EventType.DELETE);
 	}
-
 
 	private List<Record> eventPermission(Authorization authorization, Authorization authorizationBefore, User user,
 			String eventPermissionType) {
@@ -311,8 +308,7 @@ public class LoggingServices {
 
 	public void logDeleteRecordWithJustification(Record record, User user, String reason) {
 		SchemaUtils schemaUtils = new SchemaUtils();
-		String eventType = EventType.DELETE + "_" + schemaUtils.getSchemaTypeCode(record.getSchemaCode());
-		logRecordEvent(record, user, eventType);
+		logRecordEvent(record, user, EventType.DELETE, reason);
 	}
 
 	private Record logAddUpdateRecord(Record record, User user) {
@@ -367,9 +363,9 @@ public class LoggingServices {
 				} else {
 					if (oldValue == null) {
 						delta.append("+[" + metadata.getLabel() + " : " + newValue.toString() + "]\n");
-					}else{
-						if (!oldValue.toString().equals(newValue.toString())){
-							delta.append("[ " + metadata.getLabel() + " :\n" );
+					} else {
+						if (!oldValue.toString().equals(newValue.toString())) {
+							delta.append("[ " + metadata.getLabel() + " :\n");
 							delta.append("\tAvant : " + limitContentLength(oldValue.toString()) + "\n");
 							delta.append("\tAprès : " + limitContentLength(newValue.toString()) + "]\n");
 						}
@@ -418,18 +414,22 @@ public class LoggingServices {
 	}
 
 	private void logRecordEvent(Record record, User currentUser, String eventType, String reason) {
-		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(currentUser.getCollection(), modelLayerFactory);
-		Event event = schemasRecords.newEvent();
-		setDefaultMetadata(event, currentUser);
-		setRecordMetadata(event, record);
-		event.setReason(reason);
+		if (record.getCollection().endsWith(currentUser.getCollection())) {
+			SchemasRecordsServices schemasRecords = new SchemasRecordsServices(currentUser.getCollection(), modelLayerFactory);
+			Event event = schemasRecords.newEvent();
+			setDefaultMetadata(event, currentUser);
+			setRecordMetadata(event, record);
+			if (reason != null) {
+				event.setReason(reason);
+			}
 
-		String recordSchema = record.getSchemaCode();
-		SchemaUtils schemaUtils = new SchemaUtils();
-		String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
-		event.setType(eventType + "_" + recordSchemaType);
+			String recordSchema = record.getSchemaCode();
+			SchemaUtils schemaUtils = new SchemaUtils();
+			String recordSchemaType = schemaUtils.getSchemaTypeCode(recordSchema);
+			event.setType(eventType + "_" + recordSchemaType);
 
-		executeTransaction(event.getWrappedRecord());
+			executeTransaction(event.getWrappedRecord());
+		}
 	}
 
 }

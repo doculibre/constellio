@@ -32,20 +32,24 @@ public class ListAuthorizationsPage extends PageHelper {
 		super(driver);
 	}
 
-	public ListAuthorizationsPage navigateToPage(RecordWrapper principal) {
+	public ListAuthorizationsPage navigateToPrincipalPage(RecordWrapper principal) {
 		driver.navigateTo().url(NavigatorConfigurationService.LIST_PRINCIPAL_AUTHORIZATIONS + "/" + principal.getId());
 		return this;
 	}
 
+	public ListAuthorizationsPage navigateToObjectPage(RecordWrapper object) {
+		driver.navigateTo().url(NavigatorConfigurationService.LIST_OBJECT_AUTHORIZATIONS + "/" + object.getId());
+		return this;
+	}
+
 	public RecordContainerWebElement getOwnAuthorizationsTable() {
-		ConstellioWebElement element = driver
-				.findRequiredElement(By.className(ListAuthorizationsViewImpl.AUTHORIZATIONS));
+		ConstellioWebElement element = driver.findRequiredElement(By.className(ListAuthorizationsViewImpl.AUTHORIZATIONS));
 		return new RecordContainerWebElement(element);
 	}
 
 	public RecordContainerWebElement getInheritedAuthorizationsTable() {
-		ConstellioWebElement element = driver
-				.findRequiredElement(By.className(ListAuthorizationsViewImpl.INHERITED_AUTHORIZATIONS));
+		ConstellioWebElement element = driver.findRequiredElement(
+				By.className(ListAuthorizationsViewImpl.INHERITED_AUTHORIZATIONS));
 		return new RecordContainerWebElement(element);
 	}
 }

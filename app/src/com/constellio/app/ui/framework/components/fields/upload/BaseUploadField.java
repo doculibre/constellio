@@ -184,7 +184,14 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	}
 
 	protected Component getItemCaption(Object itemId) {
-		return new Label(itemId.toString());
+		String itemCaption;
+		if (itemId instanceof TempFileUpload) {
+			TempFileUpload tempFileUpload = (TempFileUpload) itemId;
+			itemCaption = tempFileUpload.getFileName();
+		} else {
+			itemCaption = itemId.toString();
+		}
+		return new Label(itemCaption);
 	}
 
 	protected void deleteTempFile(Object itemId) {

@@ -19,8 +19,7 @@ package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-import java.io.IOException;
-
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -29,52 +28,56 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListRetentionRulesView> {
-
 	private RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-	
 	private MetadataSchemaVO schemaVO;
 
 	public ListRetentionRulesPresenter(ListRetentionRulesView view) {
 		super(view, RetentionRule.DEFAULT_SCHEMA);
-		initTransientObjects();
-		schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE);
-	}
-
-	private void readObject(java.io.ObjectInputStream stream)
-			throws IOException, ClassNotFoundException {
-		stream.defaultReadObject();
-		initTransientObjects();
-	}
-
-	private void initTransientObjects() {
+		schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
 	public void viewAssembled() {
-		view.setDataProvider(new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory) {
+		view.setDataProvider(new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				MetadataSchema schema = schema();
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				query.setCondition(from(schema).returnAll());
-				return query.sortAsc(schema.getMetadata(RetentionRule.CODE));
+				return new LogicalSearchQuery(from(schema).where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+						.sortAsc(schema.getMetadata(RetentionRule.CODE));
 			}
 		});
-	}
-
-	public void retentionRuleClicked(RecordVO retentionRuleVO) {
-		view.navigateTo().displayRetentionRule(retentionRuleVO.getId());
 	}
 
 	public void backButtonClicked() {
 		view.navigateTo().adminModule();
 	}
-	
+
 	public void addButtonClicked() {
 		view.navigateTo().addRetentionRule();
 	}
 
+	public void displayButtonClicked(RecordVO recordVO) {
+		view.navigateTo().displayRetentionRule(recordVO.getId());
+	}
+
+	public void editButtonClicked(RecordVO recordVO) {
+		view.navigateTo().editRetentionRule(recordVO.getId());
+	}
+
+	public void deleteButtonClicked(RecordVO recordVO) {
+		Record record = getRecord(recordVO.getId());
+		delete(record, false);
+		view.navigateTo().listRetentionRules();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+	}
 }

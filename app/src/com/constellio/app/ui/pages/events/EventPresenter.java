@@ -33,10 +33,11 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.components.DateRangePanel;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -48,7 +49,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
 
 public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -63,6 +63,11 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		super(view, Event.DEFAULT_SCHEMA);
 	}
 
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.VIEW_EVENTS).globally();
+	}
+
 	public RecordVODataProvider getDataProvider() {
 		initParameters(view.getParameters());
 
@@ -75,12 +80,8 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				transient RMSchemasRecordsServices schemas;
 
 				@Override
-				public RecordVO build(Record record, VIEW_MODE viewMode) {
-					return build(record, viewMode, view.getSessionContext());
-				}
-
-				@Override
-				public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO) {
+				public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
+						SessionContext sessionContext) {
 					MetadataSchema documentSchema = schemas().defaultDocumentSchema();
 					Metadata contentMetadata = documentSchema.getMetadata(Document.CONTENT);
 					Content content = record.get(contentMetadata);
@@ -99,7 +100,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 					SearchServices searchServices = modelLayerFactory.newSearchServices();
 					Record eventRecord = searchServices.search(query).get(0);
 
-					return super.build(eventRecord, viewMode, schemaVO);
+					return super.build(eventRecord, viewMode, schemaVO, sessionContext);
 				}
 
 				private RMSchemasRecordsServices schemas() {
@@ -142,12 +143,14 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		initParameters(view.getParameters());
 		switch (this.eventCategory) {
 		case EVENTS_BY_ADMINISTRATIVE_UNIT:
-			return rmSchemasEventsServices().newFindEventByDateRangeAndByAdministrativeUnitIdQuery(currentUser, eventType,
+			return rmSchemasEventsServices().newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType,
 					startDate,
 					endDate, id);
 		case EVENTS_BY_FOLDER:
-			return rmSchemasEventsServices().newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate,
-					endDate, id);
+			return rmSchemasEventsServices()
+					.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate,
+							endDate,
+							id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
 		case EVENTS_BY_USER:
 			return rmSchemasEventsServices().newFindEventByDateRangeAndByUserIdQuery(currentUser, eventType, startDate,
 					endDate, id);
@@ -194,10 +197,6 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		view.navigateTo().showEventCategory(parameters);
 	}
 
-	public void recordLinkClicked(String recordId) {
-		view.navigateTo().displaySchemaRecord(recordId);
-	}
-
 	public boolean isRecordIdMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Event.RECORD_ID);
 	}
@@ -215,5 +214,24 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			initParameters(view.getParameters());
 		}
 		return eventCategory;
+	}
+
+	public String getRecordLinkTitle(MetadataValueVO metadataValue, RecordVO recordVO) {
+		String recordId = metadataValue.getValue().toString();
+		String title = recordVO.get(Schemas.TITLE.getLocalCode());
+		if (title == null) {
+			return recordId;
+		} else {
+			return recordId + " : " + title;
+		}
+	}
+
+	public void recordLinkClicked(MetadataValueVO metadataValue) {
+		String recordId = metadataValue.getValue().toString();
+		if (getEventType().contains("folder")) {
+			view.navigateTo().displayFolder(recordId);
+		} else {
+			view.navigateTo().displayDocument(recordId);
+		}
 	}
 }

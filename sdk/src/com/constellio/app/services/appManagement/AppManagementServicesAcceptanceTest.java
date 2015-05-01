@@ -106,6 +106,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		doReturn(tmp).when(appManagementService).getStreamForURL(AppManagementService.URL_CHANGELOG);
 
 		appManagementService.getChangelogFromServer();
+		tmp.close();
 	}
 
 	@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)
@@ -123,10 +124,11 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		doReturn(tmp).when(appManagementService).getStreamForURL(AppManagementService.URL_WAR);
 
 		appManagementService.getWarFromServer(new ProgressInfo());
+		tmp.close();
 	}
 
-	@Test(expected = AppManagementServiceRuntimeException.WarFileVersionMustBeHigher.class)
-	public void givenUploadedWarIsSameVersionThenCannotUpload()
+	@Test
+	public void givenUploadedWarIsSameVersionThenCanUpload()
 			throws Exception {
 
 		uploadADummyUpdateJarWithVersion("5.0.5");

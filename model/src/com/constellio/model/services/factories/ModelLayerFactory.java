@@ -121,8 +121,9 @@ public class ModelLayerFactory extends LayerFactory {
 				modelLayerConfiguration.getBatchProcessesPartSize(), newRecordServices(), newSearchServices(), configManager));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager));
+
 		this.schemasManager = add(new MetadataSchemasManager(configManager, dataLayerFactory.newTypesFactory(), taxonomiesManager,
-				collectionsListManager));
+				collectionsListManager, batchProcessesManager, newSearchServices()));
 
 		this.batchProcessesController = add(new BatchProcessController(batchProcessesManager, newRecordServices(),
 				modelLayerConfiguration.getNumberOfRecordsPerTask(), schemasManager, newSearchServices()));
@@ -143,11 +144,15 @@ public class ModelLayerFactory extends LayerFactory {
 		this.workflowExecutor = new WorkflowExecutor(this);
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 
-		this.ldapUserSyncManager = add(new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager, dataLayerFactory.getBackgroundThreadsManager()));
+		this.ldapUserSyncManager = add(new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
+				dataLayerFactory.getBackgroundThreadsManager()));
 
-		ldapAuthenticationService = add(new LDAPAuthenticationService(ldapConfigurationManager, configManager, ioServicesFactory.newHashingService()));
-		passwordFileAuthenticationService = new PasswordFileAuthenticationService(configManager, ioServicesFactory.newHashingService());
-		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService, passwordFileAuthenticationService);
+		ldapAuthenticationService = add(
+				new LDAPAuthenticationService(ldapConfigurationManager, configManager, ioServicesFactory.newHashingService()));
+		passwordFileAuthenticationService = new PasswordFileAuthenticationService(configManager,
+				ioServicesFactory.newHashingService());
+		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
+				passwordFileAuthenticationService);
 	}
 
 	public ModelLayerExtensions getExtensions() {
@@ -214,7 +219,8 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public AuthorizationsServices newAuthorizationsServices() {
 		return new AuthorizationsServices(getAuthorizationDetailsManager(), getRolesManager(), getTaxonomiesManager(),
-				newRecordServices(), newSearchServices(), newUserServices(), schemasManager, newLoggingServices());
+				newRecordServices(), newSearchServices(), newUserServices(), schemasManager, newLoggingServices(),
+				dataLayerFactory.getUniqueIdGenerator());
 	}
 
 	//After rename get...
@@ -236,7 +242,8 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public UserServices newUserServices() {
 		return new UserServices(userCredentialsManager, globalGroupsManager, collectionsListManager, newRecordServices(),
-				newSearchServices(), schemasManager, newAuthenticationService(), rolesManager, modelLayerConfiguration, ldapConfigurationManager);
+				newSearchServices(), schemasManager, newAuthenticationService(), rolesManager, modelLayerConfiguration,
+				ldapConfigurationManager);
 	}
 
 	public LanguageDetectionManager getLanguageDetectionManager() {

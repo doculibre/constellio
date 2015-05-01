@@ -210,16 +210,19 @@ public class Users {
 	}
 
 	public Users withPhotos(UserPhotosServices userPhotosServices) {
-		//addUserPhoto(userPhotosServices, chuckNorrisUsername);
-		//addUserPhoto(userPhotosServices, aliceUsername);
-		//addUserPhoto(userPhotosServices, bobGrattonUsername);
-		//addUserPhoto(userPhotosServices, charlesFrancoisXavierUsername);
-		//addUserPhoto(userPhotosServices, dakotaLindienUsername);
-		//addUserPhoto(userPhotosServices, edouardLechatUsername);
-		//addUserPhoto(userPhotosServices, gandalfLeblancUsername);
-		//addUserPhoto(userPhotosServices, sasquatchUsername);
-		//addUserPhoto(userPhotosServices, robinUsername);
-
+		try {
+			addUserPhoto(userPhotosServices, chuckNorrisUsername);
+			addUserPhoto(userPhotosServices, aliceUsername);
+			addUserPhoto(userPhotosServices, bobGrattonUsername);
+			addUserPhoto(userPhotosServices, charlesFrancoisXavierUsername);
+			addUserPhoto(userPhotosServices, dakotaLindienUsername);
+			addUserPhoto(userPhotosServices, edouardLechatUsername);
+			addUserPhoto(userPhotosServices, gandalfLeblancUsername);
+			addUserPhoto(userPhotosServices, sasquatchUsername);
+			addUserPhoto(userPhotosServices, robinUsername);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return this;
 	}
 

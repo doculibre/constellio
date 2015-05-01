@@ -489,6 +489,29 @@ public class RecordImpl implements Record {
 		return modifiedMetadatas.unModifiable();
 	}
 
+	//	@Override
+	//	public MetadataList getMetadatasWithValue(MetadataSchemaTypes schemaTypes) {
+	//		MetadataList modifiedMetadatas = new MetadataList();
+	//
+	//		Set<String> codes = new HashSet<>(getModifiedValues().keySet());
+	//
+	//		if (recordDTO != null) {
+	//			codes.addAll(recordDTO.getFields().keySet());
+	//			codes.addAll(recordDTO.getCopyFields().keySet());
+	//		}
+	//
+	//		for (String modifiedMetadataDataStoreCode : codes) {
+	//			if (!"_version_".equals(modifiedMetadataDataStoreCode) && !"collection_s".equals(modifiedMetadataDataStoreCode)) {
+	//				String metadataCode = schemaCode + "_" + SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
+	//				if (schemaTypes.hasMetadata(metadataCode)) {
+	//					modifiedMetadatas.add(schemaTypes.getMetadata(metadataCode));
+	//				}
+	//			}
+	//		}
+	//
+	//		return modifiedMetadatas.unModifiable();
+	//	}
+
 	public RecordDeltaDTO toRecordDeltaDTO(MetadataSchema schema, List<FieldsPopulator> copyfieldsPopulators) {
 
 		Map<String, Object> modifiedValues = getModifiedValues();
@@ -677,6 +700,33 @@ public class RecordImpl implements Record {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
 		return new RecordImpl(recordDTO);
+	}
+
+	@Override
+	public String getIdTitle() {
+		String title = get(Schemas.TITLE);
+		return id + (title == null ? "" : (":" + get(Schemas.TITLE)));
+	}
+
+	@Override
+	public void removeAllFieldsStartingWith(String prefix) {
+		if (recordDTO != null) {
+			for (String entry : recordDTO.getFields().keySet()) {
+				if (entry.startsWith(prefix)) {
+					modifiedValues.put(entry, null);
+				}
+			}
+			for (String entry : recordDTO.getCopyFields().keySet()) {
+				if (entry.startsWith(prefix)) {
+					modifiedValues.put(entry, null);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void markAsModified(Metadata metadata) {
+		modifiedValues.put(metadata.getDataStoreCode(), get(metadata));
 	}
 
 }

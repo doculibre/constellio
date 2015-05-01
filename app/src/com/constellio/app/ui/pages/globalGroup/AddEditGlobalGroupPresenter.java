@@ -31,9 +31,12 @@ import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 
 public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGroupView> {
 
@@ -85,7 +88,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 				userServices.getGroup(code);
 				view.showErrorMessage("Global Group already exists!");
 				return;
-			} catch (Exception e) {
+			} catch (UserServicesRuntimeException_NoSuchGroup e) {
 				//Ok
 				LOGGER.info(e.getMessage(), e);
 			}
@@ -167,8 +170,13 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		return parameters;
 	}
 
-	public boolean canAndOrModify() {
+	public boolean canAddOrModify() {
 		return userServices.canAddOrModifyUserAndGroup();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS);
 	}
 
 }

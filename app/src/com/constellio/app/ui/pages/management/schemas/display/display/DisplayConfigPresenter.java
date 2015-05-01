@@ -31,6 +31,8 @@ import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
@@ -45,9 +47,15 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		super(view);
 	}
 
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
+	}
+
 	public MetadataVODataProvider getDataProvider() {
 		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, getSchemaCode());
 	}
+
 	public void setParameters(Map<String, String> params) {
 		this.parameters = params;
 	}

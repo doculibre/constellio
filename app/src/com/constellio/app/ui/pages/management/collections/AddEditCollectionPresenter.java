@@ -30,12 +30,15 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.migrations.MigrationServices;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -132,7 +135,14 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		}
 		UserServices userServices = modelLayerFactory.newUserServices();
 		UserCredential currentUser = userServices.getUser(getCurrentUser().getUsername());
-		modelLayerFactory.newUserServices().addUserToCollection(currentUser, newCollectionRecord.getId());
+		userServices.addUserToCollection(currentUser, newCollectionRecord.getId());
+		User user = userServices.getUserInCollection(currentUser.getUsername(), collection);
+		try {
+			recordServices().update(user.setUserRoles(Arrays.asList(RMRoles.RGD)));
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+
 		return newCollectionRecord;
 	}
 
@@ -162,6 +172,11 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 
 	public void backButtonClick() {
 		view.navigateTo().manageCollections();
+	}
+	
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_SYSTEM_COLLECTIONS).globally();
 	}
 
 }

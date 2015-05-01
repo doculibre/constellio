@@ -139,7 +139,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		page.navigateToRecordsManagement();
 
-		page.getIntoFolder(3).click();
+		page.getIntoFolder(0).click();
 		page.waitForPageReload();
 
 		page.getBackButton().click();

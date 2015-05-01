@@ -74,6 +74,7 @@ public class FactoriesTestFeatures {
 	private List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	private List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
 	private Map<String, String> configs = new HashMap<>();
+	private String systemLanguage;
 
 	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties) {
 		this.fileSystemTestFeatures = fileSystemTestFeatures;
@@ -234,6 +235,7 @@ public class FactoriesTestFeatures {
 			decorator.setConfigManagerFolder(configManagerFolder);
 			decorator.setAppTempFolder(fileSystemTestFeatures.newTempFolderWithName("appTempFolder"));
 			decorator.setContentFolder(contentFolder);
+			decorator.setSystemLanguage(systemLanguage);
 
 			if (initialState != null) {
 				File tempFolder = fileSystemTestFeatures.newTempFolder();
@@ -321,5 +323,9 @@ public class FactoriesTestFeatures {
 	public FactoriesTestFeatures withPasswordsReset() {
 		this.dummyPasswords = true;
 		return this;
+	}
+
+	public void setSystemLanguage(String languageCode) {
+		this.systemLanguage = languageCode;
 	}
 }

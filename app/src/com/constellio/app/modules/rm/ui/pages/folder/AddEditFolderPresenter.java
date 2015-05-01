@@ -24,7 +24,9 @@ import java.util.Map;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
@@ -48,21 +50,22 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
-
 	private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
-
 	private boolean addView;
-
 	private boolean folderHadAParent;
-
 	private String currentSchemaCode;
-
 	private FolderVO folderVO;
 
 	public AddEditFolderPresenter(AddEditFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
 	}
 
 	public void forParams(String params) {
@@ -86,6 +89,52 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		folderHadAParent = folderVO.getParentFolder() != null;
 		this.currentSchemaCode = folderVO.getSchema().getCode();
 		view.setRecord(folderVO);
+	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		Folder restrictedFolder = rmSchemas().wrapFolder(restrictedRecord);
+
+		if (addView) {
+			List<String> requiredPermissions = new ArrayList<>();
+			requiredPermissions.add(RMPermissionsTo.CREATE_SUB_FOLDERS);
+			FolderStatus status = restrictedFolder.getArchivisticStatus();
+			if (status != null && status.isSemiActive()) {
+				requiredPermissions.add(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS);
+			}
+
+			if (status != null && status.isInactive()) {
+				requiredPermissions.add(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS);
+			}
+
+			return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
+		} else {
+			List<String> requiredPermissions = new ArrayList<>();
+			FolderStatus status = restrictedFolder.getArchivisticStatus();
+			if (status != null && status.isSemiActive()) {
+				requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS);
+			}
+
+			if (status != null && status.isInactive()) {
+				requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS);
+			}
+
+			return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
+		}
+
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+		String parentId = paramsMap.get("parentId");
+		List<String> ids = new ArrayList<>();
+		if (!addView) {
+			ids.add(folderVO.getId());
+		} else if (parentId != null) {
+			ids.add(parentId);
+		}
+		return ids;
 	}
 
 	public void viewAssembled() {
@@ -224,7 +273,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				// Discover what options are available
 				if (filingSpaceField != null && filingSpaceField.getFieldValue() != null) {
 					String currentFilingSpaceValue = filingSpaceField.getFieldValue();
-					List<String> administrativeUnitsForFilingSpace = getAdministrativeUnitsForFilingSpace(currentFilingSpaceValue);
+					List<String> administrativeUnitsForFilingSpace = getAdministrativeUnitsForFilingSpace(
+							currentFilingSpaceValue);
 					availableOptions = (List<String>) ListUtils.retainAll(availableOptions, administrativeUnitsForFilingSpace);
 				}
 

@@ -39,4 +39,8 @@ public class AddEditGlobalGroupPage extends PageHelper {
 	public OptionGroupWebElement getCollectionsElement() {
 		return getOptionGroupWebElementById("collections");
 	}
+
+	public OptionGroupWebElement getStatusElement() {
+		return getOptionGroupWebElementById("status");
+	}
 }

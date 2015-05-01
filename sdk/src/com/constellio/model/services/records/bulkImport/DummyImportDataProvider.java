@@ -25,14 +25,14 @@ import java.util.Map;
 import com.constellio.model.services.records.bulkImport.data.ImportData;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIterator;
 import com.constellio.model.services.records.bulkImport.data.ImportDataProvider;
-import com.constellio.model.services.records.bulkImport.data.xml.DummyImportData;
+import com.constellio.model.services.records.bulkImport.data.builder.ImportDataBuilder;
 
 public class DummyImportDataProvider implements ImportDataProvider {
 
-	private Map<String, List<DummyImportData>> data;
+	private Map<String, List<ImportDataBuilder>> data;
 
 	public DummyImportDataProvider(
-			Map<String, List<DummyImportData>> data) {
+			Map<String, List<ImportDataBuilder>> data) {
 		this.data = data;
 	}
 
@@ -53,7 +53,7 @@ public class DummyImportDataProvider implements ImportDataProvider {
 
 	@Override
 	public ImportDataIterator newDataIterator(String schemaType) {
-		final Iterator<DummyImportData> nestedIterator = data.get(schemaType).iterator();
+		final Iterator<ImportDataBuilder> nestedIterator = data.get(schemaType).iterator();
 		return new ImportDataIterator() {
 
 			private boolean closed;

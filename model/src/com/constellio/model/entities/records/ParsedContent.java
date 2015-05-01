@@ -34,6 +34,7 @@ public class ParsedContent {
 
 	private String mimeType;
 
+	private Map<String, String> normalizedPropertyNames;
 	private Map<String, Object> properties;
 	private long length;
 
@@ -43,6 +44,22 @@ public class ParsedContent {
 		this.mimeType = mimeType;
 		this.length = length;
 		this.properties = Collections.unmodifiableMap(properties);
+		this.normalizedPropertyNames = normalizePropertyNames(properties);
+	}
+
+	private Map<String, String> normalizePropertyNames(Map<String, Object> properties) {
+
+		Map<String, String> normalizedProperties = new HashMap<>();
+
+		for (String property : properties.keySet()) {
+			normalizedProperties.put(normalize(property), property);
+		}
+
+		return normalizedProperties;
+	}
+
+	private String normalize(String property) {
+		return property.toLowerCase().replace("list:", "").replace("dc:", "");
 	}
 
 	public static ParsedContent unparsable(String mimeType, long length) {
@@ -81,5 +98,10 @@ public class ParsedContent {
 
 	public void setLength(long length) {
 		this.length = length;
+	}
+
+	public Object getNormalizedProperty(String normalizedProperty) {
+		String property = normalizedPropertyNames.get(normalizedProperty.toLowerCase());
+		return property == null ? null : properties.get(property);
 	}
 }

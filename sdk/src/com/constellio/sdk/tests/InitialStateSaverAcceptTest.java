@@ -76,6 +76,7 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 	public void givenInCurrentVersionWhenSavingStateTwiceThenSameResult()
 			throws Exception {
 
+		givenDisabledAfterTestValidations();
 		givenTransactionLogIsEnabled();
 		givenTimeIs(DUMMY_LOCAL_DATE);
 		givenCollection(zeCollection).withConstellioRMModule();

@@ -35,6 +35,8 @@ import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -83,12 +85,12 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	public void saveButtonClicked(UserCredentialVO entity) {
 		String username = entity.getUsername();
 
-		if (validateEntityInfos(entity, username)) {
+		if (!validateEntityInfos(entity, username)) {
 			return;
 		}
 		UserCredential userCredential = toUserCredential(entity);
 		try {
-			if (!isEditMode() || entity.getPassword() != null && !entity.getPassword().isEmpty()) {
+			if (!isLDAPAuthentication() && !isEditMode() || entity.getPassword() != null && !entity.getPassword().isEmpty()) {
 				authenticationService.changePassword(entity.getUsername(), entity.getPassword());
 			}
 			userServices.addUpdateUserCredential(userCredential);
@@ -103,21 +105,25 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	private boolean validateEntityInfos(UserCredentialVO entity, String username) {
 		if (isEditMode()) {
 			if (isUsernameChanged(username)) {
+				//TODO Thiago i18n
 				showErrorMessageView("AddEditUserCredentialView.cannotChangeUsername");
-				return true;
+				return false;
 			}
 		} else {
 			if (userExists(username)) {
 				showErrorMessageView("AddEditUserCredentialView.usernameAlredyExists");
-				return true;
+				return false;
 			}
-			if (!(entity.getPassword() != null && StringUtils.isNotBlank(entity.getPassword()) && entity.getPassword()
+			if (!isLDAPAuthentication() && !(entity.getPassword() != null && StringUtils.isNotBlank(entity.getPassword())
+					&& entity.getPassword()
 					.equals(entity.getConfirmPassword()))) {
 				showErrorMessageView("AddEditUserCredentialView.passwordsFieldsMustBeEquals");
+				return false;
+			} else {
 				return true;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	void showErrorMessageView(String text) {
@@ -208,16 +214,29 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		view.navigateTo().url(backPage + parameters);
 	}
 
-	public boolean canModifyStatus() {
-		return (!view.getSessionContext().getCurrentUser().getUsername().equals("admin") && canAndOrModify());
+	public boolean canAndOrModify(String usernameInEdition) {
+		UserCredential userInEdition = userServices.getUserCredential(usernameInEdition);
+		UserCredential currentUser = userServices.getUserCredential(view.getSessionContext().getCurrentUser().getUsername());
+		if (userInEdition != null && userInEdition.getUsername().equals("admin") && currentUser.getUsername().equals("admin")) {
+			return true;
+		} else {
+			return userServices.canAddOrModifyUserAndGroup();
+		}
+
 	}
 
-	public boolean canAndOrModify() {
-		return userServices.canAddOrModifyUserAndGroup();
+	public boolean canModifyPassword(String usernameInEdition) {
+		UserCredential userInEdition = userServices.getUserCredential(usernameInEdition);
+		UserCredential currentUser = userServices.getUserCredential(view.getSessionContext().getCurrentUser().getUsername());
+		return userServices.canModifyPassword(userInEdition, currentUser);
 	}
 
-	public boolean canModifyPassword() {
-		UserCredential userCredential = userServices.getUserCredential(view.getSessionContext().getCurrentUser().getUsername());
-		return userServices.canModifyPassword(userCredential);
+	public boolean isLDAPAuthentication() {
+		return userServices.isLDAPAuthentication();
+	}
+	
+	@Override
+	protected boolean hasPageAccess(String params, final User user) {
+		return user.has(CorePermissions.MANAGE_SYSTEM_USERS).globally();
 	}
 }

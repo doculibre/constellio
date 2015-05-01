@@ -17,16 +17,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.all;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.solr.client.solrj.util.ClientUtils;
-
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.google.common.base.Strings;
@@ -50,6 +48,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			pageNumber = parts.length == 2 ? Integer.parseInt(parts[1]) : 1;
 		}
 		return this;
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
 	}
 
 	@Override

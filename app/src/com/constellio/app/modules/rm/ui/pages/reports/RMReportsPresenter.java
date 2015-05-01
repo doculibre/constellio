@@ -20,6 +20,7 @@ package com.constellio.app.modules.rm.ui.pages.reports;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationPlanReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportViewImpl;
@@ -28,6 +29,7 @@ import com.constellio.app.modules.rm.reports.factories.ExampleReportFactoryWitho
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class RMReportsPresenter extends BasePresenter<RMReportsView> implements ReportPresenter {
 	public RMReportsPresenter(RMReportsView view) {
@@ -67,5 +69,10 @@ public class RMReportsPresenter extends BasePresenter<RMReportsView> implements 
 	public void backButtonClicked() {
 		view.navigateTo().archivesManagement();
 	}
-	
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_REPORTS).globally();
+	}
+
 }

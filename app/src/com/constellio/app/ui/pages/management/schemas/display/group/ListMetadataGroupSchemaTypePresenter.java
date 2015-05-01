@@ -22,6 +22,8 @@ import java.util.List;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresenter<ListMetadataGroupSchemaTypeView> {
 
@@ -38,6 +40,11 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 	public List<String> getMetadataGroupList() {
 		SchemaTypeDisplayConfig typeConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
 		return new ArrayList<>(typeConfig.getMetadataGroup());
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
 	}
 
 	public void addGroupMetadata(String group) {

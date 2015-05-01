@@ -22,6 +22,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -53,39 +54,25 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
-	
 	private VerticalLayout mainLayout;
-	
 	private Label borrowedLabel;
-	
 	private RecordVO recordVO;
-	
 	private TabSheet tabSheet;
-	
 	private RecordDisplay recordDisplay;
-	
-	private ContentVersionVOTable versionTable;  
-	
+	private ContentVersionVOTable versionTable;
 	private UpdateContentVersionWindowImpl updateWindow;
-	
 	private EditButton editDocumentButton;
-	
 	private DeleteButton deleteDocumentButton;
-	
 	private Button linkToDocumentButton;
-	
 	private Button addAuthorizationButton;
-	
+	private Button shareDocumentButton;
 	private Button uploadButton;
-	
 	private Button checkInButton;
-	
 	private Button checkOutButton;
-	
 	private Button finalizeButton;
-	
+
 	private DisplayDocumentPresenter presenter;
-	
+
 	public DisplayDocumentViewImpl() {
 		presenter = new DisplayDocumentPresenter(this);
 	}
@@ -119,14 +106,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
-		
+
 		borrowedLabel = new Label();
 		borrowedLabel.setVisible(false);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
-		
+
 		tabSheet = new TabSheet();
-		
+
 		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
 		versionTable = new ContentVersionVOTable() {
 			@Override
@@ -145,18 +132,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 		versionTable.setSizeFull();
-		
+
 		tabSheet.addTab(recordDisplay, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(versionTable, $("DisplayDocumentView.tabs.versions"));
-		
+
 		Component disabled = new CustomComponent();
 		tabSheet.addTab(disabled, $("DisplayDocumentView.tabs.logs"));
 		tabSheet.getTab(disabled).setEnabled(false);
-		
+
 		mainLayout.addComponents(borrowedLabel, tabSheet);
 		return mainLayout;
 	}
-	
+
 	@Override
 	public void refreshMetadataDisplay() {
 		recordDisplay.refresh();
@@ -175,21 +162,21 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
-		
+
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.editDocumentButtonClicked();
 			}
 		};
-		
+
 		deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.deleteDocumentButtonClicked();
 			}
 		};
-		
+
 		linkToDocumentButton = new LinkButton($("DocumentActionsComponent.linkToDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -197,69 +184,79 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 		linkToDocumentButton.setVisible(false);
-		
+
 		addAuthorizationButton = new LinkButton($("DocumentActionsComponent.addAuthorization")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.addAuthorizationButtonClicked();
 			}
 		};
-		
+
+		shareDocumentButton = new LinkButton($("DocumentActionsComponent.shareDocument")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.shareDocumentButtonClicked();
+			}
+		};
+
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.uploadButtonClicked();
 			}
 		};
-		
+
 		checkInButton = new LinkButton($("DocumentActionsComponent.checkIn")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.checkInButtonClicked();
 			}
 		};
-		
+
 		checkOutButton = new LinkButton($("DocumentActionsComponent.checkOut")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.checkOutButtonClicked();
 			}
 		};
-		
+
 		finalizeButton = new ConfirmDialogButton(null, $("DocumentActionsComponent.finalize")) {
 			@Override
 			protected String getConfirmDialogMessage() {
 				return $("DocumentActionsComponent.finalize.confirm");
 			}
-			
+
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.finalizeButtonClicked();
 			}
 		};
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
-		
+
 		actionMenuButtons.add(editDocumentButton);
 		actionMenuButtons.add(deleteDocumentButton);
 		actionMenuButtons.add(linkToDocumentButton);
 		actionMenuButtons.add(addAuthorizationButton);
+		actionMenuButtons.add(shareDocumentButton);
 		actionMenuButtons.add(uploadButton);
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(checkOutButton);
 		actionMenuButtons.add(finalizeButton);
-		
+
 		return actionMenuButtons;
 	}
-	
+
 	private void initUploadWindow() {
 		if (updateWindow == null) {
-			updateWindow = new UpdateContentVersionWindowImpl(recordVO, recordVO.getMetadata(Document.CONTENT)) {
-				@Override
-				public void close() {
-					super.close();
-					presenter.updateWindowClosed();
-				}
-			};
+			if(recordVO != null){
+				updateWindow = new UpdateContentVersionWindowImpl(recordVO, recordVO.getMetadata(Document.CONTENT)) {
+					@Override
+					public void close() {
+						super.close();
+						presenter.updateWindowClosed();
+					}
+				};
+			}
 		}
 	}
 
@@ -272,7 +269,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public AcceptCriterion getAcceptCriterion() {
 		initUploadWindow();
-		return updateWindow.getAcceptCriterion();
+		if(updateWindow != null){
+			return updateWindow.getAcceptCriterion();
+		}else{
+			return AcceptAll.get();
+		}
+
 	}
 
 	@Override
@@ -323,7 +325,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setBorrowedMessage(String borrowedMessageKey, String...args) {
+	public void setShareDocumentButtonState(ComponentState state) {
+		shareDocumentButton.setVisible(state.isVisible());
+		shareDocumentButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setBorrowedMessage(String borrowedMessageKey, String... args) {
 		if (StringUtils.isNotBlank(borrowedMessageKey)) {
 			borrowedLabel.setVisible(true);
 			borrowedLabel.setValue($(borrowedMessageKey, (Object[]) args));

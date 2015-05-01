@@ -47,6 +47,7 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
@@ -62,27 +63,18 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
-
 	public static final String STYLE_NAME = "display-folder";
-
 	private RecordVO recordVO;
-
 	private VerticalLayout mainLayout;
-
 	private ContentVersionUploadField uploadField;
-
 	private TabSheet tabSheet;
-
 	private RecordDisplay recordDisplay;
-
 	private Component documentsComponent;
-
 	private Component subFoldersComponent;
-
 	private DisplayFolderPresenter presenter;
-
+	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton,
-			editFolderButton, addSubFolderButton, addDocumentButton, addAuthorizationButton,
+			editFolderButton, addSubFolderButton, addDocumentButton, addAuthorizationButton, shareFolderButton,
 			printLabelButton, linkToFolderButton;
 
 	public DisplayFolderViewImpl() {
@@ -242,6 +234,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 
+		shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.shareFolderButtonClicked();
+			}
+		};
+
 		printLabelButton = new LabelsButton(
 				$("DisplayFolderView.printLabel"), $("DisplayFolderView.printLabel"),
 				new RecordSelector() {
@@ -258,6 +257,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(duplicateFolderButton);
 		actionMenuButtons.add(linkToFolderButton);
 		actionMenuButtons.add(addAuthorizationButton);
+		actionMenuButtons.add(shareFolderButton);
 		actionMenuButtons.add(printLabelButton);
 
 		return actionMenuButtons;
@@ -331,6 +331,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void setAddDocumentButtonState(ComponentState state) {
 		addDocumentButton.setVisible(state.isVisible());
 		addDocumentButton.setEnabled(state.isEnabled());
+		dragNDropAllowed = state.isEnabled();
 	}
 
 	@Override
@@ -353,18 +354,26 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setShareFolderButtonState(ComponentState state) {
+		shareFolderButton.setVisible(state.isVisible());
+		shareFolderButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButton.setVisible(state.isVisible());
 		addAuthorizationButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
 	public void drop(DragAndDropEvent event) {
-		uploadField.drop(event);
+		if (dragNDropAllowed) {
+			uploadField.drop(event);
+		}
 	}
 
 	@Override
 	public AcceptCriterion getAcceptCriterion() {
-		return uploadField.getAcceptCriterion();
+		return uploadField != null ? uploadField.getAcceptCriterion() : AcceptAll.get();
 	}
 
 }

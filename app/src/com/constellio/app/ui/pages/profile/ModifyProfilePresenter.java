@@ -46,6 +46,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	private static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
 	private static final String SHOW_PICTURE_STREAM = "ConstellioMenuPresenter-ShowPicture";
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditGlobalGroupPresenter.class);
+	public static final String ADMIN = "admin";
 	private transient UserServices userServices;
 	private transient AuthenticationService authenticationService;
 	private transient RecordServices recordServices;
@@ -69,6 +70,11 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		authenticationService = modelLayerFactory.newAuthenticationService();
 		recordServices = modelLayerFactory.newRecordServices();
 		userPhotosServices = modelLayerFactory.newUserPhotosServices();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
 	}
 
 	public void saveButtonClicked(ProfileVO entity) {
@@ -201,13 +207,22 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		view.navigateTo().url(parameters);
 	}
 
-	public boolean canAndOrModify() {
-		return userServices.canAddOrModifyUserAndGroup();
+	public boolean canModify() {
+		if (username.equals(ADMIN)) {
+			return true;
+		} else {
+			return userServices.canAddOrModifyUserAndGroup();
+		}
+
 	}
 
 	public boolean canModifyPassword() {
-		UserCredential userCredential = userServices.getUserCredential(view.getSessionContext().getCurrentUser().getUsername());
-		return userServices.canModifyPassword(userCredential);
+		UserCredential user = userServices.getUserCredential(username);
+		return userServices.canModifyPassword(user, user);
+	}
+
+	public boolean isLDAPAuthentication() {
+		return userServices.isLDAPAuthentication();
 	}
 }
 

@@ -45,7 +45,7 @@ public class ListMetadataGroupSchemaViewAcceptanceTest extends ConstellioTest {
 		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
 		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		driver = newWebDriver(loggedAsUserInCollection(gandalf, zeCollection));
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		type = schemasManager.getSchemaTypes(zeCollection).getSchemaTypes().get(0);
 		page = new MetadataGroupSchemaPage(driver).navigateToPage(type.getCode());
 	}

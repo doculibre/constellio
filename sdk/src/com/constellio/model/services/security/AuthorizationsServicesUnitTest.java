@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -105,7 +106,7 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 			throws Exception {
 
 		authorizationsServices = spy(new AuthorizationsServices(manager, rolesManager, taxonomiesManager, recordServices,
-				searchServices, userServices, schemasManager, mock(LoggingServices.class)));
+				searchServices, userServices, schemasManager, mock(LoggingServices.class), mock(UniqueIdGenerator.class)));
 
 		recordIds = new ArrayList<>();
 		recordIds.add(record1id);

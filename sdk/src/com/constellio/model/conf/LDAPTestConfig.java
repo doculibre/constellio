@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.conf.ldap.*;
+import org.joda.time.Duration;
 
 public class LDAPTestConfig {
 
@@ -74,7 +75,11 @@ public class LDAPTestConfig {
 		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false);
 	}
 
-	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
-		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), null, getGroupBaseContextList(), getUsersWithoutGroupsBaseContextList());
+	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(){
+		return getLDAPUserSyncConfiguration(null);
+	}
+
+	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(Duration duration) {
+		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), duration, getGroupBaseContextList(), getUsersWithoutGroupsBaseContextList());
 	}
 }

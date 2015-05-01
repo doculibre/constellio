@@ -20,7 +20,9 @@ package com.constellio.app.ui.pages.management.authorizations;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
@@ -37,6 +39,16 @@ public class ListPrincipalAuthorizationsPresenter extends ListAuthorizationsPres
 		} else {
 			view.navigateTo().displayCollectionUser(recordId);
 		}
+	}
+
+	@Override
+	public boolean isDetacheable() {
+		return false;
+	}
+
+	@Override
+	public boolean isAttached() {
+		return true;
 	}
 
 	@Override
@@ -58,4 +70,10 @@ public class ListPrincipalAuthorizationsPresenter extends ListAuthorizationsPres
 			authorizationsServices().modify(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, getCurrentUser());
 		}
 	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_SECURITY).globally();
+	}
+
 }

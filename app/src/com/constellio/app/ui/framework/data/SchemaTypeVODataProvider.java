@@ -25,15 +25,19 @@ import java.util.List;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 @SuppressWarnings("serial")
 public class SchemaTypeVODataProvider implements Serializable {
 
 	transient MetadataSchemasManager schemasManager;
+
+	transient TaxonomiesManager taxonomiesManager;
 
 	transient List<MetadataSchemaTypeVO> schemaTypes;
 
@@ -55,6 +59,7 @@ public class SchemaTypeVODataProvider implements Serializable {
 
 	void init(ModelLayerFactory modelLayerFactory) {
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		schemaTypes = listSchemaTypeVO();
 	}
 
@@ -89,7 +94,15 @@ public class SchemaTypeVODataProvider implements Serializable {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 		if (types != null) {
 			for (MetadataSchemaType type : types.getSchemaTypes()) {
-				typeVOs.add(voBuilder.build(type));
+				Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(type.getCollection(), type.getCode());
+				if (taxonomy != null) {
+					if (!taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(type.getCollection()))) {
+						typeVOs.add(voBuilder.build(type));
+					}
+
+				} else if (type.hasSecurity() || type.getCode().startsWith("ddv")) {
+					typeVOs.add(voBuilder.build(type));
+				}
 			}
 		}
 

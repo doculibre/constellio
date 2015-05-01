@@ -32,9 +32,11 @@ import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -53,6 +55,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public AddEditMetadataPresenter(AddEditMetadataView view) {
 		super(view);
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally();
 	}
 
 	public void setParameters(Map<String, String> params) {
@@ -124,9 +131,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
 			builder.setMultivalue(formMetadataVO.isMultivalue());
 			builder.setType(formMetadataVO.getValueType());
-			builder.setSearchable(formMetadataVO.isSearchable());
 			builder.setSortable(formMetadataVO.isSortable());
 			builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
+			builder.setSearchable(formMetadataVO.isSearchable());
 			if (formMetadataVO.getValueType().equals(MetadataValueType.REFERENCE)) {
 				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
 				Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
@@ -141,6 +148,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		} else {
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 			code = formMetadataVO.getCode();
+			if (!isInherited(code)) {
+				builder.setSortable(formMetadataVO.isSortable());
+				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
+				builder.setSearchable(formMetadataVO.isSearchable());
+			}
 		}
 
 		builder.setEnabled(formMetadataVO.isEnabled());

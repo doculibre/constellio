@@ -85,7 +85,7 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 				presenter.addButtonClicked();
 			}
 		};
-		addButton.setEnabled(presenter.canAndOrModify());
+		addButton.setEnabled(presenter.canAddOrModify());
 
 		tableFilter = new TableStringFilter(table);
 
@@ -165,27 +165,31 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
-				return new EditButton() {
+				final GlobalGroupVO entity = getGlobalGroupVO((Integer) itemId, provider);
+				Button editButton = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						GlobalGroupVO entity = getGlobalGroupVO((Integer) itemId, provider);
 						presenter.editButtonClicked(entity);
 
 					}
 				};
+				editButton.setEnabled(presenter.canAddOrModify());
+				editButton.setVisible(presenter.canAddOrModify());
+				return editButton;
 			}
 		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
+				final GlobalGroupVO entity = getGlobalGroupVO((Integer) itemId, provider);
 				Button deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						GlobalGroupVO entity = getGlobalGroupVO((Integer) itemId, provider);
 						presenter.deleteButtonClicked(entity);
 					}
 				};
-				deleteButton.setEnabled(presenter.canAndOrModify());
+				deleteButton.setVisible(entity.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				deleteButton.setEnabled(entity.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
 				return deleteButton;
 			}
 		});

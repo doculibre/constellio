@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.globalGroup;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.ui.application.ConstellioNavigator;
@@ -135,5 +137,14 @@ public class ListGlobalGroupsPresenterTest extends ConstellioTest {
 
 		verify(userServices).logicallyRemoveGroupHierarchy(dakotaCredential, heroesGlobalGroup);
 		verify(globalGroupView).refreshTable();
+	}
+
+	@Test
+	public void givenLDAPAuthenticationAndSyncronizedWhenListGlobalGroupsThenCannotAddEditOrDeleteGroup()
+			throws Exception {
+
+		when(userServices.canAddOrModifyUserAndGroup()).thenReturn(false);
+
+		assertThat(presenter.canAddOrModify()).isFalse();
 	}
 }
