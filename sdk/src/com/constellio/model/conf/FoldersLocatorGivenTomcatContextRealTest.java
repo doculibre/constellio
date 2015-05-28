@@ -48,7 +48,7 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 	static String givenJavaRootFolderIsTomcatInstallationFolder = "givenJavaRootFolderIsTomcatInstallationFolder";
 	static String givenJavaRootFolderIsTomcatWebappFolder = "givenJavaRootFolderIsTomcatWebappFolder";
 	static File constellioProperties, constellioSetupProperties, tomcatInstallationFolder, conf, importation, bin, webapp,
-			webapps, webinf, deploy, temp, uploadConstellioWar, settings,
+			webapps, webinf, deploy, temp, uploadConstellioWar, settings, buildData,
 			i18n_resources, lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail;
 	@Rule public TestRule benchmarkRun = new BenchmarkRule();
 	String testCase;
@@ -88,7 +88,7 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 		constellioSetupProperties = new File(conf, "constellio.setup.properties");
 		deploy = new File(tomcatInstallationFolder, "constellio-deploy");
 		uploadConstellioWar = new File(tomcatInstallationFolder, "constellio.war");
-
+		buildData = new File(webapp, "data.txt");
 		languageProfiles = new File(webinf, "languageProfiles");
 		i18n_resources = new File(webinf, "i18n_resources");
 		dict = new File(webinf, "dict");
@@ -116,7 +116,6 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 	public void setUp()
 			throws IOException {
 		foldersLocator = newFoldersLocator(null, null, null);
-
 	}
 
 	private FoldersLocator newFoldersLocator(File customTempFolder, File customImportationFolder, File customSettingsFolder) {
@@ -222,8 +221,12 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 		assertThat(foldersLocator.getLibFolder()).is(samePath(lib));
 	}
 
-	// ------------------------------
-
+	/*
+	@Test
+	public void whenGetBuildDataFileThenObtainCorrectFolder() {
+		assertThat(foldersLocator.getBuildDataFile()).isEqualTo(buildData);
+	}
+*/
 	private Condition<? super File> samePath(final File expectedPath) {
 		return new Condition<File>() {
 			@Override

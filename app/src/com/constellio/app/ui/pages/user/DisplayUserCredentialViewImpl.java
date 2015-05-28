@@ -88,6 +88,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	private TableStringFilter tableFilterUserGlobalGroups;
 	private HorizontalLayout filterAndAddButtonLayoutAvailableGlobalGroups;
 	private TableStringFilter tableFilterAvailableGlobalGroups;
+	private final int batchSize = 100;
 
 	public DisplayUserCredentialViewImpl() {
 		this.presenter = new DisplayUserCredentialPresenter(this);
@@ -189,7 +190,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		List<GlobalGroupVO> userGlobalGroupVOs = globalGroupVODataProvider.listActiveGlobalGroupVOsFromUser(
 				userCredentialVO.getUsername());
 		globalGroupVODataProvider.setGlobalGroupVOs(userGlobalGroupVOs);
-		Container container = new GlobalGroupVOLazyContainer(globalGroupVODataProvider);
+		Container container = new GlobalGroupVOLazyContainer(globalGroupVODataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		addUsersGlobalGroupButtons(globalGroupVODataProvider, buttonsContainer);
 		container = buttonsContainer;
@@ -202,7 +203,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		List<GlobalGroupVO> availableGlobalGroupVOs = globalGroupVODataProvider.listGlobalGroupVOsNotContainingUser(
 				userCredentialVO.getUsername());
 		globalGroupVODataProvider.setGlobalGroupVOs(availableGlobalGroupVOs);
-		Container container = new GlobalGroupVOLazyContainer(globalGroupVODataProvider);
+		Container container = new GlobalGroupVOLazyContainer(globalGroupVODataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
@@ -329,7 +330,11 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	private Table buildTable(Container container, String title) {
 
 		Table table = new Table($(title), container);
-		table.setPageLength(table.getItemIds().size());
+		int tableSize = batchSize;
+		if (tableSize > table.getItemIds().size()) {
+			tableSize = table.getItemIds().size();
+		}
+		table.setPageLength(tableSize);
 		table.setWidth("100%");
 		table.setSelectable(true);
 		table.setImmediate(true);

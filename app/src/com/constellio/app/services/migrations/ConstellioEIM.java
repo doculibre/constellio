@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
@@ -34,7 +35,8 @@ public class ConstellioEIM {
 		List<MigrationScript> migrationScripts = new ArrayList<>();
 
 		migrationScripts.add(new CoreMigrationTo_5_0_1());
-		//migrationScripts.add(new CoreMigrationTo_5_0_2());
+//		migrationScripts.add(new CoreMigrationTo_5_0_2());
+		migrationScripts.add(new CoreMigrationTo_5_0_4());
 
 		return migrationScripts;
 	}

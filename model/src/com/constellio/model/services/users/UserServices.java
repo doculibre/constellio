@@ -70,6 +70,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserPermissionDeniedToDelete;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidGroup;
 
 public class UserServices {
 
@@ -107,6 +108,9 @@ public class UserServices {
 		UserCredential savedUserCredential = userCredential;
 		for (String groupCode : userCredential.getGlobalGroups()) {
 			GlobalGroup group = globalGroupsManager.getGlobalGroupWithCode(groupCode);
+			if(group == null){
+				throw new UserServicesRuntimeException_InvalidGroup(groupCode);
+			}
 			for (String collection : group.getUsersAutomaticallyAddedToCollections()) {
 				savedUserCredential = savedUserCredential.withNewCollection(collection);
 			}
@@ -540,7 +544,8 @@ public class UserServices {
 	}
 
 	MetadataSchema userSchema(String collection) {
-		return schemaTypes(collection).getSchema(User.SCHEMA_TYPE + "_default");
+		MetadataSchemaTypes schemaTypes = schemaTypes(collection);
+		return schemaTypes.getSchema(User.SCHEMA_TYPE + "_default");
 	}
 
 	Metadata usernameMetadata(String collection) {

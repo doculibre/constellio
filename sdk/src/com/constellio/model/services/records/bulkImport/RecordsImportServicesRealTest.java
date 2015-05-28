@@ -58,6 +58,7 @@ import java.util.Map;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.Content;
@@ -65,11 +66,15 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
+import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.bulkImport.RecordsImportServicesRuntimeException.RecordsImportServicesRuntimeException_CyclicDependency;
+import com.constellio.model.services.records.bulkImport.data.ImportData;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIterator;
 import com.constellio.model.services.records.bulkImport.data.ImportDataProvider;
 import com.constellio.model.services.records.bulkImport.data.builder.ImportDataBuilder;
@@ -102,9 +107,106 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	ImportDataProvider importDataProvider;
 	RecordsImportServices services;
 
+	ModelLayerExtensions extensions;
+
 	BulkImportProgressionListener progressionListener = new LoggerBulkImportProgressionListener();
 
 	User admin;
+
+	RecordImportExtension firstImportBehavior = new RecordImportExtension() {
+
+		@Override
+		public String getDecoratedSchemaType() {
+			return "zeSchemaType";
+		}
+
+		@Override
+		public void validate(ImportDataErrors errors, ImportData importData) {
+			Object stringMetadataObjectValue = importData.getFields().get("stringMetadata");
+			if (stringMetadataObjectValue != null && stringMetadataObjectValue instanceof String) {
+				String stringMetadataValue = ((String) stringMetadataObjectValue);
+				if (stringMetadataValue.contains("z")) {
+					errors.error("noZ", asMap("zevalue", stringMetadataValue));
+				}
+			}
+		}
+
+		@Override
+		public void prevalidate(ImportDataErrors errors, ImportData importData) {
+			Object stringMetadataObjectValue = importData.getFields().get("stringMetadata");
+			if (stringMetadataObjectValue != null && stringMetadataObjectValue instanceof String) {
+				String stringMetadataValue = ((String) stringMetadataObjectValue);
+				if (stringMetadataValue.contains("toto")) {
+					errors.error("noToto", asMap("zevalue", stringMetadataValue));
+				}
+			}
+		}
+
+		@Override
+		public void build(Record record, MetadataSchemaTypes types, ImportData importData) {
+			Map<String, String> structureFields = (Map<String, String>) importData.getFields().get("structureMetadata");
+
+			if (structureFields != null && structureFields.containsKey("zeTitle")) {
+				record.set(Schemas.TITLE, structureFields.get("zeTitle"));
+			}
+		}
+	};
+	RecordImportExtension secondImportBehavior = new RecordImportExtension() {
+
+		@Override
+		public String getDecoratedSchemaType() {
+			return "zeSchemaType";
+		}
+
+		@Override
+		public void prevalidate(ImportDataErrors errors, ImportData importData) {
+			Object stringMetadataObjectValue = importData.getFields().get("stringMetadata");
+			if (stringMetadataObjectValue != null && stringMetadataObjectValue instanceof String) {
+				String stringMetadataValue = ((String) stringMetadataObjectValue);
+				if (stringMetadataValue.contains("tata")) {
+					errors.error("noTata", asMap("zevalue", stringMetadataValue));
+				}
+			}
+		}
+
+		@Override
+		public void validate(ImportDataErrors errors, ImportData importData) {
+			Object stringMetadataObjectValue = importData.getFields().get("stringMetadata");
+			if (stringMetadataObjectValue != null && stringMetadataObjectValue instanceof String) {
+				String stringMetadataValue = ((String) stringMetadataObjectValue);
+				if (stringMetadataValue.contains("y")) {
+					errors.error("noY", asMap("zevalue", stringMetadataValue));
+				}
+			}
+		}
+
+		@Override
+		public void build(Record record, MetadataSchemaTypes types, ImportData importData) {
+		}
+	};
+
+	RecordImportExtension otherTypeBehavior = new RecordImportExtension() {
+
+		@Override
+		public String getDecoratedSchemaType() {
+			return "anotherInexistentType";
+		}
+
+		@Override
+		public void prevalidate(ImportDataErrors errors, ImportData importData) {
+			errors.error("boom", asMap("zevalue", "boom boom"));
+		}
+
+		@Override
+		public void validate(ImportDataErrors errors, ImportData importData) {
+			errors.error("boom", asMap("zevalue", "boom boom"));
+		}
+
+		@Override
+		public void build(Record record, MetadataSchemaTypes types, ImportData importData) {
+			throw new Error("Should not be called");
+		}
+	};
 
 	@Before
 	public void setUp()
@@ -121,6 +223,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		contentManager = getModelLayerFactory().getContentManager();
 		services = new RecordsImportServices(getModelLayerFactory());
 
+		extensions = getModelLayerFactory().getExtensions();
+		extensions.getCollectionListeners(zeCollection).recordImportBehaviors.add(firstImportBehavior);
+		extensions.getCollectionListeners(zeCollection).recordImportBehaviors.add(secondImportBehavior);
+		extensions.getCollectionListeners(zeCollection).recordImportBehaviors.add(otherTypeBehavior);
 	}
 
 	@Test
@@ -644,9 +750,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	@Ignore
 	public void givenAnImportedRecordHasAValueToADisabledFieldThenValidationError()
 			throws Exception {
-
+		// We want to be able to import values in disabled fields
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAStringMetadata(whichIsDisabled));
 
@@ -667,9 +774,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	@Ignore
 	public void givenAnImportedRecordHasAValueToASystemReservedFieldThenValidationError()
 			throws Exception {
-
+		// We import as the system. We are supposed to be able to set system-reserved fields
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAStringMetadata(whichIsSystemReserved));
 
@@ -903,7 +1011,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenAnImportedRecordHasSingleValueInSinglevalueMetadataThenValidationError()
+	public void givenAnImportedRecordHasMultiValueInSinglevalueMetadataThenValidationError()
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
@@ -915,7 +1023,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField(zeSchema.stringMetadata().getLocalCode(), asList("aValue")));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
-				.addField(zeSchema.stringMetadata().getLocalCode(), "zeValue"));
+				.addField(zeSchema.stringMetadata().getLocalCode(), "goodValue"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
 				.addField(zeSchema.stringMetadata().getLocalCode(), asList("anotherValue", "thirdValue")));
@@ -1072,7 +1180,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		ResolverCache resolver = new ResolverCache(getModelLayerFactory().newSearchServices(), types);
 
-		services.validate(importDataProvider, types, resolver);
+		ModelLayerCollectionEventsListeners extensions = getModelLayerFactory().getExtensions()
+				.getCollectionListeners(zeCollection);
+		services.validate(importDataProvider, types, resolver, extensions);
 
 		assertThat(resolver.cache).hasSize(3).containsKey(zeSchema.typeCode()).containsKey(anotherSchema.typeCode())
 				.containsKey(thirdSchema.typeCode());
@@ -1170,7 +1280,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		assertThat(contentManager.getParsedContent(testResource2Hash).getParsedContent()).contains("Gestion des documents");
 
-		assertThat(results.getInvalidContentUrls()).containsOnly(testResource1, testResource3);
+		assertThat(results.getInvalidIds()).containsOnly(testResource1, testResource3);
 	}
 
 	@Test
@@ -1235,7 +1345,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(contentManager.getParsedContent(testResource3Hash).getParsedContent())
 				.contains("He is your friend, but his arrow will kill one of your kind! He is a\nDakota");
 
-		assertThat(results.getInvalidContentUrls()).isEmpty();
+		assertThat(results.getInvalidIds()).isEmpty();
 
 	}
 
@@ -1352,6 +1462,94 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		validateCorrectlyImported();
 
+	}
+
+	@Test
+	public void whenImportingThenRunDecoratorValidation()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsUnique)
+				.withAStringMetadataInCustomSchema());
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
+				.addField("stringMetadata", "Value with a x"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
+				.addField("stringMetadata", "Value with a y"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
+				.addField("stringMetadata", "Value with a z"));
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationRuntimeException e) {
+			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
+			assertThat(errors).containsOnly(
+					newZeSchemaValidationError("noY", asMap("index", "2", "legacyId", "12", "zevalue", "Value with a y")));
+		}
+	}
+
+	@Test
+	public void whenImportingThenRunDecoratorPrevalidation()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsUnique)
+				.withAStringMetadataInCustomSchema());
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
+				.addField("stringMetadata", "Value with a word"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
+				.addField("stringMetadata", "Value with a tata"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
+				.addField("stringMetadata", "Value with a toto"));
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationRuntimeException e) {
+			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
+			assertThat(errors).containsOnly(
+					newZeSchemaValidationError("noTata", asMap("index", "2", "legacyId", "12", "zevalue", "Value with a tata")),
+					newZeSchemaValidationError("noToto", asMap("index", "3", "legacyId", "13", "zevalue", "Value with a toto")));
+		}
+	}
+
+	@Test
+	public void whenImportingThenRunDecoratorBuild()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsUnique)
+				.withAStringMetadataInCustomSchema()
+				.withAStructureMetadata());
+
+		Map<String, String> record11Structure = asMap("zeTitle", "pouet");
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
+				.addField("structureMetadata", record11Structure));
+
+		Map<String, String> record12Structure = null;
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
+				.addField("structureMetadata", record12Structure));
+
+		Map<String, String> record13Structure = new HashMap<>();
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
+				.addField("structureMetadata", record13Structure));
+
+		services.bulkImport(importDataProvider, progressionListener, admin);
+
+		Record record1 = recordWithLegacyId("11");
+		assertThat(record1.get(Schemas.TITLE)).isEqualTo("pouet");
+
+		Record record2 = recordWithLegacyId("12");
+		assertThat(record2.get(Schemas.TITLE)).isEqualTo("Record 2");
+
+		Record record3 = recordWithLegacyId("13");
+		assertThat(record3.get(Schemas.TITLE)).isEqualTo("Record 3");
 	}
 
 	private void validateCorrectlyImported() {

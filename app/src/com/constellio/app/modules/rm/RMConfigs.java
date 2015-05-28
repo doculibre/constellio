@@ -28,8 +28,7 @@ import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
-
-	public static enum DecommissioningPhase {
+	public enum DecommissioningPhase {
 		NEVER, ON_DEPOSIT, ON_TRANSFER_OR_DEPOSIT
 	}
 
@@ -50,6 +49,10 @@ public class RMConfigs {
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
+
+	// Tree configs
+	public static final SystemConfiguration DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, DISPLAY_DEPOSITED_RECORDS_IN_TREES,
+			DISPLAY_DESTROYED_RECORDS_IN_TREES, DISPLAY_CONTAINERS_IN_TREES;
 
 	static {
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, "decommissioning");
@@ -116,6 +119,15 @@ public class RMConfigs {
 		add(LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES = decommissioning
 				.createBooleanFalseByDefault("linkableCategoryMustHaveApprovedRules"));
 
+		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
+
+		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
+
+		add(DISPLAY_DEPOSITED_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displayDepositedInTrees"));
+
+		add(DISPLAY_DESTROYED_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displayDestroyedInTrees"));
+
+		add(DISPLAY_CONTAINERS_IN_TREES = trees.createBooleanFalseByDefault("displayContainersInTrees"));
 	}
 
 	static void add(SystemConfiguration configuration) {

@@ -68,7 +68,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE, metadataCodes);
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 
-		return new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory) {
+		return new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery()

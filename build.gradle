@@ -81,12 +81,13 @@ allprojects {
         compile "commons-beanutils:commons-beanutils:1.9.2"
         compile "com.itextpdf:itextpdf:5.0.6"
         compile "javax.servlet.jsp:jsp-api:2.2"
+        compile "com.auxilii.msgparser:msgparser-1.12"
     }
 }
 
 war {
     baseName = "constellio"
-    version = "5.0.3"
+    version = "5.0.4"
 
     webInf {
         from("resources_i18n/") {

@@ -32,7 +32,6 @@ public class FolderRetentionRuleFieldImpl extends ComboBox implements FolderRete
 		return captionConverter.convertToPresentation((String) itemId, String.class, getLocale());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String getFieldValue() {
 		return (String) getConvertedValue();

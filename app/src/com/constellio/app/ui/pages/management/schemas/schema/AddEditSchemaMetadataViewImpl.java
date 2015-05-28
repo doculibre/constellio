@@ -42,6 +42,7 @@ import com.vaadin.ui.VerticalLayout;
 public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEditSchemaMetadataView, ClickListener {
 
 	AddEditSchemaMetadataPresenter presenter;
+	private final int batchSize = 100;
 
 	public AddEditSchemaMetadataViewImpl() {
 		this.presenter = new AddEditSchemaMetadataPresenter(this);
@@ -84,7 +85,7 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 	private Component buildTables() {
 		final MetadataVODataProvider dataProvider = presenter.getDataProvider();
 
-		Container recordsContainer = new MetadataVOLazyContainer(dataProvider);
+		Container recordsContainer = new MetadataVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(recordsContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override

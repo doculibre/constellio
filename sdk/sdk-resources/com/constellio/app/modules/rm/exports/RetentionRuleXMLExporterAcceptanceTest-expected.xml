@@ -8,8 +8,8 @@
         <TITRESER>Rule #1</TITRESER>
         <REFLEGALE>Juridic reference Rule 1</REFLEGALE>
         <NO_RECUEIL />
-        <PROCACTIVI>Xe category; Agent Secreet; Ze 42; Ze X100; Ze X110</PROCACTIVI>
-        <CODECLASS>X; X13; ZE42; X100; X110</CODECLASS>
+        <PROCACTIVI>Xe category; Ze X100; Ze X110; Agent Secreet; Ze 42</PROCACTIVI>
+        <CODECLASS>X; X100; X110; X13; ZE42</CODECLASS>
         <NOMUNITE>Ze 10; Ze 20</NOMUNITE>
         <DESCSERIE>Description Rule 1</DESCSERIE>
         <TYPESDOC>Livre de recettes; Typologie; Petit guide</TYPESDOC>
@@ -23,7 +23,7 @@
                 <NUMDELAI />
                 <NUMREGLE>42</NUMREGLE>
                 <TYPEDOSS>P</TYPEDOSS>
-                <SUPPDOSS>pa, dm</SUPPDOSS>
+                <SUPPDOSS>dm, pa</SUPPDOSS>
                 <REM_SUPPDOSS>R1</REM_SUPPDOSS>
                 <PERIOACTIF>888</PERIOACTIF>
                 <REM_PERIOACTIF>R2</REM_PERIOACTIF>
@@ -34,7 +34,7 @@
                 <NUMDELAI />
                 <NUMREGLE>666</NUMREGLE>
                 <TYPEDOSS>S</TYPEDOSS>
-                <SUPPDOSS>pa, dm</SUPPDOSS>
+                <SUPPDOSS>dm, pa</SUPPDOSS>
                 <PERIOACTIF>888</PERIOACTIF>
                 <PERIOSMACT>0</PERIOSMACT>
                	<REM_PERIOSMACT>R3</REM_PERIOSMACT>
@@ -51,8 +51,8 @@
         <TITRESER>Rule #2</TITRESER>
         <REFLEGALE />
         <NO_RECUEIL />
-        <PROCACTIVI>Agent Secreet; Ze 42; Z110; Ze X110</PROCACTIVI>
-        <CODECLASS>X13; ZE42; Z110; X110</CODECLASS>
+        <PROCACTIVI>Ze X110; Agent Secreet; Z110; Ze 42</PROCACTIVI>
+        <CODECLASS>X110; X13; Z110; ZE42</CODECLASS>
         <NOMUNITE>unités administratives responsables</NOMUNITE>
         <DESCSERIE />
         <TYPESDOC>Livre de recettes; Typologie; Petit guide; Histoire</TYPESDOC>
@@ -66,7 +66,7 @@
                 <NUMDELAI />
                 <NUMREGLE />
                 <TYPEDOSS>P</TYPEDOSS>
-                <SUPPDOSS>pa, dm</SUPPDOSS>
+                <SUPPDOSS>dm, pa</SUPPDOSS>
                 <PERIOACTIF>5</PERIOACTIF>
                 <PERIOSMACT>2</PERIOSMACT>
                 <ID_REF_DISPOSITION>T</ID_REF_DISPOSITION>
@@ -75,7 +75,7 @@
                 <NUMDELAI />
                 <NUMREGLE />
                 <TYPEDOSS>S</TYPEDOSS>
-                <SUPPDOSS>pa, dm</SUPPDOSS>
+                <SUPPDOSS>dm, pa</SUPPDOSS>
                 <PERIOACTIF>2</PERIOACTIF>
                 <PERIOSMACT>0</PERIOSMACT>
                 <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
@@ -90,8 +90,8 @@
         <TITRESER>Rule #3</TITRESER>
         <REFLEGALE />
         <NO_RECUEIL />
-        <PROCACTIVI>Agent Secreet; Ze 42; X120; Z120; Z112</PROCACTIVI>
-        <CODECLASS>X13; ZE42; X120; Z120; Z112</CODECLASS>
+        <PROCACTIVI>X120; Agent Secreet; Z112; Z120; Ze 42</PROCACTIVI>
+        <CODECLASS>X120; X13; Z112; Z120; ZE42</CODECLASS>
         <NOMUNITE>unités administratives responsables</NOMUNITE>
         <DESCSERIE />
         <TYPESDOC>Livre de recettes; Typologie</TYPESDOC>
@@ -105,7 +105,7 @@
                 <NUMDELAI />
                 <NUMREGLE />
                 <TYPEDOSS>P</TYPEDOSS>
-                <SUPPDOSS>pa, dm</SUPPDOSS>
+                <SUPPDOSS>dm, pa</SUPPDOSS>
                 <REM_SUPPDOSS>R1</REM_SUPPDOSS>
                 <PERIOACTIF>999</PERIOACTIF>
                 <PERIOSMACT>4</PERIOSMACT>
@@ -115,7 +115,7 @@
                 <NUMDELAI />
                 <NUMREGLE />
                 <TYPEDOSS>S</TYPEDOSS>
-                <SUPPDOSS>pa, dm</SUPPDOSS>
+                <SUPPDOSS>dm, pa</SUPPDOSS>
                 <PERIOACTIF>1</PERIOACTIF>
                 <PERIOSMACT>0</PERIOSMACT>
                 <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
@@ -130,8 +130,8 @@
         <TITRESER>Rule #4</TITRESER>
         <REFLEGALE />
         <NO_RECUEIL />
-        <PROCACTIVI>Agent Secreet; Ze 42; X120</PROCACTIVI>
-        <CODECLASS>X13; ZE42; X120</CODECLASS>
+        <PROCACTIVI>X120; Agent Secreet; Ze 42</PROCACTIVI>
+        <CODECLASS>X120; X13; ZE42</CODECLASS>
         <NOMUNITE>unités administratives responsables</NOMUNITE>
         <DESCSERIE />
         <TYPESDOC>Livre de recettes; Petit guide; Histoire</TYPESDOC>
@@ -163,7 +163,7 @@
 				<NUMDELAI />
 				<NUMREGLE />
 				<TYPEDOSS>S</TYPEDOSS>
-				<SUPPDOSS>pa, dm</SUPPDOSS>
+				<SUPPDOSS>dm, pa</SUPPDOSS>
 				<PERIOACTIF>888</PERIOACTIF>
 				<PERIOSMACT>0</PERIOSMACT>
 				<REM_PERIOSMACT>R3</REM_PERIOSMACT>

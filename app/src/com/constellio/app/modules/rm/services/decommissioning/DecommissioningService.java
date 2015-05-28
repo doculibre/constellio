@@ -54,6 +54,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -209,25 +210,38 @@ public class DecommissioningService {
 	}
 
 	public List<String> getAdministrativeUnitsForUser(User user) {
-		return taxonomiesSearchServices.getAllPrincipalConceptIdsAvailableTo(adminUnitsTaxonomy(), user);
+		return taxonomiesSearchServices.getAllPrincipalConceptIdsAvailableTo(adminUnitsTaxonomy(), user, StatusFilter.ACTIVES);
 	}
 
-	public List<String> getAdministrativeUnitsWithFilingSpaceForUser(FilingSpace filingSpace, User user) {
+	public List<String> getAdministrativeUnitsWithFilingSpaceForUser(FilingSpace filingSpace, User user,
+			StatusFilter statusFilter) {
 		LogicalSearchCondition condition = taxonomiesSearchServices
 				.getAllConceptHierarchyOfCondition(adminUnitsTaxonomy(), null)
 				.andWhere(rm.administrativeUnitFilingSpaces()).isEqualTo(filingSpace);
 
 		return searchServices.searchRecordIds(new LogicalSearchQuery()
 				.setCondition(condition)
-				.filteredWithUser(user));
+				.filteredWithUser(user).filteredByStatus(statusFilter));
+	}
+
+	public List<String> getAdministrativeUnitsWithFilingSpaceForUser(FilingSpace filingSpace, User user) {
+		return getAdministrativeUnitsWithFilingSpaceForUser(filingSpace, user, StatusFilter.ALL);
 	}
 
 	public List<String> getUserFilingSpaces(User user) {
+		return getUserFilingSpaces(user, StatusFilter.ALL);
+	}
+
+	public List<String> getUserFilingSpaces(User user, StatusFilter statusFilter) {
 		return searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.filingSpaceSchemaType())
-				.whereAny(rm.filingSpaceAdministrators(), rm.filingSpaceUsers()).isEqualTo(user)));
+				.whereAny(rm.filingSpaceAdministrators(), rm.filingSpaceUsers()).isEqualTo(user)).filteredByStatus(statusFilter));
 	}
 
 	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId) {
+		return getRetentionRulesForCategory(categoryId, uniformSubdivisionId, StatusFilter.ALL);
+	}
+
+	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId, StatusFilter statusFilter) {
 		List<String> rules = new ArrayList<>();
 		if (uniformSubdivisionId != null) {
 			UniformSubdivision uniformSubdivision = new UniformSubdivision(recordServices.getDocumentById(uniformSubdivisionId),
@@ -235,7 +249,7 @@ public class DecommissioningService {
 			if (!uniformSubdivision.getRetentionRules().isEmpty()) {
 				rules.addAll(searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.retentionRuleSchemaType())
 						.where(Schemas.IDENTIFIER).isIn(uniformSubdivision.getRetentionRules())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())));
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).filteredByStatus(statusFilter)));
 			}
 		}
 
@@ -245,7 +259,7 @@ public class DecommissioningService {
 			if (!category.getRententionRules().isEmpty()) {
 				rules.addAll(searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.retentionRuleSchemaType())
 						.where(Schemas.IDENTIFIER).isIn(category.getRententionRules())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())));
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).filteredByStatus(statusFilter)));
 			}
 		}
 

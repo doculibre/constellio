@@ -20,6 +20,7 @@ package com.constellio.app.services.appManagement;
 import static java.util.Arrays.asList;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
@@ -104,9 +105,19 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		InputStream tmp = getDummyInputStream();
 		doReturn(tmp).when(appManagementService).getStreamForURL(AppManagementService.URL_CHANGELOG);
+		doReturn(false).when(appManagementService).isProxyPage(anyString());
 
 		appManagementService.getChangelogFromServer();
 		tmp.close();
+	}
+
+	@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)
+	public void givenProxyConnectionWarCannotBeRetrieve()
+			throws Exception {
+		doReturn(null).when(appManagementService).getStreamForURL(AppManagementService.URL_CHANGELOG);
+		doReturn(true).when(appManagementService).isProxyPage(anyString());
+
+		appManagementService.getWarFromServer(new ProgressInfo());
 	}
 
 	@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)

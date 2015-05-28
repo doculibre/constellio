@@ -58,7 +58,7 @@ public class RetentionRuleXMLExporterAcceptanceTest extends ConstellioTest {
 		rule1.getCopyRetentionRules().get(1).setCode("666");
 		rule1.setEssentialDocuments(true);
 		rule1.setConfidentialDocuments(true);
-		
+
 		transaction.add(rule1);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 	}
@@ -73,10 +73,11 @@ public class RetentionRuleXMLExporterAcceptanceTest extends ConstellioTest {
 		assertThat(readWithoutIndent(builtXML)).isEqualTo(readWithoutIndent(getTestResourceFile("expected.xml")));
 
 	}
-	
-	private String readWithoutIndent(File file) throws IOException {
-		StringBuilder sb= new StringBuilder();
-		for(String line : FileUtils.readLines(file)) {
+
+	private String readWithoutIndent(File file)
+			throws IOException {
+		StringBuilder sb = new StringBuilder();
+		for (String line : FileUtils.readLines(file)) {
 			if (sb.length() > 0) {
 				sb.append("\n");
 			}
@@ -92,7 +93,7 @@ public class RetentionRuleXMLExporterAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test(expected= RetentionRuleXMLExporterRuntimeException_InvalidFile.class)
+	@Test(expected = RetentionRuleXMLExporterRuntimeException_InvalidFile.class)
 	public void whenValidatingInvalidFileThenException() {
 
 		RetentionRuleXMLExporter.validate(getTestResourceFile("invalid.xml"));

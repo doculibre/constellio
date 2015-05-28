@@ -17,13 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.taxonomies;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -109,7 +107,7 @@ public class TaxonomiesSearchServicesTest extends ConstellioTest {
 
 		assertThat(returnedRecords).isSameAs(theSearchResults);
 		assertThat(condition).isEqualTo(
-				LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.PARENT_PATH).is("/zeTaxonomy"));
+				fromAllSchemasIn(zeCollection).where(Schemas.PARENT_PATH).is("/zeTaxonomy"));
 
 	}
 
@@ -130,9 +128,8 @@ public class TaxonomiesSearchServicesTest extends ConstellioTest {
 
 		assertThat(returnedRecords).isSameAs(theSearchResults);
 
-		assertThat(condition).isEqualTo(
-				LogicalSearchQueryOperators.fromAllSchemasIn(condition.getCollection()).where(Schemas.PARENT_PATH).isIn(paths));
-
+		assertThat(condition).isEqualTo(fromAllSchemasIn(condition.getCollection())
+				.where(Schemas.PARENT_PATH).isIn(paths).andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull());
 	}
 
 	@Test
@@ -148,8 +145,7 @@ public class TaxonomiesSearchServicesTest extends ConstellioTest {
 		verify(searchServices).hasResults(query.capture());
 
 		assertThat(query.getValue().getCondition()).isEqualTo(
-				LogicalSearchQueryOperators
-						.fromAllSchemasIn(query.getValue().getCondition().getCollection())
+				fromAllSchemasIn(query.getValue().getCondition().getCollection())
 						.where(Schemas.PATH)
 						.isStartingWithText(firstPath + "/")
 						.andWhere(Schemas.SCHEMA)
@@ -157,72 +153,6 @@ public class TaxonomiesSearchServicesTest extends ConstellioTest {
 								LogicalSearchQueryOperators.startingWithText(taxonomySchemaType1),
 								LogicalSearchQueryOperators.startingWithText(taxonomySchemaType2)))));
 
-	}
-
-	@Test
-	public void givenUserWithCollectionPermissionWhenGetVisibleChildConceptThenSearchCallOnce() {
-		List<Record> childs = Arrays.asList(zeTaxonomySchemaType1Record, zeTaxonomySchemaType1Record);
-		SPEQueryResponse zeResponse = responseWith(childs);
-		when(searchServices.query(any(LogicalSearchQuery.class))).thenReturn(zeResponse);
-
-		when(bob.hasCollectionReadAccess()).thenReturn(true).thenReturn(false).thenReturn(false);
-		when(bob.hasCollectionWriteAccess()).thenReturn(true).thenReturn(false);
-		when(bob.hasCollectionDeleteAccess()).thenReturn(true);
-
-		services.getVisibleChildConcept(bob, zeTaxonomy, zeTaxonomySchemaType1Record, taxonomiesSearchOptions);
-		verify(searchServices, times(1)).query(any(LogicalSearchQuery.class));
-
-		services.getVisibleChildConcept(bob, zeTaxonomy, zeTaxonomySchemaType1Record, taxonomiesSearchOptions);
-		verify(searchServices, times(2)).query(any(LogicalSearchQuery.class));
-
-		services.getVisibleChildConcept(bob, zeTaxonomy, zeTaxonomySchemaType1Record, taxonomiesSearchOptions);
-		verify(searchServices, times(3)).query(any(LogicalSearchQuery.class));
-		verifyNoMoreInteractions(searchServices);
-	}
-
-	@Test
-	public void givenUserWithCollectionPermissionWhenGetVisibleRootConceptThenSearchCallOnce() {
-		List<Record> childs = Arrays.asList(zeTaxonomySchemaType1Record, zeTaxonomySchemaType1Record);
-		SPEQueryResponse zeResponse = responseWith(childs);
-		when(searchServices.query(any(LogicalSearchQuery.class))).thenReturn(zeResponse);
-
-		when(bob.hasCollectionReadAccess()).thenReturn(true).thenReturn(false).thenReturn(false);
-		when(bob.hasCollectionWriteAccess()).thenReturn(true).thenReturn(false);
-		when(bob.hasCollectionDeleteAccess()).thenReturn(true);
-
-		services.getVisibleRootConcept(bob, zeCollection, zeTaxonomy, taxonomiesSearchOptions);
-		verify(searchServices, times(1)).query(any(LogicalSearchQuery.class));
-
-		services.getVisibleRootConcept(bob, zeCollection, zeTaxonomy, taxonomiesSearchOptions);
-		verify(searchServices, times(2)).query(any(LogicalSearchQuery.class));
-
-		services.getVisibleRootConcept(bob, zeCollection, zeTaxonomy, taxonomiesSearchOptions);
-		verify(searchServices, times(3)).query(any(LogicalSearchQuery.class));
-		verifyNoMoreInteractions(searchServices);
-	}
-
-	@Test
-	public void givenGodUserWithCollectionPermissionWhenGetVisibleChildConceptThenSearchCallOnce() {
-		List<Record> childs = Arrays.asList(zeTaxonomySchemaType1Record, zeTaxonomySchemaType1Record);
-		SPEQueryResponse zeResponse = responseWith(childs);
-		when(searchServices.query(any(LogicalSearchQuery.class))).thenReturn(zeResponse);
-
-		services.getVisibleChildConcept(null, zeTaxonomy, zeTaxonomySchemaType1Record, taxonomiesSearchOptions);
-
-		verify(searchServices, times(1)).query(any(LogicalSearchQuery.class));
-		verifyNoMoreInteractions(searchServices);
-	}
-
-	@Test
-	public void givenGodUserWithCollectionPermissionWhenGetVisibleRootConceptThenSearchCallOnce() {
-		List<Record> childs = Arrays.asList(zeTaxonomySchemaType1Record, zeTaxonomySchemaType1Record);
-		SPEQueryResponse zeResponse = responseWith(childs);
-		when(searchServices.query(any(LogicalSearchQuery.class))).thenReturn(zeResponse);
-
-		services.getVisibleRootConcept(null, zeCollection, zeTaxonomy, taxonomiesSearchOptions);
-
-		verify(searchServices, times(1)).query(any(LogicalSearchQuery.class));
-		verifyNoMoreInteractions(searchServices);
 	}
 
 	private SPEQueryResponse responseWith(List<Record> records) {

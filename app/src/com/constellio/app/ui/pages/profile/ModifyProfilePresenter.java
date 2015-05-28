@@ -24,6 +24,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -86,6 +87,11 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		} else {
 			user.setStartTab(entity.getStartTab().getCode());
 		}
+		if (entity.getDefaultTabInFolderDisplay() == null) {
+			user.setDefaultTabInFolderDisplay(DefaultTabInFolderDisplay.METADATA.getCode());
+		} else {
+			user.setDefaultTabInFolderDisplay(entity.getDefaultTabInFolderDisplay().getCode());
+		}
 		user.setDefaultTaxonomy(entity.getDefaultTaxonomy());
 
 		try {
@@ -139,15 +145,28 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		if (startTab == null) {
 			startTab = StartTab.RECENT_FOLDERS;
 		}
+		DefaultTabInFolderDisplay defaultTabInFolderDisplay = null;
+		if (user.getDefaultTabInFolderDisplay() != null) {
+			for (DefaultTabInFolderDisplay retrievedDefaultTabInFolderDisplay : DefaultTabInFolderDisplay.values()) {
+				if (user.getDefaultTabInFolderDisplay().equals(retrievedDefaultTabInFolderDisplay.getCode())) {
+					defaultTabInFolderDisplay = retrievedDefaultTabInFolderDisplay;
+					break;
+				}
+			}
+		}
+		if (defaultTabInFolderDisplay == null) {
+			defaultTabInFolderDisplay = DefaultTabInFolderDisplay.METADATA;
+		}
 		String defaultTaxonomy = user.getDefaultTaxonomy();
 
-		ProfileVO profileVO = newProfilVO(username, firstName, lastName, email, phone, startTab, defaultTaxonomy);
+		ProfileVO profileVO = newProfilVO(username, firstName, lastName, email, phone, startTab, defaultTabInFolderDisplay,
+				defaultTaxonomy);
 		return profileVO;
 	}
 
 	ProfileVO newProfilVO(String username, String firstName, String lastName, String email, String phone,
-			StartTab startTab, String defaultTaxonomy) {
-		return new ProfileVO(username, firstName, lastName, email, phone, startTab,
+			StartTab startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy) {
+		return new ProfileVO(username, firstName, lastName, email, phone, startTab, defaultTabInFolderDisplay,
 				defaultTaxonomy, null, null, null);
 	}
 

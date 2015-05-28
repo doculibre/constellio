@@ -129,7 +129,12 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 	public void contentVersionSaved(ContentVersionVO newVersionVO, Boolean majorVersion) {
 		if (validateSavePossible()) {
-			InputStream inputStream = newVersionVO.getInputStreamProvider().getInputStream(STREAM_NAME);
+			InputStream inputStream;
+			if (newVersionVO != null) {
+				inputStream = newVersionVO.getInputStreamProvider().getInputStream(STREAM_NAME);
+			} else {
+				inputStream = null;
+			}
 			boolean contentUploaded = newVersionVO != null && inputStream != null;
 
 			Record record = presenterUtils.getRecord(recordVO.getId());
@@ -195,8 +200,10 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 			try {
 				presenterUtils.addOrUpdate(record);
-				newVersionVO.setVersion(content.getCurrentVersion().getVersion());
-				newVersionVO.setHash(content.getCurrentVersion().getHash());
+				if (newVersionVO != null) {
+					newVersionVO.setVersion(content.getCurrentVersion().getVersion());
+					newVersionVO.setHash(content.getCurrentVersion().getHash());
+				}
 				if (inputStreamProvider != null) {
 					inputStreamProvider.deleteTemp();
 				}

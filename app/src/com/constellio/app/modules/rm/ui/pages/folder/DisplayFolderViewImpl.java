@@ -98,7 +98,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected String getTitle() {
-		return $("DisplayFolderView.viewTitle");
+		return $("DisplayFolderView.viewTitle") + " " + presenter.getFolderTitle();
 	}
 
 	@Override
@@ -134,6 +134,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.getTab(disabled).setEnabled(false);
 
 		mainLayout.addComponents(uploadField, tabSheet);
+		presenter.selectInitialTabForUser();
 		return mainLayout;
 	}
 

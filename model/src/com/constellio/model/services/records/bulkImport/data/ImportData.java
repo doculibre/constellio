@@ -17,8 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.bulkImport.data;
 
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,20 +56,18 @@ public class ImportData {
 		return Collections.unmodifiableMap(fields);
 	}
 
-	String getStringValue(String key) {
-		return (String) fields.get(key);
+	public <T> T getValue(String key) {
+		return (T) fields.get(key);
 	}
 
-	List<String> getStringValues(String key) {
-		return (List<String>) fields.get(key);
+	public <K, V> Map<K, V> getMap(String key) {
+		Map<K, V> values = getValue(key);
+		return values == null ? new HashMap<K, V>() : values;
 	}
 
-	Object getValue(String key) {
-		return fields.get(key);
-	}
-
-	URL getUrl(String key) {
-		return (URL) fields.get(key);
+	public <V> List<V> getList(String key) {
+		List<V> values = getValue(key);
+		return values == null ? new ArrayList<V>() : values;
 	}
 
 }

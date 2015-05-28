@@ -36,16 +36,17 @@ import com.vaadin.data.util.filter.SimpleStringFilter;
 @SuppressWarnings("serial")
 public class UserCredentialVOLazyContainer extends LazyQueryContainer {
 
-	public UserCredentialVOLazyContainer(UserCredentialVODataProvider dataProvider) {
-		super(new UserCredentialVOLazyQueryDefinition(dataProvider), new UserCredentialVOLazyQueryFactory(dataProvider));
+	public UserCredentialVOLazyContainer(UserCredentialVODataProvider dataProvider, int batchSize) {
+		super(new UserCredentialVOLazyQueryDefinition(dataProvider, batchSize),
+				new UserCredentialVOLazyQueryFactory(dataProvider));
 	}
 
 	public static class UserCredentialVOLazyQueryDefinition extends LazyQueryDefinition {
 
 		UserCredentialVODataProvider dataProvider;
 
-		public UserCredentialVOLazyQueryDefinition(UserCredentialVODataProvider dataProvider) {
-			super(true, 100, null);
+		public UserCredentialVOLazyQueryDefinition(UserCredentialVODataProvider dataProvider, int batchSize) {
+			super(true, batchSize, null);
 			this.dataProvider = dataProvider;
 
 			super.addProperty("username", String.class, null, true, true);
@@ -85,7 +86,7 @@ public class UserCredentialVOLazyContainer extends LazyQueryContainer {
 				@Override
 				public List<Item> loadItems(int startIndex, int count) {
 					List<Item> items = new ArrayList<>();
-					List<UserCredentialVO> userCredentialVOs = dataProvider.listUserCredentialVOs();
+					List<UserCredentialVO> userCredentialVOs = dataProvider.listUserCredentialVOs(startIndex, count);
 					for (UserCredentialVO userCredentialVO : userCredentialVOs) {
 						Item item = new BeanItem<>(userCredentialVO);
 						items.add(item);

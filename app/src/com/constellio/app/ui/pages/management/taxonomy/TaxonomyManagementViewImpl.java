@@ -22,6 +22,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -29,6 +31,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
@@ -54,6 +57,7 @@ import com.vaadin.ui.VerticalLayout;
 public class TaxonomyManagementViewImpl extends BaseViewImpl implements TaxonomyManagementView {
 
 	TaxonomyManagementPresenter presenter;
+	VerticalLayout layout;
 
 	public TaxonomyManagementViewImpl() {
 		this.presenter = new TaxonomyManagementPresenter(this);
@@ -78,7 +82,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		VerticalLayout layout = new VerticalLayout(buildRootConceptsTables());
+		layout = new VerticalLayout(buildRootConceptsTables());
 		layout.setSizeFull();
 		layout.setSpacing(true);
 
@@ -136,6 +140,20 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 					};
 				}
 			});
+
+			buttonsContainer.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId) {
+					return new DeleteButton() {
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							Integer index = (Integer) itemId;
+							RecordVO entity = dataProvider.getRecordVO(index);
+							presenter.deleteButtonClicked(entity);
+						}
+					};
+				}
+			});
 			// TODO Implement deleteLogically for taxonomy concepts
 			recordsContainer = buttonsContainer;
 
@@ -176,6 +194,12 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 				presenter.backButtonClicked();
 			}
 		};
+	}
+
+	@Override
+	public void refreshTable() {
+		layout.removeAllComponents();
+		layout.addComponent(buildRootConceptsTables());
 	}
 
 	public static class SplitCommentsMetadataDisplayFactory extends MetadataDisplayFactory {

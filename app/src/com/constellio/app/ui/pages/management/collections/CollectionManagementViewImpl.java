@@ -33,6 +33,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -72,6 +73,8 @@ public class CollectionManagementViewImpl extends BaseViewImpl implements Collec
 		};
 		addButton.addStyleName(ADD_BUTTON_STYLE);
 		layout.addComponent(addButton);
+		layout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+
 		return layout;
 	}
 
@@ -126,7 +129,7 @@ public class CollectionManagementViewImpl extends BaseViewImpl implements Collec
 					}
 				};
 				button.addStyleName(DELETE_BUTTON_STYLE);
-				if(!button.isEnabled()){
+				if (!button.isEnabled()) {
 					button.setVisible(false);
 				}
 				return button;

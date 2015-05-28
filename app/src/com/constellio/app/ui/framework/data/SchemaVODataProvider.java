@@ -125,6 +125,18 @@ public class SchemaVODataProvider implements Serializable {
 		return schemaVOs;
 	}
 
+	public List<MetadataSchemaVO> listSchemaVO(int startIndex, int count) {
+		List<MetadataSchemaVO> schemaVOs = listSchemaVO();
+		int toIndex = startIndex + count;
+		List subList = new ArrayList();
+		if (startIndex > schemaVOs.size()) {
+			return subList;
+		} else if (toIndex > schemaVOs.size()) {
+			toIndex = schemaVOs.size();
+		}
+		return schemaVOs.subList(startIndex, toIndex);
+	}
+
 	public void sort(String[] propertyId, boolean[] ascending) {
 	}
 }

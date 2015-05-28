@@ -32,7 +32,6 @@ public class FolderFilingSpaceFieldImpl extends ComboBox implements FolderFiling
 		return captionConverter.convertToPresentation((String) itemId, String.class, getLocale());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String getFieldValue() {
 		return (String) getConvertedValue();

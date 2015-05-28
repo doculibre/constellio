@@ -433,4 +433,8 @@ public class ConstellioNavigator {
 	public void importFile() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.IMPORT_FILE);
 	}
+
+	public void importUsers() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.IMPORT_USERS);
+	}
 }

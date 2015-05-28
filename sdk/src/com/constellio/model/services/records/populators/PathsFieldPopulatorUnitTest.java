@@ -46,7 +46,7 @@ public class PathsFieldPopulatorUnitTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		populator = new PathsFieldPopulator(types);
+		populator = new PathsFieldPopulator(types, false);
 
 		when(pathMetadata.getLocalCode()).thenReturn(Schemas.PATH.getLocalCode());
 		when(otherMetadata.getLocalCode()).thenReturn(Schemas.PRINCIPAL_PATH.getLocalCode());

@@ -206,19 +206,19 @@ public class TaxonomiesPathsAcceptanceTest extends ConstellioTest {
 		assertThatPathIsEqualTo(folder, folderPaths);
 
 		List<String> subFolderPaths = new ArrayList<>();
-		subFolderPaths
-				.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1, folder, subFolder));
+		subFolderPaths.add(
+				taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1, folder, subFolder));
 		subFolderPaths
 				.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_customSchemaItem1, folder,
 						subFolder));
 		subFolderPaths
 				.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_customSchemaItem2, folder,
 						subFolder));
-		subFolderPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1, subFolder));
-		subFolderPaths.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_customSchemaItem1,
-				subFolder));
-		subFolderPaths.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_customSchemaItem2,
-				subFolder));
+		//subFolderPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1, subFolder));
+		//		subFolderPaths.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_customSchemaItem1,
+		//				subFolder));
+		//		subFolderPaths.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_customSchemaItem2,
+		//				subFolder));
 		assertThatPathIsEqualTo(subFolder, subFolderPaths);
 
 		//**
@@ -240,7 +240,6 @@ public class TaxonomiesPathsAcceptanceTest extends ConstellioTest {
 				.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1, folder, subFolder));
 		subFolderPaths.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_defaultSchemaItem2,
 				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1, folder, subFolder));
-		subFolderPaths.add(taxo1Path(records.taxo1_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem1, subFolder));
 		subFolderPaths.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_customSchemaItem1,
 				subFolder));
 		subFolderPaths.add(taxo2Path(records.taxo2_defaultSchemaItem2, records.taxo2_defaultSchemaItem2_customSchemaItem2,

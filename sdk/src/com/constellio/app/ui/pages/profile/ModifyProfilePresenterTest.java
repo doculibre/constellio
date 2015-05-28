@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -73,7 +74,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 
 		profileVO = new ProfileVO(contentVersionVO, "bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333",
-				StartTab.RECENT_FOLDERS, "taxo1", null, null, null);
+				StartTab.RECENT_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null);
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
 		when(mockedFactories.getModelLayerFactory().newRecordServices()).thenReturn(recordServices);
@@ -124,6 +125,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 
 		verify(presenter)
 				.newProfilVO("bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333", StartTab.RECENT_FOLDERS,
+						DefaultTabInFolderDisplay.METADATA,
 						"taxo1");
 	}
 

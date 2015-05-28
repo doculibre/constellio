@@ -31,62 +31,41 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.solr.common.params.SolrParams;
 
 public class TransactionDTO {
-
 	private String transactionId;
-
 	public List<RecordDTO> newRecords;
-
 	public List<RecordDeltaDTO> modifiedRecords;
 	private List<RecordDTO> deletedRecords;
-
 	private List<SolrParams> deletedByQueries;
-
 	private Map<String, RecordDTO> newRecordsById;
-
 	private RecordsFlushing recordsFlushing;
+	private boolean skippingReferenceToLogicallyDeletedValidation;
 
 	public TransactionDTO(RecordsFlushing recordsFlushing) {
-		this.transactionId = UUID.randomUUID().toString();
-		this.recordsFlushing = recordsFlushing;
-		this.newRecords = Collections.emptyList();
-		this.modifiedRecords = Collections.emptyList();
-		this.deletedRecords = Collections.emptyList();
-		this.deletedByQueries = Collections.emptyList();
-		newRecordsById = buildNewRecordsByIdMap();
-	}
-
-	public TransactionDTO(RecordsFlushing recordsFlushing, String transactionId) {
-		this.transactionId = transactionId;
-		this.recordsFlushing = recordsFlushing;
-		this.newRecords = Collections.emptyList();
-		this.modifiedRecords = Collections.emptyList();
-		this.deletedRecords = Collections.emptyList();
-		this.deletedByQueries = Collections.emptyList();
-		newRecordsById = buildNewRecordsByIdMap();
+		this(UUID.randomUUID().toString(), recordsFlushing, Collections.<RecordDTO>emptyList(),
+				Collections.<RecordDeltaDTO>emptyList());
 	}
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
 			List<RecordDeltaDTO> modifiedRecords) {
-		super();
-		this.transactionId = transactionId;
-		this.recordsFlushing = recordsFlushing;
-		this.newRecords = Collections.unmodifiableList(newRecords);
-		this.modifiedRecords = Collections.unmodifiableList(modifiedRecords);
-		this.deletedRecords = Collections.emptyList();
-		this.deletedByQueries = Collections.emptyList();
-		newRecordsById = buildNewRecordsByIdMap();
+		this(transactionId, recordsFlushing, newRecords, modifiedRecords, Collections.<RecordDTO>emptyList(),
+				Collections.<SolrParams>emptyList());
 	}
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
 			List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords, List<SolrParams> deletedByQueries) {
-		super();
+		this(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries, false);
+	}
+
+	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
+			List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords, List<SolrParams> deletedByQueries,
+			boolean skippingReferenceToLogicallyDeletedValidation) {
 		this.transactionId = transactionId;
 		this.recordsFlushing = recordsFlushing;
 		this.newRecords = Collections.unmodifiableList(newRecords);
 		this.modifiedRecords = Collections.unmodifiableList(modifiedRecords);
 		this.deletedRecords = Collections.unmodifiableList(deletedRecords);
-		this.deletedRecords = Collections.unmodifiableList(deletedRecords);
 		this.deletedByQueries = Collections.unmodifiableList(deletedByQueries);
+		this.skippingReferenceToLogicallyDeletedValidation = skippingReferenceToLogicallyDeletedValidation;
 		newRecordsById = buildNewRecordsByIdMap();
 	}
 
@@ -107,12 +86,17 @@ public class TransactionDTO {
 		return deletedByQueries;
 	}
 
+	public boolean isSkippingReferenceToLogicallyDeletedValidation() {
+		return skippingReferenceToLogicallyDeletedValidation;
+	}
+
 	public TransactionDTO withNewRecords(List<RecordDTO> records) {
 		List<RecordDTO> newRecords = new ArrayList<>();
 		newRecords.addAll(this.newRecords);
 		newRecords.addAll(records);
 
-		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries);
+		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
+				skippingReferenceToLogicallyDeletedValidation);
 	}
 
 	public TransactionDTO withModifiedRecords(List<RecordDeltaDTO> records) {
@@ -120,7 +104,8 @@ public class TransactionDTO {
 		modifiedRecords.addAll(this.modifiedRecords);
 		modifiedRecords.addAll(records);
 
-		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries);
+		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
+				skippingReferenceToLogicallyDeletedValidation);
 	}
 
 	public TransactionDTO withDeletedRecords(List<RecordDTO> records) {
@@ -128,7 +113,8 @@ public class TransactionDTO {
 		deletedRecords.addAll(this.deletedRecords);
 		deletedRecords.addAll(records);
 
-		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries);
+		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
+				skippingReferenceToLogicallyDeletedValidation);
 	}
 
 	public TransactionDTO withDeletedByQueries(SolrParams... deletedByQueries) {
@@ -140,7 +126,13 @@ public class TransactionDTO {
 		queries.addAll(this.deletedByQueries);
 		queries.addAll(deletedByQueries);
 
-		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, queries);
+		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, queries,
+				skippingReferenceToLogicallyDeletedValidation);
+	}
+
+	public TransactionDTO withSkippingReferenceToLogicallyDeletedValidation(boolean enabled) {
+		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
+				enabled);
 	}
 
 	public boolean hasRecord(String value) {

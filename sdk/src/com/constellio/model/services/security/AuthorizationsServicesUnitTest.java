@@ -168,7 +168,7 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 		doReturn(auths).when(record1).getList(Schemas.AUTHORIZATIONS);
 		ArgumentCaptor<Object> valueCaptor = ArgumentCaptor.forClass(Object.class);
 
-		authorizationsServices.removeAuthorizationOnRecord("oldAuth2", record1);
+		authorizationsServices.removeAuthorizationOnRecord("oldAuth2", record1, true);
 
 		verify(record1).set(eq(Schemas.AUTHORIZATIONS), valueCaptor.capture());
 		assertThat((List) valueCaptor.getValue()).containsOnly("oldAuth1");
@@ -220,7 +220,7 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 
 		authorizationsServices.removeAuthorizationOnRecord(auth, record1, CustomizedAuthorizationsBehavior.KEEP_ATTACHED);
 
-		verify(authorizationsServices).removeAuthorizationOnRecord("oldAuth2", record1);
+		verify(authorizationsServices).removeAuthorizationOnRecord("oldAuth2", record1, true);
 		verify(authorizationsServices).setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.KEEP_ATTACHED, record1);
 	}
 
@@ -267,13 +267,13 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 
 		authorizationsServices.delete(authDetails, null);
 
-		verify(authorizationsServices).removeAuthorizationOnRecord("theAuth", record1);
+		verify(authorizationsServices).removeAuthorizationOnRecord("theAuth", record1, true);
 		verify(authorizationsServices).removeRemovedAuthorizationOnRecord("theAuth", record1);
-		verify(authorizationsServices).removeAuthorizationOnRecord("theAuth", record2);
+		verify(authorizationsServices).removeAuthorizationOnRecord("theAuth", record2, true);
 		verify(authorizationsServices).removeRemovedAuthorizationOnRecord("theAuth", record2);
-		verify(authorizationsServices).removeAuthorizationOnRecord("theAuth", user1);
+		verify(authorizationsServices).removeAuthorizationOnRecord("theAuth", user1, true);
 		verify(authorizationsServices).removeRemovedAuthorizationOnRecord("theAuth", user1);
-		verify(authorizationsServices).removeAuthorizationOnRecord("theAuth", user2);
+		verify(authorizationsServices).removeAuthorizationOnRecord("theAuth", user2, true);
 		verify(authorizationsServices).removeRemovedAuthorizationOnRecord("theAuth", user2);
 
 		verify(manager).remove(authDetails);
@@ -306,8 +306,8 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 
 		authorizationsServices.changeAuthorizationCode(authDetails, "newCode");
 
-		verify(authorizationsServices).removeAuthorizationOnRecord("oldAuth", record1);
-		verify(authorizationsServices).removeAuthorizationOnRecord("oldAuth", record2);
+		verify(authorizationsServices).removeAuthorizationOnRecord("oldAuth", record1, false);
+		verify(authorizationsServices).removeAuthorizationOnRecord("oldAuth", record2, false);
 		verify(authorizationsServices).addAuthorizationToRecord("newCode", record1);
 		verify(authorizationsServices).addAuthorizationToRecord("newCode", record2);
 		verify(manager).remove(authDetails);

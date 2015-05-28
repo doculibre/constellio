@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -46,12 +47,10 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class MigrationServicesAcceptanceTest extends ConstellioTest {
-
 	ConstellioPluginManager pluginManager;
 	ModelLayerFactory modelLayerFactory;
 	AppLayerFactory appLayerFactory;
@@ -188,6 +187,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenMigrateToVersionThenMigrationDone()
 			throws OptimisticLockingConfiguration {
+		givenCollection(zeCollection);
 		when(moduleManager.getInstalledModules()).thenReturn(Arrays.asList((Module) aModule));
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
@@ -212,6 +212,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenModuleWithDependencyThenDepencyAlwaysMigratedBefore()
 			throws OptimisticLockingConfiguration {
+		givenCollection(zeCollection);
 		when(moduleManager.getInstalledModules()).thenReturn(Arrays.asList((Module) aModuleWithDependency, aModule));
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
@@ -243,6 +244,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenModuleWithADependencyToAnotherModuleWithADependencyThenDepencyAlwaysMigratedBefore()
 			throws OptimisticLockingConfiguration {
+		givenCollection(zeCollection);
 
 		when(constellioEIM.getMigrationScripts()).thenReturn(Arrays.asList(coreMigrationTo100, coreMigrationTo103));
 		InstallableModule moduleA = givenModuleWithIdAndMigrationScripts("a", moduleAMigrationTo100);

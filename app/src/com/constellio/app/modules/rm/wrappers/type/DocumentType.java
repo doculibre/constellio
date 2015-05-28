@@ -29,6 +29,8 @@ public class DocumentType extends ValueListItem implements SchemaLinkingType {
 
 	public static final String LINKED_SCHEMA = "linkedSchema";
 
+	public static final String EMAIL_DOCUMENT_TYPE = "emailDocumentType";
+
 	public DocumentType(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);

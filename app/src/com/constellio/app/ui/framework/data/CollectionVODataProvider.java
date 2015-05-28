@@ -32,19 +32,27 @@ public class CollectionVODataProvider implements DataProvider {
 
 	transient List<CollectionVO> collections;
 
+	public CollectionVODataProvider(AppLayerFactory appLayerFactory) {
+		init(appLayerFactory);
+	}
+
 	public CollectionVODataProvider() {
-		init();
+		init(getAppLayerFactory());
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		init();
+		init(getAppLayerFactory());
 	}
 
-	void init() {
-		AppLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-		collectionManager = modelLayerFactory.getCollectionsManager();
+	private AppLayerFactory getAppLayerFactory() {
+		return ConstellioFactories.getInstance().getAppLayerFactory();
+	}
+
+	void init(AppLayerFactory appLayerFactory) {
+		//		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		collectionManager = appLayerFactory.getCollectionsManager();
 		collections = new ArrayList<>();
 
 		List<String> codes = collectionManager.getCollectionCodes();
@@ -57,23 +65,35 @@ public class CollectionVODataProvider implements DataProvider {
 
 	public CollectionVO getRecordVO(int index) {
 		if (collections == null) {
-			init();
+			init(getAppLayerFactory());
 		}
 		return collections.get(index);
 	}
 
 	public int size() {
 		if (collections == null) {
-			init();
+			init(getAppLayerFactory());
 		}
 		return collections.size();
 	}
 
 	public List<CollectionVO> getCollections() {
 		if (collections == null) {
-			init();
+			init(getAppLayerFactory());
 		}
 		return collections;
+	}
+
+	public List<CollectionVO> getCollections(int startIndex, int count) {
+		int toIndex = startIndex + count;
+		List<CollectionVO> newCollectionVOs = getCollections();
+		List subList = new ArrayList();
+		if (startIndex > newCollectionVOs.size()) {
+			return subList;
+		} else if (toIndex > newCollectionVOs.size()) {
+			toIndex = newCollectionVOs.size();
+		}
+		return newCollectionVOs.subList(startIndex, toIndex);
 	}
 
 	public void delete(Integer index) {

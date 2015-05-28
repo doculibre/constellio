@@ -43,6 +43,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private final UpdateManagerPresenter presenter;
 	private UploadWaitWindow uploadWaitWindow;
 	private boolean error;
+	private boolean manual;
+	private static VerticalLayout previousLayout;
 	final private Label restartMessage = new Label("<p style=\"color:red\">" + $("UpdateManagerViewImpl.restart") + "</p>",
 			ContentMode.HTML);
 
@@ -68,15 +70,22 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Label versionTitle = new Label($("UpdateManagerViewImpl.version"));
 		Label currentVersion = new Label(presenter.getCurrentVersion());
 
+		//Label buildTitle = new Label($("UpdateManagerViewImpl.buildVersion"));
+		//buildVersion = new Label(presenter.getBuildVersion());
+
 		String changelog = presenter.getChangelog();
 
 		layout.addComponent(versionTitle);
 		layout.addComponent(currentVersion);
+		//layout.addComponent(buildTitle);
+		//layout.addComponent(buildVersion);
 
 		if (changelog == null) {
+			manual = true;
 			setupManualUpload(layout);
 		} else {
-			setupAutomaticUpload(layout, changelog);
+			manual = false;
+			setupAutomaticUpload(layout, changelog, true);
 		}
 
 		Button restart = new Button($("UpdateManagerViewImpl.restartButton"));
@@ -93,17 +102,19 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		return layout;
 	}
 
-	private void setupManualUpload(VerticalLayout layout) {
-		Upload upload = new Upload($("UpdateManagerViewImpl.caption"), this);
+	private void setupManualUpload(final VerticalLayout layout) {
+		final Upload upload = new Upload($("UpdateManagerViewImpl.caption"), this);
 		upload.addSucceededListener(this);
 		upload.setButtonCaption($("UpdateManagerViewImpl.upload"));
 
 		layout.addComponent(upload);
 	}
 
-	private void setupAutomaticUpload(VerticalLayout layout, String changelog) {
+	private void setupAutomaticUpload(final VerticalLayout layout, final String changelog, boolean displayButton) {
+		final VerticalLayout automaticLayout = new VerticalLayout();
 		Label changelogTitle = new Label($("UpdateManagerViewImpl.changelog"));
 		Label changelogLabel = new Label(changelog, ContentMode.HTML);
+		final Button manualUpdate = new Button($("UpdateManagerViewImpl.manual"));
 		Button update = new Button($("UpdateManagerViewImpl.updateButton"));
 		update.addClickListener(new ClickListener() {
 			@Override
@@ -146,13 +157,38 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 			}
 		});
 
+		manualUpdate.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				VerticalLayout subLayout = new VerticalLayout();
+				if (manual) {
+					manualUpdate.setCaption($("UpdateManagerViewImpl.manual"));
+					setupAutomaticUpload(subLayout, changelog, false);
+				} else {
+					manualUpdate.setCaption($("UpdateManagerViewImpl.automatic"));
+					setupManualUpload(subLayout);
+				}
+
+				manual = !manual;
+				if (previousLayout == null) {
+					previousLayout = automaticLayout;
+				}
+				layout.replaceComponent(previousLayout, subLayout);
+				previousLayout = subLayout;
+			}
+		});
+
 		boolean needUpdate = VersionsComparator
 				.isFirstVersionBeforeSecond(presenter.getCurrentVersion(), presenter.getChangelogVersion());
 		update.setEnabled(needUpdate);
 
-		layout.addComponent(changelogTitle);
-		layout.addComponent(changelogLabel);
-		layout.addComponent(update);
+		automaticLayout.addComponent(changelogTitle);
+		automaticLayout.addComponent(changelogLabel);
+		automaticLayout.addComponent(update);
+		layout.addComponent(automaticLayout);
+		if (displayButton) {
+			layout.addComponent(manualUpdate);
+		}
 	}
 
 	@Override

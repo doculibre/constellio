@@ -269,7 +269,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				}
 				presenter.editProfileButtonClicked(params);
 			}
-		});
+		}).setStyleName("modify-profil-item");
 		//		userSettingsItem.addItem($("ConstellioMenu.preferences"), new Command() {
 		//			@Override
 		//			public void menuSelected(final MenuItem selectedItem) {
@@ -282,7 +282,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			public void menuSelected(final MenuItem selectedItem) {
 				presenter.signOutButtonClicked();
 			}
-		});
+		}).setStyleName("disconnect-item");
 	}
 
 	public MenuItem getUserSettingsItem() {

@@ -51,6 +51,10 @@ public class SchemasRecordsServices {
 	//
 
 	//Generic
+	
+	protected ModelLayerFactory getModelLayerFactory() {
+		return modelLayerFactory;
+	}
 
 	public MetadataSchemaTypes getTypes() {
 		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);

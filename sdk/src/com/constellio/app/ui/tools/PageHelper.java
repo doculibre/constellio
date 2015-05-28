@@ -72,10 +72,23 @@ public abstract class PageHelper {
 		driver.waitForPageReload(timeoutInSeconds, lastPageDateString);
 	}
 
+	public void logout() {
+		getButtonByClassName("v-menubar-menuitem-user-settings").click();
+		getButtonByClassName("v-menubar-menuitem-disconnect-item").clickAndWaitForPageReload();
+	}
+
+	public ButtonWebElement getButtonByClassName(String className) {
+		return getButtonByClassName(className, 0);
+	}
+
 	public ButtonWebElement getButtonByClassName(String className, int index) {
 		ConstellioWebElement element = driver.findAdaptElements(By.className(className)).get(index);
 		element.scrollIntoView();
 		return new ButtonWebElement(element);
+	}
+
+	public ButtonWebElement getFirstButtonByClassName(String className) {
+		return getButtonByClassName(className, 0);
 	}
 
 	public ButtonWebElement getBackButton() {
@@ -87,15 +100,13 @@ public abstract class PageHelper {
 	public TextFieldWebElement getTextFieldWebElementById(String id) {
 		ConstellioWebElement textFieldElement = driver.findElement(By.id(id));
 		textFieldElement.scrollIntoView();
-		TextFieldWebElement textFieldWebElement = new TextFieldWebElement(textFieldElement);
-		return textFieldWebElement;
+		return new TextFieldWebElement(textFieldElement);
 	}
 
 	public OptionGroupWebElement getOptionGroupWebElementById(String id) {
 		ConstellioWebElement optionGroupElement = driver.findElement(By.id(id));
 		optionGroupElement.scrollIntoView();
-		OptionGroupWebElement optionGroupWebElement = new OptionGroupWebElement(optionGroupElement);
-		return optionGroupWebElement;
+		return new OptionGroupWebElement(optionGroupElement);
 	}
 
 	public ButtonWebElement getOkConfirmationDialogButton() {

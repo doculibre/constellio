@@ -184,8 +184,10 @@ public class BigVaultRecordDao implements RecordDao {
 					recordDTO);
 		}
 
-		for (SolrInputDocument activeReferenceCheck : activeReferencesCheck.values()) {
-			updatedDocuments.add(activeReferenceCheck);
+		if (!transaction.isSkippingReferenceToLogicallyDeletedValidation()) {
+			for (SolrInputDocument activeReferenceCheck : activeReferencesCheck.values()) {
+				updatedDocuments.add(activeReferenceCheck);
+			}
 		}
 
 		refreshRefCountIndexForRecordsWithNewAncestors(recordsAncestors, recordsInTransactionRefCounts,
@@ -713,7 +715,7 @@ public class BigVaultRecordDao implements RecordDao {
 		Object collection = modifiedRecord.getInitialFields().get(COLLECTION_FIELD);
 		LangUtils utils = new LangUtils();
 		if (modifiedRecord.getInitialFields().get(field.getKey()) != null) {
-			List newReferences = utils
+			List newReferences = LangUtils
 					.compare((List) modifiedRecord.getInitialFields().get(field.getKey()), (List) field.getValue())
 					.getNewItems();
 			for (Object referenceId : newReferences) {
@@ -729,7 +731,7 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	private SolrInputDocument setVersion1ToDocument(String referenceId, Object collection) {
-		SolrInputDocument referencedIndex = buildActiveIndexSolrDocument((String) referenceId, collection);
+		SolrInputDocument referencedIndex = buildActiveIndexSolrDocument(referenceId, collection);
 		referencedIndex.setField(VERSION_FIELD, 1L);
 		return referencedIndex;
 	}
@@ -1029,8 +1031,7 @@ public class BigVaultRecordDao implements RecordDao {
 		Map<String, Object> fieldValues = new HashMap<String, Object>();
 
 		for (String fieldName : solrDocument.getFieldNames()) {
-			if (!fieldName.equals("sys_s") && !fieldName.equals("pathParts_ss") && !containsTwoUnderscoresAndIsNotVersionField(
-					fieldName)) {
+			if (!fieldName.equals("sys_s") && !containsTwoUnderscoresAndIsNotVersionField(fieldName)) {
 				Object value = convertSolrValueToBigVaultValue(fieldName, solrDocument.getFieldValue(fieldName));
 				fieldValues.put(fieldName, value);
 			}

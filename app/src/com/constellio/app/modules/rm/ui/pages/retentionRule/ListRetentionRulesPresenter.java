@@ -31,7 +31,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListRetentionRulesView> {
@@ -48,7 +48,8 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				MetadataSchema schema = schema();
-				return new LogicalSearchQuery(from(schema).where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+				return new LogicalSearchQuery(from(schema).returnAll())
+						.filteredByStatus(StatusFilter.ACTIVES)
 						.sortAsc(schema.getMetadata(RetentionRule.CODE));
 			}
 		});

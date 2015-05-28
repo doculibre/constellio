@@ -554,9 +554,9 @@ public class MetadataBuilder {
 
 	public DataEntryBuilder defineDataEntry() {
 		ensureCanModify("data entry");
-		if (dataEntry != null) {
-			throw new MetadataBuilderRuntimeException.InvalidAttribute(this.localCode, "data entry already defined");
-		}
+		//		if (dataEntry != null) {
+		//			throw new MetadataBuilderRuntimeException.InvalidAttribute(this.localCode, "data entry already defined");
+		//		}
 		return new DataEntryBuilder(this);
 	}
 

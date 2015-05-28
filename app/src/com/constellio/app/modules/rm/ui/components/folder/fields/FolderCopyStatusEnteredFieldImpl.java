@@ -27,7 +27,6 @@ public class FolderCopyStatusEnteredFieldImpl extends EnumWithSmallCodeOptionGro
 		super(CopyType.class);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public CopyType getFieldValue() {
 		return (CopyType) getConvertedValue();

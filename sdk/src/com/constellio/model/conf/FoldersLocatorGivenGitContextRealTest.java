@@ -49,7 +49,8 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	static String givenJavaRootFolderIsSDKProject = "givenJavaRootFolderIsSDKProject";
 	static File constellio, constellioUi, constellioDao, constellioServices, webinf, conf, buildLibs, constellioProperties,
 			constellioSetupProperties, deploy, cmdTxt, uploadConstellioWar, temp, importation, custom, settings, sdk,
-			languageProfiles, appProject, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, reportsRecource;
+			languageProfiles, appProject, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, reportsRecource,
+			buildData;
 	String testCase;
 	private com.constellio.model.conf.FoldersLocator foldersLocator;
 
@@ -102,6 +103,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		cmdTxt = new File(temp, "cmd");
 		uploadConstellioWar = new File(temp, "constellio.war");
 		reportsRecource = new File(constellio, "reportsRecource");
+		buildData = new File(constellio, "data.txt");
 
 		constellio.mkdir();
 		constellioUi.mkdir();
@@ -269,6 +271,13 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	public void whenGetSettingsThenObtainCorrectFolder() {
 		assertThat(foldersLocator.getDefaultSettingsFolder()).isEqualTo(settings);
 	}
+
+	/*
+	@Test
+	public void whenGetBuildDataFileThenObtainCorrectFolder() {
+		assertThat(foldersLocator.getBuildDataFile()).isEqualTo(buildData);
+	}
+	*/
 
 	@Test(expected = NotAvailableInGitMode.class)
 	public void whenGetLibFolderThenFolderNotAvailable() {

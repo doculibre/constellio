@@ -29,7 +29,9 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
@@ -54,7 +56,8 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(LogicalSearchQueryOperators.from(schema()).returnAll());
+				return new LogicalSearchQuery(LogicalSearchQueryOperators.from(schema()).returnAll())
+						.filteredByStatus(StatusFilter.ACTIVES);
 			}
 		};
 		return dataProvider;
@@ -76,7 +79,15 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 
 	public void deleteButtonClicked(RecordVO recordVO) {
 		Record record = getRecord(recordVO.getId());
-		delete(record);
+		try {
+			delete(record);
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord error) {
+			/*
+				This catch happens to avoid presenting a message in the UI
+				which wrongly tells the user that the deletion completely failed
+				while it really succeeded, but only logically.
+			 */
+		}
 		view.refreshTable();
 	}
 
@@ -84,7 +95,6 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 	protected boolean hasPageAccess(String params, final User user) {
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(params);
 		return new SchemaRecordsPresentersServices(appLayerFactory).canManageSchemaType(schemaTypeCode, user);
-
 	}
 
 }

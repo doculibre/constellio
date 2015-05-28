@@ -72,6 +72,10 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(requiredMetadata1.isDefaultRequirement()).thenReturn(true);
 		when(requiredMetadata2.isDefaultRequirement()).thenReturn(true);
 
+		when(optionalMetadata.isEnabled()).thenReturn(true);
+		when(requiredMetadata1.isEnabled()).thenReturn(true);
+		when(requiredMetadata2.isEnabled()).thenReturn(true);
+
 		validator = new ValueRequirementValidator(metadatas);
 
 		validationErrors = new ValidationErrors();

@@ -32,6 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -65,7 +66,25 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
 
-		getSaveStateFeature().saveStateAfterTestWithTitle("with_medium_types_created_manually");
+		getSaveStateFeature().saveStateAfterTestWithTitle("with_manual_modifications");
+
+		newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
+
+	}
+
+	//This is not a test, but a tool to build states
+	@Test
+	@InDevelopmentTest
+	public void saveStateWithTestRecords()
+			throws Exception {
+
+		givenTransactionLogIsEnabled();
+		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		RMTestRecords records = new RMTestRecords(zeCollection);
+		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+
+		getSaveStateFeature().saveStateAfterTestWithTitle("with_test_records");
 
 		newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();

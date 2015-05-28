@@ -18,17 +18,33 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.records.bulkImport;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class BulkImportResults {
 
-	private List<String> invalidContentUrls = new ArrayList<>();
+	private List<ImportError> importErrors = new ArrayList<>();
+
+
 
 	public BulkImportResults() {
-		this.invalidContentUrls = invalidContentUrls;
+
 	}
 
-	public List<String> getInvalidContentUrls() {
-		return invalidContentUrls;
+	public List<String> getInvalidIds() {
+		List<String> invalidIds= new ArrayList<>();
+		for(ImportError importError : importErrors){
+			invalidIds.add(importError.getInvalidElementId());
+		}
+		return invalidIds;
+	}
+
+	public void add(ImportError importError) {
+		this.importErrors.add(importError);
+	}
+
+	public List<ImportError> getImportErrors() {
+		return Collections.unmodifiableList(importErrors);
 	}
 }

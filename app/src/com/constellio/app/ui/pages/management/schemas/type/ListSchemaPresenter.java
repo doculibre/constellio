@@ -43,7 +43,8 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	}
 
 	public SchemaVODataProvider getDataProvider() {
-		return new SchemaVODataProvider(new MetadataSchemaToVOBuilder(), modelLayerFactory, collection, schemaTypeCode);
+		return new SchemaVODataProvider(new MetadataSchemaToVOBuilder(), modelLayerFactory, collection, schemaTypeCode,
+				view.getSessionContext());
 	}
 
 	public void setSchemaTypeCode(String schemaTypeCode) {

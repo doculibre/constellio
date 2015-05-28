@@ -25,6 +25,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
 import java.util.ArrayList;
@@ -391,6 +392,14 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withAMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		return withAStringMetadata(builderConfigurators);
+	}
+
+	public TestsSchemasSetup withAStructureMetadata(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("structureMetadata").setType(STRUCTURE)
+				.defineStructureFactory(TestStructureFactory1.class);
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
 	}
 
 	public TestsSchemasSetup withAStringMetadata(MetadataBuilderConfigurator... builderConfigurators)

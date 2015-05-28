@@ -31,6 +31,7 @@ import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.converter.Converter;
+import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
@@ -243,7 +244,13 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	@Override
 	public void detach() {
 		super.detach();
-		deleteTempFiles();
+		if (isDeleteTempFilesOnDetach()) {
+			deleteTempFiles();
+		}
+	}
+	
+	protected boolean isDeleteTempFilesOnDetach() {
+		return true;
 	}
 
 	@Override
@@ -286,6 +293,12 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			type = Object.class;
 		}
 		return type;
+	}
+
+	@Override
+	public void setValue(Object newFieldValue)
+			throws com.vaadin.data.Property.ReadOnlyException, ConversionException {
+		super.setValue(newFieldValue);
 	}
 
 }

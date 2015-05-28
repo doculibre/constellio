@@ -17,6 +17,31 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.smokeTests;
 
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.CONFIG_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.FILING_SPACES_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.IMPORT_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.LDAP_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_COLLECTIONS_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_GROUPS_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_ROLES_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_USERS_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_USER_CREDENTIAL_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.METADATA_SCHEMAS_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.RETENTION_CALENDAR_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.TAXONOMIES_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.UNIFORM_SUBDIVISIONS_BUTTON;
+import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.VALUE_DOMAIN_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BORROWED_DOCUMENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BY_FOLDER_EVENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BY_USER_EVENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.DECOMMISSIONING_EVENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.FILING_SPACE_EVENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.RECORDS_CREATION_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.RECORDS_DELETION_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.RECORDS_MODIFICATION_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.SYSTEM_USAGE_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.USERS_AND_GROUPS_LINK_BUTTON;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -92,7 +117,6 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		page.navigateToArchivesManagement();
 		givenUserInArchivesManagementWhenClickOnIconsMenuAndGoBackThenUserInArchivesManagement();
-
 		page.navigateToEventsList();
 		givenUserInEventsListWhenClickOnLogsIconsAndGoBackThenUserInEventsList();
 
@@ -102,17 +126,19 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 		page.navigateToPermissionManagement();
 		givenUserInPermissionManagementWhenClickOnCreateRoleAndCancelThenUserInPermissionManagement();
 
-		//Test not working
-		//		givenUserInArchivesManagementReportsWhenClickOnReportsIconAndCloseBoxThenUserInReports();
+		page.navigateToArchivesManagementDecommissioning();
+		givenUserInArchivesManagementReportsWhenClickOnReportsIconAndCloseBoxThenUserInReports();
 
 		page.navigateToRecordsManagement();
 		givenUserInRecordsManagementWhenClickOnAFolderAndClickCancelThenUserInLastViewedFolder();
+
+		page.navigateToCollectionManagement();
+		givenUserWhenCreateCollectionThenUserHaveAllAccessOnCollection();
 	}
 
 	public void givenUserInRecordsManagementWhenClickOnAddDocumentAndClickCancelThenUserInLastViewedFolders()
 			throws Exception {
-		page.getAddDocumentButton().click();
-		page.waitForPageReload();
+		page.getAddDocumentButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.ADD_DOCUMENT);
 
@@ -127,8 +153,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 	public void givenUserInRecordsManagementWhenClickOnAddFolderAndClickCancelThenUserInLastViewedFolder()
 			throws Exception {
 
-		page.getAddFolderButton().click();
-		page.waitForPageReload();
+		page.getAddFolderButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.ADD_FOLDER);
 
@@ -139,11 +164,9 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		page.navigateToRecordsManagement();
 
-		page.getIntoFolder(0).click();
-		page.waitForPageReload();
+		page.getIntoFolder(0).clickAndWaitForPageReload();
 
-		page.getBackButton().click();
-		page.waitForPageReload();
+		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.RECORDS_MANAGEMENT + "/lastViewedFolders");
 	}
@@ -186,8 +209,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.LIST_OBJECT_AUTHORIZATIONS + "/" + folderId);//LIST_OBJECT_AUTHORIZATIONS
 
-		page.getBackButton().click();
-		page.waitForPageReload();
+		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + folderId);
 
@@ -256,88 +278,117 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 	public void givenUserInEventsListWhenClickOnLogsIconsAndGoBackThenUserInEventsList()
 			throws Exception {
 
-		clickOnCurrentPageIconAndWaitForReload(2);
+		clickOnCurrentPageIconAndWaitForReload(SYSTEM_USAGE_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(3);
+		clickOnCurrentPageIconAndWaitForReload(USERS_AND_GROUPS_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(4);
+		clickOnCurrentPageIconAndWaitForReload(RECORDS_CREATION_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(5);
+		clickOnCurrentPageIconAndWaitForReload(RECORDS_MODIFICATION_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(6);
+		clickOnCurrentPageIconAndWaitForReload(RECORDS_DELETION_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(7);
+		clickOnCurrentPageIconAndWaitForReload(CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(8);
+		clickOnCurrentPageIconAndWaitForReload(BORROWED_DOCUMENTS_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(9);
+		clickOnCurrentPageIconAndWaitForReload(FILING_SPACE_EVENTS_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(10);
+		clickOnCurrentPageIconAndWaitForReload(BY_FOLDER_EVENTS_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(11);
+		clickOnCurrentPageIconAndWaitForReload(BY_USER_EVENTS_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 
-		clickOnCurrentPageIconAndWaitForReload(12);
+		clickOnCurrentPageIconAndWaitForReload(DECOMMISSIONING_EVENTS_LINK_BUTTON);
 		clickOnBackButtonAndGoBackToEventsList();
 	}
 
 	public void givenUserInAdminModuleWhenClickAdminModuleIconsAndGoBackThenUserInAdminModule()
 			throws Exception {
 
-		clickOnCurrentPageIconAndWaitForReload(2);
+		clickOnCurrentPageIconAndWaitForReload(TAXONOMIES_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(3);
+		clickOnCurrentPageIconAndWaitForReload(UNIFORM_SUBDIVISIONS_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(4);
+		clickOnCurrentPageIconAndWaitForReload(RETENTION_CALENDAR_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(5);
+		clickOnCurrentPageIconAndWaitForReload(VALUE_DOMAIN_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(6);
+		clickOnCurrentPageIconAndWaitForReload(METADATA_SCHEMAS_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(7);
+		clickOnCurrentPageIconAndWaitForReload(FILING_SPACES_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(8);
+		clickOnCurrentPageIconAndWaitForReload(MANAGE_USERS_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(9);
+		clickOnCurrentPageIconAndWaitForReload(MANAGE_ROLES_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(14);
+		/* Not implemented yet
+		clickOnCurrentPageIconAndWaitForReload(DATA_EXTRACTOR_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(15);
+		clickOnCurrentPageIconAndWaitForReload(CONNECTORS_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(16);
+		clickOnCurrentPageIconAndWaitForReload(SEARCH_ENGINE_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(17);
+		clickOnCurrentPageIconAndWaitForReload(TRASH_BIN_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();*/
+
+		clickOnCurrentPageIconAndWaitForReload(CONFIG_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();
+
+		clickOnCurrentPageIconAndWaitForReload(LDAP_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();
+
+		clickOnCurrentPageIconAndWaitForReload(MANAGE_GROUPS_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();
+
+		clickOnCurrentPageIconAndWaitForReload(MANAGE_USER_CREDENTIAL_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();
+
+		clickOnCurrentPageIconAndWaitForReload(MANAGE_COLLECTIONS_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();
+
+		/* Not implemented yet
+		clickOnCurrentPageIconAndWaitForReload(MODULES_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();*/
+
+		clickOnCurrentPageIconAndWaitForReload(IMPORT_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();
+
+		/* Not implemented yet
+		clickOnCurrentPageIconAndWaitForReload(BIG_DATA_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();
+
+		// Back Button not implemented
+		clickOnCurrentPageIconAndWaitForReload(UPDATE_CENTER_BUTTON);
+		clickOnBackButtonAndGoBackToAdminModule();*/
 	}
 
 	public void givenUserInPermissionManagementWhenClickOnCreateRoleAndCancelThenUserInPermissionManagement()
 			throws Exception {
 
-		page.getCreateRoleButton().click();
-		page.waitForPageReload();
+		page.getCreateRoleButton().clickAndWaitForPageReload();
 
-		page.getCancelButton().click();
-		page.waitForPageReload();
+		page.getCancelButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.PERMISSION_MANAGEMENT);
 	}
@@ -345,132 +396,131 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 	public void givenUserInRecordsManagementWhenClickOnConstellioMenuThenUserSeeTheRightView()
 			throws Exception {
 
-		page.getArchivesManagementButton().click();
-		page.waitForPageReload();
+		page.getArchivesManagementButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.ARCHIVES_MANAGEMENT);
 
-		page.getLogsButton().click();
-		page.waitForPageReload();
+		page.getLogsButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.EVENTS_LIST);
 
-		page.getAdminModuleButton().click();
-		page.waitForPageReload();
+		page.getAdminModuleButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.ADMIN_MODULE);
 
-		page.getUserDocumentsButton().click();
-		page.waitForPageReload();
+		page.getUserDocumentsButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.LIST_USER_DOCUMENTS);
 
-		page.getRecordsManagementButton().click();
-		page.waitForPageReload();
+		page.getRecordsManagementButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo("/lastViewedFolders");
 	}
 
+	public void givenUserWhenCreateCollectionThenUserHaveAllAccessOnCollection()
+			throws Exception {
+		page.waitForPageReload();
+		assertThat(driver.getCurrentPage()).isEqualTo(NavigatorConfigurationService.COLLECTION_ADD_EDIT);
+
+		page.getTextFieldWebElementById("code").setValue("test");
+		page.getTextFieldWebElementById("name").setValue("Collection de test");
+
+		page.getButtonByClassName("base-form-save").clickAndWaitForPageReload();
+
+		page.logout();
+		page.waitForPageReload();
+
+		assertThat(driver.getCurrentPage()).isEqualTo("listCollections");
+
+		driver = newWebDriver(loggedAsUserInCollection("admin", "test"));
+
+		assertThat(driver.getCurrentPage()).isEqualTo("/lastViewedFolders");
+	}
+
 	// 	TODO : find a way to click on the popup closeBox. Currently, a new window open with the pdf instead of closing the popup.
-	//	@Test
-	//	public void givenUserInArchivesManagementReportsWhenClickOnReportsIconAndCloseBoxThenUserInReports()
-	//			throws Exception {
-	//		page.navigateToArchivesManagementDecommissioning();
-	//
-	//		clickOnCurrentPageIconAndWaitForReload(3);
-	//
-	//		page.getCloseBoxButton().();
-	//		page.waitForPageReload();
-	//
-	//		waitUntilICloseTheBrowsers();
-	//
-	//				assertThat(driver.getCurrentPage())
-	//						.isEqualTo(NavigatorConfigurationService.REPORTS);
-	//
-	//				clickOnCurrentPageIconAndWaitForReload(4);
-	//
-	//				page.getCloseBoxButton().();
-	//				page.waitForPageReload();
-	//				assertThat(driver.getCurrentPage())
-	//						.isEqualTo(NavigatorConfigurationService.REPORTS);
-	//
-	//				clickOnCurrentPageIconAndWaitForReload(5);
-	//
-	//				page.getCloseBoxButton().();
-	//				page.waitForPageReload();
-	//				assertThat(driver.getCurrentPage())
-	//						.isEqualTo(NavigatorConfigurationService.REPORTS);
-	//
-	//				clickOnCurrentPageIconAndWaitForReload(6);
-	//
-	//				page.getCloseBoxButton().();
-	//				page.waitForPageReload();
-	//				assertThat(driver.getCurrentPage())
-	//						.isEqualTo(NavigatorConfigurationService.REPORTS);
-	//
-	//				clickOnCurrentPageIconAndWaitForReload(7);
-	//
-	//				page.getCloseBoxButton().();
-	//				page.waitForPageReload();
-	//				assertThat(driver.getCurrentPage())
-	//						.isEqualTo(NavigatorConfigurationService.REPORTS);
-	//
-	//				clickOnCurrentPageIconAndWaitForReload(2);
-	//
-	//				page.getCloseBoxButton().();
-	//				page.waitForPageReload();
-	//				assertThat(driver.getCurrentPage())
-	//						.isEqualTo(NavigatorConfigurationService.REPORTS);
-	//	}
+	public void givenUserInArchivesManagementReportsWhenClickOnReportsIconAndCloseBoxThenUserInReports()
+			throws Exception {
+		clickOnCurrentPageIconAndWaitForReload(3);
+
+		page.getCloseBoxButton().clickAndWaitForPageReload();
+		assertThat(driver.getCurrentPage())
+				.isEqualTo(NavigatorConfigurationService.REPORTS);
+
+		clickOnCurrentPageIconAndWaitForReload(4);
+
+		page.getCloseBoxButton().clickAndWaitForPageReload();
+		assertThat(driver.getCurrentPage())
+				.isEqualTo(NavigatorConfigurationService.REPORTS);
+
+		clickOnCurrentPageIconAndWaitForReload(5);
+
+		page.getCloseBoxButton().clickAndWaitForPageReload();
+		assertThat(driver.getCurrentPage())
+				.isEqualTo(NavigatorConfigurationService.REPORTS);
+
+		clickOnCurrentPageIconAndWaitForReload(6);
+
+		page.getCloseBoxButton().clickAndWaitForPageReload();
+		assertThat(driver.getCurrentPage())
+				.isEqualTo(NavigatorConfigurationService.REPORTS);
+
+		clickOnCurrentPageIconAndWaitForReload(7);
+
+		page.getCloseBoxButton().clickAndWaitForPageReload();
+		assertThat(driver.getCurrentPage())
+				.isEqualTo(NavigatorConfigurationService.REPORTS);
+
+		clickOnCurrentPageIconAndWaitForReload(8);
+
+		page.getCloseBoxButton().clickAndWaitForPageReload();
+		assertThat(driver.getCurrentPage())
+				.isEqualTo(NavigatorConfigurationService.REPORTS);
+	}
 
 	private void clickCancelAndGoBackToRecordsManagement() {
-		page.getCancelButton().click();
-		page.waitForPageReload();
+		page.getCancelButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.RECORDS_MANAGEMENT + "/lastViewedFolders");
 	}
 
 	private void clickCancelAndGoBackToFolderDetails() {
-		page.getCancelButton().click();
-		page.waitForPageReload();
+		page.getCancelButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + folderId);
 	}
 
 	private void clickOnBackButtonAndGoBackToArchivesManagement() {
-		page.getBackButton().click();
-		page.waitForPageReload();
+		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.ARCHIVES_MANAGEMENT);
 	}
 
 	private void clickOnBackButtonAndGoBackToEventsList() {
-		page.getBackButton().click();
-		page.waitForPageReload();
+		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.EVENTS_LIST);
 	}
 
 	private void clickOnBackButtonAndGoBackToAdminModule() {
-		page.getBackButton().click();
-		page.waitForPageReload();
+		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.ADMIN_MODULE);
 	}
 
+	private void clickOnCurrentPageIconAndWaitForReload(String classIcon) {
+		page.getFirstButtonByClassName(classIcon).clickAndWaitForPageReload();
+	}
+
 	private void clickOnCurrentPageIconAndWaitForReload(int indexIcon) {
-		page.getCurrentPageIcons(indexIcon).click();
-		page.waitForPageReload();
+		page.getCurrentPageIcons(indexIcon).clickAndWaitForPageReload();
 	}
 
 	private void clickOnTabMenuAndWaitForReload(int indexTabMenu) {
-		page.getCurrentPageTabMenu(indexTabMenu).click();
-		page.waitForPageReload();
+		page.getCurrentPageTabMenu(indexTabMenu).clickAndWaitForPageReload();
 	}
 
 	private void clickOnFolderMenuAndWaitForReload(int indexMenu) {
-		page.getFolderMenuButton(indexMenu).click();
-		page.waitForPageReload();
+		page.getFolderMenuButton(indexMenu).clickAndWaitForPageReload();
 	}
 
 }

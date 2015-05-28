@@ -41,7 +41,8 @@ public class ValueRequirementValidator implements Validator<Record> {
 	public void validate(Record record, ValidationErrors validationErrors) {
 		for (Metadata metadata : metadatas) {
 			Object value = record.get(metadata);
-			if (metadata.isDefaultRequirement() && (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))) {
+			if (metadata.isDefaultRequirement() && (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
+					&& metadata.isEnabled()) {
 				addValidationErrors(validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
 			}
 		}

@@ -32,8 +32,8 @@ import com.constellio.model.services.records.FieldsPopulator;
 
 public class PathsFieldPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
-	public PathsFieldPopulator(MetadataSchemaTypes types) {
-		super(types);
+	public PathsFieldPopulator(MetadataSchemaTypes types, boolean fullRewrite) {
+		super(types, fullRewrite);
 	}
 
 	@Override

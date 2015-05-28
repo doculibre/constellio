@@ -17,15 +17,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.conf.ldap.services;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import javax.naming.NameClassPair;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.PartialResultException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
-import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Control;
@@ -33,18 +35,16 @@ import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.PagedResultsControl;
 import javax.naming.ldap.PagedResultsResponseControl;
 
-import com.constellio.model.conf.ldap.Filter;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.RegexFilter;
-import com.constellio.model.services.users.sync.LDAPFastBind;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.model.conf.ldap.Filter;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
+import com.constellio.model.services.users.sync.LDAPFastBind;
 
 public class LDAPServices {
 
@@ -188,7 +188,7 @@ public class LDAPServices {
 	}
 	*/
 
-	public Set<LDAPGroup> getAllGroups(LdapContext ctx , List<String> baseContextList) {
+	public Set<LDAPGroup> getAllGroups(LdapContext ctx, List<String> baseContextList) {
 		Set<LDAPGroup> returnList = new HashSet<>();
 		if (baseContextList == null || baseContextList.isEmpty()) {
 			return returnList;
@@ -207,12 +207,12 @@ public class LDAPServices {
 		return returnList;
 	}
 
-	public Set<LDAPGroup> getGroupsUsingFilter(LdapContext ctx , List<String> baseContextList, final Filter filter) {
+	public Set<LDAPGroup> getGroupsUsingFilter(LdapContext ctx, List<String> baseContextList, final Filter filter) {
 		Set<LDAPGroup> groups = getAllGroups(ctx, baseContextList);
 		CollectionUtils.filter(groups, new Predicate() {
 			@Override
 			public boolean evaluate(Object object) {
-				LDAPGroup ldapGroup = (LDAPGroup)object;
+				LDAPGroup ldapGroup = (LDAPGroup) object;
 				return filter.isAccepted(ldapGroup.getSimpleName());
 			}
 		});
@@ -279,40 +279,40 @@ public class LDAPServices {
 			int pageSize = 100;
 			byte[] cookie = null;
 			ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, Control.NONCRITICAL) });
-				do {
-					//Query
-					SearchControls searchCtls = new SearchControls();
-					searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-					String[] returnAttributes = { "cn" };
-					searchCtls.setReturningAttributes(returnAttributes);
+			do {
+				//Query
+				SearchControls searchCtls = new SearchControls();
+				searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+				String[] returnAttributes = { "cn" };
+				searchCtls.setReturningAttributes(returnAttributes);
 
-					NamingEnumeration results = ctx.search(usersContainer, "(objectclass=person)", searchCtls);
+				NamingEnumeration results = ctx.search(usersContainer, "(objectclass=person)", searchCtls);
 
 					/* for each entry print out name + all attrs and values */
-					while (results != null && results.hasMore()) {
-						SearchResult entry = (SearchResult) results.next();
-						String currentUserId = entry.getNameInNamespace();
-						if (StringUtils.isNotBlank(currentUserId)) {
-							usersIds.add(currentUserId);
+				while (results != null && results.hasMore()) {
+					SearchResult entry = (SearchResult) results.next();
+					String currentUserId = entry.getNameInNamespace();
+					if (StringUtils.isNotBlank(currentUserId)) {
+						usersIds.add(currentUserId);
+					}
+				}
+
+				// Examine the paged results control response
+				Control[] controls = ctx.getResponseControls();
+				if (controls != null) {
+					for (int i = 0; i < controls.length; i++) {
+						if (controls[i] instanceof PagedResultsResponseControl) {
+							PagedResultsResponseControl prrc = (PagedResultsResponseControl) controls[i];
+							cookie = prrc.getCookie();
 						}
 					}
+				} else {
+					System.out.println("No controls were sent from the server");
+				}
+				// Re-activate paged results
+				ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
 
-					// Examine the paged results control response
-					Control[] controls = ctx.getResponseControls();
-					if (controls != null) {
-						for (int i = 0; i < controls.length; i++) {
-							if (controls[i] instanceof PagedResultsResponseControl) {
-								PagedResultsResponseControl prrc = (PagedResultsResponseControl) controls[i];
-								cookie = prrc.getCookie();
-							}
-						}
-					} else {
-						System.out.println("No controls were sent from the server");
-					}
-					// Re-activate paged results
-					ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
-
-				} while (cookie != null);
+			} while (cookie != null);
 		} catch (Exception e) {
 			System.err.println("PagedSearch failed.");
 			e.printStackTrace();
@@ -369,25 +369,25 @@ public class LDAPServices {
 				break;
 			}
 		}
-		if(authenticated){
+		if (authenticated) {
 			return ldapFastBind.ctx;
 		}
 		authenticated = ldapFastBind.authenticate(user, password);
-		if (!authenticated){
+		if (!authenticated) {
 			throw new LDAPConnectionFailure(domains.toArray(), url, user);
 		}
 		return ldapFastBind.ctx;
 	}
 
 	public LdapContext connectToLDAP(List<String> domains, List<String> urls, String user, String password) {
-		for (String url :urls){
+		for (String url : urls) {
 			LdapContext ctx;
-			try{
+			try {
 				ctx = connectToLDAP(domains, url, user, password);
-				if (ctx != null){
+				if (ctx != null) {
 					return ctx;
 				}
-			}catch (RuntimeException e){
+			} catch (RuntimeException e) {
 				e.printStackTrace();
 			}
 		}
@@ -414,10 +414,13 @@ public class LDAPServices {
 	public boolean isUser(LDAPDirectoryType directoryType, String groupMemberId, LdapContext ctx) {
 		try {
 			LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
-			String searchFilter ="(&(objectClass=user)(" + userBuilder.getUserIdAttribute() + "=" + groupMemberId + "))";
+			if (groupMemberId.contains("\\")) {
+				groupMemberId = StringUtils.replace(groupMemberId, "\\", "\\\\");
+			}
+			String searchFilter = "(&(objectClass=person)(" + userBuilder.getUserIdAttribute() + "=" + groupMemberId + "))";
 
 			SearchControls searchControls = new SearchControls();
-			searchControls.setReturningAttributes(new String[]{});
+			searchControls.setReturningAttributes(new String[] { });
 
 			// specify the search scope
 			searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -428,9 +431,10 @@ public class LDAPServices {
 		}
 	}
 
-	public Set<String> getUsersUsingFilter(LDAPDirectoryType directoryType, LdapContext ctx, List<String> usersWithoutGroupsBaseContextList, final Filter filter) {
+	public Set<String> getUsersUsingFilter(LDAPDirectoryType directoryType, LdapContext ctx,
+			List<String> usersWithoutGroupsBaseContextList, final Filter filter) {
 		Set<String> users = new HashSet<>();
-		for(String currentContex : usersWithoutGroupsBaseContextList){
+		for (String currentContex : usersWithoutGroupsBaseContextList) {
 			try {
 				users.addAll(searchUsersIdsFromContext(directoryType, ctx, currentContex));
 			} catch (NamingException e) {
@@ -440,7 +444,7 @@ public class LDAPServices {
 		CollectionUtils.filter(users, new Predicate() {
 			@Override
 			public boolean evaluate(Object object) {
-				String user = (String)object;
+				String user = (String) object;
 				return filter.isAccepted(user);
 			}
 		});

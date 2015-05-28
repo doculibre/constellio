@@ -195,6 +195,15 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenAddingRecordWithReferenceToNonExistentIndexGivenValidationSkippedThenCanRetrieveRecord()
+			throws Exception {
+		RecordDTO record = newRecordWithSingleReference("idOfNonExistentIndex");
+		recordDao.execute(new TransactionDTO(UUID.randomUUID().toString(), RecordsFlushing.NOW, Arrays.asList(record),
+				new ArrayList<RecordDeltaDTO>(), new ArrayList<RecordDTO>(), new ArrayList<SolrParams>(), true));
+		assertEquals(record.getFields().get("title_s"), recordDao.get(record.getId()).getFields().get("title_s"));
+	}
+
+	@Test
 	public void whenAddingRecordWithAValidReferenceThenItsActiveIndexCanBeRetrievedWithItsId()
 			throws Exception {
 		RecordDTO referencedRecord = newRecordWithTitle("referencedRecord");

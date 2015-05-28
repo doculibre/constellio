@@ -252,6 +252,26 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 		assertThat(dataProvider.listBaseGlobalGroupsVOsWithStatus(GlobalGroupStatus.INACTIVE).get(0).getCode())
 				.isEqualTo(HEROES);
 	}
+
+	@Test
+	public void whenSubListThenOk()
+			throws Exception {
+		assertThat(dataProvider.listGlobalGroupVOs(0, 1)).hasSize(1);
+		assertThat(dataProvider.listGlobalGroupVOs(0, 1).get(0).getCode()).isEqualTo(HEROES);
+	}
+
+	@Test
+	public void givenGreaterStartIndexWhenSubListThenReturnEmptyList()
+			throws Exception {
+		assertThat(dataProvider.listGlobalGroupVOs(10, 19)).hasSize(0);
+	}
+
+	@Test
+	public void givenGreaterCounterWhenSubListThenOk()
+			throws Exception {
+
+		assertThat(dataProvider.listGlobalGroupVOs(0, 20)).hasSize(3);
+	}
 }
 
 

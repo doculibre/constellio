@@ -39,6 +39,7 @@ public class Transaction {
 	private String id = UUIDV1Generator.newRandomId();
 
 	boolean skippingRequiredValuesValidation = false;
+	private boolean skippingReferenceToLogicallyDeletedValidation = false;
 
 	Map<String, Record> updatedRecordsMap = new HashMap<>();
 	List<Record> records = new ArrayList<>();
@@ -241,8 +242,17 @@ public class Transaction {
 		return skippingRequiredValuesValidation;
 	}
 
+	public boolean isSkippingReferenceToLogicallyDeletedValidation() {
+		return skippingReferenceToLogicallyDeletedValidation;
+	}
+
 	public Transaction setSkippingRequiredValuesValidation(boolean skippingRequiredValuesValidation) {
 		this.skippingRequiredValuesValidation = skippingRequiredValuesValidation;
+		return this;
+	}
+
+	public Transaction setSkippingReferenceToLogicallyDeletedValidation(boolean skippingReferenceToLogicallyDeletedValidation) {
+		this.skippingReferenceToLogicallyDeletedValidation = skippingReferenceToLogicallyDeletedValidation;
 		return this;
 	}
 
@@ -273,5 +283,4 @@ public class Transaction {
 	public Record getReferencedRecord(String id) {
 		return referencedRecords.get(id);
 	}
-
 }

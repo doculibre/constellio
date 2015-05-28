@@ -183,4 +183,25 @@ public class UserCredentialVODataProviderTest extends ConstellioTest {
 				.isEqualTo(EDOUARD);
 	}
 
+	@Test
+	public void whenSubListThenOk()
+			throws Exception {
+		assertThat(dataProvider.listUserCredentialVOs(2, 3)).hasSize(3);
+		assertThat(dataProvider.listUserCredentialVOs(2, 3).get(0).getUsername()).isEqualTo(DAKOTA);
+		assertThat(dataProvider.listUserCredentialVOs(2, 3).get(1).getUsername()).isEqualTo(EDOUARD);
+		assertThat(dataProvider.listUserCredentialVOs(2, 3).get(2).getUsername()).isEqualTo(GANDALF);
+	}
+
+	@Test
+	public void givenGreaterStartIndexWhenSubListThenReturnEmptyList()
+			throws Exception {
+		assertThat(dataProvider.listUserCredentialVOs(10, 19)).hasSize(0);
+	}
+
+	@Test
+	public void givenGreaterCounterWhenSubListThenOk()
+			throws Exception {
+
+		assertThat(dataProvider.listUserCredentialVOs(0, 20)).hasSize(5);
+	}
 }

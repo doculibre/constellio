@@ -43,6 +43,8 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.Can
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
+import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.records.ContentImport;
@@ -81,13 +83,15 @@ public class RecordsImportValidator {
 	MetadataSchemaTypes types;
 	MetadataSchemaType type;
 	ResolverCache resolverCache;
+	ModelLayerCollectionEventsListeners extensions;
 	ValidationErrors errors = new ValidationErrors();
 
 	public RecordsImportValidator(String schemaType,
 			ImportDataProvider importDataProvider, MetadataSchemaTypes types,
-			ResolverCache resolverCache) {
+			ResolverCache resolverCache, ModelLayerCollectionEventsListeners extensions) {
 		this.schemaType = schemaType;
 		this.importDataProvider = importDataProvider;
+		this.extensions = extensions;
 		this.types = types;
 		this.type = types.getSchemaType(schemaType);
 		this.resolverCache = resolverCache;
@@ -98,6 +102,7 @@ public class RecordsImportValidator {
 		Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator(schemaType);
 
 		validate(importDataIterator);
+
 		if (!errors.getValidationErrors().isEmpty()) {
 			throw new ValidationRuntimeException(errors);
 		}
@@ -133,6 +138,13 @@ public class RecordsImportValidator {
 			} catch (MetadataSchemasRuntimeException.NoSuchSchema | CannotGetMetadatasOfAnotherSchemaType e) {
 				error(INVALID_SCHEMA_CODE, importData, asMap("schema", importData.getSchema()));
 			}
+
+			ImportDataErrors importDataErrors = new ImportDataErrors(schemaType, errors, importData);
+			for (RecordImportExtension behavior : extensions.recordImportBehaviors.getBehaviors()) {
+				if (behavior.getDecoratedSchemaType().equals(schemaType)) {
+					behavior.prevalidate(importDataErrors, importData);
+				}
+			}
 		}
 
 		validateAllReferencesResolved();
@@ -153,13 +165,13 @@ public class RecordsImportValidator {
 			error(LEGACY_ID_NOT_UNIQUE, asMap("legacyId", importData.getLegacyId()));
 		}
 
-		for (String uniqueMetadata : uniqueMetadatas) {
-			String uniqueValue = (String) importData.getFields().get(uniqueMetadata);
-
-			if (!resolverCache.isNewUniqueValue(type.getCode(), uniqueMetadata, uniqueValue)) {
-				error(VALUE_NOT_UNIQUE, asMap("value", uniqueValue));
-			}
-		}
+		//		for (String uniqueMetadata : uniqueMetadatas) {
+		//			String uniqueValue = (String) importData.getFields().get(uniqueMetadata);
+		//
+		//			if (!resolverCache.isNewUniqueValue(type.getCode(), uniqueMetadata, uniqueValue)) {
+		//				error(VALUE_NOT_UNIQUE, asMap("value", uniqueValue));
+		//			}
+		//		}
 	}
 
 	private void markUniqueValuesAsInFile(List<String> uniqueMetadatas, ImportData importData) {
@@ -219,15 +231,12 @@ public class RecordsImportValidator {
 
 	private String validateMetadata(Metadata metadata) {
 		if (metadata.isSystemReserved()) {
-			return SYSTEM_RESERVED_METADATA_CODE;
-
+			//return SYSTEM_RESERVED_METADATA_CODE;
 		} else if (!metadata.isEnabled()) {
-			return DISABLED_METADATA_CODE;
-
+			//return DISABLED_METADATA_CODE;
 		} else if (metadata.getDataEntry().getType() != DataEntryType.MANUAL) {
 			return AUTOMATIC_METADATA_CODE;
 		}
-
 		return null;
 	}
 
@@ -292,6 +301,12 @@ public class RecordsImportValidator {
 		} else if (type == MetadataValueType.CONTENT) {
 
 			if (!ContentImport.class.equals(value.getClass())) {
+				return INVALID_CONTENT_VALUE;
+			}
+
+		} else if (type == MetadataValueType.STRUCTURE) {
+
+			if (!Map.class.isAssignableFrom(value.getClass())) {
 				return INVALID_CONTENT_VALUE;
 			}
 

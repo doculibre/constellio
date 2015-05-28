@@ -117,6 +117,17 @@ public class UserCredentialVODataProvider implements DataProvider {
 		return filteredUserCredentialVOs;
 	}
 
+	public List<UserCredentialVO> listUserCredentialVOs(int startIndex, int count) {
+		int toIndex = startIndex + count;
+		List subList = new ArrayList();
+		if (startIndex > filteredUserCredentialVOs.size()) {
+			return subList;
+		} else if (toIndex > filteredUserCredentialVOs.size()) {
+			toIndex = filteredUserCredentialVOs.size();
+		}
+		return filteredUserCredentialVOs.subList(startIndex, toIndex);
+	}
+
 	public List<UserCredentialVO> listActifsUserCredentialVOs() {
 		List<UserCredentialVO> allUserCredentialVOs = new ArrayList<>();
 		List<UserCredential> userCredentials = userServices.getActifUserCredentials();

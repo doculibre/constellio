@@ -76,7 +76,7 @@ public class SchemaVOLazyContainer extends LazyQueryContainer {
 				@Override
 				public List<Item> loadItems(int startIndex, int count) {
 					List<Item> items = new ArrayList<>();
-					List<MetadataSchemaVO> schemaVOs = dataProvider.listSchemaVO();
+					List<MetadataSchemaVO> schemaVOs = dataProvider.listSchemaVO(startIndex, count);
 					for (MetadataSchemaVO schemaVO : schemaVOs) {
 						Item item = new BeanItem<>(schemaVO);
 						item.addItemProperty("caption", new ObjectProperty<>(schemaVO.getLabel()));

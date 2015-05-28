@@ -31,7 +31,6 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 
@@ -91,7 +90,6 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	@InDevelopmentTest
 	public void givenPermissionsModifiedAndRevertedThenDisplayCorrectPermissions() {
 		for (String permission : permissions) {
 			page.getPermission("L", permission).toggle();
@@ -102,7 +100,6 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	@InDevelopmentTest
 	public void givenPermissionsModifiedAndSavedThenDisplayCorrectPermissions() {
 		for (String permission : permissions) {
 			page.getPermission("L", permission).toggle();
@@ -138,7 +135,7 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	}
 
 	private void verifyInvertedPermissionState() {
-		for (String permission : permissions) {			
+		for (String permission : permissions) {
 			assertThat(page.getPermission("L", permission).isChecked()).isTrue();
 			assertThat(page.getPermission("G", permission).isChecked()).isFalse();
 		}

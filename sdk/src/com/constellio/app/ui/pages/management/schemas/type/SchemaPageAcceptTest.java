@@ -642,7 +642,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		addEditSchemaMetadataPage.getCodeElement().setValue("referenceRadioMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze reference Radio Metadata");
 		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Référence");
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Button radio");
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Bouton radio");
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getReferenceElement().typeAndSelectFirst("Unité administrative");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();

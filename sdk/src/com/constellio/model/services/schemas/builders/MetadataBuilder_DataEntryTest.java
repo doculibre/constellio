@@ -20,6 +20,7 @@ package com.constellio.model.services.schemas.builders;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
@@ -94,6 +95,7 @@ public class MetadataBuilder_DataEntryTest extends MetadataBuilderTest {
 	}
 
 	@Test(expected = MetadataBuilderRuntimeException.InvalidAttribute.class)
+	@Ignore
 	public void givenDataEntryOfMetadataWithoutInheritanceDefinedWhenDefinedAnotherTimeThenException() {
 		metadataWithoutInheritanceBuilder.defineDataEntry().asManual().defineDataEntry();
 	}

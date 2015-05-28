@@ -20,7 +20,6 @@ package com.constellio.model.entities.search.logical.criterion;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,13 +28,11 @@ import org.mockito.Mock;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.search.query.logical.criteria.CriteriaUtils;
 import com.constellio.model.services.search.query.logical.criteria.IsNotEqualCriterion;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 
 public class IsNotEqualCriterionTest extends ConstellioTest {
-
 	@Mock Metadata textMetadata;
 	@Mock Metadata referenceMetadata;
 	@Mock Metadata numberMetadata;
@@ -78,7 +75,7 @@ public class IsNotEqualCriterionTest extends ConstellioTest {
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(numberValue12);
 
 		assertThat(criterion.getSolrQuery(numberMetadata)).isEqualTo(
-				"(*:* -(numberMetadata:\"12\" OR numberMetadata:\"" + Integer.MIN_VALUE + "\"))");
+				"(*:* -(numberMetadata:\"12\"))");
 	}
 
 	@Test
@@ -86,7 +83,7 @@ public class IsNotEqualCriterionTest extends ConstellioTest {
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(textValue);
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"(*:* -(textMetadata:\"text value\" OR textMetadata:\"__NULL__\"))");
+				"(*:* -(textMetadata:\"text value\"))");
 	}
 
 	@Test
@@ -96,13 +93,11 @@ public class IsNotEqualCriterionTest extends ConstellioTest {
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(record);
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"(*:* -(textMetadata:\"zeId\" OR textMetadata:\"__NULL__\"))");
+				"(*:* -(textMetadata:\"zeId\"))");
 	}
 
 	@Test
 	public void givenNullWhenGettingSolrQueryThenQueryIsCorrect() {
-		Record record = new TestRecord("code", "zeCollection", "zeId");
-
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(null);
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
@@ -114,24 +109,20 @@ public class IsNotEqualCriterionTest extends ConstellioTest {
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(booleanTrueValue);
 
 		assertThat(criterion.getSolrQuery(booleanMetadata)).isEqualTo(
-				"(*:* -(booleanMetadata:\"__TRUE__\" OR booleanMetadata:\"__NULL__\"))");
+				"(*:* -(booleanMetadata:\"__TRUE__\"))");
 
 		criterion = new IsNotEqualCriterion(booleanFalseValue);
 
 		assertThat(criterion.getSolrQuery(booleanMetadata)).isEqualTo(
-				"(*:* -(booleanMetadata:\"__FALSE__\" OR booleanMetadata:\"__NULL__\"))");
+				"(*:* -(booleanMetadata:\"__FALSE__\"))");
 	}
 
 	@Test
 	public void givenDateWhenGettingSolrQueryThenQueryIsCorrect() {
-
-		int offsetMillis = -1 * (DateTimeZone.getDefault().getOffset(date.toDate().getTime()));
-
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(date);
 
 		assertThat(criterion.getSolrQuery(dateMetadata)).isEqualTo(
-				"(*:* -(dateTimeMetadata:\"" + date + "Z\" OR dateTimeMetadata:\"" + CriteriaUtils
-						.getNullDateValue() + "\"))");
+				"(*:* -(dateTimeMetadata:\"" + date + "Z\"))");
 	}
 
 	@Test
@@ -183,24 +174,22 @@ public class IsNotEqualCriterionTest extends ConstellioTest {
 
 	@Test
 	public void givenValueContainsSpacesWhenGettingSolrQueryThenSpacesEscaped() {
-
 		String value = "value with spaces";
 
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(value);
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"(*:* -(textMetadata:\"value with spaces\" OR textMetadata:\"__NULL__\"))");
+				"(*:* -(textMetadata:\"value with spaces\"))");
 	}
 
 	@Test
 	public void givenValueContainsAsterisksWhenGettingSolrQueryThenAsterisksEscaped() {
-
 		String value = "value*with*asterisks*";
 
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(value);
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"(*:* -(textMetadata:\"value*with*asterisks*\" OR textMetadata:\"__NULL__\"))");
+				"(*:* -(textMetadata:\"value*with*asterisks*\"))");
 	}
 
 	@Test
@@ -211,6 +200,6 @@ public class IsNotEqualCriterionTest extends ConstellioTest {
 		IsNotEqualCriterion criterion = new IsNotEqualCriterion(value);
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"(*:* -(textMetadata:\"value?with?wildcards?\" OR textMetadata:\"__NULL__\"))");
+				"(*:* -(textMetadata:\"value?with?wildcards?\"))");
 	}
 }

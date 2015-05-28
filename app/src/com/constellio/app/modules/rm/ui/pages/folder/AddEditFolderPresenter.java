@@ -17,7 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -46,11 +48,16 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.services.search.StatusFilter;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 	private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
@@ -59,8 +66,21 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private String currentSchemaCode;
 	private FolderVO folderVO;
 
+	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+
 	public AddEditFolderPresenter(AddEditFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
+		initTransientObjects();
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		initTransientObjects();
+	}
+
+	private void initTransientObjects() {
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	@Override
@@ -88,6 +108,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		folderVO = voBuilder.build(record, VIEW_MODE.FORM);
 		folderHadAParent = folderVO.getParentFolder() != null;
 		this.currentSchemaCode = folderVO.getSchema().getCode();
+		setSchemaCode(currentSchemaCode);
 		view.setRecord(folderVO);
 	}
 
@@ -164,7 +185,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		view.navigateTo().displayFolder(record.getId());
 	}
 
-	public void customFieldValueChanged(CustomFolderField customField) {
+	public void customFieldValueChanged(CustomFolderField<?> customField) {
 		adjustCustomFields();
 	}
 
@@ -177,33 +198,70 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	boolean isReloadRequiredAfterFolderTypeChange() {
 		boolean reload;
-		String folderTypeRecordId = folderVO.getType();
-		if (StringUtils.isNotBlank(folderTypeRecordId)) {
-			String schemaCodeForFolderTypeRecordId = getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
-			if (schemaCodeForFolderTypeRecordId != null) {
-				reload = !currentSchemaCode.equals(schemaCodeForFolderTypeRecordId);
+		if (addView) {
+			String currentSchemaCode = getSchemaCode();
+			String folderTypeRecordId = (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
+			if (StringUtils.isNotBlank(folderTypeRecordId)) {
+				String schemaCodeForFolderTypeRecordId = rmSchemasRecordsServices.getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
+				if (schemaCodeForFolderTypeRecordId != null) {
+					reload = !currentSchemaCode.equals(schemaCodeForFolderTypeRecordId);
+				} else if (!currentSchemaCode.equals(Folder.DEFAULT_SCHEMA)) {	
+					reload = true;
+				} else {
+					reload = false;
+				}
 			} else {
-				reload = false;
+				reload = !currentSchemaCode.equals(Folder.DEFAULT_SCHEMA);
 			}
 		} else {
 			reload = false;
 		}
-		// FIXME Implement form reload mechanism
-		reload = false;
 		return reload;
 	}
 
-	// TODO Implement
 	void reloadFormAfterFolderTypeChange() {
-		// currentSchemaCode = getSchemaCodeForFolderTypeRecordId(folderVO.getType());
-		// view.getForm().reload();
+		String folderTypeId = (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
+		
+		Folder folder;
+		if (folderTypeId != null) {
+			folder = rmSchemasRecordsServices.newFolderWithType(folderTypeId);
+		} else {
+			folder = rmSchemasRecordsServices.newFolder();
+		}
+		
+		MetadataSchema folderSchema = folder.getSchema();
+		String currentSchemaCode = folderSchema.getCode();
+		setSchemaCode(currentSchemaCode);
+		
+		List<String> ignoredMetadataCodes = Arrays.asList(Folder.TYPE);
+		// Populate new record with previous record's metadata values
+		
+		view.getForm().commit();
+		for (MetadataVO metadataVO : folderVO.getMetadatas()) {
+			String metadataCode = metadataVO.getCode();
+			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
+			if (!ignoredMetadataCodes.contains(metadataCodeWithoutPrefix)) {
+				try {
+					Metadata matchingMetadata = folderSchema.getMetadata(metadataCodeWithoutPrefix);
+					Object metadataValue = folderVO.get(metadataVO);
+					folder.getWrappedRecord().set(matchingMetadata, metadataValue);
+				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+					// Ignore
+				}
+			}
+		}
+
+		folderVO = voBuilder.build(folder.getWrappedRecord(), VIEW_MODE.FORM);
+		
+		view.setRecord(folderVO);
+	 	view.getForm().reload();
 	}
 
 	private boolean isFieldRequired(String metadataCode) {
 		return folderVO.getMetadata(metadataCode).isRequired();
 	}
 
-	private void setFieldVisible(CustomFolderField field, boolean visible, String metadataCode) {
+	private void setFieldVisible(CustomFolderField<?> field, boolean visible, String metadataCode) {
 		if (visible) {
 			field.setRequired(isFieldRequired(metadataCode));
 		} else {
@@ -312,10 +370,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	List<String> getCurrentUserFilingSpaces() {
-		return decommissioningService().getUserFilingSpaces(getCurrentUser());
+		return decommissioningService().getUserFilingSpaces(getCurrentUser(), StatusFilter.ACTIVES);
 	}
 
-	@SuppressWarnings("unchecked")
 	void adjustFilingSpaceField() {
 		FolderFilingSpaceField filingSpaceField = (FolderFilingSpaceField) view.getForm().getCustomField(
 				Folder.FILING_SPACE_ENTERED);
@@ -392,7 +449,6 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			} else {
 				setFieldVisible(categoryField, true, Folder.CATEGORY_ENTERED);
 			}
-
 		}
 	}
 
@@ -444,7 +500,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			if (parentFolderId == null) {
 				// Discover what options are available
 				List<String> availableOptions = decommissioningService().getRetentionRulesForCategory(
-						categoryField.getFieldValue(), uniformSubdivisionField.getFieldValue());
+						categoryField.getFieldValue(), uniformSubdivisionField.getFieldValue(), StatusFilter.ACTIVES);
 
 				// Set the options if they changed
 				if (!retentionRuleField.getOptions().equals(availableOptions)) {

@@ -25,8 +25,10 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderFie
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
@@ -70,7 +72,7 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 	}
 
 	private FolderFormImpl newForm() {
-		return new FolderFormImpl(recordVO) {
+		recordForm = new FolderFormImpl(recordVO) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
@@ -86,24 +88,35 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 			public void reload() {
 				replaceComponent(this, newForm());
 			}
-		};
-	}
 
-	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
-		recordForm = newForm();
+			@Override
+			public void commit() {
+				for (Field<?> field : fieldGroup.getFields()) {
+					try {
+						field.commit();
+					} catch (SourceException | InvalidValueException e) {
+					}
+				}
+			}
+		};
 
 		for (final Field<?> field : recordForm.getFields()) {
 			if (field instanceof CustomFolderField) {
 				field.addValueChangeListener(new ValueChangeListener() {
 					@Override
 					public void valueChange(ValueChangeEvent event) {
-						presenter.customFieldValueChanged((CustomFolderField) field);
+						presenter.customFieldValueChanged((CustomFolderField<?>) field);
 					}
 				});
 			}
 		}
+		
 		return recordForm;
+	}
+
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
+		return newForm();
 	}
 
 	@Override

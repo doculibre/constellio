@@ -35,7 +35,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
-
 	DecommissioningService service;
 	RMSchemasRecordsServices rm;
 	RMTestRecords test = new RMTestRecords(zeCollection);
@@ -45,7 +44,6 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
 		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
 		test.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
@@ -60,22 +58,22 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(service.getAdministrativeUnitsForUser(test.getBob_userInAC()))
-				.containsOnlyOnce(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_30);
+				.hasSize(4).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_30);
 
 		assertThat(service.getAdministrativeUnitsForUser(test.getCharles_userInA()))
-				.containsOnlyOnce(test.unitId_10, test.unitId_11, test.unitId_12);
+				.hasSize(3).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12);
 
 		assertThat(service.getAdministrativeUnitsForUser(test.getDakota_managerInA_userInB()))
-				.containsOnlyOnce(test.unitId_10, test.unitId_11, test.unitId_12);
+				.hasSize(3).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12);
 
 		assertThat(service.getAdministrativeUnitsForUser(test.getEdouard_managerInB_userInC()))
-				.containsOnlyOnce(test.unitId_30, test.unitId_11, test.unitId_12);
+				.hasSize(3).containsOnly(test.unitId_30, test.unitId_11, test.unitId_12);
 
 		assertThat(service.getAdministrativeUnitsForUser(test.getGandalf_managerInABC()))
-				.containsOnlyOnce(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_30);
+				.hasSize(4).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_30);
 
 		assertThat(service.getAdministrativeUnitsForUser(test.getChuckNorris()))
-				.containsOnlyOnce(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_20, test.unitId_30);
+				.hasSize(5).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_20, test.unitId_30);
 	}
 
 	@Test
@@ -83,25 +81,25 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingA(), test.getBob_userInAC()))
-				.containsOnlyOnce(test.unitId_10);
+				.containsExactly(test.unitId_10);
 
 		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingB(), test.getBob_userInAC()))
-				.containsOnlyOnce(test.unitId_11, test.unitId_12);
+				.hasSize(2).containsOnly(test.unitId_11, test.unitId_12);
 
 		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingC(), test.getBob_userInAC()))
-				.containsOnlyOnce(test.unitId_12, test.unitId_30);
+				.hasSize(2).containsOnly(test.unitId_12, test.unitId_30);
 
 		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingA(), test.getGandalf_managerInABC()))
-				.containsOnlyOnce(test.unitId_10);
+				.containsExactly(test.unitId_10);
 
 		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingB(), test.getGandalf_managerInABC()))
-				.containsOnlyOnce(test.unitId_11, test.unitId_12);
+				.hasSize(2).containsOnly(test.unitId_11, test.unitId_12);
 
 		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingC(), test.getGandalf_managerInABC()))
-				.containsOnlyOnce(test.unitId_12, test.unitId_30);
+				.hasSize(2).containsOnly(test.unitId_12, test.unitId_30);
 
 		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingA(), test.getCharles_userInA()))
-				.containsOnlyOnce(test.unitId_10);
+				.containsExactly(test.unitId_10);
 
 	}
 
@@ -110,19 +108,19 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(service.getUserFilingSpaces(test.getBob_userInAC()))
-				.containsOnlyOnce(test.filingId_A, test.filingId_C);
+				.hasSize(2).containsOnly(test.filingId_A, test.filingId_C);
 
 		assertThat(service.getUserFilingSpaces(test.getCharles_userInA()))
-				.containsOnlyOnce(test.filingId_A);
+				.containsExactly(test.filingId_A);
 
 		assertThat(service.getUserFilingSpaces(test.getDakota_managerInA_userInB()))
-				.containsOnlyOnce(test.filingId_A, test.filingId_B);
+				.hasSize(2).containsOnly(test.filingId_A, test.filingId_B);
 
 		assertThat(service.getUserFilingSpaces(test.getEdouard_managerInB_userInC()))
-				.containsOnlyOnce(test.filingId_B, test.filingId_C);
+				.hasSize(2).containsOnly(test.filingId_B, test.filingId_C);
 
 		assertThat(service.getUserFilingSpaces(test.getGandalf_managerInABC()))
-				.containsOnlyOnce(test.filingId_A, test.filingId_B, test.filingId_C);
+				.hasSize(3).containsOnly(test.filingId_A, test.filingId_B, test.filingId_C);
 
 	}
 
@@ -268,13 +266,13 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 				.containsExactly(test.ruleId_1);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, null))
-				.containsExactly(test.ruleId_1, test.ruleId_2);
+				.hasSize(2).containsOnly(test.ruleId_1, test.ruleId_2);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X100, test.subdivId_2))
 				.containsExactly(test.ruleId_1);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, test.subdivId_2))
-				.containsExactly(test.ruleId_1, test.ruleId_2);
+				.hasSize(2).containsOnly(test.ruleId_1, test.ruleId_2);
 
 		assertThat(service.getRetentionRulesForCategory(test.categoryId_X100, test.subdivId_1))
 				.containsExactly(test.ruleId_2);

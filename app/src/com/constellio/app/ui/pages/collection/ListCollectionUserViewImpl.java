@@ -80,6 +80,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 	private Button addGroupRole;
 	private UserCredentialLookup lookupUser;
 	private GlobalGroupLookup lookupGroup;
+	private final int batchSize = 100;
 
 	public ListCollectionUserViewImpl() {
 		presenter = new ListCollectionUserPresenter(this);
@@ -171,7 +172,11 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		table.setColumnHeader("buttons", "");
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 		table.setColumnWidth("buttons", 160);
-		table.setPageLength(table.getItemIds().size());
+		int tableSize = batchSize;
+		if (tableSize > table.getItemIds().size()) {
+			tableSize = table.getItemIds().size();
+		}
+		table.setPageLength(tableSize);
 		table.addStyleName(USER_TABLE);
 
 		return table;
@@ -227,7 +232,11 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		table.setColumnHeader("name", $("ListCollectionUserView.groupNameColumn"));
 		table.setColumnWidth("", 120);
 		table.setColumnWidth("buttons", 160);
-		table.setPageLength(table.getItemIds().size());
+		int tableSize = batchSize;
+		if (tableSize > table.getItemIds().size()) {
+			tableSize = table.getItemIds().size();
+		}
+		table.setPageLength(tableSize);
 		table.addStyleName(GROUP_TABLE);
 
 		return table;
@@ -292,7 +301,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 	}
 
 	private Container buildGroupContainer(final GlobalGroupVODataProvider dataProvider) {
-		GlobalGroupVOLazyContainer globalGroupsContainer = new GlobalGroupVOLazyContainer(dataProvider);
+		GlobalGroupVOLazyContainer globalGroupsContainer = new GlobalGroupVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer container = new ButtonsContainer<>(globalGroupsContainer, "buttons");
 		container.addButton(new ContainerButton() {
 			@Override

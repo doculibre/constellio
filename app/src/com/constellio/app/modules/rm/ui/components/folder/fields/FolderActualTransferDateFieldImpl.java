@@ -25,7 +25,6 @@ import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 
 public class FolderActualTransferDateFieldImpl extends JodaDateField implements FolderActualTransferDateField {
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public LocalDate getFieldValue() {
 		return (LocalDate) getConvertedValue();

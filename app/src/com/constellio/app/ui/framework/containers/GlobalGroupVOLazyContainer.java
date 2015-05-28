@@ -36,16 +36,16 @@ import com.vaadin.data.util.filter.SimpleStringFilter;
 @SuppressWarnings("serial")
 public class GlobalGroupVOLazyContainer extends LazyQueryContainer {
 
-	public GlobalGroupVOLazyContainer(GlobalGroupVODataProvider dataProvider) {
-		super(new GlobalGroupVOLazyQueryDefinition(dataProvider), new GlobalGroupVOLazyQueryFactory(dataProvider));
+	public GlobalGroupVOLazyContainer(GlobalGroupVODataProvider dataProvider, int batchSize) {
+		super(new GlobalGroupVOLazyQueryDefinition(dataProvider, batchSize), new GlobalGroupVOLazyQueryFactory(dataProvider));
 	}
 
 	public static class GlobalGroupVOLazyQueryDefinition extends LazyQueryDefinition {
 
 		GlobalGroupVODataProvider dataProvider;
 
-		public GlobalGroupVOLazyQueryDefinition(GlobalGroupVODataProvider dataProvider) {
-			super(true, 100, null);
+		public GlobalGroupVOLazyQueryDefinition(GlobalGroupVODataProvider dataProvider, int batchSize) {
+			super(true, batchSize, null);
 			this.dataProvider = dataProvider;
 
 			super.addProperty("code", String.class, null, true, true);
@@ -83,7 +83,7 @@ public class GlobalGroupVOLazyContainer extends LazyQueryContainer {
 				@Override
 				public List<Item> loadItems(int startIndex, int count) {
 					List<Item> items = new ArrayList<>();
-					List<GlobalGroupVO> globalGroupVOs = dataProvider.listGlobalGroupVOs();
+					List<GlobalGroupVO> globalGroupVOs = dataProvider.listGlobalGroupVOs(startIndex, count);
 					for (GlobalGroupVO globalGroupVO : globalGroupVOs) {
 						Item item = new BeanItem<>(globalGroupVO);
 						items.add(item);

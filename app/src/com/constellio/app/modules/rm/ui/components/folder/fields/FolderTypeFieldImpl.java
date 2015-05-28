@@ -26,7 +26,6 @@ public class FolderTypeFieldImpl extends LookupRecordField implements FolderType
 		super(FolderType.SCHEMA_TYPE);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String getFieldValue() {
 		return (String) getConvertedValue();

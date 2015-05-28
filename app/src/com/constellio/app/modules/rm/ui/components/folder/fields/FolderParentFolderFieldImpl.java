@@ -26,7 +26,6 @@ public class FolderParentFolderFieldImpl extends LookupRecordField implements Fo
 		super(Folder.SCHEMA_TYPE);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String getFieldValue() {
 		return (String) getConvertedValue();

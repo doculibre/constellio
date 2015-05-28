@@ -74,7 +74,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.records.populators.AutocompleteFieldPopulator;
-import com.constellio.model.services.records.populators.PathsFieldPopulator;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
@@ -516,10 +515,10 @@ public class RecordServices {
 		List<String> collectionLanguages = modelFactory.getCollectionsListManager().getCollectionLanguages(collection);
 		List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		fieldsPopulators.add(new SearchFieldsPopulator(types, languageDetectionManager, contentManager, collectionLanguages));
-		fieldsPopulators.add(new PathsFieldPopulator(types));
+		fieldsPopulators.add(new SearchFieldsPopulator(
+				types, transaction.getRecordUpdateOptions().isFullRewrite(), contentManager, collectionLanguages));
+		//fieldsPopulators.add(new PathsFieldPopulator(types));
 		fieldsPopulators.add(new AutocompleteFieldPopulator());
-		//		fieldsPopulators.add(new SpellCheckFieldPopulator(types));
 		for (Record record : modifiedOrUnsavedRecords) {
 			MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 					.getSchema(record.getSchemaCode());
@@ -534,8 +533,9 @@ public class RecordServices {
 				}
 			}
 		}
-		return new TransactionDTO(transaction.getId(), transaction.getRecordUpdateOptions().getRecordsFlushing(), addedRecords,
-				modifiedRecordDTOs);
+		return new TransactionDTO(
+				transaction.getId(), transaction.getRecordUpdateOptions().getRecordsFlushing(), addedRecords, modifiedRecordDTOs)
+				.withSkippingReferenceToLogicallyDeletedValidation(transaction.isSkippingReferenceToLogicallyDeletedValidation());
 	}
 
 	public Record newRecordWithSchema(MetadataSchema schema, String id) {

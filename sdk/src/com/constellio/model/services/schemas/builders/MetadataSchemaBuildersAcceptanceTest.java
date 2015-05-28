@@ -53,11 +53,8 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 	public void whenCustomMetadataBuildThenInheritFromSameMetadataInstanceAndSameValuesThanDefaultSchema()
 			throws Exception {
 
-		MetadataSchemaTypeBuilder typeBuilder = MetadataSchemaTypeBuilder
-				.createNewSchemaType(zeCollection, "zetype", typesBuilder);
-		typeBuilder.createCustomSchema(theCustomSchemaCode);
-		typeBuilder.getDefaultSchema().create(theMetadataCode).setLabel("zeMetadata")
-				.setType(MetadataValueType.STRING);
+		MetadataSchemaTypeBuilder typeBuilder = createMetadataSchemaTypeBuilder();
+
 		assertThat(typeBuilder.getDefaultSchema().getMetadata("zeMetadata").getCode()).isEqualTo(
 				"zetype_default_zeMetadata");
 		assertThat(typeBuilder.getCustomSchema("zeCustomSchema").getMetadata("zeMetadata").getCode()).isEqualTo(
@@ -69,30 +66,62 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 
 		Metadata customMetadata = metadataSchemaType.getCustomSchema(theCustomSchemaCode).getMetadata(theMetadataCode);
 
-		assertThat(customMetadata.getInheritance()).isSameAs(defaultMetadata);
-		assertThat(defaultMetadata.getCode()).isEqualTo("zetype_default_zeMetadata");
-		assertThat(customMetadata.getCode()).isEqualTo("zetype_zeCustomSchema_zeMetadata");
+		assertSameInheritance(defaultMetadata, customMetadata);
 	}
 
 	@Test
 	public void whenCreateCustomSchemaThenInheritAllMetadata()
 			throws Exception {
 
-		MetadataSchemaTypeBuilder typeBuilder = MetadataSchemaTypeBuilder
-				.createNewSchemaType(zeCollection, "zetype", typesBuilder);
-		typeBuilder.getDefaultSchema().create(theMetadataCode).setLabel("zeMetadata")
-				.setType(MetadataValueType.STRING);
-		typeBuilder.createCustomSchema(theCustomSchemaCode);
+		MetadataSchemaTypeBuilder typeBuilder = createMetadataSchemaTypeBuilder();
 
-		assertThat(typeBuilder.getMetadata("zetype_default_zeMetadata").getCode()).isEqualTo("zetype_default_zeMetadata");
-		assertThat(typeBuilder.getMetadata("zetype_zeCustomSchema_zeMetadata").getCode()).isEqualTo(
-				"zetype_zeCustomSchema_zeMetadata");
+		assertZeMetadataCreatedAndInherited(typeBuilder);
 
 		MetadataSchemaType metadataSchemaType = typeBuilder.build(typesFactory, taxonomiesManager);
 
 		Metadata defaultMetadata = metadataSchemaType.getDefaultSchema().getMetadata(theMetadataCode);
 		Metadata customMetadata = metadataSchemaType.getCustomSchema(theCustomSchemaCode).getMetadata(theMetadataCode);
 
+		assertSameInheritance(defaultMetadata, customMetadata);
+	}
+
+	@Test
+	public void whenAddingMetadataToDefaultSchemaThenCustomInheritsNewMetadata()
+			throws Exception {
+
+		MetadataSchemaTypeBuilder typeBuilder = createMetadataSchemaTypeBuilder();
+
+		assertZeMetadataCreatedAndInherited(typeBuilder);
+
+		MetadataSchemaType metadataSchemaType = typeBuilder.build(typesFactory, taxonomiesManager);
+
+		Metadata defaultMetadata = metadataSchemaType.getDefaultSchema().getMetadata(theMetadataCode);
+		Metadata customMetadata = metadataSchemaType.getCustomSchema(theCustomSchemaCode).getMetadata(theMetadataCode);
+
+		assertSameInheritance(defaultMetadata, customMetadata);
+
+		typeBuilder.getDefaultSchema().create("newMetadata").setType(MetadataValueType.TEXT);
+		metadataSchemaType = typeBuilder.build(typesFactory, taxonomiesManager);
+
+		metadataSchemaType.getSchema(theCustomSchemaCode).hasMetadataWithCode("newMetadata");
+	}
+
+	public MetadataSchemaTypeBuilder createMetadataSchemaTypeBuilder() {
+		MetadataSchemaTypeBuilder typeBuilder = MetadataSchemaTypeBuilder
+				.createNewSchemaType(zeCollection, "zetype", typesBuilder);
+		typeBuilder.getDefaultSchema().create(theMetadataCode).setLabel("zeMetadata")
+				.setType(MetadataValueType.STRING);
+		typeBuilder.createCustomSchema(theCustomSchemaCode);
+		return typeBuilder;
+	}
+
+	public void assertZeMetadataCreatedAndInherited(MetadataSchemaTypeBuilder typeBuilder) {
+		assertThat(typeBuilder.getMetadata("zetype_default_zeMetadata").getCode()).isEqualTo("zetype_default_zeMetadata");
+		assertThat(typeBuilder.getMetadata("zetype_zeCustomSchema_zeMetadata").getCode()).isEqualTo(
+				"zetype_zeCustomSchema_zeMetadata");
+	}
+
+	public void assertSameInheritance(Metadata defaultMetadata, Metadata customMetadata) {
 		assertThat(customMetadata.getInheritance()).isSameAs(defaultMetadata);
 		assertThat(defaultMetadata.getCode()).isEqualTo("zetype_default_zeMetadata");
 		assertThat(customMetadata.getCode()).isEqualTo("zetype_zeCustomSchema_zeMetadata");

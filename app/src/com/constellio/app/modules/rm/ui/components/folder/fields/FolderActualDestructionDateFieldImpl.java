@@ -25,7 +25,6 @@ import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 
 public class FolderActualDestructionDateFieldImpl extends JodaDateField implements FolderActualDestructionDateField {
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public LocalDate getFieldValue() {
 		return (LocalDate) getConvertedValue();

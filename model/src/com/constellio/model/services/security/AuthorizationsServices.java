@@ -262,7 +262,7 @@ public class AuthorizationsServices {
 		String oldAuthCode = authorization.getId();
 		List<Record> recordsWithAuth = getRecordsWithAuth(authorization.getCollection(), oldAuthCode);
 		for (Record record : recordsWithAuth) {
-			removeAuthorizationOnRecord(oldAuthCode, record);
+			removeAuthorizationOnRecord(oldAuthCode, record, false);
 			addAuthorizationToRecord(newCode, record);
 		}
 		manager.remove(authorization);
@@ -334,12 +334,12 @@ public class AuthorizationsServices {
 		record.set(Schemas.AUTHORIZATIONS, recordAuths);
 	}
 
-	void removeAuthorizationOnRecord(String authorizationId, Record record) {
+	void removeAuthorizationOnRecord(String authorizationId, Record record, boolean reattachIfNeeded) {
 		List<Object> recordAuths = new ArrayList<>();
 		recordAuths.addAll(record.getList(Schemas.AUTHORIZATIONS));
 		recordAuths.remove(authorizationId);
 		record.set(Schemas.AUTHORIZATIONS, recordAuths);
-		if (recordAuths.isEmpty() && Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
+		if (reattachIfNeeded && recordAuths.isEmpty() && Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
 			record.set(Schemas.IS_DETACHED_AUTHORIZATIONS, false);
 		}
 	}
@@ -359,13 +359,17 @@ public class AuthorizationsServices {
 	}
 
 	public void delete(AuthorizationDetails authorization, User user) {
+		delete(authorization, user, true);
+	}
+
+	public void delete(AuthorizationDetails authorization, User user, boolean reattachIfNeeded) {
 		List<String> authId = asList(authorization.getId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(authorization.getCollection())
 				.where(Schemas.AUTHORIZATIONS).isContaining(authId).orWhere(Schemas.REMOVED_AUTHORIZATIONS).isContaining(authId));
 		List<Record> records = searchServices.search(query);
 		Authorization auth = getAuthorization(authorization.getCollection(), authorization.getId());
 		for (Record record : records) {
-			removeAuthorizationOnRecord(authorization.getId(), record);
+			removeAuthorizationOnRecord(authorization.getId(), record, reattachIfNeeded);
 			removeRemovedAuthorizationOnRecord(authorization.getId(), record);
 		}
 		manager.remove(authorization);
@@ -390,7 +394,7 @@ public class AuthorizationsServices {
 			CustomizedAuthorizationsBehavior behavior) {
 		String authId = authorization.getDetail().getId();
 		if (record.getList(Schemas.AUTHORIZATIONS).contains(authId)) {
-			removeAuthorizationOnRecord(authId, record);
+			removeAuthorizationOnRecord(authId, record, true);
 		}
 		List<Object> inheritedAuths = record.getList(Schemas.INHERITED_AUTHORIZATIONS);
 		if (inheritedAuths.contains(authId)) {
@@ -423,7 +427,7 @@ public class AuthorizationsServices {
 			throw new InvalidPrincipalsAndOrTargetRecordsIds();
 		}
 		// We pass null instead of user to avoid logging add and delete events on modification
-		delete(authorization.getDetail(), null);
+		delete(authorization.getDetail(), null, false);
 		add(authorization, behavior, null);
 
 		if (user != null) {

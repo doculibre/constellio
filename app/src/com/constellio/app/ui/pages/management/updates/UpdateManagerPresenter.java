@@ -53,7 +53,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		String changelog;
 		try {
 			changelog = appLayerFactory.newApplicationService().getChangelogFromServer();
-			changelog = changelog.split("<version/>")[1];
+			changelog = changelog.split("<version>")[1];
 		} catch (CannotConnectToServer cc) {
 			changelog = null;
 		}
@@ -64,7 +64,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public String getChangelogVersion() {
 		try {
 			String changelog = appLayerFactory.newApplicationService().getChangelogFromServer();
-			return changelog.split("<version/>")[0];
+			return changelog.split("<version>")[0];
 		} catch (CannotConnectToServer cc) {
 			view.showError($("UpdateManagerViewImpl.error.connection"));
 			return "0";
@@ -94,6 +94,20 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		return appLayerFactory.newApplicationService().getWarVersion();
 	}
 
+	/*
+	public String getBuildVersion() {
+		String version;
+		File data = appLayerFactory.getModelLayerFactory().getFoldersLocator().getBuildDataFile();
+		FileService fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
+		try {
+			version = fileService.readFileToString(data);
+		} catch (IOException ioe) {
+			version = $("UpdateManagerViewImpl.error.buildDate");
+		}
+		return version;
+	}
+	*/
+
 	public void uploadSucceeded(ProgressInfo progressInfo) {
 		try {
 			appLayerFactory.newApplicationService().update(progressInfo);
@@ -103,7 +117,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			view.showError($("UpdateManagerViewImpl.error.upload"));
 		}
 	}
-	
+
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();

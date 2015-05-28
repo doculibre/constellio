@@ -402,8 +402,7 @@ public class MetadataList implements List<Metadata> {
 	public MetadataList onlyUniques() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
-			//TODO Francis : some code metadatas are not unique
-			if (metadata.isUniqueValue() || metadata.getLocalCode().equals("code")) {
+			if (metadata.isUniqueValue()) {
 				filteredMetadatasList.add(metadata);
 			}
 		}

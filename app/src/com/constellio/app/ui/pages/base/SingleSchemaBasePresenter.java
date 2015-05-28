@@ -20,13 +20,15 @@ package com.constellio.app.ui.pages.base;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 
 public abstract class SingleSchemaBasePresenter<T extends BaseView> extends BasePresenter<T> {
 
@@ -85,13 +87,17 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	protected final void delete(Record record, String reason, boolean physically) {
 		try {
 			schemaPresenterUtils.delete(record, reason, physically);
-		} catch (RecordServicesRuntimeException exception) {
+		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
 			view.showErrorMessage(MessageUtils.toMessage(exception));
 		}
 	}
 
 	protected Record toRecord(RecordVO recordVO) {
 		return schemaPresenterUtils.toRecord(recordVO);
+	}
+	
+	protected Content toContent(ContentVersionVO contentVersionVO) {
+		return schemaPresenterUtils.toContent(contentVersionVO);
 	}
 
 	protected MetadataSchema schema() {

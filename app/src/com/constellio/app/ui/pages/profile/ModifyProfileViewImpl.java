@@ -23,6 +23,7 @@ import java.io.InputStream;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -94,6 +95,9 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
 	@PropertyId("startTab")
 	private EnumWithSmallCodeOptionGroup startTabField;
+
+	@PropertyId("defaultTabInFolderDisplay")
+	private EnumWithSmallCodeOptionGroup defaultTabInFolderDisplay;
 
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
@@ -262,6 +266,16 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		startTabField.setItemCaption(StartTab.RECENT_DOCUMENTS, $("ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
 		startTabField.setItemCaption(StartTab.TAXONOMIES, $("ModifyPofilView." + StartTab.TAXONOMIES));
 
+		defaultTabInFolderDisplay = new EnumWithSmallCodeOptionGroup(DefaultTabInFolderDisplay.class);
+		defaultTabInFolderDisplay.setCaption($("ModifyPofilView.defaultTabInFolderDisplay"));
+		defaultTabInFolderDisplay.setId("defaultTabInFolderDisplay");
+		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.SUB_FOLDERS,
+				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.SUB_FOLDERS));
+		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.DOCUMENTS,
+				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.DOCUMENTS));
+		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.METADATA,
+				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
+
 		taxonomyField = new ListOptionGroup($("ModifyPofilView.defaultTaxonomy"));
 		taxonomyField.addStyleName("defaultTaxonomy");
 		taxonomyField.setId("defaultTaxonomy");
@@ -273,7 +287,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		}
 
 		form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField,
-				phoneField, passwordField, confirmPasswordField, oldPasswordField, startTabField, taxonomyField) {
+				phoneField, passwordField, confirmPasswordField, oldPasswordField, startTabField, defaultTabInFolderDisplay,
+				taxonomyField) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {

@@ -174,7 +174,7 @@ public class SearchServices {
 	private ModifiableSolrParams addSolrModifiableParams(String freeTextQuery, LogicalSearchQuery query) {
 
 		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.add("q.op", "AND");
+		//params.add("q.op", "AND");
 
 		for (String filerQuery : query.getFilterQueries()) {
 			params.add("fq", filerQuery);
@@ -188,6 +188,7 @@ public class SearchServices {
 					+ Schemas.ENGLISH_SEARCH_FIELD.getLocalCode() + "_" + Schemas.ENGLISH_SEARCH_FIELD.getDataStoreType();
 			params.add("qf", qf);
 			params.add("defType", "edismax");
+			params.add("mm", "60%");
 		}
 		params.add("q", StringUtils.defaultString(freeTextQuery, "*:*"));
 		params.add("rows", "" + query.getNumberOfRows());

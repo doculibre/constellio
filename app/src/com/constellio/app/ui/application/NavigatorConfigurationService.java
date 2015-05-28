@@ -36,7 +36,8 @@ import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.RecordsManagementViewImpl;
-import com.constellio.app.modules.rm.ui.pages.imports.ImportFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
 import com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
@@ -166,6 +167,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String UPDATE_MANAGER = "updateManager";
 	public static final String LDAP_CONFIG_MANAGEMENT = "ldapConfigManagement";
 	public static final String IMPORT_FILE = "importFile";
+	public static final String IMPORT_USERS = "importUsers";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -262,6 +264,7 @@ public class NavigatorConfigurationService implements Serializable {
 
 		viewProviders.add(new ClassBasedViewProvider(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_FILE, ImportFileViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(IMPORT_USERS, ImportUsersFileViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_MANAGEMENT, CollectionManagementViewImpl.class));

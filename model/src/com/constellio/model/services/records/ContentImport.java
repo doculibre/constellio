@@ -17,29 +17,30 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ContentImport {
 
-	String url;
-
-	String fileName;
-
-	boolean major;
+	private List<ContentImportVersion> versions = new ArrayList<>();
 
 	public ContentImport(String url, String fileName, boolean major) {
-		this.url = url;
-		this.fileName = fileName;
-		this.major = major;
+		versions.add(new ContentImportVersion(url, fileName, major));
 	}
 
 	public String getUrl() {
-		return url;
+		return versions.get(0).getUrl();
 	}
 
 	public String getFileName() {
-		return fileName;
+		return versions.get(0).getFileName();
 	}
 
 	public boolean isMajor() {
-		return major;
+		return versions.get(0).isMajor();
+	}
+
+	public List<ContentImportVersion> getVersions() {
+		return versions;
 	}
 }

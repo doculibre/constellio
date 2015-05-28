@@ -47,22 +47,26 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
+import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.ContentImport;
+import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.bulkImport.RecordsImportServicesRuntimeException.RecordsImportServicesRuntimeException_CyclicDependency;
 import com.constellio.model.services.records.bulkImport.data.ImportData;
 import com.constellio.model.services.records.bulkImport.data.ImportDataProvider;
+import com.constellio.model.services.records.bulkImport.data.ImportServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
-public class RecordsImportServices {
-
+public class RecordsImportServices implements ImportServices {
 	public static final String INVALID_SCHEMA_TYPE_CODE = "invalidSchemaTypeCode";
 	public static final String LEGACY_ID_LOCAL_CODE = LEGACY_ID.getLocalCode();
 
@@ -96,40 +100,45 @@ public class RecordsImportServices {
 	}
 
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
+			final BulkImportProgressionListener bulkImportProgressionListener, final User user) {
+		return bulkImport(importDataProvider, bulkImportProgressionListener, user, new ArrayList<String>());
+	}
+
+	@Override
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
 			final BulkImportProgressionListener bulkImportProgressionListener,
-			final User user)
+			final User user, List<String> collections)
 			throws RecordsImportServicesRuntimeException {
 
+		String collection = user.getCollection();
 		importDataProvider.initialize();
 		try {
-
-			MetadataSchemaTypes types = schemasManager.getSchemaTypes(user.getCollection());
+			ModelLayerCollectionEventsListeners extensions = modelLayerFactory.getExtensions().getCollectionListeners(collection);
+			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 			ResolverCache resolverCache = new ResolverCache(modelLayerFactory.newSearchServices(), types);
-			validate(importDataProvider, types, resolverCache);
-			return run(importDataProvider, bulkImportProgressionListener, user, types, resolverCache);
-
+			validate(importDataProvider, types, resolverCache, extensions);
+			return run(importDataProvider, bulkImportProgressionListener, user, types, resolverCache, extensions);
 		} finally {
 			importDataProvider.close();
 		}
-
 	}
 
-	void validate(ImportDataProvider importDataProvider, MetadataSchemaTypes types, ResolverCache resolverCache) {
+	void validate(ImportDataProvider importDataProvider, MetadataSchemaTypes types, ResolverCache resolverCache,
+			ModelLayerCollectionEventsListeners extensions) {
 		List<String> importedSchemaTypes = getImportedSchemaTypes(types, importDataProvider);
 
 		for (String schemaType : importedSchemaTypes) {
-			new RecordsImportValidator(schemaType, importDataProvider, types, resolverCache).validate();
+			new RecordsImportValidator(schemaType, importDataProvider, types, resolverCache, extensions).validate();
 		}
 	}
 
 	private BulkImportResults run(ImportDataProvider importDataProvider,
 			BulkImportProgressionListener bulkImportProgressionListener,
-			User user, MetadataSchemaTypes types, ResolverCache resolverCache) {
+			User user, MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionEventsListeners extensions) {
 
 		BulkImportResults importResults = new BulkImportResults();
 		List<String> importedSchemaTypes = getImportedSchemaTypes(types, importDataProvider);
 		for (String schemaType : importedSchemaTypes) {
-
 			List<String> uniqueMetadatas = types.getSchemaType(schemaType).getAllMetadatas()
 					.onlyWithType(STRING).onlyUniques().toLocalCodesList();
 			int previouslySkipped = 0;
@@ -139,7 +148,7 @@ public class RecordsImportServices {
 
 				Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
-						bulkImportProgressionListener, user);
+						bulkImportProgressionListener, user, types, extensions);
 				if (skipped > 0 && skipped == previouslySkipped) {
 					List<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
 					throw new RecordsImportServicesRuntimeException_CyclicDependency(schemaType, cyclicDependentIds);
@@ -148,7 +157,6 @@ public class RecordsImportServices {
 					typeImportFinished = true;
 				}
 				previouslySkipped = skipped;
-
 			}
 		}
 		return importResults;
@@ -156,18 +164,18 @@ public class RecordsImportServices {
 
 	int bulkImport(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			Iterator<ImportData> importDataIterator, String schemaType,
-			BulkImportProgressionListener bulkImportProgressionListener, User user) {
+			BulkImportProgressionListener bulkImportProgressionListener, User user, MetadataSchemaTypes types,
+			ModelLayerCollectionEventsListeners extensions) {
 
 		int skipped = 0;
-		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, 100);
+		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
 
 		while (importDataBatches.hasNext()) {
-
 			try {
-
 				List<ImportData> batch = importDataBatches.next();
-				Transaction transaction = new Transaction();
-				skipped += importBatch(importResults, uniqueMetadatas, resolverCache, schemaType, user, batch, transaction);
+				Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
+				skipped += importBatch(importResults, uniqueMetadatas, resolverCache, schemaType, user, batch, transaction,
+						types, extensions);
 				recordServices.execute(transaction);
 			} catch (RecordServicesException e) {
 				while (importDataBatches.hasNext()) {
@@ -181,14 +189,28 @@ public class RecordsImportServices {
 	}
 
 	private int importBatch(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
-			String schemaType, User user, List<ImportData> batch, Transaction transaction) {
+			String schemaType, User user, List<ImportData> batch, Transaction transaction, MetadataSchemaTypes types,
+			ModelLayerCollectionEventsListeners extensions) {
 		int skipped = 0;
 		for (ImportData toImport : batch) {
+
+			ValidationErrors errors = new ValidationErrors();
+			ImportDataErrors importDataErrors = new ImportDataErrors(schemaType, errors, toImport);
+			for (RecordImportExtension behavior : extensions.recordImportBehaviors.getBehaviors()) {
+				if (behavior.getDecoratedSchemaType().equals(schemaType)) {
+					behavior.validate(importDataErrors, toImport);
+				}
+			}
+
+			if (!errors.getValidationErrors().isEmpty()) {
+				throw new ValidationRuntimeException(errors);
+			}
 
 			String legacyId = toImport.getLegacyId();
 			if (resolverCache.getNotYetImportedLegacyIds(schemaType).contains(legacyId)) {
 				try {
-					Record record = buildRecord(importResults, user, resolverCache, user.getCollection(), schemaType, toImport);
+					Record record = buildRecord(importResults, user, resolverCache, user.getCollection(), schemaType, toImport,
+							types, extensions);
 					transaction.add(record);
 					resolverCache.mapIds(schemaType, LEGACY_ID_LOCAL_CODE, legacyId, record.getId());
 					for (String uniqueMetadata : uniqueMetadatas) {
@@ -206,7 +228,7 @@ public class RecordsImportServices {
 	}
 
 	Record buildRecord(BulkImportResults importResults, User user, ResolverCache resolverCache, String collection,
-			String schemaType, ImportData toImport)
+			String schemaType, ImportData toImport, MetadataSchemaTypes types, ModelLayerCollectionEventsListeners extensions)
 			throws SkippedRecordException {
 		MetadataSchema schema = getMetadataSchema(collection, schemaType + "_" + toImport.getSchema());
 
@@ -220,9 +242,17 @@ public class RecordsImportServices {
 		record.set(LEGACY_ID, legacyId);
 		for (Entry<String, Object> field : toImport.getFields().entrySet()) {
 			Metadata metadata = schema.getMetadata(field.getKey());
-			Object value = field.getValue();
-			Object convertedValue = value == null ? null : convertValue(importResults, user, resolverCache, metadata, value);
-			record.set(metadata, convertedValue);
+			if (metadata.getType() != MetadataValueType.STRUCTURE) {
+				Object value = field.getValue();
+				Object convertedValue = value == null ? null : convertValue(importResults, user, resolverCache, metadata, value);
+				record.set(metadata, convertedValue);
+			}
+		}
+
+		for (RecordImportExtension behavior : extensions.recordImportBehaviors.getBehaviors()) {
+			if (behavior.getDecoratedSchemaType().equals(schemaType)) {
+				behavior.build(record, types, toImport);
+			}
 		}
 
 		return record;
@@ -242,9 +272,6 @@ public class RecordsImportServices {
 		case CONTENT:
 			return convertContent(importResults, user, value);
 
-		case STRUCTURE:
-			throw new UnsupportedOperationException("TODO");
-
 		case REFERENCE:
 			return convertReference(resolverCache, metadata, (String) value);
 
@@ -258,27 +285,38 @@ public class RecordsImportServices {
 
 	private Content convertContent(BulkImportResults importResults, User user, Object value) {
 		ContentImport contentImport = (ContentImport) value;
-		try {
-			URL url = toURL(contentImport.getUrl());
+		List<ContentImportVersion> versions = contentImport.getVersions();
 
-			InputStream inputStream = ioServices.newBufferedInputStream(url.openStream(), IMPORT_URL_INPUTSTREAM_NAME);
+		Content content = null;
 
+		for (ContentImportVersion version : versions) {
 			try {
-				ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(inputStream);
-				if (contentImport.isMajor()) {
-					return contentManager.createMajor(user, contentImport.getFileName(), contentVersionDataSummary);
-				} else {
-					return contentManager.createMinor(user, contentImport.getFileName(), contentVersionDataSummary);
-				}
-			} finally {
-				ioServices.closeQuietly(inputStream);
-			}
+				URL url = toURL(version.getUrl());
+				InputStream inputStream = ioServices.newBufferedInputStream(url.openStream(), IMPORT_URL_INPUTSTREAM_NAME);
+				try {
+					ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(inputStream);
+					if (content == null) {
+						if (version.isMajor()) {
+							content = contentManager.createMajor(user, version.getFileName(), contentVersionDataSummary);
+						} else {
+							content = contentManager.createMinor(user, version.getFileName(), contentVersionDataSummary);
+						}
+					} else {
+						content.updateContentWithName(user, contentVersionDataSummary, version.isMajor(),
+								contentImport.getFileName());
+					}
 
-		} catch (Exception e) {
-			LOGGER.warn("Could not retrieve content with url '" + contentImport.getUrl() + "'");
-			importResults.getInvalidContentUrls().add(contentImport.getUrl());
-			return null;
+				} finally {
+					ioServices.closeQuietly(inputStream);
+				}
+
+			} catch (Exception e) {
+				LOGGER.warn("Could not retrieve content with url '" + contentImport.getUrl() + "'");
+				importResults.add(new ImportError(contentImport.getUrl(), ""));
+				return null;
+			}
 		}
+		return content;
 	}
 
 	private URL toURL(String value) {

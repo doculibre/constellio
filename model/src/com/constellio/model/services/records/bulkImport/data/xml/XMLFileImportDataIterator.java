@@ -40,11 +40,13 @@ import com.constellio.model.services.records.bulkImport.data.ImportDataIteratorR
 import com.google.common.base.Strings;
 
 public class XMLFileImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
-	
+
 	public static final String RECORDS_TAG = "records";
 	public static final String RECORD_TAG = "record";
+	public static final String USER_CREDENTIAL_TAG = "userCredential";
+	public static final String USERS_CREDENTIAL_TAG = "userCredentials";
 	public static final String ITEM_TAG = "item";
-	
+
 	public static final String TYPE_ATTR = "type";
 	public static final String MULTIVALUE_ATTR = "multivalue";
 	public static final String ID_ATTR = "id";
@@ -52,14 +54,17 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 	public static final String URL_ATTR = "url";
 	public static final String FILENAME_ATTR = "filename";
 	public static final String MAJOR_ATTR = "major";
-	
+
 	public static final String STRING_VALUE = "string";
 	public static final String CONTENT_VALUE = "content";
 	public static final String DATE_VALUE = "date";
 	public static final String DATETIME_VALUE = "datetime";
-	
+	public static final String STRUCTURE_VALUE = "structure";
+
 	public static final String DATE_PATTERN = "datePattern";
 	public static final String DATETIME_PATTERN = "datetimePattern";
+
+	public static final String USERNAME = "username";
 
 	String previousSystemId;
 	String url;
@@ -70,11 +75,10 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 	private String schema = null;
 	private Map<String, Object> fields = null;
 	private Map<String, String> patterns = null;
-	XMLStreamReader xmlReader;
+	private int index = 0;
+	private XMLStreamReader xmlReader;
 
-	IOServices ioServices;
-
-	private int index;
+	private IOServices ioServices;
 
 	public XMLFileImportDataIterator(Reader reader, IOServices ioServices) {
 		this.reader = reader;
@@ -100,7 +104,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 		try {
 			xmlReader.close();
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
 		ioServices.closeQuietly(reader);
 	}
@@ -109,49 +113,58 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 			throws XMLStreamException {
 		String type;
 		Object value;
-		index = 0;		 
-		
+
 		while (xmlReader.hasNext()) {
 			int event = xmlReader.next();
 			if (event == XMLStreamConstants.START_ELEMENT) {
 				String localName = xmlReader.getLocalName();
-				
+
 				switch (localName) {
-					case RECORDS_TAG: 
-						patterns = new HashMap<>();						
-						patterns.put(DATETIME_PATTERN, xmlReader.getAttributeValue("", DATETIME_PATTERN));
-						patterns.put(DATE_PATTERN, xmlReader.getAttributeValue("", DATE_PATTERN));
+				case RECORDS_TAG:
+					patterns = new HashMap<>();
+					patterns.put(DATETIME_PATTERN, xmlReader.getAttributeValue("", DATETIME_PATTERN));
+					patterns.put(DATE_PATTERN, xmlReader.getAttributeValue("", DATE_PATTERN));
+					break;
+					case USERS_CREDENTIAL_TAG:
+						patterns = new HashMap<>();
 						break;
-						
-					case RECORD_TAG:
-						schema = xmlReader.getAttributeValue("", SCHEMA_ATTR);
-						if(schema == null) {
-							schema = "default";
-						}
-						previousSystemId = xmlReader.getAttributeValue("", ID_ATTR);
-						if(previousSystemId == null) {
-							return null;
-						}
+					case USER_CREDENTIAL_TAG:
 						fields = new HashMap<>();
+						String username = xmlReader.getAttributeValue("", USERNAME);
+						previousSystemId = username;
+						fields.put(USERNAME, username);
 						break;
-						
-					case CONTENT_VALUE:
-						url = xmlReader.getAttributeValue("", URL_ATTR);
-						filename = xmlReader.getAttributeValue("", FILENAME_ATTR);
-						major = xmlReader.getAttributeValue("", MAJOR_ATTR);
-						
-					default:
-						type = getType();
-						value = isMultivalue() ? parseMultivalue(xmlReader.getLocalName(), type) : parseScalar(type);
+				case RECORD_TAG:
+					schema = xmlReader.getAttributeValue("", SCHEMA_ATTR);
+					if (schema == null) {
+						schema = "default";
+					}
+					previousSystemId = xmlReader.getAttributeValue("", ID_ATTR);
+					if (previousSystemId == null) {
+						return null;
+					}
+					fields = new HashMap<>();
+					break;
 
-						if (value != "" && !value.equals("null")) {
-							fields.put(xmlReader.getLocalName(), value);
-						}
+				case CONTENT_VALUE:
+					url = xmlReader.getAttributeValue("", URL_ATTR);
+					filename = xmlReader.getAttributeValue("", FILENAME_ATTR);
+					major = xmlReader.getAttributeValue("", MAJOR_ATTR);
 
-						break;
+				default:
+					type = getType();
+					value = isMultivalue() ? parseMultivalue(xmlReader.getLocalName(), type) : parseScalar(type);
+
+					if (value != "" && !value.equals("null")) {
+						fields.put(xmlReader.getLocalName(), value);
+					}
+
+					break;
 				}
-			} else if (event == XMLStreamConstants.END_ELEMENT && xmlReader.getLocalName().equals(RECORD_TAG)) {
-				return new ImportData(++index, schema, previousSystemId, fields);
+			} else if (event == XMLStreamConstants.END_ELEMENT && (xmlReader.getLocalName().equals(RECORD_TAG)
+					|| xmlReader.getLocalName().equals(USER_CREDENTIAL_TAG))) {
+				++index;
+				return new ImportData(index, schema, previousSystemId, fields);
 			}
 		}
 		return null;
@@ -163,7 +176,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 		List<Object> values = new ArrayList<>();
 
 		while (xmlReader.hasNext()) {
-			
+
 			int event = xmlReader.next();
 
 			if (event == XMLStreamConstants.START_ELEMENT) {
@@ -172,7 +185,7 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 				major = xmlReader.getAttributeValue("", MAJOR_ATTR);
 				values.add(parseScalar(type));
 			} else if (event == XMLStreamConstants.END_ELEMENT) {
-				
+
 				if (xmlReader.getLocalName().equals(localName)) {
 					break;
 				}
@@ -183,49 +196,58 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 
 	private Object parseScalar(String type)
 			throws XMLStreamException {
-		
+
 		String content = "";
-		
-		while (xmlReader.hasNext()) {
-			
-			int event = xmlReader.next();
-			
-			if (event == XMLStreamConstants.CHARACTERS) {
-				content = xmlReader.getText().trim();
-			} else if (event == XMLStreamConstants.END_ELEMENT) {
-				break;
+
+		if (!type.equals(STRUCTURE_VALUE)) {
+			while (xmlReader.hasNext()) {
+
+				int event = xmlReader.next();
+
+				if (event == XMLStreamConstants.CHARACTERS) {
+					content = xmlReader.getText().trim();
+				} else if (event == XMLStreamConstants.END_ELEMENT) {
+					break;
+				}
 			}
 		}
-		
-		switch (type) {		
-			case DATE_VALUE:
-				DateTimeFormatter datePattern = DateTimeFormat.forPattern(patterns.get(DATE_PATTERN));
-				try {
-					return datePattern.parseLocalDate(content);
-				} catch (IllegalArgumentException exception) {
-					throw new ImportDataIteratorRuntimeException_InvalidDate(patterns.get(DATE_PATTERN), content);
-				}
-		
-			case DATETIME_VALUE:			
-				DateTimeFormatter datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));				
-				try {
-					return datetimePattern.parseLocalDateTime(content);
-				} catch (IllegalArgumentException exception) {
-					throw new ImportDataIteratorRuntimeException_InvalidDate(patterns.get(DATETIME_PATTERN), content);
-				}
-				
-			case CONTENT_VALUE:
-				if(major == null) {
-					major = "false";
-				}
-				return new ContentImport(url, filename, Boolean.parseBoolean(major));
-				
-			default:
-				if(content.isEmpty()) {
-					return "";
-				}
-				return content;
+
+		switch (type) {
+		case DATE_VALUE:
+			DateTimeFormatter datePattern = DateTimeFormat.forPattern(patterns.get(DATE_PATTERN));
+			try {
+				return datePattern.parseLocalDate(content);
+			} catch (IllegalArgumentException exception) {
+				throw new ImportDataIteratorRuntimeException_InvalidDate(patterns.get(DATE_PATTERN), content);
 			}
+
+		case DATETIME_VALUE:
+			DateTimeFormatter datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));
+			try {
+				return datetimePattern.parseLocalDateTime(content);
+			} catch (IllegalArgumentException exception) {
+				throw new ImportDataIteratorRuntimeException_InvalidDate(patterns.get(DATETIME_PATTERN), content);
+			}
+
+		case CONTENT_VALUE:
+			if (major == null) {
+				major = "false";
+			}
+			return new ContentImport(url, filename, Boolean.parseBoolean(major));
+
+		case STRUCTURE_VALUE:
+			Map<String, String> structure = new HashMap<>();
+			for (int i = 0; i < xmlReader.getAttributeCount(); i++) {
+				structure.put(xmlReader.getAttributeLocalName(i), xmlReader.getAttributeValue(i));
+			}
+			return structure;
+
+		default:
+			if (content.isEmpty()) {
+				return "";
+			}
+			return content;
+		}
 	}
 
 	private String getType() {
@@ -234,8 +256,8 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 	}
 
 	private boolean isMultivalue() {
-		 String multivalue = xmlReader.getAttributeValue("", MULTIVALUE_ATTR);
-	     return !Strings.isNullOrEmpty(multivalue) && Boolean.parseBoolean(multivalue);
+		String multivalue = xmlReader.getAttributeValue("", MULTIVALUE_ATTR);
+		return !Strings.isNullOrEmpty(multivalue) && Boolean.parseBoolean(multivalue);
 	}
 
 	private XMLStreamReader newXMLStreamReader(Reader reader) {

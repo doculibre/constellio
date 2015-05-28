@@ -93,9 +93,8 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	public void authorizationModificationRequested(AuthorizationVO authorizationVO) {
 		Authorization authorization = toAuthorization(authorizationVO);
 		authorizationsServices().modify(authorization, getCurrentUser());
-		if (!isOwnAuthorization(authorization)) {
-			view.removeAuthorization(authorizationVO);
-		}
+		authorizations = null;
+		view.refresh();
 	}
 
 	public void deleteButtonClicked(AuthorizationVO authorizationVO) {

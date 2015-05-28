@@ -62,7 +62,6 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordServicesAcceptanceTest extends ConstellioTest {
-
 	LocalDate shishDay = new LocalDate().minusDays(42);
 	LocalDate tockDay = new LocalDate().minusDays(666);
 
@@ -102,7 +101,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.metadata("other"), null);
 		recordServices.add(record);
-
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
@@ -112,7 +110,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.metadata("other"), valueTooLong);
 		recordServices.add(record);
-
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
@@ -147,7 +144,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.metadata("other"), "aValue");
 		recordServices.add(record);
-
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
@@ -158,7 +154,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.metadata("other"), null);
 		recordServices.add(record);
-
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
@@ -169,7 +164,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.metadata("other"), new ArrayList<>());
 		recordServices.add(record);
-
 	}
 
 	@Test
@@ -180,7 +174,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.metadata("other"), asList("aValue"));
 		recordServices.add(record);
-
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
@@ -192,7 +185,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		record.set(zeSchema.metadata("other"), 1);
 		recordServices.add(record);
-
 	}
 
 	@Test
@@ -231,7 +223,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		record = recordServices.getDocumentById(record.getId());
 
 		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.SECOND_VALUE, AValidEnum.FIRST_VALUE));
-
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
@@ -241,7 +232,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), valueTooLong);
 
 		recordServices.add(record);
-
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
@@ -266,7 +256,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(record);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo("Banana");
-
 	}
 
 	@Test()
@@ -281,7 +270,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(record);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(Arrays.asList("Banana", "Apple"));
-
 	}
 
 	@Test()
@@ -298,7 +286,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(record);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isNull();
-
 	}
 
 	@Test()
@@ -315,7 +302,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(record);
 
 		assertThat(record.get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(new ArrayList<>());
-
 	}
 
 	@Test()
@@ -330,7 +316,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(record);
 
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(1.0);
-
 	}
 
 	@Test()
@@ -349,7 +334,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(record);
 
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(0.0);
-
 	}
 
 	@Test()
@@ -368,7 +352,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(record);
 
 		assertThat(record.get(zeSchema.calculatedDaysBetween())).isEqualTo(-1.0);
-
 	}
 
 	private Record reloadRecord() {
@@ -721,7 +704,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices.execute(
 				newTransactionWithNRecords(10001).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
-
 	}
 
 	@SlowTest
@@ -770,7 +752,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices.executeHandlingImpactsAsync(
 				newTransactionWithNRecords(10001).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
-
 	}
 
 	private Record anotherSchemaRecordLinkedTo(Record record) {
@@ -834,5 +815,4 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		return transaction;
 	}
-
 }

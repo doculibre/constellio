@@ -215,11 +215,20 @@ public class AppManagementService {
 			while ((inputLine = in.readLine()) != null) {
 				changelog += inputLine;
 			}
+
+			if (this.isProxyPage(changelog)) {
+				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
+			}
+
 		} catch (IOException io) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG, io);
 		}
 
 		return changelog;
+	}
+
+	boolean isProxyPage(String changelog) {
+		return !changelog.contains("<version>");
 	}
 
 	InputStream getStreamForURL(String url) {

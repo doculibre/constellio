@@ -31,8 +31,8 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 	}
 
 	@Override
-	public CustomFolderField getCustomField(String metadataCode) {
-		return (CustomFolderField) getField(metadataCode);
+	public CustomFolderField<?> getCustomField(String metadataCode) {
+		return (CustomFolderField<?>) getField(metadataCode);
 	}
 
 	@Override

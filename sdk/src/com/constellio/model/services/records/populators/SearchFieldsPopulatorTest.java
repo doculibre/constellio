@@ -83,7 +83,7 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		populator = new SearchFieldsPopulator(types, languageDectionServices, contentManager, collectionLanguages);
+		populator = new SearchFieldsPopulator(types, false, contentManager, collectionLanguages);
 
 		when(languageDectionServices.tryDetectLanguage(oldElvishText)).thenReturn("elvish");
 		when(languageDectionServices.tryDetectLanguage(oldElvishText2)).thenReturn("elvish");

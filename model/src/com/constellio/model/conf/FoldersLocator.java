@@ -397,4 +397,22 @@ public class FoldersLocator {
 			return new File(getConstellioWebappFolder(), "reportsRecource");
 		}
 	}
+
+	public File getResourcesFolder() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			return new File(getConstellioWebinfFolder(), "resources");
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
+			return new File(getConstellioWebinfFolder(), "resources");
+
+		} else {
+			return new File(getConstellioWebappFolder(), "resources");
+		}
+	}
+
+	/*
+	public File getBuildDataFile() {
+		return new File(getConstellioWebappFolder(), "data.txt");
+	}
+	*/
 }

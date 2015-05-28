@@ -19,6 +19,7 @@ package com.constellio.app.ui.pages.profile;
 
 import java.io.Serializable;
 
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.ui.entities.ContentVersionVO;
 
@@ -44,11 +45,13 @@ public class ProfileVO implements Serializable {
 
 	StartTab startTab;
 
+	DefaultTabInFolderDisplay defaultTabInFolderDisplay;
+
 	String defaultTaxonomy;
 
 	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email,
-			String phone, StartTab startTab, String defaultTaxonomy, String password, String confirmPassword,
-			String oldPassword) {
+			String phone, StartTab startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
+			String password, String confirmPassword, String oldPassword) {
 		this.image = image;
 		this.username = username;
 		this.firstName = firstName;
@@ -56,6 +59,7 @@ public class ProfileVO implements Serializable {
 		this.email = email;
 		this.phone = phone;
 		this.startTab = startTab;
+		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
 		this.defaultTaxonomy = defaultTaxonomy;
 		this.password = password;
 		this.confirmPassword = confirmPassword;
@@ -63,7 +67,7 @@ public class ProfileVO implements Serializable {
 	}
 
 	public ProfileVO(String username, String firstName, String lastName, String email, String phone, StartTab startTab,
-			String defaultTaxonomy, String password, String confirmPassword,
+			DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
 			String oldPassword) {
 		this.username = username;
 		this.firstName = firstName;
@@ -71,6 +75,7 @@ public class ProfileVO implements Serializable {
 		this.email = email;
 		this.phone = phone;
 		this.startTab = startTab;
+		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
 		this.defaultTaxonomy = defaultTaxonomy;
 		this.password = password;
 		this.confirmPassword = confirmPassword;
@@ -123,6 +128,14 @@ public class ProfileVO implements Serializable {
 
 	public void setStartTab(StartTab startTab) {
 		this.startTab = startTab;
+	}
+
+	public DefaultTabInFolderDisplay getDefaultTabInFolderDisplay() {
+		return defaultTabInFolderDisplay;
+	}
+
+	public void setDefaultTabInFolderDisplay(DefaultTabInFolderDisplay defaultTab) {
+		this.defaultTabInFolderDisplay = defaultTab;
 	}
 
 	public String getDefaultTaxonomy() {

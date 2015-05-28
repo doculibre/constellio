@@ -62,7 +62,7 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(AddEditSchemaRecordPresenter.FOLDER_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(AddEditSchemaRecordPresenter.FOLDER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-				.containsOnly(
+				.contains(
 						Tuple.tuple(Folder.SCHEMA_TYPE + "_custom1", Folder.SCHEMA_TYPE + " custom 1"),
 						Tuple.tuple(Folder.SCHEMA_TYPE + "_custom2", Folder.SCHEMA_TYPE + " custom 2"));
 	}
@@ -74,7 +74,7 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(AddEditSchemaRecordPresenter.DOCUMENT_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(AddEditSchemaRecordPresenter.DOCUMENT_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-				.containsOnly(
+				.contains(
 						Tuple.tuple(Document.SCHEMA_TYPE + "_custom1", Document.SCHEMA_TYPE + " custom 1"),
 						Tuple.tuple(Document.SCHEMA_TYPE + "_custom2", Document.SCHEMA_TYPE + " custom 2"));
 	}
@@ -86,7 +86,7 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(AddEditSchemaRecordPresenter.CONTAINER_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(AddEditSchemaRecordPresenter.CONTAINER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
-				.containsOnly(
+				.contains(
 						Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom1", ContainerRecord.SCHEMA_TYPE + " custom 1"),
 						Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom2", ContainerRecord.SCHEMA_TYPE + " custom 2"));
 	}
@@ -98,7 +98,7 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getOverride(AddEditSchemaRecordPresenter.STORAGE_SPACE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
 		assertThat(presenter.getChoices(AddEditSchemaRecordPresenter.STORAGE_SPACE_LINKED_SCHEMA)).extracting("value", "caption")
-				.containsOnly(
+				.contains(
 						Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom1", StorageSpace.SCHEMA_TYPE + " custom 1"),
 						Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom2", StorageSpace.SCHEMA_TYPE + " custom 2"));
 	}

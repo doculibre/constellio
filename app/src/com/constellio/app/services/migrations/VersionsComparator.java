@@ -32,8 +32,8 @@ public class VersionsComparator implements Comparator<String> {
 	@Override
 	public int compare(String versionOne, String versionTwo) {
 
-		String[] versionsOne = versionOne.split("\\.");
-		String[] versionsTwo = versionTwo.split("\\.");
+		String[] versionsOne = split(versionOne);
+		String[] versionsTwo = split(versionTwo);
 
 		for (int i = 0; i < Math.min(versionsOne.length, versionsTwo.length); i++) {
 			if (Integer.parseInt(versionsOne[i]) > Integer.parseInt(versionsTwo[i])) {
@@ -50,6 +50,15 @@ public class VersionsComparator implements Comparator<String> {
 		}
 		return 0;
 
+	}
+
+	private String[] split(String version) {
+		int index = 0;
+		String[] normalizedVersion = new String[] { "0", "0", "0", "0" };
+		for (String part : version.split("\\.")) {
+			normalizedVersion[index++] = part;
+		}
+		return normalizedVersion;
 	}
 
 }

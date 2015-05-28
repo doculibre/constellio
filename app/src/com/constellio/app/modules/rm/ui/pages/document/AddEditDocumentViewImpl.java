@@ -19,18 +19,25 @@ package com.constellio.app.modules.rm.ui.pages.document;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.modules.rm.ui.components.document.DocumentForm;
+import com.constellio.app.modules.rm.ui.components.document.DocumentFormImpl;
+import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Buffered.SourceException;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
 	
 	private RecordVO recordVO;
-	
-	private RecordForm recordForm;
+
+	private DocumentFormImpl recordForm;
 	
 	private AddEditDocumentPresenter presenter;
 
@@ -61,7 +68,11 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		recordForm = new RecordForm(recordVO) {
+		return newForm();
+	}
+
+	private DocumentFormImpl newForm() {
+		recordForm = new DocumentFormImpl(recordVO) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
@@ -72,7 +83,40 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			protected void cancelButtonClick(RecordVO viewObject) {
 				presenter.cancelButtonClicked();
 			}
+
+			@Override
+			public void reload() {
+				recordForm = newForm();
+				AddEditDocumentViewImpl.this.replaceComponent(this, recordForm);
+			}
+
+			@Override
+			public void commit() {
+				for (Field<?> field : fieldGroup.getFields()) {
+					try {
+						field.commit();
+					} catch (SourceException | InvalidValueException e) {
+					}
+				}
+			}
 		};
+
+		for (final Field<?> field : recordForm.getFields()) {
+			if (field instanceof CustomDocumentField) {
+				field.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						presenter.customFieldValueChanged((CustomDocumentField<?>) field);
+					}
+				});
+			}
+		}
+		
+		return recordForm;
+	}
+
+	@Override
+	public DocumentForm getForm() {
 		return recordForm;
 	}
 

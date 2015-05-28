@@ -38,13 +38,13 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 
 public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUsersCredentialsView {
 
@@ -58,6 +58,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 	private Button addButton;
 	private Table table;
 	private UserCredentialStatus status;
+	private final int batchSize = 100;
 
 	public ListUsersCredentialsViewImpl() {
 		this.presenter = new ListUserCredentialsPresenter(this);
@@ -131,13 +132,17 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		List<UserCredentialVO> userCredentialVOs = dataProvider.listUserCredentialVOsWithStatus(status);
 		dataProvider.setUserCredentialVOs(userCredentialVOs);
 
-		Filterable tableContainer = new UserCredentialVOLazyContainer(dataProvider);
+		Filterable tableContainer = new UserCredentialVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(tableContainer, PROPERTY_BUTTONS);
 		addButtons(dataProvider, buttonsContainer);
 		tableContainer = buttonsContainer;
 
 		Table table = new Table($("ListUserCredentialsView.viewTitle"), tableContainer);
-		table.setPageLength(table.getItemIds().size());
+		int tableSize = batchSize;
+		if (tableSize > table.getItemIds().size()) {
+			tableSize = table.getItemIds().size();
+		}
+		table.setPageLength(tableSize);
 		table.setWidth("100%");
 		table.setColumnHeader("username", $("ListUsersCredentialsView.usernameColumn"));
 		table.setColumnHeader("firstName", $("ListUsersCredentialsView.firstNameColumn"));

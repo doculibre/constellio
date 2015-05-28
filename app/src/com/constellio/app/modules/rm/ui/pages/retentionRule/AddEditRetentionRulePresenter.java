@@ -115,11 +115,11 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		saveInvertedRelation(id, subdivisions, schema, ruleMetadata);
 	}
 
-	private void saveInvertedRelation(String id, List<String> subdivisions, MetadataSchema schema, Metadata ruleMetadata) {
+	private void saveInvertedRelation(String id, List<String> records, MetadataSchema schema, Metadata ruleMetadata) {
 		Transaction transaction = new Transaction().setUser(getCurrentUser());
 
 		LogicalSearchCondition condition = from(schema).where(ruleMetadata).isEqualTo(id)
-				.andWhere(Schemas.IDENTIFIER).isNotIn(subdivisions);
+				.andWhere(Schemas.IDENTIFIER).isNotIn(records);
 		List<Record> removed = searchServices().search(new LogicalSearchQuery(condition));
 		for (Record record : removed) {
 			List<Object> rules = new ArrayList<>(record.getList(ruleMetadata));
@@ -128,7 +128,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			transaction.add(record);
 		}
 
-		condition = from(schema).where(Schemas.IDENTIFIER).isIn(subdivisions).andWhere(ruleMetadata).isNotEqual(id);
+		condition = from(schema).where(Schemas.IDENTIFIER).isIn(records).andWhere(ruleMetadata).isNotEqual(id);
 		List<Record> added = searchServices().search(new LogicalSearchQuery(condition));
 		for (Record record : added) {
 			List<Object> rules = new ArrayList<>(record.getList(ruleMetadata));

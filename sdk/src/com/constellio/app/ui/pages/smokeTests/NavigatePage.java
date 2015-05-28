@@ -60,6 +60,10 @@ public class NavigatePage extends PageHelper {
 		driver.navigateTo().url(NavigatorConfigurationService.ADMIN_MODULE);
 	}
 
+	public void navigateToCollectionManagement() {
+		driver.navigateTo().url(NavigatorConfigurationService.COLLECTION_ADD_EDIT);
+	}
+
 	public void navigateToPermissionManagement() {
 		driver.navigateTo().url(NavigatorConfigurationService.PERMISSION_MANAGEMENT);
 	}
@@ -129,5 +133,4 @@ public class NavigatePage extends PageHelper {
 		List<ConstellioWebElement> listButtonActionMenu = driver.findAdaptElements(By.className("action-menu-button"));
 		return listButtonActionMenu.get(buttonNumber);
 	}
-
 }

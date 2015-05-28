@@ -17,7 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.extensions;
 
+import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.frameworks.extensions.VaultEventListenerList;
+import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
@@ -42,4 +44,5 @@ public class ModelLayerCollectionEventsListeners {
 	//
 	//	public VaultEventListenerList<ModifiedAuthorizationOnUserEvent> modifiedUserAuthorizationListener = new VaultEventListenerList<>();
 
+	public VaultBehaviorsList<RecordImportExtension> recordImportBehaviors = new VaultBehaviorsList<>();
 }

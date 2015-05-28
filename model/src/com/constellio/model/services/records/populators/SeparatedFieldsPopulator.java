@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.records.populators;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.records.Record;
@@ -29,18 +30,25 @@ import com.constellio.model.services.records.RecordImplRuntimeException.RecordIm
 
 public abstract class SeparatedFieldsPopulator implements FieldsPopulator {
 
+	boolean fullRewrite;
 	MetadataSchemaTypes types;
 
 	protected SeparatedFieldsPopulator(
-			MetadataSchemaTypes types) {
+			MetadataSchemaTypes types, boolean fullRewrite) {
 		this.types = types;
+		this.fullRewrite = fullRewrite;
 	}
 
 	@Override
 	public Map<String, Object> populateCopyfields(MetadataSchema schema, Record record) {
 		Map<String, Object> fields = new HashMap<>();
 
-		for (Metadata modifiedMetadata : record.getModifiedMetadatas(types)) {
+		List<Metadata> metadatas = record.getModifiedMetadatas(types);
+		if (fullRewrite) {
+			metadatas = schema.getMetadatas();
+		}
+
+		for (Metadata modifiedMetadata : metadatas) {
 			Object value = record.get(modifiedMetadata);
 
 			populateCopyFields(fields, modifiedMetadata, value);

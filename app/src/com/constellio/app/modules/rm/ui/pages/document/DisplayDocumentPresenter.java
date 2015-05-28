@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -66,6 +67,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
+	}
+
+	private RMSchemasRecordsServices rmSchemasRecordsServices() {
+		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), modelLayerFactory);
 	}
 
 	@Override
@@ -164,5 +169,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void updateWindowClosed() {
 		presenterUtils.updateWindowClosed();
+	}
+
+	public String getDocumentTitle() {
+		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		return documentVO.getTitle();
 	}
 }

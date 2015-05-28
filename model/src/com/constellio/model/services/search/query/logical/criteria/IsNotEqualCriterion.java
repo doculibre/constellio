@@ -50,19 +50,12 @@ public class IsNotEqualCriterion extends LogicalSearchValueCondition {
 		query.append("(*:* -(");
 		if (value instanceof LocalDateTime || value instanceof LocalDate) {
 			String dateValue = CriteriaUtils.toSolrStringValue(value, dataStoreField);
-			if (dateValue.equals(CriteriaUtils.getNullDateValue())) {
-				query.append(dataStoreField.getDataStoreCode() + ":\"" + CriteriaUtils.getNullDateValue() + "\"");
-			} else {
-				query.append(dataStoreField.getDataStoreCode() + ":\"" + dateValue + "\" OR " + dataStoreField.getDataStoreCode()
-						+ ":\"" + CriteriaUtils.getNullDateValue() + "\"");
-			}
+			query.append(dataStoreField.getDataStoreCode() + ":\"" + dateValue + "\"");
 		} else if (value instanceof Number) {
-			query.append(dataStoreField.getDataStoreCode() + ":\"" + value + "\" OR " + dataStoreField.getDataStoreCode() + ":\""
-					+ CriteriaUtils.getNullNumberValue() + "\"");
+			query.append(dataStoreField.getDataStoreCode() + ":\"" + value + "\"");
 		} else if (value instanceof Boolean) {
 			String booleanValue = CriteriaUtils.toSolrStringValue(value, dataStoreField);
-			query.append(dataStoreField.getDataStoreCode() + ":\"" + booleanValue + "\" OR " + dataStoreField.getDataStoreCode()
-					+ ":\"" + CriteriaUtils.getNullStringValue() + "\"");
+			query.append(dataStoreField.getDataStoreCode() + ":\"" + booleanValue + "\"");
 		} else {
 			if (value != null) {
 				String textValue;
@@ -71,9 +64,10 @@ public class IsNotEqualCriterion extends LogicalSearchValueCondition {
 				} else {
 					textValue = value.toString();
 				}
-				query.append(dataStoreField.getDataStoreCode() + ":\"" + textValue + "\" OR ");
+				query.append(dataStoreField.getDataStoreCode() + ":\"" + textValue + "\"");
+			} else {
+				query.append(dataStoreField.getDataStoreCode() + ":\"" + CriteriaUtils.getNullStringValue() + "\"");
 			}
-			query.append(dataStoreField.getDataStoreCode() + ":\"" + CriteriaUtils.getNullStringValue() + "\"");
 		}
 
 		query.append("))");

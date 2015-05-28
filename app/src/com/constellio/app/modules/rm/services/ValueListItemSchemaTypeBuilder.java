@@ -56,7 +56,6 @@ public class ValueListItemSchemaTypeBuilder {
 
 		} else if (codeMode == ValueListItemSchemaTypeCodeMode.DISABLED) {
 			codeMetadata.setEnabled(false);
-
 		}
 
 		defaultSchemaBuilder.create(ValueListItem.DESCRIPTION).setType(MetadataValueType.TEXT).setSearchable(true)

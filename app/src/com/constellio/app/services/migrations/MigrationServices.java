@@ -42,6 +42,10 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class MigrationServices {
 
@@ -119,12 +123,13 @@ public class MigrationServices {
 		List<Migration> filteredMigrations = filterRunnedMigration(collection, migrations);
 		LOGGER.info("Filtered migrations : " + filteredMigrations);
 
+		ensureSchemasHaveCommonMetadata(collection);
+
 		for (Migration migration : filteredMigrations) {
 			if (toVersion == null || VersionsComparator.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
 				migrate(migration);
 			}
 		}
-
 	}
 
 	List<Migration> filterRunnedMigration(String collection, List<Migration> migrations) {
@@ -148,6 +153,17 @@ public class MigrationServices {
 			return migrations;
 		}
 
+	}
+
+	private void ensureSchemasHaveCommonMetadata(String collection) {
+		MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
+		MetadataSchemaTypesBuilder types = MetadataSchemaTypesBuilder.modify(manager.getSchemaTypes(collection));
+		new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(types);
+		try {
+			manager.saveUpdateSchemaTypes(types);
+		} catch (OptimistickLocking e) {
+			ensureSchemasHaveCommonMetadata(collection);
+		}
 	}
 
 	void migrate(Migration migration)

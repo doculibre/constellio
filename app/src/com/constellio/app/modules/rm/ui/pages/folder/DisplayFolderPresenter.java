@@ -21,12 +21,16 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.services.FolderDocumentMetadataSyncServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -39,6 +43,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -51,6 +56,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -67,12 +73,25 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private SchemaPresenterUtils documentPresenterUtils;
 	private FolderVO folderVO;
 
+	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+
 	public DisplayFolderPresenter(DisplayFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
 
 		ConstellioFactories constellioFactories = view.getConstellioFactories();
 		SessionContext sessionContext = view.getSessionContext();
 		documentPresenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, constellioFactories, sessionContext);
+		initTransientObjects();
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		initTransientObjects();
+	}
+
+	private void initTransientObjects() {
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	@Override
@@ -83,7 +102,21 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void forParams(String params) {
 		Record record = getRecord(params);
 		this.folderVO = voBuilder.build(record, VIEW_MODE.DISPLAY);
+		setSchemaCode(record.getSchemaCode());
 		view.setRecord(folderVO);
+	}
+
+	public void selectInitialTabForUser() {
+		String defaultTabInFolderDisplay = getCurrentUser().getDefaultTabInFolderDisplay();
+		if (StringUtils.isNotBlank(defaultTabInFolderDisplay)) {
+			if (DefaultTabInFolderDisplay.METADATA.getCode().equals(defaultTabInFolderDisplay)) {
+				view.selectMetadataTab();
+			} else if (DefaultTabInFolderDisplay.DOCUMENTS.getCode().equals(defaultTabInFolderDisplay)) {
+				view.selectDocumentsTab();
+			} else if (DefaultTabInFolderDisplay.SUB_FOLDERS.getCode().equals(defaultTabInFolderDisplay)) {
+				view.selectSubFoldersTab();
+			}
+		}
 	}
 
 	@Override
@@ -207,6 +240,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return ComponentState.INVISIBLE;
 	}
 
+	private MetadataSchemaType getFoldersSchemaType() {
+		return schemaType(Folder.SCHEMA_TYPE);
+	}
+
+	private MetadataSchemaType getDocumentsSchemaType() {
+		return schemaType(Document.SCHEMA_TYPE);
+	}
+
 	private MetadataSchema getFoldersSchema() {
 		return schema(Folder.DEFAULT_SCHEMA);
 	}
@@ -222,10 +263,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				Record record = getRecord(folderVO.getId());
+				MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
 				MetadataSchema documentsSchema = getDocumentsSchema();
 				Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
 				LogicalSearchQuery query = new LogicalSearchQuery();
-				query.setCondition(from(documentsSchema).where(folderMetadata).is(record));
+				query.setCondition(from(documentsSchemaType).where(folderMetadata).is(record));
 				return query.sortDesc(Schemas.MODIFIED_ON);
 			}
 		};
@@ -236,10 +278,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				Record record = getRecord(folderVO.getId());
+				MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
 				MetadataSchema foldersSchema = getFoldersSchema();
 				Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
 				LogicalSearchQuery query = new LogicalSearchQuery();
-				query.setCondition(from(foldersSchema).where(parentFolderMetadata).is(record));
+				query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
 				return query.sortDesc(Schemas.MODIFIED_ON);
 			}
 		};
@@ -332,12 +375,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private boolean documentExists(String fileName) {
 		Record record = getRecord(folderVO.getId());
+		
+		MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
 		MetadataSchema documentsSchema = getDocumentsSchema();
 		Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
 		Metadata titleMetadata = documentsSchema.getMetadata(Schemas.TITLE.getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery();
-
-		LogicalSearchCondition parentCondition = from(documentsSchema).where(folderMetadata).is(record);
+		LogicalSearchCondition parentCondition = from(documentsSchemaType).where(folderMetadata).is(record);
 		query.setCondition(parentCondition.andWhere(titleMetadata).is(fileName));
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -350,11 +394,22 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (!documentExists(fileName)) {
 			try {
 				uploadedContentVO.setMajorVersion(true);
-				Record newRecord = documentPresenterUtils.newRecord();
+				Record newRecord;
+				if (rmSchemasRecordsServices().isEmail(fileName)) {
+					InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
+					InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
+					Document document = rmSchemasRecordsServices.newEmail(fileName, in);
+					newRecord = document.getWrappedRecord();
+				} else {
+					Document document = rmSchemasRecordsServices.newDocument();
+					newRecord = document.getWrappedRecord();
+				}
 				DocumentVO documentVO = documentVOBuilder.build(newRecord, VIEW_MODE.FORM);
 				documentVO.setFolder(folderVO);
 				documentVO.setTitle(fileName);
 				documentVO.setContent(uploadedContentVO);
+				
+				documentPresenterUtils.setSchemaCode(newRecord.getSchemaCode());
 				newRecord = documentPresenterUtils.toRecord(documentVO);
 
 				new FolderDocumentMetadataSyncServices(appLayerFactory, collection)
@@ -366,5 +421,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				LOGGER.error(e.getMessage(), e);
 			}
 		}
+	}
+
+	public String getFolderTitle() {
+		return folderVO.getTitle();
 	}
 }

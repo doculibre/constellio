@@ -83,4 +83,17 @@ public class UserServicesRuntimeException extends RuntimeException {
 			super("Invalid token");
 		}
 	}
+
+	public static class UserServicesRuntimeException_InvalidGroup extends UserServicesRuntimeException {
+		private final String groupCode;
+
+		public UserServicesRuntimeException_InvalidGroup(String groupCode) {
+			super("Invalid group code " + groupCode);
+			this.groupCode = groupCode;
+		}
+
+		public String getGroupCode() {
+			return groupCode;
+		}
+	}
 }

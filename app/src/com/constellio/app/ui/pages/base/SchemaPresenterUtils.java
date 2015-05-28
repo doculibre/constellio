@@ -205,7 +205,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		return match;
 	}
 
-	private Content toContent(ContentVersionVO contentVersionVO) {
+	public Content toContent(ContentVersionVO contentVersionVO) {
 		Content content;
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();

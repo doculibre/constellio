@@ -31,10 +31,11 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class MetadataUniqueValidator implements Validator<Record> {
-
 	public static final String NON_UNIQUE_METADATA = "nonUniqueMetadata";
 	public static final String METADATA_LABEL = "metadataLabel";
 	public static final String VALUE = "value";
@@ -52,6 +53,9 @@ public class MetadataUniqueValidator implements Validator<Record> {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
+		if (!record.isActive()) {
+			return;
+		}
 		for (Metadata metadata : metadatas) {
 			if (metadata.isUniqueValue() && record.isModified(metadata)) {
 				Object value = record.get(metadata);
@@ -60,7 +64,7 @@ public class MetadataUniqueValidator implements Validator<Record> {
 					LogicalSearchCondition condition = from(schemaTypes.getSchema(schemaCode)).where(metadata)
 							.isEqualTo(value).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId());
 
-					if (searchServices.hasResults(condition)) {
+					if (searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(StatusFilter.ACTIVES))) {
 						addValidationErrors(validationErrors, value.toString(), NON_UNIQUE_METADATA, metadata);
 					}
 				}

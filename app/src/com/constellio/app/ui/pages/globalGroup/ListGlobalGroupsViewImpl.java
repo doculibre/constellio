@@ -57,6 +57,7 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 	private TableStringFilter tableFilter;
 	private Button addButton;
 	private GlobalGroupStatus status;
+	private final int batchSize = 100;
 
 	public ListGlobalGroupsViewImpl() {
 		this.presenter = new ListGlobalGroupsPresenter(this);
@@ -132,13 +133,17 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 	private Table buildTable(GlobalGroupStatus status) {
 		final GlobalGroupVODataProvider dataProvider = presenter.getDataProvider();
 		dataProvider.setGlobalGroupVOs(dataProvider.listBaseGlobalGroupsVOsWithStatus(status));
-		Container container = new GlobalGroupVOLazyContainer(dataProvider);
+		Container container = new GlobalGroupVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		addButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 
 		Table table = new Table($("ListGlobalGroupsView.viewTitle"), container);
-		table.setPageLength(table.getItemIds().size());
+		int tableSize = batchSize;
+		if (tableSize > table.getItemIds().size()) {
+			tableSize = table.getItemIds().size();
+		}
+		table.setPageLength(tableSize);
 		table.setWidth("100%");
 		table.setSelectable(true);
 		table.setColumnHeader("code", $("ListGlobalGroupsView.codeColumn"));

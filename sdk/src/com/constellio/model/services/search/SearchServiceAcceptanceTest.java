@@ -1571,7 +1571,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isNotEqual("__A__");
 		List<Record> records = findRecords(condition);
 
-		assertThat(records).containsOnly(expectedRecord3, expectedRecord4);
+		assertThat(records).containsOnly(expectedRecord2, expectedRecord3, expectedRecord4);
 	}
 
 	@Test
@@ -1582,7 +1582,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata()).isNotEqual(DATE2);
 		List<Record> records = findRecords(condition);
 
-		assertThat(records).containsOnly(expectedRecord, expectedRecord3, expectedRecord4);
+		assertThat(records).containsOnly(expectedRecord, expectedRecord3, expectedRecord4, expectedRecord5);
 	}
 
 	@Test
@@ -1593,7 +1593,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).where(zeSchema.dateTimeMetadata()).isNotEqual(DATE_TIME2);
 		List<Record> records = findRecords(condition);
 
-		assertThat(records).containsOnly(expectedRecord, expectedRecord3, expectedRecord4);
+		assertThat(records).containsOnly(expectedRecord, expectedRecord3, expectedRecord4, expectedRecord5);
 	}
 
 	@Test
@@ -2373,7 +2373,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenRecordsFromTwoSchemasTypesWithReferences()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		configureFolderAndRule();
 		executeTransaction1();
 		executeTransaction2();
@@ -2423,7 +2423,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenFourLettersValues()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata());
 		transaction.addUpdate(expectedRecord = new TestRecord(zeSchema, "expectedRecord").set(zeSchema.stringMetadata(), "A"));
 		transaction
@@ -2436,7 +2436,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenFiveDateTimeValuesIncludingNullDateTime()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withADateTimeMetadata());
 		transaction.addUpdate(expectedRecord5 = new TestRecord(zeSchema, "recordWithNullDate"));
 		transaction.addUpdate(
@@ -2451,7 +2451,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenFiveDateValuesIncludingNullDate()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withADateMetadata());
 		transaction.addUpdate(expectedRecord5 = new TestRecord(zeSchema, "recordWithNullDate"));
 		transaction.addUpdate(
@@ -2466,7 +2466,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenFiveNumberValuesIncludingNegativeNumberAndMinIntegerValue()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withANumberMetadata());
 		transaction.addUpdate(expectedRecord = new TestRecord(zeSchema, "expectedRecord").set(zeSchema.numberMetadata(), null));
 		transaction.addUpdate(expectedRecord = new TestRecord(zeSchema, "expectedRecord").set(zeSchema.numberMetadata(), -20));
@@ -2479,7 +2479,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	@SuppressWarnings("rawtypes")
 	private void givenNumberMultiValueMetadataWithThreeNumbers()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withANumberMetadata(multiValueConfigurator()));
 		List numberList = Arrays.asList(-10, 0, 1);
 		transaction.addUpdate(expectedRecord = new TestRecord(zeSchema, "expectedRecord").set(zeSchema.numberMetadata(),
@@ -2489,7 +2489,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	@SuppressWarnings("rawtypes")
 	private void givenTextMultiValueMetadataWithThreeTexts()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata(multiValueConfigurator()));
 		List textList = Arrays.asList("Chuck Norris", "Edouard Norris", "Edouard Lechat");
 		transaction.addUpdate(expectedRecord = newRecordOfZeSchema().set(zeSchema.stringMetadata(), textList));
@@ -2498,7 +2498,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	@SuppressWarnings("rawtypes")
 	private void givenDateTimeMultiValueMetadataWithThreeDateTimes()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withADateTimeMetadata(multiValueConfigurator()));
 		List dateList = Arrays.asList(DATE_TIME1, DATE_TIME2, DATE_TIME3);
 		transaction.addUpdate(expectedRecord = newRecordOfZeSchema().set(zeSchema.dateTimeMetadata(), dateList));
@@ -2507,7 +2507,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	@SuppressWarnings("rawtypes")
 	private void givenDateMultiValueMetadataWithThreeDates()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withADateMetadata(multiValueConfigurator()));
 		List dateList = Arrays.asList(DATE1, DATE2, DATE3);
 		transaction.addUpdate(expectedRecord = newRecordOfZeSchema().set(zeSchema.dateMetadata(), dateList));
@@ -2525,7 +2525,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenFiveTextValues()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata());
 		transaction.addUpdate(expectedRecord = new TestRecord(zeSchema, "expectedRecord").set(zeSchema.stringMetadata(),
 				"Chuck Lechat"));
@@ -2541,7 +2541,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenTwoZeSchemaRecords()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata());
 		transaction.addUpdate(zeSchemaRecord1 = new TestRecord(zeSchema, "expectedRecord").set(zeSchema.stringMetadata(),
 				"Chuck Lechat"));
@@ -2551,7 +2551,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenFourTextValuesIncludingNull()
-			throws Exception, RecordServicesException {
+			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata());
 		transaction.addUpdate(expectedRecord = new TestRecord(zeSchema, "expectedRecord").set(zeSchema.stringMetadata(),
 				"__A__"));

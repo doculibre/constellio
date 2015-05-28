@@ -31,6 +31,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Taxonomy;
@@ -39,6 +40,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -119,7 +121,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 									new TaxonomiesSearchOptions());
 				}
 				query = getLogicalSearchQueryForSchema(schema(schemaCode), query);
-				return query;
+				return query.filteredByStatus(StatusFilter.ACTIVES);
 			}
 		};
 
@@ -174,6 +176,12 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 
 	public void editButtonClicked(RecordVO recordVO) {
 		view.navigateTo().editTaxonomyConcept(taxonomy.getCode(), recordVO.getId(), recordVO.getSchema().getCode());
+	}
+
+	public void deleteButtonClicked(RecordVO recordVO) {
+		SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(), view.getSessionContext());
+		utils.delete(utils.toRecord(recordVO), null, false);
+		view.refreshTable();
 	}
 
 	public void addLinkClicked(String taxonomyCode, String schemaCode) {

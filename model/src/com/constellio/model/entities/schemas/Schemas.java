@@ -41,6 +41,7 @@ public class Schemas {
 	public static final Metadata TITLE = add(new Metadata("title_s", MetadataValueType.STRING, false));
 	public static final Metadata PATH = add(new Metadata("path_ss", MetadataValueType.STRING, true));
 	// Double-check this, principal path wasn't merged yet
+	public static final Metadata PATH_PARTS = add(new Metadata("pathParts_ss", MetadataValueType.STRING, true));
 	public static final Metadata PRINCIPAL_PATH = add(new Metadata("principalpath_s", MetadataValueType.STRING, false));
 	public static final Metadata PARENT_PATH = add(new Metadata("parentpath_ss", MetadataValueType.STRING, true));
 	public static final Metadata AUTHORIZATIONS = add(new Metadata("authorizations_ss", MetadataValueType.STRING, true));
@@ -73,6 +74,8 @@ public class Schemas {
 
 	public static final Metadata LEGACY_ID = add(
 			new Metadata("legacyIdentifier_s", MetadataValueType.STRING, false));
+
+	public static final Metadata VISIBLE_IN_TREES = add(new Metadata("visibleInTrees_s", MetadataValueType.BOOLEAN, false));
 
 	public static Metadata add(Metadata metadata) {
 		allGlobalMetadatas.add(metadata);

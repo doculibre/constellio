@@ -153,7 +153,7 @@ public class MetadataSchemaBuilder {
 		builder.metadatas = new HashSet<MetadataBuilder>();
 		builder.schemaValidators = new ClassListBuilder<>(RecordValidator.class);
 		if (initialize) {
-			new CommonMetadatasBuilder().addCommonMetadatasToNewSchema(builder, schemaTypesBuilder);
+			new CommonMetadataBuilder().addCommonMetadataToNewSchema(builder, schemaTypesBuilder);
 		}
 		return builder;
 	}
@@ -224,6 +224,15 @@ public class MetadataSchemaBuilder {
 	public MetadataSchemaBuilder setUndeletable(Boolean undeletable) {
 		this.undeletable = undeletable;
 		return this;
+	}
+
+	public boolean hasMetadata(String codeOrLocalCode) {
+		try {
+			getMetadata(codeOrLocalCode);
+			return true;
+		} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
+			return false;
+		}
 	}
 
 	public MetadataBuilder getMetadata(String codeOrLocalCode) {

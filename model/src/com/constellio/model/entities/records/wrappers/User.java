@@ -78,6 +78,8 @@ public class User extends RecordWrapper {
 
 	public static final String START_TAB = "startTab";
 
+	public static final String DEFAULT_TAB_IN_FOLDER_DISPLAY = "defaultTabInFolderDisplay";
+
 	public static final String DEFAULT_TAXONOMY = "defaultTaxonomy";
 
 	public static final String STATUS = "status";
@@ -131,6 +133,15 @@ public class User extends RecordWrapper {
 
 	public User setStartTab(String startTab) {
 		set(START_TAB, startTab);
+		return this;
+	}
+
+	public String getDefaultTabInFolderDisplay() {
+		return get(DEFAULT_TAB_IN_FOLDER_DISPLAY);
+	}
+
+	public User setDefaultTabInFolderDisplay(String defaultTab) {
+		set(DEFAULT_TAB_IN_FOLDER_DISPLAY, defaultTab);
 		return this;
 	}
 
@@ -198,7 +209,7 @@ public class User extends RecordWrapper {
 	}
 
 	public List<String> getUserRoles() {
-		return get(ROLES);
+		return getList(ROLES);
 	}
 
 	public User setUserRoles(List<String> roles) {
@@ -343,7 +354,7 @@ public class User extends RecordWrapper {
 
 		if (permission == null) {
 			return new AlwaysTrueUserPermissionsChecker(this);
-			
+
 		} else {
 			RolesUserPermissionsChecker checker = new RolesUserPermissionsChecker(this, types, roles);
 			checker.permissions = new String[] { permission };

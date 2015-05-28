@@ -34,6 +34,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -71,6 +72,7 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 		};
 		table = buildRecordsTables();
 		viewLayout.addComponents(addButton, table);
+		viewLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		return viewLayout;
 	}
 
@@ -129,6 +131,7 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 		table.setColumnWidth("buttons", 120);
 		table.setPageLength(table.getItemIds().size());
+		table.setCaption(table.getPageLength() + " " + table.getCaption());
 
 		return table;
 	}

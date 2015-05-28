@@ -22,7 +22,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -41,6 +40,7 @@ import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
+import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -99,7 +99,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected String getTitle() {
-		return $("DisplayDocumentView.viewTitle");
+		return $("DisplayDocumentView.viewTitle") + " " + presenter.getDocumentTitle();
 	}
 
 	@Override

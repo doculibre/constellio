@@ -33,7 +33,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.FieldsPopulator;
 
 public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
@@ -46,10 +45,9 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	List<String> collectionLanguages;
 
-	public SearchFieldsPopulator(MetadataSchemaTypes types, LanguageDetectionManager languageDectionServices,
-			ContentManager contentManager,
-			List<String> collectionLanguages) {
-		super(types);
+	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
+			ContentManager contentManager, List<String> collectionLanguages) {
+		super(types, fullRewrite);
 		//	this.languageDectionServices = languageDectionServices;
 		this.contentManager = contentManager;
 		this.collectionLanguages = collectionLanguages;
@@ -58,7 +56,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	@Override
 	public Map<String, Object> populateCopyfields(Metadata metadata, Object value) {
 
-		if (metadata.isSearchable()) {
+		if (metadata.isSearchable() && !"id".equals(metadata.getLocalCode())) {
 
 			String dataStoreCode = metadata.getDataStoreCode();
 			String copiedMetadataCodePrefix;

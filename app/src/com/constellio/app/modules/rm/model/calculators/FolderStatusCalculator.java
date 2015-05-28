@@ -31,7 +31,6 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 public class FolderStatusCalculator implements MetadataValueCalculator<FolderStatus> {
-
 	LocalDependency<LocalDate> transferDateParam = LocalDependency.toADate(Folder.ACTUAL_TRANSFER_DATE);
 	LocalDependency<LocalDate> depositDateParam = LocalDependency.toADate(Folder.ACTUAL_DEPOSIT_DATE);
 	LocalDependency<LocalDate> destructionDateParam = LocalDependency.toADate(Folder.ACTUAL_DESTRUCTION_DATE);

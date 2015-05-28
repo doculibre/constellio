@@ -46,11 +46,13 @@ import com.constellio.app.ui.pages.base.SessionContext;
 public interface FolderForm extends Serializable {
 
 	void reload();
+	
+	void commit();
 
 	ConstellioFactories getConstellioFactories();
 
 	SessionContext getSessionContext();
 
-	CustomFolderField getCustomField(String metadataCode);
+	CustomFolderField<?> getCustomField(String metadataCode);
 
 }

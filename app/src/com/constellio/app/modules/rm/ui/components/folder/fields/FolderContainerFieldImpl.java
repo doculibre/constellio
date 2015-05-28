@@ -26,7 +26,6 @@ public class FolderContainerFieldImpl extends LookupRecordField implements Folde
 		super(ContainerRecord.SCHEMA_TYPE);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String getFieldValue() {
 		return (String) getConvertedValue();

@@ -101,7 +101,6 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(rgdRole.getOperationPermissions()).containsAll(CorePermissions.getAllPermissions());
 		assertThat(rgdRole.getOperationPermissions()).has(noDuplicates());
 	}
-
 	//--------------------------------------------------------------
 
 	String testCase;

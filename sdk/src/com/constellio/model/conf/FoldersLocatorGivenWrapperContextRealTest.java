@@ -47,7 +47,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	static String givenJavaRootFolderIsNewWebappFolder = "givenJavaRootFolderIsNewWebappFolder";
 	static File constellioProperties, constellioSetupProperties, wrapperInstallationFolder, conf, importation, bin, webapp,
 			webapp2, webapp3, webinf, wrapperConf, command, deploy, temp, commandCmdTxt, uploadConstellioWar, settings, custom,
-			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail;
+			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, buildData;
 	@Rule public TestRule benchmarkRun = new BenchmarkRule();
 	String testCase;
 	FoldersLocator foldersLocator;
@@ -92,6 +92,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 		command = new File(webinf, "command");
 		commandCmdTxt = new File(command, "cmd");
 		uploadConstellioWar = new File(wrapperInstallationFolder, "constellio.war");
+		buildData = new File(webapp, "data.txt");
 
 		importation.mkdir();
 		conf.mkdir();
@@ -242,6 +243,12 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 
 		assertThat(foldersLocator.getDefaultSettingsFolder()).isEqualTo(settings);
 	}
+
+	/*@Test
+	public void whenGetBuildDataFileThenObtainCorrectFolder() {
+		assertThat(foldersLocator.getBuildDataFile()).isEqualTo(buildData);
+	}
+	*/
 
 	@Test
 	public void whenGetLibFolderThenObtainCorrectFolder() {

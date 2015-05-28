@@ -145,6 +145,17 @@ public class GlobalGroupVODataProvider implements DataProvider {
 		return filteredGlobalGroupVOs;
 	}
 
+	public List<GlobalGroupVO> listGlobalGroupVOs(int startIndex, int count) {
+		int toIndex = startIndex + count;
+		List subList = new ArrayList();
+		if (startIndex > filteredGlobalGroupVOs.size()) {
+			return subList;
+		} else if (toIndex > filteredGlobalGroupVOs.size()) {
+			toIndex = filteredGlobalGroupVOs.size();
+		}
+		return filteredGlobalGroupVOs.subList(startIndex, toIndex);
+	}
+
 	public List<GlobalGroupVO> listActiveGlobalGroupVOsFromUser(String username) {
 		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
 		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {

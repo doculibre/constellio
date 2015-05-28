@@ -68,11 +68,14 @@ public abstract class MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder applyI18N(MetadataSchemaTypeBuilder schemaType) {
 
-		String schemaKey = "init." + schemaType.getCode();
-		String schemaLabel = migrationResourcesProvider.getDefaultLanguageString(schemaKey);
-		setLabel(schemaType, schemaLabel, true);
+		String schemaTypeKey = "init." + schemaType.getCode();
+		String schemaTypeLabel = migrationResourcesProvider.getDefaultLanguageString(schemaTypeKey);
+		setLabel(schemaType, schemaTypeLabel, true);
 
 		for (MetadataSchemaBuilder schemaBuilder : schemaType.getAllSchemas()) {
+			String schemaKey = schemaTypeKey + "." + schemaBuilder.getLocalCode();
+			String schemaLabel = migrationResourcesProvider.getDefaultLanguageString(schemaKey);
+			setLabel(schemaBuilder, schemaLabel, true);
 			for (MetadataBuilder metadataBuilder : schemaBuilder.getMetadatas()) {
 
 				boolean overwrite = true;

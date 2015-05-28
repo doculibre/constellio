@@ -32,7 +32,6 @@ public class FolderAdministrativeUnitFieldImpl extends ComboBox implements Folde
 		return captionConverter.convertToPresentation((String) itemId, String.class, getLocale());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String getFieldValue() {
 		return (String) getConvertedValue();

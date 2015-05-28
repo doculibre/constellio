@@ -142,6 +142,10 @@ public class LangUtils {
 		return new ArrayList<>(new HashSet<>(value));
 	}
 
+	public static <T> List<T> withoutNulls(List<T> items) {
+		return (List<T>) withoutNulls((Collection<T>) items);
+	}
+
 	public static <T> Collection<T> withoutNulls(Collection<T> userPermissionsOnRecord) {
 
 		List<T> withoutNulls = new ArrayList<>();

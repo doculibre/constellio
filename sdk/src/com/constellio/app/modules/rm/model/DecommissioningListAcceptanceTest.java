@@ -49,7 +49,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class DecommissioningListAcceptanceTest extends ConstellioTest {
-
 	LocalDate november4 = new LocalDate(2009, 11, 4);
 	LocalDate december12 = new LocalDate(2009, 12, 12);
 	LocalDate january12_2010 = new LocalDate(2010, 1, 12);
@@ -258,8 +257,10 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	}
 
 	StorageSpace newStorageSpace() {
+		int token = anInteger();
 		StorageSpace storageSpace = schemas.newStorageSpace();
-		storageSpace.setCode("storageSpace" + anInteger());
+		storageSpace.setTitle("Storage space " + token);
+		storageSpace.setCode("storageSpace" + token);
 		try {
 			recordServices.add(storageSpace.getWrappedRecord(), User.GOD);
 			return storageSpace;

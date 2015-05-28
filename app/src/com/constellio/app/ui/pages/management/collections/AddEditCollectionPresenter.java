@@ -136,9 +136,9 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		UserServices userServices = modelLayerFactory.newUserServices();
 		UserCredential currentUser = userServices.getUser(getCurrentUser().getUsername());
 		userServices.addUserToCollection(currentUser, newCollectionRecord.getId());
-		User user = userServices.getUserInCollection(currentUser.getUsername(), collection);
+		User user = userServices.getUserInCollection(currentUser.getUsername(), code);
 		try {
-			recordServices().update(user.setUserRoles(Arrays.asList(RMRoles.RGD)));
+			recordServices().update(user.setUserRoles(Arrays.asList(RMRoles.RGD)).setCollectionAllAccess(true));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -173,7 +173,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	public void backButtonClick() {
 		view.navigateTo().manageCollections();
 	}
-	
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_COLLECTIONS).globally();

@@ -70,6 +70,8 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	private Label codeCaptionLabel, codeDisplayComponent, nameCaptionLabel, nameDisplayComponent;
 
+	private final int batchSize = 100;
+
 	private BaseDisplay globalGroupDisplay;
 	private Table subGroupTable, userTable, availableUserTable;
 	private HorizontalLayout filterAndSearchButtonLayoutSubGroups, filterAndSearchButtonLayoutGlobalGroupsUser, filterAndSearchButtonLayoutAvailableUsers;
@@ -156,7 +158,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		final GlobalGroupVODataProvider dataProvider = presenter.getGlobalGroupVODataProvider();
 		List<GlobalGroupVO> subGroupsVOs = dataProvider.listActiveSubGlobalGroupsVOsFromGroup(globalGroupVO.getCode());
 		dataProvider.setGlobalGroupVOs(subGroupsVOs);
-		Container container = new GlobalGroupVOLazyContainer(dataProvider);
+		Container container = new GlobalGroupVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		addSubGroupButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
@@ -166,7 +168,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	private Table buildUserTable() {
 		final UserCredentialVODataProvider dataProvider = presenter.getUserCredentialVODataProvider(globalGroupVO.getCode());
-		Container container = new UserCredentialVOLazyContainer(dataProvider);
+		Container container = new UserCredentialVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		addUserButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
@@ -180,7 +182,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		List<UserCredentialVO> availableUserCredentialVOs = dataProvider.listActifsUserCredentialVOsNotInGlobalGroup(
 				globalGroupVO.getCode());
 		dataProvider.setUserCredentialVOs(availableUserCredentialVOs);
-		Container container = new UserCredentialVOLazyContainer(dataProvider);
+		Container container = new UserCredentialVOLazyContainer(dataProvider, batchSize);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
@@ -207,7 +209,11 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 	private Table buildTable(Container container, String title) {
 		Table table = new Table($(title), container);
-		table.setPageLength(table.getItemIds().size());
+		int tableSize = batchSize;
+		if (tableSize > table.getItemIds().size()) {
+			tableSize = table.getItemIds().size();
+		}
+		table.setPageLength(tableSize);
 		table.setWidth("100%");
 		table.setSelectable(true);
 		table.setImmediate(true);

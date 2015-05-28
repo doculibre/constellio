@@ -22,6 +22,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.xml.transform.Source;
@@ -168,6 +170,14 @@ public class RetentionRuleXMLExporter {
 		}
 
 		List<AdministrativeUnit> allAdministrativesUnits = rm.getAdministrativesUnits(rule.getAdministrativeUnits());
+
+		Collections.sort(allAdministrativesUnits, new Comparator<AdministrativeUnit>() {
+			@Override
+			public int compare(AdministrativeUnit o1, AdministrativeUnit o2) {
+				return o1.getCode().compareTo(o2.getCode());
+			}
+		});
+
 		String administrativesUnitsNamesString = "";
 
 		for (AdministrativeUnit anAdministrativeUnit : allAdministrativesUnits) {
@@ -231,6 +241,13 @@ public class RetentionRuleXMLExporter {
 		List<MediumType> mediumTypesCodes = rm.getMediumTypes(mediumTypesIds);
 		String mediumTypeCode = "";
 
+		Collections.sort(mediumTypesCodes, new Comparator<MediumType>() {
+			@Override
+			public int compare(MediumType o1, MediumType o2) {
+				return o1.getCode().compareTo(o2.getCode());
+			}
+		});
+
 		for (MediumType aMediumType : mediumTypesCodes) {
 			if (mediumTypeCode == "") {
 				mediumTypeCode = aMediumType.getCode().toLowerCase();
@@ -272,7 +289,7 @@ public class RetentionRuleXMLExporter {
 	private String getCategoriesTitlesToString(RetentionRule rule) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)));
+				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)).sortAsc(CODE));
 
 		List<Category> categories = rm.wrapCategories(records);
 		String categoriesTitles = "";
@@ -291,7 +308,7 @@ public class RetentionRuleXMLExporter {
 	private String getCategoriesCodeToString(RetentionRule rule) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)));
+				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)).sortAsc(CODE));
 
 		List<Category> categories = rm.wrapCategories(records);
 		String categoriesCodes = "";

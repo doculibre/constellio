@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -49,7 +50,20 @@ public class ParentPathCalculator implements MetadataValueCalculator<List<String
 		}
 
 		Collections.sort(calculatedValue);
-		return calculatedValue;
+
+		for (int i = 0; i < calculatedValue.size(); i++) {
+			String calculatedValueAtI = calculatedValue.get(i);
+			if (calculatedValueAtI != null) {
+				for (int j = 0; j < calculatedValue.size(); j++) {
+					String calculatedValueAtJ = calculatedValue.get(j);
+					if (i != j && calculatedValueAtJ != null && calculatedValueAtI.startsWith(calculatedValueAtJ)) {
+						calculatedValue.set(j, null);
+					}
+				}
+			}
+		}
+
+		return LangUtils.withoutNulls(calculatedValue);
 	}
 
 	@Override

@@ -126,7 +126,7 @@ public class MetadataSchema {
 				for (Metadata metadata : metadatas) {
 					if (metadata.isTaxonomyRelationship() && metadata.getType() == MetadataValueType.REFERENCE) {
 						String referencedType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
-						if (taxonomy.getSchemaTypes().contains(referencedType)) {
+						if (taxonomy.getSchemaTypes().contains(referencedType) && metadata.isTaxonomyRelationship()) {
 							returnedMetadata.add(metadata);
 						}
 					}

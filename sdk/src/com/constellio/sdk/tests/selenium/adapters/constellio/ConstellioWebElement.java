@@ -56,7 +56,7 @@ public class ConstellioWebElement extends WebElementAdapter<ConstellioWebElement
 	}
 
 	public void clickAndWaitForPageReload() {
-		clickAndWaitForPageReload(100);
+		clickAndWaitForPageReload(3);
 	}
 
 	public void clickAndWaitForPageReload(int timeoutInSeconds) {

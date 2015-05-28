@@ -30,9 +30,12 @@ import com.constellio.app.modules.rm.extensions.AdministrativeUnitRecordSynchron
 import com.constellio.app.modules.rm.extensions.RMModulePageAccessExtension;
 import com.constellio.app.modules.rm.extensions.RMSchemaTypeAccessExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyTypeAccessExtension;
+import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4_1;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
@@ -64,6 +67,8 @@ public class ConstellioRMModule implements InstallableModule {
 		migrationScripts.add(new RMMigrationTo5_0_1());
 		migrationScripts.add(new RMMigrationTo5_0_2());
 		migrationScripts.add(new RMMigrationTo5_0_3());
+		migrationScripts.add(new RMMigrationTo5_0_4());
+		migrationScripts.add(new RMMigrationTo5_0_4_1());
 
 		return migrationScripts;
 	}
@@ -103,6 +108,8 @@ public class ConstellioRMModule implements InstallableModule {
 		AdministrativeUnitRecordSynchronization synchronization =
 				new AdministrativeUnitRecordSynchronization(collection, modelLayerFactory);
 		synchronization.registerTo(listeners);
+
+		listeners.recordImportBehaviors.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 	}
 
 	@Override

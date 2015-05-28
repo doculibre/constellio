@@ -174,4 +174,8 @@ public class AdminRMModulePresenter extends BasePresenter<AdminRMModuleView> {
 
 		return collectionManagementAccess || systemManagementAccess;
 	}
+
+	public void importUsersFileButtonClicked() {
+		view.navigateTo().importUsers();
+	}
 }
