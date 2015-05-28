@@ -84,7 +84,7 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 		presenter.setSchemaCode(setup.anotherDefaultSchemaCode());
 
 		presenter.addButtonClicked();
-		String params = "schemaTypeCode=anotherSchemaType;metadataCode=;schemaCode=anotherSchemaType_default";
+		String params = "metadataCode=;schemaCode=anotherSchemaType_default;schemaTypeCode=anotherSchemaType";
 		verify(view.navigateTo()).addMetadata("editMetadata/" + URLEncoder.encode(params));
 	}
 
@@ -98,7 +98,7 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 
 		presenter.editButtonClicked(metadataVO);
 
-		String params = "schemaTypeCode=anotherSchemaType;metadataCode=anotherSchemaType_default_title;schemaCode=anotherSchemaType_default";
+		String params = "metadataCode=anotherSchemaType_default_title;schemaCode=anotherSchemaType_default;schemaTypeCode=anotherSchemaType";
 		verify(view.navigateTo()).editMetadata("editMetadata/" + URLEncoder.encode(params));
 	}
 
@@ -109,7 +109,7 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 
 		presenter.backButtonClicked();
 
-		String params = "schemaTypeCode=anotherSchemaType;schemaCode=anotherSchemaType_default";
+		String params = "schemaCode=anotherSchemaType_default;schemaTypeCode=anotherSchemaType";
 
 		verify(view.navigateTo()).listSchema("editSchema/" + URLEncoder.encode(params));
 	}

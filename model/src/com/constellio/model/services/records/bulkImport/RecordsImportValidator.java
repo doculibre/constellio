@@ -25,6 +25,7 @@ import static com.constellio.model.services.records.bulkImport.RecordsImportServ
 import static com.constellio.model.services.records.bulkImport.Resolver.toResolver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -153,7 +154,9 @@ public class RecordsImportValidator {
 
 	private void validateAllReferencesResolved() {
 		for (String uniqueValueMetadata : type.getAllMetadatas().onlyUniques().toLocalCodesList()) {
-			List<String> unresolved = resolverCache.getUnresolvableUniqueValues(type.getCode(), uniqueValueMetadata);
+			List<String> unresolved = new ArrayList<>(
+					resolverCache.getUnresolvableUniqueValues(type.getCode(), uniqueValueMetadata));
+			Collections.sort(unresolved);
 			if (!unresolved.isEmpty()) {
 				error(UNRESOLVED_VALUE, asMap(uniqueValueMetadata, unresolved.toString()));
 			}

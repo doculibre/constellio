@@ -20,7 +20,10 @@ package com.constellio.app.ui.params;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,12 +35,12 @@ public class ParamUtils {
 
 	public static final String PARAM_SEP = ";";
 	public static final String NAME_VALUE_SEP = "=";
-	
+
 	public static String getParams() {
 		String path = Page.getCurrent().getUriFragment();
 		return getParams(path);
 	}
-	
+
 	public static Map<String, String> getParamsMap() {
 		String path = getParams();
 		return getParamsMap(path);
@@ -57,14 +60,14 @@ public class ParamUtils {
 		}
 		return paramsStr;
 	}
-	
+
 	public static void setParams(String newParams) {
 		String viewNameAndParams = UI.getCurrent().getNavigator().getState();
 		String viewName = StringUtils.substringBefore(viewNameAndParams, "/");
 		String viewNameAndNewParams = viewName + "/" + newParams;
 		Page.getCurrent().setUriFragment("!" + viewNameAndNewParams, false);
 	}
-	
+
 	public static void setParams(Map<String, ?> params) {
 		String paramsAsString = addParams("", params);
 		setParams(paramsAsString);
@@ -73,8 +76,10 @@ public class ParamUtils {
 	public static String addParams(String viewName, Map<String, ?> params) {
 		String pathWithParams;
 		StringBuffer sb = new StringBuffer();
+		List<String> keys = new ArrayList<>(params.keySet());
+		Collections.sort(keys);
 		if (params != null && !params.isEmpty()) {
-			for (String paramName : params.keySet()) {
+			for (String paramName : keys) {
 				if (sb.length() > 0) {
 					sb.append(PARAM_SEP);
 				}
@@ -84,7 +89,7 @@ public class ParamUtils {
 				sb.append(paramValue);
 			}
 		}
-		
+
 		String encodedParams = urlEncode(sb.toString());
 		if (StringUtils.isNotBlank(viewName)) {
 			pathWithParams = viewName + "/" + encodedParams;

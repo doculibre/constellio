@@ -118,11 +118,21 @@ public class MainLayoutPresenter implements Serializable {
 		String version = appLayerFactory.newMigrationServices().getCurrentVersion(collection);
 
 		if (version != null) {
-			return version + (isBeta() ? " beta" : "");
+			return toThreeDigitVersion(version) + (isBeta() ? " beta" : "");
 		} else {
 			return isBeta() ? "beta" : "";
 		}
 
+	}
+
+	private String toThreeDigitVersion(String version) {
+
+		String[] versionSplitted = version.split("\\.");
+
+		if (versionSplitted.length == 4) {
+			return versionSplitted[0] + "." + versionSplitted[1] + "." + versionSplitted[2];
+		}
+		return version;
 	}
 
 	public boolean isBeta() {
