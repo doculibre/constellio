@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records datePattern="yyyy-MM-dd">
+    <record id="660">
+        <administrativeUnitEntered>code:2014AKA</administrativeUnitEntered>
+        <categoryEntered>22231</categoryEntered>
+        <copyStatusEntered>P</copyStatusEntered>
+        <filingSpaceEntered>23</filingSpaceEntered>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords multivalue="true">
+            <item>frozen</item>
+            <item>wonderland</item>
+        </keywords>
+        <mediumTypes multivalue="true">
+        	<item>code:PA</item>
+        	<item>code:DM</item>
+        </mediumTypes>
+        <deleted>true</deleted>
+        <actualTransferDate type="date">2010-05-29</actualTransferDate>
+        <retentionRuleEntered>code:1</retentionRuleEntered>
+        <title>A Wonderful and Cold Folder</title>
+    </record>
+    <record id="670">
+        <administrativeUnitEntered>code:2014AKA</administrativeUnitEntered>
+        <categoryEntered>code:X2223</categoryEntered>
+        <copyStatusEntered>S</copyStatusEntered>
+        <filingSpaceEntered>00</filingSpaceEntered>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords></keywords>
+        <mediumTypes>null</mediumTypes>
+        <actualTransferDate type="date">2010-05-29</actualTransferDate>
+        <retentionRuleEntered>code:3</retentionRuleEntered>
+        <title>A Wonderful |#!/$%?*()_+ Folder</title>
+    </record>
+    <record id="661">
+        <parentFolder>660</parentFolder>
+        <title>A Wonderful and Cold (Sub)Folder</title>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords></keywords>
+    </record>
+    <record id="662">
+        <parentFolder>660</parentFolder>
+        <openingDate type="date">2015-04-16</openingDate>
+        <title>A Wonderful and Cold (Sub)Folder Again</title>
+        <keywords></keywords>
+    </record>
+</records>

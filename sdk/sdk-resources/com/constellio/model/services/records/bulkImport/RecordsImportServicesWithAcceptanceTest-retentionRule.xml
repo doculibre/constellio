@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records datetimePattern="yyyy-MM-dd HH:mm:ss:SSS" datePattern="yyyy-MM-dd">
+    <record id="1">
+        <title>Rule#1</title>
+        <code>111190</code>
+        <description>Documents produits ou reçus relatifs à la gestion des documents constitutifs. Les documents peuvent comprendre les certifications, les lettres patentes, la charte et les statuts.</description>
+        <corpus/>
+        <corpusRuleNumber/>
+        <approved>true</approved>
+        <approvalDate type="date">2015-05-01</approvalDate>
+        <documentTypesDetails multivalue="true" type="structure">
+            <item archivisticStatus="D" code="2"/>
+        </documentTypesDetails>
+        <juridicReference/>
+        <generalComment/>
+        <history/>
+        <essentialDocuments>false</essentialDocuments>
+        <confidentialDocuments>false</confidentialDocuments>
+        <keywords multivalue="true">
+            <item>Rule #1</item>
+        </keywords>
+        <copyRetentionRules multivalue="true" type="structure">
+            <item code="123" copyType="S" mediumTypes="DM" contentTypesComment="" activeRetentionPeriod="999" activeRetentionPeriodComment="" semiActiveRetentionPeriod="0" semiActiveRetentionPeriodComment="" inactiveDisposalType="D" inactiveDisposalComment=""/>
+            <item code="123" copyType="P" mediumTypes="PA" contentTypesComment="" activeRetentionPeriod="999" activeRetentionPeriodComment="R1" semiActiveRetentionPeriod="0" semiActiveRetentionPeriodComment="" inactiveDisposalType="C" inactiveDisposalComment=""/>
+        </copyRetentionRules>
+        <administrativeUnits multivalue="true">
+            <item>42</item>
+            <item>41</item>
+        </administrativeUnits>
+        <responsibleAdministrativeUnits>false</responsibleAdministrativeUnits>
+    </record>
+    <record id="2">
+        <code>111201</code>
+        <title>Conseil d'administration</title>
+        <description>Documents produits ou reçus relatifs à l'historique de l'Ordre et aux événements qui ont marqué le cours de son développement. Les documents peuvent comprendre les textes, les notes, les images fixes ou animées.</description>
+        <corpus/>
+        <corpusRuleNumber>Hello, i'm just some text from the corpus, trying to test the feature</corpusRuleNumber>
+        <approved>true</approved>
+        <approvalDate type="date">2015-05-01</approvalDate>
+        <documentTypesDetails multivalue="true" type="structure">
+            <documentTypesDetails archivisticStatus="D" code="1"/>
+        </documentTypesDetails>
+        <juridicReference/>
+        <generalComment/>
+        <history/>
+        <essentialDocuments>false</essentialDocuments>
+        <confidentialDocuments>true</confidentialDocuments>
+        <keywords multivalue="true"/>
+        <copyRetentionRules multivalue="true" type="structure">
+            <item code="123" copyType="S" mediumTypes="DM,PA" contentTypesComment="" activeRetentionPeriod="999" activeRetentionPeriodComment="" semiActiveRetentionPeriod="0" semiActiveRetentionPeriodComment="" inactiveDisposalType="D" inactiveDisposalComment=""/>
+            <item code="123" copyType="P" mediumTypes="PA" contentTypesComment="" activeRetentionPeriod="999" activeRetentionPeriodComment="R1" semiActiveRetentionPeriod="0" semiActiveRetentionPeriodComment="" inactiveDisposalType="C" inactiveDisposalComment=""/>
+            <item code="123" copyType="P" mediumTypes="DM" contentTypesComment="" activeRetentionPeriod="888" activeRetentionPeriodComment="R2" semiActiveRetentionPeriod="0" semiActiveRetentionPeriodComment="" inactiveDisposalType="T" inactiveDisposalComment=""/>
+        </copyRetentionRules>
+        <administrativeUnits multivalue="true">
+            <item>40</item>
+        </administrativeUnits>
+        <responsibleAdministrativeUnits>false</responsibleAdministrativeUnits>
+    </record>
+</records>

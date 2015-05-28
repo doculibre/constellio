@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+    <record id="40">
+        <code>2014AKA</code>
+        <description>I am a very wonderful Administrative Unit !</description>
+        <title>Administrative Unit Wonderful</title>
+        <parent>null</parent>
+        <filingSpaces multivalue="true">
+			<item>code:COLD</item>
+		</filingSpaces>
+    </record>
+    <record id="41">
+        <code>2014AKA1</code>
+        <description></description>
+        <title>Administrative Unit Badass</title>
+        <parent>40</parent>
+        <filingSpaces multivalue="true">
+            <item>code:HOT</item>
+            <item>code:COLD</item>
+        </filingSpaces>
+    </record>
+    <record id="42">
+        <code>2014AKA2</code>
+        <description>null</description>
+        <title>Administrative Unit with magical poney inside</title>
+        <parent>40</parent>
+        <filingSpaces multivalue="true"></filingSpaces>
+    </record>
+</records>

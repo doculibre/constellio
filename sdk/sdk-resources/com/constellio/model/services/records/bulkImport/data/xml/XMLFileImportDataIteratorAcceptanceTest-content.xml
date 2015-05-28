@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records> 
+	<record id="1">
+		<content type="content" url="https://www.gutenberg.org/cache/epub/338/pg338.txt" filename="aName"></content>
+	</record>
+	<record id="2">
+		<content type="content" multivalue="true">
+			<item url="https://www.gutenberg.org/cache/epub/338/pg338.txt" filename="anOtherName" major="true"></item>
+        	<item url="https://www.gutenberg.org/cache/epub/338/pg338.txt" filename="aThirdName" major="false"></item>
+        </content>
+	</record>
+</records>

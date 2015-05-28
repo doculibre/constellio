@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<userCredentials>
+    <userCredential username="mari">
+        <firstName>Mari</firstName>
+        <lastName>Wonderland</lastName>
+        <email>alice@doculibre.com</email>
+        <serviceKey>null</serviceKey>
+        <systemAdmin>false</systemAdmin>
+        <globalGroups multivalue="true">
+            <item>legends</item>
+            <item>heroes</item>
+        </globalGroups>
+        <collections multivalue="true">
+            <item>zeCollection</item>
+        </collections>
+        <status>a</status>
+        <domain>domain</domain>
+    </userCredential>
+    <userCredential username="bob">
+        <firstName>Bob 'Elvis'</firstName>
+        <lastName>Gratton</lastName>
+        <email>bob@doculibre.com</email>
+        <serviceKey>null</serviceKey>
+        <tokens />
+        <systemAdmin>true</systemAdmin>
+        <globalGroups multivalue="true">
+        </globalGroups>
+        <collections multivalue="true">
+            <item>zeCollection</item>
+        </collections>
+        <status>a</status>
+        <domain>domain</domain>
+    </userCredential>
+</userCredentials>

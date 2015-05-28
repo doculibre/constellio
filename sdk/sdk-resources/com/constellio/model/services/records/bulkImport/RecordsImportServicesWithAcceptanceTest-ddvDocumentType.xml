@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+    <record id="1010">
+    	<code>TP</code>
+    	<title>Table de pierre</title>
+    </record>
+    <record id="2020">
+    	<code>VE</code>
+    	<title>Verre</title>
+    </record>
+</records>
