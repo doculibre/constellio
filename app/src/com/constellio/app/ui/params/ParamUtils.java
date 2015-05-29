@@ -76,7 +76,10 @@ public class ParamUtils {
 	public static String addParams(String viewName, Map<String, ?> params) {
 		String pathWithParams;
 		StringBuffer sb = new StringBuffer();
-		List<String> keys = new ArrayList<>(params.keySet());
+		List<String> keys = new ArrayList<>();
+		if (params != null) {
+			keys.addAll(params.keySet());
+		}
 		Collections.sort(keys);
 		if (params != null && !params.isEmpty()) {
 			for (String paramName : keys) {

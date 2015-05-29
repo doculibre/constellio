@@ -106,7 +106,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.waitForPageReload();
 
 		assertThat(driver.getCurrentPage()).isEqualTo(
-				NavigatorConfigurationService.GROUP_ADD_EDIT + "/locale=fr;globalGroupCode=heroes");
+				NavigatorConfigurationService.GROUP_ADD_EDIT + "/globalGroupCode=heroes;locale=fr");
 	}
 
 	private void givenUserInZePageWihtParamsWhenClickInModifyProfileAndClickSaveThenNavigateToZePageWithParams()
@@ -119,7 +119,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.waitForPageReload();
 
 		assertThat(driver.getCurrentPage()).isEqualTo(
-				NavigatorConfigurationService.GROUP_ADD_EDIT + "/locale=fr;globalGroupCode=heroes");
+				NavigatorConfigurationService.GROUP_ADD_EDIT + "/globalGroupCode=heroes;locale=fr");
 
 	}
 
@@ -187,7 +187,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.getSaveButton().click();
 
 		assertThat(driver.getCurrentPage()).isEqualTo(
-				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/locale=fr;globalGroupCode=heroes");
+				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 
 	}
 
@@ -205,7 +205,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 
 		assertThat(authenticationService.authenticate("admin", "newPassword")).isFalse();
 		assertThat(driver.getCurrentPage()).isEqualTo(
-				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/locale=fr;globalGroupCode=heroes");
+				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 	}
 
 	private void givenEmptyOldPasswordWhenModifyPasswordThenItIsNotUpdated() {
@@ -222,7 +222,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 
 		assertThat(authenticationService.authenticate("admin", "newPassword")).isFalse();
 		assertThat(driver.getCurrentPage()).isEqualTo(
-				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/locale=fr;globalGroupCode=heroes");
+				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 	}
 
 	private void givenWrongConfirmPasswordWhenModifyPasswordThenItIsNotUpdated() {
@@ -239,7 +239,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 
 		assertThat(authenticationService.authenticate("admin", "newPassword")).isFalse();
 		assertThat(driver.getCurrentPage()).isEqualTo(
-				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/locale=fr;globalGroupCode=heroes");
+				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 	}
 
 	private void givenEmptyConfirmPasswordWhenModifyPasswordThenItIsNotUpdated() {
@@ -256,7 +256,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 
 		assertThat(authenticationService.authenticate("admin", "newPassword")).isFalse();
 		assertThat(driver.getCurrentPage()).isEqualTo(
-				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/locale=fr;globalGroupCode=heroes");
+				NavigatorConfigurationService.MODIFY_PROFILE + "/groupAddEdit/globalGroupCode=heroes;locale=fr");
 	}
 
 	private void whenModifyPasswordThenItIsUpdated()

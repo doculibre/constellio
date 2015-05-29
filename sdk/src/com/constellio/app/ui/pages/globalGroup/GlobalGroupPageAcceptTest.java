@@ -212,7 +212,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.USER_ADD_EDIT
-						+ "/groupList/groupDisplay/username%253Dadmin%253BglobalGroupCode%253Dheroes");
+						+ "/groupList/groupDisplay/globalGroupCode%253Dheroes%253Busername%253Dadmin");
 	}
 
 	public void givenDisplayPageWhenClickInDeleteUserFromGroupThenCanSearchHimInUserTable()

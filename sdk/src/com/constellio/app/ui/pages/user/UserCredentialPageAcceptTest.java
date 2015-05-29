@@ -252,7 +252,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.GROUP_ADD_EDIT
 						+ "/" + NavigatorConfigurationService.USER_LIST + "/" + NavigatorConfigurationService.USER_DISPLAY
-						+ "/username%253Dadmin%253BglobalGroupCode%253Dheroes");
+						+ "/globalGroupCode%253Dheroes%253Busername%253Dadmin");
 	}
 
 	private void givenDisplayPageWhenClickInRemoveGroupFromUserThenCanSearchItInGroupsTable()
