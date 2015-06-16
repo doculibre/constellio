@@ -753,6 +753,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void givenRadioButtonMetadataReferencingOneUserUnitThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.RADIO_BUTTONS, new MetadataBuilderConfigurator() {
@@ -3354,8 +3355,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		SchemaDisplayConfig schemaConfig = schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
 		List<String> formMetadatas = new ArrayList<>(schemaConfig.getFormMetadataCodes());
 		List<String> displayMetadatas = new ArrayList<>(schemaConfig.getDisplayMetadataCodes());
-		formMetadatas.addAll(asList(metadata1, metadata2));
-		displayMetadatas.addAll(asList(metadata1, metadata2));
+		formMetadatas.addAll(asList(Folder.DEFAULT_SCHEMA + "_" + metadata1, Folder.DEFAULT_SCHEMA + "_" + metadata2));
+		displayMetadatas.addAll(asList(Folder.DEFAULT_SCHEMA + "_" + metadata1, Folder.DEFAULT_SCHEMA + "_" + metadata2));
 		schemasDisplayManager.saveSchema(schemaConfig.withFormMetadataCodes(formMetadatas).withDisplayMetadataCodes(
 				displayMetadatas));
 
@@ -3363,6 +3364,16 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 				Folder.DEFAULT_SCHEMA + "_" + metadata1).withInputType(type));
 		schemasDisplayManager.saveMetadata(schemasDisplayManager.getMetadata(zeCollection,
 				Folder.DEFAULT_SCHEMA + "_" + metadata2).withInputType(type));
+
+		assertThat(schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA).getFormMetadataCodes()).contains(
+				Folder.DEFAULT_SCHEMA + "_" + metadata1,
+				Folder.DEFAULT_SCHEMA + "_" + metadata2
+		);
+
+		assertThat(schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA).getDisplayMetadataCodes()).contains(
+				Folder.DEFAULT_SCHEMA + "_" + metadata1,
+				Folder.DEFAULT_SCHEMA + "_" + metadata2
+		);
 
 	}
 

@@ -39,7 +39,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
  * Always invisible:
  * Folder.CONTAINER
  *
- * Folder.MEDIA_TYPE should have an enum-backed CHECKBOXES input type
+ * Folder.FOLDER_DEFAULT_MEDIA_TYPE should have an enum-backed CHECKBOXES input type
  *
  * @author Vincent
  */

@@ -21,11 +21,12 @@ import java.io.Serializable;
 
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public class Criterion implements Serializable {
 	public enum BooleanOperator {AND, OR, AND_NOT}
 
-	public enum SearchOperator {EQUALS, CONTAINS_TEXT, LESSER_THAN, GREATER_THAN, BETWEEN, IS_TRUE, IS_FALSE}
+	public enum SearchOperator {EQUALS, CONTAINS_TEXT, LESSER_THAN, GREATER_THAN, BETWEEN, IS_TRUE, IS_FALSE, IN_HIERARCHY}
 
 	private String schemaType;
 	private MetadataVO metadata;
@@ -57,7 +58,9 @@ public class Criterion implements Serializable {
 	}
 
 	public void setMetadata(MetadataVO metadata) {
-		if (metadata.getType().isStringOrText()) {
+		if (MetadataVO.getCodeWithoutPrefix(metadata.getCode()).equals(CommonMetadataBuilder.PATH)) {
+			searchOperator = SearchOperator.IN_HIERARCHY;
+		} else if (metadata.getType().isStringOrText()) {
 			searchOperator = SearchOperator.CONTAINS_TEXT;
 		} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
 			searchOperator = SearchOperator.IS_TRUE;

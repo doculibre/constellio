@@ -33,10 +33,11 @@ public class InheritedMetadataBehaviors {
 	final boolean sortable;
 	final boolean searchable;
 	final boolean schemaAutocomplete;
+	final boolean essential;
 
 	public InheritedMetadataBehaviors(boolean undeletable, boolean multivalue, boolean systemReserved, boolean unmodifiable,
 			boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship, boolean sortable,
-			boolean searchable, boolean schemaAutocomplete) {
+			boolean searchable, boolean schemaAutocomplete, boolean essential) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -47,6 +48,7 @@ public class InheritedMetadataBehaviors {
 		this.sortable = sortable;
 		this.searchable = searchable;
 		this.schemaAutocomplete = schemaAutocomplete;
+		this.essential = essential;
 	}
 
 	public boolean isUndeletable() {
@@ -97,5 +99,9 @@ public class InheritedMetadataBehaviors {
 
 	public boolean isSchemaAutocomplete() {
 		return schemaAutocomplete;
+	}
+
+	public boolean isEssential() {
+		return essential;
 	}
 }

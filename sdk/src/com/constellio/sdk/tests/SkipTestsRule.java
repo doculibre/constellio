@@ -20,6 +20,7 @@ package com.constellio.sdk.tests;
 import static com.constellio.sdk.tests.TestUtils.asList;
 
 import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +56,24 @@ public class SkipTestsRule implements TestRule {
 	private List<String> blackList;
 	private Class<? extends AbstractConstellioTest> currentTestClass;
 
+	private String sunJavaCommand;
+
 	private boolean wasSkipped;
 
 	public SkipTestsRule(SDKPropertiesLoader sdkPropertiesLoader, boolean isUnitMode) {
+
+		RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
+		Map<String, String> systemProperties = bean.getSystemProperties();
+		sunJavaCommand = systemProperties.get("sun.java.command");
+		//		String bootClasspath = bean.getBootClassPath();
+		//		String classpath = bean.getClassPath();
+		//		String libraryPath = bean.getLibraryPath();
+		//		List<String> inputArguments = bean.getInputArguments();
+		//		System.out.println(inputArguments);
+		//		System.out.println(systemProperties);
+		//		System.out.println(bootClasspath);
+		//		System.out.println(classpath);
+		//		System.out.println(libraryPath);
 		this.isUnitMode = isUnitMode;
 		if (!isUnitMode) {
 			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
@@ -101,6 +117,13 @@ public class SkipTestsRule implements TestRule {
 		InDevelopmentTest inDevelopmentTestAnnotation = testClass.getAnnotation(InDevelopmentTest.class);
 		DoNotRunOnIntegrationServer doNotRunOnIntegrationServer = testClass.getAnnotation(DoNotRunOnIntegrationServer.class);
 
+		boolean isRealTest = !ConstellioTest.isUnitTest(testClass.getSimpleName());
+		inDevelopmentTest = inDevelopmentTestAnnotation != null;
+		//
+		//		if (sunJavaCommand.contains(testClass.getName())) {
+		//			return false;
+		//		}
+
 		if (isClassSkipped(testClass)) {
 			return true;
 		}
@@ -117,9 +140,6 @@ public class SkipTestsRule implements TestRule {
 		if (inDevelopmentTestAnnotation == null) {
 			inDevelopmentTestAnnotation = description.getAnnotation(InDevelopmentTest.class);
 		}
-
-		boolean isRealTest = !ConstellioTest.isUnitTest(testClass.getSimpleName());
-		inDevelopmentTest = inDevelopmentTestAnnotation != null;
 
 		if (doNotRunOnIntegrationServer != null && TestUtils.isIntegrationServer()) {
 			return true;

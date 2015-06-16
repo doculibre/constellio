@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.events;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -46,9 +48,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -73,49 +77,43 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 		MetadataSchema schema = schema();
 		RecordToVOBuilder voBuilder;
+
+		List<String> metadataCodes = null;
+		MetadataSchemaVO schemaVO = null;
 		if (EventCategory.CURRENTLY_BORROWED_DOCUMENTS.equals(eventCategory)) {
+			voBuilder = getRecordToVOBuilderToBorrowedDocuments();
+		} else if (EventCategory.CURRENTLY_BORROWED_FOLDERS.equals(eventCategory) || getEventType()
+				.equals(EventType.CURRENTLY_BORROWED_FOLDERS) || getEventType()
+				.equals(EventType.LATE_BORROWED_FOLDERS)) {
+			voBuilder = getRecordToVOBuilderToBorrowedFolders();
 
-			//TODO remove and create separate table container
-			voBuilder = new RecordToVOBuilder() {
-				transient RMSchemasRecordsServices schemas;
+			MetadataSchema folderDefaultSchema = schemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
 
-				@Override
-				public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
-						SessionContext sessionContext) {
-					MetadataSchema documentSchema = schemas().defaultDocumentSchema();
-					Metadata contentMetadata = documentSchema.getMetadata(Document.CONTENT);
-					Content content = record.get(contentMetadata);
-					LocalDateTime eventTime = content.getCheckoutDateTime().minusSeconds(1);
+			Metadata borrowUserEnteredMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_USER_ENTERED);
+			Metadata borrowDateMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_DATE);
+			Metadata borrowPreviewReturnDateMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_PREVIEW_RETURN_DATE);
+			Metadata folderIdentifierMetadata = folderDefaultSchema.getMetadata(CommonMetadataBuilder.ID);
+			Metadata titleMetadata = folderDefaultSchema.getMetadata(CommonMetadataBuilder.TITLE);
 
-					Metadata eventTypeMetadata = schema().getMetadata(Event.TYPE);
-					Metadata eventMetaData = Schemas.CREATED_ON;
-					Metadata recordIdMetadata = schema().getMetadata(Event.RECORD_ID);
-					LogicalSearchQuery query = new LogicalSearchQuery();
-					String recordId = record.getId();
-					query.setCondition(
-							LogicalSearchQueryOperators.from(schema()).where(eventTypeMetadata).isEqualTo(
-									EventType.BORROW_DOCUMENT)
-									.andWhere(eventMetaData).isGreaterOrEqualThan(
-									eventTime).andWhere(recordIdMetadata).isEqualTo(recordId));
-					SearchServices searchServices = modelLayerFactory.newSearchServices();
-					Record eventRecord = searchServices.search(query).get(0);
+			metadataCodes = new ArrayList<>();
+			metadataCodes.add(borrowUserEnteredMetadata.getCode());
+			metadataCodes.add(borrowDateMetadata.getCode());
+			metadataCodes.add(borrowPreviewReturnDateMetadata.getCode());
+			metadataCodes.add(folderIdentifierMetadata.getCode());
+			metadataCodes.add(titleMetadata.getCode());
 
-					return super.build(eventRecord, viewMode, schemaVO, sessionContext);
-				}
+			schemaVO = new MetadataSchemaToVOBuilder()
+					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 
-				private RMSchemasRecordsServices schemas() {
-					if (schemas == null) {
-						schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
-					}
-					return schemas;
-				}
-			};
 		} else {
 			voBuilder = new RecordToVOBuilder();
 		}
-		List<String> metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(schema(), getEventType());
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, metadataCodes);
-		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory) {
+		if (metadataCodes == null) {
+			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(schema(), getEventType());
+			schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, metadataCodes);
+		}
+		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
+				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return buildQueryFromParameters();
@@ -152,8 +150,14 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 							endDate,
 							id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
 		case EVENTS_BY_USER:
-			return rmSchemasEventsServices().newFindEventByDateRangeAndByUserIdQuery(currentUser, eventType, startDate,
-					endDate, id);
+			if (eventType.equals(EventType.CURRENTLY_BORROWED_FOLDERS)) {
+				return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(currentUser, id);
+			} else if (eventType.equals(EventType.LATE_BORROWED_FOLDERS)) {
+				return rmSchemasEventsServices().newFindLateBorrowedFoldersByUserAndDateRangeQuery(currentUser, id);
+			} else {
+				return rmSchemasEventsServices().newFindEventByDateRangeAndByUserIdQuery(currentUser, eventType, startDate,
+						endDate, id);
+			}
 		case CURRENTLY_BORROWED_DOCUMENTS:
 			return rmSchemasEventsServices().newFindCurrentlyBorrowedDocumentsQuery(currentUser);
 		case CURRENTLY_BORROWED_FOLDERS:
@@ -198,7 +202,8 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	}
 
 	public boolean isRecordIdMetadata(MetadataValueVO metadataValue) {
-		return metadataValue.getMetadata().getCode().contains(Event.RECORD_ID);
+		return metadataValue.getMetadata().getCode().contains(Event.RECORD_ID) || metadataValue.getMetadata().getCode()
+				.contains(CommonMetadataBuilder.ID);
 	}
 
 	public boolean isDeltaMetadata(MetadataValueVO metadataValue) {
@@ -233,5 +238,86 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		} else {
 			view.navigateTo().displayDocument(recordId);
 		}
+	}
+
+	private RecordToVOBuilder getRecordToVOBuilderToBorrowedFolders() {
+		RecordToVOBuilder voBuilder;
+		voBuilder = new RecordToVOBuilder() {
+			transient RMSchemasRecordsServices schemas;
+
+			@Override
+			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
+					SessionContext sessionContext) {
+				MetadataSchema folderSchema = schemas().defaultFolderSchema();
+				Metadata borrowDateMetadata = folderSchema.getMetadata(Folder.BORROW_DATE);
+				LocalDateTime eventTime = record.get(borrowDateMetadata);
+
+				Metadata eventTypeMetadata = schema().getMetadata(Event.TYPE);
+				Metadata eventMetaData = Schemas.CREATED_ON;
+				Metadata recordIdMetadata = folderSchema.getMetadata(Schemas.IDENTIFIER.getCode());
+				String recordId = record.getId();
+
+				Metadata borrowedMetadata = folderSchema.getMetadata(Folder.BORROWED);
+				LocalDateTime borrowDateValue = record.get(borrowDateMetadata);
+
+				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().defaultFolderSchema())
+						.where(borrowedMetadata).isTrue()
+						.andWhere(borrowDateMetadata).isEqualTo(
+								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
+
+				SearchServices searchServices = modelLayerFactory.newSearchServices();
+				Record eventRecord = searchServices.searchSingleResult(logicalSearchCondition);
+
+				return super.build(eventRecord, viewMode, schemaVO, sessionContext);
+			}
+
+			private RMSchemasRecordsServices schemas() {
+				if (schemas == null) {
+					schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+				}
+				return schemas;
+			}
+		};
+		return voBuilder;
+	}
+
+	private RecordToVOBuilder getRecordToVOBuilderToBorrowedDocuments() {
+		//TODO remove and create separate table container
+		RecordToVOBuilder voBuilder;
+		voBuilder = new RecordToVOBuilder() {
+			transient RMSchemasRecordsServices schemas;
+
+			@Override
+			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
+					SessionContext sessionContext) {
+				MetadataSchema documentSchema = schemas().defaultDocumentSchema();
+				Metadata contentMetadata = documentSchema.getMetadata(Document.CONTENT);
+				Content content = record.get(contentMetadata);
+				LocalDateTime eventTime = content.getCheckoutDateTime().minusSeconds(1);
+
+				Metadata eventTypeMetadata = schema().getMetadata(Event.TYPE);
+				Metadata eventMetaData = Schemas.CREATED_ON;
+				Metadata recordIdMetadata = schema().getMetadata(Event.RECORD_ID);
+				LogicalSearchQuery query = new LogicalSearchQuery();
+				String recordId = record.getId();
+				query.setCondition(
+						LogicalSearchQueryOperators.from(schema()).where(eventTypeMetadata).isEqualTo(
+								EventType.BORROW_DOCUMENT)
+								.andWhere(eventMetaData).isGreaterOrEqualThan(
+								eventTime).andWhere(recordIdMetadata).isEqualTo(recordId));
+				SearchServices searchServices = modelLayerFactory.newSearchServices();
+				Record eventRecord = searchServices.search(query).get(0);
+
+				return super.build(eventRecord, viewMode, schemaVO, sessionContext);
+			}
+
+			private RMSchemasRecordsServices schemas() {
+				if (schemas == null) {
+					schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+				}
+				return schemas;
+			}
+		};
+		return voBuilder;
 	}
 }

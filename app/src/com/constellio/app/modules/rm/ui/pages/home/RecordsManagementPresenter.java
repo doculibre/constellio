@@ -59,6 +59,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -122,8 +123,11 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 		MetadataSchema documentsSchema = getDocumentsSchema();
 
 		if (foldersSchema != null) {
-			foldersSchemaVO = folderEventSchemaToVOBuilder.build(foldersSchema, VIEW_MODE.TABLE);
-			documentsSchemaVO = documentEventSchemaToVOBuilder.build(documentsSchema, VIEW_MODE.TABLE);
+			List<String> wantedMetadata = Arrays.asList(CommonMetadataBuilder.TITLE, CommonMetadataBuilder.MODIFIED_ON);
+			foldersSchemaVO = folderEventSchemaToVOBuilder
+					.build(foldersSchema, VIEW_MODE.TABLE, wantedMetadata, view.getSessionContext());
+			documentsSchemaVO = documentEventSchemaToVOBuilder
+					.build(documentsSchema, VIEW_MODE.TABLE, wantedMetadata, view.getSessionContext());
 
 			tabLastViewedFolders = new RecordsManagementViewTab(
 					TAB_NAME_LAST_VIEWED_FOLDERS,

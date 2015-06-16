@@ -250,7 +250,7 @@ public class MetadataFieldFactory implements Serializable {
 		String schemaTypeCode = metadata.getSchemaTypeCode();
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass();
 		String[] taxonomyCodes = metadata.getTaxonomyCodes();
-		String firstTaxonomyCode = taxonomyCodes.length > 0 ? taxonomyCodes[0] : null;
+		String firstTaxonomyCode = (taxonomyCodes != null && taxonomyCodes.length > 0) ? taxonomyCodes[0] : null;
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 		StructureFactory structureFactory = metadata.getStructureFactory();
 

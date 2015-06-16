@@ -49,11 +49,13 @@ public class ConstellioCollectionTypeDefinitionsManager implements MetadataSchem
 	private final TypeDefinitionFactory typeDefinitionFactory;
 	private final MetadataSchemasManager metadataSchemasManager;
 
+	private String collection;
 	private Map<String, TypeDefinition> typeDefinitions;
 
 	public ConstellioCollectionTypeDefinitionsManager(ModelLayerFactory modelLayerFactory, String collection) {
+		this.collection = collection;
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		this.metadataSchemasManager.registerListener(collection, this);
+		this.metadataSchemasManager.registerListener(this);
 
 		this.typeDefinitionFactory = setupTypeDefinitionFactory();
 
@@ -107,7 +109,9 @@ public class ConstellioCollectionTypeDefinitionsManager implements MetadataSchem
 
 	@Override
 	public void onCollectionSchemasModified(String collection) {
-		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-		typeDefinitions = newCollectionRepositoryTypesDefinitionBuilder(types);
+		if (collection.equals(this.collection)) {
+			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+			typeDefinitions = newCollectionRepositoryTypesDefinitionBuilder(types);
+		}
 	}
 }

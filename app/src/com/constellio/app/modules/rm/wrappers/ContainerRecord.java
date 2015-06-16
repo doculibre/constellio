@@ -49,8 +49,8 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String TEMPORARY_IDENTIFIER = "temporaryIdentifier";
 	public static final String TYPE = "type";
 	public static final String POSITION = "position";
-
 	public static final String COMMENTS = "comments";
+	public static final String BORROWED = "borrowed";
 
 	public ContainerRecord(Record record,
 			MetadataSchemaTypes types) {
@@ -274,6 +274,15 @@ public class ContainerRecord extends RecordWrapper {
 
 	public ContainerRecord setComments(List<Comment> comments) {
 		set(COMMENTS, comments);
+		return this;
+	}
+
+	public Boolean getBorrowed() {
+		return get(BORROWED);
+	}
+
+	public ContainerRecord setBorrowed(Boolean borrowed) {
+		set(BORROWED, borrowed);
 		return this;
 	}
 }

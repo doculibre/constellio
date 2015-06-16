@@ -97,7 +97,7 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 	public void saveButtonClicked(RecordVO recordVO) {
 		try {
 			Record record = toRecord(recordVO);
-			addOrUpdate(record);
+			addOrUpdateWithoutUser(record);
 			view.navigateTo().taxonomyManagement(taxonomyCode, conceptId, null);
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));

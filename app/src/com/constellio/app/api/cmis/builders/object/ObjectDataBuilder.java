@@ -43,11 +43,12 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringImpl
 import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_Runtime;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -191,23 +192,34 @@ public class ObjectDataBuilder {
 
 	private void addPropertyForSingleValueMetadata(Set<String> orgfilter, String typeId, PropertiesImpl result, Metadata metadata,
 			Object value, String propertyCode) {
-		if (metadata.getType().isStringOrText()) {
+		if (metadata.getType().isStringOrText() || metadata.getType() == MetadataValueType.REFERENCE) {
 			addPropertyString(result, typeId, orgfilter, propertyCode, (String) value);
+
 		} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
 			addPropertyBoolean(result, typeId, orgfilter, propertyCode, (Boolean) value);
+
+		} else if (metadata.getType() == MetadataValueType.ENUM) {
+			addPropertyEnum(result, typeId, orgfilter, propertyCode, (EnumWithSmallCode) value);
+
 		} else if (metadata.getType() == MetadataValueType.NUMBER) {
 			addPropertyDouble(result, typeId, orgfilter, propertyCode, (Double) value);
-		} else if (metadata.getType() == MetadataValueType.DATE_TIME) {
+
+		} else if (metadata.getType() == MetadataValueType.DATE_TIME || metadata.getType() == MetadataValueType.DATE) {
 			GregorianCalendar calendarValue = getGregorianCalendar(value);
 			addPropertyDateTime(result, typeId, orgfilter, propertyCode, calendarValue);
+
 		} else if (metadata.getType() == MetadataValueType.CONTENT) {
 			addPropertyString(result, typeId, orgfilter, propertyCode, ((Content) value).getId());
 		}
 	}
 
 	private GregorianCalendar getGregorianCalendar(Object value) {
-		if (value != null) {
+		if (value != null && value instanceof LocalDateTime) {
 			return ((LocalDateTime) value).toDateTime().toGregorianCalendar();
+
+		} else if (value != null && value instanceof LocalDate) {
+			return ((LocalDate) value).toDateTimeAtStartOfDay().toGregorianCalendar();
+
 		} else {
 			return null;
 		}
@@ -216,16 +228,22 @@ public class ObjectDataBuilder {
 	private void addPropertyForMultiValueMetadata(Set<String> orgfilter, String typeId, PropertiesImpl result, Metadata metadata,
 			Object value, String propertyCode) {
 		if (!((List) value).isEmpty()) {
-			if (metadata.getType().isStringOrText()) {
+			if (metadata.getType().isStringOrText() || metadata.getType() == MetadataValueType.REFERENCE) {
 				addPropertyListString(result, typeId, orgfilter, propertyCode, (List<String>) value);
+
+			} else if (metadata.getType() == MetadataValueType.ENUM) {
+				addPropertyListEnum(result, typeId, orgfilter, propertyCode, (List<EnumWithSmallCode>) value);
+
 			} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
 				addPropertyListBoolean(result, typeId, orgfilter, propertyCode, (List<Boolean>) value);
+
 			} else if (metadata.getType() == MetadataValueType.NUMBER) {
 				addPropertyListInteger(result, typeId, orgfilter, propertyCode, (List<Long>) value);
-			} else if (metadata.getType() == MetadataValueType.DATE_TIME) {
+
+			} else if (metadata.getType() == MetadataValueType.DATE_TIME || metadata.getType() == MetadataValueType.DATE) {
 				List<GregorianCalendar> calendarValues = new ArrayList<>();
-				for (DateTime date : (List<DateTime>) value) {
-					calendarValues.add(date.toGregorianCalendar());
+				for (Object dateObject : (List<Object>) value) {
+					calendarValues.add(getGregorianCalendar(dateObject));
 				}
 				addPropertyListDateTime(result, typeId, orgfilter, propertyCode, calendarValues);
 			}
@@ -256,12 +274,36 @@ public class ObjectDataBuilder {
 		props.addProperty(new PropertyStringImpl(id, value));
 	}
 
+	private void addPropertyEnum(PropertiesImpl props, String typeId, Set<String> filter, String id, EnumWithSmallCode value) {
+		if (!checkAddProperty(props, typeId, filter, id)) {
+			return;
+		}
+
+		props.addProperty(new PropertyStringImpl(id, value == null ? null : value.getCode()));
+	}
+
 	private void addPropertyListString(PropertiesImpl props, String typeId, Set<String> filter, String id, List<String> value) {
 		if (!checkAddProperty(props, typeId, filter, id)) {
 			return;
 		}
 
 		props.addProperty(new PropertyStringImpl(id, value));
+	}
+
+	private void addPropertyListEnum(PropertiesImpl props, String typeId, Set<String> filter, String id,
+			List<EnumWithSmallCode> value) {
+		if (!checkAddProperty(props, typeId, filter, id)) {
+			return;
+		}
+
+		List<String> convertedValues = new ArrayList<>();
+		if (value != null) {
+			for (EnumWithSmallCode item : value) {
+				convertedValues.add(item.getCode());
+			}
+		}
+
+		props.addProperty(new PropertyStringImpl(id, convertedValues));
 	}
 
 	private void addPropertyDouble(PropertiesImpl props, String typeId, Set<String> filter, String id, Double value) {

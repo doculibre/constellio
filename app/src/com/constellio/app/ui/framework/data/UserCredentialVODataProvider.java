@@ -128,14 +128,14 @@ public class UserCredentialVODataProvider implements DataProvider {
 		return filteredUserCredentialVOs.subList(startIndex, toIndex);
 	}
 
-	public List<UserCredentialVO> listActifsUserCredentialVOs() {
-		List<UserCredentialVO> allUserCredentialVOs = new ArrayList<>();
-		List<UserCredential> userCredentials = userServices.getActifUserCredentials();
+	public List<UserCredentialVO> listActiveUserCredentialVOs() {
+		List<UserCredentialVO> activeUserCredentialVOs = new ArrayList<>();
+		List<UserCredential> userCredentials = userServices.getActiveUserCredentials();
 		for (UserCredential userCredential : userCredentials) {
 			UserCredentialVO userCredentialVO = voBuilder.build(userCredential);
-			allUserCredentialVOs.add(userCredentialVO);
+			activeUserCredentialVOs.add(userCredentialVO);
 		}
-		return allUserCredentialVOs;
+		return activeUserCredentialVOs;
 	}
 
 	public UserCredentialVO getUserCredentialVO(String username) {
@@ -172,7 +172,7 @@ public class UserCredentialVODataProvider implements DataProvider {
 		List<UserCredentialVO> newUserCredentialVOs = new ArrayList<>();
 		List<String> usernamesInGlobalGroup = listUsernamesInGlobalGroup(globalGroupCode);
 
-		for (UserCredentialVO userCredentialVO : listActifsUserCredentialVOs()) {
+		for (UserCredentialVO userCredentialVO : listActiveUserCredentialVOs()) {
 			if (!usernamesInGlobalGroup.contains(userCredentialVO.getUsername())) {
 				newUserCredentialVOs.add(userCredentialVO);
 			}

@@ -25,6 +25,8 @@ import static com.constellio.app.ui.pages.rm.document.DisplayLastDocumentViewAcc
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
@@ -33,12 +35,18 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.RecordFormWebElement;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.borrowingServices.BorrowingServices;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
@@ -56,6 +64,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	ConstellioWebDriver driver;
 	RMTestRecords records;
 	RMSchemasRecordsServices schemas;
+	RolesManager rolesManager;
 
 	@Before
 	public void setUp()
@@ -64,6 +73,8 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
 
 		recordServices = getModelLayerFactory().newRecordServices();
+
+		rolesManager = getModelLayerFactory().getRolesManager();
 
 		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
 				.withEvents();
@@ -169,7 +180,73 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
 	}
 
+	@Test
+	/** Chuck is a RGD
+	 */
+	public void givenSemiActiveBorrowedFolderAndThenDisplayDocumentContextMenuIsOk()
+			throws Exception {
+		logAsInZeCollectionAndSetupLastViewedDocuments(chuckNorris);
+
+		getMaisDocument().rightClick();
+		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
+		getMaisDocument().sendKeys(Keys.ESCAPE);
+
+		givenRemovedPermissionToModifyBorrowedFolder();
+		givenBorrowedFolderC32ByChuck("C32");
+
+		assertThat(records.getChuckNorris().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(records.getFolder_C32()))
+				.isFalse();
+
+		navigateToLastViewDocuments();
+		getMaisDocument().rightClick();
+		assertThatEnabledActionsAre(VIEW, AUTHORIZATIONS);
+	}
+
+	@Test
+	/** Chuck is a RGD
+	 */
+	public void givenInactiveBorrowedFolderAndThenDisplayDocumentContextMenuIsOk()
+			throws Exception {
+		logAsInZeCollectionAndSetupLastViewedDocuments(chuckNorris);
+
+		getPoisDocument().rightClick();
+		assertThatEnabledActionsAre(VIEW, MODIFY, DELETE, AUTHORIZATIONS, UPLOAD);
+		getPoisDocument().sendKeys(Keys.ESCAPE);
+
+		givenRemovedPermissionToModifyBorrowedFolder();
+		givenBorrowedFolderC32ByChuck("C50");
+
+		assertThat(records.getChuckNorris().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(records.getFolder_C50()))
+				.isFalse();
+
+		navigateToLastViewDocuments();
+		getPoisDocument().rightClick();
+		assertThatEnabledActionsAre(VIEW, AUTHORIZATIONS);
+	}
+
 	//----------------------------------------------------------------------------------------
+
+	private void givenBorrowedFolderC32ByChuck(String folderId)
+			throws RecordServicesException {
+		BorrowingServices borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
+		Date previewReturnDate = TimeProvider.getLocalDateTime().plusDays(15).toDate();
+		borrowingServices.borrowFolder(folderId, previewReturnDate, records.getChuckNorris(), records.getChuckNorris());
+	}
+
+	private void givenRemovedPermissionToModifyBorrowedFolder() {
+
+		for (Role role : rolesManager.getAllRoles(zeCollection)) {
+			List<String> roles = role.getOperationPermissions();
+			List<String> newRoles = new ArrayList<>(roles);
+			newRoles.remove(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+			newRoles.remove(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+			role = role.withPermissions(newRoles);
+			rolesManager.updateRole(role);
+			Role updatedRole = rolesManager.getRole(zeCollection, role.getCode());
+			assertThat(updatedRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+			assertThat(updatedRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+		}
+	}
 
 	private void assertThatEnabledActionsAre(DocumentContextMenuAction... actions) {
 		List<DocumentContextMenuAction> expectedActionsList = asList(actions);

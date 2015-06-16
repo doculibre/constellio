@@ -86,7 +86,7 @@ public class SystemConfigurationGroupdataProvider implements DataProvider {
 		return systemConfigurationGroupVOSortedMap.get(groupCode).getSystemConfigurationVO(i);
 	}
 
-	public void valueChange(String groupCode, int i, String newStringValue) {
+	public void valueChange(String groupCode, int i, Object newStringValue) {
 		SystemConfigurationGroupVO groupConfig = systemConfigurationGroupVOSortedMap.get(groupCode);
 		groupConfig.valueChange(i, newStringValue);
 	}

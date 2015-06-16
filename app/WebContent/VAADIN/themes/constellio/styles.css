@@ -12566,12 +12566,6 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 320px;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .search-result-facets {
-	position: absolute;
-	top: 63px;
-	right: 20px;
-}
-
 .constellio .v-ui[width-range~="801-1100px"] .valo-menu-title {
 	padding: 0;
 	border: none;
@@ -12603,12 +12597,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .v-slot-suggestions-summary-results {
 	padding-right: 320px;
-}
-
-.constellio .v-ui[width-range~="801-1100px"] .search-result-facets {
-	position: absolute;
-	top: 63px;
-	right: 20px;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .base-display .v-slot-display-caption {

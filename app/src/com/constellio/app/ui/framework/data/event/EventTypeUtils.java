@@ -23,10 +23,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.ui.pages.events.EventCategory;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.schemas.Metadata;
@@ -34,7 +30,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 
 public class EventTypeUtils implements Serializable {
-	
+
 	public static String getEventTypeCaption(String eventType) {
 		if (eventType.equals(EventType.OPEN_SESSION)) {
 			return $("ListEventsView.openedSessions");
@@ -48,7 +44,7 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.foldersDeletion");
 		} else if (eventType.equals(EventType.BORROW_FOLDER)) {
 			return $("ListEventsView.borrowedFolders");
-		}else if (eventType.equals(EventType.RETURN_FOLDER)) {
+		} else if (eventType.equals(EventType.RETURN_FOLDER)) {
 			return $("ListEventsView.returnedFolders");
 		} else if (eventType.equals(EventType.VIEW_DOCUMENT)) {
 			return $("ListEventsView.documentsView");
@@ -60,13 +56,13 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.documentsDeletion");
 		} else if (eventType.equals(EventType.CURRENT_BORROW_DOCUMENT)) {
 			return $("ListEventsView.currentlyBorrowedDocuments");
-		}else if (eventType.equals(EventType.BORROW_DOCUMENT)) {
+		} else if (eventType.equals(EventType.BORROW_DOCUMENT)) {
 			return $("ListEventsView.borrowedDocuments");
-		}else if (eventType.equals(EventType.RETURN_DOCUMENT)) {
+		} else if (eventType.equals(EventType.RETURN_DOCUMENT)) {
 			return $("ListEventsView.returnedDocuments");
-		}  else if (eventType.equals(EventType.BORROW_CONTAINER)) {
+		} else if (eventType.equals(EventType.BORROW_CONTAINER)) {
 			return $("ListEventsView.borrowedContainers");
-		}else if (eventType.equals(EventType.RETURN_CONTAINER)) {
+		} else if (eventType.equals(EventType.RETURN_CONTAINER)) {
 			return $("ListEventsView.returnedContainers");
 		} else if (eventType.equals(EventType.CREATE_USER)) {
 			return $("ListEventsView.createdUsersEvent");
@@ -88,21 +84,25 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.grantedPermissions.document");
 		} else if (eventType.equals(EventType.MODIFY_PERMISSION_DOCUMENT)) {
 			return $("ListEventsView.modifiedPermissions.document");
-		}else if (eventType.equals(EventType.DELETE_PERMISSION_DOCUMENT)){
+		} else if (eventType.equals(EventType.DELETE_PERMISSION_DOCUMENT)) {
 			return $("ListEventsView.deletedPermissions.document");
-		}  else if (eventType.equals(EventType.FOLDER_RELOCATION)){
+		} else if (eventType.equals(EventType.FOLDER_RELOCATION)) {
 			return $("ListEventsView.folderRelocation");
-		}  else if (eventType.equals(EventType.FOLDER_DEPOSIT)) {
+		} else if (eventType.equals(EventType.FOLDER_DEPOSIT)) {
 			return $("ListEventsView.folderDeposit");
 		} else if (eventType.equals(EventType.FOLDER_DESTRUCTION)) {
 			return $("ListEventsView.folderDestruction");
 		} else if (eventType.equals(EventType.PDF_A_GENERATION)) {
 			return $("ListEventsView.pdfAGeneration");
-		} else if (eventType.equals(EventType.RECEIVE_FOLDER)){
+		} else if (eventType.equals(EventType.RECEIVE_FOLDER)) {
 			return $("ListEventsView.receiveFolder");
-		}else if (eventType.equals(EventType.RECEIVE_CONTAINER)){
+		} else if (eventType.equals(EventType.RECEIVE_CONTAINER)) {
 			return $("ListEventsView.receiveContainer");
-		}else{
+		} else if (eventType.equals(EventType.CURRENTLY_BORROWED_FOLDERS)) {
+			return $("ListEventsView.currentlyBorrowedFolders");
+		} else if (eventType.equals(EventType.LATE_BORROWED_FOLDERS)) {
+			return $("ListEventsView.lateBorrowedFolders");
+		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
 	}
@@ -111,7 +111,7 @@ public class EventTypeUtils implements Serializable {
 		List<String> metadataCodes = new ArrayList<>();
 		metadataCodes.addAll(getCommunMetadata(metadataSchema));
 		metadataCodes.addAll(getSpecificMetadata(metadataSchema, eventType));
-		return  metadataCodes;
+		return metadataCodes;
 	}
 
 	private static List<String> getCommunMetadata(MetadataSchema metadataSchema) {
@@ -130,23 +130,23 @@ public class EventTypeUtils implements Serializable {
 	private static List<String> getSpecificMetadata(MetadataSchema metadataSchema,
 			String eventType) {
 		List<String> metadataCodes = new ArrayList<>();
-		if(isPermissionEvent(eventType)){
+		if (isPermissionEvent(eventType)) {
 			metadataCodes.addAll(getEventRecordMetadata(metadataSchema));
 			metadataCodes.addAll(getEventPermissionMetadata(metadataSchema));
-		}else if (isRecordEvent(eventType)){
+		} else if (isRecordEvent(eventType)) {
 			metadataCodes.addAll(getEventRecordMetadata(metadataSchema));
-			if(eventType.equals(EventType.DELETE_FOLDER) || eventType.equals(EventType.DELETE_DOCUMENT)){
+			if (eventType.equals(EventType.DELETE_FOLDER) || eventType.equals(EventType.DELETE_DOCUMENT)) {
 				Metadata reasonMetadata = metadataSchema.getMetadata(Event.REASON);
 				metadataCodes.add(reasonMetadata.getCode());
 			}
-		} else if (isUserEvent(eventType)||
-				 isGroupEvent(eventType)){
+		} else if (isUserEvent(eventType) ||
+				isGroupEvent(eventType)) {
 			metadataCodes.addAll(getEventUserMetadata(metadataSchema));
 		}
-		if(isModificationEvent(eventType)){
+		if (isModificationEvent(eventType)) {
 			metadataCodes.add(Event.DELTA);
 		}
-		return  metadataCodes;
+		return metadataCodes;
 	}
 
 	private static List<String> getEventUserMetadata(MetadataSchema metadataSchema) {
@@ -157,60 +157,60 @@ public class EventTypeUtils implements Serializable {
 	}
 
 	public static boolean isUserEvent(String eventType) {
-		if(eventType.contains("_user")){
+		if (eventType.contains("_user")) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}
 
 	private static boolean isGroupEvent(String eventType) {
-		if(eventType.contains("_group")){
+		if (eventType.contains("_group")) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}
 
-	public static boolean isRecordEvent(String eventType){
-		return isFolderEvent(eventType)||
-				isDocumentEvent(eventType)||
+	public static boolean isRecordEvent(String eventType) {
+		return isFolderEvent(eventType) ||
+				isDocumentEvent(eventType) ||
 				isContainerEvent(eventType);
 	}
 
 	private static boolean isContainerEvent(String eventType) {
 		//FIXME list all events
-		if(eventType.contains("_container")){
+		if (eventType.contains("_container")) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}
 
 	private static boolean isDocumentEvent(String eventType) {
 		//FIXME list all events
-		if(eventType.contains("_document")){
+		if (eventType.contains("_document")) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}
 
 	private static boolean isFolderEvent(String eventType) {
 		//FIXME list all events
-		if(eventType.contains("_folder")){
+		if (eventType.contains("_folder")) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}
 
 	private static boolean isPermissionEvent(String eventType) {
-		if (eventType.contains(EventType.DELETE_PERMISSION)||
-				eventType.contains(EventType.GRANT_PERMISSION)||
-				eventType.contains(EventType.MODIFY_PERMISSION)){
+		if (eventType.contains(EventType.DELETE_PERMISSION) ||
+				eventType.contains(EventType.GRANT_PERMISSION) ||
+				eventType.contains(EventType.MODIFY_PERMISSION)) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}
@@ -237,9 +237,9 @@ public class EventTypeUtils implements Serializable {
 
 	public static boolean isModificationEvent(String eventType) {
 		//FIXME list all events
-		if (eventType.contains("modify_")){
+		if (eventType.contains("modify_")) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}

@@ -17,17 +17,20 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users;
 
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.utils.EnumWithSmallCodeUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.joda.time.LocalDateTime;
+import static com.constellio.model.services.users.UserUtils.toCacheKey;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.joda.time.LocalDateTime;
+
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class UserCredentialsReader {
 
@@ -56,7 +59,8 @@ public class UserCredentialsReader {
 		Element usersCredentialsElements = document.getRootElement();
 		for (Element userCredentialElement : usersCredentialsElements.getChildren()) {
 			userCredential = createUserCredentialObject(userCredentialElement);
-			usersCredentials.put(userCredential.getUsername(), userCredential);
+
+			usersCredentials.put(toCacheKey(userCredential.getUsername()), userCredential);
 		}
 		return usersCredentials;
 	}

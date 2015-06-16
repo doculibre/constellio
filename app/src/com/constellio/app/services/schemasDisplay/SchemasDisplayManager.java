@@ -20,7 +20,9 @@ package com.constellio.app.services.schemasDisplay;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jdom2.Document;
 
@@ -32,16 +34,23 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerListener;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
 
 public class SchemasDisplayManager
 		implements OneXMLConfigPerCollectionManagerListener<SchemasDisplayManagerCache>, StatefulService {
+
+	public static final String REQUIRED_METADATA_IN_FORM_LIST = "requiredMetadataInFormList";
 
 	private static final String SCHEMAS_DISPLAY_CONFIG = "/schemasDisplay.xml";
 
@@ -61,6 +70,7 @@ public class SchemasDisplayManager
 	}
 
 	public void execute(final SchemaDisplayManagerTransaction transaction) {
+		validate(transaction);
 		String collection = transaction.getCollection();
 		if (collection != null) {
 			oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
@@ -87,48 +97,53 @@ public class SchemasDisplayManager
 		}
 	}
 
-	public void saveTypes(final SchemaTypesDisplayConfig config) {
-		String collection = config.getCollection();
-		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
-			@Override
-			public void alter(Document document) {
-				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
-				writer.saveTypes(config);
+	private void validate(SchemaDisplayManagerTransaction transaction) {
+
+		ValidationErrors errors = new ValidationErrors();
+
+		for (SchemaDisplayConfig config : transaction.getModifiedSchemas()) {
+			validate(errors, config);
+		}
+
+		if (!errors.getValidationErrors().isEmpty()) {
+			throw new ValidationRuntimeException(errors);
+		}
+	}
+
+	private void validate(ValidationErrors errors, SchemaDisplayConfig config) {
+		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(config.getCollection()).getSchema(config.getSchemaCode());
+		for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
+			if (!config.getFormMetadataCodes().contains(metadata.getCode())) {
+				Map<String, String> params = new HashMap<>();
+				params.put("code", metadata.getCode());
+				params.put("label", metadata.getLabel());
+				errors.add(SchemasDisplayManager.class, REQUIRED_METADATA_IN_FORM_LIST, params);
 			}
-		});
+		}
+	}
+
+	public void saveTypes(final SchemaTypesDisplayConfig config) {
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		transaction.setModifiedCollectionTypes(config);
+		execute(transaction);
 	}
 
 	public void saveType(final SchemaTypeDisplayConfig config) {
-		String collection = config.getCollection();
-		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
-			@Override
-			public void alter(Document document) {
-				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
-				writer.saveType(config);
-			}
-		});
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		transaction.add(config);
+		execute(transaction);
 	}
 
 	public void saveSchema(final SchemaDisplayConfig config) {
-		String collection = config.getCollection();
-		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
-			@Override
-			public void alter(Document document) {
-				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
-				writer.saveSchema(config);
-			}
-		});
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		transaction.add(config);
+		execute(transaction);
 	}
 
 	public void saveMetadata(final MetadataDisplayConfig config) {
-		String collection = config.getCollection();
-		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
-			@Override
-			public void alter(Document document) {
-				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
-				writer.saveMetadata(config);
-			}
-		});
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+		transaction.add(config);
+		execute(transaction);
 	}
 
 	public SchemasDisplayManagerCache getCacheForCollection(String collection) {
@@ -209,13 +224,20 @@ public class SchemasDisplayManager
 				writer.writeEmptyDocument();
 			}
 		});
+		metadataSchemasManager.registerListener(new MetadataSchemasManagerListener() {
+			@Override
+			public void onCollectionSchemasModified(String collection) {
+				oneXMLConfigPerCollectionManager.reload(collection);
+			}
+		});
 	}
 
 	private XMLConfigReader<SchemasDisplayManagerCache> xmlConfigReader() {
 		return new XMLConfigReader<SchemasDisplayManagerCache>() {
 			@Override
 			public SchemasDisplayManagerCache read(String collection, Document document) {
-				SchemasDisplayReader5_0_1 reader = new SchemasDisplayReader5_0_1(document);
+				MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+				SchemasDisplayReader1 reader = new SchemasDisplayReader1(document, types);
 				return reader.readSchemaTypesDisplay(collection);
 			}
 		};
@@ -277,5 +299,10 @@ public class SchemasDisplayManager
 		}
 
 		execute(transaction);
+	}
+
+	public SchemaTypesDisplayTransactionBuilder newTransactionBuilderFor(String collection) {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+		return new SchemaTypesDisplayTransactionBuilder(types, this);
 	}
 }

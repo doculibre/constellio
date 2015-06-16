@@ -827,7 +827,7 @@ $popup-view-z-index: 3;
 
 			    .v-slot-license {
 			    	padding-top: 5px;
-			    	
+
 			    	.v-label {
 			    		text-align: center;
 			    	}
@@ -923,12 +923,6 @@ $popup-view-z-index: 3;
     	.v-slot-suggestions-summary-results {
             padding-right: 320px;
     	}
-
-	    .search-result-facets {
-	        position: absolute;
-	        top: $header-height;
-	        right: 20px;
-	    }
     }
 
     .v-ui[width-range~="801-1100px"] {
@@ -973,12 +967,6 @@ $popup-view-z-index: 3;
     	.v-slot-suggestions-summary-results {
             padding-right: 320px;
     	}
-
-	    .search-result-facets {
-	        position: absolute;
-	        top: $header-height;
-	        right: 20px;
-	    }
     }
 
     .v-ui[width-range~="0-800px"] {

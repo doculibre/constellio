@@ -39,6 +39,7 @@ import com.vaadin.event.FieldEvents.FocusEvent;
 import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Resource;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
@@ -63,9 +64,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends HorizontalLayout implements ConstellioHeader {
-
 	private static final String ID = "header-advanced-search-form";
-
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME = "header-show-advanced-search-button-popup-visible";
 
@@ -80,7 +79,17 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
 
-		Image logo = new Image("", new ThemeResource("images/logo_eim_203x30.png"));
+		Resource resource = presenter.getUserLogoResource();
+		Image logo;
+		if (resource != null) {
+			logo = new Image("", resource);
+			logo.setHeight("30px");
+			logo.setWidth("203px");
+		} else {
+			logo = new Image("", new ThemeResource("images/logo_eim_203x30.png"));
+		}
+		logo.setAlternateText(("logo"));
+
 		logo.addStyleName("header-logo");
 		logo.addClickListener(new MouseEvents.ClickListener() {
 			@Override
@@ -91,7 +100,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		});
 
-		searchFieldProperty = new ObjectProperty<String>(null, String.class);
+		searchFieldProperty = new ObjectProperty<>(null, String.class);
 
 		searchField = new BaseTextField(searchFieldProperty);
 		searchField.addStyleName("header-search");

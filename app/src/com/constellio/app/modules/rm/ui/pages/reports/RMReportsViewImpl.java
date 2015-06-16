@@ -28,7 +28,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 
 public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
-	
+
 	private final RMReportsPresenter presenter;
 
 	public RMReportsViewImpl() {
@@ -62,5 +62,4 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 			}
 		};
 	}
-	
 }

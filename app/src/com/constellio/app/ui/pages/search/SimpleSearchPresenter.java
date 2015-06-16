@@ -24,8 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.google.common.base.Strings;
 
@@ -68,6 +70,46 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	@Override
 	public String getUserSearchExpression() {
 		return searchExpression;
+	}
+
+	@Override
+	public void suggestionSelected(String suggestion) {
+		view.navigateTo().simpleSearch(suggestion);
+	}
+
+	@Override
+	public List<MetadataVO> getMetadataAllowedInSort() {
+		List<MetadataSchemaType> schemaTypes = allowedSchemaTypes();
+		switch (schemaTypes.size()) {
+		case 0:
+			return new ArrayList<>();
+		case 1:
+			return getMetadataAllowedInSort(schemaTypes.get(0).getCode());
+		default:
+			return getCommonMetadataAllowedInSort(schemaTypes);
+		}
+	}
+
+	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
+		List<MetadataVO> result = new ArrayList<>();
+		for (MetadataVO metadata : getMetadataAllowedInSort(schemaTypes.get(0))) {
+			String localCode = MetadataVO.getCodeWithoutPrefix(metadata.getCode());
+			if (isMetadataInAllTypes(localCode, schemaTypes)) {
+				result.add(metadata);
+			}
+		}
+		return result;
+	}
+
+	private boolean isMetadataInAllTypes(String localCode, List<MetadataSchemaType> types) {
+		for (MetadataSchemaType each : types) {
+			try {
+				each.getMetadataWithAtomicCode(localCode);
+			} catch (NoSuchMetadataWithAtomicCode e) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override

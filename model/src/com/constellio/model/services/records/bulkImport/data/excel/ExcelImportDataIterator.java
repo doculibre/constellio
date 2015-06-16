@@ -108,7 +108,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 				String line = metadatas[index];
 				if (line.contains(DATE) || line.contains(PATTERN) || line.contains(SEPARATOR)) {
 					if (line.contains(DATE)) {
-						String[] splitDatas = line.split("\\=", 2);
+						String[] splitDatas = line.split("=", 2);
 						dataType.setDateType(splitDatas[splitDatas.length - 1]);
 						if (metadatas[++index].contains(PATTERN)) {
 							dataType.setDatePattern(splitDateFormat(metadatas[index]));
@@ -117,7 +117,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 						dataType.setDataPattern(line.replace(PATTERN + "=", ""));
 					}
 					if (line.contains(SEPARATOR)) {
-						String[] splitDatas = line.split("\\=", 2);
+						String[] splitDatas = line.split("=", 2);
 						dataType.setSeparator(splitDatas[splitDatas.length - 1]);
 					}
 				} else {

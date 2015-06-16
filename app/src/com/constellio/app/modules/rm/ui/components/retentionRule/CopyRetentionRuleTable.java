@@ -38,6 +38,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
@@ -415,14 +416,19 @@ public class CopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>>
 					yearsField.addValueChangeListener(new ValueChangeListener() {
 						@Override
 						public void valueChange(Property.ValueChangeEvent event) {
-							Integer newValue = (Integer) yearsField.getConvertedValue();
-							if (newValue != null) {
-								openRetentionPeriodField.setValue(null);
-								if (activeRetentionPeriod) {
-									copyRetentionRule.setActiveRetentionPeriod(new RetentionPeriod(newValue));
-								} else {
-									copyRetentionRule.setSemiActiveRetentionPeriod(new RetentionPeriod(newValue));
+							try {
+								yearsField.validate();
+								Integer newValue = (Integer) yearsField.getConvertedValue();
+								if (newValue != null) {
+									openRetentionPeriodField.setValue(null);
+									if (activeRetentionPeriod) {
+										copyRetentionRule.setActiveRetentionPeriod(new RetentionPeriod(newValue));
+									} else {
+										copyRetentionRule.setSemiActiveRetentionPeriod(new RetentionPeriod(newValue));
+									}
 								}
+							} catch (InvalidValueException e) {
+								// Invalid value
 							}
 						}
 					});

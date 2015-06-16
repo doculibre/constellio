@@ -105,3 +105,16 @@ sourceSets {
         }
     }
 }
+
+task jarTest (type: Jar, dependsOn: testClasses) {
+    from sourceSets.test.output
+    classifier = 'test'
+}
+
+configurations {
+    testOutput
+}
+
+artifacts {
+    testOutput jarTest
+}

@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.entities.schemas;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -60,6 +61,8 @@ public class Metadata implements DataStoreField {
 
 	final Class<? extends Enum<?>> enumClass;
 
+	final Object defaultValue;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue);
 	}
@@ -73,7 +76,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false);
+				false, false, false, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.accessRestriction = new MetadataAccessRestriction();
@@ -100,13 +103,15 @@ public class Metadata implements DataStoreField {
 		this.recordMetadataValidators = null;
 		this.structureFactory = null;
 		this.enumClass = null;
+		this.defaultValue = multivalue ? Collections.emptyList() : null;
 	}
 
 	public Metadata(String localCode, String code, String collection, String label, Boolean enabled,
 			InheritedMetadataBehaviors inheritedMetadataBehaviors, MetadataValueType type,
 			AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
-			MetadataAccessRestriction accessRestriction, StructureFactory structureFactory, Class<? extends Enum<?>> enumClass) {
+			MetadataAccessRestriction accessRestriction, StructureFactory structureFactory, Class<? extends Enum<?>> enumClass,
+			Object defaultValue) {
 		super();
 
 		this.inheritance = null;
@@ -125,11 +130,12 @@ public class Metadata implements DataStoreField {
 		this.accessRestriction = accessRestriction;
 		this.structureFactory = structureFactory;
 		this.enumClass = enumClass;
+		this.defaultValue = defaultValue;
 
 	}
 
 	public Metadata(Metadata inheritance, String label, boolean enabled, boolean defaultRequirement, String code,
-			Set<RecordMetadataValidator<?>> recordMetadataValidators) {
+			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue) {
 		super();
 
 		this.localCode = inheritance.getLocalCode();
@@ -149,6 +155,7 @@ public class Metadata implements DataStoreField {
 		this.recordMetadataValidators.addAll(recordMetadataValidators);
 		this.structureFactory = inheritance.structureFactory;
 		this.enumClass = inheritance.enumClass;
+		this.defaultValue = defaultValue;
 	}
 
 	public String getCode() {
@@ -247,8 +254,16 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isSortable();
 	}
 
+	public boolean isEssential() {
+		return getInheritedMetadataBehaviors().isEssential();
+	}
+
 	public boolean isSchemaAutocomplete() {
 		return getInheritedMetadataBehaviors().isSchemaAutocomplete();
+	}
+
+	public Object getDefaultValue() {
+		return defaultValue;
 	}
 
 	@Override

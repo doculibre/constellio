@@ -20,10 +20,12 @@ package com.constellio.app.ui.pages.events;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public final class CategoriesConsts {
-	public static final String USERS_AND_GROUPS_ADD_OR_REMOVE_CATEGORY_TITLE = $("ListEventsView.usersAndGroupsAddOrRemoveEvents");
+	public static final String USERS_AND_GROUPS_ADD_OR_REMOVE_CATEGORY_TITLE = $(
+			"ListEventsView.usersAndGroupsAddOrRemoveEvents");
 	public static final String SYSTEM_USAGE_CATEGORY_TITLE = $("ListEventsView.systemUsage");
 	public static final String FOLDERS_AND_DOCUMENTS_CREATION_CATEGORY_TITLE = $("ListEventsView.foldersAndDocumentsCreation");
-	public static final String FOLDERS_AND_DOCUMENTS_MODIFICATION_CATEGORY_TITLE = $("ListEventsView.foldersAndDocumentsModification");
+	public static final String FOLDERS_AND_DOCUMENTS_MODIFICATION_CATEGORY_TITLE = $(
+			"ListEventsView.foldersAndDocumentsModification");
 	public static final String FOLDERS_AND_DOCUMENTS_DELETION_CATEGORY_TITLE = $("ListEventsView.foldersAndDocumentsDeletion");
 	public static final String CURRENTLY_BORROWED_DOCUMENTS_CATEGORY_TITLE = $("ListEventsView.currentlyBorrowedDocuments");
 	public static final String DOCUMENTS_BORROW_OR_RETURN_CATEGORY_TITLE = $("ListEventsView.documentsBorrowOrReturn");
@@ -32,7 +34,7 @@ public final class CategoriesConsts {
 	public static final String BY_USER_CATEGORY_TITLE = $("ListEventsView.eventsByUser");
 	public static final String DECOMMISSIONING_CATEGORY_TITLE = $("ListEventsView.decommissioningEvents");
 
-//indices
+	//indices
 	public static final int OPENED_SESSIONS_INDEX_IN_SYSTEM_USAGE_CATEGORY = 0;
 
 	public static final int ADD_USER_STAT_INDEX_IN_USERS_AND_GROUPS_ADD_OR_REMOVE_CATEGORY = 0;
@@ -83,21 +85,26 @@ public final class CategoriesConsts {
 	public static final int FOLDER_CREATE_STAT_INDEX_IN_BY_USER_CATEGORY = 2;
 	public static final int FOLDER_MODIFY_STAT_INDEX_IN_BY_USER_CATEGORY = 3;
 	public static final int FOLDER_DELETE_STAT_INDEX_IN_BY_USER_CATEGORY = 4;
-	public static final int DOCUMENT_VIEW_STAT_INDEX_IN_BY_USER_CATEGORY = 5;
-	public static final int DOCUMENT_BORROW_STAT_INDEX_IN_BY_USER_CATEGORY = 6;
-	public static final int DOCUMENT_CREATE_STAT_INDEX_IN_BY_USER_CATEGORY = 7;
-	public static final int DOCUMENT_MODIFY_STAT_INDEX_IN_BY_USER_CATEGORY = 8;
-	public static final int DOCUMENT_DELETE_STAT_INDEX_IN_BY_USER_CATEGORY = 9;
-	public static final int ADD_USER_STAT_INDEX_IN_BY_USER_CATEGORY = 10;
-	public static final int REMOVE_USER_STAT_INDEX_IN_BY_USER_CATEGORY = 11;
-	public static final int ADD_GROUP_STAT_INDEX_IN_BY_USER_CATEGORY = 12;
-	public static final int REMOVE_GROUP_STAT_INDEX_IN_BY_USER_CATEGORY = 13;
-	public static final int GRANT_PERMISSION_FOLDER_STAT_INDEX_IN_BY_USER_CATEGORY = 14;
-	public static final int MODIFY_PERMISSION_FOLDER_STAT_INDEX_IN_BY_USER_CATEGORY = 15;
-	public static final int DELETE_PERMISSION_FOLDER_STAT_INDEX_IN_BY_USER_CATEGORY = 16;
-	public static final int GRANT_PERMISSION_DOCUMENT_STAT_INDEX_IN_BY_USER_CATEGORY = 17;
-	public static final int MODIFY_PERMISSION_DOCUMENT_STAT_INDEX_IN_BY_USER_CATEGORY = 18;
-	public static final int DELETE_PERMISSION_DOCUMENT_STAT_INDEX_IN_BY_USER_CATEGORY = 19;
+
+	public static final int FOLDER_BORROW_STAT_INDEX_IN_BY_USER_CATEGORY = 5;//borrow
+	public static final int FOLDER_CURRENTLY_BORROW_STAT_INDEX_IN_BY_USER_CATEGORY = 6;//currently
+	public static final int FOLDER_LATE_RETURN_STAT_INDEX_IN_BY_USER_CATEGORY = 7;//late
+
+	public static final int DOCUMENT_VIEW_STAT_INDEX_IN_BY_USER_CATEGORY = 8;
+	public static final int DOCUMENT_BORROW_STAT_INDEX_IN_BY_USER_CATEGORY = 9;
+	public static final int DOCUMENT_CREATE_STAT_INDEX_IN_BY_USER_CATEGORY = 10;
+	public static final int DOCUMENT_MODIFY_STAT_INDEX_IN_BY_USER_CATEGORY = 11;
+	public static final int DOCUMENT_DELETE_STAT_INDEX_IN_BY_USER_CATEGORY = 12;
+	public static final int ADD_USER_STAT_INDEX_IN_BY_USER_CATEGORY = 13;
+	public static final int REMOVE_USER_STAT_INDEX_IN_BY_USER_CATEGORY = 14;
+	public static final int ADD_GROUP_STAT_INDEX_IN_BY_USER_CATEGORY = 15;
+	public static final int REMOVE_GROUP_STAT_INDEX_IN_BY_USER_CATEGORY = 16;
+	public static final int GRANT_PERMISSION_FOLDER_STAT_INDEX_IN_BY_USER_CATEGORY = 17;
+	public static final int MODIFY_PERMISSION_FOLDER_STAT_INDEX_IN_BY_USER_CATEGORY = 18;
+	public static final int DELETE_PERMISSION_FOLDER_STAT_INDEX_IN_BY_USER_CATEGORY = 19;
+	public static final int GRANT_PERMISSION_DOCUMENT_STAT_INDEX_IN_BY_USER_CATEGORY = 20;
+	public static final int MODIFY_PERMISSION_DOCUMENT_STAT_INDEX_IN_BY_USER_CATEGORY = 21;
+	public static final int DELETE_PERMISSION_DOCUMENT_STAT_INDEX_IN_BY_USER_CATEGORY = 22;
 
 	public static final int FOLDER_RELOCATION_IN_DECOMMISSIONING_CATEGORY = 0;
 	public static final int FOLDER_DEPOSIT_IN_DECOMMISSIONING_CATEGORY = 1;

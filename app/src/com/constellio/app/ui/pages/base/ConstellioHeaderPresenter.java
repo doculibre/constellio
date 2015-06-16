@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaadin.server.Resource;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -38,6 +39,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private final ConstellioHeader header;
@@ -95,11 +97,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	@Override
-	public List<MetadataVO> getMetadatasAllowedInCriteria() {
+	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH)));
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
 			if (config.isVisibleInAdvancedSearch()) {
@@ -131,5 +134,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		ConstellioFactories constellioFactories = header.getConstellioFactories();
 		appLayerFactory = constellioFactories.getAppLayerFactory();
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
+	}
+
+	public Resource getUserLogoResource(){
+		return LogoUtils.getUserLogoResource(modelLayerFactory);
 	}
 }

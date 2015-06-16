@@ -47,9 +47,9 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	static String givenJavaRootFolderIsDaoProject = "givenJavaRootFolderIsDaoProject";
 	static String givenJavaRootFolderIsCustomProject = "givenJavaRootFolderIsCustomProject";
 	static String givenJavaRootFolderIsSDKProject = "givenJavaRootFolderIsSDKProject";
-	static File constellio, constellioUi, constellioDao, constellioServices, webinf, conf, buildLibs, constellioProperties,
+	static File constellio, constellioApp, constellioData, constellioModel, webinf, conf, buildLibs, constellioProperties,
 			constellioSetupProperties, deploy, cmdTxt, uploadConstellioWar, temp, importation, custom, settings, sdk,
-			languageProfiles, appProject, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, reportsRecource,
+			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, reportsRecource,
 			buildData;
 	String testCase;
 	private com.constellio.model.conf.FoldersLocator foldersLocator;
@@ -78,15 +78,15 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		File tmp = newTempFolder();
 		anotherTemp = newTempFolder();
 		constellio = new File(tmp, "consteLlio-dev-1-p");
-		constellioUi = new File(constellio, "ui");
-		constellioDao = new File(constellio, "dao");
-		constellioServices = new File(constellio, "services");
+		constellioApp = new File(constellio, "app");
+		constellioData = new File(constellio, "data");
+		constellioModel = new File(constellio, "model");
 		webinf = new File(constellio, "WEB-INF");
 		conf = new File(constellio, "conf");
 		bpmns = new File(conf, "bpmns");
 		smtpMail = new File(conf, "smtpMail");
-		appProject = new File(constellio, "app");
-		appProjectWebContent = new File(appProject, "WebContent");
+		//appProject = new File(constellio, "app");
+		appProjectWebContent = new File(constellioApp, "WebContent");
 		languageProfiles = new File(constellio, "languageProfiles");
 		dict = new File(constellio, "dict");
 		i18n = new File(constellio, "resources_i18n");
@@ -106,9 +106,9 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		buildData = new File(constellio, "data.txt");
 
 		constellio.mkdir();
-		constellioUi.mkdir();
-		constellioDao.mkdir();
-		constellioServices.mkdir();
+		constellioApp.mkdir();
+		constellioData.mkdir();
+		constellioModel.mkdir();
 
 		importation.mkdir();
 		webinf.mkdir();
@@ -122,7 +122,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		tempUpdateclient.mkdirs();
 		custom.mkdir();
 		buildLibs.mkdirs();
-		appProject.mkdirs();
+		//appProject.mkdirs();
 		appProjectWebContent.mkdirs();
 		FileUtils.touch(cmdTxt);
 		FileUtils.touch(constellioProperties);
@@ -135,11 +135,11 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		if (testCase == givenJavaRootFolderIsConstellioProject) {
 			doReturn(constellio).when(locator).getJavaRootFolder();
 		} else if (testCase == givenJavaRootFolderIsUIProject) {
-			doReturn(constellioUi).when(locator).getJavaRootFolder();
+			doReturn(constellioApp).when(locator).getJavaRootFolder();
 		} else if (testCase == givenJavaRootFolderIsServicesProject) {
-			doReturn(constellioServices).when(locator).getJavaRootFolder();
+			doReturn(constellioModel).when(locator).getJavaRootFolder();
 		} else if (testCase == givenJavaRootFolderIsDaoProject) {
-			doReturn(constellioDao).when(locator).getJavaRootFolder();
+			doReturn(constellioData).when(locator).getJavaRootFolder();
 		} else if (testCase == givenJavaRootFolderIsCustomProject) {
 			doReturn(custom).when(locator).getJavaRootFolder();
 		} else if (testCase == givenJavaRootFolderIsSDKProject) {
@@ -237,7 +237,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	@Test
 	public void whenGetAppProjectFolderThenObtainCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getAppProject()).isEqualTo(appProject);
+		assertThat(foldersLocator.getAppProject()).isEqualTo(constellioApp);
 	}
 
 	@Test

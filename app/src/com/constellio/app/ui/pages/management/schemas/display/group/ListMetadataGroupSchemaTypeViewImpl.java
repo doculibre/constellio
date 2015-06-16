@@ -28,6 +28,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -86,6 +87,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 
 		nameLayout.addComponent(groupName);
 		nameLayout.addComponent(addButton);
+		nameLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 
 		viewLayout.addComponents(nameLayout, groups);
 		return viewLayout;

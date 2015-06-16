@@ -236,9 +236,8 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		}
 	}
 
-	@Override
-	public void refreshFacets() {
-		// Disable facets
-	}
-
+	//	@Override
+	//	public void refreshFacets() {
+	//		// Disable facets
+	//	}
 }

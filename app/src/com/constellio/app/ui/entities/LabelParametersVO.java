@@ -19,24 +19,24 @@ package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
 
-import com.constellio.app.modules.rm.reports.factories.labels.LabelConfiguration;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 
 public class LabelParametersVO implements Serializable {
-	private LabelConfiguration labelConfiguration;
+	private LabelTemplate labelConfiguration;
 	private int startPosition;
 	private int numberOfCopies;
 
-	public LabelParametersVO(LabelConfiguration labelConfiguration) {
+	public LabelParametersVO(LabelTemplate labelConfiguration) {
 		this.labelConfiguration = labelConfiguration;
 		startPosition = 1;
 		numberOfCopies = 1;
 	}
 
-	public LabelConfiguration getLabelConfiguration() {
+	public LabelTemplate getLabelConfiguration() {
 		return labelConfiguration;
 	}
 
-	public void setLabelConfiguration(LabelConfiguration labelConfiguration) {
+	public void setLabelConfiguration(LabelTemplate labelConfiguration) {
 		this.labelConfiguration = labelConfiguration;
 	}
 

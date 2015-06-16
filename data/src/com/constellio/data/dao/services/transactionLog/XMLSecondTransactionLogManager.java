@@ -294,6 +294,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	private Iterator<List<String>> newTransactionsLinesIterator(final BufferedReader tLogReader) {
+
 		return new LazyIterator<List<String>>() {
 
 			@Override
@@ -303,8 +304,14 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 					while (true) {
 						String line = tLogReader.readLine();
-						if (line != null && (!isFirstLineOfTransaction(line) || currentLines.isEmpty())) {
+						if (line != null && line.startsWith("__LINEBREAK__")) {
+							int lastLineIndex = currentLines.size() - 1;
+							String lastLine = currentLines.get(lastLineIndex);
+							currentLines.set(lastLineIndex, lastLine + line);
+
+						} else if (line != null && (!isFirstLineOfTransaction(line) || currentLines.isEmpty())) {
 							currentLines.add(line);
+
 						} else {
 							break;
 						}
@@ -579,8 +586,17 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
 	}
 
+	private List<String> readFileToLines(File file) {
+		try {
+			String content = FileUtils.readFileToString(file);
+			return Arrays.asList(content.split("\n"));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	boolean isCommitted(File file, RecordDao recordDao) {
-		List<String> lines = ioServices.readFileToLinesWithoutExpectableIOException(file);
+		List<String> lines = readFileToLines(file);
 		//Skip line 0 which is the --transaction-- header
 		String firstLine = lines.get(1);
 		String[] firstLineParts = firstLine.split(" ");

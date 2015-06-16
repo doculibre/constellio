@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -30,9 +31,11 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<DisplayRetentionRuleView> {
 	private RetentionRuleVO retentionRuleVO;
+	private transient DecommissioningService decommissioningService;
 
 	public DisplayRetentionRulePresenter(DisplayRetentionRuleView view) {
 		super(view, RetentionRule.DEFAULT_SCHEMA);
+		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
 	}
 
 	public void forParams(String params) {
@@ -63,5 +66,9 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+	}
+
+	public String getFoldersNumber() {
+		return String.valueOf(decommissioningService.getFoldersForRetentionRule(retentionRuleVO.getId()).size());
 	}
 }

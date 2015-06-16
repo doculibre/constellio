@@ -29,6 +29,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringDefi
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 
 public class PropertyBuilderFactory {
 
@@ -60,7 +61,7 @@ public class PropertyBuilderFactory {
 		String id = metadata.getCode();
 		String displayName = metadata.getCode();
 		PropertyType datatype;
-		if (metadata.getType() == MetadataValueType.DATE_TIME) {
+		if (metadata.getType() == MetadataValueType.DATE_TIME || metadata.getType() == MetadataValueType.DATE) {
 			datatype = PropertyType.DATETIME;
 		} else if (metadata.getType() == MetadataValueType.NUMBER) {
 			datatype = PropertyType.INTEGER;
@@ -70,7 +71,9 @@ public class PropertyBuilderFactory {
 			datatype = PropertyType.STRING;
 		}
 		Cardinality cardinality = metadata.isMultivalue() ? Cardinality.MULTI : Cardinality.SINGLE;
-		Updatability updateability = metadata.isUnmodifiable() ? Updatability.READONLY : Updatability.READWRITE;
+		Updatability updateability = (metadata.isUnmodifiable() || metadata.getDataEntry().getType() != DataEntryType.MANUAL) ?
+				Updatability.READONLY :
+				Updatability.READWRITE;
 		boolean inherited = metadata.inheritDefaultSchema();
 		boolean required = metadata.isDefaultRequirement();
 

@@ -54,9 +54,9 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenBaseConfigurationThenDisplayCorrectInformation() {
 		RecordContainerWebElement typeTable = page.getTypeTable();
-		assertThat(typeTable.countRows()).isEqualTo(10);
+		assertThat(typeTable.countRows()).isEqualTo(14);
 
-		assertThat(typeTable.hasRowWithValueInColumn("Rubrique du plans", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Rubrique du plan", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Contenant", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Types de contenants", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Types de documents", 0)).isTrue();
@@ -66,6 +66,10 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 		assertThat(typeTable.hasRowWithValueInColumn("Document", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Dossier", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Emplacement", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Espace de classement", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Unité administrative", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Règle de conservation", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Subdivision uniforme", 0)).isTrue();
 
 	}
 }

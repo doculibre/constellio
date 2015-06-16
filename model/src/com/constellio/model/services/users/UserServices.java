@@ -42,7 +42,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
@@ -52,6 +51,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -64,13 +64,13 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidToken;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserPermissionDeniedToDelete;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidGroup;
 
 public class UserServices {
 
@@ -108,7 +108,7 @@ public class UserServices {
 		UserCredential savedUserCredential = userCredential;
 		for (String groupCode : userCredential.getGlobalGroups()) {
 			GlobalGroup group = globalGroupsManager.getGlobalGroupWithCode(groupCode);
-			if(group == null){
+			if (group == null) {
 				throw new UserServicesRuntimeException_InvalidGroup(groupCode);
 			}
 			for (String collection : group.getUsersAutomaticallyAddedToCollections()) {
@@ -143,7 +143,17 @@ public class UserServices {
 		UserCredential latestCrendential = getUser(userCredential.getUsername());
 		UserCredential userWithCollection = latestCrendential.withNewCollection(collection);
 		if (userWithCollection != latestCrendential) {
-			addUpdateUserCredential(userWithCollection);
+			try {
+				addUpdateUserCredential(userWithCollection);
+			} catch (UserServicesRuntimeException_CannotExcuteTransaction e) {
+				// Revert change in XML config
+				userCredentialsManager.addUpdate(latestCrendential);
+				throw e;
+			}
+		} else {
+			// This apparently redundant sync allows to add a user to a collection
+			// in case the user credential configuration file and the solr state are out of sync
+			sync(userWithCollection);
 		}
 	}
 
@@ -379,7 +389,7 @@ public class UserServices {
 
 	public void sync(UserCredential user) {
 		for (String collection : user.getCollections()) {
-			Transaction transaction = new Transaction();
+			Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
 			sync(user, collection, transaction);
 			try {
 				recordServices.execute(transaction);
@@ -390,20 +400,12 @@ public class UserServices {
 	}
 
 	public boolean canAddOrModifyUserAndGroup() {
-		if (ldapConfigurationManager.isLDAPAuthentication() && ldapConfigurationManager.idUsersSynchActivated()) {
-			return false;
-		} else {
-			return true;
-		}
+		return !(ldapConfigurationManager.isLDAPAuthentication() && ldapConfigurationManager.idUsersSynchActivated());
 	}
 
 	public boolean canModifyPassword(UserCredential userInEdition, UserCredential currentUser) {
-		if ((userInEdition.getUsername().equals("admin") && currentUser.getUsername().equals("admin"))
-				|| !ldapConfigurationManager.isLDAPAuthentication()) {
-			return true;
-		} else {
-			return false;
-		}
+		return (userInEdition.getUsername().equals("admin") && currentUser.getUsername().equals("admin"))
+				|| !ldapConfigurationManager.isLDAPAuthentication();
 	}
 
 	//TODO Thiago
@@ -424,7 +426,7 @@ public class UserServices {
 		if (userInCollection == null) {
 			userInCollection = newUserInCollection(collection);
 		} else {
-			userInCollection.set("deleted", false);
+			userInCollection.set(CommonMetadataBuilder.LOGICALLY_DELETED, false);
 		}
 		userInCollection.setEmail(StringUtils.isBlank(user.getEmail()) ? null : user.getEmail());
 		userInCollection.setFirstName(user.getFirstName());
@@ -713,8 +715,8 @@ public class UserServices {
 		return userCredentialsManager.getUserCredential(username);
 	}
 
-	public List<UserCredential> getActifUserCredentials() {
-		return userCredentialsManager.getActifUserCredentials();
+	public List<UserCredential> getActiveUserCredentials() {
+		return userCredentialsManager.getActiveUserCredentials();
 	}
 
 	public List<UserCredential> getAllUserCredentials() {

@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java_cup.version;
+
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -37,12 +39,14 @@ import org.junit.Test;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.records.ContentImport;
+import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.bulkImport.data.ImportData;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIterator;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate;
+import com.constellio.model.services.records.bulkImport.data.ImportDataIteratorTest;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class XMLFileImportDataIteratorAcceptanceTest extends ConstellioTest {
+public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorTest {
 
 	IOServices ioServices;
 
@@ -78,7 +82,13 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ConstellioTest {
 				.has(field("referenceToAThirdSchema", "666"))
 				.has(noField("zeEmptyField"));
 
-		assertThat(importDataIterator.next()).has(id("666")).has(index(3)).has(schema("customSchema"))
+		assertThat(importDataIterator.next()).has(id("666")).has(index(3)).has(schema("cust"
+				+ ""
+				+ ""
+				+ ""
+				+ ""
+				+ ""
+				+ "omSchema"))
 				.has(noField("id")).has(noField("schema"))
 				.has(field("createdOn", localDate))
 				.has(field("modifyOn", asList(anOtherLocalDate, aThirdLocalDate)))
@@ -95,8 +105,9 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ConstellioTest {
 
 		String firstDescription = "Documents produits ou reçus relatifs à la gestion des documents constitutifs. "
 				+ "Les documents peuvent comprendre les certifications, les lettres patentes, la charte et les statuts.";
-		String secondDescription = "Documents produits ou reçus relatifs à l'historique de l'Ordre et aux événements qui ont marqué le cours de son développement. "
-				+ "Les documents peuvent comprendre les textes, les notes, les images fixes ou animées.";
+		String secondDescription =
+				"Documents produits ou reçus relatifs à l'historique de l'Ordre et aux événements qui ont marqué le cours de son développement. "
+						+ "Les documents peuvent comprendre les textes, les notes, les images fixes ou animées.";
 
 		LocalDate localDate = new LocalDate(2015, 5, 1);
 
@@ -155,26 +166,17 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ConstellioTest {
 	public void givenContentThenOK()
 			throws Exception {
 
-		String url = "https://www.gutenberg.org/cache/epub/338/pg338.txt";
+		String url = "https://dl.dropboxusercontent.com/u/422508/pg338.txt";
+		String url2 = "https://dl.dropboxusercontent.com/u/422508/pg339.txt";
+		String fileName = "The Kings Return";
 
 		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("content.xml"), ioServices);
+		assertThat(importDataIterator.next()).has(id("1")).has(index(1)).has(contentSize(1))
+				.has(content(new ContentImportVersion(url, "aName", true)));
 
-		ContentImport currentImport = (ContentImport) importDataIterator.next().getFields().get("content");
-		assertThat(currentImport.getUrl()).isEqualTo(url);
-		assertThat(currentImport.getFileName()).isEqualTo("aName");
-		assertThat(currentImport.isMajor()).isFalse();
+		assertThat(importDataIterator.next()).has(id("2")).has(index(2)).has(contentSize(2))
+				.has(content(new ContentImportVersion(url, fileName, true), new ContentImportVersion(url2, fileName, false)));
 
-		List<ContentImport> currentImportList = (List<ContentImport>) importDataIterator.next().getFields().get("content");
-
-		currentImport = currentImportList.get(0);
-		assertThat(currentImport.getUrl()).isEqualTo(url);
-		assertThat(currentImport.getFileName()).isEqualTo("anOtherName");
-		assertThat(currentImport.isMajor()).isTrue();
-
-		currentImport = currentImportList.get(1);
-		assertThat(currentImport.getUrl()).isEqualTo(url);
-		assertThat(currentImport.getFileName()).isEqualTo("aThirdName");
-		assertThat(currentImport.isMajor()).isFalse();
 	}
 
 	@Test(expected = ImportDataIteratorRuntimeException_InvalidDate.class)
@@ -203,87 +205,5 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ConstellioTest {
 		importDataIterator.close();
 
 		verify(ioServices).closeQuietly(reader);
-	}
-
-	//----------------------------------
-
-	private Condition<? super ImportData> field(final String entryKey, final Object entryValue) {
-		return new Condition<ImportData>() {
-			@Override
-			public boolean matches(ImportData value) {
-				assertThat(value.getFields()).containsEntry(entryKey, entryValue);
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super ImportData> structure(final String entryKey, final Object entryListMap) {
-		return new Condition<ImportData>() {
-			@Override
-			public boolean matches(ImportData value) {
-				boolean hasValue = false;
-				assertThat(value.getFields().containsKey(entryKey));
-				for (Object realValues : (List) value.getValue(entryKey)) {
-					for (Object expectedValues : (List) entryListMap) {
-						if (realValues.equals(expectedValues)) {
-							hasValue = true;
-						}
-					}
-					assertThat(hasValue).isTrue();
-					hasValue = false;
-				}
-
-				for (Object expectedValues : (List) entryListMap) {
-					for (Object realValues : (List) value.getValue(entryKey)) {
-						if (expectedValues.equals(realValues)) {
-							hasValue = true;
-						}
-					}
-					assertThat(hasValue).isTrue();
-					hasValue = false;
-				}
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super ImportData> noField(final String entryKey) {
-		return new Condition<ImportData>() {
-			@Override
-			public boolean matches(ImportData value) {
-				assertThat(value.getFields()).doesNotContainKey(entryKey);
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super ImportData> schema(final String schema) {
-		return new Condition<ImportData>() {
-			@Override
-			public boolean matches(ImportData value) {
-				assertThat(value.getSchema()).isEqualTo(schema);
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super ImportData> id(final String expectedId) {
-		return new Condition<ImportData>() {
-			@Override
-			public boolean matches(ImportData value) {
-				assertThat(value.getLegacyId()).isEqualTo(expectedId);
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super ImportData> index(final int expectedIndex) {
-		return new Condition<ImportData>() {
-			@Override
-			public boolean matches(ImportData value) {
-				assertThat(value.getIndex()).isEqualTo(expectedIndex);
-				return true;
-			}
-		};
 	}
 }

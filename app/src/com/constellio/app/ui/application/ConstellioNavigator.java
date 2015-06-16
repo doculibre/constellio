@@ -75,6 +75,13 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(viewPath);
 	}
 
+	public void addDocumentWithContent(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("idCopy", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_DOCUMENT, params);
+		vaadinNavigator.navigateTo(viewPath);
+	}
+
 	public void editDocument(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);

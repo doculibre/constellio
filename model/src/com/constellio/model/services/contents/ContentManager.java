@@ -61,6 +61,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadParsedContent;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotSaveContent;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.parser.FileParser;
@@ -333,10 +334,12 @@ public class ContentManager implements StatefulService {
 
 	public ParsedContent getParsedContent(String hash) {
 
+		String parsedContent = null;
+
 		synchronized (ContentManager.class) {
 
 			InputStream inputStream = null;
-			String parsedContent = null;
+
 			try {
 				inputStream = contentDao.getContentInputStream(hash + "__parsed", READ_PARSED_CONTENT);
 				parsedContent = ioServices.readStreamToString(inputStream);
@@ -349,10 +352,14 @@ public class ContentManager implements StatefulService {
 			} finally {
 				ioServices.closeQuietly(inputStream);
 			}
-
-			return newParsedContentConverter().convertToParsedContent(parsedContent);
+			try {
+				return newParsedContentConverter().convertToParsedContent(parsedContent);
+			} catch (Exception e) {
+				throw new ContentManagerRuntimeException_CannotReadParsedContent(e, hash, parsedContent);
+			}
 
 		}
+
 	}
 
 	ParsedContentConverter newParsedContentConverter() {

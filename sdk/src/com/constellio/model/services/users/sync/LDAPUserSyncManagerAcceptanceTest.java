@@ -17,8 +17,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users.sync;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.model.conf.LDAPTestConfig;
-import com.constellio.model.conf.ldap.*;
+import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.conf.ldap.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -27,18 +38,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	ModelLayerFactory modelLayerFactory;
@@ -65,32 +65,33 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	private void saveValidLDAPConfig() {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
-		getModelLayerFactory().getLdapConfigurationManager().saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+		getModelLayerFactory().getLdapConfigurationManager()
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
-
 
 	@Test
 	public void givenUserSyncConfiguredThenRunSynchronizationsBasedOnDuration()
 			throws Exception {
-		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager, ldapConfigurationManager, null);
+		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager,
+				ldapConfigurationManager, null);
 		ldapUserSyncManager.initialize();
 
 		ldapUserSyncManager.synchronize();
 		int usersCountAfterSync = userServices.getAllUserCredentials().size();
 
-		for(UserCredential userCredential : userServices.getAllUserCredentials()){
+		for (UserCredential userCredential : userServices.getAllUserCredentials()) {
 			String username = userCredential.getUsername();
 			assertThat(ldapConfigurationManager.getLDAPUserSyncConfiguration().isGroupAccepted(username)).isTrue();
 		}
 
 		int ldapActiveUsersCount = 6;
-		assertThat(usersCountAfterSync).isEqualTo(1 + ldapActiveUsersCount);
+		assertThat(usersCountAfterSync).isEqualTo(ldapActiveUsersCount);
 		UserCredential importedUser = user("bfay");
 		assertThat(importedUser.getFirstName()).isEqualTo("Nicolas");
 		assertThat(importedUser.getLastName()).isEqualTo("Belisle");
 		assertThat(importedUser.getEmail()).isEqualTo("");
 
-		for(GlobalGroup group : globalGroupsManager.getAllGroups()){
+		for (GlobalGroup group : globalGroupsManager.getAllGroups()) {
 			String code = group.getName();
 			assertThat(ldapConfigurationManager.getLDAPUserSyncConfiguration().isGroupAccepted(code)).isTrue();
 		}
@@ -106,15 +107,16 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenExistingGroupBeforeLDAPSyncThenAfterLDAPSyncGroupWithSameCollections(){
+	public void givenExistingGroupBeforeLDAPSyncThenAfterLDAPSyncGroupWithSameCollections() {
 		String group = "CN=B,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca";
-		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager, ldapConfigurationManager, null);
+		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager,
+				ldapConfigurationManager, null);
 		ldapUserSyncManager.initialize();
 
 		ldapUserSyncManager.synchronize();
 		GlobalGroup globalGroup = userServices.getGroup(group);
 		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).isEmpty();
-		globalGroup = globalGroup.withUsersAutomaticallyAddedToCollections(Arrays.asList(new String[]{zeCollection}));
+		globalGroup = globalGroup.withUsersAutomaticallyAddedToCollections(Arrays.asList(new String[] { zeCollection }));
 		userServices.addUpdateGlobalGroup(globalGroup);
 		globalGroup = userServices.getGroup(group);
 		assertThat(globalGroup.getUsersAutomaticallyAddedToCollections()).containsOnly(zeCollection);
@@ -127,8 +129,9 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenExistingUserBeforeLDAPSyncThenAfterLDAPSyncUserWithSameCollections(){
-		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager, ldapConfigurationManager, null);
+	public void givenExistingUserBeforeLDAPSyncThenAfterLDAPSyncUserWithSameCollections() {
+		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager,
+				ldapConfigurationManager, null);
 		ldapUserSyncManager.initialize();
 
 		ldapUserSyncManager.synchronize();
@@ -143,8 +146,9 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void beforeSyncUserInactiveInConstellioButActiveInLDAPThenAfterSyncUserActive(){
-		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager, ldapConfigurationManager, null);
+	public void beforeSyncUserInactiveInConstellioButActiveInLDAPThenAfterSyncUserActive() {
+		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager,
+				ldapConfigurationManager, null);
 		ldapUserSyncManager.initialize();
 
 		ldapUserSyncManager.synchronize();
@@ -160,17 +164,19 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void beforeSyncUserActiveInConstellioButInactiveInLDAPThenAfterSyncUserInactive(){
+	public void beforeSyncUserActiveInConstellioButInactiveInLDAPThenAfterSyncUserInactive() {
 		String inactiveUserInLDAP = "krbtgt";
-		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager, ldapConfigurationManager, null);
+		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager,
+				ldapConfigurationManager, null);
 		ldapUserSyncManager.initialize();
 
 		ldapUserSyncManager.synchronize();
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
 		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 
-		UserCredential userCredential = new UserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP+ "@doculibre.com",
-				Arrays.asList(new String[]{}), Arrays.asList(new String[]{}), UserCredentialStatus.ACTIVE);
+		UserCredential userCredential = new UserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
+				inactiveUserInLDAP + "@doculibre.com",
+				Arrays.asList(new String[] { }), Arrays.asList(new String[] { }), UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(userCredential);
 		userServices.getUser(inactiveUserInLDAP);
 
@@ -179,12 +185,13 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void beforeSyncUserInGroupsA_BInConstellioButInGroupsB_CInLDAPThenAfterSyncUserInGroupsB_C(){
+	public void beforeSyncUserInGroupsA_BInConstellioButInGroupsB_CInLDAPThenAfterSyncUserInGroupsB_C() {
 		String groupA = "A";
 		String groupB = "CN=B,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca";
 		String groupC = "CN=C,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca";
 		String ldapSystemGroup = "CN=WSS_ADMIN_WPG,CN=Users,DC=test,DC=doculibre,DC=ca";
-		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager, ldapConfigurationManager, null);
+		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(userServices, globalGroupsManager,
+				ldapConfigurationManager, null);
 		ldapUserSyncManager.initialize();
 
 		ldapUserSyncManager.synchronize();
@@ -192,8 +199,9 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		List<String> currentGroups = bfay.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupC, ldapSystemGroup);
 		List<String> usersAutomaticallyAddedToCollections = Collections.emptyList();
-		userServices.addUpdateGlobalGroup(new GlobalGroup(groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE));
-		bfay = bfay.withGlobalGroups(Arrays.asList(new String[] {groupA, groupB}));
+		userServices.addUpdateGlobalGroup(
+				new GlobalGroup(groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE));
+		bfay = bfay.withGlobalGroups(Arrays.asList(new String[] { groupA, groupB }));
 		userServices.addUpdateUserCredential(bfay);
 		currentGroups = bfay.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupA);

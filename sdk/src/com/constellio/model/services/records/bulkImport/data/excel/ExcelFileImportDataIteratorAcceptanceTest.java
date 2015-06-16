@@ -30,9 +30,10 @@ import org.junit.Test;
 import com.constellio.model.services.records.bulkImport.data.ImportData;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIterator;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate;
+import com.constellio.model.services.records.bulkImport.data.ImportDataIteratorTest;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class ExcelFileImportDataIteratorAcceptanceTest extends ConstellioTest {
+public class ExcelFileImportDataIteratorAcceptanceTest extends ImportDataIteratorTest {
 
 	ImportDataIterator importDataIterator;
 	ExcelImportDataProvider excelImportDataProvider;
@@ -174,7 +175,7 @@ public class ExcelFileImportDataIteratorAcceptanceTest extends ConstellioTest {
 		importDataIterator.next();
 
 	}
-
+/*
 	//----------------------------------
 
 	private Condition<? super ImportData> field(final String entryKey, final Object entryValue) {
@@ -225,5 +226,5 @@ public class ExcelFileImportDataIteratorAcceptanceTest extends ConstellioTest {
 				return true;
 			}
 		};
-	}
+	}*/
 }

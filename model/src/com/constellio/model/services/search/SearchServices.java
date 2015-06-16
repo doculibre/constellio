@@ -25,10 +25,11 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.common.params.HighlightParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.solr.common.params.ShardParams;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -46,36 +47,29 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class SearchServices {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SearchServices.class);
-
 	RecordDao recordDao;
 	RecordServices recordServices;
 
 	public SearchServices(RecordDao recordDao, RecordServices recordServices) {
-		super();
 		this.recordDao = recordDao;
 		this.recordServices = recordServices;
 	}
 
-	public List<Record> search(LogicalSearchQuery query) {
+	public SPEQueryResponse query(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return buildResponse(params, query).getRecords();
+		return buildResponse(params, query);
+	}
+
+	public List<Record> search(LogicalSearchQuery query) {
+		return query(query).getRecords();
 	}
 
 	public Record searchSingleResult(LogicalSearchCondition condition) {
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition);
-		query.setNumberOfRows(2);
-		ModifiableSolrParams params = addSolrModifiableParams(query);
-		List<Record> queryResponseRecords = buildResponse(params, query).getRecords();
-		if (queryResponseRecords.size() > 1) {
+		SPEQueryResponse response = query(new LogicalSearchQuery(condition).setNumberOfRows(1));
+		if (response.getNumFound() > 1) {
 			throw new SearchServicesRuntimeException.TooManyRecordsInSingleSearchResult(condition.getSolrQuery());
-		} else if (queryResponseRecords.size() == 1) {
-			return queryResponseRecords.get(0);
-		} else {
-			return null;
 		}
+		return response.getNumFound() == 1 ? response.getRecords().get(0) : null;
 	}
 
 	public Iterator<Record> recordsIterator(LogicalSearchQuery query) {
@@ -94,19 +88,11 @@ public class SearchServices {
 	}
 
 	public long getResultsCount(LogicalSearchCondition condition) {
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setNumberOfRows(1);
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
-
-		ModifiableSolrParams params = addSolrModifiableParams(query);
-
-		return recordDao.query(params).getNumFound();
+		return getResultsCount(new LogicalSearchQuery(condition));
 	}
 
 	public long getResultsCount(LogicalSearchQuery query) {
-		query.setNumberOfRows(1);
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
-
+		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		return recordDao.query(params).getNumFound();
 	}
@@ -115,7 +101,7 @@ public class SearchServices {
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 
-		List<String> ids = new ArrayList<String>();
+		List<String> ids = new ArrayList<>();
 		for (Record record : buildResponse(params, query).getRecords()) {
 			ids.add(record.getId());
 		}
@@ -133,86 +119,78 @@ public class SearchServices {
 		};
 	}
 
-	private SPEQueryResponse buildResponse(ModifiableSolrParams params, LogicalSearchQuery query) {
-
-		QueryResponseDTO queryResponseDTO = recordDao.query(params);
-		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
-
-		List<Record> records = recordServices.toRecords(recordDTOs);
-		Map<DataStoreField, List<FacetValue>> fieldFacetValues = buildFacets(query.getFieldFacets(),
-				queryResponseDTO.getFieldFacetValues());
-		Map<String, Integer> queryFacetValues = queryResponseDTO.getQueryFacetValues();
-
-		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, queryFacetValues, queryResponseDTO.getQtime(),
-				queryResponseDTO.getNumFound(), records, queryResponseDTO.getHighlights(),
-				queryResponseDTO.isCorrectlySpelled(), queryResponseDTO.getSpellCheckerSuggestions());
-
-		if (query.getResultsProjection() != null) {
-			return query.getResultsProjection().project(query, response);
-		} else {
-			return response;
-		}
-
+	public boolean hasResults(LogicalSearchQuery query) {
+		return getResultsCount(query) != 0;
 	}
 
-	private Map<DataStoreField, List<FacetValue>> buildFacets(
-			List<DataStoreField> fields, Map<String, List<FacetValue>> facetValues) {
-		Map<DataStoreField, List<FacetValue>> result = new HashMap<>();
-		for (DataStoreField field : fields) {
-			List<FacetValue> values = facetValues.get(field.getDataStoreCode());
-			if (values != null) {
-				result.put(field, values);
+	public boolean hasResults(LogicalSearchCondition condition) {
+		return getResultsCount(condition) != 0;
+	}
+
+	public Iterator<Record> optimizedRecordsIterator(LogicalSearchQuery query, int batchSize) {
+		return new OptimizedLogicalSearchIterator<Record>(query, this, batchSize) {
+			@Override
+			protected Record convert(Record record) {
+				return record;
 			}
-		}
-		return result;
+		};
+	}
+
+	public Iterator<String> optimizedRecordsIdsIterator(LogicalSearchQuery query, int batchSize) {
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		return new OptimizedLogicalSearchIterator<String>(query, this, batchSize) {
+			@Override
+			protected String convert(Record record) {
+				return record.getId();
+			}
+		};
 	}
 
 	private ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
-		return addSolrModifiableParams(null, query);
-	}
-
-	private ModifiableSolrParams addSolrModifiableParams(String freeTextQuery, LogicalSearchQuery query) {
-
 		ModifiableSolrParams params = new ModifiableSolrParams();
-		//params.add("q.op", "AND");
 
-		for (String filerQuery : query.getFilterQueries()) {
-			params.add("fq", filerQuery);
+		for (String filterQuery : query.getFilterQueries()) {
+			params.add(CommonParams.FQ, filterQuery);
 		}
-		params.add("fq", "" + query.getQuery());
+		params.add(CommonParams.FQ, "" + query.getQuery());
 
 		params.add(CommonParams.QT, "/spell");
-		params.add("shards.qt", "/spell");
-		if (freeTextQuery != null) {
+		params.add(ShardParams.SHARDS_QT, "/spell");
+
+		if (query.getFreeTextQuery() != null) {
 			String qf = Schemas.FRENCH_SEARCH_FIELD.getLocalCode() + "_" + Schemas.FRENCH_SEARCH_FIELD.getDataStoreType() + " "
 					+ Schemas.ENGLISH_SEARCH_FIELD.getLocalCode() + "_" + Schemas.ENGLISH_SEARCH_FIELD.getDataStoreType();
-			params.add("qf", qf);
+			params.add(DisMaxParams.QF, qf);
+			params.add(DisMaxParams.MM, "2<66%");
 			params.add("defType", "edismax");
-			params.add("mm", "60%");
 		}
-		params.add("q", StringUtils.defaultString(freeTextQuery, "*:*"));
-		params.add("rows", "" + query.getNumberOfRows());
-		params.add("start", "" + query.getStartRow());
+		params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
+
+		params.add(CommonParams.ROWS, "" + query.getNumberOfRows());
+		params.add(CommonParams.START, "" + query.getStartRow());
 
 		if (!query.getFieldFacets().isEmpty() || !query.getQueryFacets().isEmpty()) {
-			params.add("facet", "true");
-			params.add("facet.sort", "count");
+			params.add(FacetParams.FACET, "true");
+			params.add(FacetParams.FACET_SORT, FacetParams.FACET_SORT_COUNT);
 		}
 		if (!query.getFieldFacets().isEmpty()) {
-			params.add("facet.mincount", "1");
+			params.add(FacetParams.FACET_MINCOUNT, "1");
 			for (DataStoreField field : query.getFieldFacets()) {
-				params.add("facet.field", "{!ex=" + field.getDataStoreCode() + "}" + field.getDataStoreCode());
+				params.add(FacetParams.FACET_FIELD, "{!ex=" + field.getDataStoreCode() + "}" + field.getDataStoreCode());
+			}
+			if (query.getFieldFacetLimit() != 0) {
+				params.add(FacetParams.FACET_LIMIT, "" + query.getFieldFacetLimit());
 			}
 		}
 		if (!query.getQueryFacets().isEmpty()) {
 			for (String facetQuery : query.getQueryFacets()) {
-				params.add("facet.query", facetQuery);
+				params.add(FacetParams.FACET_QUERY, facetQuery);
 			}
 		}
 
 		String sort = query.getSort();
 		if (!sort.isEmpty()) {
-			params.add("sort", sort);
+			params.add(CommonParams.SORT, sort);
 		}
 
 		if (query.getReturnedMetadatas() != null) {
@@ -226,7 +204,7 @@ public class SearchServices {
 				for (Metadata acceptedField : acceptedFields) {
 					fields.add(acceptedField.getDataStoreCode());
 				}
-				params.set("fl", StringUtils.join(fields.toArray(), ","));
+				params.set(CommonParams.FL, StringUtils.join(fields.toArray(), ","));
 			}
 
 		}
@@ -246,43 +224,35 @@ public class SearchServices {
 		return params;
 	}
 
-	public boolean hasResults(LogicalSearchCondition condition) {
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setNumberOfRows(1);
-		return !searchRecordIds(query).isEmpty();
+	private SPEQueryResponse buildResponse(ModifiableSolrParams params, LogicalSearchQuery query) {
+		QueryResponseDTO queryResponseDTO = recordDao.query(params);
+		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
+
+		List<Record> records = recordServices.toRecords(recordDTOs);
+		Map<DataStoreField, List<FacetValue>> fieldFacetValues = buildFacets(query.getFieldFacets(),
+				queryResponseDTO.getFieldFacetValues());
+		Map<String, Integer> queryFacetValues = queryResponseDTO.getQueryFacetValues();
+
+		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, queryFacetValues, queryResponseDTO.getQtime(),
+				queryResponseDTO.getNumFound(), records, queryResponseDTO.getHighlights(),
+				queryResponseDTO.isCorrectlySpelt(), queryResponseDTO.getSpellCheckerSuggestions());
+
+		if (query.getResultsProjection() != null) {
+			return query.getResultsProjection().project(query, response);
+		} else {
+			return response;
+		}
 	}
 
-	public boolean hasResults(LogicalSearchQuery query) {
-		query.setNumberOfRows(1);
-		return !searchRecordIds(query).isEmpty();
-	}
-
-	public Iterator<Record> optimizesRecordsIterator(LogicalSearchQuery query, int batchSize) {
-		return new OptimizedLogicalSearchIterator<Record>(query, this, batchSize) {
-			@Override
-			protected Record convert(Record record) {
-				return record;
+	private Map<DataStoreField, List<FacetValue>> buildFacets(
+			List<DataStoreField> fields, Map<String, List<FacetValue>> facetValues) {
+		Map<DataStoreField, List<FacetValue>> result = new HashMap<>();
+		for (DataStoreField field : fields) {
+			List<FacetValue> values = facetValues.get(field.getDataStoreCode());
+			if (values != null) {
+				result.put(field, values);
 			}
-		};
-	}
-
-	public Iterator<String> optimizesRecordsIdsIterator(LogicalSearchQuery query, int batchSize) {
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
-		return new OptimizedLogicalSearchIterator<String>(query, this, batchSize) {
-			@Override
-			protected String convert(Record record) {
-				return record.getId();
-			}
-		};
-	}
-
-	public SPEQueryResponse query(LogicalSearchQuery query) {
-		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return buildResponse(params, query);
-	}
-
-	public SPEQueryResponse query(String freeTextQuery, LogicalSearchQuery query) {
-		ModifiableSolrParams params = addSolrModifiableParams(freeTextQuery, query);
-		return buildResponse(params, query);
+		}
+		return result;
 	}
 }

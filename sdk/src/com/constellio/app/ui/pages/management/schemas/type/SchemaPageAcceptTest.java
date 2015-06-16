@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.schemas.type;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -25,17 +26,20 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.pages.management.schemas.metadata.AddEditMetadataView;
 import com.constellio.app.ui.tools.AutocompleteWebElement;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
 
 @UiTest
+@InDevelopmentTest
 public class SchemaPageAcceptTest extends ConstellioTest {
 
 	ConstellioWebDriver driver;
@@ -78,7 +82,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		givenEditSchemaPageWhenSaveButtonClickedThenUpdateAndNavigateToDisplaySchema();
 
 		//TODO Vincent - Le test suivant ne passe pas sur phantonjs
-		//		givenAddSchemaMetadataPageWhenChangeTypeThenVerifyEnableOptions();
+		givenAddSchemaMetadataPageWhenChangeTypeThenVerifyEnableOptions();
 		givenEditSchemaMetadataPageThenSomeFieldsAreDisable();
 
 		givenAddFolderSchemaMetadataPageWhenAddBooleanMetadataThenOk();
@@ -162,7 +166,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 			throws Exception {
 		navigateToAddMetadataPage();
 
-		AutocompleteWebElement valueTypeElement = addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Booléen");
+		AutocompleteWebElement valueTypeElement = addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("MetadataValueType.boolean"));
 
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isEnabled()).isFalse();
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
@@ -176,7 +180,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
 
 		valueTypeElement.clear();
-		valueTypeElement.typeAndSelectFirst("Texte");
+		valueTypeElement.typeAndSelectFirst($("AddEditMetadataView.type.text"));
 
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
@@ -189,15 +193,15 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getEnableElement().isChecked()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getEntryElement().getListValues())
-				.containsOnly("Zone de texte", "Zone de texte riche");
+				.containsOnly($("MetadataInputType.textarea"), $("MetadataInputType.richtxt"));
 
 		valueTypeElement.clear();
-		valueTypeElement.typeAndSelectFirst("Contenu");
+		valueTypeElement.typeAndSelectFirst($("AddEditMetadataView.type.content"));
 
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getHighlightElement().isEnabled()).isTrue();
-		assertThat(addEditSchemaMetadataPage.getFacetElement().isEnabled()).isFalse();
+		assertThat(addEditSchemaMetadataPage.getFacetElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAdvancedSearchElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getSortableElement().isEnabled()).isFalse();
 		assertThat(addEditSchemaMetadataPage.getSearchableElement().isEnabled()).isTrue();
@@ -205,10 +209,10 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getEnableElement().isChecked()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getEntryElement().getListValues())
-				.containsOnly("Contenu", "Contenu Emprunt/Retour");
+				.containsOnly($("MetadataInputType.textarea"), $("MetadataInputType.richtxt"));
 
 		valueTypeElement.clear();
-		valueTypeElement.typeAndSelectFirst("Date");
+		valueTypeElement.typeAndSelectFirst($("AddEditMetadataView.type.date"));
 
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
@@ -222,7 +226,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
 
 		valueTypeElement.clear();
-		valueTypeElement.typeAndSelectFirst("Date & Heure");
+		valueTypeElement.typeAndSelectFirst($("AddEditMetadataView.type.datetime"));
 
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
@@ -236,13 +240,13 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
 
 		valueTypeElement.clear();
-		valueTypeElement.typeAndSelectFirst("Référence");
+		valueTypeElement.typeAndSelectFirst($("AddEditMetadataView.type.reference"));
 
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isChecked())
 				.isFalse();
 		assertThat(addEditSchemaMetadataPage.getEntryElement().getListValues())
-				.containsOnly("Lookup", "Menu déroulant", "Button radio");
+				.containsOnly($("MetadataInputType.lookup"), $("MetadataInputType.dropdown"), $("MetadataInputType.radio"));
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getHighlightElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getFacetElement().isEnabled()).isTrue();
@@ -254,13 +258,13 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
 
 		valueTypeElement.clear();
-		valueTypeElement.typeAndSelectFirst("Référence");
+		valueTypeElement.typeAndSelectFirst($("AddEditMetadataView.type.reference"));
 		addEditSchemaMetadataPage.getMultivalueElement().toggle();
 
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isChecked())
 				.isTrue();
 		assertThat(addEditSchemaMetadataPage.getEntryElement().getListValues())
-				.containsOnly("Lookup", "Menu déroulant", "Case à cocher");
+				.containsOnly($("MetadataInputType.lookup"), $("MetadataInputType.dropdown"), $("MetadataInputType.checkboxe"));
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getHighlightElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getFacetElement().isEnabled()).isTrue();
@@ -272,10 +276,10 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
 
 		valueTypeElement.clear();
-		valueTypeElement.typeAndSelectFirst("String");
-		assertThat(addEditSchemaMetadataPage.getEntryElement().getListValues())
-				.containsOnly("Champs de base", "URL");
+		valueTypeElement.typeAndSelectFirst($("AddEditMetadataView.type.string"));
 
+		assertThat(addEditSchemaMetadataPage.getEntryElement().getListValues())
+				.containsOnly($("MetadataInputType.field"), $("MetadataInputType.url")); // need a fix
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getHighlightElement().isEnabled()).isTrue();
@@ -288,7 +292,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
 
 		valueTypeElement.clear();
-		valueTypeElement.typeAndSelectFirst("Numéro");
+		valueTypeElement.typeAndSelectFirst($("AddEditMetadataView.type.number"));
 
 		assertThat(addEditSchemaMetadataPage.getMultivalueElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAutocompleteElement().isEnabled()).isTrue();
@@ -316,7 +320,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("booleanMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze boolean Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Booléen");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("MetadataValueType.boolean"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getHighlightElement().toggle();
 		addEditSchemaMetadataPage.getSaveButton().click();
@@ -348,9 +352,9 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("multipleTextMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze multiple text Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Texte");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.text"));
 		addEditSchemaMetadataPage.getMultivalueElement().toggle();
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Zone de texte");
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataInputType.textarea"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getHighlightElement().toggle();
 		addEditSchemaMetadataPage.getSaveButton().click();
@@ -383,9 +387,9 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("textMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze text Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Texte");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.text"));
 
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Zone de texte");
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataInputType.textarea"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
 		addEditSchemaMetadataPage.getFacetElement().toggle();
@@ -415,9 +419,9 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("richTextMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze rich text box Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Texte");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.text"));
 		addEditSchemaMetadataPage.getMultivalueElement().toggle();
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Zone de texte riche");
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataInputType.richtxt"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
 		addEditSchemaMetadataPage.getFacetElement().toggle();
@@ -447,9 +451,9 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("contentMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze content Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Contenu");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.content"));
 		addEditSchemaMetadataPage.getMultivalueElement().toggle();
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Contenu");
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataValueType.content"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
 		addEditSchemaMetadataPage.getFacetElement().toggle();
@@ -480,9 +484,9 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("borrowContentMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze content to borrow Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Contenu");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.content"));
 		addEditSchemaMetadataPage.getMultivalueElement().toggle();
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Contenu Emprunt");
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataInputType.contentcheck"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
 		addEditSchemaMetadataPage.getFacetElement().toggle();
@@ -513,7 +517,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("dateMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze date Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Date");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.date"));
 		addEditSchemaMetadataPage.getMultivalueElement().toggle();
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
@@ -545,7 +549,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("dateHourMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze date hour Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Date & Heure");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.datetime"));
 		addEditSchemaMetadataPage.getMultivalueElement().toggle();
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
@@ -576,8 +580,8 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("referenceMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze reference Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Référence");
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Lookup");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.reference"));
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataInputType.lookup"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getReferenceElement().typeAndSelectFirst("Unité administrative");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
@@ -609,8 +613,8 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("referenceDropDownMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze reference DropDown Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Référence");
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Menu déroulant");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.reference"));
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataInputType.dropdown"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getReferenceElement().typeAndSelectFirst("Unité administrative");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
@@ -641,8 +645,8 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("referenceRadioMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze reference Radio Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Référence");
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Bouton radio");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.reference"));
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataInputType.radio"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getReferenceElement().typeAndSelectFirst("Unité administrative");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
@@ -674,9 +678,9 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		addEditSchemaMetadataPage.getCodeElement().setValue("stringMetadata");
 		addEditSchemaMetadataPage.getTitleElement().setValue("Ze string Metadata");
-		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst("Chaîne de caractères");
+		addEditSchemaMetadataPage.getValueTypeElement().typeAndSelectFirst($("AddEditMetadataView.type.string"));
 		addEditSchemaMetadataPage.getMultivalueElement().toggle();
-		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst("Champs de base");
+		addEditSchemaMetadataPage.getEntryElement().typeAndSelectFirst($("MetadataInputType.field"));
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
 		addEditSchemaMetadataPage.getSaveButton().click();

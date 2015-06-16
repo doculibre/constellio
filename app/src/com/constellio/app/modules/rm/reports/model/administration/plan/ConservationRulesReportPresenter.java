@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,8 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.Administr
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Copy;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Rule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.model.conf.FoldersLocator;
@@ -50,56 +53,81 @@ public class ConservationRulesReportPresenter {
 	private ModelLayerFactory modelLayerFactory;
 	private RMSchemasRecordsServices rm;
 	private SearchServices searchServices;
+	private boolean byAdministrativeUnit;
+	private DecommissioningService decommissioningService;
 
 	public ConservationRulesReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
+		this(collection, modelLayerFactory, false);
+	}
+
+	public ConservationRulesReportPresenter(String collection, ModelLayerFactory modelLayerFactory,
+			boolean byAdministrativeUnit) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		searchServices = modelLayerFactory.newSearchServices();
+		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		this.byAdministrativeUnit = byAdministrativeUnit;
 	}
 
 	public ConservationRulesReportModel build() {
 		ConservationRulesReportModel model = new ConservationRulesReportModel();
 
-		List<ConservationRulesReportModel_Rule> rules = convertRulesToModelRules();
+		if (byAdministrativeUnit) {
+			Map<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> conservationRulesModelByAdministrativeUnit = new HashMap<>();
+			Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = getRetentionRulesByAdministrativeUnit();
+			for (Entry<AdministrativeUnit, List<RetentionRule>> entry : retentionRulesByAdministrativeUnit.entrySet()) {
+				List<ConservationRulesReportModel_Rule> reportModelRules = convertRulesToModelRules(entry.getValue());
+				conservationRulesModelByAdministrativeUnit.put(entry.getKey(), reportModelRules);
+			}
+			model.setRulesByAdministrativeUnit(conservationRulesModelByAdministrativeUnit);
+			model.setByAdministrativeUnit(true);
+		} else {
+			List<ConservationRulesReportModel_Rule> rules = getAndConvertRulesToModelRules();
 
-		model.setRules(rules);
+			model.setRules(rules);
+		}
 
 		return model;
 	}
 
-	private List<ConservationRulesReportModel_Rule> convertRulesToModelRules() {
+	private List<ConservationRulesReportModel_Rule> getAndConvertRulesToModelRules() {
 		List<ConservationRulesReportModel_Rule> conservationRulesReportModel_Rules = new ArrayList<>();
-
 		List<RetentionRule> retentionRules = getRetentionRules();
 
 		if (retentionRules != null) {
-			for (RetentionRule retentionRule : retentionRules) {
-				if (retentionRule != null) {
-					try {
-						ConservationRulesReportModel_Rule conservationRulesReportModel_Rule = new ConservationRulesReportModel_Rule();
+			conservationRulesReportModel_Rules = convertRulesToModelRules(retentionRules);
+		}
 
-						String code = StringUtils.defaultString(retentionRule.getCode());
-						String title = StringUtils.defaultString(retentionRule.getTitle());
-						String description = StringUtils.defaultString(retentionRule.getDescription());
+		return conservationRulesReportModel_Rules;
+	}
 
-						conservationRulesReportModel_Rule.setRuleNumber(code);
-						conservationRulesReportModel_Rule.setTitle(title);
-						conservationRulesReportModel_Rule.setDescription(description);
+	private List<ConservationRulesReportModel_Rule> convertRulesToModelRules(List<RetentionRule> retentionRules) {
+		List<ConservationRulesReportModel_Rule> conservationRulesReportModel_Rules = new ArrayList<>();
+		for (RetentionRule retentionRule : retentionRules) {
+			if (retentionRule != null) {
+				try {
+					ConservationRulesReportModel_Rule conservationRulesReportModel_Rule = new ConservationRulesReportModel_Rule();
 
-						conservationRulesReportModel_Rule.setPrincipalsHolders(getPrincipalsHolders(retentionRule));
-						conservationRulesReportModel_Rule.setPrincipalsCopies(getPrincipalCopies(retentionRule));
+					String code = StringUtils.defaultString(retentionRule.getCode());
+					String title = StringUtils.defaultString(retentionRule.getTitle());
+					String description = StringUtils.defaultString(retentionRule.getDescription());
 
-						conservationRulesReportModel_Rule.setSecondaryCopy(getSecondaryCopy(retentionRule));
+					conservationRulesReportModel_Rule.setRuleNumber(code);
+					conservationRulesReportModel_Rule.setTitle(title);
+					conservationRulesReportModel_Rule.setDescription(description);
 
-						conservationRulesReportModel_Rules.add(conservationRulesReportModel_Rule);
-					} catch (Exception e) {
-						LOGGER.info(e.getMessage());
-					}
+					conservationRulesReportModel_Rule.setPrincipalsHolders(getPrincipalsHolders(retentionRule));
+					conservationRulesReportModel_Rule.setPrincipalsCopies(getPrincipalCopies(retentionRule));
+
+					conservationRulesReportModel_Rule.setSecondaryCopy(getSecondaryCopy(retentionRule));
+
+					conservationRulesReportModel_Rules.add(conservationRulesReportModel_Rule);
+				} catch (Exception e) {
+					LOGGER.info(e.getMessage());
 				}
 			}
 		}
-
 		return conservationRulesReportModel_Rules;
 	}
 
@@ -121,10 +149,40 @@ public class ConservationRulesReportPresenter {
 
 	}
 
+	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit() {
+
+		MetadataSchemaType administrativeUnitSchemaType = rm.administrativeUnitSchemaType();
+		Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = new HashMap<>();
+
+		LogicalSearchQuery alladministrativesUnits = new LogicalSearchQuery()
+				.setCondition(LogicalSearchQueryOperators.from(administrativeUnitSchemaType).returnAll())
+				.sortAsc(Schemas.CODE);
+
+		List<AdministrativeUnit> administrativeUnits = rm.wrapAdministrativeUnits(searchServices
+				.search(alladministrativesUnits));
+
+		if (administrativeUnits != null) {
+			for (AdministrativeUnit administrativeUnit : administrativeUnits) {
+				List<RetentionRule> newRetentionRules = new ArrayList<>();
+				List<RetentionRule> retentionRules = decommissioningService
+						.getRetentionRulesForAdministrativeUnit(administrativeUnit.getId());
+				for (RetentionRule retentionRule : retentionRules) {
+					if (!retentionRule.isResponsibleAdministrativeUnits()) {
+						newRetentionRules.add(retentionRule);
+					}
+				}
+				if (!newRetentionRules.isEmpty()) {
+					retentionRulesByAdministrativeUnit.put(administrativeUnit, newRetentionRules);
+				}
+			}
+		}
+		return retentionRulesByAdministrativeUnit;
+	}
+
 	private Map<String, String> getPrincipalsHolders(RetentionRule rule) {
 		Map<String, String> principalsHolders = new HashMap<String, String>();
 
-		Map<String, AdministrativeUnitReportModel_AdministrativeUnit> administrativeUnits = getAdministrativeUnits();
+		Map<String, AdministrativeUnitReportModel_AdministrativeUnit> administrativeUnits = getAdministrativeUnitsMapModel();
 
 		if (administrativeUnits != null) {
 			if (rule != null) {
@@ -150,7 +208,7 @@ public class ConservationRulesReportPresenter {
 		return principalsHolders;
 	}
 
-	private Map<String, AdministrativeUnitReportModel_AdministrativeUnit> getAdministrativeUnits() {
+	private Map<String, AdministrativeUnitReportModel_AdministrativeUnit> getAdministrativeUnitsMapModel() {
 		Map<String, AdministrativeUnitReportModel_AdministrativeUnit> mappedUnits = new HashMap<>();
 
 		List<AdministrativeUnitReportModel_AdministrativeUnit> modelAdministrativeUnits = getModelAdministrativeUnits();

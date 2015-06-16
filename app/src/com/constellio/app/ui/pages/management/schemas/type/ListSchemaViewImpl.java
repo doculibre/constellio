@@ -38,6 +38,7 @@ import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -91,6 +92,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		};
 
 		viewLayout.addComponents(addButton, buildTables());
+		viewLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		return viewLayout;
 	}
 
@@ -171,10 +173,11 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 		schemaContainer = buttonsContainer;
 
-		Table table = new Table($("ListSchemaView.tableTitle"), schemaContainer);
-		table.setWidth("100%");
+		Table table = new Table($("ListSchemaView.tableTitle", schemaContainer.size()), schemaContainer);
+		table.setSizeFull();
+		table.setPageLength(table.size());
 		table.setColumnHeader("buttons", "");
-		table.setColumnHeader("caption", $("ListSchemaView.caption"));
+		table.setColumnHeader("caption", $("ListSchemaView.caption", schemaContainer.size()));
 		table.setColumnExpandRatio("caption", 1);
 		table.addItemClickListener(new ItemClickListener() {
 			@Override

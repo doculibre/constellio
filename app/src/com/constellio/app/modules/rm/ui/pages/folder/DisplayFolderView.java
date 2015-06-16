@@ -52,4 +52,10 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void setShareFolderButtonState(ComponentState state);
 
 	void setAuthorizationButtonState(ComponentState authorizationButtonState);
+
+	void setBorrowButtonState(ComponentState state);
+
+	void setReturnFolderButtonState(ComponentState state);
+
+	void setBorrowedMessage(String borrowedMessage);
 }

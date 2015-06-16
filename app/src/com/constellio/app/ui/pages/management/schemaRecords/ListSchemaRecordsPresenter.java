@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.schemaRecords;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,11 +31,11 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
 public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSchemaRecordsView> {
 
@@ -46,8 +48,8 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 	}
 
 	public RecordVODataProvider getDataProvider() {
-		String schemaCode = getSchemaCode();
-		List<String> metadataCodes = new ArrayList<String>();
+		final String schemaCode = getSchemaCode();
+		final List<String> metadataCodes = new ArrayList<String>();
 		metadataCodes.add(schemaCode + "_id");
 		//		metadataCodes.add(schemaCode + "_code");
 		metadataCodes.add(schemaCode + "_title");
@@ -56,8 +58,8 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(LogicalSearchQueryOperators.from(schema()).returnAll())
-						.filteredByStatus(StatusFilter.ACTIVES);
+				return new LogicalSearchQuery(from(schema()).returnAll())
+						.filteredByStatus(StatusFilter.ACTIVES).sortAsc(Schemas.TITLE);
 			}
 		};
 		return dataProvider;

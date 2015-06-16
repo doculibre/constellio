@@ -36,6 +36,9 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -50,34 +53,29 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class SystemConfigurationsManagerUnitTest extends ConstellioTest {
-
 	@Mock MetadataSchemasManager metadataSchemasManager;
-
 	@Mock ModelLayerFactory modelLayerFactory;
-
 	@Mock BatchProcessesManager batchProcessesManager;
-
 	@Mock ConfigManager configManager;
-
 	SystemConfigurationsManager systemConfigurationsManager;
-
 	@Mock SystemConfiguration aSystemConfiguration;
-
 	@Mock BatchProcess aBatchProcess, anotherBatchProcess;
-
 	@Mock SystemConfigurationScript script;
-
 	@Mock CollectionsListManager collectionsListManager;
-
 	@Mock ConstellioModulesManager constellioModulesManager;
+	@Mock IOServices ioServices;
+	@Mock DataLayerFactory dataLayerFactory;
+	@Mock IOServicesFactory ioServicesFactory;
 
 	@Before
 	public void setUp()
 			throws Exception {
-
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
 		when(modelLayerFactory.getBatchProcessesManager()).thenReturn(batchProcessesManager);
 		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
+		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
+		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
+		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
 
 		systemConfigurationsManager = spy(
 				new SystemConfigurationsManager(modelLayerFactory, configManager, new Delayed<>(constellioModulesManager)));

@@ -33,6 +33,7 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.Conservat
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Rule;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportPresenter;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 
 public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
@@ -53,6 +54,8 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 	@Test
 	public void whenBuildingModelThenGetAppropriateModel() {
+		boolean withAdministrativeUnit = false;
+		presenter = new ConservationRulesReportPresenter(zeCollection, getModelLayerFactory(), withAdministrativeUnit);
 		ConservationRulesReportModel model = presenter.build();
 		assertThat(model.getTitle()).isEqualTo("Liste des règles de conservation");
 
@@ -72,9 +75,39 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 	}
 
+	@Test
+	public void whenBuildingModelByAdministrativeUnitThenGetAppropriateModel() {
+		boolean withAdministrativeUnit = true;
+		presenter = new ConservationRulesReportPresenter(zeCollection, getModelLayerFactory(), withAdministrativeUnit);
+		ConservationRulesReportModel model = presenter.build();
+		assertThat(model.getTitle()).isEqualTo("Liste des règles de conservation");
+
+		Map<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> adminUnitRulesMap = model
+				.getRulesByAdministrativeUnitMap();
+		assertThat(adminUnitRulesMap.size()).isEqualTo(3);
+
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).size()).isEqualTo(1);
+		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(0));
+
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_12")).size()).isEqualTo(1);
+		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_12")).get(0));
+
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_30")).size()).isEqualTo(1);
+		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_30")).get(0));
+
+		build(new ConservationRulesReportBuilder(model,
+				getModelLayerFactory().getFoldersLocator()));
+
+	}
+
 	private void processRule1(List<ConservationRulesReportModel_Rule> modelRules) {
 
 		ConservationRulesReportModel_Rule rule1 = modelRules.get(1);
+		assertRule1Infos(rule1);
+
+	}
+
+	private void assertRule1Infos(ConservationRulesReportModel_Rule rule1) {
 		assertThat(rule1.getRuleNumber()).isEqualTo("1");
 		assertThat(rule1.getTitle()).isEqualTo("Rule #1");
 		assertThat(rule1.getDescription()).isEqualTo("Description Rule 1");
@@ -99,7 +132,6 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		assertThat(secondaryCopy.getInactive()).isEqualTo("D");
 		assertThat(secondaryCopy.getSupportTypes()).containsOnly("PA", "DM");
 		assertThat(secondaryCopy.getObservations()).isEqualTo("Semi-actif: comment3\nInactif: comment4");
-
 	}
 
 	private void processRule2(List<ConservationRulesReportModel_Rule> modelRules) {

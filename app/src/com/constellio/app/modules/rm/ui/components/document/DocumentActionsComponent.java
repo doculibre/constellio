@@ -43,6 +43,8 @@ public interface DocumentActionsComponent extends Serializable {
 
 	void setEditDocumentButtonState(ComponentState state);
 
+	void setAddDocumentButtonState(ComponentState state);
+
 	void setDeleteDocumentButtonState(ComponentState state);
 
 	void setAddAuthorizationButtonState(ComponentState state);

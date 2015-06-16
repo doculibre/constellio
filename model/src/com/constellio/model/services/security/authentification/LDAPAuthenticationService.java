@@ -49,7 +49,6 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 	private ConfigManager configManager;
 	private HashingService hashingService;
 
-	public Map<String, LdapContext> ldapContexts = new HashMap<>();
 	public Control[] connCtls = null;
 
 	public LDAPAuthenticationService(LDAPConfigurationManager ldapConfigurationManager, ConfigManager configManager, HashingService hashingService) {
@@ -66,16 +65,6 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 	@Override
 	public void close() {
-		for(LdapContext ctx:ldapContexts.values()){
-			if (ctx != null) {
-				try {
-					ctx.close();
-				}
-				catch (NamingException e) {
-					throw new RuntimeException("Context close failure ", e);
-				}
-			}
-		}
 	}
 
 	@Override
@@ -107,29 +96,6 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 	private boolean authenticate(String username, String password, String url) {
 		String domain = StringUtils.substringAfter(username, "@");
 
-		if (!ldapContexts.containsKey(url)) {
-			if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY) {
-				connCtls = new Control[] { new FastBindConnectionControl() };
-			} else {
-				connCtls = new Control[] { };
-			}
-
-			//first time we initialize the context, no credentials are supplied
-			//therefore it is an anonymous bind.
-
-			try {
-				Hashtable env = new Hashtable();
-				env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-				env.put(Context.SECURITY_AUTHENTICATION, "simple");
-				env.put(Context.PROVIDER_URL, url);
-				InitialLdapContext context = new InitialLdapContext(env, connCtls);
-				ldapContexts.put(url, context);
-			} catch (NamingException e) {
-				//				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-
 		String[] securityPrincipals;
 		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY) {
 			securityPrincipals = new String[] { username };
@@ -151,7 +117,11 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		}
 
 		try {
-			LdapContext context = ldapContexts.get(url);
+			Hashtable env = new Hashtable();
+			env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+			env.put(Context.SECURITY_AUTHENTICATION, "simple");
+			env.put(Context.PROVIDER_URL, url);
+			InitialLdapContext context = new InitialLdapContext(env, connCtls);
 			for (String securityPrincipal : securityPrincipals) {
 				context.addToEnvironment(Context.SECURITY_PRINCIPAL, securityPrincipal);
 				context.addToEnvironment(Context.SECURITY_CREDENTIALS, password);
@@ -160,6 +130,8 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 					return true;
 				} catch (Exception e) {
 					LOGGER.warn("Exception when reconnecting", e);
+				}finally{
+					context.close();
 				}
 			}
 			return false;

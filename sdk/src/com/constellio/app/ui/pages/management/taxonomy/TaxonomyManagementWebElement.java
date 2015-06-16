@@ -24,6 +24,7 @@ import java.util.Map;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.RecordForm;
@@ -52,21 +53,40 @@ public class TaxonomyManagementWebElement {
 		driver.navigateTo().url(viewPath);
 	}
 
+	public void navigateToAdministrativeUnit() {
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("taxonomyCode", RMTaxonomies.ADMINISTRATIVE_UNITS);
+		//		params.put("conceptId", "unitId_10");
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.TAXONOMY_MANAGEMENT, params);
+		driver.navigateTo().url(viewPath);
+	}
+
 	public List<String> getConceptsCodesFromTable() {
 		RecordContainerWebElement recordContainerWebElement = new RecordContainerWebElement(
 				driver.findElement(By.id("childrenTable")));
 		List<String> codes = new ArrayList<>();
 		for (int i = 0; i < recordContainerWebElement.countRows(); i++) {
-			codes.add(recordContainerWebElement.getRow(i).getValueInColumn(0));
+			codes.add(recordContainerWebElement.getRow(i).getValueInColumn(1));
 		}
 		return codes;
+	}
+
+	public void waitUntilFoldersTableExist() {
+		driver.waitUntilElementExist(By.className("foldersTable"));
+	}
+
+	public List<ConstellioWebElement> getRowsFoldersFromFoldersTable() {
+
+		ConstellioWebElement tableElement = driver.findElement(By.className("foldersTable"));
+		List<ConstellioWebElement> rows = tableElement.findAdaptElements(By.tagName("tr"));
+		return rows;
 	}
 
 	public void display(String code) {
 		// Fetch entry in table and click its display button
 		RecordContainerWebElement recordContainerWebElement = new RecordContainerWebElement(
 				driver.findElement(By.id("childrenTable")));
-		recordContainerWebElement.getFirstRowWithValueInColumn(code, 0).clickButton("display-button");
+		recordContainerWebElement.getFirstRowWithValueInColumn(code, 1).clickButton("display-button");
 	}
 
 	public String getCurrentConceptCode() {
@@ -95,5 +115,39 @@ public class TaxonomyManagementWebElement {
 	RecordDisplayWebElement getConceptDisplay() {
 		driver.waitUntilElementExist(By.className("record-display"));
 		return new RecordDisplayWebElement(driver.findElement(By.className("record-display")));
+	}
+
+	//
+
+	public String getCurrentAdministrativeUnitCode() {
+		return getConceptDisplay().getValue(AdministrativeUnit.DEFAULT_SCHEMA + "_" + AdministrativeUnit.CODE);
+	}
+
+	public String getCurrentAdministrativeUnitTitle() {
+		return getConceptDisplay().getValue(AdministrativeUnit.DEFAULT_SCHEMA + "_" + Schemas.TITLE_CODE);
+	}
+
+	public String getCurrentAdministrativeUnitFilingSpaces() {
+		return getConceptDisplay().getValue(AdministrativeUnit.DEFAULT_SCHEMA + "_" + AdministrativeUnit.FILING_SPACES);
+	}
+
+	public String getCurrentAdministrativeUnitFilingSpacesAdministrators() {
+		return getConceptDisplay()
+				.getValue(AdministrativeUnit.DEFAULT_SCHEMA + "_" + AdministrativeUnit.FILING_SPACES_ADMINISTRATORS);
+	}
+
+	public String getCurrentAdministrativeUnitCreationDate() {
+		return getConceptDisplay().getValue(AdministrativeUnit.DEFAULT_SCHEMA + "_" + Schemas.CREATED_ON.getLocalCode());
+	}
+
+	ConstellioWebElement getElementByClassName(String className) {
+		driver.waitUntilElementExist(By.className(className));
+		return new ConstellioWebElement(driver.findElement(By.className(className)));
+	}
+
+	public ConstellioWebElement getTabByClassName(String classname) {
+		driver.waitUntilElementExist(By.className("v-tabsheet-tabitemcell-" + classname));
+		return new ConstellioWebElement(driver.findElement(By.className("v-tabsheet-tabitemcell-" + classname))).getChildren()
+				.get(0).getChildren().get(0);
 	}
 }

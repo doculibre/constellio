@@ -65,9 +65,9 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		String schemaCode = getSchemaCode();
 		metadataCodes.add(schemaCode + "_id");
 		metadataCodes.add(schemaCode + "_title");
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE, metadataCodes);
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
+				schema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-
 		return new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
@@ -125,7 +125,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 	public TextInputDataProvider<UserCredentialVO> getUserLookupProvider() {
 		final UserCredentialVODataProvider provider = new UserCredentialVODataProvider(
 				new UserCredentialToVOBuilder(), modelLayerFactory, null);
-		provider.setUserCredentialVOs(provider.listActifsUserCredentialVOs());
+		provider.setUserCredentialVOs(provider.listActiveUserCredentialVOs());
 		return new TextInputDataProvider<UserCredentialVO>() {
 			@Override
 			public List<UserCredentialVO> getData(String text, int startIndex, int count) {
@@ -259,7 +259,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 	}
 
 	void roleUserAdditionRequested(String username, String roleCode) {
-		User user = userServices().getUserRecordInCollection(username, view.getCollection());
+		User user = userServices().getUserInCollection(username, view.getCollection());
 		List<String> roles = new ArrayList<>(user.getUserRoles());
 		roles.add(roleCode);
 		user.setUserRoles(roles);

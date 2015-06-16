@@ -272,6 +272,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public void setAddDocumentButtonState(ComponentState state) {
+		//not supported
+	}
+
+	@Override
 	public void setDeleteDocumentButtonState(ComponentState state) {
 		deleteDocumentButtonVisible = state.isEnabled();
 	}

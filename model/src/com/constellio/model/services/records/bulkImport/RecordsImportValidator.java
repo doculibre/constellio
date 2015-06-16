@@ -85,9 +85,10 @@ public class RecordsImportValidator {
 	MetadataSchemaType type;
 	ResolverCache resolverCache;
 	ModelLayerCollectionEventsListeners extensions;
+	ProgressionHandler progressionHandler;
 	ValidationErrors errors = new ValidationErrors();
 
-	public RecordsImportValidator(String schemaType,
+	public RecordsImportValidator(String schemaType, ProgressionHandler progressionHandler,
 			ImportDataProvider importDataProvider, MetadataSchemaTypes types,
 			ResolverCache resolverCache, ModelLayerCollectionEventsListeners extensions) {
 		this.schemaType = schemaType;
@@ -96,6 +97,7 @@ public class RecordsImportValidator {
 		this.types = types;
 		this.type = types.getSchemaType(schemaType);
 		this.resolverCache = resolverCache;
+		this.progressionHandler = progressionHandler;
 	}
 
 	public void validate() {
@@ -110,14 +112,14 @@ public class RecordsImportValidator {
 	}
 
 	private void validate(Iterator<ImportData> importDataIterator) {
-
+		progressionHandler.beforeValidationOfSchema(schemaType);
+		int numberOfRecords = 0;
 		List<String> uniqueMetadatas = type.getAllMetadatas().onlyWithType(STRING).onlyUniques().toLocalCodesList();
-
 		while (importDataIterator.hasNext()) {
 			ImportData importData = null;
 			try {
 				importData = importDataIterator.next();
-
+				numberOfRecords++;
 				if (importData.getLegacyId() == null) {
 					error(REQUIRED_IDS, asMap("index", "" + (importData.getIndex() + 1)));
 				} else {
@@ -149,18 +151,21 @@ public class RecordsImportValidator {
 		}
 
 		validateAllReferencesResolved();
-
+		progressionHandler.afterValidationOfSchema(schemaType, numberOfRecords);
 	}
 
 	private void validateAllReferencesResolved() {
-		for (String uniqueValueMetadata : type.getAllMetadatas().onlyUniques().toLocalCodesList()) {
-			List<String> unresolved = new ArrayList<>(
-					resolverCache.getUnresolvableUniqueValues(type.getCode(), uniqueValueMetadata));
-			Collections.sort(unresolved);
-			if (!unresolved.isEmpty()) {
-				error(UNRESOLVED_VALUE, asMap(uniqueValueMetadata, unresolved.toString()));
+		for (MetadataSchemaType schemaType : resolverCache.getCachedSchemaTypes())
+			for (String uniqueValueMetadata : schemaType.getAllMetadatas().onlyUniques().toLocalCodesList()) {
+				List<String> unresolved = new ArrayList<>(
+						resolverCache.getUnresolvableUniqueValues(schemaType.getCode(), uniqueValueMetadata));
+				Collections.sort(unresolved);
+				if (!unresolved.isEmpty()) {
+					Map<String, String> parameters = asMap(uniqueValueMetadata, unresolved.toString(), "schemaType",
+							schemaType.getCode());
+					error(UNRESOLVED_VALUE, parameters);
+				}
 			}
-		}
 	}
 
 	private void validateValueUnicityOfUniqueMetadata(List<String> uniqueMetadatas, ImportData importData) {
@@ -363,7 +368,9 @@ public class RecordsImportValidator {
 	}
 
 	private void error(String code, Map<String, String> parameters) {
-		parameters.put("schemaType", schemaType);
+		if (!parameters.containsKey("schemaType")) {
+			parameters.put("schemaType", schemaType);
+		}
 		errors.add(RecordsImportServices.class, code, parameters);
 	}
 

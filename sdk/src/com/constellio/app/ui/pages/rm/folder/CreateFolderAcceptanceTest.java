@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.rm.folder;
 
+import static java.lang.Thread.sleep;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.joda.time.LocalDate;
@@ -25,35 +27,60 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.DemoTestRecords;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.tools.RecordFormWebElement;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 
 @UiTest
+//@InDevelopmentTest
 public class CreateFolderAcceptanceTest extends ConstellioTest {
-	RecordFormWebElement zeForm;
-	RecordServices recordServices;
-	ConstellioWebDriver driver;
-	RMTestRecords records;
 
+	private boolean withAllResponsibleAdminUnitFlag = true;
+
+	private boolean withAdministrativeUnits = false;
+
+	String lastSavedFolderId;
 	String classificationFinder;
 	String administrativeUnitFinder;
 	String filingSpaceFinderA;
 	String filingSpaceFinderB;
 	String filingSpaceFinderC;
+	String filingSpaceFinder;
+	String retentionRule;
 	String collection;
+
+	RecordFormWebElement zeForm;
+	RecordServices recordServices;
+	ConstellioWebDriver driver;
+
+	RMSchemasRecordsServices rm;
+	RMTestRecords records;
+	RetentionRule ruleCustom;
+	RetentionRule backupRule;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		getConfigurationManager().setValue(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
 		filingSpaceFinderA = "A";
 		filingSpaceFinderB = "B";
 		filingSpaceFinderC = "C";
+		filingSpaceFinder = filingSpaceFinderB;
+		retentionRule = "1";
+
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		getConfigurationManager().setValue(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
 
 		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
 		givenCollectionWithTitle("LaCollectionDeRida", "Collection d'entreprise").withConstellioRMModule().withAllTestUsers();
@@ -63,6 +90,8 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
 				.withEvents();
 		new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+
+		backupRule = records.getRule1();
 	}
 
 	@Test
@@ -76,6 +105,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		givenUserCanAccessOneFilingSpaceWhenCreateFolderThenCantChooseAnotherFilingSpace();
 		whenCreateFolderThenTitleCategoryFilingSpaceAndAdministrativeUnitAreRequired();
 		givenUserCanAccessSeveralFilingSpaceWhenCreateFolderThenAdministrativeUnitMatchesWithSelectedFilingSpace();
+
 	}
 
 	@Test
@@ -106,17 +136,217 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
 
 		zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText("2");
-		Thread.sleep(50);
+		sleep(50);
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isTrue();
 
 		zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText("1");
-		Thread.sleep(50);
+		sleep(50);
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
 
 		zeForm.getDropDown("folder_default_categoryEntered").expandOptions().select(0).typeAndSelectFirst("X100");
-		Thread.sleep(50);
+		sleep(50);
 		assertThat(zeForm.isVisible("folder_default_retentionRuleEntered")).isFalse();
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
+	}
+
+	@Test
+	public void givenFlagCopyRuleTypeAlwaysModifiableWhenCreatePrincipalFolderWithAdministrativeUnitAndChangeForPrincipalRuleThenCopyFieldInvisibleAndSecondaryCopyInFolder()
+			throws Exception {
+
+		collection = zeCollection;
+		classificationFinder = "X13";
+		administrativeUnitFinder = "10";
+		retentionRule = "1";
+		filingSpaceFinder = filingSpaceFinderA;
+
+		getConfigurationManager().setValue(RMConfigs.COPY_RULE_TYPE_ALWAYS_MODIFIABLE, true);
+
+		navigateToAddFolderFormLoggedAs(admin, collection);
+
+		completeFormAndSave();
+
+		assertThat(driver.findElement(By.id("display-value-folder_default_copyStatus")).getText()).isEqualTo("Principal");
+
+		clickModifyButton();
+
+		modifyRule1RemovingPrincipalCopyRule(withAdministrativeUnits);
+
+		modifyLastFolderRule();
+
+		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
+	}
+
+	private void clickModifyButton() {
+
+		driver.navigateTo().url("editFolder/id=" + lastSavedFolderId);
+
+		//		try {
+		//			Thread.sleep(300);
+		//		} catch (InterruptedException e) {
+		//			throw new RuntimeException(e);
+		//		}
+		//		driver.find("v-slot-edit-button").printHierarchy();
+		//		driver.find("v-slot-edit-button").();
+		//		try {
+		//			Thread.sleep(300);
+		//		} catch (InterruptedException e) {
+		//			throw new RuntimeException(e);
+		//		}
+	}
+
+	@Test
+	public void givenFolderPrincipalWhenChangeRuleThenCopyFieldInvisibleAndSecondaryCopy()
+			throws Exception {
+
+		collection = zeCollection;
+		navigateToAddFolderFormLoggedAs(admin, collection);
+		retentionRule = "1";
+		filingSpaceFinder = filingSpaceFinderA;
+		classificationFinder = "X13";
+		administrativeUnitFinder = "12";
+
+		completeFormAndSave();
+
+		assertThat(driver.findElement(By.id("display-value-folder_default_copyStatus")).getText()).isEqualTo("Principal");
+
+		clickModifyButton();
+
+		modifyRule1RemovingPrincipalCopyRule(withAdministrativeUnits);
+
+		administrativeUnitFinder = "10";
+		modifyLastFolderRule();
+
+		clickModifyButton();
+		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
+
+	}
+
+	@Test
+	public void givenFolderWithRuleWithResponsibleUnitWhenChangeRuleThenCopyFieldInvisibleAndSecondaryCopyInFolder()
+			throws Exception {
+
+		collection = zeCollection;
+		classificationFinder = "X13";
+		administrativeUnitFinder = "10";
+		navigateToAddFolderFormLoggedAs(admin, collection);
+		filingSpaceFinder = filingSpaceFinderA;
+		retentionRule = "3";
+
+		completeFormAndSave();
+
+		assertThat(driver.findElement(By.id("display-value-folder_default_copyStatus")).getText()).isEqualTo("Principal");
+
+		clickModifyButton();
+
+		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isTrue();
+		modifyRule1RemovingPrincipalCopyRule(withAllResponsibleAdminUnitFlag);
+
+		clickModifyButton();
+
+		retentionRule = "1";
+		administrativeUnitFinder = "12";
+		modifyLastFolderRule();
+
+		clickModifyButton();
+		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
+
+	}
+
+	@Test
+	public void givenRuleWithoutPrincipalAndResponsibleListThenCopyFieldInvisibleAndFolderIsCreatedWithSecondaryCopy()
+			throws Exception {
+
+		collection = zeCollection;
+		classificationFinder = "X13";
+		administrativeUnitFinder = "12";
+		modifyRule1RemovingPrincipalCopyRule(withAdministrativeUnits);
+
+		navigateToAddFolderFormLoggedAs(admin, collection);
+
+		completeFormWithoutExemplary();
+
+	}
+
+	@Test
+	public void givenCopyRuleTypeAlwaysModifiableWhenRuleWithoutPrincipalAndFlagResponsibleThenCopyFieldInvisibleAndFolderIsCreatedWithSecondaryCopy()
+			throws Exception {
+
+		collection = zeCollection;
+		classificationFinder = "X13";
+		administrativeUnitFinder = "12";
+
+		getConfigurationManager().setValue(RMConfigs.COPY_RULE_TYPE_ALWAYS_MODIFIABLE, true);
+
+		modifyRule1RemovingPrincipalCopyRule(withAllResponsibleAdminUnitFlag);
+
+		navigateToAddFolderFormLoggedAs(admin, collection);
+
+		completeFormWithoutExemplary();
+
+	}
+
+	@Test
+	public void givenRuleWithoutPrincipalAndFlagResponsibleThenFieldInvisibleAndFolderIsCreatedWithSecondaryCopy()
+			throws Exception {
+		collection = zeCollection;
+		classificationFinder = "X13";
+		administrativeUnitFinder = "12";
+
+		modifyRule1RemovingPrincipalCopyRule(withAllResponsibleAdminUnitFlag);
+
+		navigateToAddFolderFormLoggedAs(admin, collection);
+
+		completeFormWithoutExemplary();
+
+	}
+
+	private void modifyRule1RemovingPrincipalCopyRule(boolean isResponsibleUnit)
+			throws Exception {
+
+		getConfigurationManager().setValue(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
+
+		CopyRetentionRule copyRetentionRuleSecondary = records.getRule1().getSecondaryCopy();
+		ruleCustom = records.getRule1();
+
+		ruleCustom.setCopyRetentionRules(copyRetentionRuleSecondary);
+
+		if (isResponsibleUnit) {
+			ruleCustom.setAdministrativeUnits(emptyList());
+		} else {
+			ruleCustom.setAdministrativeUnits(backupRule.getAdministrativeUnits());
+		}
+		ruleCustom.setResponsibleAdministrativeUnits(isResponsibleUnit);
+
+		recordServices.update(ruleCustom);
+
+		assertThat(ruleCustom.isResponsibleAdministrativeUnits()).isEqualTo(isResponsibleUnit);
+		assertThat(ruleCustom.getCopyRetentionRules().size()).isEqualTo(1);
+	}
+
+	private void completeFormWithoutExemplary() {
+		completeRequiredFieldWithRetentionRule();
+
+		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
+
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThat(driver.findElement(By.id("display-value-folder_default_copyStatus")).getText()).isEqualTo("Secondaire");
+	}
+
+	private void modifyLastFolderRule()
+			throws Exception {
+		modifyRule1RemovingPrincipalCopyRule(withAllResponsibleAdminUnitFlag);
+
+		modifyRetentionRule();
+
+		assertThat(driver.findElement(By.id("display-value-folder_default_copyStatus")).getText()).isEqualTo("Secondaire");
+	}
+
+	private void modifyRetentionRule() {
+
+		zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText(retentionRule);
+
+		zeForm.clickSaveButtonAndWaitForPageReload();
 	}
 
 	public void givenUserAddFolderWhenAllFieldsAreCompleteAndClickSaveThenFolderIsCreated()
@@ -169,6 +399,8 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		completeRequiredField();
 		completeNoRequiredField();
 		zeForm.clickSaveButtonAndWaitForPageReload();
+		String[] urlParts = driver.getCurrentUrl().split("/");
+		lastSavedFolderId = urlParts[urlParts.length - 1];
 	}
 
 	public void completeRequiredField() {
@@ -176,15 +408,33 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 		zeForm.getLookupField("folder_default_categoryEntered").typeAndSelectFirst(classificationFinder);
 		try {
-			Thread.sleep(1000);
+			sleep(1000);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 		if (zeForm.isVisible("folder_default_retentionRuleEntered")) {
-			zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText("1");
+			zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText(retentionRule);
 		}
 		zeForm.getDateField("folder_default_openingDate").setValue(new LocalDate(2015, 2, 21));
-		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText(filingSpaceFinderB);
+		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText(filingSpaceFinder);
+		zeForm.getDropDown("folder_default_administrativeUnitEntered").selectItemContainingText(administrativeUnitFinder);
+		if (zeForm.isVisible("folder_default_copyStatusEntered")) {
+			zeForm.getRadioButton("folder_default_copyStatusEntered").toggleContaining("P");
+		}
+	}
+
+	public void completeRequiredFieldWithRetentionRule() {
+		zeForm.getTextField("folder_default_title").setValue("Pokemon");
+
+		zeForm.getLookupField("folder_default_categoryEntered").typeAndSelectFirst(classificationFinder);
+		try {
+			sleep(1000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText(ruleCustom.getCode());
+		zeForm.getDateField("folder_default_openingDate").setValue(new LocalDate(2015, 2, 21));
+		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText(filingSpaceFinder);
 		zeForm.getDropDown("folder_default_administrativeUnitEntered").selectItemContainingText(administrativeUnitFinder);
 	}
 
@@ -205,5 +455,9 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 	private String folderFilingSpace() {
 		return driver.findElement(By.id("display-value-folder_default_filingSpace")).getText();
+	}
+
+	private SystemConfigurationsManager getConfigurationManager() {
+		return getModelLayerFactory().getSystemConfigurationsManager();
 	}
 }

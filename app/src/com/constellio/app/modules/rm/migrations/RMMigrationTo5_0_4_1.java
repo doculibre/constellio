@@ -66,7 +66,7 @@ public class RMMigrationTo5_0_4_1 implements MigrationScript {
 				Iterator<List<Record>> recordBatchesIterator = new BatchBuilderIterator<>(recordsIterator, 100);
 				while (recordBatchesIterator.hasNext()) {
 					Transaction transaction = new Transaction();
-
+					transaction.setSkippingRequiredValuesValidation(true);
 					for (Record record : recordBatchesIterator.next()) {
 						transaction.add(record.set(Schemas.VISIBLE_IN_TREES, true));
 					}

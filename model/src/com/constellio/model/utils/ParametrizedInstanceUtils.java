@@ -28,6 +28,7 @@ import org.jdom2.Element;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.CannotInstanciate;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.NoSuchConstructor;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
@@ -93,11 +94,11 @@ public class ParametrizedInstanceUtils {
 		return null;
 	}
 
-	protected Object toObject(Element element) {
+	public Object toObject(Element element) {
 
 		try {
 
-			if ("null".equals(element.getAttribute("type").getValue())) {
+			if (element == null || "null".equals(element.getAttribute("type").getValue())) {
 				return null;
 			}
 
@@ -124,6 +125,8 @@ public class ParametrizedInstanceUtils {
 			object = LocalDateTime.parse(value);
 		} else if (childClass.isAssignableFrom(LocalDate.class)) {
 			object = LocalDate.parse(value);
+		} else if (EnumWithSmallCode.class.isAssignableFrom(childClass)) { // ENUM CHECK
+			object = EnumWithSmallCodeUtils.toEnum(childClass, value);
 		} else {
 			object = childClass.getConstructor(String.class).newInstance(value);
 		}
@@ -179,7 +182,7 @@ public class ParametrizedInstanceUtils {
 		return root;
 	}
 
-	private void toElement(Object parameter, Element parent, String elementTag) {
+	public void toElement(Object parameter, Element parent, String elementTag) {
 		Element child = new Element(elementTag);
 		child.setAttribute("type", parameter.getClass().getName());
 
@@ -205,7 +208,11 @@ public class ParametrizedInstanceUtils {
 				throw new UnsupportedArgument(parameter.getClass());
 			}
 
-			child.setText("" + parameter.toString());
+			if (EnumWithSmallCode.class.isAssignableFrom(parameter.getClass())) {
+				child.setText("" + EnumWithSmallCodeUtils.toSmallCode((EnumWithSmallCode) parameter));
+			} else {
+				child.setText("" + parameter.toString());
+			}
 		}
 
 		parent.addContent(child);
@@ -234,7 +241,8 @@ public class ParametrizedInstanceUtils {
 				LocalDateTime.class.equals(clazz) ||
 				LocalDate.class.equals(clazz) ||
 				Boolean.class.equals(clazz) ||
-				Long.class.equals(clazz);
+				Long.class.equals(clazz) ||
+				Enum.class.isAssignableFrom(clazz);
 	}
 }
 

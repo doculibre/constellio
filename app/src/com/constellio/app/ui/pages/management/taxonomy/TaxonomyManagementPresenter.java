@@ -17,11 +17,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.taxonomy;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -40,6 +47,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
@@ -51,12 +59,17 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	public static final String TAXONOMY_CODE = "taxonomyCode";
 	public static final String CONCEPT_ID = "conceptId";
 	public static final String PARENT_CONCEPT_ID = "parentConceptId";
+	public static final String ADM_UNITS = "admUnits";
+	public static final String PLAN = "plan";
+	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	TaxonomyVO taxonomy;
 	String conceptId;
 	String parentConceptId;
+	private transient DecommissioningService decommissioningService;
 
 	public TaxonomyManagementPresenter(TaxonomyManagementView view) {
 		super(view);
+		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
 	}
 
 	public TaxonomyManagementPresenter forParams(String parameters) {
@@ -89,6 +102,40 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 			}
 		}
 		return dataProviders;
+	}
+
+	RecordVODataProvider newAdministrativeUnitsFoldersDataProvider() {
+		FolderToVOBuilder voBuilder = new FolderToVOBuilder();
+		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder
+				.build(schema("folder_default"), VIEW_MODE.TABLE, view.getSessionContext());
+		RecordVODataProvider foldersDataProvider = new RecordVODataProvider(foldersSchemaVO, voBuilder, modelLayerFactory,
+				view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery()
+						.setCondition(from(schema("folder_default"))
+								.where(schema("folder_default").getMetadata(Folder.ADMINISTRATIVE_UNIT)).is(conceptId))
+						.sortAsc(Schemas.TITLE);
+			}
+		};
+		return foldersDataProvider;
+	}
+
+	RecordVODataProvider newClassificationPlansFoldersDataProvider() {
+		FolderToVOBuilder voBuilder = new FolderToVOBuilder();
+		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder
+				.build(schema("folder_default"), VIEW_MODE.TABLE, view.getSessionContext());
+		RecordVODataProvider foldersDataProvider = new RecordVODataProvider(foldersSchemaVO, voBuilder, modelLayerFactory,
+				view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery()
+						.setCondition(from(schema("folder_default"))
+								.where(schema("folder_default").getMetadata(Folder.CATEGORY)).is(conceptId))
+						.sortAsc(Schemas.TITLE);
+			}
+		};
+		return foldersDataProvider;
 	}
 
 	private void createDataProviderIfSchemaCanBeChildOfCurrentConcept(List<RecordVODataProvider> dataProviders,
@@ -215,4 +262,42 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user);
 	}
 
+	public String getNumberOfFolders() {
+		if (taxonomy.getCode().equals(ADM_UNITS)) {
+			return getNumberOfFoldersForAdministrativeUnit();
+		} else if (taxonomy.getCode().equals(PLAN)) {
+			return getNumberOfFoldersForClassificationPlan();
+		} else {
+			return "0";
+		}
+	}
+
+	private String getNumberOfFoldersForAdministrativeUnit() {
+		return String.valueOf(decommissioningService.getFoldersForAdministrativeUnit(conceptId).size());
+	}
+
+	private String getNumberOfFoldersForClassificationPlan() {
+		return String.valueOf(decommissioningService.getFoldersForClassificationPlan(conceptId).size());
+	}
+
+	public void folderClicked(RecordVO folderVO) {
+		view.navigateTo().displayFolder(folderVO.getId());
+	}
+
+	public List<String> getRetentionRules() {
+		List<String> retentionRulesIds = new ArrayList<>();
+		for (RetentionRule retentionRule : decommissioningService.getRetentionRulesForAdministrativeUnit(conceptId)) {
+			retentionRulesIds.add(retentionRule.getId());
+		}
+		Collections.sort(retentionRulesIds);
+		return retentionRulesIds;
+	}
+
+	public void viewAssembled() {
+		if (conceptId != null && taxonomy.getCode().equals(ADM_UNITS)) {
+			view.setFolders(newAdministrativeUnitsFoldersDataProvider());
+		} else if (conceptId != null && taxonomy.getCode().equals(PLAN)) {
+			view.setFolders(newClassificationPlansFoldersDataProvider());
+		}
+	}
 }

@@ -1,0 +1,47 @@
+# # === WEB DRIVERS CONFIGURATION ===
+#firefoxBinary=detect
+phantomJSBinary=phantomjs
+port=7070
+
+
+# === DATASTORE CONFIGURATION ===
+# *** WARNING : collections will be deleted ***
+#solr.type=embedded
+#solr.embedded.path=solrdata/automated-test
+
+dao.records.type=cloud
+dao.records.cloud.zkHost=192.168.1.99:2281
+#dao.records.type=http
+#dao.records.http.url=http://192.168.1.99:8282/solr/
+dao.contents.type=filesystem
+dao.settings.type=filesystem
+
+# === RUN/SKIP TESTS CONFIGURATION ===
+skip.realTests=false
+skip.slowtests=false
+skip.drivertests=false
+skip.uitests=false
+skip.loadtests=true
+skip.alltests=false
+skip.indevelopment=true
+run.performancetests=false
+
+#tests.whitelist=com.constellio.app*
+
+validateTransactionLog=false
+validateDataIntegrity=false
+bruteForceRMSecurityTest=false
+
+# === MASSIVE BIGVAULT LOGGER (empty bigVaultLogger_loggedFields => all fields)
+bigVaultLogger_enabled=false
+bigVaultLogger_loggedFields=path_ss
+
+memoryReport=false
+
+smtpServer.mail.smtp.account.user=DocuLibre
+smtpServer.mail.smtp.account.email=noreply.doculibre@gmail.com
+smtpServer.mail.smtp.account.password=ncix123$
+smtpServer.mail.smtp.auth=true
+smtpServer.mail.smtp.starttls.enable=true
+smtpServer.mail.smtp.host=smtp.gmail.com
+smtpServer.mail.smtp.port=587

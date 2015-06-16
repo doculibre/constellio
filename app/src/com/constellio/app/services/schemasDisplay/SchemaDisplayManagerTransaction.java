@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.services.schemasDisplay;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -58,6 +59,12 @@ public class SchemaDisplayManagerTransaction {
 	}
 
 	public void add(SchemaDisplayConfig schemaDisplayConfig) {
+		for (Iterator<SchemaDisplayConfig> iterator = modifiedSchemas.iterator(); iterator.hasNext(); ) {
+			SchemaDisplayConfig modifiedSchema = iterator.next();
+			if (modifiedSchema.getSchemaCode().equals(schemaDisplayConfig.getSchemaCode())) {
+				iterator.remove();
+			}
+		}
 		modifiedSchemas.add(schemaDisplayConfig);
 	}
 
@@ -97,4 +104,5 @@ public class SchemaDisplayManagerTransaction {
 		}
 
 	}
+
 }

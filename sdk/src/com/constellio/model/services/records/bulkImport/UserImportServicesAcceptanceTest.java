@@ -110,7 +110,7 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
         validateBob();
     }
 
-    @Test
+    //@Test
     public void whenImportingUserWithExistingEmailThenImportOtherUsersAndGiveAdequateErrorMessage()
             throws Exception {
         File usersFile = getTestResourceFile("userMariWithAliceEmail.xml");
@@ -143,7 +143,7 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(bob.getEmail()).isEqualTo("bob@doculibre.com");
         assertThat(bob.isSystemAdmin()).isEqualTo(true);
         assertThat(bob.getGlobalGroups().size()).isEqualTo(0);
-        assertThat(bob.getCollections()).contains(new String[]{zeCollection});
+        assertThat(bob.getCollections()).contains(zeCollection);
         assertThat(bob.getCollections().size()).isEqualTo(1);
     }
 
@@ -153,9 +153,9 @@ public class UserImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(alice.getLastName()).isEqualTo("Wonderland");
         assertThat(alice.getEmail()).isEqualTo("alice@doculibre.com");
         assertThat(alice.isSystemAdmin()).isEqualTo(false);
-        assertThat(alice.getGlobalGroups()).contains(new String[]{"legends", "heroes"});
+        assertThat(alice.getGlobalGroups()).contains("legends", "heroes");
         assertThat(alice.getGlobalGroups().size()).isEqualTo(2);
-        assertThat(alice.getCollections()).contains(new String[]{zeCollection});
+        assertThat(alice.getCollections()).contains(zeCollection);
         assertThat(alice.getCollections().size()).isEqualTo(1);
     }
 }

@@ -117,6 +117,13 @@ public class Transaction {
 		return this;
 	}
 
+	public Transaction addAll(Record... records) {
+		for (Record record : records) {
+			this.add(record);
+		}
+		return this;
+	}
+
 	public Record add(Record addUpdateRecord) {
 		records.add(addUpdateRecord);
 		validateCollection(addUpdateRecord.getCollection());

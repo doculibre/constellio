@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
+import javax.ws.rs.HEAD;
+
 import org.junit.Test;
 
 import com.constellio.model.entities.records.ParsedContent;
@@ -32,11 +34,12 @@ public class ParsedContentConverterTest {
 	public void whenWritingThenReadingParsedContentThenSame()
 			throws Exception {
 
-		String content = "]]></xml> test <![CDATA[";
+		String content = "]]></xml> test\n <![CDATA[";
 		String lang = "elvish";
 		String mime = "oldText";
 		long length = 666;
-		Map<String, Object> properties = TestUtils.asMap("k1", "v1=", "k2", "v2");
+
+		Map<String, Object> properties = TestUtils.asStringObjectMap("k1\n", "v1=", "k2\n\r", "v2");
 		//Mettre des listes pour voir
 
 		ParsedContentConverter converter = new ParsedContentConverter();
@@ -50,7 +53,7 @@ public class ParsedContentConverterTest {
 		assertThat(parsedContent2.getMimeType()).isEqualTo(mime);
 		assertThat(parsedContent2.getLength()).isEqualTo(length);
 		assertThat(parsedContent2.getParsedContent()).isEqualTo(content);
-		assertThat(parsedContent2.getProperties()).hasSize(2).containsEntry("k1", "v1=").containsEntry("k2", "v2");
+		assertThat(parsedContent2.getProperties()).hasSize(2).containsEntry("k1\n", "v1=").containsEntry("k2\n\r", "v2");
 		assertThat(parsedContentAsString2).isEqualTo(parsedContentAsString);
 
 	}

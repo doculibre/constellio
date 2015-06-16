@@ -34,6 +34,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
@@ -85,9 +86,21 @@ public class MetadataSchemaTypesBuilder {
 			buildedSchemaTypes.add(schemaType.build(typesFactory, taxonomiesManager));
 		}
 
+		List<String> referenceDefaultValues = new ArrayList<>();
+		for (MetadataSchemaType buildedSchemaType : buildedSchemaTypes) {
+			for (Metadata metadata : buildedSchemaType.getAllMetadatas().onlyWithType(MetadataValueType.REFERENCE)
+					.onlyWithDefaultValue()) {
+				if (metadata.getDefaultValue() instanceof List) {
+					referenceDefaultValues.addAll((List) metadata.getDefaultValue());
+				} else if (metadata.getDefaultValue() instanceof String) {
+					referenceDefaultValues.add((String) metadata.getDefaultValue());
+				}
+			}
+		}
+
 		Collections.sort(buildedSchemaTypes, SchemaComparators.SCHEMA_TYPE_COMPARATOR_BY_ASC_CODE);
 
-		return new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies);
+		return new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies, referenceDefaultValues);
 	}
 
 	public MetadataSchemaTypeBuilder createNewSchemaType(String code) {

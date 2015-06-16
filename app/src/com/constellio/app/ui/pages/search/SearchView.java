@@ -29,4 +29,6 @@ public interface SearchView extends BaseView {
 	void refreshFacets();
 
 	List<String> getSelectedRecordIds();
+
+	void setSearchExpression(String expression);
 }

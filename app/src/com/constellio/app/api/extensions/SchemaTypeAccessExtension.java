@@ -38,4 +38,8 @@ public abstract class SchemaTypeAccessExtension {
 			Record restrictedRecord) {
 		return canManageSchema(user, schemaType);
 	}
+
+	public ExtensionBooleanResult isSchemaTypeConfigurable(MetadataSchemaType schemaType) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
 }

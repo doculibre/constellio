@@ -17,8 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.entities;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 
+import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
+import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 
 public class SystemConfigurationVO implements Serializable {
@@ -69,15 +74,15 @@ public class SystemConfigurationVO implements Serializable {
 		this.values = values;
 	}
 
-	public void setStringValue(String stringValue) {
+	public void setStringValue(Object stringValue) {
 		Object value = null;
 		if (stringValue != null) {
 			switch (type) {
 			case BOOLEAN:
-				value = Boolean.valueOf(stringValue);
+				value = Boolean.valueOf(stringValue.toString());
 				break;
 			case INTEGER:
-				value = Integer.valueOf(stringValue);
+				value = Integer.valueOf(stringValue.toString());
 				break;
 			case STRING:
 				value = stringValue;
@@ -90,6 +95,19 @@ public class SystemConfigurationVO implements Serializable {
 					}
 				}
 				break;
+			case BINARY:
+				//FIXME
+				final TempFileUpload tmpFile = (TempFileUpload) stringValue;
+				StreamFactory<InputStream> streamFactory = new StreamFactory<InputStream>() {
+					@Override
+					public InputStream create(String name) throws IOException {
+						return new FileInputStream(tmpFile.getTempFile().getPath());
+					}
+
+				};
+				value = streamFactory;
+				break;
+			default: throw new RuntimeException("Unsupported type " + type);
 			}
 		}
 		setValue(value);

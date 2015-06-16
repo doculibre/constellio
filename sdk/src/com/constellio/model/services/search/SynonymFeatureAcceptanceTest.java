@@ -49,9 +49,8 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 		//when
 		String text = "tv";
 		condition = fromAllSchemasIn(zeCollection).returnAll();
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition);
-		List<Record> results = searchServices.query(text, query).getRecords();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(text);
+		List<Record> results = searchServices.search(query);
 
 		//then
 		assertThat(results).containsOnly(tv);
@@ -69,9 +68,8 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 		//when
 		String text = "tv";
 		condition = fromAllSchemasIn(zeCollection).returnAll();
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition);
-		List<Record> results = searchServices.query(text, query).getRecords();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(text);
+		List<Record> results = searchServices.search(query);
 
 		//then
 		assertThat(results).containsOnly(tv, television);

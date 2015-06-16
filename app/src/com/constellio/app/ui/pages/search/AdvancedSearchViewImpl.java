@@ -21,6 +21,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
@@ -30,6 +31,7 @@ import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.data.utils.Factory;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.ObjectProperty;
@@ -47,7 +49,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView {
 	private final ConstellioHeader header;
-	
+
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
@@ -81,11 +83,23 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		WindowButton batchProcess = new BatchProcessingButton();
 		batchProcess.addStyleName(ValoTheme.BUTTON_LINK);
 		batchProcess.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
-		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this);
+		//TODO Thiago test
+		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getTemplates();
+			}
+		};
+		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
+				labelTemplatesFactory);
 		labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 		labelsButton.addStyleName(LABELS_BUTTONSTYLE);
+		Label separatorLabel = new Label("|");
+		boolean printLabelVisible = !"document".equals(getSchemaType());
+		labelsButton.setVisible(printLabelVisible);
+		separatorLabel.setVisible(printLabelVisible);
 		ReportSelector reportSelector = new ReportSelector(presenter);
-		return results.createSummary(batchProcess, new Label("|"), labelsButton, reportSelector);
+		return results.createSummary(batchProcess, separatorLabel, labelsButton, reportSelector);
 	}
 
 	private class BatchProcessingButton extends WindowButton {
@@ -133,7 +147,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			metadata = new ComboBox();
 			metadata.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			metadata.setNullSelectionAllowed(false);
-			for (MetadataVO metadata : presenter.getMetadatasAllowedInBatchEdit()) {
+			for (MetadataVO metadata : presenter.getMetadataAllowedInBatchEdit()) {
 				this.metadata.addItem(metadata);
 				this.metadata.setItemCaption(metadata,
 						metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));

@@ -77,7 +77,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 
 			MetadataSchemaVO schema = dataProvider.getSchema();
 			if (schema != null) {
-				for (MetadataVO metadata : schema.getMetadatas()) {
+				for (MetadataVO metadata : schema.getTableMetadatas()) {
 					super.addProperty(metadata, metadata.getJavaType(), null, true, true);
 				}
 			}

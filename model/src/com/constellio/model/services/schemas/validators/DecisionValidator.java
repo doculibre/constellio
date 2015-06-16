@@ -20,6 +20,7 @@ package com.constellio.model.services.schemas.validators;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -30,7 +31,7 @@ public class DecisionValidator implements RecordMetadataValidator<String> {
 	public static final String DECISION_REFUSED = "refused";
 
 	@Override
-	public void validate(Metadata metadata, String value, ValidationErrors validationErrors) {
+	public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
 		if (!value.equals("") && !value.equals(DECISION_APPROVED) && !value.equals(DECISION_REFUSED)) {
 			Map<String, String> parameters = new HashMap<>();
 			parameters.put("DECISION", value);

@@ -42,6 +42,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainer
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderFilingSpaceField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
@@ -134,10 +135,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			FolderStatus status = restrictedFolder.getArchivisticStatus();
 			if (status != null && status.isSemiActive()) {
 				requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS);
+				if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+				}
 			}
 
 			if (status != null && status.isInactive()) {
 				requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS);
+				if (restrictedFolder.getBorrowed() != null && restrictedFolder.getBorrowed()) {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+				}
 			}
 
 			return user.hasAll(requiredPermissions).on(restrictedFolder) && user.hasWriteAccess().on(restrictedFolder);
@@ -202,10 +209,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			String currentSchemaCode = getSchemaCode();
 			String folderTypeRecordId = (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
 			if (StringUtils.isNotBlank(folderTypeRecordId)) {
-				String schemaCodeForFolderTypeRecordId = rmSchemasRecordsServices.getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
+				String schemaCodeForFolderTypeRecordId = rmSchemasRecordsServices
+						.getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
 				if (schemaCodeForFolderTypeRecordId != null) {
 					reload = !currentSchemaCode.equals(schemaCodeForFolderTypeRecordId);
-				} else if (!currentSchemaCode.equals(Folder.DEFAULT_SCHEMA)) {	
+				} else if (!currentSchemaCode.equals(Folder.DEFAULT_SCHEMA)) {
 					reload = true;
 				} else {
 					reload = false;
@@ -221,21 +229,21 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void reloadFormAfterFolderTypeChange() {
 		String folderTypeId = (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
-		
+
 		Folder folder;
 		if (folderTypeId != null) {
 			folder = rmSchemasRecordsServices.newFolderWithType(folderTypeId);
 		} else {
 			folder = rmSchemasRecordsServices.newFolder();
 		}
-		
+
 		MetadataSchema folderSchema = folder.getSchema();
 		String currentSchemaCode = folderSchema.getCode();
 		setSchemaCode(currentSchemaCode);
-		
+
 		List<String> ignoredMetadataCodes = Arrays.asList(Folder.TYPE);
 		// Populate new record with previous record's metadata values
-		
+
 		view.getForm().commit();
 		for (MetadataVO metadataVO : folderVO.getMetadatas()) {
 			String metadataCode = metadataVO.getCode();
@@ -252,9 +260,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 
 		folderVO = voBuilder.build(folder.getWrappedRecord(), VIEW_MODE.FORM);
-		
+
 		view.setRecord(folderVO);
-	 	view.getForm().reload();
+		view.getForm().reload();
 	}
 
 	private boolean isFieldRequired(String metadataCode) {
@@ -287,6 +295,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			adjustActualDepositDateField();
 			adjustActualDestructionDateField();
 			adjustContainerField();
+			adjustPreviewReturnDateField();
 		}
 	}
 
@@ -642,6 +651,19 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			} else if (containerField.isVisible()) {
 				setFieldVisible(containerField, false, Folder.CONTAINER);
 			}
+		}
+	}
+
+	//TODO Thiago test
+	void adjustPreviewReturnDateField() {
+		FolderPreviewReturnDateField previewReturnDateField = (FolderPreviewReturnDateField) view.getForm()
+				.getCustomField(Folder.BORROW_PREVIEW_RETURN_DATE);
+		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		if (previewReturnDateField != null && folder.hasAnalogicalMedium() && folder.getBorrowed() != null
+				&& folder.getBorrowed() != false) {
+			setFieldVisible(previewReturnDateField, true, Folder.BORROW_PREVIEW_RETURN_DATE);
+		} else {
+			setFieldVisible(previewReturnDateField, false, Folder.BORROW_PREVIEW_RETURN_DATE);
 		}
 	}
 

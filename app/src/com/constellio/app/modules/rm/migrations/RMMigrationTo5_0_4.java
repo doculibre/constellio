@@ -19,14 +19,11 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.calculators.ContainerRecordTreeVisibilityCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderTreeVisibilityCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -48,20 +45,17 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo5_0_4 implements MigrationScript {
+public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
 		return "5.0.4";
@@ -71,8 +65,6 @@ public class RMMigrationTo5_0_4 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {
 		new SchemaAlterationFor5_0_4(collection, migrationResourcesProvider, appLayerFactory).migrate();
-		new ReindexingServices(appLayerFactory.getModelLayerFactory())
-				.reindexCollection(collection, ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		createEmailDocumentType(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
 		setupDisplayConfigForEmail(collection, appLayerFactory);
@@ -242,47 +234,5 @@ public class RMMigrationTo5_0_4 implements MigrationScript {
 			schema.getMetadata(CommonMetadataBuilder.VISIBLE_IN_TREES)
 					.defineDataEntry().asCalculated(ContainerRecordTreeVisibilityCalculator.class);
 		}
-	}
-
-	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type,
-			SchemaDisplayConfig schema, String... localCodes) {
-
-		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(collection);
-
-		List<String> visibleMetadataCodes = new ArrayList<>();
-		for (String localCode : localCodes) {
-			visibleMetadataCodes.add(schema.getSchemaCode() + "_" + localCode);
-		}
-		List<String> metadataCodes = new ArrayList<>();
-		metadataCodes.addAll(visibleMetadataCodes);
-		List<String> otherMetadatas = new ArrayList<>();
-		List<String> retrievedMetadataCodes;
-		if ("form".equals(type)) {
-			retrievedMetadataCodes = schema.getFormMetadataCodes();
-		} else {
-			retrievedMetadataCodes = schema.getDisplayMetadataCodes();
-		}
-		for (String retrievedMetadataCode : retrievedMetadataCodes) {
-			int index = visibleMetadataCodes.indexOf(retrievedMetadataCode);
-			if (index != -1) {
-				metadataCodes.set(index, retrievedMetadataCode);
-			} else if (!schemaTypes.getMetadata(retrievedMetadataCode).isSystemReserved()) {
-				otherMetadatas.add(retrievedMetadataCode);
-			}
-		}
-		SchemaDisplayConfig newSchema;
-		if ("form".equals(type)) {
-			metadataCodes.addAll(otherMetadatas);
-			newSchema = schema.withFormMetadataCodes(metadataCodes);
-
-			SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-			for (String invisible : otherMetadatas) {
-				manager.saveMetadata(manager.getMetadata(collection, invisible).withInputType(MetadataInputType.HIDDEN));
-			}
-		} else {
-			newSchema = schema.withDisplayMetadataCodes(metadataCodes);
-		}
-		return newSchema;
 	}
 }

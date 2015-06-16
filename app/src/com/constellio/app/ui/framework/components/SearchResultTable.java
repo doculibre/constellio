@@ -104,6 +104,7 @@ public class SearchResultTable extends PagedTable {
 	public VerticalLayout createSummary(final Component... extra) {
 		Label count = new Label($("SearchResultTable.count", container.size()));
 		count.addStyleName(ValoTheme.LABEL_BOLD);
+
 		final Label selectedCount = new Label($("SearchResultTable.selection", selected.size()));
 		selectedCount.setSizeUndefined();
 
@@ -277,10 +278,10 @@ public class SearchResultTable extends PagedTable {
 		}
 	}
 
-	public static interface SelectionChangeListener extends Serializable {
+	public interface SelectionChangeListener extends Serializable {
 		void selectionChanged(SelectionChangeEvent event);
 	}
 
-	public static interface PageChangeListener extends PagedTable.PageChangeListener, Serializable {
+	public interface PageChangeListener extends PagedTable.PageChangeListener, Serializable {
 	}
 }

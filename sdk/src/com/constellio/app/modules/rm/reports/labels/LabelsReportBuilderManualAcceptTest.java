@@ -39,6 +39,8 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 
 		LabelsReportLayout labelsReportLayout = LabelsReportLayout.AVERY_5159;
 		model.setLayout(labelsReportLayout);
+		model.setColumnsNumber(30);
+		model.setRowsNumber(10);
 
 		LabelsReportField labelsReportField1 = new LabelsReportField();
 		labelsReportField1.positionX = 3;
@@ -80,6 +82,8 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 
 		LabelsReportLayout labelsReportLayout = LabelsReportLayout.AVERY_5161;
 		model.setLayout(labelsReportLayout);
+		model.setColumnsNumber(30);
+		model.setRowsNumber(10);
 
 		LabelsReportField labelsReportField1 = new LabelsReportField();
 		labelsReportField1.positionX = 3;

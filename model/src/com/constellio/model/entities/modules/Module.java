@@ -23,11 +23,9 @@ import java.util.Map;
 import com.constellio.model.entities.configs.SystemConfiguration;
 
 public interface Module extends ConstellioPlugin {
+	List<String> getDependencies();
 
-	public List<String> getDependencies();
+	List<SystemConfiguration> getConfigurations();
 
-	public List<SystemConfiguration> getConfigurations();
-
-	public Map<String, List<String>> getPermissions();
-
+	Map<String, List<String>> getPermissions();
 }

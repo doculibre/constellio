@@ -21,13 +21,16 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Copy;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Rule;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
@@ -52,6 +55,7 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 	public static final float MARGIN_BOTTOM = 20f;
 	public static final int TABLE_WIDTH_PERCENTAGE = 90;
 	public static final int TITLE_FONT_SIZE = 8;
+	public static final int ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE = TITLE_FONT_SIZE + 2;
 	public static final int COLUMN_NUMBER = 30;
 
 	public ConservationRulesReportBuilder(
@@ -91,8 +95,25 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 		table.setWidthPercentage(TABLE_WIDTH_PERCENTAGE);
 		table.setExtendLastRow(true);
 
-		for (ConservationRulesReportModel_Rule rule : model.getRules()) {
-			createSubTable(table, rule);
+		if (model.isByAdministrativeUnit()) {
+			for (Entry<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> adminUnitRulesEntry : model
+					.getRulesByAdministrativeUnitMap().entrySet()) {
+				PdfPTable subTable = new PdfPTable(COLUMN_NUMBER);
+				subTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+				pdfTableUtils
+						.addPhraseCell(subTable, adminUnitRulesEntry.getKey().getCode(), ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE, 10);
+				pdfTableUtils
+						.addPhraseCell(subTable, adminUnitRulesEntry.getKey().getTitle(), ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE,
+								20);
+				table.addCell(subTable);
+				for (ConservationRulesReportModel_Rule rule : adminUnitRulesEntry.getValue()) {
+					createSubTable(table, rule);
+				}
+			}
+		} else {
+			for (ConservationRulesReportModel_Rule rule : model.getRules()) {
+				createSubTable(table, rule);
+			}
 		}
 		return table;
 	}
@@ -122,8 +143,6 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 		PdfPTable principalHoldersTable = new PdfPTable(20);
 		principalHoldersTable.setWidthPercentage(100);
 		for (Map.Entry<String, String> principalHolder : rule.getAdministrativeUnits().entrySet()) {
-			System.out.println(principalHolder.getKey());
-			System.out.println(principalHolder.getValue());
 			pdfTableUtils.addPhraseCell(principalHoldersTable, principalHolder.getKey(), TITLE_FONT_SIZE, 5);
 			pdfTableUtils.addPhraseCell(principalHoldersTable, principalHolder.getValue(), TITLE_FONT_SIZE, 15);
 		}

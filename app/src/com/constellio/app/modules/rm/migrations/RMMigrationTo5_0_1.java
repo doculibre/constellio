@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
@@ -108,14 +109,12 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
@@ -128,7 +127,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
-public class RMMigrationTo5_0_1 implements MigrationScript {
+public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
 		return "5.0.1";
@@ -199,13 +198,13 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS)));
 
 		// FOLDER TYPE
-		SchemaDisplayConfig schemaFormFolderTypeConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormFolderTypeConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, FolderType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				FolderType.CODE,
 				FolderType.DESCRIPTION,
 				FolderType.LINKED_SCHEMA);
-		SchemaDisplayConfig schemaDisplayFolderTypeConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayFolderTypeConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, FolderType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				FolderType.CODE,
@@ -215,7 +214,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				schemaDisplayFolderTypeConfig.withFormMetadataCodes(schemaFormFolderTypeConfig.getFormMetadataCodes()));
 
 		// FOLDER
-		SchemaDisplayConfig schemaFormFolderConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormFolderConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, Folder.DEFAULT_SCHEMA),
 				Folder.TYPE,
 				Schemas.TITLE.getLocalCode(),
@@ -236,7 +235,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				Folder.ACTUAL_DEPOSIT_DATE,
 				Folder.ACTUAL_DESTRUCTION_DATE);
 
-		SchemaDisplayConfig schemaDisplayFolderConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayFolderConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, Folder.DEFAULT_SCHEMA),
 				Folder.PARENT_FOLDER,
 				Schemas.TITLE.getLocalCode(),
@@ -270,7 +269,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 		transaction.add(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + Folder.MEDIUM_TYPES)
 				.withInputType(MetadataInputType.CHECKBOXES));
 
-		SchemaDisplayConfig schemaDisplayUserConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayUserConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, User.DEFAULT_SCHEMA),
 				User.USERNAME,
 				User.FIRSTNAME,
@@ -287,13 +286,13 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 		transaction.add(schemaDisplayUserConfig);
 
 		// DOCUMENT TYPE
-		SchemaDisplayConfig schemaFormDocumentTypeConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormDocumentTypeConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, DocumentType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				DocumentType.CODE,
 				DocumentType.DESCRIPTION,
 				DocumentType.LINKED_SCHEMA);
-		SchemaDisplayConfig schemaDisplayDocumentTypeConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayDocumentTypeConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, DocumentType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				DocumentType.CODE,
@@ -303,14 +302,14 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				schemaDisplayDocumentTypeConfig.withFormMetadataCodes(schemaFormDocumentTypeConfig.getFormMetadataCodes()));
 
 		// DOCUMENT
-		SchemaDisplayConfig schemaFormDocumentConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormDocumentConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, Document.DEFAULT_SCHEMA),
 				Document.TYPE,
 				Schemas.TITLE.getLocalCode(),
 				Document.FOLDER,
 				Document.KEYWORDS,
 				Document.CONTENT);
-		SchemaDisplayConfig schemaDisplayDocumentConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayDocumentConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, Document.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				Document.CONTENT,
@@ -324,13 +323,13 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				schemaDisplayDocumentConfig.withFormMetadataCodes(schemaFormDocumentConfig.getFormMetadataCodes()));
 
 		// CONTAINER RECORD TYPE
-		SchemaDisplayConfig schemaFormContainerTypeConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormContainerTypeConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, ContainerRecordType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				ContainerRecordType.CODE,
 				ContainerRecordType.DESCRIPTION,
 				ContainerRecordType.LINKED_SCHEMA);
-		SchemaDisplayConfig schemaDisplayContainerTypeConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayContainerTypeConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, ContainerRecordType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				ContainerRecordType.CODE,
@@ -340,7 +339,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				schemaDisplayContainerTypeConfig.withFormMetadataCodes(schemaFormContainerTypeConfig.getFormMetadataCodes()));
 
 		// CONTAINER RECORD
-		SchemaDisplayConfig schemaFormContainerConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormContainerConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, ContainerRecord.DEFAULT_SCHEMA),
 				ContainerRecord.TYPE,
 				ContainerRecord.TEMPORARY_IDENTIFIER,
@@ -348,7 +347,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				ContainerRecord.FULL,
 				ContainerRecord.DESCRIPTION,
 				ContainerRecord.POSITION);
-		SchemaDisplayConfig schemaDisplayContainerConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayContainerConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, ContainerRecord.DEFAULT_SCHEMA),
 				ContainerRecord.TYPE,
 				ContainerRecord.TEMPORARY_IDENTIFIER,
@@ -364,13 +363,13 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 						.withInputType(MetadataInputType.DROPDOWN));
 
 		// MEDIUM TYPE
-		SchemaDisplayConfig schemaFormMediumTypeConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormMediumTypeConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, MediumType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				MediumType.CODE,
 				MediumType.DESCRIPTION,
 				MediumType.ANALOGICAL);
-		SchemaDisplayConfig schemaDisplayMediumTypeConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayMediumTypeConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, MediumType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				MediumType.CODE,
@@ -380,13 +379,14 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				schemaDisplayMediumTypeConfig.withFormMetadataCodes(schemaFormMediumTypeConfig.getFormMetadataCodes()));
 
 		// ADMINISTRATIVE UNIT
-		SchemaDisplayConfig schemaFormAdministrativeUnitConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormAdministrativeUnitConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, AdministrativeUnit.DEFAULT_SCHEMA),
 				AdministrativeUnit.CODE,
 				AdministrativeUnit.FILING_SPACES,
 				Schemas.TITLE.getLocalCode(),
 				AdministrativeUnit.PARENT);
-		SchemaDisplayConfig schemaDisplayAdministrativeUnitConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayAdministrativeUnitConfig = order(collection, appLayerFactory,
+				"display",
 				manager.getSchema(collection, AdministrativeUnit.DEFAULT_SCHEMA),
 				AdministrativeUnit.CODE,
 				Schemas.TITLE.getLocalCode(),
@@ -399,7 +399,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				.withFormMetadataCodes(schemaFormAdministrativeUnitConfig.getFormMetadataCodes()));
 
 		// CATEGORY
-		SchemaDisplayConfig schemaFormCategoryConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormCategoryConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, Category.DEFAULT_SCHEMA),
 				Category.CODE,
 				Schemas.TITLE.getLocalCode(),
@@ -407,7 +407,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				Category.KEYWORDS,
 				Category.PARENT,
 				Category.RETENTION_RULES);
-		SchemaDisplayConfig schemaDisplayCategoryConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayCategoryConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, Category.DEFAULT_SCHEMA),
 				Category.CODE,
 				Schemas.TITLE.getLocalCode(),
@@ -423,11 +423,12 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				.withFormMetadataCodes(schemaFormCategoryConfig.getFormMetadataCodes()));
 
 		// DECOMMISSIONING LIST
-		SchemaDisplayConfig schemaFormDecommissioningListConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormDecommissioningListConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, DecommissioningList.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				DecommissioningList.DESCRIPTION);
-		SchemaDisplayConfig schemaDisplayDecommissioningListConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayDecommissioningListConfig = order(collection, appLayerFactory,
+				"display",
 				manager.getSchema(collection, DecommissioningList.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				DecommissioningList.TYPE,
@@ -447,13 +448,13 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				.withFormMetadataCodes(schemaFormDecommissioningListConfig.getFormMetadataCodes()));
 
 		// FILING SPACE
-		SchemaDisplayConfig schemaFormFilingSpaceConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormFilingSpaceConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, FilingSpace.DEFAULT_SCHEMA),
 				FilingSpace.CODE,
 				Schemas.TITLE.getLocalCode(),
 				FilingSpace.ADMINISTRATORS,
 				FilingSpace.USERS);
-		SchemaDisplayConfig schemaDisplayFilingSpaceConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayFilingSpaceConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, FilingSpace.DEFAULT_SCHEMA),
 				FilingSpace.CODE,
 				Schemas.TITLE.getLocalCode(),
@@ -464,7 +465,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				schemaDisplayFilingSpaceConfig.withFormMetadataCodes(schemaFormFilingSpaceConfig.getFormMetadataCodes()));
 
 		// RETENTION RULE
-		SchemaDisplayConfig schemaFormRetentionRuleConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormRetentionRuleConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, RetentionRule.DEFAULT_SCHEMA),
 				RetentionRule.CODE,
 				RetentionRule.APPROVED,
@@ -484,7 +485,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				RetentionRule.COPY_RETENTION_RULES,
 				RetentionRule.DOCUMENT_TYPES_DETAILS,
 				RetentionRule.COPY_RULES_COMMENT);
-		SchemaDisplayConfig schemaDisplayRetentionRuleConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayRetentionRuleConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, RetentionRule.DEFAULT_SCHEMA),
 				RetentionRule.CODE,
 				RetentionRule.APPROVED,
@@ -508,13 +509,13 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				schemaDisplayRetentionRuleConfig.withFormMetadataCodes(schemaFormRetentionRuleConfig.getFormMetadataCodes()));
 
 		// STORAGE SPACE TYPE
-		SchemaDisplayConfig schemaFormStorageSpaceTypeConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormStorageSpaceTypeConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, StorageSpaceType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				StorageSpaceType.CODE,
 				StorageSpaceType.DESCRIPTION,
 				StorageSpaceType.LINKED_SCHEMA);
-		SchemaDisplayConfig schemaDisplayStorageSpaceTypeConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayStorageSpaceTypeConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, StorageSpaceType.DEFAULT_SCHEMA),
 				Schemas.TITLE.getLocalCode(),
 				StorageSpaceType.CODE,
@@ -524,7 +525,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				.withFormMetadataCodes(schemaFormStorageSpaceTypeConfig.getFormMetadataCodes()));
 
 		// STORAGE SPACE
-		SchemaDisplayConfig schemaFormStorageSpaceConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormStorageSpaceConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, StorageSpace.DEFAULT_SCHEMA),
 				StorageSpace.TYPE,
 				StorageSpace.CODE,
@@ -533,7 +534,7 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				StorageSpace.CAPACITY,
 				StorageSpace.DECOMMISSIONING_TYPE,
 				StorageSpace.PARENT_STORAGE_SPACE);
-		SchemaDisplayConfig schemaDisplayStorageSpaceConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayStorageSpaceConfig = order(collection, appLayerFactory, "display",
 				manager.getSchema(collection, StorageSpace.DEFAULT_SCHEMA),
 				StorageSpace.TYPE,
 				StorageSpace.CODE,
@@ -549,13 +550,14 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 				schemaDisplayStorageSpaceConfig.withFormMetadataCodes(schemaFormStorageSpaceConfig.getFormMetadataCodes()));
 
 		// UNIFORM SUBDIVISION
-		SchemaDisplayConfig schemaFormUniformSubDivisionConfig = order(collection, modelLayerFactory, "form",
+		SchemaDisplayConfig schemaFormUniformSubDivisionConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, UniformSubdivision.DEFAULT_SCHEMA),
 				UniformSubdivision.CODE,
 				Schemas.TITLE.getLocalCode(),
 				UniformSubdivision.RETENTION_RULE,
 				UniformSubdivision.DESCRIPTION);
-		SchemaDisplayConfig schemaDisplayUniformSubDivisionConfig = order(collection, modelLayerFactory, "display",
+		SchemaDisplayConfig schemaDisplayUniformSubDivisionConfig = order(collection, appLayerFactory,
+				"display",
 				manager.getSchema(collection, UniformSubdivision.DEFAULT_SCHEMA),
 				UniformSubdivision.CODE,
 				Schemas.TITLE.getLocalCode(),
@@ -567,51 +569,6 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 		manager.execute(transaction);
 	}
 
-	private SchemaDisplayConfig order(String collection, ModelLayerFactory modelLayerFactory, String type,
-			SchemaDisplayConfig schema, String... localCodes) {
-
-		MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-
-		List<String> visibleMetadataCodes = new ArrayList<>();
-		for (String localCode : localCodes) {
-			visibleMetadataCodes.add(schema.getSchemaCode() + "_" + localCode);
-		}
-		List<String> metadataCodes = new ArrayList<>();
-		metadataCodes.addAll(visibleMetadataCodes);
-		List<String> otherMetadatas = new ArrayList<>();
-		List<String> retrievedMetadataCodes;
-		if ("form".equals(type)) {
-			retrievedMetadataCodes = schema.getFormMetadataCodes();
-		} else {
-			retrievedMetadataCodes = schema.getDisplayMetadataCodes();
-		}
-		for (String retrievedMetadataCode : retrievedMetadataCodes) {
-			int index = visibleMetadataCodes.indexOf(retrievedMetadataCode);
-			if (index != -1) {
-				metadataCodes.set(index, retrievedMetadataCode);
-			} else if (!schemaTypes.getMetadata(retrievedMetadataCode).isSystemReserved()) {
-				otherMetadatas.add(retrievedMetadataCode);
-			}
-		}
-		SchemaDisplayConfig newSchema;
-		if ("form".equals(type)) {
-			metadataCodes.addAll(otherMetadatas);
-			newSchema = schema.withFormMetadataCodes(metadataCodes);
-
-			SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
-			for (String invisible : otherMetadatas) {
-				manager.saveMetadata(manager.getMetadata(collection, invisible).withInputType(MetadataInputType.HIDDEN));
-			}
-		} else {
-			newSchema = schema.withDisplayMetadataCodes(metadataCodes);
-		}
-		return newSchema;
-	}
-
-	private AppLayerFactory getAppLayerFactory() {
-		return ConstellioFactories.getInstance().getAppLayerFactory();
-	}
-
 	private void setupRoles(String collection, ModelLayerFactory modelLayerFactory) {
 		RolesManager rolesManager = modelLayerFactory.getRolesManager();
 
@@ -619,10 +576,6 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 		userPermissions.add(RMPermissionsTo.CREATE_DOCUMENTS);
 		userPermissions.add(RMPermissionsTo.CREATE_FOLDERS);
 		userPermissions.add(RMPermissionsTo.CREATE_SUB_FOLDERS);
-		//		userPermissions.add(RMPermissionsTo.MODIFY_DOCUMENTS);
-		//		userPermissions.add(RMPermissionsTo.MODIFY_FOLDERS);
-		//		userPermissions.add(RMPermissionsTo.DELETE_DOCUMENTS);
-		//		userPermissions.add(RMPermissionsTo.DELETE_FOLDERS);
 
 		List<String> managerPermissions = new ArrayList<>();
 		managerPermissions.addAll(userPermissions);
@@ -634,8 +587,8 @@ public class RMMigrationTo5_0_1 implements MigrationScript {
 		managerPermissions.add(RMPermissionsTo.MANAGE_DECOMMISSIONING);
 
 		List<String> rgdPermissions = new ArrayList<>();
-		rgdPermissions.addAll(RMPermissionsTo.getAllPermissions());
-		rgdPermissions.addAll(CorePermissions.getAllPermissions());
+		rgdPermissions.addAll(RMPermissionsTo.PERMISSIONS.getAll());
+		rgdPermissions.addAll(CorePermissions.PERMISSIONS.getAll());
 
 		rolesManager.addRole(new Role(collection, RMRoles.USER, "Utilisateur", userPermissions));
 		rolesManager.addRole(new Role(collection, RMRoles.MANAGER, "Gestionnaire", managerPermissions));

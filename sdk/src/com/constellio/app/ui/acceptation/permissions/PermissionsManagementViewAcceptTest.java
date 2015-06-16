@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.constellio.app.ui.pages.management.permissions.PermissionsManagementViewImpl.CreateRoleButton;
@@ -119,12 +118,6 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 		for (String permission : permissions) {
 			assertThat(page.getPermission("N", permission).isChecked()).isFalse();
 		}
-	}
-
-	@Test
-	@Ignore
-	public void givenUserWithoutPermissionsThenDontDisplayPage() {
-		// TODO
 	}
 
 	private void verifyCleanPermissionState() {

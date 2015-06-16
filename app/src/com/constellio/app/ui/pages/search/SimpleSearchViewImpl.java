@@ -17,7 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.search;
 
-import com.constellio.app.ui.application.ConstellioUI;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
@@ -29,7 +28,7 @@ public class SimpleSearchViewImpl extends SearchViewImpl<SimpleSearchPresenter> 
 
 	@Override
 	protected Component buildSearchUI() {
-		ConstellioUI.getCurrent().getHeader().setSearchExpression(presenter.getUserSearchExpression());
+		setSearchExpression(presenter.getUserSearchExpression());
 		return new VerticalLayout();
 	}
 }

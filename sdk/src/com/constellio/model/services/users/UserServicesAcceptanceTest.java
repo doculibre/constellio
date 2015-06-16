@@ -22,6 +22,9 @@ import static com.constellio.sdk.tests.TestUtils.usernamesOf;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +57,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
@@ -225,8 +229,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userInCollection.get(collection2).getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 		assertThat(userServices.getUser(user.getUsername()).getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 		assertThat(userServices.getAllUserCredentials()).hasSize(2);
-		assertThat(userServices.getActifUserCredentials()).hasSize(1);
-		assertThat(userServices.getActifUserCredentials().get(0).getUsername()).isEqualTo("admin");
+		assertThat(userServices.getActiveUserCredentials()).hasSize(1);
+		assertThat(userServices.getActiveUserCredentials().get(0).getUsername()).isEqualTo("admin");
 	}
 
 	@Test
@@ -431,8 +435,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				.contains(anotherUser.getUsername());
 	}
 
-	//	@Test
-	//TODO Thiago fix test
+	@Test
 	public void givenUserInGroupThenIsInGroupUsers()
 			throws Exception {
 
@@ -447,8 +450,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getGlobalGroupActifUsers(heroes)).isEmpty();
 	}
 
-	//	@Test
-	//TODO Thiago - fix test
+	@Test
 	public void whenModifyingUsersAddingAndRemovingGroupThenAddedAndRemovedFromGroupList()
 			throws Exception {
 
@@ -553,6 +555,26 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getUserInCollection(chuckNorris, collection1).getAllRoles())
 				.containsOnlyOnce("role1", "role2", "role3");
 		assertThat(searchServices.getResultsCount(from(collection1Schemas.userSchemaType()).returnAll())).isEqualTo(1);
+	}
+
+	@Test
+	public void whenAddingUserToCollectionGivenTheUserRecordWriteFailsThenRollbackTheGlobalConfig()
+			throws Exception {
+		givenCollection1();
+		givenUserAndPassword();
+
+		userServices = spy(userServices);
+		doThrow(new UserServicesRuntimeException_CannotExcuteTransaction(new RuntimeException()))
+				.when(userServices).sync(any(UserCredential.class));
+
+		try {
+			userServices.addUserToCollection(user, collection1);
+		} catch (UserServicesRuntimeException_CannotExcuteTransaction e) {
+			assertThat(userServices.getUser(user.getUsername()).getCollections()).isEmpty();
+			return;
+		}
+
+		fail("Expected exception not thrown");
 	}
 
 	// ---- Exception tests

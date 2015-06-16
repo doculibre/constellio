@@ -106,8 +106,9 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 
 		typeContainer = buttonsContainer;
 
-		Table table = new Table($("ListSchemaTypeView.tableTitle"), typeContainer);
-		table.setWidth("100%");
+		Table table = new Table($("ListSchemaTypeView.tableTitle", typeContainer.size()), typeContainer);
+		table.setSizeFull();
+		table.setPageLength(table.size());
 		table.setColumnHeader("buttons", "");
 		table.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
 		table.setColumnExpandRatio("caption", 1);

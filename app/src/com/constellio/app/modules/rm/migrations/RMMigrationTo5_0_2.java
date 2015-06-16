@@ -121,8 +121,8 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 		newManagerPermissions.add(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS);
 
 		List<String> newRgdPermissions = new ArrayList<>();
-		newRgdPermissions.addAll(RMPermissionsTo.getAllPermissions());
-		newRgdPermissions.addAll(CorePermissions.getAllPermissions());
+		newRgdPermissions.addAll(RMPermissionsTo.PERMISSIONS.getAll());
+		newRgdPermissions.addAll(CorePermissions.PERMISSIONS.getAll());
 
 		modelLayerFactory.getRolesManager().updateRole(userRole.withPermissions(newUserPermissions));
 		modelLayerFactory.getRolesManager().updateRole(managerRole.withPermissions(newManagerPermissions));

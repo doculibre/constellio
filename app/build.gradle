@@ -99,5 +99,5 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '5.0.4'
+    version = '5.0.5'
 }

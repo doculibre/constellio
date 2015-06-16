@@ -35,32 +35,32 @@ import com.vaadin.ui.ComboBox;
 
 /**
  * Adapted from https://vaadin.com/forum#!/thread/897171/9060502
- * 
+ *
  * @author Vincent
- * 
+ *
  * @param <T>
  *            Type of the selected object
  */
 public class BaseAutocompleteField<T> extends ComboBox {
-	
+
 	public static final String STYLE_NAME = "autocomplete";
-	
+
 	private static final String ERROR_STYLE_NAME = STYLE_NAME + "-error";
 
 	private static final String CAPTION_PROPERTY_ID = "caption";
 
 	private AutocompleteSuggestionsProvider<T> suggestionsProvider;
-	
+
 	private Converter<String, T> itemConverter;
-	
+
 	private int prefixSize = 0; // Default value
-	
+
 	private AutocompleteContainer autocompleteContainer;
 
 	public BaseAutocompleteField(AutocompleteSuggestionsProvider<T> suggestionsProvider) {
 		super();
 		this.suggestionsProvider = suggestionsProvider;
-		
+
 		addStyleName(STYLE_NAME);
 		setImmediate(true);
 		setFilteringMode(FilteringMode.STARTSWITH);
@@ -70,7 +70,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
 		autocompleteContainer = new AutocompleteContainer(prefixSize);
 		setContainerDataSource(autocompleteContainer);
-		
+
 		addValueChangeListener(new ValueChangeListener() {
 			@SuppressWarnings("unchecked")
 			@Override
@@ -120,13 +120,13 @@ public class BaseAutocompleteField<T> extends ComboBox {
 	public void setItemConverter(Converter<String, T> itemConverter) {
 		this.itemConverter = itemConverter;
 	}
-	
+
 	private String getCaption(T object) {
 		String caption;
 		if (object != null) {
 			if (itemConverter != null) {
 				Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-				caption = itemConverter.convertToPresentation((T) object, String.class, locale);
+				caption = itemConverter.convertToPresentation(object, String.class, locale);
 			} else {
 				caption = object.toString();
 			}
@@ -136,7 +136,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		return caption;
 	}
 
-	public static interface AutocompleteSuggestionsProvider<T> extends Serializable {
+	public interface AutocompleteSuggestionsProvider<T> extends Serializable {
 
 		List<T> suggest(String text);
 
@@ -150,8 +150,8 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		public AutocompleteContainer(int prefixSize) {
 			this.subStringSize = prefixSize;
 			addContainerProperty(CAPTION_PROPERTY_ID, String.class, null);
-		} 
-		
+		}
+
 		@SuppressWarnings("unchecked")
 		private boolean contains(T object) {
 			boolean inSuggestions = false;
@@ -216,7 +216,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 			}// end while iter has next
 
 		}// end queryDataBase method
-		
+
 		@SuppressWarnings("unchecked")
 		private void addSuggestion(T suggestion) {
 			String suggestionCaption = getCaption(suggestion);

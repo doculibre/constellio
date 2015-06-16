@@ -27,22 +27,15 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class Document extends RMObject {
-
 	public static final String SCHEMA_TYPE = "document";
-
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-
 	public static final String FOLDER = "folder";
-
 	public static final String KEYWORDS = "keywords";
-
 	public static final String DESCRIPTION = "description";
-
 	public static final String CONTENT = "content";
 	public static final String TYPE = "type";
-
 	public static final String COMMENTS = "comments";
-
+	public static final String FOLDER_BORROWED = Folder.BORROWED;
 	public static final String FOLDER_CATEGORY = Folder.CATEGORY;
 	public static final String FOLDER_ADMINISTRATIVE_UNIT = Folder.ADMINISTRATIVE_UNIT;
 	public static final String FOLDER_FILING_SPACE = Folder.FILING_SPACE;
@@ -56,7 +49,6 @@ public class Document extends RMObject {
 	public static final String FOLDER_EXPECTED_TRANSFER_DATE = Folder.EXPECTED_TRANSFER_DATE;
 	public static final String FOLDER_OPENING_DATE = Folder.OPENING_DATE;
 	public static final String FOLDER_CLOSING_DATE = Folder.CLOSING_DATE;
-
 	public static final String AUTHOR = "author";
 	public static final String COMPANY = "company";
 	public static final String SUBJECT = "subject";
@@ -137,6 +129,15 @@ public class Document extends RMObject {
 
 	public Document setComments(List<Comment> comments) {
 		set(COMMENTS, comments);
+		return this;
+	}
+
+	public Boolean getBorrowed() {
+		return get(FOLDER_BORROWED);
+	}
+
+	public Document setBorrowed(Boolean borrowed) {
+		set(FOLDER_BORROWED, borrowed);
 		return this;
 	}
 

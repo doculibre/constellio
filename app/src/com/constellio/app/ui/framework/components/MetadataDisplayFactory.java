@@ -211,7 +211,7 @@ public class MetadataDisplayFactory implements Serializable {
 		return displayComponent;
 	}
 
-	protected Component newCollectionValueDisplayComponent(List<Component> elementDisplayComponents) {
+	public Component newCollectionValueDisplayComponent(List<Component> elementDisplayComponents) {
 		VerticalLayout verticalLayout = new VerticalLayout();
 		for (Component elementDisplayComponent : elementDisplayComponents) {
 			verticalLayout.addComponent(elementDisplayComponent);

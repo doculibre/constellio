@@ -41,7 +41,7 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 	}
 
 	public SchemaTypeVODataProvider getDataProvider() {
-		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), modelLayerFactory, collection);
+		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection);
 	}
 
 	public void editButtonClicked(MetadataSchemaTypeVO schemaTypeVO) {

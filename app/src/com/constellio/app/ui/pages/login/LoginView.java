@@ -18,9 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.login;
 
 import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 
-public interface LoginView {
+public interface LoginView extends BaseView {
 	
 	ConstellioNavigator navigateTo();
 

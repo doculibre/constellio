@@ -437,6 +437,9 @@ public class RecordServicesTest extends ConstellioTest {
 			throws Exception {
 		List<BatchProcess> batchProcesses = mock(List.class);
 		Transaction transaction = mock(Transaction.class);
+		List<Record> someRecords = Arrays.asList(mock(Record.class));
+		when(transaction.getRecords()).thenReturn(someRecords);
+
 		AddToBatchProcessImpactHandler handler = mock(AddToBatchProcessImpactHandler.class);
 		doReturn(handler).when(recordServices).addToBatchProcessModificationImpactHandler();
 

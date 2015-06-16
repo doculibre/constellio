@@ -59,12 +59,15 @@ public class EventType {
 
 	public static final String CURRENT_BORROW_DOCUMENT = "current_borrow_document";
 
+	public static final String CURRENTLY_BORROWED_FOLDERS = "currently_borrowed_folders";
+
+	public static final String LATE_BORROWED_FOLDERS = "late_borrowed_folders";
+
 	public static final String RETURN_DOCUMENT = "return_document";
 
 	public static final String BORROW_CONTAINER = "borrow_containerRecord";
 
 	public static final String RETURN_CONTAINER = "return_containerRecord";
-
 
 	public static final String CREATE_USER = CREATE + "_" + User.SCHEMA_TYPE;
 
@@ -75,7 +78,6 @@ public class EventType {
 	public static final String CREATE_GROUP = CREATE + "_" + Group.SCHEMA_TYPE;
 
 	public static final String DELETE_GROUP = DELETE + "_" + Group.SCHEMA_TYPE;
-
 
 	public static final String GRANT_PERMISSION = "grant_permission";
 

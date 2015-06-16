@@ -221,7 +221,9 @@ public class BigVaultRecordDao implements RecordDao {
 			if (modifiedRecord.getModifiedFields().containsKey("parentpath_ss")) {
 				recordsAncestors.set(modifiedRecord.getId(), getModifiedRecordAncestors(modifiedRecord));
 			}
-			updatedDocuments.addAll(verifyIndexForNewReferences(modifiedRecord, transaction, recordsInTransactionRefCounts));
+			if (!transaction.isSkippingReferenceToLogicallyDeletedValidation()) {
+				updatedDocuments.addAll(verifyIndexForNewReferences(modifiedRecord, transaction, recordsInTransactionRefCounts));
+			}
 			incrementReferenceCounterForNewReferences(modifiedRecord, transaction, recordsInTransactionRefCounts,
 					recordsOutOfTransactionRefCounts);
 		}
@@ -796,18 +798,17 @@ public class BigVaultRecordDao implements RecordDao {
 		Map<String, List<FacetValue>> fieldFacetValues = getFieldFacets(response);
 		Map<String, Integer> facetQueries = response.getFacetQuery();
 
-		boolean correctlySpelled = true;
+		boolean correctlySpelt = true;
 		List<String> spellcheckerSuggestions = new ArrayList<String>();
 
 		SpellCheckResponse spellCheckResponse = response.getSpellCheckResponse();
 		if (spellCheckResponse != null) {
-			correctlySpelled = spellCheckResponse.isCorrectlySpelled();
+			correctlySpelt = spellCheckResponse.isCorrectlySpelled();
 			spellcheckerSuggestions = spellcheckerSuggestions(spellCheckResponse);
 		}
 
 		return new QueryResponseDTO(documents, response.getQTime(), response.getResults().getNumFound(), fieldFacetValues,
-				facetQueries,
-				highlights, correctlySpelled, spellcheckerSuggestions);
+				facetQueries, highlights, correctlySpelt, spellcheckerSuggestions);
 	}
 
 	private List<String> spellcheckerSuggestions(SpellCheckResponse spellCheckResponse) {

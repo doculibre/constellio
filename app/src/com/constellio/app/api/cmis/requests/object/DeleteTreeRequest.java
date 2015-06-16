@@ -33,6 +33,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 
 public class DeleteTreeRequest extends CmisCollectionRequest<FailedToDeleteData> {
 
@@ -56,7 +57,16 @@ public class DeleteTreeRequest extends CmisCollectionRequest<FailedToDeleteData>
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		User user = (User) context.get(ConstellioCmisContextParameters.USER);
 		Record record = recordServices.getDocumentById(folderId, user);
+
 		recordServices.logicallyDelete(record, user);
+
+		try {
+			recordServices.physicallyDelete(record, user);
+
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord e) {
+			recordServices.restore(record, user);
+			throw new RuntimeException(e);
+		}
 
 		FailedToDeleteDataImpl result = new FailedToDeleteDataImpl();
 		result.setIds(new ArrayList<String>());

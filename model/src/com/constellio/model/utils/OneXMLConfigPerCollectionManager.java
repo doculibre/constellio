@@ -106,6 +106,12 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		return cache.get(collection);
 	}
 
+	public void reload(String collection) {
+		cache.remove(collection);
+		String configPath = getConfigPath(collection);
+		load(collection, configPath);
+	}
+
 	void load(String collection, String configPath) {
 		XMLConfiguration config = configManager.getXML(configPath);
 		if (config == null) {
@@ -137,4 +143,5 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		configManager.createXMLDocumentIfInexistent(configPath, documentAlteration);
 		load(collection, configPath);
 	}
+
 }

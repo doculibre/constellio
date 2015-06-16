@@ -17,8 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactory;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -41,20 +40,27 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements ReportPresenter {
+	public static final int FACET_LIMIT = 5;
+
+	public enum SortOrder {ASCENDING, DESCENDING}
+
 	Map<String, Set<String>> facetSelections;
 	List<String> suggestions;
+	String sortCriterion;
+	SortOrder sortOrder;
+	private List<LabelTemplate> templates;
 
 	public SearchPresenter(T view) {
 		super(view);
 		resetFacetSelection();
+		sortOrder = SortOrder.ASCENDING;
 	}
 
 	public abstract SearchPresenter<T> forRequestParameters(String params);
@@ -68,17 +74,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public boolean mustDisplaySuggestions() {
-		if (getSearchResults().size() == 0) {
-			SPEQueryResponse suggestionsResponse = searchServices()
-					.query(getUserSearchExpression(), getSearchQuery().setNumberOfRows(0).setSpellcheck(true));
-			if (suggestionsResponse.isCorrectlySpelled()) {
-				return false;
-			}
-			suggestions = suggestionsResponse.getSpellCheckerSuggestions();
-			return !suggestions.isEmpty();
-		} else {
+		if (getSearchResults().size() != 0) {
 			return false;
 		}
+		SPEQueryResponse suggestionsResponse = searchServices()
+				.query(getSearchQuery().setNumberOfRows(0).setSpellcheck(true));
+		if (suggestionsResponse.isCorrectlySpelt()) {
+			return false;
+		}
+		suggestions = suggestionsResponse.getSpellCheckerSuggestions();
+		return !suggestions.isEmpty();
 	}
 
 	public List<String> getSuggestions() {
@@ -86,23 +91,23 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public SearchResultVODataProvider getSearchResults() {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), modelLayerFactory) {
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return getSearchQuery().setHighlighting(true);
-			}
-
-			@Override
-			protected String getUserSearchExpression() {
-				return SearchPresenter.this.getUserSearchExpression();
+				LogicalSearchQuery query = getSearchQuery().setHighlighting(true);
+				if (sortCriterion == null) {
+					return query;
+				}
+				Metadata metadata = getMetadata(sortCriterion);
+				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 			}
 		};
 	}
 
 	public Map<MetadataVO, List<FacetValue>> getFacets() {
-		LogicalSearchQuery query = getSearchQuery().setNumberOfRows(0);
+		LogicalSearchQuery query = getSearchQuery().setNumberOfRows(0).setFieldFacetLimit(FACET_LIMIT);
 		injectFacetFields(query);
-		SPEQueryResponse response = searchServices().query(getUserSearchExpression(), query);
+		SPEQueryResponse response = searchServices().query(query);
 
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 		Map<MetadataVO, List<FacetValue>> result = new LinkedHashMap<>();
@@ -132,6 +137,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return facetSelections;
 	}
 
+	public void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
+		this.sortCriterion = sortCriterion;
+		this.sortOrder = sortOrder;
+		view.refreshSearchResults();
+	}
+
 	@Override
 	public List<String> getSupportedReports() {
 		//return Arrays.asList("Reports.fakeReport");
@@ -147,10 +158,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		throw new RuntimeException("BUG: Unknown report " + report);
 	}
 
+	public abstract void suggestionSelected(String suggestion);
+
+	public abstract List<MetadataVO> getMetadataAllowedInSort();
+
 	protected abstract LogicalSearchCondition getSearchCondition();
 
 	private LogicalSearchQuery getSearchQuery() {
-		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition()).filteredWithUser(getCurrentUser());
+		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
+				.setFreeTextQuery(getUserSearchExpression())
+				.filteredWithUser(getCurrentUser())
+				.filteredByStatus(StatusFilter.ACTIVES);
 		for (Entry<String, Set<String>> selection : facetSelections.entrySet()) {
 			if (!selection.getValue().isEmpty()) {
 				query.filteredByFacetValues(getMetadata(selection.getKey()), selection.getValue());
@@ -182,7 +200,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return schemasDisplayManager().getTypes(view.getCollection()).getFacetMetadataCodes();
 	}
 
-	protected List<MetadataVO> getMetadatasAllowedInAdvancedSearch(String schemaTypeCode) {
+	protected List<MetadataVO> getMetadataAllowedInAdvancedSearch(String schemaTypeCode) {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 		MetadataSchemaType schemaType = schemaType(schemaTypeCode);
 
@@ -196,21 +214,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return result;
 	}
 
-	List<Metadata> searchFieldsFor(String searchExpression) {
-		// XXX: Temporarily bypass language detection
-		return Schemas.getAllSearchFields();
-		//		String languageCode = modelLayerFactory.getLanguageDetectionManager().tryDetectLanguage(searchExpression);
-		//		if (languageCode == null || Language.UNKNOWN.getCode().equals(languageCode)) {
-		//			return Schemas.getAllSearchFields();
-		//		} else {
-		//			return Arrays.asList(Schemas.getSearchFieldForLanguage(languageCode));
-		//		}
+	protected List<MetadataVO> getMetadataAllowedInSort(String schemaTypeCode) {
+		MetadataSchemaType schemaType = schemaType(schemaTypeCode);
+		return getMetadataAllowedInSort(schemaType);
 	}
 
-	protected List<LogicalSearchValueCondition> queries(String searchExpression) {
-		List<LogicalSearchValueCondition> result = new ArrayList<>();
-		for (String word : searchExpression.split(" ")) {
-			result.add(query(word));
+	protected List<MetadataVO> getMetadataAllowedInSort(MetadataSchemaType schemaType) {
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+
+		List<MetadataVO> result = new ArrayList<>();
+		for (Metadata metadata : schemaType.getAllMetadatas()) {
+			if (metadata.isSortable()) {
+				result.add(builder.build(metadata, view.getSessionContext()));
+			}
 		}
 		return result;
 	}

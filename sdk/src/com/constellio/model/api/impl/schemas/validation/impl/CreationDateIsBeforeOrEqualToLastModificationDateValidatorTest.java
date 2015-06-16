@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -47,6 +48,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 	@Mock Metadata creationDate, modificationDate;
 	@Mock ValidationErrors validationErrors;
 	@Mock MetadataSchema schema;
+	@Mock ConfigProvider configProvider;
 
 	SimpleDateFormat sdf = new SimpleDateFormat();
 
@@ -71,7 +73,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(creationDate)).thenReturn(date);
 		when(record.get(modificationDate)).thenReturn(dateBefore);
 
-		validator.validate(record, types, schema, validationErrors);
+		validator.validate(record, types, schema, configProvider, validationErrors);
 
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(CreationDateIsBeforeOrEqualToLastModificationDateValidator.CREATION_DATE_MESSAGE_PARAM, date.toString());
@@ -87,7 +89,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(creationDate)).thenReturn(date);
 		when(record.get(modificationDate)).thenReturn(date);
 
-		validator.validate(record, types, schema, validationErrors);
+		validator.validate(record, types, schema, configProvider, validationErrors);
 
 		verifyZeroInteractions(validationErrors);
 	}
@@ -98,7 +100,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(creationDate)).thenReturn(date);
 		when(record.get(modificationDate)).thenReturn(dateAfter);
 
-		validator.validate(record, types, schema, validationErrors);
+		validator.validate(record, types, schema, configProvider, validationErrors);
 
 		verifyZeroInteractions(validationErrors);
 	}

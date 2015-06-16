@@ -17,16 +17,24 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users;
 
+import static com.constellio.model.services.users.UserUtils.toCacheKey;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.jdom2.Document;
+import org.joda.time.LocalDateTime;
+
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import org.jdom2.Document;
-import org.joda.time.LocalDateTime;
-
-import java.util.*;
 
 public class UserCredentialsManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -59,7 +67,8 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public UserCredential getUserCredential(String username) {
-		return cache.get(username);
+		String cacheKey = toCacheKey(username);
+		return cache.get(cacheKey);
 	}
 
 	public List<UserCredential> getUserCredentials() {
@@ -78,7 +87,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 		return Collections.unmodifiableList(userCredentials);
 	}
 
-	public List<UserCredential> getActifUserCredentials() {
+	public List<UserCredential> getActiveUserCredentials() {
 		return Collections.unmodifiableList(getUserCredentialsByStatus(UserCredentialStatus.ACTIVE));
 	}
 
@@ -96,7 +105,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 
 	public List<UserCredential> getUserCredentialsInGlobalGroup(String group) {
 		List<UserCredential> userCredentials = new ArrayList<>();
-		for (UserCredential userCredential : getActifUserCredentials()) {
+		for (UserCredential userCredential : getActiveUserCredentials()) {
 			if (userCredential.getGlobalGroups().contains(group)) {
 				userCredentials.add(userCredential);
 			}
@@ -199,8 +208,8 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public String getUserCredentialByServiceKey(String serviceKey) {
-		for (String userWithServiceKey : usersWithServiceKey) {
-			UserCredential userCredential = cache.get(userWithServiceKey);
+		for (String usernameWithServiceKey : usersWithServiceKey) {
+			UserCredential userCredential = getUserCredential(usernameWithServiceKey);
 			if (userCredential != null && serviceKey.equals(userCredential.getServiceKey())) {
 				return userCredential.getUsername();
 			}
@@ -209,8 +218,8 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public String getServiceKeyByToken(String token) {
-		for (String userWithServiceKey : usersWithServiceKey) {
-			UserCredential userCredential = cache.get(userWithServiceKey);
+		for (String usernameWithServiceKey : usersWithServiceKey) {
+			UserCredential userCredential = getUserCredential(usernameWithServiceKey);
 			if (userCredential.getTokens().containsKey(token) && !userCredential.getTokens().get(token)
 					.isBefore(new LocalDateTime())) {
 				return userCredential.getServiceKey();

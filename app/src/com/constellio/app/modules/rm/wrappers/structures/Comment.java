@@ -85,8 +85,8 @@ public class Comment implements ModifiableStructure {
 	public String toString() {
 		return "Comment{" +
 				"message='" + message + '\'' +
-				", userId='" + userId + '\'' +
-				", username='" + username + '\'' +
+				", borrowUserId='" + userId + '\'' +
+				", borrowerUsername='" + username + '\'' +
 				", dateTime=" + dateTime +
 				", dirty=" + dirty +
 				'}';

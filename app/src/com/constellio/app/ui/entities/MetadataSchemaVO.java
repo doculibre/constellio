@@ -27,19 +27,25 @@ import com.constellio.app.ui.application.ConstellioUI;
 
 @SuppressWarnings("serial")
 public class MetadataSchemaVO implements Serializable {
-
 	final String code;
-
 	final String collection;
-
-	final List<MetadataVO> metadatas = new ArrayList<MetadataVO>();
-
+	final List<MetadataVO> metadatas = new ArrayList<>();
 	final Map<Locale, String> labels;
+	final List<String> formMetadataCodes;
+	final List<String> displayMetadataCodes;
+	final List<String> tableMetadataCodes;
 
 	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels) {
+		this(code, collection, null, null, null, labels);
+	}
+
+	public MetadataSchemaVO(String code, String collection, List<String> formMetadataCodes, List<String> displayMetadataCodes, List<String> tableMetadataCodes, Map<Locale, String> labels) {
 		super();
 		this.code = code;
 		this.collection = collection;
+		this.formMetadataCodes = formMetadataCodes;
+		this.displayMetadataCodes = displayMetadataCodes;
+		this.tableMetadataCodes = tableMetadataCodes;
 		this.labels = labels;
 	}
 
@@ -51,8 +57,65 @@ public class MetadataSchemaVO implements Serializable {
 		return collection;
 	}
 
+	public final List<String> getFormMetadataCodes() {
+		return formMetadataCodes;
+	}
+
+	public final List<String> getDisplayMetadataCodes() {
+		return displayMetadataCodes;
+	}
+
+	public final List<String> getTableMetadataCodes() {
+		return tableMetadataCodes;
+	}
+
 	public List<MetadataVO> getMetadatas() {
 		return metadatas;
+	}
+
+	public List<MetadataVO> getFormMetadatas() {
+		List<MetadataVO> formMetadatas;
+		List<String> formMetadataCodes = getFormMetadataCodes();
+		if (formMetadataCodes == null) {
+			formMetadatas = getMetadatas();
+		} else {
+			formMetadatas = new ArrayList<>();
+			for (String formMetadataCode : formMetadataCodes) {
+				MetadataVO metadataVO = getMetadata(formMetadataCode);
+				formMetadatas.add(metadataVO);
+			}
+		}
+		return formMetadatas;
+	}
+
+	public List<MetadataVO> getDisplayMetadatas() {
+		List<MetadataVO> displayMetadatas;
+		List<String> displayMetadataCodes = getDisplayMetadataCodes();
+		if (displayMetadataCodes == null) {
+			displayMetadatas = getMetadatas();
+		} else {
+			displayMetadatas = new ArrayList<>();
+			for (String displayMetadataCode : displayMetadataCodes) {
+				MetadataVO metadataVO = getMetadata(displayMetadataCode);
+				displayMetadatas.add(metadataVO);
+			}
+		}
+		return displayMetadatas;
+	}
+
+	public List<MetadataVO> getTableMetadatas() {
+		List<MetadataVO> tableMetadatas;
+		List<String> tableMetadataCodes = getTableMetadataCodes();
+		if (tableMetadataCodes == null) {
+			tableMetadatas = getMetadatas();
+		} else {
+			tableMetadatas = new ArrayList<>();
+			for (String tableMetadataCode : tableMetadataCodes) {
+				MetadataVO metadataVO = getMetadata(tableMetadataCode);
+				tableMetadatas.add(metadataVO);
+			}
+		}
+		return tableMetadatas;
 	}
 
 	public MetadataVO getMetadata(String metadataCode) {

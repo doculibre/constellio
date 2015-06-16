@@ -32,6 +32,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -49,8 +50,20 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 	}
 
 	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
+		presenter.setSchemaCode(params.get("schemaCode"));
+		presenter.setParameters(params);
+	}
+
+	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return true;
+	}
+
+	@Override
+	protected String getTitle() {
+		return $("AddEditSchemaMetadataView.viewTitle", presenter.getSchemaVO().getLabel());
 	}
 
 	@Override
@@ -65,9 +78,6 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
-		presenter.setSchemaCode(params.get("schemaCode"));
-		presenter.setParameters(params);
 
 		Button addButton = new AddButton() {
 			@Override
@@ -79,6 +89,7 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 		VerticalLayout viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
 		viewLayout.addComponents(addButton, buildTables());
+		viewLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		return viewLayout;
 	}
 
@@ -102,8 +113,9 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 		});
 		recordsContainer = buttonsContainer;
 
-		Table table = new Table($("AddEditSchemaMetadataView.tableTitle"), recordsContainer);
-		table.setWidth("100%");
+		Table table = new Table($("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), recordsContainer);
+		table.setSizeFull();
+		table.setPageLength(table.size());
 		table.setColumnHeader("caption", $("AddEditSchemaMetadataView.caption"));
 		table.setColumnHeader("enabledCaption", $("AddEditSchemaMetadataView.enabledCaption"));
 		table.setColumnHeader("valueCaption", $("AddEditSchemaMetadataView.valueCaption"));
@@ -113,10 +125,5 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 		table.setColumnWidth("buttons", 60);
 
 		return table;
-	}
-
-	@Override
-	protected String getTitle() {
-		return null;
 	}
 }

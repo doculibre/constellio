@@ -222,11 +222,11 @@ public class TestUtils {
 		return map;
 	}
 
-	public static <K, V> Map<String, Object> asMap(K key1, V value1, K key2, V value2) {
+	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2) {
 		Map<K, V> map = new HashMap<K, V>();
 		map.put(key1, value1);
 		map.put(key2, value2);
-		return (Map<String, Object>) map;
+		return map;
 	}
 
 	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2, K key3, V value3) {

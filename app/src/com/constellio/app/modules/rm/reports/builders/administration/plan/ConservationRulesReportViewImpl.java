@@ -28,10 +28,20 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ConservationRulesReportViewImpl implements ReportBuilderFactory {
 
+	boolean byAdministrativeUnit = false;
+
+	public ConservationRulesReportViewImpl() {
+	}
+
+	public ConservationRulesReportViewImpl(boolean byAdministrativeUnit) {
+		this.byAdministrativeUnit = byAdministrativeUnit;
+	}
+
 	@Override
 	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		String collection = getSessionContext().getCurrentCollection();
-		ConservationRulesReportPresenter presenter = new ConservationRulesReportPresenter(collection, modelLayerFactory);
+		ConservationRulesReportPresenter presenter = new ConservationRulesReportPresenter(collection, modelLayerFactory,
+				byAdministrativeUnit);
 		return new ConservationRulesReportBuilder(presenter.build(), presenter.getFoldersLocator());
 	}
 

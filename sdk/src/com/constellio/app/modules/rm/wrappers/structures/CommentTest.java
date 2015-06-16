@@ -57,7 +57,7 @@ public class CommentTest extends ConstellioTest {
 		assertThat(comment.isDirty()).isTrue();
 
 		comment = new Comment();
-		comment.setDateTime(TimeProvider.getLocalDateTime());
+		comment.setDateTime(nowDateTime);
 		assertThat(comment.isDirty()).isTrue();
 
 		comment = new Comment();
@@ -108,9 +108,6 @@ public class CommentTest extends ConstellioTest {
 			throws Exception {
 
 		Comment comment = new Comment();
-		comment.setUser(null);
-		comment.setDateTime(null);
-		comment.setMessage(null);
 
 		String stringValue = factory.toString(comment);
 		Comment builtComment = (Comment) factory.build(stringValue);

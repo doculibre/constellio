@@ -216,7 +216,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 	private Set<String> getAllCollectionsInUserCredentialFile() {
 		Set<String> collections = new HashSet<>();
-		List<UserCredential> userCredentials = getModelLayerFactory().getUserCredentialsManager().getActifUserCredentials();
+		List<UserCredential> userCredentials = getModelLayerFactory().getUserCredentialsManager().getActiveUserCredentials();
 		for (UserCredential userCredential : userCredentials) {
 			collections.addAll(userCredential.getCollections());
 		}

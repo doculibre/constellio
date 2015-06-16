@@ -24,19 +24,22 @@ import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
-import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 
@@ -74,6 +77,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox enabledField;
 	@PropertyId("metadataGroup")
 	private OptionGroup metadataGroup;
+	@PropertyId("defaultValue")
+	private Field<?> defaultValueField;
+
+	private MetadataForm metadataForm;
+	private FormMetadataVO formMetadataVO;
+
+	VerticalLayout viewLayout;
 
 	public AddEditMetadataViewImpl() {
 		this.presenter = new AddEditMetadataPresenter(this);
@@ -91,14 +101,14 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		presenter.setParameters(params);
 		presenter.setMetadataCode(params.get("metadataCode"));
 
-		VerticalLayout viewLayout = new VerticalLayout();
+		viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
 		viewLayout.addComponents(buildTables());
 		return viewLayout;
 	}
 
 	private Component buildTables() {
-		FormMetadataVO formMetadataVO = presenter.getFormMetadataVO();
+		formMetadataVO = presenter.getFormMetadataVO();
 
 		final boolean editMode = formMetadataVO != null;
 
@@ -110,171 +120,33 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			inherited = presenter.isInherited(formMetadataVO.getCode());
 		}
 
-		localcodeField = new BaseTextField($("AddEditMetadataView.localcode"));
-		localcodeField.setId("localcode");
-		localcodeField.addStyleName("localcode");
-		localcodeField.setEnabled(!editMode);
-		localcodeField.setRequired(true);
-
-		titleField = new BaseTextField($("AddEditMetadataView.title"));
-		titleField.setRequired(true);
-		titleField.setId("title");
-		titleField.addStyleName("title");
-
-		valueType = new ComboBox();
-		valueType.setCaption($("AddEditMetadataView.type"));
-		valueType.setRequired(true);
-		valueType.setId("valueType");
-		valueType.addStyleName("valueType");
-		valueType.setEnabled(!editMode);
-		valueType.setReadOnly(editMode);
-		valueType.setNullSelectionAllowed(false);
-
-		valueType.addItem(MetadataValueType.BOOLEAN);
-		valueType.setItemCaption(MetadataValueType.BOOLEAN, $("AddEditMetadataView.type.boolean"));
-		valueType.addItem(MetadataValueType.TEXT);
-		valueType.setItemCaption(MetadataValueType.TEXT, $("AddEditMetadataView.type.text"));
-		valueType.addItem(MetadataValueType.CONTENT);
-		valueType.setItemCaption(MetadataValueType.CONTENT, $("AddEditMetadataView.type.content"));
-		valueType.addItem(MetadataValueType.DATE);
-		valueType.setItemCaption(MetadataValueType.DATE, $("AddEditMetadataView.type.date"));
-		valueType.addItem(MetadataValueType.DATE_TIME);
-		valueType.setItemCaption(MetadataValueType.DATE_TIME, $("AddEditMetadataView.type.datetime"));
-		valueType.addItem(MetadataValueType.REFERENCE);
-		valueType.setItemCaption(MetadataValueType.REFERENCE, $("AddEditMetadataView.type.reference"));
-		valueType.addItem(MetadataValueType.STRING);
-		valueType.setItemCaption(MetadataValueType.STRING, $("AddEditMetadataView.type.string"));
-		valueType.addItem(MetadataValueType.NUMBER);
-		valueType.setItemCaption(MetadataValueType.NUMBER, $("AddEditMetadataView.type.number"));
-
-		valueType.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				MetadataValueTypeChanged((MetadataValueType) event.getProperty().getValue(), multivalueType.getValue(),
-						inherited, editMode);
-			}
-		});
-
-		refType = new ComboBox();
-		refType.setCaption($("AddEditMetadataView.reftype"));
-		refType.setRequired(false);
-		refType.setId("reference");
-		refType.addStyleName("reference");
-		refType.setEnabled(false);
-		for (String code : presenter.getMetadataTypesCode()) {
-			refType.addItems(code);
-			refType.setItemCaption(code, presenter.getMetadataTypesCaption(code));
-		}
-		refType.setNullSelectionAllowed(false);
-		refType.setPageLength(refType.size());
-		refType.setReadOnly(editMode);
-
-		inputType = new ComboBox();
-		inputType.setCaption($("AddEditMetadataView.entry"));
-		inputType.setRequired(true);
-		inputType.setId("entry");
-		inputType.addStyleName("entry");
-		inputType.setEnabled(false);
-		inputType.setNullSelectionAllowed(false);
-
-		metadataGroup = new OptionGroup($("AddEditMetadataView.metadataGroup"), presenter.getMetadataGroupList());
-		metadataGroup.setRequired(true);
-		metadataGroup.setId("metadataGroup");
-		metadataGroup.addStyleName("metadataGroup");
-
-		multivalueType = new CheckBox();
-		multivalueType.setCaption($("AddEditMetadataView.multivalue"));
-		multivalueType.setRequired(false);
-		multivalueType.setId("multivalue");
-		multivalueType.addStyleName("multivalue");
-		multivalueType.setEnabled(!editMode);
-		multivalueType.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				MetadataValueTypeChanged((MetadataValueType) valueType.getValue(),
-						(Boolean) event.getProperty().getValue(), inherited, editMode);
-			}
-		});
-		multivalueType.setReadOnly(editMode);
-
-		requiredField = new CheckBox();
-		requiredField.setCaption($("AddEditMetadataView.required"));
-		requiredField.setRequired(false);
-		requiredField.setId("required");
-		requiredField.addStyleName("required");
-
-		enabledField = new CheckBox();
-		enabledField.setCaption($("AddEditMetadataView.enabled"));
-		enabledField.setRequired(false);
-		enabledField.setId("enabled");
-		enabledField.addStyleName("enabled");
-
-		searchableField = new CheckBox();
-		searchableField.setCaption($("AddEditMetadataView.searchable"));
-		searchableField.setRequired(false);
-		searchableField.setId("searchable");
-		searchableField.addStyleName("searchable");
-		searchableField.setEnabled(!inherited && !editMode);
-
-		sortableField = new CheckBox();
-		sortableField.setCaption($("AddEditMetadataView.sortable"));
-		sortableField.setRequired(false);
-		sortableField.setId("sortable");
-		sortableField.addStyleName("sortable");
-		sortableField.setEnabled(!inherited);
-
-		advancedSearchField = new CheckBox();
-		advancedSearchField.setCaption($("AddEditMetadataView.advanced"));
-		advancedSearchField.setRequired(false);
-		advancedSearchField.setId("advancedSearch");
-		advancedSearchField.addStyleName("advancedSearch");
-		advancedSearchField.setEnabled(!inherited);
-
-		facetField = new CheckBox();
-		facetField.setCaption($("AddEditMetadataView.facet"));
-		facetField.setRequired(false);
-		facetField.setId("facet");
-		facetField.addStyleName("facet");
-		facetField.setEnabled(!inherited);
-
-		highlight = new CheckBox();
-		highlight.setCaption($("AddEditMetadataView.highlight"));
-		highlight.setRequired(false);
-		highlight.setId("highlight");
-		highlight.addStyleName("highlight");
-		highlight.setEnabled(!inherited);
-
-		autocomplete = new CheckBox();
-		autocomplete.setCaption($("AddEditMetadataView.autocomplete"));
-		autocomplete.setRequired(false);
-		autocomplete.setId("autocomplete");
-		autocomplete.addStyleName("autocomplete");
-		autocomplete.setEnabled(!inherited && !editMode);
-
-		return new BaseForm<FormMetadataVO>(formMetadataVO, this, localcodeField, titleField, valueType, multivalueType,
-				inputType, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
-				advancedSearchField, facetField, highlight, autocomplete) {
-			@Override
-			protected void saveButtonClick(FormMetadataVO metadataVO)
-					throws ValidationException {
-				presenter.saveButtonClicked(metadataVO, editMode);
-			}
-
-			@Override
-			protected void cancelButtonClick(FormMetadataVO metadataVO) {
-				presenter.cancelButtonClicked();
-			}
-		};
+		//		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, titleField,
+		//				valueType, multivalueType,
+		//				inputType, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
+		//				advancedSearchField, facetField, highlight, autocomplete) {
+		//			@Override
+		//			protected void saveButtonClick(FormMetadataVO metadataVO)
+		//					throws ValidationException {
+		//				presenter.saveButtonClicked(metadataVO, editMode);
+		//			}
+		//
+		//			@Override
+		//			protected void cancelButtonClick(FormMetadataVO metadataVO) {
+		//				presenter.cancelButtonClicked();
+		//			}
+		//		};
+		return newForm(editMode, inherited);
 	}
 
-	private void MetadataValueTypeChanged(MetadataValueType value, Boolean multivalue, boolean inherited, boolean editMode) {
+	private void metadataValueTypeChanged(MetadataValueType value, Boolean multivalue, boolean inherited, boolean editMode) {
 		if (value != null) {
 			if (multivalue == null) {
 				multivalue = false;
 			}
 
-			inputType.setEnabled(true);
+			inputType.setEnabled(false);
 			inputType.removeAllItems();
+			inputType.setEnabled(true);
 			List<MetadataInputType> types = MetadataInputType.getAvailableMetadataInputTypesFor(value, multivalue);
 			if (types.isEmpty()) {
 				inputType.setEnabled(false);
@@ -386,5 +258,240 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			facetField.setValue(false);
 			break;
 		}
+	}
+
+	private MetadataForm newForm(final boolean editMode, final boolean inherited) {
+		localcodeField = new BaseTextField($("AddEditMetadataView.localcode"));
+		localcodeField.setId("localcode");
+		localcodeField.addStyleName("localcode");
+		localcodeField.setEnabled(!editMode);
+		localcodeField.setRequired(true);
+
+		titleField = new BaseTextField($("AddEditMetadataView.title"));
+		titleField.setRequired(true);
+		titleField.setId("title");
+		titleField.addStyleName("title");
+
+		valueType = new ComboBox();
+		valueType.setCaption($("AddEditMetadataView.type"));
+		valueType.setRequired(true);
+		valueType.setId("valueType");
+		valueType.addStyleName("valueType");
+		valueType.setEnabled(!editMode);
+		valueType.setReadOnly(editMode);
+		valueType.setNullSelectionAllowed(false);
+
+		valueType.addItem(MetadataValueType.BOOLEAN);
+		valueType.setItemCaption(MetadataValueType.BOOLEAN, $("AddEditMetadataView.type.boolean"));
+		valueType.addItem(MetadataValueType.TEXT);
+		valueType.setItemCaption(MetadataValueType.TEXT, $("AddEditMetadataView.type.text"));
+		valueType.addItem(MetadataValueType.CONTENT);
+		valueType.setItemCaption(MetadataValueType.CONTENT, $("AddEditMetadataView.type.content"));
+		valueType.addItem(MetadataValueType.DATE);
+		valueType.setItemCaption(MetadataValueType.DATE, $("AddEditMetadataView.type.date"));
+		valueType.addItem(MetadataValueType.DATE_TIME);
+		valueType.setItemCaption(MetadataValueType.DATE_TIME, $("AddEditMetadataView.type.datetime"));
+		valueType.addItem(MetadataValueType.REFERENCE);
+		valueType.setItemCaption(MetadataValueType.REFERENCE, $("AddEditMetadataView.type.reference"));
+		valueType.addItem(MetadataValueType.STRING);
+		valueType.setItemCaption(MetadataValueType.STRING, $("AddEditMetadataView.type.string"));
+		valueType.addItem(MetadataValueType.NUMBER);
+		valueType.setItemCaption(MetadataValueType.NUMBER, $("AddEditMetadataView.type.number"));
+
+		valueType.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				metadataValueTypeChanged((MetadataValueType) event.getProperty().getValue(), multivalueType.getValue(),
+						inherited, editMode);
+			}
+		});
+
+		refType = new ComboBox();
+		refType.setCaption($("AddEditMetadataView.reftype"));
+		refType.setRequired(false);
+		refType.setId("reference");
+		refType.addStyleName("reference");
+		refType.setEnabled(false);
+		for (String code : presenter.getMetadataTypesCode()) {
+			refType.addItems(code);
+			refType.setItemCaption(code, presenter.getMetadataTypesCaption(code));
+		}
+		refType.setNullSelectionAllowed(false);
+		refType.setPageLength(refType.size());
+		refType.setReadOnly(editMode);
+
+		inputType = new ComboBox();
+		inputType.setCaption($("AddEditMetadataView.entry"));
+		inputType.setRequired(true);
+		inputType.setId("entry");
+		inputType.addStyleName("entry");
+		inputType.setEnabled(false);
+		inputType.setNullSelectionAllowed(false);
+
+		metadataGroup = new OptionGroup($("AddEditMetadataView.metadataGroup"), presenter.getMetadataGroupList());
+		metadataGroup.setRequired(true);
+		metadataGroup.setId("metadataGroup");
+		metadataGroup.addStyleName("metadataGroup");
+
+		multivalueType = new CheckBox();
+		multivalueType.setCaption($("AddEditMetadataView.multivalue"));
+		multivalueType.setRequired(false);
+		multivalueType.setId("multivalue");
+		multivalueType.addStyleName("multivalue");
+		multivalueType.setEnabled(!editMode);
+		multivalueType.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				metadataValueTypeChanged((MetadataValueType) valueType.getValue(),
+						(Boolean) event.getProperty().getValue(), inherited, editMode);
+			}
+		});
+		multivalueType.setReadOnly(editMode);
+
+		requiredField = new CheckBox();
+		requiredField.setCaption($("AddEditMetadataView.required"));
+		requiredField.setRequired(false);
+		requiredField.setId("required");
+		requiredField.addStyleName("required");
+		requiredField.setEnabled(presenter.isMetadataRequiredStatusModifiable());
+
+		enabledField = new CheckBox();
+		enabledField.setCaption($("AddEditMetadataView.enabled"));
+		enabledField.setRequired(false);
+		enabledField.setId("enabled");
+		enabledField.addStyleName("enabled");
+		enabledField.setEnabled(presenter.isMetadataEnableStatusModifiable());
+
+		searchableField = new CheckBox();
+		searchableField.setCaption($("AddEditMetadataView.searchable"));
+		searchableField.setRequired(false);
+		searchableField.setId("searchable");
+		searchableField.addStyleName("searchable");
+		searchableField.setEnabled(!inherited && !editMode);
+
+		sortableField = new CheckBox();
+		sortableField.setCaption($("AddEditMetadataView.sortable"));
+		sortableField.setRequired(false);
+		sortableField.setId("sortable");
+		sortableField.addStyleName("sortable");
+		sortableField.setEnabled(!inherited);
+
+		advancedSearchField = new CheckBox();
+		advancedSearchField.setCaption($("AddEditMetadataView.advanced"));
+		advancedSearchField.setRequired(false);
+		advancedSearchField.setId("advancedSearch");
+		advancedSearchField.addStyleName("advancedSearch");
+		advancedSearchField.setEnabled(!inherited);
+
+		facetField = new CheckBox();
+		facetField.setCaption($("AddEditMetadataView.facet"));
+		facetField.setRequired(false);
+		facetField.setId("facet");
+		facetField.addStyleName("facet");
+		facetField.setEnabled(!inherited);
+
+		highlight = new CheckBox();
+		highlight.setCaption($("AddEditMetadataView.highlight"));
+		highlight.setRequired(false);
+		highlight.setId("highlight");
+		highlight.addStyleName("highlight");
+		highlight.setEnabled(!inherited);
+
+		autocomplete = new CheckBox();
+		autocomplete.setCaption($("AddEditMetadataView.autocomplete"));
+		autocomplete.setRequired(false);
+		autocomplete.setId("autocomplete");
+		autocomplete.addStyleName("autocomplete");
+		autocomplete.setEnabled(!inherited && !editMode);
+
+		MetadataFieldFactory factory = new MetadataFieldFactory();
+
+		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO);
+
+		Field<?> previousDefaultValueField = defaultValueField;
+		if (defaultValueMetadataVO != null && presenter.isDefaultValuePossible(formMetadataVO)) {
+			try {
+				defaultValueField = factory.build(defaultValueMetadataVO);
+			} catch (Exception e) {
+				e.printStackTrace();
+				defaultValueField = null;
+			}
+		}
+
+		if (defaultValueField == null) {
+			defaultValueField = new BaseTextField();
+			defaultValueField.setEnabled(false);
+		}
+		defaultValueField.setCaption($("AddEditMetadataView.defaultValue"));
+		if (previousDefaultValueField != null) {
+			if (defaultValueField == null) {
+				formMetadataVO.setDefaultValue(null);
+			} else { //if (!previousDefaultValueField.getClass().equals(defaultValueField.getClass())) {
+				formMetadataVO.setDefaultValue(null);
+			}
+		}
+
+		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, titleField, valueType, multivalueType,
+				inputType, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
+				advancedSearchField, facetField, highlight, autocomplete, defaultValueField) {
+
+			@Override
+			public void reload() {
+				metadataForm = newForm(editMode, inherited);
+				viewLayout.replaceComponent(this, metadataForm);
+			}
+
+			@Override
+			public void commit() {
+				for (Field<?> field : fieldGroup.getFields()) {
+					try {
+						field.commit();
+					} catch (SourceException | InvalidValueException e) {
+					}
+				}
+			}
+
+			@Override
+			protected void saveButtonClick(FormMetadataVO viewObject) {
+				presenter.saveButtonClicked(formMetadataVO, editMode);
+			}
+
+			@Override
+			protected void cancelButtonClick(FormMetadataVO viewObject) {
+				presenter.cancelButtonClicked();
+			}
+		};
+		inputType.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				presenter.inputTypeValueChanged(formMetadataVO);
+			}
+		});
+		valueType.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				presenter.valueTypeValueChanged();
+			}
+		});
+		multivalueType.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				presenter.multivalueValueChanged(formMetadataVO);
+			}
+		});
+		refType.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				presenter.refTypeValueChanged();
+			}
+		});
+
+		return metadataForm;
+	}
+
+	@Override
+	public void reloadForm() {
+		metadataForm.commit();
+		metadataForm.reload();
 	}
 }

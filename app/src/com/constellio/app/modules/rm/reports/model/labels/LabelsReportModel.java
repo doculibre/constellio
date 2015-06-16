@@ -28,6 +28,10 @@ public class LabelsReportModel {
 
 	private LabelsReportLayout layout;
 
+	private int columnsNumber;
+
+	private int rowsNumber;
+
 	public boolean isPrintBorders() {
 		return printBorders;
 	}
@@ -50,5 +54,21 @@ public class LabelsReportModel {
 
 	public void setLabelsReportLabels(List<LabelsReportLabel> labelsReportLabels) {
 		this.labelsReportLabels = labelsReportLabels;
+	}
+
+	public int getColumnsNumber() {
+		return columnsNumber;
+	}
+
+	public void setColumnsNumber(int columnsNumber) {
+		this.columnsNumber = columnsNumber;
+	}
+
+	public int getRowsNumber() {
+		return rowsNumber;
+	}
+
+	public void setRowsNumber(int rowsNumber) {
+		this.rowsNumber = rowsNumber;
 	}
 }

@@ -41,4 +41,5 @@ public class RMTaxonomyTypeAccessExtension extends TaxonomyAccessExtension {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}
 	}
+
 }

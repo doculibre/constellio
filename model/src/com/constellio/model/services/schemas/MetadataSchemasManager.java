@@ -31,7 +31,6 @@ import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.NoS
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
-import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -57,7 +56,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private final TaxonomiesManager taxonomiesManager;
 	private final ConfigManager configManager;
 	private final CollectionsListManager collectionsListManager;
-	KeyListMap<String, MetadataSchemasManagerListener> listeners = new KeyListMap<String, MetadataSchemasManagerListener>();
+	List<MetadataSchemasManagerListener> listeners = new ArrayList<MetadataSchemasManagerListener>();
 	private OneXMLConfigPerCollectionManager<MetadataSchemaTypes> oneXmlConfigPerCollectionManager;
 	private BatchProcessesManager batchProcessesManager;
 	private SearchServices searchServices;
@@ -182,15 +181,15 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		configManager.registerListener(path, configEventListener);
 	}
 
-	public void registerListener(String collection, MetadataSchemasManagerListener metadataSchemasManagerListener) {
-		listeners.add(collection, metadataSchemasManagerListener);
+	public void registerListener(MetadataSchemasManagerListener metadataSchemasManagerListener) {
+		listeners.add(metadataSchemasManagerListener);
 	}
 
 	@Override
 	public void onValueModified(String collection, MetadataSchemaTypes newValue) {
 		xmlConfigReader();
 
-		for (MetadataSchemasManagerListener listener : listeners.get(collection)) {
+		for (MetadataSchemasManagerListener listener : listeners) {
 			listener.onCollectionSchemasModified(collection);
 		}
 	}

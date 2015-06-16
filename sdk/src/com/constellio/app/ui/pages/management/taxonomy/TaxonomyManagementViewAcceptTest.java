@@ -87,4 +87,61 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).isEmpty();
 	}
+
+	@Test
+	public void whenDisplayingAdministativeUnitThenRightInformationDisplayed()
+			throws Exception {
+
+		taxoManagementWebElement.navigateToAdministrativeUnit();
+
+		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("10", "20", "30");
+
+		taxoManagementWebElement.display("10");
+
+		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitCode()).isEqualTo("10");
+		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitTitle()).isEqualTo("Administrative unit with room A");
+		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitFilingSpaces()).contains("Room A");
+		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitFilingSpacesAdministrators())
+				.contains("Dakota L'Indien").contains("Gandalf Leblanc");
+		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitCreationDate()).isEqualTo(
+				records.getUnit10().getCreatedOn().toString("yyyy-MM-dd HH:mm:ss"));
+		assertThat(taxoManagementWebElement.getElementByClassName("display-value-numberOfFolders").getText())
+				.isEqualTo("63");
+		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("11", "12");
+	}
+
+	@Test
+	public void whenDisplayingClassificationPlanThenRightInformationDisplayed()
+			throws Exception {
+
+		taxoManagementWebElement.navigateToClassificationPlan();
+		taxoManagementWebElement.display("X");
+
+		assertThat(taxoManagementWebElement.getCurrentConceptCode()).isEqualTo("X");
+		assertThat(taxoManagementWebElement.getCurrentConceptTitle()).isEqualTo("Xe category");
+		assertThat(taxoManagementWebElement.getCurrentConceptCreationDate()).isEqualTo(
+				records.getCategory_X().getCreatedOn().toString("yyyy-MM-dd HH:mm:ss"));
+		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("X100", "X13");
+		assertThat(taxoManagementWebElement.getElementByClassName("display-value-numberOfFolders").getText())
+				.isEqualTo("0");
+	}
+
+	@Test
+	public void whenDisplayingAdministativeUnitFoldersThenListOfFoldersDisplayed()
+			throws Exception {
+
+		taxoManagementWebElement.navigateToAdministrativeUnit();
+
+		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("10", "20", "30");
+
+		taxoManagementWebElement.display("30");
+		assertThat(taxoManagementWebElement.getElementByClassName("display-value-numberOfFolders").getText())
+				.isEqualTo("21");
+		taxoManagementWebElement.getTabByClassName("folders").click();
+		Thread.sleep(1000);
+
+		taxoManagementWebElement.waitUntilFoldersTableExist();
+
+		assertThat(taxoManagementWebElement.getRowsFoldersFromFoldersTable().get(1).getText()).contains("Asperge");
+	}
 }

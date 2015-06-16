@@ -46,54 +46,139 @@ public class LogicalSearchQuery implements SearchQuery {
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
 
 	LogicalSearchCondition condition;
+	private Map<DataStoreField, Set<String>> facetFilters;
+	private String freeTextQuery;
 	String filterUser;
 	String filterStatus;
+
 	private int numberOfRows;
 	private int startRow;
+
 	private ReturnedMetadatasFilter returnedMetadatasFilter;
 	private List<LogicalSearchQuerySort> sortFields = new ArrayList<>();
-	private List<String> queryFacets = new ArrayList<>();
-	private List<DataStoreField> fieldFacets = new ArrayList<>();
-	private Map<DataStoreField, Set<String>> facetFilters;
-	private boolean highlighting = false;
-	private boolean spellcheck = false;
 	private ResultsProjection resultsProjection;
 
-	public LogicalSearchQuery(LogicalSearchQuery query) {
-		condition = query.condition;
-		numberOfRows = query.numberOfRows;
-		startRow = query.startRow;
-		sortFields = new ArrayList<>(query.sortFields);
-		returnedMetadatasFilter = query.returnedMetadatasFilter;
-		filterUser = query.filterUser;
-		filterStatus = query.filterStatus;
-		facetFilters = query.facetFilters;
-	}
+	private List<String> queryFacets = new ArrayList<>();
+	private List<DataStoreField> fieldFacets = new ArrayList<>();
+	private int fieldFacetLimit;
+
+	private boolean highlighting = false;
+	private boolean spellcheck = false;
 
 	public LogicalSearchQuery() {
 		numberOfRows = 10000000;
 		startRow = 0;
 		facetFilters = new HashMap<>();
+		fieldFacetLimit = 0;
 	}
 
 	public LogicalSearchQuery(LogicalSearchCondition condition) {
+		this();
 		if (condition == null) {
 			throw new IllegalArgumentException("Condition must not be null");
 		}
 		this.condition = condition;
-		numberOfRows = 10000000;
-		startRow = 0;
-		filterUser = null;
-		filterStatus = null;
-		facetFilters = new HashMap<>();
 	}
 
-	public ResultsProjection getResultsProjection() {
-		return resultsProjection;
+	public LogicalSearchQuery(LogicalSearchQuery query) {
+		condition = query.condition;
+		facetFilters = new HashMap<>(query.facetFilters);
+		freeTextQuery = query.freeTextQuery;
+		filterUser = query.filterUser;
+		filterStatus = query.filterStatus;
+
+		numberOfRows = query.numberOfRows;
+		startRow = query.startRow;
+
+		returnedMetadatasFilter = query.returnedMetadatasFilter;
+		sortFields = new ArrayList<>(query.sortFields);
+		resultsProjection = query.resultsProjection;
+
+		queryFacets = new ArrayList<>(query.queryFacets);
+		fieldFacets = new ArrayList<>(query.fieldFacets);
+		fieldFacetLimit = query.fieldFacetLimit;
+
+		highlighting = query.highlighting;
+		spellcheck = query.spellcheck;
 	}
 
-	public LogicalSearchQuery setResultsProjection(ResultsProjection resultsProjection) {
-		this.resultsProjection = resultsProjection;
+	// The following methods are attribute accessors
+
+	public LogicalSearchCondition getCondition() {
+		return condition;
+	}
+
+	public LogicalSearchQuery setCondition(LogicalSearchCondition condition) {
+		this.condition = condition;
+		return this;
+	}
+
+	public LogicalSearchQuery filteredByFacetValues(DataStoreField field, Collection<String> values) {
+		if (!facetFilters.containsKey(field)) {
+			facetFilters.put(field, new HashSet<String>());
+		}
+		facetFilters.get(field).addAll(values);
+		return this;
+	}
+
+	public String getFreeTextQuery() {
+		return freeTextQuery;
+	}
+
+	public LogicalSearchQuery setFreeTextQuery(String freeTextQuery) {
+		this.freeTextQuery = freeTextQuery;
+		return this;
+	}
+
+	@Override
+	public LogicalSearchQuery filteredWithUser(User user) {
+		filterUser = FilterUtils.userReadFilter(user);
+		return this;
+	}
+
+	public LogicalSearchQuery filteredWithUserWrite(User user) {
+		filterUser = FilterUtils.userWriteFilter(user);
+		return this;
+	}
+
+	public LogicalSearchQuery filteredWithUserDelete(User user) {
+		filterUser = FilterUtils.userDeleteFilter(user);
+		return this;
+	}
+
+	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
+		filterStatus = FilterUtils.statusFilter(status);
+		return this;
+	}
+
+	@Override
+	public int getStartRow() {
+		return this.startRow;
+	}
+
+	@Override
+	public LogicalSearchQuery setStartRow(int row) {
+		startRow = row;
+		return this;
+	}
+
+	@Override
+	public int getNumberOfRows() {
+		return numberOfRows;
+	}
+
+	@Override
+	public LogicalSearchQuery setNumberOfRows(int number) {
+		numberOfRows = number;
+		return this;
+	}
+
+	public ReturnedMetadatasFilter getReturnedMetadatas() {
+		return returnedMetadatasFilter;
+	}
+
+	public LogicalSearchQuery setReturnedMetadatas(ReturnedMetadatasFilter filter) {
+		this.returnedMetadatasFilter = filter;
 		return this;
 	}
 
@@ -111,14 +196,61 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	public LogicalSearchCondition getCondition() {
-		return condition;
+	public ResultsProjection getResultsProjection() {
+		return resultsProjection;
 	}
 
-	public LogicalSearchQuery setCondition(LogicalSearchCondition condition) {
-		this.condition = condition;
+	public LogicalSearchQuery setResultsProjection(ResultsProjection resultsProjection) {
+		this.resultsProjection = resultsProjection;
 		return this;
 	}
+
+	public List<String> getQueryFacets() {
+		return queryFacets;
+	}
+
+	public LogicalSearchQuery addQueryFacet(String queryFacet) {
+		queryFacets.add(queryFacet);
+		return this;
+	}
+
+	public List<DataStoreField> getFieldFacets() {
+		return fieldFacets;
+	}
+
+	public LogicalSearchQuery addFieldFacet(DataStoreField fieldFacet) {
+		fieldFacets.add(fieldFacet);
+		return this;
+	}
+
+	public int getFieldFacetLimit() {
+		return fieldFacetLimit;
+	}
+
+	public LogicalSearchQuery setFieldFacetLimit(int fieldFacetLimit) {
+		this.fieldFacetLimit = fieldFacetLimit;
+		return this;
+	}
+
+	public LogicalSearchQuery setHighlighting(boolean highlighting) {
+		this.highlighting = highlighting;
+		return this;
+	}
+
+	public boolean isHighlighting() {
+		return highlighting;
+	}
+
+	public boolean isSpellcheck() {
+		return spellcheck;
+	}
+
+	public LogicalSearchQuery setSpellcheck(boolean spellcheck) {
+		this.spellcheck = spellcheck;
+		return this;
+	}
+
+	// The following methods are mainly used by the SPE itself
 
 	@Override
 	public String getQuery() {
@@ -174,86 +306,12 @@ public class LogicalSearchQuery implements SearchQuery {
 		return fieldName;
 	}
 
-	public List<DataStoreField> getFieldFacets() {
-		return fieldFacets;
-	}
-
-	public LogicalSearchQuery addFieldFacet(DataStoreField fieldFacet) {
-		fieldFacets.add(fieldFacet);
-		return this;
-	}
-
-	public List<String> getQueryFacets() {
-		return queryFacets;
-	}
-
-	public LogicalSearchQuery addQueryFacet(String queryFacet) {
-		queryFacets.add(queryFacet);
-		return this;
-	}
-
 	public MetadataSchema getSchemaCondition() {
 		return ((SchemaFilters) condition.getFilters()).getSchema();
 	}
 
-	@Override
-	public int getStartRow() {
-		return this.startRow;
-	}
-
-	@Override
-	public LogicalSearchQuery setStartRow(int row) {
-		startRow = row;
-		return this;
-	}
-
-	@Override
-	public int getNumberOfRows() {
-		return numberOfRows;
-	}
-
-	@Override
-	public LogicalSearchQuery setNumberOfRows(int number) {
-		numberOfRows = number;
-		return this;
-	}
-
-	public ReturnedMetadatasFilter getReturnedMetadatas() {
-		return returnedMetadatasFilter;
-	}
-
-	public LogicalSearchQuery setReturnedMetadatas(ReturnedMetadatasFilter filter) {
-		this.returnedMetadatasFilter = filter;
-		return this;
-	}
-
-	@Override
-	public LogicalSearchQuery filteredWithUser(User user) {
-		filterUser = FilterUtils.userReadFilter(user);
-		return this;
-	}
-
-	public LogicalSearchQuery filteredWithUserWrite(User user) {
-		filterUser = FilterUtils.userWriteFilter(user);
-		return this;
-	}
-
-	public LogicalSearchQuery filteredWithUserDelete(User user) {
-		filterUser = FilterUtils.userDeleteFilter(user);
-		return this;
-	}
-
-	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
-		filterStatus = FilterUtils.statusFilter(status);
-		return this;
-	}
-
-	public LogicalSearchQuery filteredByFacetValues(DataStoreField field, Collection<String> values) {
-		if (!facetFilters.containsKey(field)) {
-			facetFilters.put(field, new HashSet<String>());
-		}
-		facetFilters.get(field).addAll(values);
-		return this;
+	public String getHighlightingFields() {
+		return HIGHLIGHTING_FIELDS;
 	}
 
 	@Override
@@ -265,27 +323,4 @@ public class LogicalSearchQuery implements SearchQuery {
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
-
-	public LogicalSearchQuery setHighlighting(boolean highlighting) {
-		this.highlighting = highlighting;
-		return this;
-	}
-
-	public boolean isHighlighting() {
-		return highlighting;
-	}
-
-	public String getHighlightingFields() {
-		return HIGHLIGHTING_FIELDS;
-	}
-
-	public LogicalSearchQuery setSpellcheck(boolean spellcheck) {
-		this.spellcheck = spellcheck;
-		return this;
-	}
-
-	public boolean isSpellcheck() {
-		return spellcheck;
-	}
-
 }

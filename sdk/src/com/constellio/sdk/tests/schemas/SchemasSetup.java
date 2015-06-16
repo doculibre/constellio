@@ -21,11 +21,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -33,6 +34,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 
 public abstract class SchemasSetup {
 
+	private static MetadataSchemasManager manager;
 	private static List<SchemasSetup> setups = new ArrayList<>();
 	protected final String collection;
 	protected final List<String> languages;
@@ -55,6 +57,7 @@ public abstract class SchemasSetup {
 	}
 
 	public static void prepareSetups(MetadataSchemasManager manager, CollectionsManager collectionsManager) {
+		SchemasSetup.manager = manager;
 		for (SchemasSetup setup : setups) {
 
 			if (collectionsManager != null && !collectionsManager.getCollectionCodes().contains(setup.collection)) {
@@ -65,7 +68,7 @@ public abstract class SchemasSetup {
 				MetadataSchemaTypes types = manager.getSchemaTypes(setup.collection);
 				if (collectionsManager == null && types == null) {
 					types = new MetadataSchemaTypes(setup.collection, 0, new ArrayList<MetadataSchemaType>(),
-							new ArrayList<String>());
+							new ArrayList<String>(), new ArrayList<String>());
 				}
 
 				setup.typesBuilder = MetadataSchemaTypesBuilder.modify(types);
@@ -129,4 +132,12 @@ public abstract class SchemasSetup {
 		return this;
 	}
 
+	public void modify(MetadataSchemaTypesAlteration alteration) {
+		manager.modify(collection, alteration);
+		types = manager.getSchemaTypes(collection);
+	}
+
+	public void refresh() {
+		types = manager.getSchemaTypes(collection);
+	}
 }

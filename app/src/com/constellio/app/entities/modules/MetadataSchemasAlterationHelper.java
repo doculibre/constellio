@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.entities.modules;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -29,11 +31,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public abstract class MetadataSchemasAlterationHelper {
-
 	MetadataSchemaTypesBuilder typesBuilder;
-
 	String collection;
-	AppLayerFactory appLayerFactory;
 	ModelLayerFactory modelLayerFactory;
 	DataLayerFactory dataLayerFactory;
 	MigrationResourcesProvider migrationResourcesProvider;
@@ -67,7 +66,6 @@ public abstract class MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder applyI18N(MetadataSchemaTypeBuilder schemaType) {
-
 		String schemaTypeKey = "init." + schemaType.getCode();
 		String schemaTypeLabel = migrationResourcesProvider.getDefaultLanguageString(schemaTypeKey);
 		setLabel(schemaType, schemaTypeLabel, true);
@@ -86,7 +84,7 @@ public abstract class MetadataSchemasAlterationHelper {
 					String globalKey = "init.allTypes.allSchemas." + metadataBuilder.getLocalCode();
 					label = migrationResourcesProvider.getDefaultLanguageString(globalKey);
 					if (label.equals(globalKey)) {
-						label = getI18nResource(globalKey);
+						label = $(globalKey);
 					}
 				}
 				if (label.startsWith("init.")) {
@@ -99,30 +97,16 @@ public abstract class MetadataSchemasAlterationHelper {
 		return schemaType;
 	}
 
-	protected String getI18nResource(String globalKey) {
-
-		//TODO Retirer cette bouette, une fois le conflit de couche réglée
-		try {
-			return (String) Class.forName("com.constellio.app.ui.i18n.i18n").getMethod("$", String.class).invoke(null, globalKey);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
 	private void setLabel(MetadataBuilder metadataBuilder, String label, boolean overwrite) {
-
-		boolean labelDefined =
-				metadataBuilder.getLabel() != null && !metadataBuilder.getLabel().equals(metadataBuilder.getLocalCode());
+		boolean labelDefined = metadataBuilder.getInheritance() != null || (
+				metadataBuilder.getLabel() != null && !metadataBuilder.getLabel().equals(metadataBuilder.getLocalCode()));
 		boolean newLabelIsHumanFriendly = label != null && !label.startsWith("init.");
 		if (!labelDefined || (newLabelIsHumanFriendly && overwrite)) {
 			metadataBuilder.setLabel(label);
 		}
-
 	}
 
 	private void setLabel(MetadataSchemaTypeBuilder schemaType, String label, boolean overwrite) {
-
 		boolean labelDefined = schemaType.getLabel() != null && !schemaType.getLabel().equals(schemaType.getCode());
 		boolean newLabelIsHumanFriendly = label != null && !label.startsWith("init.");
 		if (!labelDefined || (newLabelIsHumanFriendly && overwrite)) {
@@ -133,7 +117,6 @@ public abstract class MetadataSchemasAlterationHelper {
 	}
 
 	private void setLabel(MetadataSchemaBuilder schema, String label, boolean overwrite) {
-
 		boolean labelDefined = schema.getLabel() != null && !schema.getLabel().equals(schema.getLocalCode());
 		boolean newLabelIsHumanFriendly = label != null && !label.startsWith("init.");
 
@@ -155,5 +138,4 @@ public abstract class MetadataSchemasAlterationHelper {
 	public MetadataBuilder defaultMetadata(String typeCode, String metadataCode) {
 		return type(typeCode).getMetadata(metadataCode);
 	}
-
 }

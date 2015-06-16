@@ -22,11 +22,12 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.List;
 
-import com.constellio.app.modules.rm.reports.factories.labels.LabelConfiguration;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ReportViewer;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
@@ -37,13 +38,17 @@ import com.vaadin.ui.TextField;
 public class LabelsButton extends WindowButton {
 	private final RecordSelector selector;
 
+	private final Factory<List<LabelTemplate>> templatesFactory;
+
 	@PropertyId("startPosition") private ComboBox startPosition;
 	@PropertyId("labelConfigurations") private ComboBox format;
 	@PropertyId("numberOfCopies") private TextField copies;
 
-	public LabelsButton(String caption, String windowCaption, RecordSelector selector) {
+	public LabelsButton(String caption, String windowCaption, RecordSelector selector,
+			Factory<List<LabelTemplate>> templatesFactory) {
 		super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
 		this.selector = selector;
+		this.templatesFactory = templatesFactory;
 	}
 
 	@Override
@@ -54,9 +59,9 @@ public class LabelsButton extends WindowButton {
 		}
 		startPosition.setNullSelectionAllowed(false);
 
-		List<LabelConfiguration> configurations = LabelConfiguration.getSupportedConfigurations();
+		List<LabelTemplate> configurations = templatesFactory.get();
 		format = new ComboBox($("LabelsButton.labelFormat"));
-		for (LabelConfiguration configuration : configurations) {
+		for (LabelTemplate configuration : configurations) {
 			format.addItem(configuration);
 			format.setItemCaption(configuration, $("LabelsButton.labelFormat." + configuration.getKey()));
 		}
@@ -67,12 +72,13 @@ public class LabelsButton extends WindowButton {
 		copies.setConverter(Integer.class);
 
 		return new BaseForm<LabelParametersVO>(
-				new LabelParametersVO(configurations.get(0)), this, startPosition, format, copies) {
+				new LabelParametersVO(new LabelTemplate()), this, startPosition, format, copies) {
 			@Override
 			protected void saveButtonClick(LabelParametersVO parameters)
 					throws ValidationException {
+				LabelTemplate labelTemplate = format.getValue() != null ? (LabelTemplate) format.getValue() : new LabelTemplate();
 				LabelsReportFactory factory = new LabelsReportFactory(
-						selector.getSelectedRecordIds(), parameters.getLabelConfiguration(),
+						selector.getSelectedRecordIds(), labelTemplate,
 						parameters.getStartPosition(), parameters.getNumberOfCopies());
 				getWindow().setContent(new ReportViewer(factory));
 			}

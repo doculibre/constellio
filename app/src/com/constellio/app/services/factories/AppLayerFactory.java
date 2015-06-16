@@ -26,6 +26,7 @@ import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
@@ -80,6 +81,8 @@ public class AppLayerFactory extends LayerFactory {
 
 	private final CollectionsManager collectionsManager;
 
+	private final LabelTemplateManager labelTemplateManager;
+
 	public AppLayerFactory(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator) {
 		super(modelLayerFactory, statefullServiceDecorator);
@@ -115,6 +118,7 @@ public class AppLayerFactory extends LayerFactory {
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
+		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager());
 	}
 
 	private void setDefaultLocale() {
@@ -210,5 +214,9 @@ public class AppLayerFactory extends LayerFactory {
 
 	public ConstellioModulesManager getModulesManager() {
 		return modulesManager;
+	}
+
+	public LabelTemplateManager getLabelTemplateManager() {
+		return labelTemplateManager;
 	}
 }

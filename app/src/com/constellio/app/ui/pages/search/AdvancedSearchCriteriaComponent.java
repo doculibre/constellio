@@ -25,6 +25,8 @@ import java.util.List;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
@@ -36,6 +38,9 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.converter.StringToDoubleConverter;
@@ -125,7 +130,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				return comboBox;
 			}
 
-			for (MetadataVO metadata : presenter.getMetadatasAllowedInCriteria()) {
+			for (MetadataVO metadata : presenter.getMetadataAllowedInCriteria()) {
 				comboBox.addItem(metadata);
 				comboBox.setItemCaption(metadata, metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));
 			}
@@ -155,7 +160,9 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			switch (criterion.getMetadata().getType()) {
 			case STRING:
 			case TEXT:
-				return buildStringValueComponent(criterion);
+				return criterion.getSearchOperator() == SearchOperator.IN_HIERARCHY ?
+						buildHierarchyValueCriterion(criterion) :
+						buildStringValueComponent(criterion);
 			case DATE:
 			case DATE_TIME:
 				return buildDateValueComponent(criterion);
@@ -175,6 +182,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		private Component buildReferenceValueComponent(final Criterion criterion) {
 			MetadataVO metadataVO = criterion.getMetadata();
 			final LookupRecordField value = new LookupRecordField(metadataVO.getSchemaTypeCode());
+			value.setWidth("100%");
 			value.setValue((String) criterion.getValue());
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -214,6 +222,27 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			return component;
 		}
 
+		private Component buildHierarchyValueCriterion(final Criterion criterion) {
+			final RecordServices recordServices = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices();
+
+			final LookupRecordField lookup = new LookupRecordField(Folder.SCHEMA_TYPE);
+			String path = (String) criterion.getValue();
+			if (path != null) {
+				String[] parts = path.split("/");
+				lookup.setValue(parts[parts.length - 1]);
+			}
+
+			lookup.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					Record record = recordServices.getDocumentById(lookup.getValue());
+					criterion.setValue(record.getList(Schemas.PATH).get(0));
+				}
+			});
+
+			return lookup;
+		}
+
 		private Component buildBooleanValueComponent(final Criterion criterion) {
 			final ComboBox operator = new ComboBox();
 			operator.addItem(SearchOperator.IS_TRUE);
@@ -235,6 +264,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		private Component buildEnumValueComponent(final Criterion criterion) {
 			Class<? extends Enum<?>> enumClass = criterion.getMetadata().getEnumClass();
 			final ComboBox value = new EnumWithSmallCodeComboBox((Class) enumClass);
+			value.setWidth("100%");
 			value.setNullSelectionAllowed(false);
 			value.setValue(criterion.getValue());
 			value.addValueChangeListener(new ValueChangeListener() {
@@ -422,6 +452,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 	public interface SearchCriteriaPresenter extends Serializable {
 		void addCriterionRequested();
 
-		List<MetadataVO> getMetadatasAllowedInCriteria();
+		List<MetadataVO> getMetadataAllowedInCriteria();
 	}
 }

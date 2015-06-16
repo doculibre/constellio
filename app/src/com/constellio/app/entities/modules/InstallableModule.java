@@ -23,11 +23,9 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.modules.Module;
 
 public interface InstallableModule extends Module {
+	List<MigrationScript> getMigrationScripts();
 
-	public List<MigrationScript> getMigrationScripts();
+	void start(String collection, AppLayerFactory appLayerFactory);
 
-	public void start(String collection, AppLayerFactory appLayerFactory);
-
-	public void stop(String collection, AppLayerFactory appLayerFactory);
-
+	void stop(String collection, AppLayerFactory appLayerFactory);
 }

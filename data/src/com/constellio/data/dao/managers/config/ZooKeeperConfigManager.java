@@ -192,6 +192,12 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 		}
 	}
 
+	//TODO Thiago implement
+	@Override
+	public List<String> list(String path) {
+		throw new UnsupportedOperationException("TODO");
+	}
+
 	@Override
 	public void createXMLDocumentIfInexistent(String path, DocumentAlteration documentAlteration) {
 		String tmpPath = processPath(CONFIG_FOLDER, path);
@@ -403,6 +409,11 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public boolean rename(String path, String newPath) {
+		throw new UnsupportedOperationException("TODO");
 	}
 
 	@Override

@@ -19,6 +19,7 @@ package com.constellio.app.modules.rm.reports.factories.labels;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportPresenter;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
@@ -29,15 +30,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class LabelsReportFactory implements ReportBuilderFactory {
 	private final List<String> recordIds;
-	private final LabelConfiguration labelConfiguration;
+	private final LabelTemplate labelConfiguration;
 	private final int startPosition;
 	private final int numberOfCopies;
-	//	private final String mode;
 
-	public LabelsReportFactory(List<String> recordIds, LabelConfiguration labelConfiguration, int startPosition,
+	public LabelsReportFactory(List<String> recordIds, LabelTemplate labelTemplate, int startPosition,
 			int numberOfCopies) {
 		this.recordIds = recordIds;
-		this.labelConfiguration = labelConfiguration;
+		this.labelConfiguration = labelTemplate;
 		this.startPosition = startPosition;
 		this.numberOfCopies = numberOfCopies;
 	}
@@ -46,7 +46,7 @@ public class LabelsReportFactory implements ReportBuilderFactory {
 	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		String collection = getSessionContext().getCurrentCollection();
 		LabelsReportPresenter presenter = new LabelsReportPresenter(collection, modelLayerFactory);
-		return new LabelsReportBuilder(presenter.build(recordIds, startPosition, numberOfCopies, labelConfiguration.getKey()));
+		return new LabelsReportBuilder(presenter.build(recordIds, startPosition, numberOfCopies, labelConfiguration));
 	}
 
 	@Override

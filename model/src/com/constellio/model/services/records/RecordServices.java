@@ -44,6 +44,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -53,6 +54,8 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ConfigProvider;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
@@ -129,9 +132,13 @@ public class RecordServices {
 
 	public List<BatchProcess> executeHandlingImpactsAsync(Transaction transaction)
 			throws RecordServicesException {
-		AddToBatchProcessImpactHandler handler = addToBatchProcessModificationImpactHandler();
-		executeWithImpactHandler(transaction, handler);
-		return handler.getAllCreatedBatchProcesses();
+		if (!transaction.getRecords().isEmpty()) {
+			AddToBatchProcessImpactHandler handler = addToBatchProcessModificationImpactHandler();
+			executeWithImpactHandler(transaction, handler);
+			return handler.getAllCreatedBatchProcesses();
+		} else {
+			return Collections.emptyList();
+		}
 	}
 
 	public void execute(Transaction transaction)
@@ -539,7 +546,20 @@ public class RecordServices {
 	}
 
 	public Record newRecordWithSchema(MetadataSchema schema, String id) {
-		return new RecordImpl(schema.getCode(), schema.getCollection(), id);
+		Record record = new RecordImpl(schema.getCode(), schema.getCollection(), id);
+
+		for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue()) {
+
+			if (metadata.isMultivalue()) {
+				List<Object> values = new ArrayList<>();
+				values.addAll((List) metadata.getDefaultValue());
+				record.set(metadata, values);
+			} else {
+				record.set(metadata, metadata.getDefaultValue());
+			}
+		}
+
+		return record;
 	}
 
 	public Record newRecordWithSchema(MetadataSchema schema) {
@@ -558,8 +578,18 @@ public class RecordServices {
 	}
 
 	public RecordValidationServices newRecordValidationServices() {
-		return new RecordValidationServices(modelFactory.getMetadataSchemasManager(), modelFactory.newSearchServices(),
-				modelFactory.newAuthorizationsServices());
+		return new RecordValidationServices(newConfigProvider(), modelFactory.getMetadataSchemasManager(),
+				modelFactory.newSearchServices(), modelFactory.newAuthorizationsServices());
+	}
+
+	ConfigProvider newConfigProvider() {
+		return new ConfigProvider() {
+
+			@Override
+			public <T> T get(SystemConfiguration config) {
+				return modelFactory.getSystemConfigurationsManager().getValue(config);
+			}
+		};
 	}
 
 	public RecordDeleteServices newRecordDeleteServices() {
@@ -713,19 +743,21 @@ public class RecordServices {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().logicallyDelete(record, user);
+		refresh(record);
 	}
 
 	public void logicallyDeletePrincipalConceptIncludingRecords(Record record, User user) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
+		refresh(record);
 	}
 
 	public void logicallyDeletePrincipalConceptExcludingRecords(Record record, User user) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
-
+		refresh(record);
 	}
 
 	public List<Record> getVisibleRecordsWithReferenceTo(Record record, User user) {

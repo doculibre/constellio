@@ -22,10 +22,12 @@ import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentTy
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.server.ErrorMessage;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.HorizontalLayout;
@@ -34,7 +36,7 @@ public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDoc
 	
 	private HorizontalLayout layout;
 	
-	private LookupRecordField documentTypeField;
+	private ComboBox documentTypeField;
 	
 	private EnumWithSmallCodeComboBox<DisposalType> disposalTypeField;
 	
@@ -89,7 +91,7 @@ public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDoc
 			}
 		};
 		
-		documentTypeField = new LookupRecordField(DocumentType.SCHEMA_TYPE);
+		documentTypeField = new RecordComboBox(DocumentType.DEFAULT_SCHEMA);
 		disposalTypeField = new EnumWithSmallCodeComboBox<DisposalType>(DisposalType.class) {
 			@Override
 			protected boolean isIgnored(String enumCode) {

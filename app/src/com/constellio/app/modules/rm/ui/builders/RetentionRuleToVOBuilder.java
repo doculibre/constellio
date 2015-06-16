@@ -123,6 +123,6 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
 				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP,
-				new AllowedReferences(referencedSchemaType, references), groupLabel);
+				new AllowedReferences(referencedSchemaType, references), groupLabel, null);
 	}
 }

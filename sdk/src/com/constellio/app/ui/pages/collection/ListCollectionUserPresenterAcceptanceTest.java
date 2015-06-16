@@ -83,7 +83,7 @@ public class ListCollectionUserPresenterAcceptanceTest extends ConstellioTest {
 		List<String> emptyCollections = new ArrayList<>();
 
 		//		when(userServices.getUserCredential("dakota")).thenReturn(dakotaCredential);
-		//		when(dakotaCredentialVO.getUsername()).thenReturn("dakota");
+		//		when(dakotaCredentialVO.getBorrowerUsername()).thenReturn("dakota");
 		//		when(dakotaRecordVO.getId()).thenReturn("dakotaId");
 		//		when(heroesVO.getCode()).thenReturn("heroes");
 		//		when(userServices.getGroup("heroes")).thenReturn(heroes);

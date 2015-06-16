@@ -21,34 +21,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 
 public class LabelsReportPresenter {
-	public static final String FOLDER_LEFT = "left";
-	public static final String FOLDER_RIGHT = "right";
-	public static final String CONTAINER = "container";
-
-	// Empirical values
-	private static final int FIRST_ROW_AT_TOP = 0;
-	private static final int FOURTH_ROW_FROM_TOP = 3;
-	private static final int BOTTOM_ROW = 9;
-	private static final int FIRST_COLUMN = 0;
-	private static final int LABEL_FULL_WIDTH = 29;
-	private static final int LABEL_HALF_WIDTH = LABEL_FULL_WIDTH / 2;
-	private static final int LABEL_THIRD_WIDTH = LABEL_FULL_WIDTH / 3;
-	private static final int MAX_SYMBOLS_PER_FULL_ROW = 120;
-	private static final int MAX_SYMBOLS_PER_HALF_ROW_FOLDER = 55;
-	private static final int MAX_SYMBOLS_PER_HALF_ROW_CONTAINER = 50;
-	private static final int MAX_SYMBOLS_PER_THIRD_OF_ROW = 28;
-	private static final int ROW_HEIGHT = 2;
-	private static final int MIDDLE_COLUMN = LABEL_FULL_WIDTH / 2 + 2;
-	private static final int ONE_THIRD_COLUMN = LABEL_FULL_WIDTH / 3;
-	private static final int TWO_THIRD_COLUMN = LABEL_FULL_WIDTH * 2 / 3;
-	// private static final int LAST_COLUMN = LABEL_FULL_WIDTH;
 
 	public static final LabelsReportFont FONT = new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true);
 
@@ -63,54 +49,33 @@ public class LabelsReportPresenter {
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	public LabelsReportModel build(List<String> folderOrContainerIds, int startPosition, int copies,
-			final String modelCode) {
+	public LabelsReportModel build(List<String> ids, int startPosition, int copies,
+			final LabelTemplate labelTemplate) {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		this.startPosition = startPosition;
 
 		LabelsReportModel labelsReportModel = new LabelsReportModel();
-		labelsReportModel.setLayout(LabelsReportLayout.AVERY_5159);
+		labelsReportModel.setLayout(labelTemplate.getLabelsReportLayout());
+		labelsReportModel.setColumnsNumber(labelTemplate.getColumns());
+		labelsReportModel.setRowsNumber(labelTemplate.getLines());
 		labelsReportModel.setPrintBorders(true);
 
 		List<LabelsReportLabel> labels = new ArrayList<>();
 
 		addBlankLabelsBelowStartPosition(labels);
 
-		switch (modelCode) {
-		case FOLDER_LEFT:
-			for (String folderId : folderOrContainerIds) {
-				for (int i = 0; i < copies; i++) {
-					try {
-						labels.add(getLeftAlignedLabelFor(folderId));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+		List<Record> records = modelLayerFactory.newRecordServices().getRecordsById(collection, ids);
+		for (Record record : records) {
+			for (int i = 0; i < copies; i++) {
+				List<LabelsReportField> fields = new ArrayList<>();
+				for (LabelTemplateField fieldInfo : labelTemplate.getFields()) {
+					String value = getPrintedValue(fieldInfo, record);
+					LabelsReportField field = buildField(fieldInfo, value);
+					fields.add(field);
 				}
+				LabelsReportLabel label = new LabelsReportLabel(fields);
+				labels.add(label);
 			}
-			break;
-		case FOLDER_RIGHT:
-			for (String folderId : folderOrContainerIds) {
-				for (int i = 0; i < copies; i++) {
-					try {
-						labels.add(getRightAlignedLabelFor(folderId));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			break;
-		case CONTAINER:
-			for (String folderId : folderOrContainerIds) {
-				for (int i = 0; i < copies; i++) {
-					try {
-						labels.add(getContainerLabelFor(folderId));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-
-			break;
 		}
 
 		if (labels.isEmpty()) {
@@ -122,6 +87,93 @@ public class LabelsReportPresenter {
 		return labelsReportModel;
 	}
 
+	private LabelsReportField buildField(LabelTemplateField fieldInfo, String value) {
+		//TODO Thiago font
+		//		LabelsReportFont font = new LabelsReportFont().setSize(0.8f).setBold(true).setItalic(true);
+		int width = fieldInfo.getWidth() != 0 ? fieldInfo.getWidth() : value.length();
+		int horizontalAlignment;
+		int verticalAlignment;
+		horizontalAlignment = getHorizontalAligment(fieldInfo);
+
+		verticalAlignment = getVerticalAligment(fieldInfo);
+		LabelsReportField labelsReportField = newField(value, fieldInfo.getX(), fieldInfo.getY(), fieldInfo.getHeight(),
+				width, horizontalAlignment, verticalAlignment, FONT);
+		return labelsReportField;
+	}
+
+	private int getVerticalAligment(LabelTemplateField fieldInfo) {
+		int verticalAlignment;
+		switch (fieldInfo.getVerticalAlignment()) {
+		case TOP:
+			verticalAlignment = com.itextpdf.text.Element.ALIGN_TOP;
+			break;
+		case CENTER:
+			verticalAlignment = com.itextpdf.text.Element.ALIGN_CENTER;
+			break;
+		case BOTTOM:
+			verticalAlignment = com.itextpdf.text.Element.ALIGN_BOTTOM;
+			break;
+		default:
+			verticalAlignment = com.itextpdf.text.Element.ALIGN_CENTER;
+			break;
+		}
+		return verticalAlignment;
+	}
+
+	private int getHorizontalAligment(LabelTemplateField fieldInfo) {
+		int horizontalAlignment;
+		switch (fieldInfo.getHorizontalAlignment()) {
+		case LEFT:
+			horizontalAlignment = com.itextpdf.text.Element.ALIGN_LEFT;
+			break;
+		case CENTER:
+			horizontalAlignment = com.itextpdf.text.Element.ALIGN_CENTER;
+			break;
+		case RIGHT:
+			horizontalAlignment = com.itextpdf.text.Element.ALIGN_RIGHT;
+			break;
+		default:
+			horizontalAlignment = com.itextpdf.text.Element.ALIGN_LEFT;
+			break;
+		}
+		return horizontalAlignment;
+	}
+
+	private String getPrintedValue(LabelTemplateField fieldInfo, Record record) {
+		MetadataSchemaTypes types = rmSchemasRecordsServices.getTypes();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		String value;
+		if (fieldInfo.getReferenceMetadataCode() != null && StringUtils.isNotBlank(fieldInfo.getReferenceMetadataCode())) {
+			Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
+			String referenceId = record.get(metadata);
+			Record referenceRecord = recordServices.getDocumentById(referenceId);
+			Metadata referenceMetadata = types.getMetadata(fieldInfo.getReferenceMetadataCode());
+			Object valueObject = referenceRecord.get(referenceMetadata);
+			value = getStringValue(valueObject);
+		} else {
+			Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
+			Object valueObject = record.get(metadata);
+			value = getStringValue(valueObject);
+		}
+		value = truncate(value, fieldInfo.getMaxLength());
+		//		if (fieldInfo.getHorizontalAlignment() == LabelTemplateFieldHorizontalAlignment.RIGHT) {
+		//			value = pad(value, fieldInfo.getMaxLength() - value.length());
+		//		}
+		return value;
+	}
+
+	private String getStringValue(Object valueObject) {
+		String value;
+		if (valueObject instanceof EnumWithSmallCode) {
+			value = ((EnumWithSmallCode) valueObject).getCode();
+		} else if (valueObject instanceof LocalDate || valueObject instanceof LocalDateTime) {
+			value = valueObject.toString();
+		} else {
+			value = (String) valueObject;
+		}
+		return value;
+	}
+
 	private void addBlankLabelsBelowStartPosition(List<LabelsReportLabel> labels) {
 		for (int i = 1; i < startPosition; i++) {
 			List<LabelsReportField> fields = new ArrayList<>();
@@ -130,100 +182,8 @@ public class LabelsReportPresenter {
 		}
 	}
 
-	private LabelsReportLabel getLeftAlignedLabelFor(String folderId) {
-		Folder folder = getFolder(folderId);
-
-		List<LabelsReportField> fields = new ArrayList<>();
-
-		if (folder != null) {
-			addCategoryCode(folder, FIRST_COLUMN, FIRST_ROW_AT_TOP, ROW_HEIGHT, LABEL_HALF_WIDTH, fields, false);
-
-			addFolderOrContainerId(folderId, MIDDLE_COLUMN, FIRST_ROW_AT_TOP, ROW_HEIGHT, LABEL_HALF_WIDTH, fields,
-					true);
-
-			addFolderTitle(folder, FIRST_COLUMN, FOURTH_ROW_FROM_TOP, ROW_HEIGHT, LABEL_FULL_WIDTH, fields);
-
-			addFilingSpaceCode(folder, FIRST_COLUMN, BOTTOM_ROW, ROW_HEIGHT, LABEL_THIRD_WIDTH, fields);
-
-			addCopyStatusCode(folder, MIDDLE_COLUMN - 2, BOTTOM_ROW, ROW_HEIGHT, fields);
-
-			addOpenDate(folder, TWO_THIRD_COLUMN + 2, BOTTOM_ROW, ROW_HEIGHT, LABEL_THIRD_WIDTH, fields);
-		}
-
-		LabelsReportLabel label = new LabelsReportLabel(fields);
-
-		return label;
-
-	}
-
-	private Folder getFolder(String folderId) {
-
-		Folder folder = rmSchemasRecordsServices.getFolder(folderId);
-
-		return folder;
-	}
-
-	private LabelsReportLabel getRightAlignedLabelFor(String folderId) {
-
-		Folder folder = getFolder(folderId);
-
-		List<LabelsReportField> fields = new ArrayList<>();
-
-		if (folder != null) {
-			addFolderOrContainerId(folderId, FIRST_COLUMN, FIRST_ROW_AT_TOP, ROW_HEIGHT, LABEL_HALF_WIDTH, fields,
-					false);
-
-			addCategoryCode(folder, MIDDLE_COLUMN, FIRST_ROW_AT_TOP, ROW_HEIGHT, LABEL_HALF_WIDTH, fields, true);
-
-			addFolderTitle(folder, FIRST_COLUMN, FOURTH_ROW_FROM_TOP, ROW_HEIGHT, LABEL_FULL_WIDTH, fields);
-
-			addFilingSpaceCode(folder, FIRST_COLUMN, BOTTOM_ROW, ROW_HEIGHT, LABEL_THIRD_WIDTH, fields);
-
-			addCopyStatusCode(folder, MIDDLE_COLUMN - 2, BOTTOM_ROW, ROW_HEIGHT, fields);
-
-			addOpenDate(folder, TWO_THIRD_COLUMN + 2, BOTTOM_ROW, ROW_HEIGHT, LABEL_THIRD_WIDTH, fields);
-		}
-
-		LabelsReportLabel label = new LabelsReportLabel(fields);
-
-		return label;
-	}
-
-	private LabelsReportLabel getContainerLabelFor(String containerId) {
-
-		ContainerRecord container = rmSchemasRecordsServices.getContainerRecord(containerId);
-
-		List<LabelsReportField> fields = new ArrayList<>();
-
-		if (container != null) {
-			addFolderOrContainerId(containerId, FIRST_COLUMN, FIRST_ROW_AT_TOP, ROW_HEIGHT, LABEL_HALF_WIDTH + 1,
-					fields, false);
-
-			addContainerTitle(container, MIDDLE_COLUMN, FIRST_ROW_AT_TOP, ROW_HEIGHT, LABEL_HALF_WIDTH, fields);
-
-		}
-
-		LabelsReportLabel label = new LabelsReportLabel(fields);
-
-		return label;
-	}
-
-	private void addFolderOrContainerId(String folderId, int x, int y, int height, int width,
-			List<LabelsReportField> fields, boolean padded) {
-		String truncatedId = truncate(folderId, MAX_SYMBOLS_PER_HALF_ROW_FOLDER);
-		if (padded) {
-			truncatedId = pad(truncatedId, MAX_SYMBOLS_PER_HALF_ROW_FOLDER);
-		}
-		LabelsReportField idField = newField(truncatedId, x, y, height, width, FONT);
-		fields.add(idField);
-	}
-
-	private LabelsReportField newField(String value, int x, int y, int height, LabelsReportFont font) {
-		LabelsReportField field = newField(value, x, y, height, value.length(), font);
-		return field;
-	}
-
-	private LabelsReportField newField(String value, int x, int y, int height, int width, LabelsReportFont font) {
+	private LabelsReportField newField(String value, int x, int y, int height, int width, int horizontalAlignment,
+			int verticalAlignment, LabelsReportFont font) {
 		LabelsReportField field = new LabelsReportField();
 
 		field.setValue(value);
@@ -231,82 +191,10 @@ public class LabelsReportPresenter {
 		field.positionY = y;
 		field.height = height;
 		field.width = width;
+		field.horizontalAlignment = horizontalAlignment;
+		field.verticalAlignment = verticalAlignment;
 		field.setFont(font);
 		return field;
-	}
-
-	private void addFolderTitle(Folder folder, int x, int y, int height, int width, List<LabelsReportField> fields) {
-		String folderTitle = "";
-		try {
-			folderTitle = folder.getTitle();
-			folderTitle = truncate(folderTitle, MAX_SYMBOLS_PER_FULL_ROW);
-		} catch (Exception e) {
-		}
-		LabelsReportField titleField = newField(folderTitle, x, y, height, width, FONT);
-		fields.add(titleField);
-	}
-
-	private void addContainerTitle(ContainerRecord container, int x, int y, int height, int width,
-			List<LabelsReportField> fields) {
-		String containerTitle = "";
-		try {
-			containerTitle = container.getTitle();
-			containerTitle = truncate(containerTitle, MAX_SYMBOLS_PER_HALF_ROW_CONTAINER);
-			containerTitle = pad(containerTitle, MAX_SYMBOLS_PER_HALF_ROW_CONTAINER);
-		} catch (Exception e) {
-		}
-		LabelsReportField titleField = newField(containerTitle, x, y, height, width, FONT);
-		fields.add(titleField);
-	}
-
-	private void addCategoryCode(Folder folder, int x, int y, int height, int width, List<LabelsReportField> fields,
-			boolean padded) {
-		String categoryCode = "";
-		try {
-			categoryCode = folder.getCategoryCode();
-			categoryCode = truncate(categoryCode, MAX_SYMBOLS_PER_HALF_ROW_FOLDER);
-			if (padded) {
-				categoryCode = pad(categoryCode, MAX_SYMBOLS_PER_HALF_ROW_FOLDER);
-			}
-		} catch (Exception e) {
-		}
-		LabelsReportField categoryCodeField = newField(categoryCode, x, y, height, width, FONT);
-		fields.add(categoryCodeField);
-	}
-
-	private void addFilingSpaceCode(Folder folder, int x, int y, int height, int width, List<LabelsReportField> fields) {
-		String filingSpaceCode = "";
-		try {
-			filingSpaceCode = folder.getFilingSpaceCode();
-		} catch (Exception e) {
-		}
-		LabelsReportField filingSpaceCodeField = newField(filingSpaceCode, x, y, height, width, FONT);
-		fields.add(filingSpaceCodeField);
-	}
-
-	private void addCopyStatusCode(Folder folder, int x, int y, int height, List<LabelsReportField> fields) {
-		String copyStatusCode = "";
-
-		try {
-			copyStatusCode = folder.getCopyStatus().getCode();
-		} catch (Exception e) {
-		}
-		LabelsReportField copyStatusCodeField = newField(copyStatusCode, x, y, height, FONT);
-		fields.add(copyStatusCodeField);
-	}
-
-	private void addOpenDate(Folder folder, int x, int y, int height, int width, List<LabelsReportField> fields) {
-		String openDateValue = "";
-
-		try {
-			openDateValue = folder.getOpenDate().toString();
-			openDateValue = pad(openDateValue, MAX_SYMBOLS_PER_THIRD_OF_ROW);
-
-		} catch (Exception e) {
-		}
-
-		LabelsReportField openDateField = newField(openDateValue, x, y, height, width, FONT);
-		fields.add(openDateField);
 	}
 
 	private String truncate(String value, int maximumCharacters) {

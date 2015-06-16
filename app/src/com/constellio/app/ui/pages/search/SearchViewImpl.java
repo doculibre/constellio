@@ -26,7 +26,6 @@ import java.util.Set;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
@@ -35,26 +34,32 @@ import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.google.common.base.Strings;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseViewImpl implements SearchView, RecordSelector {
 	public static final String EMPTY_FACET_VALUE = "__NULL__";
 	public static final String FACET_BOX_STYLE = "facet-box";
+	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
 
 	protected T presenter;
 	private CssLayout suggestions;
@@ -82,12 +87,15 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
 		layout.setSpacing(true);
-
 		if (presenter.mustDisplayResults()) {
 			refreshSearchResultsAndFacets();
 		}
-
 		return layout;
+	}
+
+	@Override
+	public void setSearchExpression(String expression) {
+		ConstellioUI.getCurrent().getHeader().setSearchExpression(expression);
 	}
 
 	@Override
@@ -96,32 +104,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		refreshFacets();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void refreshSearchResults() {
 		suggestions.removeAllComponents();
-		if (presenter.mustDisplaySuggestions()) {
-			Label spellCheckerLabel = new Label($("SearchView.spellChecker"));
-			spellCheckerLabel.addStyleName(ValoTheme.LABEL_BOLD);
-			suggestions.addComponent(spellCheckerLabel);
-
-			List<String> foundSuggestions = presenter.getSuggestions();
-			for (final String suggestion : foundSuggestions) {
-				Button activateSuggestion = new Button(suggestion);
-				activateSuggestion.addStyleName(ValoTheme.BUTTON_LINK);
-				activateSuggestion.addStyleName("spell-checker-suggestion");
-				activateSuggestion.addClickListener(new ClickListener() {
-					@Override
-					public void buttonClick(ClickEvent event) {
-						navigateTo().simpleSearch(suggestion);
-					}
-				});
-				suggestions.addComponent(activateSuggestion);
-			}
-			suggestions.setVisible(true);
-		} else {
-			suggestions.setVisible(false);
-		}
+		buildSuggestions();
 
 		results = buildResultTable();
 
@@ -146,10 +132,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	protected abstract Component buildSearchUI();
 
 	protected Component buildSummary(SearchResultTable results) {
-		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this);
-		labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
+		//		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+		//			@Override
+		//			public List<LabelTemplate> get() {
+		//				return presenter.getTemplates();
+		//			}
+		//		};
+		//		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
+		//				labelTemplatesFactory);
+		//		labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 		ReportSelector reportSelector = new ReportSelector(presenter);
-		return results.createSummary(labelsButton, reportSelector);
+		return results.createSummary(reportSelector);
+		//		return results.createSummary(labelsButton, reportSelector);
 	}
 
 	private Component buildResultsUI() {
@@ -166,13 +160,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		facetsArea.setWidth("300px");
 		facetsArea.setSpacing(true);
 
-		VerticalLayout suggestionsSummaryResultsLayout = new VerticalLayout(suggestions, summary, resultsArea);
-		suggestionsSummaryResultsLayout.setSpacing(true);
-		suggestionsSummaryResultsLayout.addStyleName("suggestions-summary-results");
+		HorizontalLayout body = new HorizontalLayout(resultsArea, facetsArea);
+		body.setWidth("100%");
+		body.setExpandRatio(resultsArea, 1);
+		body.setSpacing(true);
 
-		VerticalLayout main = new VerticalLayout(suggestionsSummaryResultsLayout, facetsArea);
+		VerticalLayout main = new VerticalLayout(suggestions, summary, body);
 		main.addStyleName("suggestions-summary-results-facets");
-		main.setExpandRatio(suggestionsSummaryResultsLayout, 1);
 		main.setWidth("100%");
 		main.setSpacing(true);
 
@@ -192,7 +186,78 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return new SearchResultContainer(results, displayFactory);
 	}
 
+	@SuppressWarnings("unchecked")
+	private void buildSuggestions() {
+		if (!presenter.mustDisplaySuggestions()) {
+			suggestions.setVisible(false);
+			return;
+		}
+
+		Label caption = new Label($("SearchView.spellChecker"));
+		caption.addStyleName(ValoTheme.LABEL_BOLD);
+		suggestions.addComponent(caption);
+
+		List<String> foundSuggestions = presenter.getSuggestions();
+		for (final String suggestion : foundSuggestions) {
+			Button activateSuggestion = new Button(suggestion);
+			activateSuggestion.addStyleName(ValoTheme.BUTTON_LINK);
+			activateSuggestion.addStyleName(SUGGESTION_STYLE);
+			activateSuggestion.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.suggestionSelected(suggestion);
+				}
+			});
+			suggestions.addComponent(activateSuggestion);
+		}
+		suggestions.setVisible(true);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Component buildSortComponent() {
+		Label sortBy = new Label($("SearchView.sortBy"));
+		sortBy.addStyleName(ValoTheme.LABEL_BOLD);
+
+		final ComboBox criterion = new ComboBox();
+		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+
+		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
+		for (MetadataVO metadata : sortableMetadata) {
+			criterion.addItem(metadata.getCode());
+			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
+		}
+		criterion.setPageLength(criterion.size());
+
+		final OptionGroup order = new OptionGroup();
+		order.addItem(SortOrder.ASCENDING);
+		order.setItemCaption(SortOrder.ASCENDING, $("SearchView.sortAsc"));
+		order.addItem(SortOrder.DESCENDING);
+		order.setItemCaption(SortOrder.DESCENDING, $("SearchView.sortDesc"));
+		order.setValue(SortOrder.ASCENDING);
+
+		ValueChangeListener listener = new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				String sortCriterion = (String) criterion.getValue();
+				SortOrder sortOrder = (SortOrder) order.getValue();
+				presenter.sortCriterionSelected(sortCriterion, sortOrder);
+			}
+		};
+
+		criterion.addValueChangeListener(listener);
+		order.addValueChangeListener(listener);
+
+		VerticalLayout layout = new VerticalLayout(sortBy, criterion, order);
+		layout.setSizeUndefined();
+		layout.setSpacing(true);
+
+		return layout;
+	}
+
+	@SuppressWarnings("unchecked")
 	private void addFacetComponents(ComponentContainer container) {
+		container.addComponent(buildSortComponent());
+
 		Map<MetadataVO, List<FacetValue>> facets = presenter.getFacets();
 		Map<String, Set<String>> facetSelections = presenter.getFacetSelections();
 		for (Entry<MetadataVO, List<FacetValue>> facet : facets.entrySet()) {
@@ -202,16 +267,15 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	}
 
 	private Component buildFacetComponent(MetadataVO facet, List<FacetValue> values, Set<String> selectedFacetValues) {
-		Label title = new Label(facet.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));
+		Label title = new Label(facet.getLabel());
 		title.addStyleName(ValoTheme.LABEL_BOLD);
 		VerticalLayout layout = new VerticalLayout(title);
 		layout.setSizeUndefined();
 
 		MetadataDisplayFactory factory = new MetadataDisplayFactory();
-		for (int i = 0; i < values.size() && i < 5; i++) {
-			FacetValue facetValue = values.get(i);
+		for (FacetValue facetValue : values) {
 			CheckBox checkBox = new CheckBox();
-			if (selectedFacetValues != null && selectedFacetValues.contains(facetValue.getValue())) {
+			if (selectedFacetValues.contains(facetValue.getValue())) {
 				checkBox.setValue(true);
 			}
 			checkBox.addValueChangeListener(new Selector(facet.getCode(), facetValue.getValue()));

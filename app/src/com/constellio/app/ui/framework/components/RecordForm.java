@@ -51,7 +51,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
-		for (MetadataVO metadataVO : recordVO.getMetadatas()) {
+		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
 			Field<?> field = formFieldFactory.build(recordVO, metadataVO);
 			if (field != null) {
 				field.addStyleName(STYLE_FIELD);
@@ -118,9 +118,8 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 						if (firstFieldWithError == null) {
 							firstFieldWithError = field;
 						}
-					} else {
-						globalErrorMessages.add(errorMessage);
 					}
+					globalErrorMessages.add(errorMessage);
 				} else {
 					globalErrorMessages.add(errorMessage);
 				}

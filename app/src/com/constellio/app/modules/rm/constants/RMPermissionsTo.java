@@ -17,38 +17,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.constants;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.entities.Permissions;
 
 public class RMPermissionsTo {
+	public static Permissions PERMISSIONS = new Permissions(ConstellioRMModule.ID);
 
-	private static List<String> ALL_PERMISSIONS = new ArrayList<>();
-	private static KeyListMap<String, String> PERMISSIONS_GROUPED = new KeyListMap<>();
-
-	private static String permission(String groupLocalCode, String permissionLocalCode) {
-		String groupCode = ConstellioRMModule.ID + "." + groupLocalCode;
-		String permissionCode = ConstellioRMModule.ID + "." + permissionLocalCode;
-		if (ALL_PERMISSIONS.contains(permissionCode)) {
-			throw new Error("Cannot add a same permission twice : " + permissionCode);
-		}
-		ALL_PERMISSIONS.add(permissionCode);
-		PERMISSIONS_GROUPED.add(groupCode, permissionCode);
-		return permissionCode;
-	}
-
-	public static Map<String, List<String>> getGroupedPermissions() {
-		return Collections.unmodifiableMap(PERMISSIONS_GROUPED.getNestedMap());
-	}
-
-	public static List<String> getAllPermissions() {
-		return Collections.unmodifiableList(ALL_PERMISSIONS);
+	private static String permission(String group, String permission) {
+		return PERMISSIONS.add(group, permission);
 	}
 
 	// --------------------------------------------
@@ -67,12 +45,11 @@ public class RMPermissionsTo {
 			"createSubFoldersInSemiActiveFolders");
 	public static final String CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS = permission(FOLDER_GROUP,
 			"createSubFoldersInInactiveFolders");
+	public static final String BORROW_FOLDER = permission(FOLDER_GROUP, "borrowFolder");
 
-	//public static final String MODIFY_FOLDERS = permission(FOLDER_GROUP, "modifyFolders");
 	public static final String MODIFY_SEMIACTIVE_FOLDERS = permission(FOLDER_GROUP, "modifySemiActiveFolders");
 	public static final String MODIFY_INACTIVE_FOLDERS = permission(FOLDER_GROUP, "modifyInactiveFolders");
 
-	//public static final String DELETE_FOLDERS = permission(FOLDER_GROUP, "deleteFolders");
 	public static final String DELETE_SEMIACTIVE_FOLDERS = permission(FOLDER_GROUP, "deleteSemiActiveFolders");
 	public static final String DELETE_INACTIVE_FOLDERS = permission(FOLDER_GROUP, "deleteInactiveFolders");
 
@@ -80,6 +57,11 @@ public class RMPermissionsTo {
 
 	public static final String DUPLICATE_SEMIACTIVE_FOLDER = permission(FOLDER_GROUP, "duplicateSemiActiveFolders");
 	public static final String DUPLICATE_INACTIVE_FOLDER = permission(FOLDER_GROUP, "duplicateInactiveFolders");
+
+	public static final String MODIFY_SEMIACTIVE_BORROWED_FOLDER = permission(FOLDER_GROUP,
+			"modifySemiActiveBorrowedFolder");
+	public static final String MODIFY_INACTIVE_BORROWED_FOLDER = permission(FOLDER_GROUP,
+			"modifyInactiveBorrowedFolder");
 
 	// Documents
 	private static final String DOCUMENT_GROUP = "documents";
@@ -93,21 +75,20 @@ public class RMPermissionsTo {
 	public static final String CREATE_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "createSemiActiveDocuments");
 	public static final String CREATE_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "createInactiveDocuments");
 
-	//public static final String MODIFY_DOCUMENTS = permission(DOCUMENT_GROUP, "modifyDocuments");
 	public static final String MODIFY_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "modifySemiActiveDocuments");
 	public static final String MODIFY_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "modifyInactiveDocuments");
 
 	public static final String UPLOAD_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "uploadSemiActiveDocuments");
 	public static final String UPLOAD_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "uploadInactiveDocuments");
 
-	//public static final String DELETE_DOCUMENTS = permission(DOCUMENT_GROUP, "deleteDocuments");
 	public static final String DELETE_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "deleteSemiActiveDocuments");
 	public static final String DELETE_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "deleteInactiveDocuments");
 
 	public static final String RETURN_OTHER_USERS_DOCUMENTS = permission(DOCUMENT_GROUP, "returnOtherUsersDocuments");
 
-	//Decommissioning
+	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
+
 	public static final String MODIFY_FOLDER_DECOMMISSIONING_DATES = permission(DECOMMISSIONING, "modifyFolderDecomDate");
 	public static final String EDIT_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editDecommissioningList");
 	public static final String PROCESS_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "processDecommissioningList");
@@ -117,12 +98,13 @@ public class RMPermissionsTo {
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
 	public static final String MANAGE_ROBOTS = permission(DECOMMISSIONING, "manageRobots");
 
+	// RM Module management
 	private static final String RM_MANAGEMENT = "rmManagement";
+
 	public static final String MANAGE_UNIFORMSUBDIVISIONS = permission(RM_MANAGEMENT, "manageUniformSubdivisions");
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");
 	public static final String MANAGE_STORAGE_SPACES = permission(RM_MANAGEMENT, "manageStorageSpaces");
 
-	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = asList(MANAGE_UNIFORMSUBDIVISIONS,
-			MANAGE_RETENTIONRULE, MANAGE_CLASSIFICATION_PLAN, MANAGE_STORAGE_SPACES);
+	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(RM_MANAGEMENT);
 }

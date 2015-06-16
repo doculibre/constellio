@@ -656,17 +656,17 @@ public class DemoTestRecords {
 	//		Transaction transaction = new Transaction();
 	//		User charles = users.charlesIn(collection);
 	//		transaction
-	//				.add(createEvent(charles.getUsername(), EventType.CREATE_FOLDER, new LocalDateTime().minusDays(1), folder_A01));
-	//		transaction.add(createEvent(charles.getUsername(), EventType.CREATE_DOCUMENT, new LocalDateTime().minusDays(1), "11"));
+	//				.add(createEvent(charles.getBorrowerUsername(), EventType.CREATE_FOLDER, new LocalDateTime().minusDays(1), folder_A01));
+	//		transaction.add(createEvent(charles.getBorrowerUsername(), EventType.CREATE_DOCUMENT, new LocalDateTime().minusDays(1), "11"));
 	//		transaction
-	//				.add(createEvent(charles.getUsername(), EventType.MODIFY_DOCUMENT, new LocalDateTime().minusDays(1), folder_A03));
-	//		transaction.add(createEvent(charles.getUsername(), EventType.MODIFY_FOLDER, new LocalDateTime().minusDays(2), "13"));
+	//				.add(createEvent(charles.getBorrowerUsername(), EventType.MODIFY_DOCUMENT, new LocalDateTime().minusDays(1), folder_A03));
+	//		transaction.add(createEvent(charles.getBorrowerUsername(), EventType.MODIFY_FOLDER, new LocalDateTime().minusDays(2), "13"));
 	//		transaction
-	//				.add(createEvent(charles.getUsername(), EventType.DELETE_FOLDER, new LocalDateTime().minusDays(2), folder_A05));
+	//				.add(createEvent(charles.getBorrowerUsername(), EventType.DELETE_FOLDER, new LocalDateTime().minusDays(2), folder_A05));
 	//		System.out.println("=====" + getBob_userInAC().getTitle());
-	//		transaction.add(createEvent(charles.getUsername(), EventType.CREATE_USER, new LocalDateTime().minusDays(2), bob_userInAC,
+	//		transaction.add(createEvent(charles.getBorrowerUsername(), EventType.CREATE_USER, new LocalDateTime().minusDays(2), bob_userInAC,
 	//				getBob_userInAC().getTitle()));
-	//		transaction.add(createEvent(charles.getUsername(), EventType.MODIFY_USER, new LocalDateTime().minusDays(2), chuckNorris,
+	//		transaction.add(createEvent(charles.getBorrowerUsername(), EventType.MODIFY_USER, new LocalDateTime().minusDays(2), chuckNorris,
 	//				getChuckNorris().getTitle()));
 	//		try {
 	//			recordServices.execute(transaction);

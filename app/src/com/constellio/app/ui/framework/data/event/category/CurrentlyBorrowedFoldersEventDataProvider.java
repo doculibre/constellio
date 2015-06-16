@@ -60,10 +60,19 @@ public class CurrentlyBorrowedFoldersEventDataProvider implements EventsCategory
 		EventStatistics currentlyBorrowedFolders = new EventStatistics();
 		currentlyBorrowedFolders.setLabel($("ListEventsView.currentlyBorrowedFolders"));
 		User currentUser = modelLayerFactory.newUserServices().getUserInCollection(currentUserName, collection);
+
+		//		LogicalSearchQuery query = rmSchemasRecordsServices
+		//				.newFindCurrentlyBorrowedFoldersQuery(currentUser);
+		//
+		//		long borrowedFoldersCount = modelLayerFactory.newSearchServices().getResultsCount(query);
+		//		currentlyBorrowedFolders.setValue((float) borrowedFoldersCount);
+		//		events.add(currentlyBorrowedFolders);
+
 		List<Event> borrowedFoldersEvents = rmSchemasRecordsServices
 				.findCurrentlyBorrowedFolders(currentUser);
+
 		eventsIds = new ArrayList<>();
-		for(Event currentEvent : borrowedFoldersEvents){
+		for (Event currentEvent : borrowedFoldersEvents) {
 			eventsIds.add(currentEvent.getWrappedRecord().getId());
 		}
 		currentlyBorrowedFolders.setValue((float) borrowedFoldersEvents.size());
@@ -86,7 +95,7 @@ public class CurrentlyBorrowedFoldersEventDataProvider implements EventsCategory
 
 	@Override
 	public List<EventStatistics> getEvents() {
-		if (events == null){
+		if (events == null) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 			init(constellioFactories.getModelLayerFactory());
 		}
@@ -100,6 +109,6 @@ public class CurrentlyBorrowedFoldersEventDataProvider implements EventsCategory
 
 	@Override
 	public String getEventType(Integer index) {
-		return  EventType.BORROW_FOLDER;
+		return EventType.BORROW_FOLDER;
 	}
 }

@@ -138,29 +138,30 @@ public class MetadataToVOBuilder implements Serializable {
 
 		return newMetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
-				metadataGroup);
+				metadataGroup, metadata.getDefaultValue());
 	}
-	
+
 	protected MetadataVO newMetadataVO(
-			String metadataCode, 
-			MetadataValueType type, 
-			String collection, 
-			MetadataSchemaVO schemaVO, 
-			boolean required, 
-			boolean multivalue, 
-			boolean readOnly, 
-			Map<Locale, String> labels, 
-			Class<? extends Enum<?>> enumClass, 
-			String[] taxonomyCodes, 
-			String schemaTypeCode, 
-			MetadataInputType metadataInputType, 
-			AllowedReferences allowedReferences, 
-			boolean enabled, 
-			StructureFactory structureFactory, 
-			String metadataGroup) {
+			String metadataCode,
+			MetadataValueType type,
+			String collection,
+			MetadataSchemaVO schemaVO,
+			boolean required,
+			boolean multivalue,
+			boolean readOnly,
+			Map<Locale, String> labels,
+			Class<? extends Enum<?>> enumClass,
+			String[] taxonomyCodes,
+			String schemaTypeCode,
+			MetadataInputType metadataInputType,
+			AllowedReferences allowedReferences,
+			boolean enabled,
+			StructureFactory structureFactory,
+			String metadataGroup,
+			Object defaultValue) {
 		return new MetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
-				metadataGroup);
+				metadataGroup, defaultValue);
 	}
 
 }

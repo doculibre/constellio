@@ -48,6 +48,8 @@ public class ReindexMetadatasBatchProcessAction implements BatchProcessAction {
 		Transaction transaction = new Transaction();
 		List<Metadata> reindexedMetadatas = schemaTypes.getMetadatas(reindexedMetadataCodes);
 		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(new TransactionRecordsReindexation(reindexedMetadatas));
+		transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
+		transaction.setSkippingRequiredValuesValidation(true);
 		transaction.addUpdate(batch);
 		return transaction;
 	}

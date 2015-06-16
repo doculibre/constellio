@@ -105,7 +105,6 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	private boolean validateEntityInfos(UserCredentialVO entity, String username) {
 		if (isEditMode()) {
 			if (isUsernameChanged(username)) {
-				//TODO Thiago i18n
 				showErrorMessageView("AddEditUserCredentialView.cannotChangeUsername");
 				return false;
 			}

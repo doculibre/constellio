@@ -87,7 +87,7 @@ allprojects {
 
 war {
     baseName = "constellio"
-    version = "5.0.4"
+    version = "5.0.5"
 
     webInf {
         from("resources_i18n/") {
@@ -106,6 +106,10 @@ dependencies {
 
 task compileData() {
     dependsOn project(":data").compileJava
+}
+
+task buildClient() {
+    dependsOn project(":client").build
 }
 
 task compileModel() {
@@ -179,3 +183,6 @@ test {
         destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
     }
 }
+
+mainClassName = 'com.constellio.app.start.MainConstellio'
+

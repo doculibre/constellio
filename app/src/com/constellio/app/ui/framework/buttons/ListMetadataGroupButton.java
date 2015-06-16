@@ -19,11 +19,15 @@ package com.constellio.app.ui.framework.buttons;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public abstract class ListMetadataGroupButton extends Button {
+public abstract class ListMetadataGroupButton extends IconButton {
+
+	public static final Resource ICON_RESOURCE = new ThemeResource("images/commun/businesspeople.png");
 
 	public static final String BUTTON_STYLE = "edit-button";
 
@@ -32,17 +36,15 @@ public abstract class ListMetadataGroupButton extends Button {
 	}
 
 	public ListMetadataGroupButton(String caption) {
-		super(caption);
-		addStyleName(ValoTheme.BUTTON_PRIMARY);
-		addStyleName(BUTTON_STYLE);
-		addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				ListMetadataGroupButton.this.buttonClick(event);
-			}
-		});
+		super(ICON_RESOURCE, caption);
+		init();
 	}
 
-	protected abstract void buttonClick(ClickEvent event);
+	public ListMetadataGroupButton(String caption, boolean iconOnly) {
+		super(ICON_RESOURCE, caption, iconOnly);
+		init();
+	}
+
+	private void init() {addStyleName(BUTTON_STYLE);}
 
 }

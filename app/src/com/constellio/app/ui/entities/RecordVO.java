@@ -76,6 +76,57 @@ public class RecordVO implements Serializable {
 		return metadataValues;
 	}
 
+	public List<MetadataValueVO> getFormMetadataValues() {
+		List<MetadataValueVO> formMetadataValues = new ArrayList<>();
+		MetadataSchemaVO schemaVO = getSchema();
+		List<String> formMetadataCodes = schemaVO.getFormMetadataCodes();
+		if (formMetadataCodes == null) {
+			formMetadataCodes = getMetadataCodes();
+		}
+		for (String formMetadataCode : formMetadataCodes) {
+			MetadataVO metadataVO = getMetadata(formMetadataCode);
+			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
+			if (metadataValueVO != null) {
+				formMetadataValues.add(metadataValueVO);
+			}
+		}
+		return formMetadataValues;
+	}
+
+	public List<MetadataValueVO> getDisplayMetadataValues() {
+		List<MetadataValueVO> displayMetadataValues = new ArrayList<>();
+		MetadataSchemaVO schemaVO = getSchema();
+		List<String> displayMetadataCodes = schemaVO.getDisplayMetadataCodes();
+		if (displayMetadataCodes == null) {
+			displayMetadataCodes = getMetadataCodes();
+		}
+		for (String displayMetadataCode : displayMetadataCodes) {
+			MetadataVO metadataVO = getMetadata(displayMetadataCode);
+			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
+			if (metadataValueVO != null) {
+				displayMetadataValues.add(metadataValueVO);
+			}
+		}
+		return displayMetadataValues;
+	}
+
+	public List<MetadataValueVO> getTableMetadataValues() {
+		List<MetadataValueVO> tableMetadataValues = new ArrayList<>();
+		MetadataSchemaVO schemaVO = getSchema();
+		List<String> tableMetadataCodes = schemaVO.getTableMetadataCodes();
+		if (tableMetadataCodes == null) {
+			tableMetadataCodes = getMetadataCodes();
+		}
+		for (String tableMetadataCode : tableMetadataCodes) {
+			MetadataVO metadataVO = getMetadata(tableMetadataCode);
+			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
+			if (metadataValueVO != null) {
+				tableMetadataValues.add(metadataValueVO);
+			}
+		}
+		return tableMetadataValues;
+	}
+
 	public MetadataValueVO getMetadataValue(MetadataVO metadata) {
 		MetadataValueVO match = null;
 		for (MetadataValueVO metadataValue : metadataValues) {
@@ -93,6 +144,27 @@ public class RecordVO implements Serializable {
 			metadatas.add(metadataValue.getMetadata());
 		}
 		return metadatas;
+	}
+	
+	public List<String> getMetadataCodes() {
+		List<String> metadataCodes = new ArrayList<>();
+		List<MetadataVO> metadatas = getMetadatas();
+		for (MetadataVO metadataVO : metadatas) {
+			metadataCodes.add(metadataVO.getCode());
+		}
+		return metadataCodes;
+	}
+
+	public List<MetadataVO> getFormMetadatas() {
+		return getSchema().getFormMetadatas();
+	}
+
+	public List<MetadataVO> getDisplayMetadatas() {
+		return getSchema().getDisplayMetadatas();
+	}
+
+	public List<MetadataVO> getTableMetadatas() {
+		return getSchema().getTableMetadatas();
 	}
 
 	public MetadataVO getMetadataOrNull(String code) {

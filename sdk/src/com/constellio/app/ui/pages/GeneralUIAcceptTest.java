@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -48,8 +49,8 @@ public class GeneralUIAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void navigateToHome() {
-		driver.navigateTo().home();
+	public void navigateToDisplayFolder() {
+		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/C30");
 		waitUntilICloseTheBrowsers();
 	}
 }

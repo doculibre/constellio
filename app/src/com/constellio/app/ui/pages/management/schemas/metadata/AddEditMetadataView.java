@@ -21,4 +21,6 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
 
 public interface AddEditMetadataView extends BaseView, AdminModuleViewGroup {
+
+	public void reloadForm();
 }

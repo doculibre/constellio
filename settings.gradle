@@ -4,7 +4,9 @@ include "data",
         "custom",
         "sdk",
         "connector-api",
-        "connector-cmis"
+        "connector-cmis",
+        "client",
+        "importation"
 
 project(":data").projectDir = file("./data")
 project(":model").projectDir = file("./model")
@@ -13,3 +15,5 @@ project(":custom").projectDir = file("./custom")
 project(":sdk").projectDir = file("./sdk")
 project(":connector-api").projectDir = file("./connectors/connector-api")
 project(":connector-cmis").projectDir = file("./connectors/connector-cmis")
+project(":client").projectDir = file("./client")
+project(":importation").projectDir = file("./importation")

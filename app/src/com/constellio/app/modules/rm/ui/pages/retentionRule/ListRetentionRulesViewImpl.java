@@ -90,7 +90,7 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 		
 		exportRetentionRulesLink = new ExportRetentionRulesLink($("ListRetentionRulesView.exportRetentionRules"));
 
-		RecordVOTable table = new RecordVOTable("", buildContainer());
+		RecordVOTable table = new RecordVOTable($("ListRetentionRulesView.tableTitle", dataProvider.size()), buildContainer());
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 120);
 		table.setSizeFull();

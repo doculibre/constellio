@@ -747,7 +747,6 @@ public class RMTestRecords {
 		transaction.add(createEvent(charles.getUsername(), EventType.MODIFY_FOLDER, new LocalDateTime().minusDays(2), "13"));
 		transaction
 				.add(createEvent(charles.getUsername(), EventType.DELETE_FOLDER, new LocalDateTime().minusDays(2), folder_A05));
-		System.out.println("=====" + getBob_userInAC().getTitle());
 		transaction.add(createEvent(charles.getUsername(), EventType.CREATE_USER, new LocalDateTime().minusDays(2), bob_userInAC,
 				getBob_userInAC().getTitle()));
 		transaction.add(createEvent(charles.getUsername(), EventType.MODIFY_USER, new LocalDateTime().minusDays(2), chuckNorris,

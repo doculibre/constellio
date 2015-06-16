@@ -20,6 +20,7 @@ package com.constellio.app.modules.rm.model.calculators;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -36,6 +37,9 @@ public class FolderCopyStatusCalculator implements MetadataValueCalculator<CopyT
 
 	LocalDependency<String> folderUnitParam = LocalDependency.toAReference(Folder.ADMINISTRATIVE_UNIT);
 
+	ReferenceDependency<List<CopyRetentionRule>> ruleCopyRulesParam = ReferenceDependency.toAStructure(Folder.RETENTION_RULE,
+			RetentionRule.COPY_RETENTION_RULES).whichIsMultivalue().whichIsRequired();
+
 	ReferenceDependency<List<String>> ruleUnitsParam = ReferenceDependency.toAReference(Folder.RETENTION_RULE,
 			RetentionRule.ADMINISTRATIVE_UNITS).whichIsMultivalue();
 
@@ -48,6 +52,18 @@ public class FolderCopyStatusCalculator implements MetadataValueCalculator<CopyT
 		List<String> ruleUnits = parameters.get(ruleUnitsParam);
 		String folderUnit = parameters.get(folderUnitParam);
 		Boolean ruleResponsibleUnits = parameters.get(ruleResponsibleUnitsParam);
+		List<CopyRetentionRule> ruleCopyRules = parameters.get(ruleCopyRulesParam);
+
+		boolean hasPrincipalCopyRule = false;
+		for (CopyRetentionRule ruleCopyRule : ruleCopyRules) {
+			if (ruleCopyRule.getCopyType() == CopyType.PRINCIPAL) {
+				hasPrincipalCopyRule = true;
+			}
+		}
+
+		if (!hasPrincipalCopyRule) {
+			return CopyType.SECONDARY;
+		}
 
 		if (folderCopyTypeManual != null) {
 			return folderCopyTypeManual;
@@ -83,6 +99,7 @@ public class FolderCopyStatusCalculator implements MetadataValueCalculator<CopyT
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(folderCopyTypeManualParam, folderUnitParam, ruleUnitsParam, ruleResponsibleUnitsParam);
+		return Arrays.asList(folderCopyTypeManualParam, folderUnitParam, ruleUnitsParam, ruleResponsibleUnitsParam,
+				ruleCopyRulesParam);
 	}
 }

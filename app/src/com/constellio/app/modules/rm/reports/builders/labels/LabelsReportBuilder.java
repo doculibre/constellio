@@ -49,7 +49,8 @@ public class LabelsReportBuilder implements ReportBuilder {
 		return "pdf";
 	}
 
-	public void build(OutputStream output) throws IOException {
+	public void build(OutputStream output)
+			throws IOException {
 		LabelsReportLayout layout = model.getLayout();
 		Document document = new Document(layout.getPageSize(), layout.getLeftMargin(), layout.getRightMargin(),
 				layout.getTopMargin(), layout.getBottomMargin());
@@ -94,12 +95,14 @@ public class LabelsReportBuilder implements ReportBuilder {
 	}
 
 	private PdfPCell createPrintableLabel(LabelsReportLabel label, float labelWidth, float labelHeight) {
-		int numColumns = (int) Math.ceil(labelWidth / 10);
+		//		int numColumns = (int) Math.ceil(labelWidth / 10);
+		int numColumns = model.getColumnsNumber();
 
 		PdfPTable printableLabel = new PdfPTable(numColumns);
 		printableLabel.getDefaultCell().setBorder(Rectangle.NO_BORDER);
 
-		int numRows = approximateNumberOfRowsBasedOnHeight10PerRow(labelHeight);
+		//		int numRows = approximateNumberOfRowsBasedOnHeight10PerRow(labelHeight);
+		int numRows = model.getRowsNumber();
 
 		float rowHeight = calculateExactRowHeight(labelHeight, numRows);
 
@@ -155,6 +158,8 @@ public class LabelsReportBuilder implements ReportBuilder {
 		fieldCell.setRowspan(field.height);
 		fieldCell.setFixedHeight(rowHeight);
 		fieldCell.setBorder(Rectangle.NO_BORDER);
+		fieldCell.setHorizontalAlignment(field.horizontalAlignment);
+		fieldCell.setVerticalAlignment(field.verticalAlignment);
 		return fieldCell;
 	}
 
@@ -165,4 +170,4 @@ public class LabelsReportBuilder implements ReportBuilder {
 			labels.addCell(emptyCell);
 		}
 	}
-};
+}

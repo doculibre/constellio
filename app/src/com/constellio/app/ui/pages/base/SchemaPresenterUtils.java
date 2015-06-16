@@ -87,8 +87,16 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final List<BatchProcess> addOrUpdate(Record record) {
+		return addOrUpdate(record, getCurrentUser());
+	}
+
+	public final List<BatchProcess> addOrUpdateWithoutUser(Record record) {
+		return addOrUpdate(record, null);
+	}
+
+	public final List<BatchProcess> addOrUpdate(Record record, User user) {
 		Transaction createTransaction = new Transaction();
-		createTransaction.setUser(getCurrentUser());
+		createTransaction.setUser(user);
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		createTransaction.addUpdate(record);
 		try {
@@ -138,8 +146,8 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				continue;
 			}
 
-			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
-
+			boolean systemReserved = metadata.isSystemReserved();
+			if (!systemReserved && metadata.isEnabled() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
 				Object metadataValue = record.get(metadata);
 				Object metadataVOValue = metadataValueVO.getValue();
 				if (metadataVOValue instanceof RecordVO) {
@@ -183,8 +191,17 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 						}
 					}
 				}
-
-				record.set(metadata, metadataVOValue);
+				boolean valueDifferent;
+				if ((metadataValue != null && metadataVOValue == null) || (metadataValue == null && metadataVOValue != null)) {
+					valueDifferent = true;
+				} else if (metadataVOValue == null && metadataValue == null) {
+					valueDifferent = false;
+				} else {
+					valueDifferent = !metadataValueVO.equals(metadataValue);
+				}
+				if (valueDifferent) {
+					record.set(metadata, metadataVOValue);
+				}
 			}
 		}
 		return record;

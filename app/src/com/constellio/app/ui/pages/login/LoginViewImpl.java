@@ -22,35 +22,24 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.event.ShortcutAction.KeyCode;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.server.Responsive;
-import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.*;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public class LoginViewImpl extends VerticalLayout implements LoginView {
+public class LoginViewImpl extends BaseViewImpl implements LoginView {
 
 	private VerticalLayout loginFormLayout;
 
 	private CssLayout labelsLayout;
 	private Label welcomeLabel;
-	private Link logo;
+	private Component logo;
 
 	private HorizontalLayout fieldsLayout;
 	private TextField usernameField;
@@ -90,19 +79,22 @@ public class LoginViewImpl extends VerticalLayout implements LoginView {
 	private CssLayout buildLabels() {
 		CssLayout labelsLayout = new CssLayout();
 		labelsLayout.addStyleName("labels");
+		HorizontalLayout hLayout = new HorizontalLayout();
+		hLayout.setSizeFull();
 
 		welcomeLabel = new Label($("LoginView.welcome"));
 		welcomeLabel.setSizeUndefined();
 		welcomeLabel.addStyleName(ValoTheme.LABEL_H2);
 		welcomeLabel.addStyleName(ValoTheme.LABEL_COLORED);
-		labelsLayout.addComponent(welcomeLabel);
-		
-		logo = new Link(null, new ExternalResource("http://www.constellio.com"));
+		hLayout.addComponent(welcomeLabel);
+
+		String linkTarget = presenter.getLogoTarget();
+		Link logo = new Link(null, new ExternalResource(linkTarget));
+		logo.setIcon(presenter.getLogoResource());
 		logo.addStyleName("login-logo");
-		logo.setIcon(new ThemeResource("images/logo_eim_203x30.png"));
-		logo.setTargetName("_blank");
-		
-		labelsLayout.addComponent(logo);
+		logo.setSizeUndefined();
+		hLayout.addComponent(logo);
+		labelsLayout.addComponent(hLayout);
 		
 		return labelsLayout;
 	}
@@ -159,6 +151,11 @@ public class LoginViewImpl extends VerticalLayout implements LoginView {
 	@Override
 	public SessionContext getSessionContext() {
 		return ConstellioUI.getCurrentSessionContext();
+	}
+
+	@Override
+	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+		return loginFormLayout;
 	}
 
 	@Override

@@ -42,10 +42,11 @@ public class FormMetadataVO implements Serializable {
 	boolean enabled;
 	String metadataGroup;
 	MetadataInputType input;
+	Object defaultValue;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
 			String label, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch, boolean facet,
-			MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup) {
+			MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup, Object defaultValue) {
 		super();
 
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
@@ -70,7 +71,7 @@ public class FormMetadataVO implements Serializable {
 		this.autocomplete = autocomplete;
 		this.enabled = enabled;
 		this.metadataGroup = metadataGroup;
-
+		this.defaultValue = defaultValue;
 	}
 
 	public FormMetadataVO() {
@@ -224,6 +225,14 @@ public class FormMetadataVO implements Serializable {
 
 	public void setMetadataGroup(String metadataGroup) {
 		this.metadataGroup = metadataGroup;
+	}
+
+	public Object getDefaultValue() {
+		return defaultValue;
+	}
+
+	public void setDefaultValue(Object defaultValue) {
+		this.defaultValue = defaultValue;
 	}
 
 	@Override

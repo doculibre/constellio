@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -43,7 +44,8 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidator implemen
 			.getLogger(CreationDateIsBeforeOrEqualToLastModificationDateValidator.class);
 
 	@Override
-	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema, ValidationErrors validationErrors) {
+	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema,
+			ConfigProvider configProvider, ValidationErrors validationErrors) {
 
 		Metadata creationDateMetadata = schema.getMetadata("creationDate");
 		Metadata modificationDateMetadata = schema.getMetadata("modificationDate");

@@ -26,19 +26,12 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 
 public class Group extends RecordWrapper {
-
 	public static final String SCHEMA_TYPE = "group";
-
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-
 	public static final String CODE = "code";
-
 	public static final String IS_GLOBAL = "isGlobal";
-
 	public static final String ROLES = "roles";
-
 	public static final String TITLE = Schemas.TITLE_CODE;
-
 	public static final String PARENT = "parent";
 
 	public Group(Record record, MetadataSchemaTypes types) {
@@ -64,7 +57,7 @@ public class Group extends RecordWrapper {
 	}
 
 	public List<String> getRoles() {
-		return get(ROLES);
+		return getList(ROLES);
 	}
 
 	public Group setRoles(List<String> roles) {

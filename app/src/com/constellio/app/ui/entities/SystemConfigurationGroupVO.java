@@ -55,7 +55,7 @@ public class SystemConfigurationGroupVO implements Serializable {
 		return configs.get(i);
 	}
 
-	public void valueChange(Integer i, String newStringValue) {
+	public void valueChange(Integer i, Object newStringValue) {
 		SystemConfigurationVO config = configs.get(i);
 		config.setStringValue(newStringValue);
 		updatedSystemConfigurationVOIndexes.add(i);

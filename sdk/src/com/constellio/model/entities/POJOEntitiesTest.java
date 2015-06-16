@@ -147,9 +147,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaTypesHasValidEqualsHashcodeAndToStringBehaviors() {
 		MetadataSchemaTypes o = new MetadataSchemaTypes(zeCollection, 1, new ArrayList<MetadataSchemaType>(),
-				new ArrayList<String>());
+				new ArrayList<String>(), new ArrayList<String>());
 		MetadataSchemaTypes o2 = new MetadataSchemaTypes(zeCollection, 1, new ArrayList<MetadataSchemaType>(),
-				new ArrayList<String>());
+				new ArrayList<String>(), new ArrayList<String>());
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isNotInstanceOf(Serializable.class);
 	}

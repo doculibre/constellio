@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.frameworks.validation;
 
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class ValidationRuntimeException extends RuntimeException {
 
@@ -29,5 +31,9 @@ public class ValidationRuntimeException extends RuntimeException {
 
 	public ValidationErrors getValidationErrors() {
 		return validationErrors;
+	}
+
+	public List<ValidationError> getValidationErrorsList() {
+		return validationErrors.getValidationErrors();
 	}
 }

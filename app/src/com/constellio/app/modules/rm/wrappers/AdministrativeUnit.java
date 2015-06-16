@@ -38,6 +38,7 @@ public class AdministrativeUnit extends RecordWrapper {
 	public static final String FILING_SPACES_USERS = "filingSpacesUsers";
 	public static final String FILING_SPACES_ADMINISTRATORS = "filingSpacesAdmins";
 	public static final String COMMENTS = "comments";
+	public static final String DECOMMISSIONING_MONTH = "decommissioningMonth";
 
 	public AdministrativeUnit(Record record,
 			MetadataSchemaTypes types) {
@@ -110,6 +111,15 @@ public class AdministrativeUnit extends RecordWrapper {
 
 	public AdministrativeUnit setComments(List<Comment> comments) {
 		set(COMMENTS, comments);
+		return this;
+	}
+
+	public int getDecommissioningMonth() {
+		return get(DECOMMISSIONING_MONTH);
+	}
+
+	public AdministrativeUnit setDecommissioningMonth(int decommissioningMonth) {
+		set(DECOMMISSIONING_MONTH, decommissioningMonth);
 		return this;
 	}
 

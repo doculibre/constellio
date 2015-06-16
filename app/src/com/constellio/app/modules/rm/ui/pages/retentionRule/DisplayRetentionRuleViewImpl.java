@@ -28,22 +28,25 @@ import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleDi
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.BaseDisplay;
+import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
 public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements DisplayRetentionRuleView {
 
 	public static final String STYLE_NAME = "display-folder";
-	
+
 	private RetentionRuleVO retentionRuleVO;
 
 	private VerticalLayout mainLayout;
-	
+
 	private RetentionRuleDisplay recordDisplay;
 
 	private Button editButton, deleteButton;
@@ -78,13 +81,28 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
-		
+
 		recordDisplay = new RetentionRuleDisplay(retentionRuleVO);
 		recordDisplay.setWidth("100%");
-		
+
 		mainLayout.addComponent(recordDisplay);
-		
+
+		Component component = buildAdditionalComponent();
+		mainLayout.addComponent(component);
+
 		return mainLayout;
+	}
+
+	private Component buildAdditionalComponent() {
+		Label foldersNumberCaptionLabel = new Label($("DisplayRetentionRuleView.foldersNumber"));
+		foldersNumberCaptionLabel.setId("foldersNumber");
+		foldersNumberCaptionLabel.addStyleName("foldersNumber");
+		Label foldersNumberDisplayComponent = new Label(presenter.getFoldersNumber());
+		foldersNumberDisplayComponent.addStyleName("display-value-foldersNumber");
+
+		List<CaptionAndComponent> captionsAndComponents = new ArrayList<>();
+		captionsAndComponents.add(new CaptionAndComponent(foldersNumberCaptionLabel, foldersNumberDisplayComponent));
+		return new BaseDisplay(captionsAndComponents);
 	}
 
 	@Override
@@ -114,10 +132,10 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 				presenter.deleteButtonClicked();
 			}
 		};
-		
+
 		actionMenuButtons.add(editButton);
 		actionMenuButtons.add(deleteButton);
-		
+
 		return actionMenuButtons;
 	}
 

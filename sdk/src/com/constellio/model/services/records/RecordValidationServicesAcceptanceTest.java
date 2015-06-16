@@ -37,6 +37,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import sun.security.krb5.Config;
+
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
@@ -52,6 +54,7 @@ import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecor
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.schemas.validators.AllowedReferencesValidator;
@@ -70,6 +73,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 	Record record;
 	RecordValidationServices services;
 	@Mock Transaction transaction;
+	@Mock ConfigProvider configProvider;
 
 	LocalDateTime january1_2010 = new LocalDateTime(2010, 1, 1, 0, 0);
 	LocalDateTime january1_2011 = new LocalDateTime(2011, 1, 1, 0, 0);
@@ -94,7 +98,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
 		thirdSchema = schemas.new ThirdSchemaMetadatas();
 
-		services = new RecordValidationServices(getModelLayerFactory().getMetadataSchemasManager(),
+		services = new RecordValidationServices(configProvider, getModelLayerFactory().getMetadataSchemasManager(),
 				getModelLayerFactory().newSearchServices(), getModelLayerFactory().newAuthorizationsServices());
 
 		recordServices = getModelLayerFactory().newRecordServices();

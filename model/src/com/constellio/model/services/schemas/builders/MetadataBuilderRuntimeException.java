@@ -48,6 +48,12 @@ public class MetadataBuilderRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class EssentialMetadataCannotBeDisabled extends MetadataBuilderRuntimeException {
+		public EssentialMetadataCannotBeDisabled(String metadata) {
+			super("Essential metadata cannot be disabled");
+		}
+	}
+
 	public static class AllowedReferencesOnlyUsableOnReferenceTypeMetadata extends MetadataBuilderRuntimeException {
 		public AllowedReferencesOnlyUsableOnReferenceTypeMetadata(String metadata) {
 			super("Cannot set allowed references to metadata '" + metadata + "', since it doesn't have a reference type");

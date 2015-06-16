@@ -18,12 +18,27 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 
 public class ConservationRulesReportModel {
 
 	List<ConservationRulesReportModel_Rule> rules = new ArrayList<ConservationRulesReportModel_Rule>();
+
+	Map<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> adminUnitRulesMap = new HashMap();
+
+	boolean byAdministrativeUnit;
+
+	public void setByAdministrativeUnit(boolean byAdministrativeUnit) {
+		this.byAdministrativeUnit = byAdministrativeUnit;
+	}
+
+	public boolean isByAdministrativeUnit() {
+		return byAdministrativeUnit;
+	}
 
 	public List<ConservationRulesReportModel_Rule> getRules() {
 		return rules;
@@ -31,6 +46,15 @@ public class ConservationRulesReportModel {
 
 	public void setRules(List<ConservationRulesReportModel_Rule> rules) {
 		this.rules = rules;
+	}
+
+	public void setRulesByAdministrativeUnit(
+			Map<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> rulesByAdministrativeUnit) {
+		this.adminUnitRulesMap = rulesByAdministrativeUnit;
+	}
+
+	public Map<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> getRulesByAdministrativeUnitMap() {
+		return adminUnitRulesMap;
 	}
 
 	public String getTitle() {

@@ -36,7 +36,8 @@ public class MetadataToFormVOBuilder implements Serializable {
 		return build(metadata, null, configManager, schemaTypeCode);
 	}
 
-	public FormMetadataVO build(Metadata metadata, MetadataSchemaVO schemaVO, SchemasDisplayManager configManager, String schemaTypeCode) {
+	public FormMetadataVO build(Metadata metadata, MetadataSchemaVO schemaVO, SchemasDisplayManager configManager,
+			String schemaTypeCode) {
 		MetadataDisplayConfig config = configManager.getMetadata(metadata.getCollection(), metadata.getCode());
 		SchemaTypesDisplayConfig types = configManager.getTypes(metadata.getCollection());
 
@@ -69,21 +70,23 @@ public class MetadataToFormVOBuilder implements Serializable {
 
 		boolean autocomplete = metadata.isSchemaAutocomplete();
 
+		Object defaultValue = metadata.getDefaultValue();
+
 		return new FormMetadataVO(code, type, required, schemaVO, reference, label, searchable, multivalue, sortable,
-				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup);
+				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue);
 	}
 
 	private String getValidMetadataGroup(String metadataGroup, SchemaTypeDisplayConfig config) {
 		String validGroup = metadataGroup;
 		boolean found = false;
-		for(String group :config.getMetadataGroup()) {
-			if(group.equals(metadataGroup)) {
+		for (String group : config.getMetadataGroup()) {
+			if (group.equals(metadataGroup)) {
 				found = true;
 				break;
 			}
 		}
 
-		if(!found) {
+		if (!found) {
 			validGroup = config.getMetadataGroup().get(0);
 		}
 

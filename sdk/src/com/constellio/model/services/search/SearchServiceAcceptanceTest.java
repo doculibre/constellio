@@ -78,7 +78,6 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 
 public class SearchServiceAcceptanceTest extends ConstellioTest {
-
 	private static final LocalDateTime DATE_TIME4 = new LocalDateTime(2003, 7, 15, 22, 40);
 	private static final LocalDateTime DATE_TIME3 = new LocalDateTime(2002, 8, 15, 22, 40);
 	private static final LocalDateTime DATE_TIME2 = new LocalDateTime(2001, 9, 15, 22, 40);
@@ -510,10 +509,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = fromAllSchemasIn(zeCollection).returnAll();
 
 		//when
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setHighlighting(true);
-		query.setCondition(condition);
-		SPEQueryResponse response = searchServices.query(text, query);
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(text).setHighlighting(true);
+		SPEQueryResponse response = searchServices.query(query);
 
 		//then
 		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
@@ -547,10 +544,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).returnAll();
 
 		//when
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setHighlighting(true);
-		query.setCondition(condition);
-		SPEQueryResponse response = searchServices.query(text, query);
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(text).setHighlighting(true);
+		SPEQueryResponse response = searchServices.query(query);
 
 		//then
 		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
@@ -853,31 +848,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(records).containsOnly(expectedRecord, expectedRecord2, expectedRecord3);
 	}
-
-	// @Test
-	// public void whenSearchingRecordsContainingTextANDIsFalseOrNotContainingElementThenFindThem()
-	// throws Exception {
-	// defineSchemasManager().using(schema.withAStringMetadata().withABooleanMetadata());
-	// transaction.addUpdate(expectedRecord = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Norris"));
-	// transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Lechat"));
-	// expectedRecord.set(zeSchema.booleanMetadata(), false);
-	// expectedRecord2.set(zeSchema.booleanMetadata(), false);
-	// transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Edouard Lechat"));
-	// transaction.addUpdate(expectedRecord3 = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Edouard Norris"));
-	// recordServices.execute(transaction);
-	//
-	// condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Chuck")
-	// .andWhere(zeSchema.booleanMetadata()).isFalse().orWhere(zeSchema.stringMetadata()).isNotContainingElements(
-	// "Edouard Lechat");
-	//
-	// System.out.println(condition.getSolrQuery());
-	// List<Record> records = findRecords(condition);
-	//
-	// assertThat(records).hasSize(3);
-	// assertThat(records.get(0).getId()).isEqualTo(expectedRecord.getId());
-	// assertThat(records.get(1).getId()).isEqualTo(expectedRecord2.getId());
-	// assertThat(records.get(2).getId()).isEqualTo(expectedRecord3.getId());
-	// }
 
 	@Test
 	public void whenSearchingRecordsContainingTextORIsTrueThenFindThem()
@@ -1962,8 +1932,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		ArgumentCaptor<SolrParams> params = ArgumentCaptor.forClass(SolrParams.class);
 		verify(recordDao).query(params.capture());
-		assertThat(params.getValue().get("fl")).isEqualTo("id,schema_s,_version_,collection_s");
-		assertThat(params.getValue().get("rows")).isEqualTo("1");
+		assertThat(params.getValue().get("rows")).isEqualTo("0");
 	}
 
 	@Test
@@ -2089,6 +2058,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
 	public void givenRecordsFromTwoSchemaTypesWhenSearchingForEverythingThenReturnTwo()
 			throws Exception {
 		configureFolderAndRule();

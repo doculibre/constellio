@@ -21,9 +21,9 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class MetadataValueVO implements Serializable {
-	
+
 	final MetadataVO metadata;
-	
+
 	Object value;
 
 	public MetadataValueVO(MetadataVO metadata) {
@@ -32,8 +32,24 @@ public class MetadataValueVO implements Serializable {
 
 	public MetadataValueVO(MetadataVO metadata, Object value) {
 		super();
+		setMetadataValue(metadata, value);
 		this.metadata = metadata;
+	}
+
+	private void setMetadataValue(MetadataVO metadata, Object value) {
+		if (metadata.getCode().toLowerCase().endsWith("_id")) {
+			value = removeLeftZeros((String) value);
+		}
 		this.value = value;
+	}
+
+	private String removeLeftZeros(String value) {
+		try {
+			long idL = Long.parseLong(value);
+			return Long.toString(idL);
+		} catch (NumberFormatException e) {
+			return value;
+		}
 	}
 
 	public MetadataVO getMetadata() {

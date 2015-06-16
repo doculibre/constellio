@@ -110,35 +110,38 @@ public class RecordsImportServices implements ImportServices {
 			final User user, List<String> collections)
 			throws RecordsImportServicesRuntimeException {
 
+		ProgressionHandler progressionHandler = new ProgressionHandler(bulkImportProgressionListener);
 		String collection = user.getCollection();
 		importDataProvider.initialize();
 		try {
 			ModelLayerCollectionEventsListeners extensions = modelLayerFactory.getExtensions().getCollectionListeners(collection);
 			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 			ResolverCache resolverCache = new ResolverCache(modelLayerFactory.newSearchServices(), types);
-			validate(importDataProvider, types, resolverCache, extensions);
-			return run(importDataProvider, bulkImportProgressionListener, user, types, resolverCache, extensions);
+			validate(importDataProvider, progressionHandler, types, resolverCache, extensions);
+			return run(importDataProvider, progressionHandler, user, types, resolverCache, extensions);
 		} finally {
 			importDataProvider.close();
 		}
 	}
 
-	void validate(ImportDataProvider importDataProvider, MetadataSchemaTypes types, ResolverCache resolverCache,
+	void validate(ImportDataProvider importDataProvider, ProgressionHandler progressionHandler, MetadataSchemaTypes types,
+			ResolverCache resolverCache,
 			ModelLayerCollectionEventsListeners extensions) {
 		List<String> importedSchemaTypes = getImportedSchemaTypes(types, importDataProvider);
 
 		for (String schemaType : importedSchemaTypes) {
-			new RecordsImportValidator(schemaType, importDataProvider, types, resolverCache, extensions).validate();
+			new RecordsImportValidator(schemaType, progressionHandler, importDataProvider, types, resolverCache, extensions)
+					.validate();
 		}
 	}
 
-	private BulkImportResults run(ImportDataProvider importDataProvider,
-			BulkImportProgressionListener bulkImportProgressionListener,
+	private BulkImportResults run(ImportDataProvider importDataProvider, ProgressionHandler progressionHandler,
 			User user, MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionEventsListeners extensions) {
 
 		BulkImportResults importResults = new BulkImportResults();
 		List<String> importedSchemaTypes = getImportedSchemaTypes(types, importDataProvider);
 		for (String schemaType : importedSchemaTypes) {
+			progressionHandler.beforeImportOf(schemaType);
 			List<String> uniqueMetadatas = types.getSchemaType(schemaType).getAllMetadatas()
 					.onlyWithType(STRING).onlyUniques().toLocalCodesList();
 			int previouslySkipped = 0;
@@ -148,7 +151,7 @@ public class RecordsImportServices implements ImportServices {
 
 				Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
-						bulkImportProgressionListener, user, types, extensions);
+						progressionHandler, user, types, extensions);
 				if (skipped > 0 && skipped == previouslySkipped) {
 					List<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
 					throw new RecordsImportServicesRuntimeException_CyclicDependency(schemaType, cyclicDependentIds);
@@ -163,9 +166,8 @@ public class RecordsImportServices implements ImportServices {
 	}
 
 	int bulkImport(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
-			Iterator<ImportData> importDataIterator, String schemaType,
-			BulkImportProgressionListener bulkImportProgressionListener, User user, MetadataSchemaTypes types,
-			ModelLayerCollectionEventsListeners extensions) {
+			Iterator<ImportData> importDataIterator, String schemaType, ProgressionHandler progressionHandler, User user,
+			MetadataSchemaTypes types, ModelLayerCollectionEventsListeners extensions) {
 
 		int skipped = 0;
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
@@ -175,8 +177,8 @@ public class RecordsImportServices implements ImportServices {
 				List<ImportData> batch = importDataBatches.next();
 				Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
 				skipped += importBatch(importResults, uniqueMetadatas, resolverCache, schemaType, user, batch, transaction,
-						types, extensions);
-				recordServices.execute(transaction);
+						types, progressionHandler, extensions);
+				recordServices.executeHandlingImpactsAsync(transaction);
 			} catch (RecordServicesException e) {
 				while (importDataBatches.hasNext()) {
 					importDataBatches.next();
@@ -190,7 +192,7 @@ public class RecordsImportServices implements ImportServices {
 
 	private int importBatch(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			String schemaType, User user, List<ImportData> batch, Transaction transaction, MetadataSchemaTypes types,
-			ModelLayerCollectionEventsListeners extensions) {
+			ProgressionHandler progressionHandler, ModelLayerCollectionEventsListeners extensions) {
 		int skipped = 0;
 		for (ImportData toImport : batch) {
 
@@ -212,6 +214,8 @@ public class RecordsImportServices implements ImportServices {
 					Record record = buildRecord(importResults, user, resolverCache, user.getCollection(), schemaType, toImport,
 							types, extensions);
 					transaction.add(record);
+					progressionHandler.incrementProgression();
+
 					resolverCache.mapIds(schemaType, LEGACY_ID_LOCAL_CODE, legacyId, record.getId());
 					for (String uniqueMetadata : uniqueMetadatas) {
 						String value = (String) toImport.getFields().get(uniqueMetadata);

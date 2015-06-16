@@ -89,7 +89,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RMSchemasRecordsServices extends SchemasRecordsServices {
-	
+
 	private static final String EMAIL_MIME_TYPES = "mimeTypes";
 	private static final String EMAIL_ATTACHMENTS = "attachments";
 
@@ -524,6 +524,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return defaultFolderSchema().getMetadata(Folder.ADMINISTRATIVE_UNIT);
 	}
 
+	public Metadata folderCategory() {
+		return defaultFolderSchema().getMetadata(Folder.CATEGORY);
+	}
+
 	public Metadata folderActiveRetentionType() {
 		return defaultFolderSchema().getMetadata(Folder.ACTIVE_RETENTION_TYPE);
 	}
@@ -556,8 +560,16 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return defaultFolderSchema().getMetadata(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES);
 	}
 
+	public Metadata folderExpectedDepositDate() {
+		return defaultFolderSchema().getMetadata(Folder.EXPECTED_DEPOSIT_DATE);
+	}
+
 	public Metadata folderPlanifiedDepositDate() {
 		return defaultFolderSchema().getMetadata(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES);
+	}
+
+	public Metadata folderExpectedDestructionDate() {
+		return defaultFolderSchema().getMetadata(Folder.EXPECTED_DESTRUCTION_DATE);
 	}
 
 	public Metadata folderPlanifiedDestructionDate() {
@@ -576,8 +588,36 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return defaultFolderSchema().getMetadata(Folder.ACTUAL_DESTRUCTION_DATE);
 	}
 
+	public Metadata folderMainCopyRule() {
+		return defaultFolderSchema().getMetadata(Folder.MAIN_COPY_RULE);
+	}
+
 	public Metadata folderContainer() {
 		return defaultFolderSchema().getMetadata(Folder.CONTAINER);
+	}
+
+	public Metadata folderRetentionRule() {
+		return defaultFolderSchema().getMetadata(Folder.RETENTION_RULE);
+	}
+
+	public Metadata folderBorrowed() {
+		return defaultFolderSchema().getMetadata(Folder.BORROWED);
+	}
+
+	public Metadata folderBorrowedUserEntered() {
+		return defaultFolderSchema().getMetadata(Folder.BORROW_USER_ENTERED);
+	}
+
+	public Metadata folderBorrowPreviewReturnDate() {
+		return defaultFolderSchema().getMetadata(Folder.BORROW_PREVIEW_RETURN_DATE);
+	}
+
+	public Metadata folderBorrowDate() {
+		return defaultFolderSchema().getMetadata(Folder.BORROW_DATE);
+	}
+
+	public Metadata folderMediumTypes() {
+		return defaultFolderSchema().getMetadata(Folder.MEDIUM_TYPES);
 	}
 
 	//
@@ -964,12 +1004,12 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		DocumentType emailDocumentType = new DocumentType(searchServices.searchSingleResult(condition), types);
 		return emailDocumentType.getId();
 	}
-	
+
 	public boolean isEmail(String fileName) {
 		String extension = FilenameUtils.getExtension(fileName);
 		return extension.equalsIgnoreCase("eml") || extension.equalsIgnoreCase("msg");
 	}
-	
+
 	public Map<String, Object> parseEmail(String fileName, InputStream messageInputStream) {
 		Map<String, Object> parsedMessage;
 		String extension = FilenameUtils.getExtension(fileName);
@@ -982,11 +1022,11 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		}
 		return parsedMessage;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public Email newEmail(String fileName, InputStream messageInputStream) {
 		Map<String, Object> parsedEmail = parseEmail(fileName, messageInputStream);
-		
+
 		Email email = newEmail();
 
 		String subject = (String) parsedEmail.get(Email.SUBJECT);
@@ -999,10 +1039,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		List<String> bccTo = (List<String>) parsedEmail.get(Email.EMAIL_BCC_TO);
 		String content = (String) parsedEmail.get(Email.EMAIL_CONTENT);
 		List<String> attachmentFileNames = (List<String>) parsedEmail.get(Email.EMAIL_ATTACHMENTS_LIST);
-		
+
 		LocalDateTime sentOnDateTime = sentOn != null ? new LocalDateTime(sentOn.getTime()) : null;
 		LocalDateTime receivedOnDateTime = receivedOn != null ? new LocalDateTime(receivedOn.getTime()) : null;
-		
+
 		email.setSubject(subject);
 		email.setEmailObject(object);
 		email.setEmailSentOn(sentOnDateTime);
@@ -1016,24 +1056,23 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 		return email;
 	}
-	
 
 	public Map<String, Object> parseEml(InputStream messageInputStream) {
 		Map<String, Object> parsed = new HashMap<String, Object>();
-		
-		Properties props = System.getProperties();
-        props.put("mail.host", "smtp.dummydomain.com");
-        props.put("mail.transport.protocol", "smtp");
 
-        Session mailSession = Session.getDefaultInstance(props, null);
-        try {
+		Properties props = System.getProperties();
+		props.put("mail.host", "smtp.dummydomain.com");
+		props.put("mail.transport.protocol", "smtp");
+
+		Session mailSession = Session.getDefaultInstance(props, null);
+		try {
 			MimeMessage message = new MimeMessage(mailSession, messageInputStream);
 			messageInputStream.close();
 			String subject = message.getSubject();
 			String object = subject;
 			Date sentDate = message.getSentDate();
 			Date receivedDate = message.getReceivedDate();
-			
+
 			Address from = message.getFrom()[0];
 			Address[] to = message.getRecipients(RecipientType.TO);
 			Address[] cc = message.getRecipients(RecipientType.CC);
@@ -1043,7 +1082,7 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 			message.writeTo(contentOs);
 			contentOs.close();
 			String content = contentOs.toString("UTF-8");
-			
+
 			parsed.put(Email.SUBJECT, subject);
 			parsed.put(Email.EMAIL_OBJECT, object);
 			parsed.put(Email.EMAIL_SENT_ON, sentDate);
@@ -1053,22 +1092,22 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 			parsed.put(Email.EMAIL_CC_TO, addressesAsStringList(cc));
 			parsed.put(Email.EMAIL_BCC_TO, addressesAsStringList(bcc));
 			parsed.put(Email.EMAIL_CONTENT, content);
-			
+
 			Map<String, InputStream> attachments = new HashMap<String, InputStream>();
 			parsed.put(EMAIL_ATTACHMENTS, attachments);
-			
+
 			Map<String, String> mimeTypes = new HashMap<String, String>();
 			parsed.put(EMAIL_MIME_TYPES, mimeTypes);
-			
+
 			List<String> attachmentFileNames = new ArrayList<>();
 			parsed.put(Email.EMAIL_ATTACHMENTS_LIST, attachmentFileNames);
-			
+
 			Object messageContent = message.getContent();
-	        if (messageContent instanceof MimeMultipart) {
+			if (messageContent instanceof MimeMultipart) {
 				MimeMultipart mimeMultipart = (MimeMultipart) messageContent;
-	        	int partCount = mimeMultipart.getCount();
-	        	for (int i = 0; i < partCount; i++) {
-	        		BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+				int partCount = mimeMultipart.getCount();
+				for (int i = 0; i < partCount; i++) {
+					BodyPart bodyPart = mimeMultipart.getBodyPart(i);
 					String partFileName = bodyPart.getFileName();
 					Object partContent = bodyPart.getContent();
 					if (partContent instanceof InputStream) {
@@ -1077,17 +1116,17 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 						mimeTypes.put(partFileName, bodyPart.getContentType());
 						attachmentFileNames.add(partFileName);
 					}
-	        	}	
-	        }
-			
+				}
+			}
+
 		} catch (MessagingException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
-		} 
+		}
 		return parsed;
 	}
-	
+
 	private static List<String> addressesAsStringList(Address[] addresses) {
 		List<String> addressesStr = new ArrayList<>();
 		if (addresses != null) {
@@ -1103,12 +1142,12 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		try {
 			byte[] messageBytes = IOUtils.toByteArray(messageInputStream);
 			messageInputStream.close();
-			
+
 			Chunks CHUNKS = new Chunks();
 			POIFSFileSystem filesystem = new POIFSFileSystem(new ByteArrayInputStream(messageBytes));
 			ChunkGroup[] chunkGroups = POIFSChunkParser.parse(filesystem);
 			for (ChunkGroup chunkGroup : chunkGroups) {
-				for (Chunk chunk  : chunkGroup.getChunks()) {
+				for (Chunk chunk : chunkGroup.getChunks()) {
 					Chunk recordChunk;
 					int chunkId = chunk.getChunkId();
 					if (chunkId == MAPIProperty.BODY.id) {
@@ -1172,18 +1211,18 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 				}
 			}
 
-	        String from = CHUNKS.displayFromChunk.getValue();
-	        String subject = CHUNKS.subjectChunk.getValue();
-	        String to = CHUNKS.displayToChunk.getValue();
-	        String cc = CHUNKS.displayCCChunk.getValue();
-	        String bcc = CHUNKS.displayBCCChunk.getValue();
-	        String content = CHUNKS.textBodyChunk.getValue();
+			String from = CHUNKS.displayFromChunk.getValue();
+			String subject = CHUNKS.subjectChunk.getValue();
+			String to = CHUNKS.displayToChunk.getValue();
+			String cc = CHUNKS.displayCCChunk.getValue();
+			String bcc = CHUNKS.displayBCCChunk.getValue();
+			String content = CHUNKS.textBodyChunk.getValue();
 
-		    MsgParser msgp = new MsgParser();
-		    Message msg = msgp.parseMsg(new ByteArrayInputStream(messageBytes));
-		    Date sentDate = msg.getDate();
-		    Date receivedDate = msg.getDate();
-			
+			MsgParser msgp = new MsgParser();
+			Message msg = msgp.parseMsg(new ByteArrayInputStream(messageBytes));
+			Date sentDate = msg.getDate();
+			Date receivedDate = msg.getDate();
+
 			parsed.put(Email.SUBJECT, subject);
 			parsed.put(Email.EMAIL_OBJECT, subject);
 			parsed.put(Email.EMAIL_SENT_ON, sentDate);
@@ -1200,34 +1239,33 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	    
+
 		return parsed;
 	}
-	
+
 	private static List<String> splitAddresses(String addresses) {
 		return Arrays.asList(StringUtils.split(addresses, ";"));
 	}
-	
-	private static void  insertMsgAttachments(Map<String, Object> parsed, Message msg) {
+
+	private static void insertMsgAttachments(Map<String, Object> parsed, Message msg) {
 		Map<String, InputStream> attachments = new HashMap<String, InputStream>();
 		parsed.put(EMAIL_ATTACHMENTS, attachments);
-		
+
 		List<String> attachmentFileNames = new ArrayList<>();
 		parsed.put(Email.EMAIL_ATTACHMENTS_LIST, attachmentFileNames);
-		
+
 		Map<String, String> mimeTypes = new HashMap<String, String>();
 		parsed.put(EMAIL_MIME_TYPES, mimeTypes);
-	    
-	    List<Attachment> atts = msg.getAttachments();
-	    for (Attachment att : atts) {
-	        if (att instanceof FileAttachment) {
-		        FileAttachment file = (FileAttachment) att;
-		        String fileName = file.getFilename();
-		        attachments.put(file.getLongFilename(), new ByteArrayInputStream(file.getData()));
-		        mimeTypes.put(fileName, file.getMimeTag());
-		        attachmentFileNames.add(fileName);
-	        }
-	    }
+
+		List<Attachment> atts = msg.getAttachments();
+		for (Attachment att : atts) {
+			if (att instanceof FileAttachment) {
+				FileAttachment file = (FileAttachment) att;
+				String fileName = file.getFilename();
+				attachments.put(file.getLongFilename(), new ByteArrayInputStream(file.getData()));
+				mimeTypes.put(fileName, file.getMimeTag());
+				attachmentFileNames.add(fileName);
+			}
+		}
 	}
-	
 }

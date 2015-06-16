@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.security.authentification;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationServiceRuntimeException.IncorrectPassword;
+import com.constellio.model.services.users.UserUtils;
 
 public class PasswordFileAuthenticationService implements AuthenticationService {
 
@@ -100,13 +102,25 @@ public class PasswordFileAuthenticationService implements AuthenticationService 
 		if (username == null || password == null) {
 			throw new IncorrectPassword();
 		}
-		PropertiesConfiguration propertiesConfiguration = configManager.getProperties(AUTHENTIFICATION_PROPERTIES);
-		Map<String, String> properties = propertiesConfiguration.getProperties();
-		String currentPasswordHash = properties.get(username);
+
+		String currentPasswordHash = getPasswordHash(username);
 		String passwordHash = calculeHash(password);
 		if (currentPasswordHash == null || !currentPasswordHash.equals(passwordHash)) {
 			throw new IncorrectPassword();
 		}
+	}
+
+	private String getPasswordHash(String username) {
+		PropertiesConfiguration propertiesConfiguration = configManager.getProperties(AUTHENTIFICATION_PROPERTIES);
+		Map<String, String> properties = propertiesConfiguration.getProperties();
+		String usernameKey = UserUtils.toCacheKey(username);
+		for (Entry<String, String> entry : properties.entrySet()) {
+			String entryKey = UserUtils.toCacheKey(entry.getKey());
+			if (entryKey.equals(usernameKey)) {
+				return entry.getValue();
+			}
+		}
+		return null;
 	}
 
 	private void updatePassword(final String username, final String newPasswordHash) {

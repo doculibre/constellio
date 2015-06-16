@@ -41,12 +41,18 @@ public class FoldersLocator {
 			path = path.split("/file:")[1];
 
 			File classFolder = new File(path);
-			finalPath = classFolder.getParentFile().getParentFile().getParentFile()
-					.getAbsoluteFile();
+
+			finalPath = classFolder.getParentFile();
+			while(!finalPath.getName().equals("model") && !finalPath.getName().equals("WEB-INF")) {
+				finalPath = finalPath.getParentFile();
+			}
+
+			finalPath = finalPath.getParentFile().getAbsoluteFile();
 		} else {
 			File classFolder = new File(fullPath);
+
 			finalPath = classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
-					.getParentFile().getParentFile().getAbsoluteFile();
+					.getParentFile().getParentFile().getParentFile().getAbsoluteFile();
 		}
 
 		return finalPath;
@@ -178,20 +184,20 @@ public class FoldersLocator {
 	}
 
 	private File getGitWebappFolder(File javaRootFolder) {
-		List<String> gitSubProjects = Arrays.asList("ui", "dao", "services", "custom", "sdk");
+		List<String> gitSubProjects = Arrays.asList("app", "data", "model", "custom", "sdk");
 		String lowercaseJavaRootFolder = javaRootFolder.getName().toLowerCase();
 
 		// TODO Remove intelligid
 		if ("constellio".equals(lowercaseJavaRootFolder) || "intelligid".equals(lowercaseJavaRootFolder)
-				|| lowercaseJavaRootFolder.startsWith("constellio-") || lowercaseJavaRootFolder.startsWith("intelligid-")) {
+				|| lowercaseJavaRootFolder.startsWith("constellio-") || lowercaseJavaRootFolder.startsWith("constellio_") || lowercaseJavaRootFolder.startsWith("intelligid-")) {
 			return javaRootFolder;
 
 		} else if (gitSubProjects.contains(lowercaseJavaRootFolder)) {
 			return javaRootFolder.getParentFile();
 
 		} else {
-			throw new IllegalStateException("Cannot find project folder for java root folder'" + javaRootFolder.getName()
-					+ "' path= '" + javaRootFolder.getAbsolutePath() + "'");
+			throw new IllegalStateException("Cannot find project folder for java root folder '" + javaRootFolder.getName()
+					+ "' path = '" + javaRootFolder.getAbsolutePath() + "'");
 		}
 	}
 

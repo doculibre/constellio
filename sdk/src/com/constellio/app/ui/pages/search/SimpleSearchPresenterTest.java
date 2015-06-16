@@ -34,7 +34,6 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -99,14 +98,6 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 		presenter.forRequestParameters(null);
 		assertThat(presenter.getUserSearchExpression()).isEqualTo("");
 		assertThat(presenter.mustDisplayResults()).isFalse();
-	}
-
-	@Test
-	public void givenSearchExpressionThenSearchOnTheEnglishSearchTextField() {
-		when(factories.getModelLayerFactory().getLanguageDetectionManager()).thenReturn(detectionManager);
-		when(detectionManager.tryDetectLanguage(EXPRESSION)).thenReturn("en");
-		assertThat(presenter.searchFieldsFor(EXPRESSION))
-				.containsOnlyOnce(Schemas.ENGLISH_SEARCH_FIELD, Schemas.FRENCH_SEARCH_FIELD);
 	}
 
 	@Test

@@ -87,7 +87,7 @@ public class CreateSubTaskModificationImpactHandler implements RecordModificatio
 		LogicalSearchCondition condition = modificationImpact.getLogicalSearchCondition();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
-		Iterator<String> iterator = searchServices.optimizesRecordsIdsIterator(query, 10000);
+		Iterator<String> iterator = searchServices.optimizedRecordsIdsIterator(query, 10000);
 		return new BatchBuilderIterator<>(iterator, 1000);
 	}
 

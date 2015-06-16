@@ -78,7 +78,9 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 
 		appManagementService.update(new ProgressInfo());
 
-		assertThat(readFileToString(wrapperConf)).isEqualTo(getTestResourceContent("expected-modified-wrapper.conf"));
+		String wrapperConfContent = readFileToString(wrapperConf).replace(webappsFolder.getAbsolutePath(), "/path/to/webapps");
+
+		assertThat(wrapperConfContent).isEqualTo(getTestResourceContent("expected-modified-wrapper.conf"));
 
 		File newWebappVersion = new File(webappsFolder, "webapp-5.1.2");
 		File newWebappVersionWEB_INF = new File(newWebappVersion, "WEB-INF");

@@ -37,6 +37,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
 
+	public static final SystemConfiguration LOGO;
+	public static final SystemConfiguration  LOGO_LINK;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
@@ -45,6 +48,10 @@ public class ConstellioEIMConfigs {
 
 		// Associer ou non des rôles utilisateur aux autorisations
 		add(USER_ROLES_IN_AUTHORIZATIONS = others.createBooleanFalseByDefault("userRolesInAuthorizations"));
+
+		add(LOGO = others.createBinary("logo"));
+		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
+
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}

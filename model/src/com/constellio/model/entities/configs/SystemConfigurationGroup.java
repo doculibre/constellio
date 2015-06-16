@@ -35,6 +35,10 @@ public class SystemConfigurationGroup {
 		return new SystemConfiguration(SystemConfigurationType.STRING, module, groupCode, code, null, null, null);
 	}
 
+	public SystemConfiguration createString(String code, String defaultValue) {
+		return new SystemConfiguration(SystemConfigurationType.STRING, module, groupCode, code, defaultValue, null, null);
+	}
+
 	public SystemConfiguration createEnum(String code, Class<? extends Enum<?>> enumClass) {
 		return new SystemConfiguration(SystemConfigurationType.ENUM, module, groupCode, code, null, enumClass, null);
 	}
@@ -42,6 +46,11 @@ public class SystemConfigurationGroup {
 	public SystemConfiguration createInteger(String code) {
 		return new SystemConfiguration(SystemConfigurationType.INTEGER, module, groupCode, code, null, null, null);
 	}
+
+	public SystemConfiguration createBinary(String code) {
+		return new SystemConfiguration(SystemConfigurationType.BINARY, module, groupCode, code, null, null, null);
+	}
+
 
 	public SystemConfiguration createBooleanTrueByDefault(String code) {
 		return new SystemConfiguration(SystemConfigurationType.BOOLEAN, module, groupCode, code, true, null, null);

@@ -61,6 +61,8 @@ import com.vaadin.ui.VerticalLayout;
 
 @UiTest
 public class RecordFormAcceptanceTest extends ConstellioTest {
+	
+	private boolean throwExceptionOnDummyViewInit;
 
 	boolean REQUIRED = true;
 	boolean MULTIVALUE = true;
@@ -99,13 +101,16 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		schema = new MetadataSchemaVO("zeSchema", zeCollection, asLocaleMap("The schema", "Ze schema"));
+
+		
+		throwExceptionOnDummyViewInit = false;
 	}
 
 	@Test
 	public void givenRequiredStringMetadataWhenSubmittedWithEmptyValueThenValidationFailAndSaveNeverCalledOnPresenter()
 			throws Exception {
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, REQUIRED, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -123,7 +128,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -139,7 +144,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -159,7 +164,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		doThrow(runtimeException).when(presenter).saveButtonClick(any(RecordVO.class));
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -178,22 +183,10 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFormThrowsAnExceptionUponInitalizationThenApplicationRuntimeExceptionThrown()
+	public void givenViewThrowsAnExceptionUponInitalizationThenApplicationRuntimeExceptionThrown()
 			throws Exception {
 
-		ArgumentCaptor<RecordVO> recordVOArgumentCaptor = ArgumentCaptor.forClass(RecordVO.class);
-
-		//Both metadatas have the same code
-		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
-				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null);
-		MetadataVO metadata2 = new MetadataVO("metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
-				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null);
-		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
-		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
-
-		dummyViewRecord = new RecordVO("zeId", Arrays.asList(metadata1Value, metadata2Value), VIEW_MODE.FORM);
+		throwExceptionOnDummyViewInit = true;
 
 		try {
 			driver.navigateTo().url(dummyPage);
@@ -212,10 +205,10 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
 		MetadataVO metadata2 = new MetadataVO("metadata2", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 
@@ -255,10 +248,10 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
 		MetadataVO metadata2 = new MetadataVO("metadata2", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 
@@ -479,6 +472,9 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		@Override
 		protected Component buildMainComponent(ViewChangeEvent event) {
+			if (throwExceptionOnDummyViewInit) {
+				throw new RuntimeException("throwExceptionOnDummyViewInit");
+			}
 			System.out.println("session id > " + ConstellioUI.getCurrent().getSession().getSession().getId());
 
 			VerticalLayout verticalLayout = new VerticalLayout();

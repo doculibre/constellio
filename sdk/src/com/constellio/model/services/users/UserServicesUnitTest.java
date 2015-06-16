@@ -407,9 +407,9 @@ public class UserServicesUnitTest extends ConstellioTest {
 	@Test
 	public void whenGetUserCredentialsThenOk()
 			throws Exception {
-		userServices.getActifUserCredentials();
+		userServices.getActiveUserCredentials();
 
-		verify(userCredentialsManager).getActifUserCredentials();
+		verify(userCredentialsManager).getActiveUserCredentials();
 	}
 
 	//
@@ -493,6 +493,17 @@ public class UserServicesUnitTest extends ConstellioTest {
 		when(configurationManager.isLDAPAuthentication()).thenReturn(false);
 
 		assertThat(userServices.canModifyPassword(alice, alice)).isTrue();
+
+	}
+
+	@Test
+	public void whenIsLDAPAuthenticationThenOk()
+			throws Exception {
+
+		when(configurationManager.isLDAPAuthentication()).thenReturn(false).thenReturn(true);
+
+		assertThat(userServices.isLDAPAuthentication()).isFalse();
+		assertThat(userServices.isLDAPAuthentication()).isTrue();
 
 	}
 }

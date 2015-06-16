@@ -32,6 +32,9 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class RMReportsPresenter extends BasePresenter<RMReportsView> implements ReportPresenter {
+
+	private static final boolean withAdministrativeUnit = true;
+
 	public RMReportsPresenter(RMReportsView view) {
 		super(view);
 	}
@@ -41,6 +44,7 @@ public class RMReportsPresenter extends BasePresenter<RMReportsView> implements 
 		return Arrays.asList("Reports.ClassificationPlan",
 				"Reports.DetailedClassificationPlan",
 				"Reports.ConservationRulesList",
+				"Reports.ConservationRulesListByAdministrativeUnit",
 				"Reports.AdministrativeUnits",
 				"Reports.AdministrativeUnitsAndUsers",
 				"Reports.Users");
@@ -56,6 +60,8 @@ public class RMReportsPresenter extends BasePresenter<RMReportsView> implements 
 			return new ClassificationPlanReportViewImpl(true);
 		case "Reports.ConservationRulesList":
 			return new ConservationRulesReportViewImpl();
+		case "Reports.ConservationRulesListByAdministrativeUnit":
+			return new ConservationRulesReportViewImpl(withAdministrativeUnit);
 		case "Reports.AdministrativeUnits":
 			return new AdministrativeUnitReportViewImpl();
 		case "Reports.AdministrativeUnitsAndUsers":

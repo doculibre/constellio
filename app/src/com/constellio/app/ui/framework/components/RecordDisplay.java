@@ -56,7 +56,7 @@ public class RecordDisplay extends BaseDisplay {
 		List<CaptionAndComponent> captionsAndComponents = new ArrayList<CaptionAndComponent>();
 
 		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		for (MetadataValueVO metadataValue : recordVO.getMetadataValues()) {
+		for (MetadataValueVO metadataValue : recordVO.getDisplayMetadataValues()) {
 			Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
 			if (displayComponent != null) {
 				MetadataVO metadata = metadataValue.getMetadata();

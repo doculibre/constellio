@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.data.dao.managers.config;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import org.jdom2.Document;
@@ -39,18 +40,22 @@ public interface ConfigManager {
 	BinaryConfiguration getBinary(String path);
 
 	XMLConfiguration getXML(String path);
-	
+
 	TextConfiguration getText(String path);
 
 	PropertiesConfiguration getProperties(String path);
 
 	boolean exist(String path);
 
+	List<String> list(String path);
+
 	void createXMLDocumentIfInexistent(String path, DocumentAlteration documentAlteration);
 
 	void createPropertiesDocumentIfInexistent(String path, PropertiesAlteration propertiesAlteration);
 
 	void delete(String path);
+
+	boolean rename(String path, String newPath);
 
 	void delete(String path, String hash)
 			throws ConfigManagerException.OptimisticLockingConfiguration;

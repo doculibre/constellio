@@ -319,7 +319,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	private Map<String, List<String>> getCollectionPermissions(String collection) {
 		Map<String, List<String>> permissions = new HashMap<>();
 
-		permissions.putAll(CorePermissions.getGroupedPermissions());
+		permissions.putAll(CorePermissions.PERMISSIONS.getGrouped());
 
 		for (Module module : getEnabledModules(collection)) {
 			permissions.putAll(module.getPermissions());

@@ -70,7 +70,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	private Layout buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
 		VerticalLayout layout = new VerticalLayout();
-		for (MetadataValueVO metadataValue : recordVO.getMetadataValues()) {
+		for (MetadataValueVO metadataValue : recordVO.getTableMetadataValues()) {
 			MetadataVO metadataVO = metadataValue.getMetadata();
 			if (metadataVO.getCode().endsWith("_title")) {
 				continue;

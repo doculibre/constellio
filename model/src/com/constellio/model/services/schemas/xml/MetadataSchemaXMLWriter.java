@@ -38,12 +38,13 @@ import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
 
 public class MetadataSchemaXMLWriter {
 
 	public void writeEmptyDocument(String collection, Document document) {
-		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>()),
-				document);
+		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
+				new ArrayList<String>()), document);
 	}
 
 	public Document write(MetadataSchemaTypes schemaTypes) {
@@ -119,6 +120,7 @@ public class MetadataSchemaXMLWriter {
 	}
 
 	private void addMetadataToSchema(Element schemaElement, Metadata metadata) {
+		ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
 		Element metadataElement = new Element("metadata");
 		metadataElement.addContent(newElementWithContent("code", metadata.getLocalCode()));
 		metadataElement.addContent(newElementWithContent("label", metadata.getLabel()));
@@ -129,6 +131,7 @@ public class MetadataSchemaXMLWriter {
 		metadataElement.addContent(newElementWithContent("sortable", metadata.isSortable()));
 		metadataElement.addContent(newElementWithContent("schemaAutocomplete", metadata.isSchemaAutocomplete()));
 		metadataElement.addContent(newElementWithContent("systemReserved", metadata.isSystemReserved()));
+		metadataElement.addContent(newElementWithContent("essential", metadata.isEssential()));
 		metadataElement.addContent(newElementWithContent("childOfRelationship", metadata.isChildOfRelationship()));
 		metadataElement.addContent(newElementWithContent("taxonomyRelationship", metadata.isTaxonomyRelationship()));
 		metadataElement.addContent(newElementWithContent("uniqueValue", metadata.isUniqueValue()));
@@ -140,6 +143,12 @@ public class MetadataSchemaXMLWriter {
 		metadataElement.addContent(toEnumClassFactoryElement(metadata.getEnumClass()));
 		metadataElement.addContent(toAccessRestrictionsElement(metadata.getAccessRestrictions()));
 		metadataElement.addContent(toRefencesElement(metadata.getAllowedReferences()));
+		if (metadata.getDefaultValue() != null) {
+			utils.toElement(metadata.getDefaultValue(), metadataElement, "defaultValue");
+		} else {
+			utils.toElement("null", metadataElement, "defaultValue");
+		}
+
 		if (!metadata.inheritDefaultSchema()) {
 			metadataElement.addContent(toDataEntryElement(metadata.getDataEntry()));
 		}

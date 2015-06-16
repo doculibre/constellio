@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExten
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4_1;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -62,15 +64,13 @@ public class ConstellioRMModule implements InstallableModule {
 
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
-		List<MigrationScript> migrationScripts = new ArrayList<>();
-
-		migrationScripts.add(new RMMigrationTo5_0_1());
-		migrationScripts.add(new RMMigrationTo5_0_2());
-		migrationScripts.add(new RMMigrationTo5_0_3());
-		migrationScripts.add(new RMMigrationTo5_0_4());
-		migrationScripts.add(new RMMigrationTo5_0_4_1());
-
-		return migrationScripts;
+		return Arrays.asList(
+				new RMMigrationTo5_0_1(),
+				new RMMigrationTo5_0_2(),
+				new RMMigrationTo5_0_3(),
+				new RMMigrationTo5_0_4(),
+				new RMMigrationTo5_0_4_1(),
+				new RMMigrationTo5_0_5());
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class ConstellioRMModule implements InstallableModule {
 
 	@Override
 	public Map<String, List<String>> getPermissions() {
-		return RMPermissionsTo.getGroupedPermissions();
+		return RMPermissionsTo.PERMISSIONS.getGrouped();
 	}
 
 	@Override

@@ -23,8 +23,11 @@ import static java.util.Arrays.asList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate.SchemaType;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordDepositReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordTransferReportViewImpl;
+import com.constellio.app.modules.rm.services.LabelTemplateServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
@@ -120,6 +123,12 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public String getContainerId() {
 		return containerId;
+	}
+
+	//TODO Thiago test
+	public List<LabelTemplate> getTemplates() {
+		LabelTemplateServices labelTemplateServices = new LabelTemplateServices(appLayerFactory);
+		return labelTemplateServices.getTemplates(SchemaType.CONTAINER.name());
 	}
 
 	@Override

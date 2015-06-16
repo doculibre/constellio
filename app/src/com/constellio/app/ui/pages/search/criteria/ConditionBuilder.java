@@ -31,6 +31,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class ConditionBuilder {
@@ -97,18 +98,13 @@ public class ConditionBuilder {
 			if (metadata.getType() == MetadataValueType.DATE_TIME) {
 				LocalDateTime start = (LocalDateTime) criterion.getValue();
 				return from(schemaType).where(metadata).isValueInRange(start, start.withTime(23, 59, 59, 999));
-				//} else if (metadata.getType() == MetadataValueType.REFERENCE) {
-				// 	RecordVO recordVO = (RecordVO) criterion.getValue();
-				//	return from(schemaType).where(metadata).isEqualTo(recordVO.getId());
-			} else {
-				return from(schemaType).where(metadata).isEqualTo(criterion.getValue());
 			}
+			return from(schemaType).where(metadata).isEqualTo(criterion.getValue());
 		case CONTAINS_TEXT:
-			if (metadata.getType() == MetadataValueType.STRING) {
-				return from(schemaType).where(metadata).isContainingText((String) criterion.getValue());
-			} else {
-				return from(schemaType).where(metadata).query((String) criterion.getValue());
-			}
+			String value = (String) criterion.getValue();
+			return metadata.getType() == MetadataValueType.STRING ?
+					from(schemaType).where(metadata).isContainingText(value) :
+					from(schemaType).where(metadata).query(value);
 		case LESSER_THAN:
 			return from(schemaType).where(metadata).isLessThan(criterion.getValue());
 		case GREATER_THAN:
@@ -119,6 +115,9 @@ public class ConditionBuilder {
 			return from(schemaType).where(metadata).isTrue();
 		case IS_FALSE:
 			return from(schemaType).where(metadata).isFalseOrNull();
+		case IN_HIERARCHY:
+			String prefix = criterion.getValue() + "/";
+			return from(schemaType).where(Schemas.PATH).isStartingWithText(prefix);
 		default:
 			throw new RuntimeException("Unsupported search operator");
 		}

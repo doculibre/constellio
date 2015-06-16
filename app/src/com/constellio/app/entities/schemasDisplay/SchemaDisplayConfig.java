@@ -91,5 +91,6 @@ public class SchemaDisplayConfig {
 		formMetadatas.add(metadataCode);
 		return withFormMetadataCodes(formMetadatas);
 	}
+
 }
 

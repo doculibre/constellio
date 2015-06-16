@@ -26,6 +26,7 @@ import java.util.ResourceBundle;
 
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 public class i18n {
@@ -93,6 +94,14 @@ public class i18n {
 			message = key;
 		}
 		return message;
+	}
+
+	public static String $(ValidationErrors errors) {
+		StringBuilder sb = new StringBuilder();
+		for (ValidationError error : errors.getValidationErrors()) {
+			sb.append(" - " + $(error) + "<br/>");
+		}
+		return sb.toString();
 	}
 
 	public static String $(ValidationError error) {

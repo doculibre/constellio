@@ -52,6 +52,10 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 		return schemaPresenterUtils.schemaCode;
 	}
 
+	public final String getLabel() {
+		return schema().getLabel();
+	}
+
 	public final void setSchemaCode(String schemaCode) {
 		this.schemaPresenterUtils.setSchemaCode(schemaCode);
 	}
@@ -70,6 +74,10 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 
 	protected List<BatchProcess> addOrUpdate(Record record) {
 		return schemaPresenterUtils.addOrUpdate(record);
+	}
+
+	protected List<BatchProcess> addOrUpdateWithoutUser(Record record) {
+		return schemaPresenterUtils.addOrUpdateWithoutUser(record);
 	}
 
 	protected final void delete(Record record) {
@@ -95,7 +103,7 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	protected Record toRecord(RecordVO recordVO) {
 		return schemaPresenterUtils.toRecord(recordVO);
 	}
-	
+
 	protected Content toContent(ContentVersionVO contentVersionVO) {
 		return schemaPresenterUtils.toContent(contentVersionVO);
 	}

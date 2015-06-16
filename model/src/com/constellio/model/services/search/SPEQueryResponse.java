@@ -40,7 +40,7 @@ public class SPEQueryResponse {
 
 	private final List<Record> records;
 
-	private final boolean correctlySpelled;
+	private final boolean correctlySpelt;
 	private final List<String> spellcheckerSuggestions;
 
 	public SPEQueryResponse(List<Record> records) {
@@ -50,13 +50,13 @@ public class SPEQueryResponse {
 		this.numFound = records.size();
 		this.records = records;
 		this.highlights = new HashMap<>();
-		this.correctlySpelled = true;
+		this.correctlySpelt = true;
 		this.spellcheckerSuggestions = new ArrayList<>();
 	}
 
 	public SPEQueryResponse(
 			Map<DataStoreField, List<FacetValue>> fieldFacetValues, Map<String, Integer> queryFacetsValues, long qtime,
-			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelled,
+			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
 			List<String> spellcheckerSuggestions) {
 		this.fieldFacetValues = fieldFacetValues;
 		this.queryFacetsValues = queryFacetsValues;
@@ -64,7 +64,7 @@ public class SPEQueryResponse {
 		this.numFound = numFound;
 		this.records = records;
 		this.highlights = highlights;
-		this.correctlySpelled = correctlySpelled;
+		this.correctlySpelt = correctlySpelt;
 		this.spellcheckerSuggestions = spellcheckerSuggestions;
 	}
 
@@ -109,12 +109,12 @@ public class SPEQueryResponse {
 	}
 
 	public SPEQueryResponse withModifiedRecordList(List<Record> records) {
-		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelled,
+		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelt,
 				spellcheckerSuggestions);
 	}
 
 	public SPEQueryResponse withNumFound(int numFound) {
-		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelled,
+		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelt,
 				spellcheckerSuggestions);
 	}
 
@@ -122,8 +122,8 @@ public class SPEQueryResponse {
 		return highlights;
 	}
 
-	public boolean isCorrectlySpelled() {
-		return correctlySpelled;
+	public boolean isCorrectlySpelt() {
+		return correctlySpelt;
 	}
 
 	public List<String> getSpellCheckerSuggestions() {

@@ -22,9 +22,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.api.extensions.SchemaTypeAccessExtension;
+import com.constellio.app.extensions.AppLayerCollectionEventsListeners;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.data.frameworks.extensions.ExtensionUtils;
+import com.constellio.data.frameworks.extensions.ExtensionUtils.BehaviorCaller;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -41,26 +48,31 @@ public class SchemaTypeVODataProvider implements Serializable {
 
 	transient List<MetadataSchemaTypeVO> schemaTypes;
 
+	transient AppLayerCollectionEventsListeners extensions;
+
 	MetadataSchemaTypeToVOBuilder voBuilder;
 	String collection;
 
-	public SchemaTypeVODataProvider(MetadataSchemaTypeToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
+	public SchemaTypeVODataProvider(MetadataSchemaTypeToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
 			String collection) {
 		this.voBuilder = voBuilder;
 		this.collection = collection;
-		init(modelLayerFactory);
+		init(appLayerFactory);
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		init(constellioFactories.getModelLayerFactory());
+		init(constellioFactories.getAppLayerFactory());
 	}
 
-	void init(ModelLayerFactory modelLayerFactory) {
+	void init(AppLayerFactory appLayerFactory) {
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+		extensions = appLayerFactory.getExtensions().getCollectionListeners(collection);
 		schemaTypes = listSchemaTypeVO();
+
 	}
 
 	public MetadataSchemaTypeVO getSchemaTypeVO(String code) {
@@ -93,14 +105,30 @@ public class SchemaTypeVODataProvider implements Serializable {
 		List<MetadataSchemaTypeVO> typeVOs = new ArrayList<>();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 		if (types != null) {
-			for (MetadataSchemaType type : types.getSchemaTypes()) {
+			for (final MetadataSchemaType type : types.getSchemaTypes()) {
+
+				boolean visible = false;
 				Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(type.getCollection(), type.getCode());
 				if (taxonomy != null) {
-					if (!taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(type.getCollection()))) {
-						typeVOs.add(voBuilder.build(type));
-					}
+					visible = true;
+					//!taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(type.getCollection()));
 
 				} else if (type.hasSecurity() || type.getCode().startsWith("ddv")) {
+					visible = true;
+
+				} else if (type.getCode().equals(RetentionRule.SCHEMA_TYPE)) {
+					visible = true;
+				}
+
+				visible = ExtensionUtils.getBooleanValue(extensions.schemaTypeAccessExtensions, visible,
+						new BehaviorCaller<SchemaTypeAccessExtension, ExtensionBooleanResult>() {
+							@Override
+							public ExtensionBooleanResult call(SchemaTypeAccessExtension behavior) {
+								return behavior.isSchemaTypeConfigurable(type);
+							}
+						});
+
+				if (visible) {
 					typeVOs.add(voBuilder.build(type));
 				}
 			}

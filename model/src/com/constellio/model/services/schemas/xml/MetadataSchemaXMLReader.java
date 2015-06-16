@@ -41,6 +41,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.InstanciationUtils;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
 
 public class MetadataSchemaXMLReader {
 
@@ -118,6 +119,7 @@ public class MetadataSchemaXMLReader {
 			}
 			metadataBuilder.setUndeletable(getBooleanFlagValue(metadataElement, "undeletable"));
 			metadataBuilder.setSystemReserved(getBooleanFlagValue(metadataElement, "systemReserved"));
+			metadataBuilder.setEssential(getBooleanFlagValue(metadataElement, "essential"));
 			metadataBuilder.setUnmodifiable(getBooleanFlagValue(metadataElement, "unmodifiable"));
 			metadataBuilder.setSearchable(getBooleanFlagValue(metadataElement, "searchable"));
 			metadataBuilder.setSortable(getBooleanFlagValue(metadataElement, "sortable"));
@@ -140,6 +142,12 @@ public class MetadataSchemaXMLReader {
 
 		if (!isInheriting(metadataElement)) {
 			setAccessRestrictions(metadataBuilder.defineAccessRestrictions(), metadataElement);
+		}
+
+		ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
+		Object defaultValue = utils.toObject(metadataElement.getChild("defaultValue"));
+		if (!"null".equals(defaultValue)) {
+			metadataBuilder.setDefaultValue(defaultValue);
 		}
 
 		addReferencesToBuilder(metadataBuilder, metadataElement);
@@ -268,16 +276,16 @@ public class MetadataSchemaXMLReader {
 	private <T> Class<T> getClassValue(Element element, String childTagName) {
 		String className = element.getChild(childTagName).getText();
 		if (StringUtils.isNotBlank(className)) {
-			Class classValue = new InstanciationUtils().loadClassWithoutExpectableExceptions(className);
-			return classValue;
+			return new InstanciationUtils().loadClassWithoutExpectableExceptions(className);
 		} else {
 			return null;
 		}
 	}
 
 	private boolean getBooleanFlagValue(Element element, String childTagName) {
-		String stringValue = element.getChild(childTagName).getText();
-		return "".equals(stringValue) ? null : Boolean.parseBoolean(stringValue);
+		Element childTag = element.getChild(childTagName);
+		String stringValue = childTag == null ? null : childTag.getText();
+		return stringValue != null && Boolean.parseBoolean(stringValue);
 	}
 
 	private String getStringValue(Element element, String childTagName) {

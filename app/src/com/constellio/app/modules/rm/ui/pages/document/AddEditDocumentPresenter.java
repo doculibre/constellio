@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -58,6 +57,8 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
 
@@ -66,9 +67,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private ContentVersionToVOBuilder contentVersionToVOBuilder = new ContentVersionToVOBuilder();
 
 	private boolean addView;
+	private boolean addViewWithCopy;
 
 	private DocumentVO documentVO;
-	
+
 	private String userDocumentId;
 
 	private SchemaPresenterUtils userDocumentPresenterUtils;
@@ -101,6 +103,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	public void forParams(String params) {
 		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 		String id = paramsMap.get("id");
+		String idCopy = paramsMap.get("idCopy");
 		String parentId = paramsMap.get("parentId");
 		userDocumentId = paramsMap.get("userDocumentId");
 
@@ -110,6 +113,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			addView = false;
 		} else {
 			document = rmSchemasRecordsServices.newDocument();
+			if (StringUtils.isNotBlank(idCopy)) {
+				addViewWithCopy = true;
+			}
 			addView = true;
 		}
 
@@ -121,9 +127,24 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (addView && userDocumentId != null) {
 			populateFromUserDocument(userDocumentId);
 		}
+		if (addViewWithCopy) {
+			populateFromExistingDocument(idCopy);
+		}
 		String currentSchemaCode = documentVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
 		view.setRecord(documentVO);
+	}
+
+	private void populateFromExistingDocument(String existingDocumentId) {
+		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
+		Content content = document.getContent();
+		ContentVersion contentVersion = content.getCurrentVersion();
+		ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
+		contentVersionVO.setMajorVersion(contentVersion.isMajor());
+		contentVersionVO.setVersion(contentVersion.getVersion());
+		documentVO.setContent(contentVersionVO);
+		documentVO.setTitle(document.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")");
+		documentVO.setFolder(document.getFolder());
 	}
 
 	@Override
@@ -136,10 +157,16 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			FolderStatus status = restrictedRMObject.getArchivisticStatus();
 			if (status != null && status.isSemiActive()) {
 				requiredPermissions.add(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT);
+				if (restrictedRMObject.getBorrowed() != null && restrictedRMObject.getBorrowed()) {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+				}
 			}
 
 			if (status != null && status.isInactive()) {
 				requiredPermissions.add(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT);
+				if (restrictedRMObject.getBorrowed() != null && restrictedRMObject.getBorrowed()) {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+				}
 			}
 
 			return user.hasAll(requiredPermissions).on(restrictedRMObject) && user.hasWriteAccess().on(restrictedRMObject);
@@ -148,10 +175,16 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			FolderStatus status = restrictedRMObject.getArchivisticStatus();
 			if (status != null && status.isSemiActive()) {
 				requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT);
+				if (restrictedRMObject.getBorrowed() != null && restrictedRMObject.getBorrowed()) {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+				}
 			}
 
 			if (status != null && status.isInactive()) {
 				requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT);
+				if (restrictedRMObject.getBorrowed() != null && restrictedRMObject.getBorrowed()) {
+					requiredPermissions.add(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
+				}
 			}
 
 			return user.hasAll(requiredPermissions).on(restrictedRMObject) && user.hasWriteAccess().on(restrictedRMObject);
@@ -204,12 +237,37 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	public void saveButtonClicked() {
 		Record record = toRecord(documentVO);
+		if (addViewWithCopy) {
+			setRecordContent(record, documentVO);
+		}
 		addOrUpdate(record);
 		if (userDocumentId != null) {
 			Record userDocumentRecord = userDocumentPresenterUtils.getRecord(userDocumentId);
 			userDocumentPresenterUtils.delete(userDocumentRecord, null);
 		}
 		view.navigateTo().displayDocument(record.getId());
+	}
+
+	private void setRecordContent(Record record, DocumentVO documentVO) {
+		Metadata contentMetadata = schema().getMetadata(Document.CONTENT);
+		Object content = record.get(contentMetadata);
+		if (content != null) {
+			//user modified the content
+			return;
+		}
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		ContentVersionVO contentVO = documentVO.getContent();
+		Boolean majorVersion = contentVO.isMajorVersion();
+		String fileName = contentVO.getFileName();
+		String hash = contentVO.getHash();
+		ContentVersionDataSummary contentVersionDataSummary = contentManager.getContentVersionSummary(hash);
+		Content copiedContent;
+		if (majorVersion != null && majorVersion) {
+			copiedContent = contentManager.createMajor(getCurrentUser(), fileName, contentVersionDataSummary);
+		} else {
+			copiedContent = contentManager.createMinor(getCurrentUser(), fileName, contentVersionDataSummary);
+		}
+		record.set(contentMetadata, copiedContent);
 	}
 
 	private RMSchemasRecordsServices rmSchemas() {
@@ -229,7 +287,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			// Ensure that we don't change the schema for the record
 			if (!isAddView()) {
 				if (StringUtils.isNotBlank(recordIdForDocumentType)) {
-					String schemaCodeForDocumentTypeRecordId = rmSchemasRecordsServices.getSchemaCodeForDocumentTypeRecordId(recordIdForDocumentType);
+					String schemaCodeForDocumentTypeRecordId = rmSchemasRecordsServices
+							.getSchemaCodeForDocumentTypeRecordId(recordIdForDocumentType);
 					if (schemaCodeForDocumentTypeRecordId == null) {
 						schemaCodeForDocumentTypeRecordId = Document.DEFAULT_SCHEMA;
 					}
@@ -237,8 +296,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						view.showErrorMessage($("AddEditDocumentView.cannotSelectDocumentType"));
 						// Set initial value
 						documentTypeField.setFieldValue(documentVO.getType());
-					}	
-				}	
+					}
+				}
 			}
 			if (isReloadRequiredAfterDocumentTypeChange()) {
 				reloadFormAfterDocumentTypeChange();
@@ -266,14 +325,12 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String currentSchemaCode = getSchemaCode();
 			String documentTypeRecordId = (String) view.getForm().getCustomField(Document.TYPE).getFieldValue();
 			if (StringUtils.isNotBlank(documentTypeRecordId)) {
-				String schemaCodeForDocumentTypeRecordId = rmSchemasRecordsServices.getSchemaCodeForDocumentTypeRecordId(documentTypeRecordId);
+				String schemaCodeForDocumentTypeRecordId = rmSchemasRecordsServices
+						.getSchemaCodeForDocumentTypeRecordId(documentTypeRecordId);
 				if (schemaCodeForDocumentTypeRecordId != null) {
 					reload = !currentSchemaCode.equals(schemaCodeForDocumentTypeRecordId);
-				} else if (!currentSchemaCode.equals(Document.DEFAULT_SCHEMA)) {	
-					reload = true;
-				} else {
-					reload = false;
-				}
+				} else
+					reload = !currentSchemaCode.equals(Document.DEFAULT_SCHEMA);
 			} else {
 				reload = !currentSchemaCode.equals(Document.DEFAULT_SCHEMA);
 			}
@@ -285,17 +342,19 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	void reloadFormAfterDocumentTypeChange() {
 		String documentTypeId = (String) view.getForm().getCustomField(Document.TYPE).getFieldValue();
-		
+
 		Document document;
 		if (documentTypeId != null) {
 			String schemaCodeFormDocumentTypeId = rmSchemasRecordsServices.getSchemaCodeForDocumentTypeRecordId(documentTypeId);
 			if (Email.SCHEMA.equals(schemaCodeFormDocumentTypeId)) {
-				ContentVersionVO documentContent = (ContentVersionVO) view.getForm().getCustomField(Document.CONTENT).getFieldValue();
+				ContentVersionVO documentContent = (ContentVersionVO) view.getForm().getCustomField(Document.CONTENT)
+						.getFieldValue();
 				if (documentContent != null) {
 					String fileName = documentContent.getFileName();
 					if (rmSchemasRecordsServices.isEmail(fileName)) {
 						InputStreamProvider inputStreamProvider = documentContent.getInputStreamProvider();
-						InputStream in = inputStreamProvider.getInputStream(AddEditDocumentPresenter.class + ".reloadFormAfterDocumentTypeChange");
+						InputStream in = inputStreamProvider
+								.getInputStream(AddEditDocumentPresenter.class + ".reloadFormAfterDocumentTypeChange");
 						document = rmSchemasRecordsServices.newEmail(fileName, in);
 					} else {
 						document = rmSchemasRecordsServices.newEmail();
@@ -309,16 +368,16 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		} else {
 			document = rmSchemasRecordsServices.newDocument();
 		}
-		
+
 		MetadataSchema documentSchema = document.getSchema();
 		String currentSchemaCode = documentSchema.getCode();
 		setSchemaCode(currentSchemaCode);
-		
+
 		List<String> ignoredMetadataCodes = Arrays.asList(Document.TYPE);
 		// Populate new record with previous record's metadata values
-		
+
 		view.getForm().commit();
-		
+
 		for (MetadataVO metadataVO : documentVO.getMetadatas()) {
 			String metadataCode = metadataVO.getCode();
 			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -340,9 +399,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		ContentVersionVO contentVersionVO = (ContentVersionVO) view.getForm().getCustomField(Document.CONTENT).getFieldValue();
 		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM);
 		documentVO.setContent(contentVersionVO);
-		
+
 		view.setRecord(documentVO);
-	 	view.getForm().reload();
+		view.getForm().reload();
 	}
-	
+
 }

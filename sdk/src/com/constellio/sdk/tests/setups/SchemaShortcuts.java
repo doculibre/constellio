@@ -22,4 +22,5 @@ public interface SchemaShortcuts {
 	String code();
 
 	String collection();
+
 }

@@ -48,6 +48,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class RetentionRuleVO extends RecordVO {
 
+	String foldersNumber;
+
 	public RetentionRuleVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
 		super(id, metadataValues, viewMode);
 	}
@@ -154,6 +156,14 @@ public class RetentionRuleVO extends RecordVO {
 
 	public List<CopyRetentionRule> getCopyRetentionRules() {
 		return getList(COPY_RETENTION_RULES);
+	}
+
+	public String getFoldersNumber() {
+		return foldersNumber;
+	}
+
+	public void setFoldersNumber(String foldersNumber) {
+		this.foldersNumber = foldersNumber;
 	}
 
 	public void setCopyRetentionRules(CopyRetentionRule... copyRetentionRules) {

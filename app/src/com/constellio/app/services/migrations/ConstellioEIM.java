@@ -17,32 +17,25 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.services.migrations;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_5;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class ConstellioEIM {
-
-	/**
-	 * The method return all migration scripts
-	 */
 	public List<MigrationScript> getMigrationScripts() {
-		List<MigrationScript> migrationScripts = new ArrayList<>();
-
-		migrationScripts.add(new CoreMigrationTo_5_0_1());
-//		migrationScripts.add(new CoreMigrationTo_5_0_2());
-		migrationScripts.add(new CoreMigrationTo_5_0_4());
-
-		return migrationScripts;
+		return Arrays.asList(
+				new CoreMigrationTo_5_0_1(),
+				new CoreMigrationTo_5_0_4(),
+				new CoreMigrationTo_5_0_5());
 	}
 
 	public List<SystemConfiguration> getConfigurations() {
 		return ConstellioEIMConfigs.configurations;
 	}
-
 }

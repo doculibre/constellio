@@ -76,7 +76,7 @@ public class SpellCheckerSearchServiceAcceptanceTest extends ConstellioTest {
 		SPEQueryResponse response = makeAQuery(queryText);
 
 		//then
-		assertThat(response.isCorrectlySpelled()).isEqualTo(false);
+		assertThat(response.isCorrectlySpelt()).isEqualTo(false);
 		assertThat(response.getSpellCheckerSuggestions()).contains(expectedQuerySuggestion);
 	}
 
@@ -91,7 +91,7 @@ public class SpellCheckerSearchServiceAcceptanceTest extends ConstellioTest {
 		SPEQueryResponse response = makeAQuery(queryText);
 
 		//then
-		assertThat(response.isCorrectlySpelled()).isEqualTo(false);
+		assertThat(response.isCorrectlySpelt()).isEqualTo(false);
 		assertThat(response.getSpellCheckerSuggestions()).contains(expectedQuerySuggestion);
 	}
 
@@ -106,7 +106,7 @@ public class SpellCheckerSearchServiceAcceptanceTest extends ConstellioTest {
 		SPEQueryResponse response = makeAQuery(queryText);
 
 		//then
-		assertThat(response.isCorrectlySpelled()).isEqualTo(false);
+		assertThat(response.isCorrectlySpelt()).isEqualTo(false);
 		assertThat(response.getSpellCheckerSuggestions()).contains(expectedQuerySuggestion);
 	}
 
@@ -123,17 +123,14 @@ public class SpellCheckerSearchServiceAcceptanceTest extends ConstellioTest {
 		SPEQueryResponse response = makeAQuery(queryText);
 
 		//then
-		assertThat(response.isCorrectlySpelled()).isEqualTo(false);
+		assertThat(response.isCorrectlySpelt()).isEqualTo(false);
 		assertThat(response.getSpellCheckerSuggestions()).contains(expectedQuerySuggestion);
 	}
 
 	private SPEQueryResponse makeAQuery(String queryText) {
 		condition = fromAllSchemasIn(zeCollection).returnAll();
-
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition).setSpellcheck(true);
-		SPEQueryResponse response = searchServices.query(queryText, query);
-		return response;
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery(queryText).setSpellcheck(true);
+		return searchServices.query(query);
 	}
 
 }

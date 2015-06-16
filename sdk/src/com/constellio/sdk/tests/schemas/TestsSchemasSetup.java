@@ -94,6 +94,26 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+
+	public static MetadataBuilderConfigurator whichHasDefaultValue(final Object value) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.setDefaultValue(value);
+			}
+
+		};
+	}
+
+	public static MetadataBuilderConfigurator whichIsEssential = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setEssential(true);
+		}
+
+	};
 	public static MetadataBuilderConfigurator whichIsEnabled = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -669,6 +689,10 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	public class ZeSchemaMetadatas implements SchemaShortcuts {
 
+		public Metadata metadataWithCode(String code) {
+			return getMetadata(code);
+		}
+
 		public String code() {
 			return "zeSchemaType_default";
 		}
@@ -826,6 +850,10 @@ public class TestsSchemasSetup extends SchemasSetup {
 	}
 
 	public class AnotherSchemaMetadatas implements SchemaShortcuts {
+
+		public Metadata metadataWithCode(String code) {
+			return getMetadata(code);
+		}
 
 		public String stringMetadataCompleteCode = code() + "_" + "stringMetadata";
 

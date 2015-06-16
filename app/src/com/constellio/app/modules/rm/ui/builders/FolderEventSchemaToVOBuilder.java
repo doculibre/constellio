@@ -43,7 +43,7 @@ public class FolderEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 					MetadataSchemaVO schemaVO, boolean required, boolean multivalue, boolean readOnly,
 					Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
 					String schemaTypeCode, MetadataInputType metadataInputType, AllowedReferences allowedReferences,
-					boolean enabled, StructureFactory structureFactory, String metadataGroup) {
+					boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -55,11 +55,11 @@ public class FolderEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 					}
 					metadataVO = super.newMetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly,
 							newLabels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
-							structureFactory, metadataGroup);
+							structureFactory, metadataGroup, defaultValue);
 				} else {
 					metadataVO = super.newMetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly,
 							labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
-							structureFactory, metadataGroup);
+							structureFactory, metadataGroup, defaultValue);
 				}
 				return metadataVO;
 			}

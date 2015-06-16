@@ -17,7 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.*;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
 
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;

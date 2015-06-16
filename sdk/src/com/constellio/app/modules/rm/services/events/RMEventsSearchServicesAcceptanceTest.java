@@ -19,6 +19,7 @@ package com.constellio.app.modules.rm.services.events;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Date;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
@@ -28,12 +29,15 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.borrowingServices.BorrowingServices;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -51,7 +55,11 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 	SearchServices searchServices;
 
 	RMEventsSearchServices rmSchemasRecordsServices;
+
+	BorrowingServices borrowingServices;
 	private RMTestRecords records;
+
+	LocalDateTime nowDateTime = TimeProvider.getLocalDateTime();
 
 	@Before
 	public void setUp()
@@ -60,6 +68,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
 		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		searchServices = getModelLayerFactory().newSearchServices();
+		borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
 		rmSchemasRecordsServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		users = new Users().using(getModelLayerFactory().newUserServices());
 		records = new RMTestRecords(zeCollection);
@@ -93,6 +102,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	//by date range
+
 	@Test
 	public void whenGetDeletedDocumentsByDateRangeThenReturnValidEvents()
 			throws Exception {
@@ -244,6 +254,77 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 			assertThat(events.size()).isEqualTo(1);
 			assertThat(events.get(0).getEventPrincipalPath()).isEqualTo(filingSpacePath1);
 		}
+	}
+
+	//Current and late borrowed folders
+
+	@Test
+	public void givenBorrowedFolderByAliceWhenFindCurrentlyBorrowedFoldersByHerThenOk()
+			throws Exception {
+
+		Date previewReturnDate = nowDateTime.plusDays(1).toDate();
+		borrowingServices
+				.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(), records.getAlice());
+
+		LogicalSearchQuery query = rmSchemasRecordsServices
+				.newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(records.getAdmin(), records.getAlice().getId());
+		List<Record> records = searchServices.search(query);
+		assertThat(records.size()).isEqualTo(1);
+		assertThat(records.get(0).getId()).isEqualTo("C30");
+
+	}
+
+	@Test
+	public void givenBorrowedFolderByAliceWhenFindCurrentlyBorrowedFoldersByEdouardThenNoRecordsFound()
+			throws Exception {
+
+		Date previewReturnDate = nowDateTime.plusDays(1).toDate();
+		borrowingServices
+				.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(), records.getAlice());
+
+		LogicalSearchQuery query = rmSchemasRecordsServices
+				.newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(records.getAdmin(),
+						records.getEdouard_managerInB_userInC().getId());
+		List<Record> records = searchServices.search(query);
+		assertThat(records.size()).isEqualTo(0);
+	}
+
+	@Test
+	public void givenLateBorrowedFolderByAliceWhenFindLateBorrowedFoldersByHerThenOk()
+			throws Exception {
+
+		givenTimeIs(nowDateTime);
+		Date previewReturnDate = nowDateTime.plusDays(1).toDate();
+		borrowingServices
+				.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(), records.getAlice());
+
+		nowDateTime = nowDateTime.plusDays(2);
+		givenTimeIs(nowDateTime);
+
+		LogicalSearchQuery query = rmSchemasRecordsServices
+				.newFindLateBorrowedFoldersByUserAndDateRangeQuery(records.getAdmin(), records.getAlice().getId());
+		List<Record> records = searchServices.search(query);
+		assertThat(records.size()).isEqualTo(1);
+		assertThat(records.get(0).getId()).isEqualTo("C30");
+	}
+
+	@Test
+	public void givenLateBorrowedFolderByAliceWhenFindLateBorrowedFoldersByEdouardThenNoRecordsFound()
+			throws Exception {
+
+		givenTimeIs(nowDateTime);
+		Date previewReturnDate = nowDateTime.plusDays(1).toDate();
+		borrowingServices
+				.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(), records.getAlice());
+
+		nowDateTime = nowDateTime.plusDays(2);
+		givenTimeIs(nowDateTime);
+
+		LogicalSearchQuery query = rmSchemasRecordsServices
+				.newFindLateBorrowedFoldersByUserAndDateRangeQuery(records.getAdmin(),
+						records.getEdouard_managerInB_userInC().getId());
+		List<Record> records = searchServices.search(query);
+		assertThat(records.size()).isEqualTo(0);
 	}
 
 	private RecordWrapper createDocument(String creatorUserName, LocalDateTime eventDate) {

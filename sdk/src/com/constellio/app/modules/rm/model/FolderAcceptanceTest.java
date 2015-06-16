@@ -25,7 +25,10 @@ import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -83,7 +86,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	LocalDate march31_2065 = new LocalDate(2065, 3, 31);
 	LocalDate march31_2066 = new LocalDate(2066, 3, 31);
 
-	RMSchemasRecordsServices schemas;
+	RMSchemasRecordsServices rm;
 	RMTestRecords records;
 	RecordServices recordServices;
 
@@ -108,7 +111,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
@@ -129,7 +132,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		Comment comment2 = new Comment("An other message", records.getEdouard_managerInB_userInC(),
 				new LocalDateTime().minusWeeks(1));
 
-		Folder folder = schemas.newFolder();
+		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(records.unitId_11);
 		folder.setDescription("Ze description");
 		folder.setFilingSpaceEntered(records.filingId_A);
@@ -510,7 +513,67 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenFolderCreatedWithRuleWithoutPrincipalCopyTypeThenSecondaryEvenIfAdministrativeUnitIsInList()
+			throws Exception {
+		givenConfig(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
+		givenRuleHasNoPrincipalCopyType(records.ruleId_1);
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10);
+		folder.setFilingSpaceEntered(records.filingId_A);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setTitle("Ze folder");
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setOpenDate(february2_2015);
+		folder.setCloseDateEntered(february11_2015);
+		folder.setMediumTypes(MD, PA);
+		getModelLayerFactory().newRecordServices().add(folder);
+
+		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
+
+	}
+
+	@Test
+	public void givenFolderCreatedWithRuleWithoutPrincipalCopyTypeThenSecondaryEvenIfPrincipalEntered()
+			throws Exception {
+		givenConfig(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
+		givenRuleHasNoPrincipalCopyType(records.ruleId_2);
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10);
+		folder.setFilingSpaceEntered(records.filingId_A);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setTitle("Ze folder");
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setOpenDate(february2_2015);
+		folder.setCloseDateEntered(february11_2015);
+		folder.setMediumTypes(MD, PA);
+		getModelLayerFactory().newRecordServices().add(folder);
+
+		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
+	}
+
 	// -------------------------------------------------------------------------
+
+	private void givenRuleHasNoPrincipalCopyType(String id)
+			throws Exception {
+		RetentionRule rule = rm.getRetentionRule(id);
+		List<CopyRetentionRule> copyRules = new ArrayList<>(rule.getCopyRetentionRules());
+		for (Iterator<CopyRetentionRule> iterator = copyRules.iterator(); iterator.hasNext(); ) {
+			if (iterator.next().getCopyType() == CopyType.PRINCIPAL) {
+				iterator.remove();
+			}
+		}
+		rule.setCopyRetentionRules(copyRules);
+		try {
+			getModelLayerFactory().newRecordServices().update(rule);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
 
 	private Folder folderWithSingleCopyRule(CopyRetentionRule copyRetentionRule) {
 
@@ -525,7 +588,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			transaction = new Transaction();
 		}
 
-		Folder folder = schemas.newFolder();
+		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(aPrincipalAdminUnit);
 		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
@@ -546,7 +609,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			transaction = new Transaction();
 		}
 
-		Folder folder = schemas.newFolder();
+		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(aPrincipalAdminUnit);
 		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
@@ -567,7 +630,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			transaction = new Transaction();
 		}
 
-		Folder folder = schemas.newFolder();
+		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(aPrincipalAdminUnit);
 		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
@@ -580,7 +643,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	private Folder saveAndLoad(Folder folder)
 			throws RecordServicesException {
 		recordServices.add(folder.getWrappedRecord());
-		return schemas.getFolder(folder.getId());
+		return rm.getFolder(folder.getId());
 	}
 
 	private RetentionRule givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(CopyRetentionRule... rules) {
@@ -592,7 +655,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	private RetentionRule givenRetentionRule(CopyRetentionRule... rules) {
-		RetentionRule retentionRule = schemas.newRetentionRuleWithId(zeRule);
+		RetentionRule retentionRule = rm.newRetentionRuleWithId(zeRule);
 
 		retentionRule.setCode("Ze rule");
 		retentionRule.setTitle("Ze rule");

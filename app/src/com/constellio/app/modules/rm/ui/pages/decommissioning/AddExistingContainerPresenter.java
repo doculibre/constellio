@@ -21,9 +21,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -38,7 +36,6 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_TooManyClosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
-import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -102,8 +99,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	@Override
-	public Map<MetadataVO, List<FacetValue>> getFacets() {
-		return new HashMap<>();
+	public void suggestionSelected(String suggestion) {
+		// Do nothing
 	}
 
 	@Override
@@ -112,8 +109,13 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	@Override
-	public List<MetadataVO> getMetadatasAllowedInCriteria() {
-		return getMetadatasAllowedInAdvancedSearch(ContainerRecord.SCHEMA_TYPE);
+	public List<MetadataVO> getMetadataAllowedInCriteria() {
+		return getMetadataAllowedInAdvancedSearch(ContainerRecord.SCHEMA_TYPE);
+	}
+
+	@Override
+	public List<MetadataVO> getMetadataAllowedInSort() {
+		return getMetadataAllowedInSort(ContainerRecord.SCHEMA_TYPE);
 	}
 
 	public void containerAdditionRequested(List<String> selectedRecordIds) {

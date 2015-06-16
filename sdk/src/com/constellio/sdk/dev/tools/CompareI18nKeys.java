@@ -34,19 +34,13 @@ public class CompareI18nKeys {
 	public static void main(String argv[])
 			throws Exception {
 
-		compare(Language.English);
+		ListComparisonResults<String> results = compare(Language.English);
+		printComparison(Language.English, results);
 
 	}
 
-	private static void compare(Language language)
-			throws Exception {
-		FoldersLocator foldersLocator = new FoldersLocator();
-		File i18nFolder = foldersLocator.getI18nFolder();
+	public static void printComparison(Language language, ListComparisonResults<String> comparisonResults) {
 		String languageFilename = "i18n_" + language.getCode() + ".properties";
-		List<String> defaultKeys = loadI18nKeys(new File(i18nFolder, "i18n.properties"));
-		List<String> englishKeys = loadI18nKeys(new File(i18nFolder, languageFilename));
-		ListComparisonResults<String> comparisonResults = LangUtils.compare(defaultKeys, englishKeys);
-
 		System.out.println("Keys in i18n.properties that are not in " + languageFilename);
 		for (String key : comparisonResults.getRemovedItems()) {
 			System.out.println(key);
@@ -56,6 +50,16 @@ public class CompareI18nKeys {
 		for (String key : comparisonResults.getNewItems()) {
 			System.out.println(key);
 		}
+	}
+
+	public static ListComparisonResults<String> compare(Language language)
+			throws Exception {
+		FoldersLocator foldersLocator = new FoldersLocator();
+		File i18nFolder = foldersLocator.getI18nFolder();
+		String languageFilename = "i18n_" + language.getCode() + ".properties";
+		List<String> defaultKeys = loadI18nKeys(new File(i18nFolder, "i18n.properties"));
+		List<String> englishKeys = loadI18nKeys(new File(i18nFolder, languageFilename));
+		return LangUtils.compare(defaultKeys, englishKeys);
 	}
 
 	private static List<String> loadI18nKeys(File file)

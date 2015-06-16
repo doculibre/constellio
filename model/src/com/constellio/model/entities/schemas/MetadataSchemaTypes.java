@@ -41,14 +41,16 @@ public class MetadataSchemaTypes {
 	private final List<MetadataSchemaType> schemaTypes;
 
 	private final List<String> schemaTypesSortedByDependency;
+	private List<String> referenceDefaultValues;
 
 	public MetadataSchemaTypes(String collection, int version, List<MetadataSchemaType> schemaTypes,
-			List<String> schemaTypesSortedByDependency) {
+			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues) {
 		super();
 		this.version = version;
 		this.collection = collection;
 		this.schemaTypes = Collections.unmodifiableList(schemaTypes);
 		this.schemaTypesSortedByDependency = schemaTypesSortedByDependency;
+		this.referenceDefaultValues = referenceDefaultValues;
 	}
 
 	public String getCollection() {
@@ -174,5 +176,9 @@ public class MetadataSchemaTypes {
 		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 			return false;
 		}
+	}
+
+	public List<String> getReferenceDefaultValues() {
+		return referenceDefaultValues;
 	}
 }

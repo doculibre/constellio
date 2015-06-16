@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -48,6 +47,10 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 
 @UiTest
 public class ListCollectionUserViewAcceptTest extends ConstellioTest {
+
+	public static final int USERNAME_COLUMN = 1;
+	public static final int GROUPCODE_COLUMN = 0;
+
 	public static final String GROUP_CODE = "test";
 	public static final String GROUP_NAME = "Test group";
 	public static final String CHUCK = "chuck";
@@ -80,14 +83,14 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 			throws Exception {
 		RecordContainerWebElement groups = page.getGroupTable();
 		assertThat(groups.countRows()).isEqualTo(1);
-		assertThat(groups.hasRowWithValueInColumn(GROUP_CODE, 0)).isTrue();
+		assertThat(groups.hasRowWithValueInColumn(GROUP_CODE, GROUPCODE_COLUMN)).isTrue();
 
 		List<UserCredential> test_users = records.getUsers().getAllUsers();
 		RecordContainerWebElement users = page.getUserTable();
 		assertThat(users.countRows()).isEqualTo(test_users.size());
 		for (UserCredential user : test_users) {
 			String fullName = user.getFirstName() + " " + user.getLastName();
-			assertThat(users.hasRowWithValueInColumn(fullName, 0)).isTrue();
+			assertThat(users.hasRowWithValueInColumn(fullName, USERNAME_COLUMN)).isTrue();
 		}
 	}
 
@@ -117,26 +120,26 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 		page.getUserWithName(SYSTEM_ADMIN).clickButtonAndConfirm(DeleteButton.BUTTON_STYLE);
 
 		assertThat(page.getWarningMessage()).isNotEmpty();
-		assertThat(page.getUserTable().hasRowWithValueInColumn(SYSTEM_ADMIN, 0)).isTrue();
+		assertThat(page.getUserTable().hasRowWithValueInColumn(SYSTEM_ADMIN, USERNAME_COLUMN)).isTrue();
 	}
 
 	@Test
 	public void givenGroupIsAddedAndRemovedThenAddAndRemoveTheGroup() {
 		page.getGroupWithCode(GROUP_CODE).clickButtonAndConfirm(DeleteButton.BUTTON_STYLE);
-		assertThat(page.getGroupTable().hasRowWithValueInColumn(GROUP_CODE, 0)).isFalse();
+		assertThat(page.getGroupTable().hasRowWithValueInColumn(GROUP_CODE, GROUPCODE_COLUMN)).isFalse();
 		page.addGroupAndRole(GROUP_CODE, "Utilisateur");
-		assertThat(page.getGroupTable().hasRowWithValueInColumn(GROUP_CODE, 0)).isTrue();
+		assertThat(page.getGroupTable().hasRowWithValueInColumn(GROUP_CODE, GROUPCODE_COLUMN)).isTrue();
 	}
 
 	@Test
 	public void givenUserIsAddedAndRemovedThenAddAndRemoveTheUser() {
 		page.getUserWithName(CHUCK_NORRIS).clickButtonAndConfirm(DeleteButton.BUTTON_STYLE);
-		assertThat(page.getUserTable().hasRowWithValueInColumn(CHUCK_NORRIS, 0)).isFalse();
+		assertThat(page.getUserTable().hasRowWithValueInColumn(CHUCK_NORRIS, USERNAME_COLUMN)).isFalse();
 
 		page.addUserAndRole(CHUCK, "Utilisateur");
 		page.waitForPageReload();
 
-		assertThat(page.getUserTable().hasRowWithValueInColumn(CHUCK_NORRIS, 0)).isTrue();
+		assertThat(page.getUserTable().hasRowWithValueInColumn(CHUCK_NORRIS, USERNAME_COLUMN)).isTrue();
 	}
 
 	@Test
@@ -184,12 +187,12 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 		page.waitForPageReload();
 		assertThat(getUserRoles(CHUCK)).contains("M");
 		page.getUserWithName(CHUCK_NORRIS).clickButtonAndConfirm(DeleteButton.BUTTON_STYLE);
-		assertThat(page.getUserTable().hasRowWithValueInColumn(CHUCK_NORRIS, 0)).isFalse();
+		assertThat(page.getUserTable().hasRowWithValueInColumn(CHUCK_NORRIS, USERNAME_COLUMN)).isFalse();
 
 		page.addUserAndRole(CHUCK, "Utilisateur");
 		page.waitForPageReload();
 
-		assertThat(page.getUserTable().hasRowWithValueInColumn(CHUCK_NORRIS, 0)).isTrue();
+		assertThat(page.getUserTable().hasRowWithValueInColumn(CHUCK_NORRIS, USERNAME_COLUMN)).isTrue();
 		assertThat(getUserRoles(CHUCK)).contains("U");
 	}
 
@@ -202,14 +205,8 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 
 		page.addGroupAndRole(GROUP_CODE, "Utilisateur");
 
-		assertThat(page.getGroupTable().hasRowWithValueInColumn(GROUP_CODE, 0)).isTrue();
+		assertThat(page.getGroupTable().hasRowWithValueInColumn(GROUP_CODE, GROUPCODE_COLUMN)).isTrue();
 		assertThat(getGroupRoles(GROUP_CODE)).contains("U");
-	}
-
-	@Test
-	@Ignore
-	public void givenUserWithoutPermissionThenDontDisplayThePage() {
-		// TODO
 	}
 
 	public List<String> getUserRoles(String username) {

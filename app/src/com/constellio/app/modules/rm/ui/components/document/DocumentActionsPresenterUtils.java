@@ -93,15 +93,25 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return getAuthorizationServices().canWrite(getCurrentUser(), currentDocument());
 	}
 
-	private ComponentState getEditButtonState() {
+	ComponentState getEditButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 
 		if (isEditDocumentPossible()) {
 			if (parentFolder.getArchivisticStatus().isInactive()) {
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return ComponentState
+							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
+									&& getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT).on(currentDocument()));
+				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
 			if (parentFolder.getArchivisticStatus().isSemiActive()) {
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return ComponentState
+							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
+									&& getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT).on(currentDocument()));
+				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT).on(currentDocument()));
 			}
@@ -116,6 +126,22 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
+	public Document renameContentButtonClicked(String newName) {
+		if (isEditDocumentPossible()) {
+			Record record = presenterUtils.getRecord(documentVO.getId());
+			Document document = new Document(record, presenterUtils.types());
+			document.getContent().renameCurrentVersion(newName);
+			return document;
+		}
+		return null;
+	}
+
+	public void copyContentButtonClicked() {
+		if (isEditDocumentPossible()) {
+			actionsComponent.navigateTo().addDocumentWithContent(documentVO.getId());
+		}
+	}
+
 	protected boolean isDeleteDocumentPossible() {
 		return getCurrentUser().hasDeleteAccess().on(currentDocument());
 	}
@@ -124,10 +150,20 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
 			if (parentFolder.getArchivisticStatus().isInactive()) {
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return ComponentState
+							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
+									&& getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
+				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
 			if (parentFolder.getArchivisticStatus().isSemiActive()) {
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return ComponentState
+							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
+									&& getCurrentUser().has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(currentDocument()));
+				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(currentDocument()));
 			}
@@ -328,14 +364,24 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return !email && (!checkedOut || borrower);
 	}
 
-	private ComponentState getUploadButtonState() {
+	ComponentState getUploadButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isUploadPossible()) {
 			if (parentFolder.getArchivisticStatus().isInactive()) {
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return ComponentState
+							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
+									&& getCurrentUser().has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(currentDocument()));
+				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
 			if (parentFolder.getArchivisticStatus().isSemiActive()) {
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return ComponentState
+							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
+									&& getCurrentUser().has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(currentDocument()));
+				}
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(currentDocument()));
 			}
@@ -390,6 +436,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public void updateActionsComponent() {
 		updateBorrowedMessage();
 		actionsComponent.setEditDocumentButtonState(getEditButtonState());
+		actionsComponent.setAddDocumentButtonState(getAddAuthorizationState());
 		actionsComponent.setDeleteDocumentButtonState(getDeleteButtonState());
 		actionsComponent.setAddAuthorizationButtonState(getAddAuthorizationState());
 		actionsComponent.setShareDocumentButtonState(getShareDocumentState());
@@ -430,5 +477,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	User getCurrentUser() {
 		return presenterUtils.getCurrentUser();
+	}
+
+	public String getContentTitle() {
+		return getContent().getCurrentVersion().getFilename();
+	}
+
+	public boolean hasContent() {
+		return getContent() != null;
 	}
 }

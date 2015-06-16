@@ -17,9 +17,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.extensions.imports;
 
+import static com.constellio.data.utils.LangUtils.asMap;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.HEAD;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -36,29 +42,33 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.bulkImport.ImportDataErrors;
 import com.constellio.model.services.records.bulkImport.data.ImportData;
 
-// TODO Refactorisation
 public class RetentionRuleImportExtension implements RecordImportExtension {
 
-	public static final String INVALID_RESOLVER_METADATA_CODE = "invalidResolverMetadataCode";
-	public static final String INVALID_METADATA_CODE = "invalidMetadataCode";
-	public static final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
-	public static final String LEGACY_ID_NOT_UNIQUE = "legacyIdNotUnique";
-	public static final String VALUE_NOT_UNIQUE = "valueNotUnique";
-
-	public static final String REQUIRED_VALUE = "requiredValue";
-	public static final String INVALID_SINGLEVALUE = "invalidSinglevalue";
-	public static final String INVALID_MULTIVALUE = "invalidMultivalue";
 	public static final String INVALID_STRING_VALUE = "invalidStringValue";
 	public static final String INVALID_NUMBER_VALUE = "invalidNumberValue";
-	public static final String INVALID_CONTENT_VALUE = "invalidContentValue";
-	public static final String INVALID_BOOLEAN_VALUE = "invalidBooleanValue";
+	public static final String INVALID_CODE_VALUE = "invalidCodeValue";
 	public static final String INVALID_DATE_VALUE = "invalidDateValue";
-	public static final String INVALID_DATETIME_VALUE = "invalidDatetimeValue";
 	public static final String INVALID_ENUM_VALUE = "invalidEnumValue";
-	public static final String INVALID_ID_VALUE = "invalidIdValue";
+	public static final String MISSING_METADATA = "missingMetadata";
+	public static final String REQUIRED_VALUE = "requiredValue";
 
-	private RMSchemasRecordsServices rm;
+	public static final String SEMI_ACTIVE_RETENTION_PERIOD_COMMENT = "semiActiveRetentionPeriodComment";
+	public static final String ACTIVE_RETENTION_PERIOD_COMMENT = "activeRetentionPeriodComment";
+	public static final String SEMI_ACTIVE_RETENTION_PERIOD = "semiActiveRetentionPeriod";
+	public static final String INACTIVE_DISPOSAL_COMMENT = "inactiveDisposalComment";
+	public static final String COPY_RETENTION_RULE_INDEX = "copyRetentionRuleIndex";
+	public static final String ACTIVE_RETENTION_PERIOD = "activeRetentionPeriod";
+	public static final String INACTIVE_DISPOSAL_TYPE = "inactiveDisposalType";
+	public static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
+	public static final String DOCUMENT_TYPE_INDEX = "documentTypeIndex";
+	public static final String ARCHIVISTIC_STATUS = "archivisticStatus";
+	public static final String MEDIUM_TYPES = "mediumTypes";
+	public static final String COPY_TYPE = "copyType";
+	public static final String CODE = "code";
+
+	private final RMSchemasRecordsServices rm;
 	private boolean copyRetentionRulePrincipalAndNotSortExist = false;
+	private ImportDataErrors errors;
 
 	public RetentionRuleImportExtension(String collection, ModelLayerFactory modelLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
@@ -71,112 +81,127 @@ public class RetentionRuleImportExtension implements RecordImportExtension {
 
 	@Override
 	public void prevalidate(ImportDataErrors errors, ImportData importRecord) {
+		this.errors = errors;
+		int index = 0;
 		List<Map<String, String>> copyRetentionRules = importRecord.getList(RetentionRule.COPY_RETENTION_RULES);
 		for (Map<String, String> copyRetentionRule : copyRetentionRules) {
-			validateCopyRetentionRule(copyRetentionRule, errors);
+			validateCopyRetentionRule(copyRetentionRule, errors, String.valueOf(index));
+			index++;
 		}
 	}
 
 	@Override
 	public void validate(ImportDataErrors errors, ImportData importRecord) {
+		this.errors = errors;
+		int index = 0;
 		List<Map<String, String>> documentTypes = importRecord.getList(RetentionRule.DOCUMENT_TYPES_DETAILS);
 		for (Map<String, String> documentType : documentTypes) {
-			validateDocumentType(documentType, errors);
+			validateDocumentType(documentType, errors, String.valueOf(index));
+			index++;
 		}
 
 	}
 
-	private void validateCopyRetentionRule(Map<String, String> copyRetentionRule, ImportDataErrors errors) {
-		if (copyRetentionRule.containsKey("code")) {
-			String value = copyRetentionRule.get("code");
+	private void validateCopyRetentionRule(Map<String, String> copyRetentionRule, ImportDataErrors errors, String index) {
+
+		if (copyRetentionRule.containsKey(CODE)) {
+			String value = copyRetentionRule.get(CODE);
 			if (value.isEmpty()) {
 				errors.error(INVALID_STRING_VALUE, copyRetentionRule);
 			}
 		} else {
-			errors.error(INVALID_METADATA_CODE, copyRetentionRule);
+			errors.error(MISSING_METADATA, asMap("value", CODE, COPY_RETENTION_RULE_INDEX, index));
 		}
 
-		if (copyRetentionRule.containsKey("copyType")) {
-			String value = copyRetentionRule.get("copyType").toUpperCase();
-			if (value.equals("P") && !copyRetentionRule.get("inactiveDisposalType").equals("T")) {
+		if (copyRetentionRule.containsKey(INACTIVE_DISPOSAL_TYPE)) {
+			String value = copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase();
+			if (value.isEmpty() || !(isDisposalTypeValid(value))) {
+				errors.error(INVALID_ENUM_VALUE, asMap(INACTIVE_DISPOSAL_TYPE, value, COPY_RETENTION_RULE_INDEX, index));
+			}
+		}
+
+		if (copyRetentionRule.containsKey(COPY_TYPE)) {
+			String value = copyRetentionRule.get(COPY_TYPE).toUpperCase();
+			if (value.isEmpty() || (!value.equals("P") && !value.equals("S"))) {
+				errors.error(INVALID_ENUM_VALUE, asMap(MEDIUM_TYPES, value, COPY_RETENTION_RULE_INDEX, index));
+			} else if (value.equals("P") && copyRetentionRule.containsKey(INACTIVE_DISPOSAL_TYPE) && !copyRetentionRule
+					.get(INACTIVE_DISPOSAL_TYPE).equals("T")) {
 				copyRetentionRulePrincipalAndNotSortExist = true;
 			}
-			if (value.isEmpty() || (!value.equals("P") && !value.equals("S"))) {
-				errors.error(INVALID_ENUM_VALUE, copyRetentionRule);
-			}
 		} else {
-			errors.error(INVALID_METADATA_CODE, copyRetentionRule);
+			errors.error(MISSING_METADATA, asMap("value", COPY_TYPE, COPY_RETENTION_RULE_INDEX, index));
 		}
 
-		if (copyRetentionRule.containsKey("mediumTypes")) {
-			String value = copyRetentionRule.get("mediumTypes");
+		if (copyRetentionRule.containsKey(MEDIUM_TYPES)) {
+			String value = copyRetentionRule.get(MEDIUM_TYPES);
 			if (value.isEmpty()) {
-				errors.error(INVALID_ENUM_VALUE, copyRetentionRule);
+				errors.error(INVALID_CODE_VALUE, asMap(MEDIUM_TYPES, "empty", COPY_RETENTION_RULE_INDEX, index));
 			} else {
 				String[] mediumTypes = value.split(",");
-				for (String mediumType : mediumTypes) {
-					if (rm.getMediumTypeByCode(mediumType) == null) {
-						errors.error(INVALID_ENUM_VALUE, copyRetentionRule);
+				for (String code : mediumTypes) {
+					if (rm.getMediumTypeByCode(code) == null) {
+						errors.error(INVALID_CODE_VALUE, asMap(MEDIUM_TYPES, code, COPY_RETENTION_RULE_INDEX, index));
 					}
 				}
 			}
 		} else {
-			errors.error(INVALID_METADATA_CODE, copyRetentionRule);
+			errors.error(MISSING_METADATA, asMap("value", MEDIUM_TYPES, COPY_RETENTION_RULE_INDEX, index));
 		}
 
-		if (copyRetentionRule.containsKey("activeRetentionPeriod")) {
-			String value = copyRetentionRule.get("activeRetentionPeriod");
-			//TODO devrait verifier si c'est un code ou un nombre d'année
+		if (copyRetentionRule.containsKey(ACTIVE_RETENTION_PERIOD)) {
+			String value = copyRetentionRule.get(ACTIVE_RETENTION_PERIOD);
 			if (value.isEmpty()) {
-				errors.error(INVALID_NUMBER_VALUE, copyRetentionRule);
+				errors.error(REQUIRED_VALUE, copyRetentionRule);
+			} else {
+				try {
+					int convertedValue = Integer.valueOf(value);
+					if (convertedValue < 0) {
+						errors.error(INVALID_NUMBER_VALUE, asMap("value", value, DOCUMENT_TYPE_INDEX, index));
+					}
+				} catch (NullPointerException | NumberFormatException np) {
+					errors.error(INVALID_NUMBER_VALUE, asMap("value", value, DOCUMENT_TYPE_INDEX, index));
+				}
 			}
 		} else {
-			errors.error(INVALID_METADATA_CODE, copyRetentionRule);
+			errors.error(MISSING_METADATA, asMap("value", ACTIVE_RETENTION_PERIOD, COPY_RETENTION_RULE_INDEX, index));
 		}
 
-		if (copyRetentionRule.containsKey("semiActiveRetentionPeriod")) {
-			if (copyRetentionRule.get("semiActiveRetentionPeriod") == null) {
-				errors.error(INVALID_DATE_VALUE, copyRetentionRule);
+		if (copyRetentionRule.containsKey(SEMI_ACTIVE_RETENTION_PERIOD)) {
+			if (copyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD) == null) {
+				errors.error(INVALID_DATE_VALUE, asMap("value", "null", COPY_RETENTION_RULE_INDEX, index));
 			}
 		} else {
-			errors.error(INVALID_DATE_VALUE, copyRetentionRule);
-		}
-
-		if (copyRetentionRule.containsKey("inactiveDisposalType")) {
-			String value = copyRetentionRule.get("inactiveDisposalType").toUpperCase();
-			if (value.isEmpty() || (!value.equals("C") && !value.equals("D") && !value.equals("T"))) {
-				errors.error(INVALID_ENUM_VALUE, copyRetentionRule);
-			}
+			errors.error(MISSING_METADATA, asMap("value", SEMI_ACTIVE_RETENTION_PERIOD, COPY_RETENTION_RULE_INDEX, index));
 		}
 
 	}
 
-	private void validateDocumentType(Map<String, String> documentType, ImportDataErrors errors) {
+	private void validateDocumentType(Map<String, String> documentType, ImportDataErrors errors, String index) {
+
 		if (!copyRetentionRulePrincipalAndNotSortExist) {
-			if (documentType.containsKey("archivisticStatus")) {
-				String value = documentType.get("archivisticStatus").toUpperCase();
-				if (value.isEmpty() || (!value.equals("C") && !value.equals("D") && !value
-						.equals("T"))) {
-					errors.error(INVALID_ENUM_VALUE, documentType);
+			if (documentType.containsKey(ARCHIVISTIC_STATUS)) {
+				String value = documentType.get(ARCHIVISTIC_STATUS).toUpperCase();
+				if (value.isEmpty() || !(isDisposalTypeValid(value))) {
+					errors.error(INVALID_ENUM_VALUE, asMap(ARCHIVISTIC_STATUS, value, DOCUMENT_TYPE_INDEX, index));
 				}
 			} else {
-				errors.error(INVALID_METADATA_CODE, documentType);
+				errors.error(MISSING_METADATA, asMap("value", ARCHIVISTIC_STATUS, DOCUMENT_TYPE_INDEX, index));
 			}
 		}
 
-		if (documentType.containsKey("code")) {
-			String value = documentType.get("code");
+		if (documentType.containsKey(CODE)) {
+			String value = documentType.get(CODE);
 			if (value.isEmpty()) {
-				errors.error(INVALID_STRING_VALUE, documentType);
+				errors.error(INVALID_CODE_VALUE, asMap("value", "empty", DOCUMENT_TYPE_INDEX, index));
 			} else {
 				try {
 					rm.getDocumentTypeByCode(value).getId();
 				} catch (WrappedRecordMustBeNotNull | NullPointerException re) {
-					errors.error(INVALID_ID_VALUE + ": " + value, documentType);
+					errors.error(INVALID_CODE_VALUE, asMap(CODE, value, DOCUMENT_TYPE_INDEX, index));
 				}
 			}
 		} else {
-			errors.error(INVALID_METADATA_CODE, documentType);
+			errors.error(MISSING_METADATA, asMap("value", CODE, DOCUMENT_TYPE_INDEX, index));
 		}
 	}
 
@@ -192,6 +217,12 @@ public class RetentionRuleImportExtension implements RecordImportExtension {
 			copyRetentionRuleList.add(buildCopyRetentionRule(copyRetentionRule));
 		}
 
+		Collections.sort(copyRetentionRuleList, new Comparator<CopyRetentionRule>() {
+			@Override
+			public int compare(CopyRetentionRule o1, CopyRetentionRule o2) {
+				return o1.getCopyType().compareTo(o2.getCopyType());
+			}
+		});
 		retentionRule.setCopyRetentionRules(copyRetentionRuleList);
 
 		List<RetentionRuleDocumentType> documentTypeList = new ArrayList<>();
@@ -202,24 +233,24 @@ public class RetentionRuleImportExtension implements RecordImportExtension {
 		retentionRule.setDocumentTypesDetails(documentTypeList);
 	}
 
-	private CopyRetentionRule buildCopyRetentionRule(Map<String, String> MapCopyRetentionRule) {
+	private CopyRetentionRule buildCopyRetentionRule(Map<String, String> mapCopyRetentionRule) {
 		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
 
-		copyRetentionRule.setCode(MapCopyRetentionRule.get("code"));
+		copyRetentionRule.setCode(mapCopyRetentionRule.get(CODE));
 
-		CopyType copyType = (MapCopyRetentionRule.get("copyType").toUpperCase()).equals("P") ?
+		CopyType copyType = (mapCopyRetentionRule.get(COPY_TYPE).toUpperCase()).equals("P") ?
 				CopyType.PRINCIPAL :
 				CopyType.SECONDARY;
 		copyRetentionRule.setCopyType(copyType);
 
-		List<String> mediumTypesId = getMediumTypesId(MapCopyRetentionRule.get("mediumTypes"));
+		List<String> mediumTypesId = getMediumTypesId(mapCopyRetentionRule.get(MEDIUM_TYPES));
 		copyRetentionRule.setMediumTypeIds(mediumTypesId);
 
-		if (!MapCopyRetentionRule.get("contentTypesComment").equals("")) {
-			copyRetentionRule.setContentTypesComment(MapCopyRetentionRule.get("contentTypesComment"));
+		if (!mapCopyRetentionRule.get(CONTENT_TYPES_COMMENT).equals("")) {
+			copyRetentionRule.setContentTypesComment(mapCopyRetentionRule.get(CONTENT_TYPES_COMMENT));
 		}
 
-		int activeRetentionPeriod = Integer.parseInt(MapCopyRetentionRule.get("activeRetentionPeriod"));
+		int activeRetentionPeriod = Integer.parseInt(mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD));
 		if (activeRetentionPeriod == 999) {
 			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_999);
 		} else if (activeRetentionPeriod == 888) {
@@ -228,28 +259,28 @@ public class RetentionRuleImportExtension implements RecordImportExtension {
 			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.fixed(activeRetentionPeriod));
 		}
 
-		if (!MapCopyRetentionRule.get("activeRetentionPeriodComment").equals("")) {
-			copyRetentionRule.setActiveRetentionComment(MapCopyRetentionRule.get("activeRetentionPeriodComment"));
+		if (!mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD_COMMENT).equals("")) {
+			copyRetentionRule.setActiveRetentionComment(mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD_COMMENT));
 		}
 
-		int semiActiveRetentionPeriod = Integer.parseInt(MapCopyRetentionRule.get("activeRetentionPeriod"));
+		int semiActiveRetentionPeriod = Integer.parseInt(mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD));
 		if (semiActiveRetentionPeriod == 999) {
-			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_999);
+			copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.OPEN_999);
 		} else if (semiActiveRetentionPeriod == 888) {
-			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
+			copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.OPEN_888);
 		} else {
-			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.fixed(semiActiveRetentionPeriod));
+			copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(semiActiveRetentionPeriod));
 		}
 
-		if (!MapCopyRetentionRule.get("semiActiveRetentionPeriodComment").equals("")) {
-			copyRetentionRule.setSemiActiveRetentionComment(MapCopyRetentionRule.get("semiActiveRetentionPeriodComment"));
+		if (!mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD_COMMENT).equals("")) {
+			copyRetentionRule.setSemiActiveRetentionComment(mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD_COMMENT));
 		}
 
-		DisposalType disposalType = disposalTypeFromString(MapCopyRetentionRule.get("inactiveDisposalType").toUpperCase());
+		DisposalType disposalType = disposalTypeFromString(mapCopyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase());
 		copyRetentionRule.setInactiveDisposalType(disposalType);
 
-		if (!MapCopyRetentionRule.get("inactiveDisposalComment").equals("")) {
-			copyRetentionRule.setInactiveDisposalComment(MapCopyRetentionRule.get("inactiveDisposalComment"));
+		if (!mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT).equals("")) {
+			copyRetentionRule.setInactiveDisposalComment(mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT));
 		}
 
 		return copyRetentionRule;
@@ -258,18 +289,19 @@ public class RetentionRuleImportExtension implements RecordImportExtension {
 	private RetentionRuleDocumentType buildDocumentType(Map<String, String> documentType) {
 		RetentionRuleDocumentType retentionRuleDocumentType = new RetentionRuleDocumentType();
 
-		if (!documentType.get("code").isEmpty()) {
-			retentionRuleDocumentType.setDocumentTypeId(rm.getDocumentTypeByCode(documentType.get("code")).getId());
+		if (!documentType.get(CODE).isEmpty()) {
+			retentionRuleDocumentType.setDocumentTypeId(rm.getDocumentTypeByCode(documentType.get(CODE)).getId());
 		}
 
-		DisposalType disposalType = disposalTypeFromString(documentType.get("archivisticStatus").toUpperCase());
+		DisposalType disposalType = disposalTypeFromString(documentType.get(ARCHIVISTIC_STATUS).toUpperCase());
+
 		retentionRuleDocumentType.setDisposalType(disposalType);
 
 		return retentionRuleDocumentType;
 	}
 
-	private DisposalType disposalTypeFromString(String inactiveDisposalType) {
-		switch (inactiveDisposalType) {
+	private DisposalType disposalTypeFromString(String disposalType) {
+		switch (disposalType) {
 		case "T":
 			return DisposalType.SORT;
 		case "D":
@@ -277,8 +309,13 @@ public class RetentionRuleImportExtension implements RecordImportExtension {
 		case "C":
 			return DisposalType.DEPOSIT;
 		default:
-			throw new RuntimeException();
+			errors.error(INVALID_ENUM_VALUE, asMap(INACTIVE_DISPOSAL_TYPE, disposalType));
+			throw new RuntimeException("Invalid disposal type: " + disposalType);
 		}
+	}
+
+	private boolean isDisposalTypeValid(String value) {
+		return value.equals("T") || value.equals("D") || value.equals("C");
 	}
 
 	private List<String> getMediumTypesId(String mediumTypesString) {

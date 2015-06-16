@@ -22,6 +22,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
+import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.entities.SystemConfigurationVO;
@@ -98,7 +101,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 						if (value == null) {
 							dataProvider.valueChange(groupCode, i, null);
 						} else {
-							dataProvider.valueChange(groupCode, i, value.toString());
+							dataProvider.valueChange(groupCode, i, value);
 						}
 
 					}
@@ -165,6 +168,9 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 			combobox.setValue(value.name());
 			combobox.setRequired(true);
 			return combobox;
+		} else if (type == SystemConfigurationType.BINARY) {
+			BaseUploadField uploadField = new BaseUploadField();
+			return uploadField;
 		} else {
 			throw new RuntimeException("Unsupported type " + type);
 		}

@@ -101,7 +101,51 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 
 		RecordVODataProvider dataProvider = dataProviders.get(0);
 		assertThat(dataProvider.getSchema().getCode()).isEqualTo(Category.DEFAULT_SCHEMA);
-		assertThat(getRecordIdsFromDataProvider(dataProvider)).containsOnly(records.categoryId_X,records.categoryId_Z);
+		assertThat(getRecordIdsFromDataProvider(dataProvider)).containsOnly(records.categoryId_X, records.categoryId_Z);
+	}
+
+	@Test
+	public void whenGetRetentionRulesThenOk()
+			throws Exception {
+
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put(TaxonomyManagementPresenter.TAXONOMY_CODE, RMTaxonomies.ADMINISTRATIVE_UNITS);
+		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, "unitId_12");
+		String params = ParamUtils.addParams(null, paramsMap);
+		presenter.forParams(params);
+
+		assertThat(presenter.getRetentionRules()).hasSize(3);
+		assertThat(presenter.getRetentionRules()).containsOnly("ruleId_1", "ruleId_2", "ruleId_4");
+	}
+
+	@Test
+	public void whenGetAdministrativeUnitsFoldersDataProviderAndNumberOfFoldersThenOk()
+			throws Exception {
+
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put(TaxonomyManagementPresenter.TAXONOMY_CODE, RMTaxonomies.ADMINISTRATIVE_UNITS);
+		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, "unitId_12");
+		String params = ParamUtils.addParams(null, paramsMap);
+		presenter.forParams(params);
+
+		assertThat(presenter.getNumberOfFolders()).isEqualTo("10");
+		assertThat(presenter.newAdministrativeUnitsFoldersDataProvider().size()).isEqualTo(10);
+
+	}
+
+	@Test
+	public void whenGetClassificationPlansFoldersDataProviderAndNumberOfFoldersThenOk()
+			throws Exception {
+
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put(TaxonomyManagementPresenter.TAXONOMY_CODE, RMTaxonomies.CLASSIFICATION_PLAN);
+		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, "categoryId_Z112");
+		String params = ParamUtils.addParams(null, paramsMap);
+		presenter.forParams(params);
+
+		assertThat(presenter.getNumberOfFolders()).isEqualTo("5");
+		assertThat(presenter.newClassificationPlansFoldersDataProvider().size()).isEqualTo(5);
+
 	}
 
 	private List<String> getRecordIdsFromDataProvider(RecordVODataProvider dataProvider) {

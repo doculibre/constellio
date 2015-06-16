@@ -24,7 +24,13 @@ public class LoggerBulkImportProgressionListener implements BulkImportProgressio
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoggerBulkImportProgressionListener.class);
 
+	int totalProgression;
+
 	int currentTotal;
+
+	int currentStepTotal;
+
+	String currentStepName;
 
 	@Override
 	public void updateTotal(int newTotal) {
@@ -32,7 +38,28 @@ public class LoggerBulkImportProgressionListener implements BulkImportProgressio
 	}
 
 	@Override
-	public void updateProgression(int nFinishedRecords) {
-		LOGGER.info("Import progression : " + nFinishedRecords + " / " + currentTotal);
+	public void updateProgression(int stepProgression, int totalProgression) {
+		this.totalProgression = totalProgression;
+		LOGGER.info("Import progression : " + getPercentage() + "% [" + currentStepName + " " + stepProgression + "/"
+				+ currentStepTotal + "]");
+	}
+
+	@Override
+	public void updateCurrentStepTotal(int newTotal) {
+		this.currentStepTotal = newTotal;
+	}
+
+	@Override
+	public void updateCurrentStepName(String stepName) {
+		this.currentStepName = stepName;
+		LOGGER.info("Import progression : " + getPercentage() + "% [" + currentStepName + "]");
+	}
+
+	private double getPercentage() {
+		if (currentTotal == 0) {
+			return 0;
+		}
+		int pct10 = 1000 * totalProgression / currentTotal;
+		return pct10 / 10.0;
 	}
 }

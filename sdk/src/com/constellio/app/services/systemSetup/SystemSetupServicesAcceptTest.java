@@ -126,11 +126,11 @@ public class SystemSetupServicesAcceptTest extends ConstellioTest {
 		assertThat(admin.hasCollectionWriteAccess()).isTrue();
 		assertThat(admin.hasCollectionDeleteAccess()).isTrue();
 		assertThat(getModelLayerFactory().newUserServices().has("admin")
-				.allGlobalPermissionsInAnyCollection(RMPermissionsTo.getAllPermissions())).isTrue();
-		assertThat(admin.hasAll(RMPermissionsTo.getAllPermissions()).globally()).isTrue();
-		assertThat(admin.hasAll(RMPermissionsTo.getAllPermissions()).on(aRecord)).isTrue();
-		assertThat(admin.hasAll(RMPermissionsTo.getAllPermissions()).onAll(aRecord, aRecord)).isTrue();
-		assertThat(admin.hasAll(RMPermissionsTo.getAllPermissions()).onAny(aRecord, aRecord)).isTrue();
+				.allGlobalPermissionsInAnyCollection(RMPermissionsTo.PERMISSIONS.getAll())).isTrue();
+		assertThat(admin.hasAll(RMPermissionsTo.PERMISSIONS.getAll()).globally()).isTrue();
+		assertThat(admin.hasAll(RMPermissionsTo.PERMISSIONS.getAll()).on(aRecord)).isTrue();
+		assertThat(admin.hasAll(RMPermissionsTo.PERMISSIONS.getAll()).onAll(aRecord, aRecord)).isTrue();
+		assertThat(admin.hasAll(RMPermissionsTo.PERMISSIONS.getAll()).onAny(aRecord, aRecord)).isTrue();
 	}
 
 	private void thenHasAdminUserWithCorrectServiceKeyAndPassword() {

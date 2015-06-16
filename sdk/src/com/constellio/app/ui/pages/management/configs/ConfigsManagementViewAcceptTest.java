@@ -20,6 +20,9 @@ package com.constellio.app.ui.pages.management.configs;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,6 +34,8 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+
+import java.io.InputStream;
 
 @UiTest
 @InDevelopmentTest
@@ -52,6 +57,17 @@ public class ConfigsManagementViewAcceptTest extends ConstellioTest {
 		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
+	}
+
+	@Test
+	public void validateLogo()
+			throws Exception {
+		SystemConfigurationsManager manager = getModelLayerFactory().getSystemConfigurationsManager();
+		StreamFactory<InputStream> iconFileStream = getTestResourceInputStreamFactory("binary2.png");
+		manager.setValue(ConstellioEIMConfigs.LOGO_LINK, iconFileStream);
+
+		navigateToConfigsManagement();
+		waitUntilICloseTheBrowsers();
 	}
 
 	@Test

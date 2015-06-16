@@ -48,6 +48,14 @@ public class ContentManagerRuntimeException extends RuntimeException {
 
 	}
 
+	public static class ContentManagerRuntimeException_CannotReadParsedContent extends ContentManagerRuntimeException {
+
+		public ContentManagerRuntimeException_CannotReadParsedContent(Throwable cause, String hash, String parsedContent) {
+			super("Cannot read parsed content with hash '" + hash + "' and parsed content : \n" + parsedContent, cause);
+		}
+
+	}
+
 	public static class ContentManagerRuntimeException_NoSuchContent extends ContentManagerRuntimeException {
 		public ContentManagerRuntimeException_NoSuchContent(String id) {
 			super("No such content for id '" + id + "'");

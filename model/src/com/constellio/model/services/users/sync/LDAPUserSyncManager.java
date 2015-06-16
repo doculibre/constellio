@@ -17,6 +17,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users.sync;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.naming.NamingException;
+import javax.naming.ldap.LdapContext;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
+
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
@@ -36,12 +47,6 @@ import com.constellio.model.services.security.authentification.LDAPAuthenticatio
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-
-import javax.naming.NamingException;
-import javax.naming.ldap.LdapContext;
-import java.util.*;
 
 public class LDAPUserSyncManager implements StatefulService {
 
@@ -52,7 +57,8 @@ public class LDAPUserSyncManager implements StatefulService {
 	LDAPServerConfiguration serverConfiguration;
 	BackgroundThreadsManager backgroundThreadsManager;
 
-	public LDAPUserSyncManager(UserServices userServices, GlobalGroupsManager globalGroupsManager, LDAPConfigurationManager ldapConfigurationService, BackgroundThreadsManager backgroundThreadsManager) {
+	public LDAPUserSyncManager(UserServices userServices, GlobalGroupsManager globalGroupsManager,
+			LDAPConfigurationManager ldapConfigurationService, BackgroundThreadsManager backgroundThreadsManager) {
 		this.userServices = userServices;
 		this.globalGroupsManager = globalGroupsManager;
 		this.ldapConfigurationService = ldapConfigurationService;
@@ -68,7 +74,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		}
 	}
 
-	public void reloadLDAPUserSynchConfiguration(){
+	public void reloadLDAPUserSynchConfiguration() {
 		this.userSyncConfiguration = ldapConfigurationService.getLDAPUserSyncConfiguration();
 		this.serverConfiguration = ldapConfigurationService.getLDAPServerConfiguration();
 	}
@@ -102,8 +108,9 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
 		for (String url : serverConfiguration.getUrls()) {
-			LdapContext ldapContext = ldapServices.connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
-					userSyncConfiguration.getPassword());
+			LdapContext ldapContext = ldapServices
+					.connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
+							userSyncConfiguration.getPassword());
 			Set<LDAPGroup> ldapGroups = ldapServices.getAllGroups(ldapContext, userSyncConfiguration.getGroupBaseContextList());
 			ldapGroups = getAcceptedGroups(ldapGroups);
 
@@ -111,11 +118,11 @@ public class LDAPUserSyncManager implements StatefulService {
 
 			List<LDAPUser> usersWithoutGroups = getAcceptedUsersNotLinkedToGroups(ldapContext);
 
-			Set<LDAPGroup> ldapGroupsFromUsers =  getGroupsFromUser(usersWithoutGroups);
+			Set<LDAPGroup> ldapGroupsFromUsers = getGroupsFromUser(usersWithoutGroups);
 			ldapGroups.addAll(ldapGroupsFromUsers);
 
 			//groups that are retrieved from users
-			ldapGroupsFromUsers =  getGroupsFromUser(ldapUsers);
+			ldapGroupsFromUsers = getGroupsFromUser(ldapUsers);
 			ldapGroups.addAll(ldapGroupsFromUsers);
 
 			ldapUsers.addAll(usersWithoutGroups);
@@ -140,7 +147,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 	private Set<LDAPGroup> getGroupsFromUser(List<LDAPUser> users) {
 		Set<LDAPGroup> returnSet = new HashSet<>();
-		for(LDAPUser user :users){
+		for (LDAPUser user : users) {
 			returnSet.addAll(user.getUserGroups());
 		}
 		return returnSet;
@@ -148,17 +155,19 @@ public class LDAPUserSyncManager implements StatefulService {
 
 	private UpdatedUsersAndGroups updateUsersAndGroups(List<LDAPUser> ldapUsers, Set<LDAPGroup> ldapGroups) {
 		UpdatedUsersAndGroups updatedUsersAndGroups = new UpdatedUsersAndGroups();
-		for(LDAPGroup ldapGroup : ldapGroups){
+		for (LDAPGroup ldapGroup : ldapGroups) {
 			GlobalGroup group = createGlobalGroupFromLdapGroup(ldapGroup);
 			userServices.addUpdateGlobalGroup(group);
 			updatedUsersAndGroups.addGroupCode(group.getCode());
 		}
 
-		for (LDAPUser ldapUser : ldapUsers){
-			UserCredential userCredential = createUserCredentialsFromLdapUser(ldapUser);
+		for (LDAPUser ldapUser : ldapUsers) {
+			if (!ldapUser.getName().toLowerCase().equals("admin")) {
+				UserCredential userCredential = createUserCredentialsFromLdapUser(ldapUser);
 
-			userServices.addUpdateUserCredential(userCredential);
-			updatedUsersAndGroups.addUsername(ldapUser.getName());
+				userServices.addUpdateUserCredential(userCredential);
+				updatedUsersAndGroups.addUsername(ldapUser.getName());
+			}
 		}
 
 		return updatedUsersAndGroups;
@@ -168,10 +177,10 @@ public class LDAPUserSyncManager implements StatefulService {
 		String code = ldapGroup.getDistinguishedName();
 		String name = ldapGroup.getSimpleName();
 		List<String> usersAutomaticallyAddedToCollections;
-		try{
+		try {
 			GlobalGroup group = userServices.getGroup(code);
 			usersAutomaticallyAddedToCollections = group.getUsersAutomaticallyAddedToCollections();
-		}catch(UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup e){
+		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup e) {
 			usersAutomaticallyAddedToCollections = new ArrayList<>();
 		}
 		return new GlobalGroup(code, name, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE);
@@ -183,24 +192,24 @@ public class LDAPUserSyncManager implements StatefulService {
 		String lastName = notNull(ldapUser.getFamilyName());
 		String email = notNull(ldapUser.getEmail());
 		List<String> globalGroups = new ArrayList<>();
-		for(LDAPGroup ldapGroup : ldapUser.getUserGroups()){
+		for (LDAPGroup ldapGroup : ldapUser.getUserGroups()) {
 			String groupSimpleName = ldapGroup.getSimpleName();
-			if (userSyncConfiguration.isGroupAccepted(groupSimpleName)){
+			if (userSyncConfiguration.isGroupAccepted(groupSimpleName)) {
 				globalGroups.add(ldapGroup.getDistinguishedName());
 			}
 		}
 		List<String> collections;
-		try{
+		try {
 			UserCredential tmpUser = userServices.getUser(username);
 			collections = tmpUser.getCollections();
-		}catch(UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e){
+		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser e) {
 			collections = new ArrayList<>();
 		}
 
 		UserCredentialStatus userStatus;
-		if(ldapUser.getEnabled()){
+		if (ldapUser.getEnabled()) {
 			userStatus = UserCredentialStatus.ACTIVE;
-		}else{
+		} else {
 			userStatus = UserCredentialStatus.DELETED;
 		}
 		UserCredential returnUserCredentials = new UserCredential(username, firstName, lastName, email, globalGroups,
@@ -209,24 +218,24 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	private String notNull(String value) {
-		return (value == null)? "": value;
+		return (value == null) ? "" : value;
 	}
 
 	private List<LDAPUser> getAcceptedUsersFromGroups(Set<LDAPGroup> ldapGroups, LdapContext ldapContext) {
 		List<LDAPUser> returnUsers = new ArrayList<>();
 		Set<String> groupsMembersIds = new HashSet<>();
 		LDAPServices ldapServices = new LDAPServices();
-		for(LDAPGroup group : ldapGroups){
+		for (LDAPGroup group : ldapGroups) {
 			List<String> usersToAdd = group.getMembers();
 			groupsMembersIds.addAll(usersToAdd);
 		}
 		LDAPDirectoryType directoryType = serverConfiguration.getDirectoryType();
-		for(String memberId : groupsMembersIds){
-			if(ldapServices.isUser(directoryType, memberId, ldapContext)){
+		for (String memberId : groupsMembersIds) {
+			if (ldapServices.isUser(directoryType, memberId, ldapContext)) {
 				LDAPUser ldapUser = ldapServices.getUser(directoryType, memberId,
 						ldapContext);
 				String userName = ldapUser.getName();
-				if (userSyncConfiguration.isUserAccepted(userName)){
+				if (userSyncConfiguration.isUserAccepted(userName)) {
 					returnUsers.add(ldapUser);
 				}
 				removeNonAcceptedGroups(ldapUser);
@@ -237,24 +246,26 @@ public class LDAPUserSyncManager implements StatefulService {
 
 	private List<LDAPUser> getAcceptedUsersNotLinkedToGroups(LdapContext ldapContext) {
 		List<LDAPUser> returnUsers = new ArrayList<>();
-		if (userSyncConfiguration.getUsersWithoutGroupsBaseContextList() == null || userSyncConfiguration.getUsersWithoutGroupsBaseContextList().isEmpty()){
+		if (userSyncConfiguration.getUsersWithoutGroupsBaseContextList() == null || userSyncConfiguration
+				.getUsersWithoutGroupsBaseContextList().isEmpty()) {
 			return returnUsers;
 		}
 		Set<String> usersIds = new HashSet<>();
 		LDAPServices ldapServices = new LDAPServices();
-		for(String baseContextName : userSyncConfiguration.getUsersWithoutGroupsBaseContextList()){
+		for (String baseContextName : userSyncConfiguration.getUsersWithoutGroupsBaseContextList()) {
 			List<String> currentUsersIds;
-			try{
-				currentUsersIds = ldapServices.searchUsersIdsFromContext(serverConfiguration.getDirectoryType(), ldapContext, baseContextName);
+			try {
+				currentUsersIds = ldapServices
+						.searchUsersIdsFromContext(serverConfiguration.getDirectoryType(), ldapContext, baseContextName);
 			} catch (NamingException e) {
 				throw new RuntimeException(e);
 			}
 			usersIds.addAll(currentUsersIds);
 		}
 		//Accepted users:
-		for(String userId : usersIds){
+		for (String userId : usersIds) {
 			String userName = ldapServices.extractUsername(userId);
-			if (userSyncConfiguration.isUserAccepted(userName)){
+			if (userSyncConfiguration.isUserAccepted(userName)) {
 				LDAPUser ldapUser = ldapServices.getUser(serverConfiguration.getDirectoryType(), userId,
 						ldapContext);
 				removeNonAcceptedGroups(ldapUser);
@@ -275,8 +286,8 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	private void removeUsersExceptAdmin(List<String> removedUsersIds) {
-		for(String userId : removedUsersIds){
-			if (!userId.equals(LDAPAuthenticationService.ADMIN_USERNAME)){
+		for (String userId : removedUsersIds) {
+			if (!userId.equals(LDAPAuthenticationService.ADMIN_USERNAME)) {
 				UserCredential userCredential = userServices.getUser(userId);
 				userServices.removeUserCredentialAndUser(userCredential);
 			}
@@ -285,7 +296,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 	private void removeGroups(List<String> removedGroupsIds) {
 		UserCredential admin = userServices.getUser(LDAPAuthenticationService.ADMIN_USERNAME);
-		for(String groupId : removedGroupsIds){
+		for (String groupId : removedGroupsIds) {
 			GlobalGroup group = userServices.getGroup(groupId);
 			userServices.logicallyRemoveGroupHierarchy(admin, group);
 		}
@@ -294,7 +305,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	private List<String> getGroupsIds() {
 		List<String> groups = new ArrayList<>();
 		List<GlobalGroup> globalGroups = globalGroupsManager.getAllGroups();
-		for (GlobalGroup globalGroup: globalGroups){
+		for (GlobalGroup globalGroup : globalGroups) {
 			groups.add(globalGroup.getCode());
 		}
 		return groups;
@@ -303,7 +314,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	private List<String> getTousNomsUtilisateurs() {
 		List<String> usernames = new ArrayList<>();
 		List<UserCredential> userCredentials = userServices.getAllUserCredentials();//getUserCredentials();
-		for(UserCredential userCredential: userCredentials){
+		for (UserCredential userCredential : userCredentials) {
 			usernames.add(userCredential.getUsername());
 		}
 		return usernames;
@@ -311,10 +322,10 @@ public class LDAPUserSyncManager implements StatefulService {
 
 	private Set<LDAPGroup> getAcceptedGroups(Set<LDAPGroup> ldapGroups) {
 		Set<LDAPGroup> returnList = new HashSet<>();
-		for(LDAPGroup ldapGroup : ldapGroups){
+		for (LDAPGroup ldapGroup : ldapGroups) {
 			String groupName = ldapGroup.getSimpleName();
-			if(userSyncConfiguration.isGroupAccepted(groupName)){
-				if (!ldapGroup.getMembers().isEmpty()){
+			if (userSyncConfiguration.isGroupAccepted(groupName)) {
+				if (!ldapGroup.getMembers().isEmpty()) {
 					returnList.add(ldapGroup);
 				}
 			}

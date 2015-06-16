@@ -18,8 +18,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.all;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -29,6 +27,9 @@ import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate.SchemaType;
+import com.constellio.app.modules.rm.services.LabelTemplateServices;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
@@ -95,6 +96,18 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return false;
 	}
 
+	@Override
+	public void suggestionSelected(String suggestion) {
+		searchExpression = suggestion;
+		view.setSearchExpression(suggestion);
+		view.refreshSearchResultsAndFacets();
+	}
+
+	@Override
+	public String getUserSearchExpression() {
+		return searchExpression;
+	}
+
 	public void batchEditRequested(List<String> selectedRecordIds, String code, Object value) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
@@ -105,13 +118,18 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		manager.markAsPending(process);
 	}
 
-	public List<MetadataVO> getMetadatasAllowedInBatchEdit() {
+	@Override
+	public List<MetadataVO> getMetadataAllowedInSort() {
+		return getMetadataAllowedInSort(schemaTypeCode);
+	}
+
+	public List<MetadataVO> getMetadataAllowedInBatchEdit() {
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
 		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas()) {
 			if (isBatchEditable(metadata)) {
-				result.add(builder.build(metadata));
+				result.add(builder.build(metadata, view.getSessionContext()));
 			}
 		}
 		return result;
@@ -132,26 +150,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	void buildSearchCondition()
 			throws ConditionException {
 		MetadataSchemaType type = schemaType(schemaTypeCode);
-
-		List<LogicalSearchCondition> conditions = new ArrayList<>();
-		if (!Strings.isNullOrEmpty(searchExpression)) {
-			conditions.add(from(type).whereAny(searchFieldsFor(searchExpression)).is(all(queries(searchExpression))));
-		}
-		if (!view.getSearchCriteria().isEmpty()) {
-			conditions.add(new ConditionBuilder(type).build(view.getSearchCriteria()));
-		}
-
-		switch (conditions.size()) {
-		case 0:
-			condition = from(type).returnAll();
-			break;
-		case 1:
-			condition = conditions.get(0);
-			break;
-		default:
-			condition = allConditions(conditions);
-			break;
-		}
+		condition = (view.getSearchCriteria().isEmpty()) ?
+				from(type).returnAll() :
+				new ConditionBuilder(type).build(view.getSearchCriteria());
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {
@@ -169,5 +170,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private boolean isNotHidden(Metadata metadata) {
 		MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 		return config.getInputType() != MetadataInputType.HIDDEN;
+	}
+
+	//TODO Thiago test
+	public List<LabelTemplate> getTemplates() {
+		LabelTemplateServices labelTemplateServices = new LabelTemplateServices(appLayerFactory);
+		if ("containerRecord".equals(schemaTypeCode)) {
+			return labelTemplateServices.getTemplates(SchemaType.CONTAINER.name());
+		} else if ("folder".equals(schemaTypeCode)) {
+			return labelTemplateServices.getTemplates(SchemaType.FOLDER.name());
+		} else {
+			return labelTemplateServices.getTemplates("");
+		}
 	}
 }

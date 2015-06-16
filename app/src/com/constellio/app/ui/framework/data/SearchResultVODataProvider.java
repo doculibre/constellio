@@ -24,11 +24,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -42,29 +44,27 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	transient SearchServices searchServices;
 	transient Integer size = null;
 	transient Map<Integer, SearchResultVO> cache;
-	protected transient ModelLayerFactory modelLayerFactory;
+	private transient SessionContext sessionContext;
 
 	RecordToVOBuilder voBuilder;
 
 	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 
-	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
+	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
+			SessionContext sessionContext) {
 		this.voBuilder = voBuilder;
-		init(modelLayerFactory);
+		init(modelLayerFactory, sessionContext);
 	}
-	
-	protected abstract String getUserSearchExpression();
 
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		init(ConstellioFactories.getInstance().getModelLayerFactory());
+		init(ConstellioFactories.getInstance().getModelLayerFactory(), ConstellioUI.getCurrentSessionContext());
 	}
 
-	void init(ModelLayerFactory modelLayerFactory) {
-		this.modelLayerFactory = modelLayerFactory;
+	void init(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
+		this.sessionContext = sessionContext;
 		searchServices = modelLayerFactory.newSearchServices();
-
 		query = getQuery();
 		cache = new HashMap<>();
 	}
@@ -102,12 +102,10 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		SearchResultVO searchResultVO = getSearchResultVO(index);
 		return searchResultVO != null ? searchResultVO.getRecordVO() : null;
 	}
-	
-	
 
 	public int size() {
 		if (size == null) {
-			size = new Long(searchServices.query(getUserSearchExpression(), query).getNumFound()).intValue();
+			size = new Long(searchServices.getResultsCount(query)).intValue();
 		}
 		return size;
 	}
@@ -123,11 +121,11 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 
 	public List<SearchResultVO> listSearchResultVOs(int startIndex, int numberOfItems) {
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
-		SPEQueryResponse response = searchServices.query(getUserSearchExpression(), query.setStartRow(startIndex).setNumberOfRows(numberOfItems));
+		SPEQueryResponse response = searchServices.query(query.setStartRow(startIndex).setNumberOfRows(numberOfItems));
 		List<Record> records = response.getRecords();
 		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
 		for (int i = 0; i < records.size(); i++) {
-			RecordVO recordVO = voBuilder.build(records.get(i), VIEW_MODE.TABLE);
+			RecordVO recordVO = voBuilder.build(records.get(i), VIEW_MODE.TABLE, sessionContext);
 			SearchResultVO searchResultVO = new SearchResultVO(recordVO, highlights.get(recordVO.getId()));
 			results.add(searchResultVO);
 			cache.put(startIndex + i, searchResultVO);

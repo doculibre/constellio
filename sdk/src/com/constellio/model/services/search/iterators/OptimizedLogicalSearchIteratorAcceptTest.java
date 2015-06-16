@@ -101,7 +101,7 @@ public class OptimizedLogicalSearchIteratorAcceptTest extends ConstellioTest {
 				.where(zeSchema.stringMetadata()).isIn(Arrays.asList("a", "b", "c"));
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 
-		Iterator<String> iterator = searchServices.optimizesRecordsIdsIterator(query, 2);
+		Iterator<String> iterator = searchServices.optimizedRecordsIdsIterator(query, 2);
 		assertThat(iterator.hasNext()).isTrue();
 		assertThat(iterator.next()).isEqualTo("id_a1");
 		assertThat(iterator.hasNext()).isTrue();

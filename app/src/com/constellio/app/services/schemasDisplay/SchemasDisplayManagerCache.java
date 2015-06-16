@@ -115,12 +115,13 @@ public class SchemasDisplayManagerCache {
 
 	private SchemaDisplayConfig getDefaultSchemaDisplay(String schemaCode, MetadataSchemasManager metadataSchemasManager) {
 		SchemaUtils schemaUtils = new SchemaUtils();
-		MetadataSchema metadataSchema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
-		List<String> displayMetadataCodes = schemaUtils.toMetadataCodes(metadataSchema.getMetadatas());
-		List<String> formMetadataCodes = schemaUtils.toMetadataCodes(metadataSchema.getMetadatas().onlyManuals());
+		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+		List<String> displayMetadataCodes = schemaUtils.toMetadataCodes(schema.getMetadatas());
+		List<String> formMetadataCodes = schemaUtils
+				.toMetadataCodes(SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema));
 
-		String title = metadataSchema.getCode() + "_" + Schemas.TITLE.getLocalCode();
-		String lastModificationDate = metadataSchema.getCode() + "_" + Schemas.MODIFIED_ON.getLocalCode();
+		String title = schema.getCode() + "_" + Schemas.TITLE.getLocalCode();
+		String lastModificationDate = schema.getCode() + "_" + Schemas.MODIFIED_ON.getLocalCode();
 
 		List<String> searchMetadatasCodes = Arrays.asList(title, lastModificationDate);
 

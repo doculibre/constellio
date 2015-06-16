@@ -297,6 +297,16 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList only(MetadataListFilter filter) {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (filter.isReturned(metadata)) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlyEnabled() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -370,7 +380,20 @@ public class MetadataList implements List<Metadata> {
 		return this;
 	}
 
-	public List<Metadata> onlyManuals() {
+	public MetadataList onlyEssentialMetadatasAndCodeTitle() {
+
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isEssential()) {
+				filteredMetadatasList.add(metadata);
+			} else if (metadata.getLocalCode().equals("code") || metadata.getLocalCode().equals("title")) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyManuals() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
@@ -403,6 +426,16 @@ public class MetadataList implements List<Metadata> {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.isUniqueValue()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public List<Metadata> onlyWithDefaultValue() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getDefaultValue() != null) {
 				filteredMetadatasList.add(metadata);
 			}
 		}

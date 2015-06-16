@@ -17,9 +17,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.taxonomy;
 
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
 
 public interface TaxonomyManagementView extends BaseView, AdminModuleViewGroup {
+
+	void setFolders(RecordVODataProvider dataProvider);
+
+	void selectFoldersTab();
 	void refreshTable();
 }

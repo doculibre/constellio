@@ -48,8 +48,16 @@ public class SearchDisplayConfigViewImpl extends BaseViewImpl implements SearchD
 	}
 
 	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+
+		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
+		presenter.setSchemaCode(params.get("schemaCode"));
+		presenter.setParameters(params);
+	}
+
+	@Override
 	protected String getTitle() {
-		return $("SearchDisplayConfigView.viewTitle");
+		return $("SearchDisplayConfigView.viewTitle", presenter.getLabel());
 	}
 
 	@Override

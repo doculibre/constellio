@@ -58,6 +58,15 @@ public class ResolverCache {
 		return mapping.get(metadata);
 	}
 
+	public List<MetadataSchemaType> getCachedSchemaTypes() {
+		List<MetadataSchemaType> returnedTypes = new ArrayList<>();
+		for (String schemaType : cache.keySet()) {
+			MetadataSchemaType type = types.getSchemaType(schemaType);
+			returnedTypes.add(type);
+		}
+		return returnedTypes;
+	}
+
 	public void mapIds(String schemaType, String metadata, String legacyId, String id) {
 		getSchemaTypeCache(schemaType, metadata).mapIds(legacyId, id);
 	}

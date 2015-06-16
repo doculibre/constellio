@@ -40,23 +40,14 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 @SuppressWarnings("serial")
 public abstract class RecordVODataProvider implements DataProvider {
-
 	transient LogicalSearchQuery query;
-
 	transient SearchServices searchServices;
-
 	transient Integer size = null;
-
 	transient Map<Integer, Record> cache;
-
 	transient MetadataSchemaVO schema;
-
 	protected transient ModelLayerFactory modelLayerFactory;
-
 	RecordToVOBuilder voBuilder;
-
 	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<DataRefreshListener>();
-
 	SessionContext sessionContext;
 
 	@Deprecated
@@ -67,7 +58,8 @@ public abstract class RecordVODataProvider implements DataProvider {
 		init(modelLayerFactory);
 	}
 
-	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
+	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
+			SessionContext sessionContext) {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = sessionContext;
@@ -128,7 +120,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 
 	public int size() {
 		if (size == null) {
-			size = new Long(searchServices.query(query).getNumFound()).intValue();
+			size = new Long(searchServices.getResultsCount(query)).intValue();
 		}
 		return size;
 	}
@@ -170,7 +162,6 @@ public abstract class RecordVODataProvider implements DataProvider {
 				query = query.sortDesc(metadata);
 			}
 		}
-
 	}
 
 	protected abstract LogicalSearchQuery getQuery();

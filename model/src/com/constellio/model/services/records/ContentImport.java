@@ -24,6 +24,10 @@ public class ContentImport {
 
 	private List<ContentImportVersion> versions = new ArrayList<>();
 
+	public ContentImport(List<ContentImportVersion> versions) {
+		this.versions = versions;
+	}
+
 	public ContentImport(String url, String fileName, boolean major) {
 		versions.add(new ContentImportVersion(url, fileName, major));
 	}

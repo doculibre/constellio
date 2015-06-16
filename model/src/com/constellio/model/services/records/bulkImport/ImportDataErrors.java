@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.bulkImport;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -37,6 +38,14 @@ public class ImportDataErrors {
 	}
 
 	public void error(String code, Map<String, String> parameters) {
+		parameters.put("index", "" + (importData.getIndex() + 1));
+		parameters.put("legacyId", importData.getLegacyId());
+		parameters.put("schemaType", schemaType);
+		errors.add(RecordsImportServices.class, code, parameters);
+	}
+
+	public void error(String code) {
+		HashMap<String, String> parameters = new HashMap<>();
 		parameters.put("index", "" + (importData.getIndex() + 1));
 		parameters.put("legacyId", importData.getLegacyId());
 		parameters.put("schemaType", schemaType);

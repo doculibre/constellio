@@ -22,6 +22,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.components.BaseForm;
+import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -30,10 +33,6 @@ import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
@@ -43,14 +42,8 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
@@ -60,16 +53,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
 	private ContentVersionVOTable versionTable;
-	private UpdateContentVersionWindowImpl updateWindow;
+	private UpdateContentVersionWindowImpl uploadWindow;
 	private EditButton editDocumentButton;
 	private DeleteButton deleteDocumentButton;
-	private Button linkToDocumentButton;
-	private Button addAuthorizationButton;
-	private Button shareDocumentButton;
-	private Button uploadButton;
-	private Button checkInButton;
-	private Button checkOutButton;
-	private Button finalizeButton;
+	private Button copyContentButton;
+	private WindowButton renameContentButton;
+
+	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton, shareDocumentButton;
 
 	private DisplayDocumentPresenter presenter;
 
@@ -170,6 +160,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
+
 		deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -234,6 +225,49 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		actionMenuButtons.add(editDocumentButton);
+		if(presenter.hasContent()){
+			WindowButton.WindowConfiguration config = new WindowButton.WindowConfiguration(true, false, "40%", "20%");
+			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), "", config) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout layout = new VerticalLayout();
+					layout.setSizeFull();
+					final TextField titleField = new TextField($("DisplayDocumentView.title"));
+					String fileTitle = presenter.getContentTitle();
+					titleField.setValue(fileTitle);
+					layout.addComponent(titleField);
+					layout.setComponentAlignment(titleField, Alignment.MIDDLE_CENTER);
+					Component confirmButton = new ConfirmDialogButton($("DisplayDocumentView.renameContentConfirm")) {
+						@Override
+						protected String getConfirmDialogMessage() {
+							return $("DisplayDocumentView.renameContentConfirmMessage");
+						}
+
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							presenter.renameContentButtonClicked(titleField.getValue());
+							renameContentButton.getWindow().close();
+						}
+					};
+					confirmButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+					confirmButton.addStyleName(BaseForm.SAVE_BUTTON);
+					layout.addComponent(confirmButton);
+					layout.setComponentAlignment(confirmButton, Alignment.BOTTOM_RIGHT);
+					return layout;
+				}
+
+			};
+
+			copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.copyContentButtonClicked();
+				}
+			};
+			actionMenuButtons.add(renameContentButton);
+			actionMenuButtons.add(copyContentButton);
+		}
+
 		actionMenuButtons.add(deleteDocumentButton);
 		actionMenuButtons.add(linkToDocumentButton);
 		actionMenuButtons.add(addAuthorizationButton);
@@ -247,9 +281,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	private void initUploadWindow() {
-		if (updateWindow == null) {
-			if(recordVO != null){
-				updateWindow = new UpdateContentVersionWindowImpl(recordVO, recordVO.getMetadata(Document.CONTENT)) {
+		if (uploadWindow == null) {
+			if (recordVO != null) {
+				uploadWindow = new UpdateContentVersionWindowImpl(recordVO, recordVO.getMetadata(Document.CONTENT)) {
 					@Override
 					public void close() {
 						super.close();
@@ -263,15 +297,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void drop(DragAndDropEvent event) {
 		openUploadWindow(false);
-		updateWindow.drop(event);
+		uploadWindow.drop(event);
 	}
 
 	@Override
 	public AcceptCriterion getAcceptCriterion() {
 		initUploadWindow();
-		if(updateWindow != null){
-			return updateWindow.getAcceptCriterion();
-		}else{
+		if (uploadWindow != null) {
+			return uploadWindow.getAcceptCriterion();
+		} else {
 			return AcceptAll.get();
 		}
 
@@ -279,8 +313,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void openUploadWindow(boolean checkingIn) {
+		uploadWindow = null;
 		initUploadWindow();
-		updateWindow.open(checkingIn);
+		uploadWindow.open(checkingIn);
 	}
 
 	@Override
@@ -310,6 +345,19 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setEditDocumentButtonState(ComponentState state) {
 		editDocumentButton.setVisible(state.isVisible());
 		editDocumentButton.setEnabled(state.isEnabled());
+		if(renameContentButton != null){
+			renameContentButton.setVisible(state.isVisible());
+			renameContentButton.setEnabled(state.isEnabled());
+		}
+	}
+
+	@Override
+	public void setAddDocumentButtonState(ComponentState state) {
+		//nothing to set only from context
+		if(copyContentButton != null){
+			copyContentButton.setVisible(state.isVisible());
+			copyContentButton.setEnabled(state.isEnabled());
+		}
 	}
 
 	@Override

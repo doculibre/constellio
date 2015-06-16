@@ -96,8 +96,8 @@ public class RMMigrationTo5_0_3 implements MigrationScript {
 		managerPermissions.add(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 
 		List<String> newRgdPermissions = new ArrayList<>();
-		newRgdPermissions.addAll(RMPermissionsTo.getAllPermissions());
-		newRgdPermissions.addAll(CorePermissions.getAllPermissions());
+		newRgdPermissions.addAll(RMPermissionsTo.PERMISSIONS.getAll());
+		newRgdPermissions.addAll(CorePermissions.PERMISSIONS.getAll());
 
 		modelLayerFactory.getRolesManager().updateRole(userRole.withPermissions(withoutDuplicates(userPermissions)));
 		modelLayerFactory.getRolesManager().updateRole(managerRole.withPermissions(withoutDuplicates(managerPermissions)));

@@ -31,4 +31,5 @@ public abstract class RMObject extends RecordWrapper {
 
 	public abstract FolderStatus getArchivisticStatus();
 
+	public abstract Boolean getBorrowed();
 }

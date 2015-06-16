@@ -42,6 +42,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.services.contents.ContentManager;
@@ -54,8 +55,13 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -205,6 +211,52 @@ public class RecordDeleteServices {
 		return !schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchy(user, record);
 	}
 
+	private void removedDefaultValues(String collection, List<Record> records) {
+		List<String> defaultValuesIds = metadataSchemasManager.getSchemaTypes(collection).getReferenceDefaultValues();
+		final List<String> defaultValuesIdsToRemove = new ArrayList<>();
+		for (Record record : records) {
+			if (defaultValuesIds.contains(record.getId())) {
+				defaultValuesIdsToRemove.add(record.getId());
+			}
+		}
+
+		if (!defaultValuesIdsToRemove.isEmpty()) {
+			metadataSchemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
+				@Override
+				public void alter(MetadataSchemaTypesBuilder types) {
+					for (MetadataSchemaTypeBuilder typeBuilder : types.getTypes()) {
+						for (MetadataSchemaBuilder schemaBuilder : typeBuilder.getAllSchemas()) {
+							for (MetadataBuilder metadataBuilder : schemaBuilder.getMetadatas()) {
+								Object defaultValue = metadataBuilder.getDefaultValue();
+								if (metadataBuilder.getType() == MetadataValueType.REFERENCE && defaultValue != null) {
+									if (defaultValue instanceof String && defaultValuesIdsToRemove.contains(defaultValue)) {
+										metadataBuilder.setDefaultValue(null);
+									} else if (defaultValue instanceof List) {
+										List<String> withoutRemovedDefaultValues = null;
+										for (Object item : (List) defaultValue) {
+											if (defaultValuesIdsToRemove.contains(item)) {
+												if (withoutRemovedDefaultValues == null) {
+													withoutRemovedDefaultValues = new ArrayList<String>((List) defaultValue);
+												}
+												withoutRemovedDefaultValues.remove(item);
+											}
+										}
+										if (withoutRemovedDefaultValues != null) {
+											if (withoutRemovedDefaultValues.isEmpty()) {
+												withoutRemovedDefaultValues = null;
+											}
+											metadataBuilder.setDefaultValue(withoutRemovedDefaultValues);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			});
+		}
+	}
+
 	public void logicallyDelete(Record record, User user) {
 		if (!isLogicallyDeletable(record, user)) {
 			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(record.getId());
@@ -212,14 +264,19 @@ public class RecordDeleteServices {
 
 		Transaction transaction = new Transaction();
 
-		for (Record hierarchyRecord : getAllRecordsInHierarchy(record)) {
+		List<Record> hierarchyRecords = new ArrayList<>(getAllRecordsInHierarchy(record));
+		if (!new RecordUtils().toIdList(hierarchyRecords).contains(record.getId())) {
+			hierarchyRecords.add(record);
+		}
+		removedDefaultValues(record.getCollection(), hierarchyRecords);
+		for (Record hierarchyRecord : hierarchyRecords) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, true);
 			transaction.add(hierarchyRecord);
 		}
-		if (!transaction.getRecords().contains(record)) {
-			record.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-			transaction.add(record);
-		}
+		//		if (!transaction.getRecords().contains(record)) {
+		//			record.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		//			transaction.add(record);
+		//		}
 		transaction.setUser(user);
 		try {
 			recordServices.execute(transaction);
@@ -296,12 +353,8 @@ public class RecordDeleteServices {
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			List<String> paths = record.getList(Schemas.PATH);
-			if (!paths.isEmpty()) {
-				query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
-				return searchServices.search(query);
-			} else {
-				return new ArrayList<>();
-			}
+			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			return searchServices.search(query);
 		}
 	}
 

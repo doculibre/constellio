@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -45,6 +47,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.borrowingServices.BorrowingServices;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -74,14 +77,16 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers().andUsersWithReadAccess(
-				"admin").withConstellioRMModule();
+		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers()
+				.andUsersWithReadAccess("admin");
+
 		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		loggingServices = getModelLayerFactory().newLoggingServices();
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
+				.withEvents();
 		users = records.getUsers();
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 
@@ -237,6 +242,52 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 		int openSessionCountInByUser = getStatValueInEventCategory(
 				CategoriesConsts.OPEN_SESSION_STAT_INDEX_IN_BY_USER_CATEGORY, CategoriesConsts.BY_USER_CATEGORY_TITLE);
 		assertThat(openSessionCountInByUser).isEqualTo(1);
+	}
+
+	@Test
+	public void whenVerifyStatsBorrowedCurrentLyBorrowedAndLateFoldersThenOk()
+			throws Exception {
+		LocalDateTime nowDateTime = TimeProvider.getLocalDateTime();
+		givenTimeIs(nowDateTime);
+		Date previewReturnDate = nowDateTime.plusDays(15).toDate();
+		BorrowingServices borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
+		borrowingServices.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(),
+				records.getEdouard_managerInB_userInC());
+		recordServices.flush();
+		navigateToEventsList();
+
+		int currentlyBorrowFoldersByEdouard = getStatValueInEventCategory(
+				CategoriesConsts.FOLDER_CURRENTLY_BORROW_STAT_INDEX_IN_BY_USER_CATEGORY, CategoriesConsts.BY_USER_CATEGORY_TITLE,
+				users.edouardIn(zeCollection).getUsername());
+		assertThat(currentlyBorrowFoldersByEdouard).isEqualTo(1);
+
+		int BorrowFoldersByEdouard = getStatValueInEventCategory(
+				CategoriesConsts.FOLDER_BORROW_STAT_INDEX_IN_BY_USER_CATEGORY, CategoriesConsts.BY_USER_CATEGORY_TITLE,
+				users.edouardIn(zeCollection).getUsername());
+		assertThat(BorrowFoldersByEdouard).isEqualTo(1);
+
+		givenTimeIs(nowDateTime.plusDays(16));
+		int lateFoldersByEdouard = getStatValueInEventCategory(
+				CategoriesConsts.FOLDER_LATE_RETURN_STAT_INDEX_IN_BY_USER_CATEGORY, CategoriesConsts.BY_USER_CATEGORY_TITLE,
+				users.edouardIn(zeCollection).getUsername());
+		assertThat(lateFoldersByEdouard).isEqualTo(1);
+	}
+
+	@Test
+	public void whenBorrowedFolderThenOk()
+			throws Exception {
+		LocalDateTime nowDateTime = TimeProvider.getLocalDateTime();
+		Date previewReturnDate = nowDateTime.plusDays(15).toDate();
+		BorrowingServices borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
+		borrowingServices.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(),
+				records.getEdouard_managerInB_userInC());
+		recordServices.flush();
+		navigateToEventsList();
+
+		int currentlyBorrowFoldersByEdouard = getStatValueInEventCategory(
+				CategoriesConsts.DOCUMENT_BORROW_STAT_INDEX_IN_BY_USER_CATEGORY, CategoriesConsts.BY_USER_CATEGORY_TITLE,
+				users.edouardIn(zeCollection).getUsername());
+		assertThat(currentlyBorrowFoldersByEdouard).isEqualTo(1);
 	}
 
 	@Test

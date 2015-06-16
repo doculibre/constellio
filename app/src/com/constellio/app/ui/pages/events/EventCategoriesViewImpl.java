@@ -79,7 +79,8 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		mainLayout.addComponent(currentlyBorrowedDocumentsLink);
 
 		//		Button currentlyBorrowedFoldersLink = newCurrentlyBorrowedFoldersLink();
-		//		page.addComponent(currentlyBorrowedFoldersLink);
+		//		currentlyBorrowedDocumentsLink.addStyleName("currentlyBorrowedFoldersLinkButton");
+		//		mainLayout.addComponent(currentlyBorrowedFoldersLink);
 
 		Button borrowedDocumentsLink = newBorrowedOrReturnedDocumentsEventsLink();
 		borrowedDocumentsLink.addStyleName(BORROWED_DOCUMENTS_LINK_BUTTON);
@@ -119,7 +120,8 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	}
 
 	private Button newCurrentlyBorrowedDocumentsLink() {
-		return createLink($("ListEventsView.currentlyBorrowedDocuments"), EventCategory.CURRENTLY_BORROWED_DOCUMENTS, "document_out");
+		return createLink($("ListEventsView.currentlyBorrowedDocuments"), EventCategory.CURRENTLY_BORROWED_DOCUMENTS,
+				"document_out");
 	}
 
 	private Button newCurrentlyBorrowedFoldersLink() {
@@ -139,7 +141,8 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	}
 
 	private Button newByFilingSpaceEventsLink() {
-		return createLink($("ListEventsView.eventsByAdministrativeUnit"), EventCategory.EVENTS_BY_ADMINISTRATIVE_UNIT, "administrative-unit_clock");
+		return createLink($("ListEventsView.eventsByAdministrativeUnit"), EventCategory.EVENTS_BY_ADMINISTRATIVE_UNIT,
+				"administrative-unit_clock");
 	}
 
 	private Button newByFolderEventsLink() {
@@ -155,15 +158,18 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	}
 
 	private Button newDecommissioningEventsLink() {
-		return createLink($("ListEventsView.decommissioningEvents"), EventCategory.DECOMMISSIONING_EVENTS, "platform_truck_clock");
+		return createLink($("ListEventsView.decommissioningEvents"), EventCategory.DECOMMISSIONING_EVENTS,
+				"platform_truck_clock");
 	}
 
 	private Button newRecordsDeletionLink() {
-		return createLink($("ListEventsView.foldersAndDocumentsDeletion"), EventCategory.FOLDERS_AND_DOCUMENTS_DELETION, "folder_document_delete");
+		return createLink($("ListEventsView.foldersAndDocumentsDeletion"), EventCategory.FOLDERS_AND_DOCUMENTS_DELETION,
+				"folder_document_delete");
 	}
 
 	private Button newRecordsModificationLink() {
-		return createLink($("ListEventsView.foldersAndDocumentsModification"), EventCategory.FOLDERS_AND_DOCUMENTS_MODIFICATION, "folder_document_edit");
+		return createLink($("ListEventsView.foldersAndDocumentsModification"), EventCategory.FOLDERS_AND_DOCUMENTS_MODIFICATION,
+				"folder_document_edit");
 	}
 
 	private Button newSystemUsageLink() {
@@ -171,11 +177,13 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	}
 
 	private Button newUsersAndGroupsAddOrRemoveLink() {
-		return createLink($("ListEventsView.usersAndGroupsAddOrRemoveEvents"), EventCategory.USERS_AND_GROUPS_ADD_OR_REMOVE, "group_into");
+		return createLink($("ListEventsView.usersAndGroupsAddOrRemoveEvents"), EventCategory.USERS_AND_GROUPS_ADD_OR_REMOVE,
+				"group_into");
 	}
 
 	private Button newRecordsCreationLink() {
-		return createLink($("ListEventsView.foldersAndDocumentsCreation"), EventCategory.FOLDERS_AND_DOCUMENTS_CREATION, "folder_document_new");
+		return createLink($("ListEventsView.foldersAndDocumentsCreation"), EventCategory.FOLDERS_AND_DOCUMENTS_CREATION,
+				"folder_document_new");
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {

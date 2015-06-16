@@ -21,12 +21,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
@@ -35,12 +37,12 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 
 public class RetentionRuleValidator implements RecordValidator {
 
-	public static final String MUST_DEFINE_AT_LEAST_ONE_CATEGORY_OR_ONE_UNIFORM_SUBDIVISION = "mustDefineAtLeastOneCategoryOrOneUniformSubdivision";
-
-	public static final String MUST_DEFINE_AT_LEAST_ONE_CATEGORY = "mustDefineAtLeastOneCategory";
 	public static final String MUST_SPECIFY_ADMINISTRATIVE_UNITS_XOR_RESPONSIBLES_FLAG = "mustSpecifyAdministrativeUnitsXORSetResponsibles";
-
+	public static final String MUST_SPECIFY_ONE_SECONDARY_COPY_RETENTON_RULE = "mustSpecifyOneSecondaryRetentionRule";
+	public static final String MUST_SPECIFY_AT_LEAST_ONE_PRINCIPAL_COPY_RETENTON_RULE = "mustSpecifyAtLeastOnePrincipalRetentionRule";
 	public static final String COPY_RETENTION_RULE_FIELD_REQUIRED = "copyRetentionRuleFieldRequired";
+	public static final String MISSING_DOCUMENT_TYPE_DISPOSAL = "missingDocumentTypeDisposal";
+
 	public static final String COPY_RETENTION_RULE_FIELD_REQUIRED_INDEX = "index";
 	public static final String COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD = "field";
 	public static final String COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD_COPY_TYPE = "copyType";
@@ -51,22 +53,21 @@ public class RetentionRuleValidator implements RecordValidator {
 
 	//	public static final String PRINCIPAL_COPIES_MUST_HAVE_DIFFERENT_CONTENT_TYPES = "principalCopiesMustHaveDifferentContentTypes";
 	//	public static final String PRINCIPAL_COPIES_MUST_HAVE_DIFFERENT_CONTENT_TYPES_DUPLICATES = "duplicates";
-	public static final String MUST_SPECIFY_ONE_SECONDARY_COPY_RETENTON_RULE = "mustSpecifyOneSecondaryRetentionRule";
-	public static final String MUST_SPECIFY_AT_LEAST_ONE_PRINCIPAL_COPY_RETENTON_RULE = "mustSpecifyAtLeastOneSecondaryRetentionRule";
 
-	public static final String MISSING_DOCUMENT_TYPE_DISPOSAL = "missingDocumentTypeDisposal";
 	public static final String MISSING_DOCUMENT_TYPE_DISPOSAL_INDEX = "index";
 
 	@Override
-	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema, ValidationErrors validationErrors) {
+	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema,
+			ConfigProvider configProvider, ValidationErrors validationErrors) {
 		RetentionRule retentionRule = new RetentionRule(record, types);
-		validate(retentionRule, schema, validationErrors);
+		validate(retentionRule, schema, configProvider, validationErrors);
 	}
 
-	void validate(RetentionRule retentionRule, MetadataSchema schema, ValidationErrors validationErrors) {
+	void validate(RetentionRule retentionRule, MetadataSchema schema, ConfigProvider configProvider,
+			ValidationErrors validationErrors) {
 
 		validateAdministrativeUnits(retentionRule, schema, validationErrors);
-		validateCopyRetentionRules(retentionRule, schema, validationErrors);
+		validateCopyRetentionRules(retentionRule, schema, validationErrors, configProvider);
 		validateDocumentTypes(retentionRule, validationErrors);
 	}
 
@@ -90,7 +91,7 @@ public class RetentionRuleValidator implements RecordValidator {
 	}
 
 	private void validateCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
-			ValidationErrors validationErrors) {
+			ValidationErrors validationErrors, ConfigProvider configProvider) {
 
 		List<CopyRetentionRule> copyRetentionRules = retentionRule.getCopyRetentionRules();
 
@@ -123,9 +124,12 @@ public class RetentionRuleValidator implements RecordValidator {
 				}
 			}
 
-			if (principalCount == 0) {
+			boolean copyRulePrincipalRequired = configProvider.get(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED);
+
+			if (principalCount == 0 && copyRulePrincipalRequired) {
 				addCopyRetentionRuleError(MUST_SPECIFY_AT_LEAST_ONE_PRINCIPAL_COPY_RETENTON_RULE, schema, validationErrors);
 			}
+
 			if (secondaryCount != 1) {
 				addCopyRetentionRuleError(MUST_SPECIFY_ONE_SECONDARY_COPY_RETENTON_RULE, schema, validationErrors);
 			}

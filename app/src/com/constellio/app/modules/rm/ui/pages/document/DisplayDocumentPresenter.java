@@ -175,4 +175,24 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
 		return documentVO.getTitle();
 	}
+
+	public void copyContentButtonClicked() {
+		presenterUtils.copyContentButtonClicked();
+	}
+
+	public String getContentTitle() {
+		return presenterUtils.getContentTitle();
+	}
+
+	public void renameContentButtonClicked(String newContentTitle) {
+		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
+		if(document != null){
+			addOrUpdate(document.getWrappedRecord());
+			view.navigateTo().displayDocument(document.getId());
+		}
+	}
+
+	public boolean hasContent() {
+		return presenterUtils.hasContent();
+	}
 }

@@ -54,10 +54,9 @@ public class ElevationFeatureAcceptanceTest extends SolrSafeConstellioAcceptance
 
 		String text = "relevant";
 		condition = fromAllSchemasIn(zeCollection).returnAll();
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition);
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition).setFreeTextQuery(text);
 		List<Record> results = null;
-		results = searchServices.query(text, query).getRecords();
+		results = searchServices.search(query);
 		assertThat(results).containsExactly(relevantDoc);
 
 		//when
@@ -80,7 +79,7 @@ public class ElevationFeatureAcceptanceTest extends SolrSafeConstellioAcceptance
 		server.reload();
 
 		//then
-		results = searchServices.query(text, query).getRecords();
+		results = searchServices.search(query);
 		assertThat(results).containsExactly(elevatedDoc, relevantDoc);
 	}
 

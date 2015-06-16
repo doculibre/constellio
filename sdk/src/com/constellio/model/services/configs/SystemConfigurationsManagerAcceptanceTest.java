@@ -21,6 +21,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,7 @@ import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -79,6 +81,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	static SystemConfiguration textWithDefaultValue = aGroup.createString("textWithDefaultValue").withDefaultValue("bob");
 	static SystemConfiguration booleanWithTrueByDefault = aGroup.createBooleanTrueByDefault("booleanWithTrueByDefault");
 	static SystemConfiguration booleanWithFalseByDefault = aGroup.createBooleanFalseByDefault("booleanWithFalseByDefault");
+	static SystemConfiguration binary = aGroup.createBinary("binary");
 	static SystemConfiguration number = aGroup.createInteger("number");
 	static SystemConfiguration numberWithDefaultValue = aGroup.createInteger("numberWithDefaultValue").withDefaultValue(42);
 	static SystemConfiguration enumValue = anOtherGroup.createEnum("enumValue", AValidEnum.class);
@@ -180,6 +183,28 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(manager.getValue(number)).isNull();
 		assertThat(manager.getValue(numberWithDefaultValue)).isEqualTo(42);
+
+	}
+
+	@Test
+	public void givenBinaryMetadataThenCanRetrieveAndAlterValue()
+			throws Exception {
+
+		assertThat(manager.getValue(binary)).isNull();
+
+		manager.setValue(binary, getTestResourceInputStreamFactory("binary1.png"));
+		StreamFactory<InputStream> value = manager.getValue(binary);
+		assertThat(value.create(SDK_STREAM)).hasContentEqualTo(getTestResourceInputStream("binary1.png"));
+
+		manager.setValue(binary, getTestResourceInputStreamFactory("binary2.png"));
+		value = manager.getValue(binary);
+		assertThat(value.create(SDK_STREAM)).hasContentEqualTo(getTestResourceInputStream("binary2.png"));
+
+		manager.reset(binary);
+		assertThat(manager.getValue(binary)).isNull();
+
+		manager.reset(binary);
+		assertThat(manager.getValue(binary)).isNull();
 
 	}
 

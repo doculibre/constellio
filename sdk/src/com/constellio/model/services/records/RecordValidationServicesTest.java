@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records;
 
+import static com.constellio.sdk.tests.TestUtils.anInteger;
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -29,6 +30,8 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.Set;
 
+import sun.security.krb5.Config;
+
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -37,6 +40,7 @@ import org.mockito.Mock;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -61,6 +65,8 @@ public class RecordValidationServicesTest extends ConstellioTest {
 	@Mock MetadataSchema schema;
 
 	@Mock SearchServices searchServices;
+
+	@Mock ConfigProvider configProvider;
 
 	@Mock Transaction transaction;
 
@@ -117,7 +123,7 @@ public class RecordValidationServicesTest extends ConstellioTest {
 		when(copiedDataEntry.getType()).thenReturn(DataEntryType.COPIED);
 		when(calculatedDataEntry.getType()).thenReturn(DataEntryType.CALCULATED);
 
-		services = spy(new RecordValidationServices(schemasManager, searchServices));
+		services = spy(new RecordValidationServices(configProvider, schemasManager, searchServices));
 		doReturn(true).when(services).hasSecurityOnSchema(record);
 	}
 
@@ -127,9 +133,9 @@ public class RecordValidationServicesTest extends ConstellioTest {
 
 		services.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
 
-		verify(validator1).validate(eq(firstMetadata), eq(aStringValue), any(ValidationErrors.class));
-		verify(validator2).validate(eq(secondMetadata), eq(aStringValue), any(ValidationErrors.class));
-		verify(validator3).validate(eq(thirdMetadata), eq(aStringValue), any(ValidationErrors.class));
+		verify(validator1).validate(eq(firstMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class));
+		verify(validator2).validate(eq(secondMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class));
+		verify(validator3).validate(eq(thirdMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class));
 	}
 
 	@Test

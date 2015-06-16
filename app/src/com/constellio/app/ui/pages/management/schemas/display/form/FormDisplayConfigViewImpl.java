@@ -48,15 +48,20 @@ public class FormDisplayConfigViewImpl extends BaseViewImpl implements FormDispl
 	}
 
 	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+
+		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
+		presenter.setSchemaCode(params.get("schemaCode"));
+		presenter.setParameters(params);
+	}
+
+	@Override
 	protected String getTitle() {
-		return $("FormDisplayConfigView.viewTitle");
+		return $("FormDisplayConfigView.viewTitle", presenter.getLabel());
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
-		presenter.setSchemaCode(params.get("schemaCode"));
-		presenter.setParameters(params);
 
 		VerticalLayout viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();

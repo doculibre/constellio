@@ -81,7 +81,7 @@ public abstract class Decommissioner {
 					new SortingDecommissioner(decommissioningService, false) :
 					new DestroyingDecommissioner(decommissioningService);
 		}
-		return null;
+		throw new RuntimeException("Unknown decommissioning type");
 	}
 
 	protected Decommissioner(DecommissioningService decommissioningService) {

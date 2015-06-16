@@ -48,8 +48,16 @@ public class DisplayConfigViewImpl extends BaseViewImpl implements DisplayConfig
 	}
 
 	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+
+		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
+		presenter.setSchemaCode(params.get("schemaCode"));
+		presenter.setParameters(params);
+	}
+
+	@Override
 	protected String getTitle() {
-		return $("FormDisplayConfigView.viewTitle");
+		return $("DisplayConfigView.viewTitle", presenter.getLabel());
 	}
 
 	@Override
@@ -70,8 +78,8 @@ public class DisplayConfigViewImpl extends BaseViewImpl implements DisplayConfig
 
 		final ListBuilder select = new ListBuilder();
 		select.setColumns(30);
-		select.setRightColumnCaption($("FormDisplayConfigView.rightColumn"));
-		select.setLeftColumnCaption($("FormDisplayConfigView.leftColumn"));
+		select.setRightColumnCaption($("DisplayConfigView.rightColumn"));
+		select.setLeftColumnCaption($("DisplayConfigView.leftColumn"));
 
 		for (FormMetadataVO form : valueMetadataVOs) {
 			select.addItem(form);

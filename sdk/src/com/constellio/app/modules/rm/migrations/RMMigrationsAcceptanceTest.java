@@ -30,10 +30,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
@@ -58,12 +60,52 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly()
+			throws Exception {
+
+		SchemaDisplayConfig folderDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
+				.getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
+
+		assertThat(folderDisplayConfig.getFormMetadataCodes()).endsWith(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE);
+
+		assertThat(folderDisplayConfig.getDisplayMetadataCodes()).endsWith(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROWED,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_DATE,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_USER_ENTERED,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS);
+
+		//		SchemaDisplayConfig categoryDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
+		//				.getSchema(zeCollection, Category.DEFAULT_SCHEMA);
+		//
+		//		assertThat(folderDisplayConfig.getDisplayMetadataCodes()).containsExactly(
+		//				Folder.DEFAULT_SCHEMA + "_" + Category.CODE,
+		//				Folder.DEFAULT_SCHEMA + "_" + "title");
+
+	}
+
+	@Test
 	public void whenMigratingToCurrentVersionThenHasValueListWithDefaultItems()
 			throws Exception {
 
 		assertThat(rm.PA()).isNotNull();
 		assertThat(rm.DM()).isNotNull();
 		assertThat(rm.FI()).isNotNull();
+	}
+
+	@Test
+	public void whenMigratingToCurrentVersionThenHasEssentialMetadatas()
+			throws Exception {
+
+		assertThat(rm.administrativeUnitFilingSpaces().isEssential()).isTrue();
+		assertThat(rm.defaultFolderSchema().getMetadata(Folder.CATEGORY_ENTERED).isEssential()).isTrue();
+		assertThat(rm.defaultFolderSchema().getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).isEssential()).isTrue();
+		assertThat(rm.defaultFolderSchema().getMetadata(Folder.RETENTION_RULE_ENTERED).isEssential()).isTrue();
+		assertThat(rm.defaultFolderSchema().getMetadata(Folder.OPENING_DATE).isEssential()).isTrue();
+		assertThat(rm.defaultFolderSchema().getMetadata(Folder.FILING_SPACE_ENTERED).isEssential()).isTrue();
+		assertThat(rm.defaultFolderSchema().getMetadata(Folder.PARENT_FOLDER).isEssential()).isTrue();
+
 	}
 
 	@Test
@@ -97,8 +139,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_CONTAINERS);
 
-		assertThat(rgdRole.getOperationPermissions()).containsAll(RMPermissionsTo.getAllPermissions());
-		assertThat(rgdRole.getOperationPermissions()).containsAll(CorePermissions.getAllPermissions());
+		assertThat(rgdRole.getOperationPermissions()).containsAll(RMPermissionsTo.PERMISSIONS.getAll());
+		assertThat(rgdRole.getOperationPermissions()).containsAll(CorePermissions.PERMISSIONS.getAll());
 		assertThat(rgdRole.getOperationPermissions()).has(noDuplicates());
 	}
 	//--------------------------------------------------------------

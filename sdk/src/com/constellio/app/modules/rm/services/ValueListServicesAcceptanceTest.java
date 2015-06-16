@@ -181,18 +181,19 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		schemasManager.saveUpdateSchemaTypes(types);
 
 		String metadataCode = createMetadataAndValidate();
+		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataCode);
 
 		SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
-		assertThat(schemaDisplayConfig.getFormMetadataCodes()).contains(metadataCode);
-		assertThat(schemaDisplayConfig.getDisplayMetadataCodes()).contains(metadataCode);
+		assertThat(schemaDisplayConfig.getFormMetadataCodes()).contains("folder_default_" + metadataLocalCode);
+		assertThat(schemaDisplayConfig.getDisplayMetadataCodes()).contains("folder_default_" + metadataLocalCode);
 
 		schemaDisplayConfig = schemasDisplayManager.getSchema(zeCollection, "folder_custom1");
-		assertThat(schemaDisplayConfig.getFormMetadataCodes()).contains(metadataCode);
-		assertThat(schemaDisplayConfig.getDisplayMetadataCodes()).contains(metadataCode);
+		assertThat(schemaDisplayConfig.getFormMetadataCodes()).contains("folder_custom1_" + metadataLocalCode);
+		assertThat(schemaDisplayConfig.getDisplayMetadataCodes()).contains("folder_custom1_" + metadataLocalCode);
 
 		schemaDisplayConfig = schemasDisplayManager.getSchema(zeCollection, "folder_custom2");
-		assertThat(schemaDisplayConfig.getFormMetadataCodes()).contains(metadataCode);
-		assertThat(schemaDisplayConfig.getDisplayMetadataCodes()).contains(metadataCode);
+		assertThat(schemaDisplayConfig.getFormMetadataCodes()).contains("folder_custom2_" + metadataLocalCode);
+		assertThat(schemaDisplayConfig.getDisplayMetadataCodes()).contains("folder_custom2_" + metadataLocalCode);
 	}
 
 	@Test

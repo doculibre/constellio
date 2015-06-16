@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -36,11 +37,15 @@ import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
@@ -56,7 +61,9 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
@@ -64,6 +71,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	public static final String STYLE_NAME = "display-folder";
+	public static final String USER_LOOKUP = "user-lookup";
 	private RecordVO recordVO;
 	private VerticalLayout mainLayout;
 	private ContentVersionUploadField uploadField;
@@ -75,7 +83,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton,
 			editFolderButton, addSubFolderButton, addDocumentButton, addAuthorizationButton, shareFolderButton,
-			printLabelButton, linkToFolderButton;
+			printLabelButton, linkToFolderButton, borrowButton, returnFolderButton;
+	private Label borrowedLabel;
 
 	public DisplayFolderViewImpl() {
 		presenter = new DisplayFolderPresenter(this);
@@ -133,7 +142,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addTab(disabled, $("DisplayFolderView.tabs.logs"));
 		tabSheet.getTab(disabled).setEnabled(false);
 
-		mainLayout.addComponents(uploadField, tabSheet);
+		borrowedLabel = new Label();
+		borrowedLabel.setVisible(false);
+		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
+		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+		mainLayout.addComponents(borrowedLabel, uploadField, tabSheet);
 		presenter.selectInitialTabForUser();
 		return mainLayout;
 	}
@@ -242,6 +256,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 
+		//TODO Thiago
+
+		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getTemplates();
+			}
+		};
 		printLabelButton = new LabelsButton(
 				$("DisplayFolderView.printLabel"), $("DisplayFolderView.printLabel"),
 				new RecordSelector() {
@@ -249,7 +271,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					public List<String> getSelectedRecordIds() {
 						return Arrays.asList(recordVO.getId());
 					}
-				});
+				}, labelTemplatesFactory);
+
+		borrowButton = buildBorrowButton();
+
+		returnFolderButton = new BaseButton($("DisplayFolderView.returnDossier")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.returnFolder();
+			}
+		};
 
 		actionMenuButtons.add(addDocumentButton);
 		actionMenuButtons.add(addSubFolderButton);
@@ -260,6 +291,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(shareFolderButton);
 		actionMenuButtons.add(printLabelButton);
+		actionMenuButtons.add(borrowButton);
+		actionMenuButtons.add(returnFolderButton);
 
 		return actionMenuButtons;
 	}
@@ -366,6 +399,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
+	public void setBorrowButtonState(ComponentState state) {
+		borrowButton.setVisible(state.isVisible());
+		borrowButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setReturnFolderButtonState(ComponentState state) {
+		returnFolderButton.setVisible(state.isVisible());
+		returnFolderButton.setEnabled(state.isEnabled());
+
+	}
+
+	@Override
 	public void drop(DragAndDropEvent event) {
 		if (dragNDropAllowed) {
 			uploadField.drop(event);
@@ -375,6 +421,69 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public AcceptCriterion getAcceptCriterion() {
 		return uploadField != null ? uploadField.getAcceptCriterion() : AcceptAll.get();
+	}
+
+	private Button buildBorrowButton() {
+		return new WindowButton($("DisplayFolderView.borrow"),
+				$("DisplayFolderView.borrow")) {
+			@Override
+			protected Component buildWindowContent() {
+
+				final Field<?> lookupUser = new LookupRecordField(User.SCHEMA_TYPE);
+				lookupUser.setCaption($("DisplayFolderView.borrower"));
+				lookupUser.setId("borrower");
+				lookupUser.addStyleName(USER_LOOKUP);
+
+				final JodaDateField previewReturnDatefield = new JodaDateField();
+				previewReturnDatefield.setCaption($("DisplayFolderView.previewReturnDate"));
+				previewReturnDatefield.setRequired(true);
+				previewReturnDatefield.setId("previewReturnDate");
+				previewReturnDatefield.addStyleName("previewReturnDate");
+
+				BaseButton borrowButton = new BaseButton($("DisplayFolderView.borrow")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String userId = null;
+						if (lookupUser.getValue() != null) {
+							userId = (String) lookupUser.getValue();
+						}
+						if (presenter.borrowFolder(previewReturnDatefield.getValue(), userId)) {
+							getWindow().close();
+						}
+					}
+				};
+				borrowButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				BaseButton cancelButton = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				horizontalLayout.setSpacing(true);
+				horizontalLayout.addComponents(borrowButton, cancelButton);
+
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout.addComponents(lookupUser, previewReturnDatefield, horizontalLayout);
+				verticalLayout.setSpacing(true);
+
+				return verticalLayout;
+			}
+		};
+	}
+
+	@Override
+	public void setBorrowedMessage(String borrowedMessage) {
+		if (borrowedMessage != null) {
+			borrowedLabel.setVisible(true);
+			borrowedLabel.setValue($(borrowedMessage));
+		} else {
+			borrowedLabel.setVisible(false);
+			borrowedLabel.setValue(null);
+		}
 	}
 
 }

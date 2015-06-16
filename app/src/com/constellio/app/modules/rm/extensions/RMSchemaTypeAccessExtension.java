@@ -17,6 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.extensions;
 
+import static com.constellio.app.modules.rm.constants.RMTypes.FILING_SPACE;
+import static com.constellio.app.modules.rm.constants.RMTypes.RETENTION_RULE;
+import static com.constellio.app.modules.rm.constants.RMTypes.UNIFORM_SUBDIVISION;
+import static com.constellio.data.frameworks.extensions.ExtensionBooleanResult.FORCE_TRUE;
+import static com.constellio.data.frameworks.extensions.ExtensionBooleanResult.NOT_APPLICABLE;
+import static java.util.Arrays.asList;
+
 import com.constellio.app.api.extensions.SchemaTypeAccessExtension;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
@@ -40,8 +47,13 @@ public class RMSchemaTypeAccessExtension extends SchemaTypeAccessExtension {
 			//			return ExtensionBooleanResult.forceTrueIf(user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally());
 
 		} else {
-			return ExtensionBooleanResult.NOT_APPLICABLE;
+			return NOT_APPLICABLE;
 		}
 	}
 
+	@Override
+	public ExtensionBooleanResult isSchemaTypeConfigurable(MetadataSchemaType schemaType) {
+		return asList(RETENTION_RULE, FILING_SPACE, UNIFORM_SUBDIVISION).contains(schemaType.getCode()) ?
+				FORCE_TRUE : NOT_APPLICABLE;
+	}
 }

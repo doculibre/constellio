@@ -19,6 +19,8 @@ package com.constellio.model.services.configs;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,9 +34,14 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.io.streamFactories.services.one.StreamOperation;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -46,6 +53,7 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.SystemConfigurationScript;
+import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -68,6 +76,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SystemConfigurationsManager.class);
 
+	IOServices ioServices;
+
 	ModelLayerFactory modelLayerFactory;
 
 	PropertiesConfiguration configValues;
@@ -83,6 +93,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		this.configManager = configManager;
 		this.constellioModulesManagerDelayed = constellioModulesManagerDelayed;
 		this.configManager.registerListener(CONFIG_FILE_PATH, this);
+		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 	}
 
 	@Override
@@ -107,56 +118,100 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	public void setValue(final SystemConfiguration config, final Object newValue) {
 
-		final Object oldValue = getValue(config);
+		if (config.getType() == SystemConfigurationType.BINARY) {
+			StreamFactory<InputStream> streamFactory = (StreamFactory<InputStream>) newValue;
+			final String configPath = "/systemConfigs/" + config.getCode();
+			if (configManager.exist(configPath)) {
+				if (streamFactory == null) {
+					configManager.delete(configPath);
+				} else {
 
-		ValidationErrors errors = new ValidationErrors();
-		validate(config, newValue, errors);
-		if (!errors.getValidationErrors().isEmpty()) {
-			throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), newValue);
-		}
-		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		SystemConfigurationScript<Object> listener = getInstanciatedScriptFor(config);
-		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
-		ConstellioModulesManager modulesManager = constellioModulesManagerDelayed.get();
-		Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
-
-		List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
-		try {
-
-			if (listener != null) {
-				listener.onValueChanged(oldValue, newValue, modelLayerFactory);
-
-				for (String collection : collections) {
-					if (module == null || modulesManager.isModuleEnabled(collection, module)) {
-						listener.onValueChanged(oldValue, newValue, modelLayerFactory, collection);
+					try {
+						ioServices.execute(new StreamOperation<InputStream>() {
+							@Override
+							public void execute(InputStream stream) {
+								String hash = configManager.getBinary(configPath).getHash();
+								try {
+									configManager.update(configPath, hash, stream);
+								} catch (OptimisticLockingConfiguration e) {
+									throw new ImpossibleRuntimeException(e);
+								}
+							}
+						}, streamFactory);
+					} catch (IOException e) {
+						throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), "");
 					}
+
+				}
+			} else {
+				if (streamFactory != null) {
+					try {
+						ioServices.execute(new StreamOperation<InputStream>() {
+							@Override
+							public void execute(InputStream stream) {
+								configManager.add(configPath, stream);
+							}
+						}, streamFactory);
+					} catch (IOException e) {
+						throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), "");
+					}
+
 				}
 			}
 
-			configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
+		} else {
 
-			for (BatchProcess batchProcess : batchProcesses) {
-				batchProcessesManager.markAsPending(batchProcess);
+			final Object oldValue = getValue(config);
+
+			ValidationErrors errors = new ValidationErrors();
+			validate(config, newValue, errors);
+			if (!errors.getValidationErrors().isEmpty()) {
+				throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), newValue);
 			}
+			BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+			SystemConfigurationScript<Object> listener = getInstanciatedScriptFor(config);
+			List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
+			ConstellioModulesManager modulesManager = constellioModulesManagerDelayed.get();
+			Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
 
-		} catch (RuntimeException e) {
-			if (listener != null) {
-				listener.onValueChanged(newValue, oldValue, modelLayerFactory);
+			List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
+			try {
 
-				for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-					if (module == null || modulesManager.isModuleEnabled(collection, module)) {
-						listener.onValueChanged(newValue, oldValue, modelLayerFactory, collection);
+				if (listener != null) {
+					listener.onValueChanged(oldValue, newValue, modelLayerFactory);
+
+					for (String collection : collections) {
+						if (module == null || modulesManager.isModuleEnabled(collection, module)) {
+							listener.onValueChanged(oldValue, newValue, modelLayerFactory, collection);
+						}
 					}
 				}
-			}
-			for (BatchProcess batchProcess : batchProcesses) {
 
-				batchProcessesManager.cancelStandByBatchProcess(batchProcess);
+				configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
+
+				for (BatchProcess batchProcess : batchProcesses) {
+					batchProcessesManager.markAsPending(batchProcess);
+				}
+
+			} catch (RuntimeException e) {
+				if (listener != null) {
+					listener.onValueChanged(newValue, oldValue, modelLayerFactory);
+
+					for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+						if (module == null || modulesManager.isModuleEnabled(collection, module)) {
+							listener.onValueChanged(newValue, oldValue, modelLayerFactory, collection);
+						}
+					}
+				}
+				for (BatchProcess batchProcess : batchProcesses) {
+
+					batchProcessesManager.cancelStandByBatchProcess(batchProcess);
+				}
+
+				throw new SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(config.getCode(), newValue, e);
 			}
 
-			throw new SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(config.getCode(), newValue, e);
 		}
-
 	}
 
 	private PropertiesAlteration updateConfigValueAlteration(final SystemConfiguration config, final Object newValue) {
@@ -281,7 +336,11 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	public <T> T getValue(SystemConfiguration config) {
 		String propertyKey = getPropertyKey(config);
 
-		if (configValues.getProperties().containsKey(propertyKey)) {
+		if (config.getType() == SystemConfigurationType.BINARY) {
+			BinaryConfiguration binaryConfiguration = configManager.getBinary("/systemConfigs/" + config.getCode());
+			return binaryConfiguration == null ? null : (T) binaryConfiguration.getInputStreamFactory();
+
+		} else if (configValues.getProperties().containsKey(propertyKey)) {
 			String value = configValues.getProperties().get(propertyKey);
 			return (T) toObject(config, value);
 		} else {

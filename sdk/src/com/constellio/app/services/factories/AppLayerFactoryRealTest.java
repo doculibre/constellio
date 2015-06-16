@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.conf.AppLayerConfiguration;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.ConstellioPluginManager;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
@@ -83,6 +84,17 @@ public class AppLayerFactoryRealTest extends ConstellioTest {
 		ConstellioModulesManagerImpl modulesManager2 = (ConstellioModulesManagerImpl) factory.getModulesManager();
 
 		assertThat(modulesManager1).isNotNull().isSameAs(modulesManager2);
+
+	}
+
+	@Test
+	public void whenGetLabelTemplateManagerThenAlwaysSameInstance()
+			throws Exception {
+
+		LabelTemplateManager manager1 = factory.getLabelTemplateManager();
+		LabelTemplateManager manager2 = factory.getLabelTemplateManager();
+
+		assertThat(manager1).isNotNull().isSameAs(manager2);
 
 	}
 }

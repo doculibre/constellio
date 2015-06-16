@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -60,7 +61,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.google.common.base.Strings;
 
 public class DecommissioningService {
 	private final ModelLayerFactory modelLayerFactory;
@@ -155,6 +155,42 @@ public class DecommissioningService {
 				.process(decommissioningList, user, TimeProvider.getLocalDate());
 	}
 
+	public List<Folder> getFoldersForAdministrativeUnit(String administrativeUnitId) {
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(rm.folderSchemaType()).where(rm.folderAdministrativeUnit()).is(administrativeUnitId).andWhere(
+						Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+		return rm.wrapFolders(searchServices.search(query));
+	}
+
+	public List<Folder> getFoldersForClassificationPlan(String classificationPlanId) {
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(rm.folderSchemaType()).where(rm.folderCategory()).is(classificationPlanId).andWhere(
+						Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+		return rm.wrapFolders(searchServices.search(query));
+	}
+
+	public List<Folder> getFoldersForRetentionRule(String retentionRuleId) {
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(rm.folderSchemaType()).where(rm.folderRetentionRule()).is(retentionRuleId).andWhere(
+						Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+		return rm.wrapFolders(searchServices.search(query));
+	}
+
+	public List<RetentionRule> getRetentionRulesForAdministrativeUnit(String administrativeUnitId) {
+		Set<RetentionRule> retentionRules = new HashSet<>();
+		for (Folder folder : getFoldersForAdministrativeUnit(administrativeUnitId)) {
+			Record retentionRuleRecord = rm.getRetentionRule(folder.getRetentionRule()).getWrappedRecord();
+			boolean deleted = retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS) == null ?
+					false :
+					(Boolean) retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
+			if (!deleted) {
+				RetentionRule retentionRule = rm.wrapRetentionRule(retentionRuleRecord);
+				retentionRules.add(retentionRule);
+			}
+		}
+		return new ArrayList<>(retentionRules);
+	}
+
 	private List<ContainerRecord> getContainersOfFolders(List<String> folderIds) {
 		Set<String> containerIds = new HashSet<>();
 		for (Record record : recordServices.getRecordsById(collection, folderIds)) {
@@ -189,14 +225,14 @@ public class DecommissioningService {
 
 	private boolean isFolderProcessable(FolderDetailWithType folder) {
 		return !(folder.getType().potentiallyHasAnalogMedium() &&
-				Strings.isNullOrEmpty(folder.getDetail().getContainerRecordId()));
+				StringUtils.isBlank(folder.getDetail().getContainerRecordId()));
 	}
 
 	private boolean hasFoldersToSort(DecommissioningList decommissioningList) {
 		LogicalSearchCondition condition = from(rm.folderSchemaType())
 				.where(Schemas.IDENTIFIER).isIn(decommissioningList.getFolders())
 				.andWhere(rm.folderInactiveDisposalType()).isEqualTo(DisposalType.SORT);
-		return searchServices.getResultsCount(condition) > 0;
+		return searchServices.hasResults(condition);
 	}
 
 	public List<AdministrativeUnit> getAllAdminUnitHierarchyOf(String administrativeUnitId) {
@@ -219,8 +255,7 @@ public class DecommissioningService {
 				.getAllConceptHierarchyOfCondition(adminUnitsTaxonomy(), null)
 				.andWhere(rm.administrativeUnitFilingSpaces()).isEqualTo(filingSpace);
 
-		return searchServices.searchRecordIds(new LogicalSearchQuery()
-				.setCondition(condition)
+		return searchServices.searchRecordIds(new LogicalSearchQuery(condition)
 				.filteredWithUser(user).filteredByStatus(statusFilter));
 	}
 
@@ -267,17 +302,18 @@ public class DecommissioningService {
 	}
 
 	public boolean isCopyStatusInputPossible(Folder folder) {
+		boolean hasPrimaries = true;
+		boolean isResponsibleAdministrativeUnits = false;
+
 		recordServices.recalculate(folder);
-		if (configs.isCopyRuleTypeAlwaysModifiable()) {
-			return true;
 
-		} else if (folder.getRetentionRule() != null) {
+		if (folder.getRetentionRule() != null) {
 			RetentionRule rule = rm.getRetentionRule(folder.getRetentionRule());
-			return rule.isResponsibleAdministrativeUnits();
-
-		} else {
-			return false;
+			hasPrimaries = !rule.getPrincipalCopies().isEmpty();
+			isResponsibleAdministrativeUnits = rule.isResponsibleAdministrativeUnits();
 		}
+
+		return configs.isCopyRuleTypeAlwaysModifiable() ? hasPrimaries : hasPrimaries && isResponsibleAdministrativeUnits;
 	}
 
 	public boolean isTransferDateInputPossibleForUser(Folder folder, User user) {
@@ -314,7 +350,7 @@ public class DecommissioningService {
 	public String getUniformRuleOf(ContainerRecord container) {
 		boolean firstTime = true;
 		MetadataSchema folderSchema = rm.schema(Folder.DEFAULT_SCHEMA);
-		List<Record> records = getFoldersInContainer(container, folderSchema, folderSchema.getMetadata(Folder.RETENTION_RULE));
+		List<Record> records = getFoldersInContainer(container, folderSchema.getMetadata(Folder.RETENTION_RULE));
 		String retentionRule = null;
 		for (Record record : records) {
 			Folder folder = new Folder(record, modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
@@ -332,10 +368,8 @@ public class DecommissioningService {
 
 	public LocalDate getDispositionDate(ContainerRecord container) {
 		LocalDate minimumDate = null;
-		MetadataSchema folderDefaultSchema = rm.schema(Folder.DEFAULT_SCHEMA);
-		List<Record> records = getFoldersInContainer(container, folderDefaultSchema,
-				folderDefaultSchema.getMetadata(Folder.EXPECTED_DEPOSIT_DATE),
-				folderDefaultSchema.getMetadata(Folder.EXPECTED_DESTRUCTION_DATE));
+		List<Record> records = getFoldersInContainer(container, rm.folderExpectedDepositDate(),
+				rm.folderExpectedDestructionDate());
 		for (Record record : records) {
 			minimumDate = getMinimumLocalDate(minimumDate, record);
 		}
@@ -345,10 +379,9 @@ public class DecommissioningService {
 	public List<String> getMediumTypesOf(ContainerRecord container) {
 		Set<String> mediumTypesSet = new HashSet<>();
 		List<String> mediumTypes = new ArrayList<>();
-		MetadataSchema folderSchema = rm.schema(Folder.DEFAULT_SCHEMA);
-		List<Record> records = getFoldersInContainer(container, folderSchema, folderSchema.getMetadata(Folder.MEDIUM_TYPES));
+		List<Record> records = getFoldersInContainer(container, rm.folderMediumTypes());
 		for (Record record : records) {
-			Folder folder = new Folder(record, modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
+			Folder folder = rm.wrapFolder(record);
 			mediumTypesSet.addAll(folder.getMediumTypes());
 		}
 		mediumTypes.addAll(mediumTypesSet);
@@ -364,12 +397,9 @@ public class DecommissioningService {
 	}
 
 	public boolean hasFolderToDeposit(ContainerRecord container) {
-		MetadataSchema folderDefaultSchema = rm.schema(Folder.DEFAULT_SCHEMA);
-		List<Record> records = getFoldersInContainer(container, folderDefaultSchema,
-				folderDefaultSchema.getMetadata(Folder.MAIN_COPY_RULE),
-				folderDefaultSchema.getMetadata(Folder.CONTAINER));
+		List<Record> records = getFoldersInContainer(container, rm.folderMainCopyRule(), rm.folderContainer());
 		for (Record record : records) {
-			Folder folder = new Folder(record, modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
+			Folder folder = rm.wrapFolder(record);
 			if (DisposalType.DEPOSIT == folder.getMainCopyRule().getInactiveDisposalType()) {
 				return true;
 			}
@@ -440,19 +470,15 @@ public class DecommissioningService {
 		return newFolder;
 	}
 
-	//
-	private List<Record> getFoldersInContainer(ContainerRecord container, MetadataSchema folderDefaultSchema,
-			Metadata... metadatas) {
-		Metadata containerMetadata = folderDefaultSchema.getMetadata(Folder.CONTAINER);
-		LogicalSearchCondition condition = from(folderDefaultSchema).where(containerMetadata).isEqualTo(container.getId());
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setReturnedMetadatas(ReturnedMetadatasFilter
-				.onlyFields(metadatas));
+	private List<Record> getFoldersInContainer(ContainerRecord container, Metadata... metadatas) {
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(rm.folderSchemaType()).where(rm.folderContainer()).isEqualTo(container))
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(metadatas));
 		return searchServices.search(query);
 	}
 
 	private LocalDate getMinimumLocalDate(LocalDate minimumDate, Record record) {
-		Folder folder = new Folder(record, modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
+		Folder folder = rm.wrapFolder(record);
 		if (folder.getExpectedDepositDate() != null && folder.getExpectedDestructionDate() != null) {
 			if (folder.getExpectedDepositDate().isBefore(folder.getExpectedDestructionDate())) {
 				if (minimumDate != null) {

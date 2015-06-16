@@ -17,9 +17,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
@@ -29,6 +35,7 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -37,6 +44,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -45,6 +53,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -154,6 +163,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				builder.setSearchable(formMetadataVO.isSearchable());
 			}
 		}
+		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 
 		builder.setEnabled(formMetadataVO.isEnabled());
 		builder.setLabel(formMetadataVO.getLabel());
@@ -164,6 +174,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		} catch (OptimistickLocking optimistickLocking) {
 			// TODO exception gestion
 			throw new RuntimeException(optimistickLocking);
+		} catch (EssentialMetadataCannotBeDisabled e) {
+			view.showErrorMessage($("AddEditMetadataPresenter.essentialMetadataCannotBeDisabled"));
+			return;
 		}
 
 		saveDisplayConfig(formMetadataVO, code, schemasManager, editMode);
@@ -232,11 +245,13 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		if (isFacet) {
 			if (isGlobal) {
-				if (!facets.contains(metadata.getLocalCode()))
+				if (!facets.contains(metadata.getLocalCode())) {
 					facets.add(metadata.getLocalCode());
+				}
 			} else {
-				if (!facets.contains(metadata.getCode()))
+				if (!facets.contains(metadata.getCode())) {
 					facets.add(metadata.getCode());
+				}
 			}
 		} else {
 			if (facets.contains(metadata.getLocalCode())) {
@@ -258,5 +273,60 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_METADATA, parameters);
 		view.navigateTo().listSchemaMetadata(params);
+	}
+
+	public boolean isMetadataEnableStatusModifiable() {
+		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential();
+	}
+
+	public boolean isMetadataRequiredStatusModifiable() {
+		return metadataCode.isEmpty() || !getMetadata(metadataCode).isEssential();
+	}
+
+	public void inputTypeValueChanged(FormMetadataVO formMetadataVO) {
+		boolean noReferenceType = formMetadataVO.getValueType() == MetadataValueType.REFERENCE && StringUtils
+				.isBlank(formMetadataVO.getReference());
+		if (!noReferenceType) {
+			view.reloadForm();
+		}
+	}
+
+	public void valueTypeValueChanged() {
+		view.reloadForm();
+	}
+
+	public void multivalueValueChanged(FormMetadataVO formMetadataVO) {
+		boolean noReferenceType = formMetadataVO.getValueType() == MetadataValueType.REFERENCE && StringUtils
+				.isBlank(formMetadataVO.getReference());
+		if (!noReferenceType) {
+			view.reloadForm();
+		}
+	}
+
+	public void refTypeValueChanged() {
+		view.reloadForm();
+	}
+
+	public MetadataVO getDefaultValueMetadataVO(FormMetadataVO formMetadataVO) {
+
+		try {
+			MetadataInputType inputType = formMetadataVO.getInput();
+			if (formMetadataVO.getValueType() == MetadataValueType.REFERENCE) {
+				inputType = MetadataInputType.LOOKUP;
+			}
+			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getValueType(), collection,
+					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
+					new HashMap<Locale, String>(), null, new String[] { }, formMetadataVO.getReference(), inputType,
+					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
+					formMetadataVO.getDefaultValue());
+			return metadataVO;
+		} catch (Exception ex) {
+			return null;
+		}
+	}
+
+	public boolean isDefaultValuePossible(FormMetadataVO formMetadataVO) {
+		MetadataValueType valueType = formMetadataVO.getValueType();
+		return valueType != null && !valueType.equals(MetadataValueType.CONTENT);
 	}
 }

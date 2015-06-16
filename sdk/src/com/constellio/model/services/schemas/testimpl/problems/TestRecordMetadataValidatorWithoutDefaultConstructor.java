@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.schemas.testimpl.problems;
 
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -27,7 +28,7 @@ public class TestRecordMetadataValidatorWithoutDefaultConstructor implements Rec
 	}
 
 	@Override
-	public void validate(Metadata metadata, String value, ValidationErrors validationErrors) {
+	public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

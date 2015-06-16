@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.modules.rm.reports.factories.labels.LabelConfiguration;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -112,7 +112,8 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		printBordereau.setStyleName(ValoTheme.BUTTON_LINK);
 		printBordereau.setEnabled(presenter.isPrintReportEnable());
 
-		ContainerLabelsButton labelsButton = new ContainerLabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this);
+		ContainerLabelsButton labelsButton = new ContainerLabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
+				presenter.getTemplates());
 		labelsButton.setEnabled(presenter.isPrintReportEnable());
 
 		actionMenuButtons.add(printBordereau);
@@ -128,13 +129,17 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	// TODO: Quick hack to make printing container labels work...
 	public static class ContainerLabelsButton extends WindowButton {
 		private final RecordSelector selector;
+		private final List<LabelTemplate> labelTemplates;
 
 		@PropertyId("startPosition") private ComboBox startPosition;
 		@PropertyId("numberOfCopies") private TextField copies;
+		@PropertyId("labelConfiguration") private ComboBox labelConfiguration;
 
-		public ContainerLabelsButton(String caption, String windowCaption, RecordSelector selector) {
+		public ContainerLabelsButton(String caption, String windowCaption, RecordSelector selector,
+				List<LabelTemplate> labelTemplates) {
 			super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
 			this.selector = selector;
+			this.labelTemplates = labelTemplates;
 		}
 
 		@Override
@@ -145,16 +150,24 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			}
 			startPosition.setNullSelectionAllowed(false);
 
+			labelConfiguration = new ComboBox($("LabelsButton.labelFormat"));
+			for (LabelTemplate labelTemplate : labelTemplates) {
+				labelConfiguration.addItem(labelTemplate);
+				labelConfiguration.setItemCaption(labelTemplate, $("LabelsButton.labelFormat." + labelTemplate.getKey()));
+			}
+			labelConfiguration.setNullSelectionAllowed(false);
+
 			copies = new TextField($("LabelsButton.numberOfCopies"));
 			copies.setConverter(Integer.class);
 
 			return new BaseForm<LabelParametersVO>(
-					new LabelParametersVO(new LabelConfiguration("container", 0, 0, null)), this, startPosition, copies) {
+					new LabelParametersVO(labelTemplates.get(0)), this, labelConfiguration, startPosition,
+					copies) {
 				@Override
 				protected void saveButtonClick(LabelParametersVO parameters)
 						throws ValidationException {
 					LabelsReportFactory factory = new LabelsReportFactory(
-							selector.getSelectedRecordIds(), parameters.getLabelConfiguration(),
+							selector.getSelectedRecordIds(), ((LabelTemplate) (labelConfiguration.getValue())),
 							parameters.getStartPosition(), parameters.getNumberOfCopies());
 					getWindow().setContent(new ReportViewer(factory));
 				}

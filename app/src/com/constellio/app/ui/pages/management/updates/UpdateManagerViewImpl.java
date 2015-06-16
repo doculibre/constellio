@@ -205,9 +205,13 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 	@Override
 	public void uploadSucceeded(SucceededEvent event) {
-		presenter.uploadSucceeded(new ProgressInfo());
-		if (!error) {
-			restartMessage.setVisible(true);
+		if(event.getLength() == 0 || event.getFilename().isEmpty()){
+			showErrorMessage($("UpdateManagerViewImpl.error.file"));
+		}else {
+			presenter.uploadSucceeded(new ProgressInfo());
+			if (!error) {
+				restartMessage.setVisible(true);
+			}
 		}
 		uploadWaitWindow.close();
 	}

@@ -17,33 +17,44 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.login;
 
-import java.io.Serializable;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.LogoUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
 
-public class LoginPresenter implements Serializable {
+public class LoginPresenter extends BasePresenter<LoginView> {
 
 	private UserToVOBuilder voBuilder = new UserToVOBuilder();
 
 	private LoginView view;
 
 	public LoginPresenter(LoginView view) {
+		super(view);
 		this.view = view;
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
 	}
 
 	public void viewEntered(String parameters) {
@@ -65,11 +76,12 @@ public class LoginPresenter implements Serializable {
 		sessionContext.setCurrentUser(null);
 	}
 
-	public void signInAttempt(String username, String password) {
+	public void signInAttempt(String enteredUsername, String password) {
 
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential userCredential = userServices.getUserCredential(username);
+		UserCredential userCredential = userServices.getUserCredential(enteredUsername);
+		String username = userCredential.getUsername();
 		List<String> collections = userCredential.getCollections();
 		if (userCredential.getStatus() == UserCredentialStatus.ACTIVE && modelLayerFactory.newAuthenticationService()
 				.authenticate(username, password)) {
@@ -123,4 +135,16 @@ public class LoginPresenter implements Serializable {
 
 	}
 
+	public Resource getLogoResource() {
+		return LogoUtils.getLogoResource(modelLayerFactory);
+	}
+
+	public String getLogoTarget() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		String linkTarget = manager.getValue(ConstellioEIMConfigs.LOGO_LINK);
+		if (StringUtils.isBlank(linkTarget)) {
+			linkTarget = "http://www.constellio.com";
+		}
+		return linkTarget;
+	}
 }

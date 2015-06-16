@@ -27,13 +27,18 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportPresenter;
+import com.constellio.app.modules.rm.services.LabelTemplateServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
+import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
 @SlowTest
@@ -42,6 +47,8 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 	private RMTestRecords records;
 	private LabelsReportPresenter presenter;
+	private LabelTemplateServices labelTemplateServices;
+	private static final String LABELS_TEMPLATES_FOLDER = "labelTemplates";
 
 	@Before
 	public void setUp()
@@ -51,6 +58,20 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		presenter = new LabelsReportPresenter(zeCollection, getModelLayerFactory());
+
+		givenInvalidExtesionFileInFolder();
+		labelTemplateServices = new LabelTemplateServices(getAppLayerFactory());
+		labelTemplateServices.getTemplates("");
+
+	}
+
+	private void givenInvalidExtesionFileInFolder() {
+		ConfigManager configManager = getDataLayerFactory().getConfigManager();
+		for (String filename : configManager.list(LABELS_TEMPLATES_FOLDER)) {
+			if (!filename.endsWith(".bkp")) {
+				configManager.rename(LABELS_TEMPLATES_FOLDER + "/" + filename, LABELS_TEMPLATES_FOLDER + "/" + filename + ".bkp");
+			}
+		}
 	}
 
 	@Test
@@ -59,9 +80,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_LEFT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
 
@@ -83,7 +104,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 				labelReportFieldsToCheck);
 
 		LabelsReportField idField = fields.get(1);
-		LabelsReportField referenceIdField = getReferenceField("                                                    A01");
+		//		LabelsReportField referenceIdField = getReferenceField("                                                    A01");
+		//		assertThat(idField).isEqualToComparingOnlyGivenFields(referenceIdField, labelReportFieldsToCheck);
+		LabelsReportField referenceIdField = getReferenceField("A01");
 		assertThat(idField).isEqualToComparingOnlyGivenFields(referenceIdField, labelReportFieldsToCheck);
 
 		LabelsReportField titleField = fields.get(2);
@@ -119,9 +142,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_RIGHT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
 
@@ -142,8 +165,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		assertThat(idField).isEqualToComparingOnlyGivenFields(referenceIdField, labelReportFieldsToCheck);
 
 		LabelsReportField categoryCodeField = fields.get(1);
-		LabelsReportField referenceCategoryCodeField = getReferenceField(
-				"                                                   X110");
+		//		LabelsReportField referenceCategoryCodeField = getReferenceField(
+		//				"                                                   X110");
+		LabelsReportField referenceCategoryCodeField = getReferenceField("X110");
 		assertThat(categoryCodeField).isEqualToComparingOnlyGivenFields(referenceCategoryCodeField,
 				labelReportFieldsToCheck);
 
@@ -172,9 +196,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_LEFT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		build(new LabelsReportBuilder(model));
 
@@ -186,9 +210,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A02", "A03"));
 		int startPosition = 1;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_RIGHT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		build(new LabelsReportBuilder(model));
 
@@ -200,9 +224,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A04"));
 		int startPosition = 1;
 		int copies = 2;
-		String modelCode = LabelsReportPresenter.FOLDER_LEFT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		build(new LabelsReportBuilder(model));
 
@@ -214,9 +238,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A05"));
 		int startPosition = 2;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_RIGHT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(2);
 
@@ -230,9 +254,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A06"));
 		int startPosition = 3;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_LEFT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(3);
 
@@ -246,9 +270,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A07", "A08"));
 		int startPosition = 2;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_RIGHT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(3);
 
@@ -262,9 +286,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A07", "A08", "A01"));
 		int startPosition = 2;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_RIGHT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(4);
 
@@ -278,9 +302,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A09"));
 		int startPosition = 1;
 		int copies = 14;
-		String modelCode = LabelsReportPresenter.FOLDER_LEFT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(14);
 
@@ -294,9 +318,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A10"));
 		int startPosition = 14;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_RIGHT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(14);
 
@@ -310,9 +334,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A11", "A12"));
 		int startPosition = 14;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_LEFT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(15);
 
@@ -327,9 +351,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 				"A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A20"));
 		int startPosition = 1;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_LEFT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(20);
 
@@ -343,9 +367,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A00"));
 		int startPosition = 1;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.FOLDER_LEFT;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		//Has an empty sticker
 		assertThat(model.getLabelsReportLabels()).hasSize(1);
@@ -361,9 +385,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("bac01"));
 		int startPosition = 1;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.CONTAINER;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(1);
 
@@ -377,9 +401,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("bac01"));
 		int startPosition = 1;
 		int copies = 2;
-		String modelCode = LabelsReportPresenter.CONTAINER;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(2);
 
@@ -393,9 +417,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("bac01"));
 		int startPosition = 2;
 		int copies = 1;
-		String modelCode = LabelsReportPresenter.CONTAINER;
+		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
 
-		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, modelCode);
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(2);
 

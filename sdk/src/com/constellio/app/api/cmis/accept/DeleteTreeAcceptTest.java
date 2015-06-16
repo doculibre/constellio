@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.api.cmis.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -28,6 +29,7 @@ import org.junit.Test;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -86,8 +88,12 @@ public class DeleteTreeAcceptTest extends ConstellioTest {
 		cmisSession.getBinding().getObjectService()
 				.deleteTree(cmisSession.getRepositoryInfo().getId(), object.getId(), true, UnfileObject.DELETE, false, null);
 
-		recordServices.refresh(zeCollectionRecords.folder1);
-		assertThat(zeCollectionRecords.folder1.isActive()).isFalse();
+		try {
+			recordServices.getDocumentById(zeCollectionRecords.folder1.getId());
+			fail("Record still exist");
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			//OK
+		}
 	}
 
 	@Test

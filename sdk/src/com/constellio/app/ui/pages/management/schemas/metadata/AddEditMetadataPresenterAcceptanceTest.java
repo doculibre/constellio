@@ -98,8 +98,8 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.setSchemaCode(zeSchema.code());
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
-				null, "",
-				"zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default");
+				null, "", "zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null);
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -124,8 +124,8 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.setSchemaCode(zeCustomSchema.code());
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
-				null, "",
-				"zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default");
+				null, "", "zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null);
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -151,7 +151,8 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		Metadata stringMeta = zeSchema.stringMetadata();
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
-				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default");
+				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null);
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 
@@ -177,7 +178,8 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		Metadata stringMeta = zeCustomSchema.stringMetadata();
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
-				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default");
+				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null);
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 

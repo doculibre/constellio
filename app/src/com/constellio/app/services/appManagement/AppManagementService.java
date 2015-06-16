@@ -116,7 +116,7 @@ public class AppManagementService {
 			}
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
-			File deployFolder = new File(currentAppFolder.getParentFile(), "webapp-" + warVersion);
+			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
 
 			currentStep = "Moving new webapp version in '" + deployFolder + "'";
 			progressInfo.setProgressMessage(currentStep);
@@ -131,29 +131,41 @@ public class AppManagementService {
 			currentStep = "Updating wrapper conf to boot on new version";
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
-			updateWrapperConf(warVersion);
+			updateWrapperConf(deployFolder);
 		} finally {
 			fileService.deleteQuietly(tempFolder);
 		}
 		progressInfo.setCurrentState(1);
 	}
 
-	private void updateWrapperConf(String warVersion) {
+	private void updateWrapperConf(File deployFolder) {
 		File wrapperConf = foldersLocator.getWrapperConf();
 		List<String> lines = fileService.readFileToLinesWithoutExpectableIOException(wrapperConf);
 		for (int i = 0; i < lines.size(); i++) {
 			String line = lines.get(i);
 			if (line.startsWith("wrapper.java.classpath.2=")) {
-				lines.set(i, "wrapper.java.classpath.2=./webapp-" + warVersion + "/WEB-INF/lib/*.jar");
+				lines.set(i, "wrapper.java.classpath.2=" + deployFolder.getAbsolutePath() + "/WEB-INF/lib/*.jar");
 			}
 			if (line.startsWith("wrapper.java.classpath.3=")) {
-				lines.set(i, "wrapper.java.classpath.3=./webapp-" + warVersion + "/WEB-INF/classes");
+				lines.set(i, "wrapper.java.classpath.3=" + deployFolder.getAbsolutePath() + "/WEB-INF/classes");
 			}
 			if (line.startsWith("wrapper.commandfile=")) {
-				lines.set(i, "wrapper.commandfile=./webapp-" + warVersion + "/WEB-INF/command/cmd");
+				lines.set(i, "wrapper.commandfile=" + deployFolder.getAbsolutePath() + "/WEB-INF/command/cmd");
 			}
 		}
 		fileService.writeLinesToFile(wrapperConf, lines);
+	}
+
+	private File findDeployFolder(File parent, String version) {
+
+		File deployFolder = new File(parent, "webapp-" + version);
+
+		int subVersion = 1;
+		while(deployFolder.exists()) {
+			deployFolder = new File(parent, "webapp-" + version + "-" + subVersion);
+			subVersion++;
+		}
+		return deployFolder;
 	}
 
 	private String findWarVersion(File tempFolder) {

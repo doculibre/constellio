@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -34,94 +35,57 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class Folder extends RMObject {
-
 	public static final String SCHEMA_TYPE = "folder";
-
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-
 	public static final String ADMINISTRATIVE_UNIT_ENTERED = "administrativeUnitEntered";
-
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
-
 	public static final String ARCHIVISTIC_STATUS = "archivisticStatus";
-
 	public static final String UNIFORM_SUBDIVISION = "uniformSubdivision";
-
 	public static final String UNIFORM_SUBDIVISION_ENTERED = "uniformSubdivisionEntered";
-
 	public static final String CATEGORY_ENTERED = "categoryEntered";
-
 	public static final String CATEGORY = "category";
-
 	public static final String CATEGORY_CODE = "categoryCode";
-
 	public static final String MAIN_COPY_RULE = "mainCopyRule";
-
 	public static final String APPLICABLE_COPY_RULES = "applicableCopyRule";
-
 	public static final String COPY_STATUS = "copyStatus";
-
 	public static final String COPY_STATUS_ENTERED = "copyStatusEntered";
-
 	public static final String CLOSING_DATE = "closingDate";
-
 	public static final String ENTERED_CLOSING_DATE = "enteredClosingDate";
-
 	public static final String DESCRIPTION = "description";
-
 	public static final String FILING_SPACE_ENTERED = "filingSpaceEntered";
-
 	public static final String FILING_SPACE = "filingSpace";
-
 	public static final String FILING_SPACE_CODE = "filingSpaceCode";
-
 	public static final String KEYWORDS = "keywords";
-
 	public static final String MEDIUM_TYPES = "mediumTypes";
-
 	public static final String OPENING_DATE = "openingDate";
-
 	public static final String PARENT_FOLDER = "parentFolder";
-
 	public static final String ACTUAL_TRANSFER_DATE = "actualTransferDate";
-
 	public static final String ACTUAL_DEPOSIT_DATE = "actualDepositDate";
-
 	public static final String ACTUAL_DESTRUCTION_DATE = "actualDestructionDate";
-
 	public static final String COPY_RULES_EXPECTED_TRANSFER_DATES = "copyRulesExpectedTransferDates";
-
 	public static final String EXPECTED_TRANSFER_DATE = "expectedTransferDate";
-
 	public static final String COPY_RULES_EXPECTED_DEPOSIT_DATES = "copyRulesExpectedDepositDates";
-
 	public static final String EXPECTED_DEPOSIT_DATE = "expectedDepositDate";
-
 	public static final String COPY_RULES_EXPECTED_DESTRUCTION_DATES = "copyRulesExpectedDestructionDates";
-
 	public static final String EXPECTED_DESTRUCTION_DATE = "expectedDestructionDate";
-
 	public static final String RETENTION_RULE = "retentionRule";
-
 	public static final String RETENTION_RULE_ENTERED = "retentionRuleEntered";
-
 	public static final String RETENTION_RULE_ADMINISTRATIVE_UNITS = "ruleAdminUnit";
-
 	public static final String DECOMMISSIONING_DATE = "decommissioningDate";
-
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
-
 	public static final String SEMIACTIVE_RETENTION_TYPE = "semiactiveRetentionType";
-
 	public static final String INACTIVE_DISPOSAL_TYPE = "inactiveDisposalType";
-
 	public static final String MEDIA_TYPE = "mediaType";
-
 	public static final String CONTAINER = "container";
-
 	public static final String TYPE = "type";
-
 	public static final String COMMENTS = "comments";
+	public static final String BORROWED = "borrowed";
+	public static final String BORROW_DATE = "borrowDate";
+	public static final String BORROW_RETURN_DATE = "borrowReturnDate";
+	public static final String BORROW_PREVIEW_RETURN_DATE = "borrowPreviewReturnDate";
+	public static final String RETURN_BORROW_USER_ENTERED = "returnBorrowUserEntered";
+	public static final String BORROW_USER = "borrowUser";
+	public static final String BORROW_USER_ENTERED = "borrowUserEntered";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -475,12 +439,77 @@ public class Folder extends RMObject {
 		return get(MEDIA_TYPE);
 	}
 
+	public Boolean getBorrowed() {
+		return get(BORROWED);
+	}
+
+	public Folder setBorrowed(Boolean borrowed) {
+		set(BORROWED, borrowed);
+		return this;
+	}
+
+	public LocalDateTime getBorrowDate() {
+		return get(BORROW_DATE);
+	}
+
+	public Folder setBorrowDate(Boolean borrowDate) {
+		set(BORROW_DATE, borrowDate);
+		return this;
+	}
+
+	public LocalDateTime getBorrowReturnDate() {
+		return get(BORROW_RETURN_DATE);
+	}
+
+	public Folder setBorrowReturnDate(Boolean borrowReturnDate) {
+		set(BORROW_RETURN_DATE, borrowReturnDate);
+		return this;
+	}
+
+	public LocalDateTime getBorrowPreviewReturnDate() {
+		return get(BORROW_PREVIEW_RETURN_DATE);
+	}
+
+	public Folder setBorrowPreviewReturnDate(Boolean borrowPreviewReturnDate) {
+		set(BORROW_PREVIEW_RETURN_DATE, borrowPreviewReturnDate);
+		return this;
+	}
+
+	public String getReturnBorrowUserEntered() {
+		return get(RETURN_BORROW_USER_ENTERED);
+	}
+
+	public Folder setReturnBorrowUserEntered(String returnBorrowUserEntered) {
+		set(RETURN_BORROW_USER_ENTERED, returnBorrowUserEntered);
+		return this;
+	}
+
+	public String getBorrowUser() {
+		return get(BORROW_USER);
+	}
+
+	public Folder setBorrowUser(String borrowUser) {
+		set(BORROW_USER, borrowUser);
+		return this;
+	}
+
+	public String getBorrowUserEntered() {
+		return get(BORROW_USER_ENTERED);
+	}
+
+	public Folder setBorrowUserEntered(String borrowUserEntered) {
+		set(BORROW_USER_ENTERED, borrowUserEntered);
+		return this;
+	}
+
 	public boolean hasAnalogicalMedium() {
-		return getMediaType().potentiallyHasAnalogMedium();
+		FolderMediaType mediaType = getMediaType();
+		return mediaType != null && mediaType.potentiallyHasAnalogMedium();
 	}
 
 	public boolean hasElectronicMedium() {
-		return getMediaType().potentiallyHasElectronicMedium();
+		FolderMediaType mediaType = getMediaType();
+		return mediaType != null && mediaType.potentiallyHasElectronicMedium();
 	}
 
 }

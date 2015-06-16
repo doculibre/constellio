@@ -173,8 +173,8 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 		table.setColumnWidth("buttons", 160);
 		int tableSize = batchSize;
-		if (tableSize > table.getItemIds().size()) {
-			tableSize = table.getItemIds().size();
+		if (tableSize > table.size()) {
+			tableSize = table.size();
 		}
 		table.setPageLength(tableSize);
 		table.addStyleName(USER_TABLE);

@@ -35,7 +35,6 @@ import com.constellio.model.entities.schemas.StructureFactory;
 
 @SuppressWarnings("serial")
 public class MetadataVO implements Serializable {
-
 	final String code;
 	final MetadataValueType type;
 	final String collection;
@@ -52,11 +51,13 @@ public class MetadataVO implements Serializable {
 	final AllowedReferences allowedReferences;
 	final StructureFactory structureFactory;
 	final String metadataGroup;
+	final Object defaultValue;
 
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
 			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
 			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
-			AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory, String metadataGroup) {
+			AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory, String metadataGroup,
+			Object defaultValue) {
 		super();
 		this.code = code;
 		this.type = type;
@@ -74,6 +75,7 @@ public class MetadataVO implements Serializable {
 		this.enabled = enabled;
 		this.structureFactory = structureFactory;
 		this.metadataGroup = metadataGroup;
+		this.defaultValue = defaultValue;
 
 		if (schema != null && !schema.getMetadatas().contains(this)) {
 			schema.getMetadatas().add(this);
@@ -83,10 +85,10 @@ public class MetadataVO implements Serializable {
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
 			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
 			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
-			AllowedReferences allowedReferences, String metadataGroup) {
+			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue) {
 
 		this(code, type, collection, schema, required, multivalue, readOnly, labels, enumClass, taxonomyCodes,
-				schemaTypeCode, metadataInputType, allowedReferences, true, null, metadataGroup);
+				schemaTypeCode, metadataInputType, allowedReferences, true, null, metadataGroup, defaultValue);
 	}
 
 	public MetadataVO() {
@@ -107,6 +109,7 @@ public class MetadataVO implements Serializable {
 		this.allowedReferences = null;
 		this.structureFactory = null;
 		this.metadataGroup = null;
+		this.defaultValue = null;
 	}
 
 	public String getCode() {
@@ -294,5 +297,4 @@ public class MetadataVO implements Serializable {
 		}
 		return toString;
 	}
-
 }

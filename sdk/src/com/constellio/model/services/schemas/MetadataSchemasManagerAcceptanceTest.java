@@ -49,8 +49,6 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomy
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
 import static com.thoughtworks.selenium.SeleneseTestBase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.Arrays;
@@ -246,12 +244,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		givenCollection("collection1");
 		givenCollection("collection2");
 
-		schemasManager.registerListener("collection1", schemasManagerFirstCollection1Listener);
-		schemasManager.registerListener("collection1", schemasManagerSecondCollection1Listener);
-		schemasManager.registerListener("collection2", schemasManagerCollection2Listener);
-		otherManager.registerListener("collection1", otherSchemasManagerFirstCollection1Listener);
-		otherManager.registerListener("collection1", otherSchemasManagerSecondCollection1Listener);
-		otherManager.registerListener("collection2", otherSchemasManagerCollection2Listener);
+		schemasManager.registerListener(schemasManagerFirstCollection1Listener);
+		schemasManager.registerListener(schemasManagerSecondCollection1Listener);
+		schemasManager.registerListener(schemasManagerCollection2Listener);
+		otherManager.registerListener(otherSchemasManagerFirstCollection1Listener);
+		otherManager.registerListener(otherSchemasManagerSecondCollection1Listener);
+		otherManager.registerListener(otherSchemasManagerCollection2Listener);
 
 		MetadataSchemaTypesBuilder collection1Builder = MetadataSchemaTypesBuilder
 				.modify(schemasManager.getSchemaTypes("collection1"));
@@ -260,10 +258,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		verify(schemasManagerFirstCollection1Listener).onCollectionSchemasModified("collection1");
 		verify(schemasManagerSecondCollection1Listener).onCollectionSchemasModified("collection1");
-		verify(schemasManagerCollection2Listener, never()).onCollectionSchemasModified(anyString());
+		verify(schemasManagerCollection2Listener).onCollectionSchemasModified("collection1");
 		verify(otherSchemasManagerFirstCollection1Listener).onCollectionSchemasModified("collection1");
 		verify(otherSchemasManagerSecondCollection1Listener).onCollectionSchemasModified("collection1");
-		verify(otherSchemasManagerCollection2Listener, never()).onCollectionSchemasModified(anyString());
+		verify(otherSchemasManagerCollection2Listener).onCollectionSchemasModified("collection1");
 	}
 
 	@Test

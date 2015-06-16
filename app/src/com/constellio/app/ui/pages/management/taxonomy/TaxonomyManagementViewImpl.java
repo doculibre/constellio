@@ -35,29 +35,43 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.components.BaseDisplay;
+import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.TaxonomyConceptsWithChildrenCountContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.vaadin.data.Container;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class TaxonomyManagementViewImpl extends BaseViewImpl implements TaxonomyManagementView {
 
-	TaxonomyManagementPresenter presenter;
 	VerticalLayout layout;
+	private TaxonomyManagementPresenter presenter;
+	public static final String STYLE_NAME = "display-taxonomy";
+	private TabSheet tabSheet;
+	private Component foldersCompoment;
+	private VerticalLayout mainLayout;
 
 	public TaxonomyManagementViewImpl() {
 		this.presenter = new TaxonomyManagementPresenter(this);
@@ -81,17 +95,74 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
-		layout = new VerticalLayout(buildRootConceptsTables());
-		layout.setSizeFull();
-		layout.setSpacing(true);
+	protected void afterViewAssembled(ViewChangeEvent event) {
+		presenter.viewAssembled();
+	}
 
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
+		mainLayout = new VerticalLayout();
+		mainLayout.setSizeFull();
+		mainLayout.setSpacing(true);
+		tabSheet = new TabSheet();
+		foldersCompoment = new CustomComponent();
+
+		VerticalLayout taxonomyDisplayLayout = new VerticalLayout(buildRootConceptsTables());
+		taxonomyDisplayLayout.setSizeFull();
+		taxonomyDisplayLayout.setSpacing(true);
+
+		boolean enableTabSheet = false;
 		if (presenter.conceptId != null) {
-			layout.addComponentAsFirst(buildConceptRecordDisplay(false));
-			layout.addComponent(buildConceptRecordDisplay(true));
+			if (presenter.getTaxonomy().getCode().equals("admUnits") || presenter.getTaxonomy()
+					.getCode().equals("plan")) {
+				enableTabSheet = true;
+				Component additionalInfo = buildAdditionalInformation();
+				if (additionalInfo != null) {
+					taxonomyDisplayLayout.addComponentAsFirst(additionalInfo);
+				}
+			}
+			taxonomyDisplayLayout.addComponentAsFirst(buildConceptRecordDisplay(false));
+			taxonomyDisplayLayout.addComponent(buildConceptRecordDisplay(true));
 		}
 
-		return layout;
+		if (enableTabSheet) {
+			tabSheet.addStyleName(STYLE_NAME);
+			tabSheet.addTab(taxonomyDisplayLayout, $("TaxonomyManagementView.tabs.metadata")).setStyleName("metadata");
+			foldersCompoment.addStyleName("foldersTable");
+			tabSheet.addTab(foldersCompoment, $("TaxonomyManagementView.tabs.folders")).setStyleName("folders");
+			mainLayout.addComponent(tabSheet);
+		} else {
+			mainLayout.addComponent(taxonomyDisplayLayout);
+		}
+
+		return mainLayout;
+	}
+
+	private Component buildAdditionalInformation() {
+		Label numberOfFoldersCaptionLabel = new Label($("TaxonomyManagementView.numberOfFolders"));
+		numberOfFoldersCaptionLabel.setId("numberOfFolders");
+		numberOfFoldersCaptionLabel.addStyleName("numberOfFolders");
+		Label numberOfFoldersDisplayComponent = new Label(presenter.getNumberOfFolders());
+		numberOfFoldersDisplayComponent.addStyleName("display-value-numberOfFolders");
+
+		Label retentionRulesCaptionLabel = null;
+		Component retentionRulesDisplayComponent = null;
+		String taxonomyCode = presenter.getTaxonomy().getCode();
+		if (taxonomyCode.equals("admUnits")) {
+			retentionRulesCaptionLabel = new Label($("TaxonomyManagementView.retentionRules"));
+			retentionRulesCaptionLabel.setId("retentionRules");
+			retentionRulesCaptionLabel.addStyleName("retentionRules");
+			retentionRulesDisplayComponent = buildDisplayList(presenter.getRetentionRules());
+		}
+
+		List<BaseDisplay.CaptionAndComponent> captionsAndComponents = new ArrayList<>();
+		captionsAndComponents.add(new CaptionAndComponent(numberOfFoldersCaptionLabel, numberOfFoldersDisplayComponent));
+		if (retentionRulesDisplayComponent != null) {
+			captionsAndComponents.add(new CaptionAndComponent(retentionRulesCaptionLabel, retentionRulesDisplayComponent));
+		}
+		BaseDisplay additionalInformationDisplay = new BaseDisplay(captionsAndComponents);
+		return additionalInformationDisplay;
+
 	}
 
 	private RecordDisplay buildConceptRecordDisplay(boolean comments) {
@@ -202,6 +273,31 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		layout.addComponent(buildRootConceptsTables());
 	}
 
+	@Override
+	public void setFolders(RecordVODataProvider dataProvider) {
+		Table foldersTable = new RecordVOTable(dataProvider);
+		foldersTable.setSizeFull();
+		//		foldersTable.addStyleName("foldersTable");
+		foldersTable.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				RecordVOItem item = (RecordVOItem) event.getItem();
+				RecordVO recordVO = item.getRecord();
+				presenter.folderClicked(recordVO);
+			}
+		});
+		Component oldFoldersComponent = foldersCompoment;
+		foldersCompoment = foldersTable;
+		foldersCompoment.addStyleName("foldersTable");
+		tabSheet.replaceComponent(oldFoldersComponent, foldersCompoment);
+
+	}
+
+	@Override
+	public void selectFoldersTab() {
+		tabSheet.setSelectedTab(foldersCompoment);
+	}
+
 	public static class SplitCommentsMetadataDisplayFactory extends MetadataDisplayFactory {
 		private final boolean comments;
 
@@ -219,5 +315,25 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			StructureFactory factory = metadata.getStructureFactory();
 			return factory != null && factory instanceof CommentFactory;
 		}
+
+	}
+
+	private Component buildDisplayList(List<String> list) {
+		Component retentionRulesDisplayComponent;
+		MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
+		List<Component> elementDisplayComponents = new ArrayList<Component>();
+		for (String elementDisplayValue : list) {
+			Component elementDisplayComponent = new ReferenceDisplay(elementDisplayValue);
+			if (elementDisplayComponent != null) {
+				elementDisplayComponent.setSizeFull();
+				elementDisplayComponents.add(elementDisplayComponent);
+			}
+		}
+		if (!elementDisplayComponents.isEmpty()) {
+			retentionRulesDisplayComponent = metadataDisplayFactory.newCollectionValueDisplayComponent(elementDisplayComponents);
+		} else {
+			retentionRulesDisplayComponent = null;
+		}
+		return retentionRulesDisplayComponent;
 	}
 }

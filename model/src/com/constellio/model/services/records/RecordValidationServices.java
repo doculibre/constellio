@@ -24,6 +24,7 @@ import java.util.Set;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -49,14 +50,16 @@ public class RecordValidationServices {
 
 	private final MetadataSchemasManager schemasManager;
 	private final AuthorizationsServices authorizationServices;
+	private final ConfigProvider configProvider;
 	private SearchServices searchService;
 
-	public RecordValidationServices(MetadataSchemasManager schemasManager, SearchServices searchService) {
-		this(schemasManager, searchService, null);
+	public RecordValidationServices(ConfigProvider configProvider, MetadataSchemasManager schemasManager, SearchServices searchService) {
+		this(configProvider, schemasManager, searchService, null);
 	}
 
-	public RecordValidationServices(MetadataSchemasManager schemasManager, SearchServices searchService,
+	public RecordValidationServices(ConfigProvider configProvider, MetadataSchemasManager schemasManager, SearchServices searchService,
 			AuthorizationsServices authorizationsServices) {
+		this.configProvider = configProvider;
 		this.schemasManager = schemasManager;
 		this.searchService = searchService;
 		this.authorizationServices = authorizationsServices;
@@ -200,13 +203,13 @@ public class RecordValidationServices {
 				validationErrors.add(validatorClass, code, parameters);
 			}
 		};
-		validator.validate(metadata, value, validationErrorsWithFailedMetadataParameters);
+		validator.validate(metadata, value,configProvider, validationErrorsWithFailedMetadataParameters);
 	}
 
 	private void callSchemaValidator(Record record, MetadataSchemaTypes types, final MetadataSchema schema,
 			RecordValidator validator, final ValidationErrors validationErrors) {
 
-		validator.validate(record, types, schema, new ValidationErrors() {
+		validator.validate(record, types, schema, configProvider, new ValidationErrors() {
 			@Override
 			public void add(Class<?> validatorClass, String code, Map<String, String> parameters) {
 				parameters.put("schemaCode", schema.getCode());

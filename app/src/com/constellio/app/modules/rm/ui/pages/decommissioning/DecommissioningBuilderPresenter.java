@@ -88,6 +88,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		return 1;
 	}
 
+	@Override
+	public void suggestionSelected(String suggestion) {
+		// Do nothing
+	}
+
 	public SearchType getSearchType() {
 		return searchType;
 	}
@@ -129,7 +134,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 		List<SelectItemVO> results = new ArrayList<>();
 		for (FilingSpace filingSpace : filingSpaces) {
-			results.add(new SelectItemVO(filingSpace.getId(), (String) filingSpace.getTitle()));
+			results.add(new SelectItemVO(filingSpace.getId(), filingSpace.getTitle()));
 		}
 		return results;
 	}
@@ -163,8 +168,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
-	public List<MetadataVO> getMetadatasAllowedInCriteria() {
-		return getMetadatasAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+	public List<MetadataVO> getMetadataAllowedInCriteria() {
+		return getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+	}
+
+	@Override
+	public List<MetadataVO> getMetadataAllowedInSort() {
+		return getMetadataAllowedInSort(Folder.SCHEMA_TYPE);
 	}
 
 	@Override
@@ -190,10 +200,8 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	private LogicalSearchCondition selectByDecommissioningStatus() {
-		DecommissioningSearchConditionFactory factory = new DecommissioningSearchConditionFactory(
-				view.getCollection(), modelLayerFactory);
-
-		return factory.bySearchType(searchType, filingSpaceId, adminUnitId);
+		return new DecommissioningSearchConditionFactory(view.getCollection(), modelLayerFactory)
+				.bySearchType(searchType, filingSpaceId, adminUnitId);
 	}
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)

@@ -23,6 +23,8 @@ public class LabelsReportField {
 	public int positionY;
 	public int width;
 	public int height;
+	public int horizontalAlignment;
+	public int verticalAlignment;
 
 	private String value;
 	private LabelsReportFont font;

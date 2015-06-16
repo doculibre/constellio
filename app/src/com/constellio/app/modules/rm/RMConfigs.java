@@ -43,6 +43,7 @@ public class RMConfigs {
 			CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLEPERIOD,
 			CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE,
 			COPY_RULE_TYPE_ALWAYS_MODIFIABLE,
+			COPY_RULE_PRINCIPAL_REQUIRED,
 			MINOR_VERSIONS_PURGED_ON,
 			ALSO_PURGE_CURRENT_VERSION_IF_MINOR,
 			PDFA_CREATED_ON;
@@ -100,6 +101,9 @@ public class RMConfigs {
 
 		add(COPY_RULE_TYPE_ALWAYS_MODIFIABLE = decommissioning
 				.createBooleanFalseByDefault("copyRuleTypeAlwaysModifiable"));
+
+		// Principal versions of retention rules required anymore
+		add(COPY_RULE_PRINCIPAL_REQUIRED = decommissioning.createBooleanTrueByDefault("copyRulePrincipalRequired"));
 
 		add(MINOR_VERSIONS_PURGED_ON = decommissioning
 				.createEnum("minorVersionsPurgedOn", DecommissioningPhase.class)

@@ -32,7 +32,7 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElemen
 
 public class CollectionSecurityPage extends PageHelper {
 	public static final int CODE_COLUMN = 0;
-	public static final int NAME_COLUMN = 0;
+	public static final int NAME_COLUMN = 1;
 
 	public CollectionSecurityPage(ConstellioWebDriver driver) {
 		super(driver);

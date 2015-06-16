@@ -35,12 +35,22 @@ public class ParsedContentConverter {
 		stringBuilder.append(parsedContent.getLength() + "\n");
 		stringBuilder.append(parsedContent.getMimeType() + "\n");
 		for (Entry<String, Object> mapEntry : parsedContent.getProperties().entrySet()) {
-			stringBuilder.append(mapEntry.getKey() + "=" + mapEntry.getValue() + "\n");
+			String parameterKey = encodeString("" + mapEntry.getKey());
+			String parameterValue = encodeString("" + mapEntry.getValue());
+			stringBuilder.append(parameterKey + "=" + parameterValue + "\n");
 		}
 
 		stringBuilder.append(SEPARATOR);
-		stringBuilder.append(parsedContent.getParsedContent());
+		stringBuilder.append(encodeString(parsedContent.getParsedContent()));
 		return stringBuilder.toString();
+	}
+
+	private String encodeString(String value) {
+		return value == null ? null : value.replace("\n", "__<LB>__").replace("\r", "__<CR>__");
+	}
+
+	private String decodeString(String value) {
+		return value == null ? null : value.replace("__<LB>__", "\n").replace("__<CR>__", "\r");
 	}
 
 	public ParsedContent convertToParsedContent(String string) {
@@ -55,15 +65,15 @@ public class ParsedContentConverter {
 		for (int i = 3; i < attributeLines.length; i++) {
 			String attributeLine = attributeLines[i];
 			int equalSignIndex = attributeLine.indexOf("=");
-			String key = attributeLine.substring(0, equalSignIndex);
-			String value = attributeLine.substring(equalSignIndex + 1);
-			if(key.contains("List:")) { 
+			String key = decodeString(attributeLine.substring(0, equalSignIndex));
+			String value = decodeString(attributeLine.substring(equalSignIndex + 1));
+			if (key.contains("List:")) {
 				putStringListInHashMap(parameters, key, value);
 			} else {
 				parameters.put(key, value);
 			}
 		}
-		String parsedContent = string.substring(separatorIndex + SEPARATOR.length());
+		String parsedContent = decodeString(string.substring(separatorIndex + SEPARATOR.length()));
 		return new ParsedContent(parsedContent, lang, mime, length, parameters);
 	}
 
@@ -71,7 +81,7 @@ public class ParsedContentConverter {
 		value = value.substring(1, value.length() - 1);
 		String[] valuesAfterSplit = value.split(",");
 		List<String> valueList = new ArrayList<String>();
-		for(String aValue : valuesAfterSplit) { 
+		for (String aValue : valuesAfterSplit) {
 			valueList.add(aValue.trim());
 		}
 		parameters.put(key, valueList);

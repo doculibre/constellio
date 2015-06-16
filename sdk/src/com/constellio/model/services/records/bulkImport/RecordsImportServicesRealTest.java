@@ -73,6 +73,7 @@ import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.ContentImport;
+import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.bulkImport.RecordsImportServicesRuntimeException.RecordsImportServicesRuntimeException_CyclicDependency;
 import com.constellio.model.services.records.bulkImport.data.ImportData;
 import com.constellio.model.services.records.bulkImport.data.ImportDataIterator;
@@ -1180,12 +1181,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		ResolverCache resolver = new ResolverCache(getModelLayerFactory().newSearchServices(), types);
 
+		ProgressionHandler progressionHandler = new ProgressionHandler(new LoggerBulkImportProgressionListener());
 		ModelLayerCollectionEventsListeners extensions = getModelLayerFactory().getExtensions()
 				.getCollectionListeners(zeCollection);
-		services.validate(importDataProvider, types, resolver, extensions);
+		services.validate(importDataProvider, progressionHandler, types, resolver, extensions);
 
-		assertThat(resolver.cache).hasSize(3).containsKey(zeSchema.typeCode()).containsKey(anotherSchema.typeCode())
-				.containsKey(thirdSchema.typeCode());
+		assertThat(resolver.cache).hasSize(2).containsKey(zeSchema.typeCode()).containsKey(anotherSchema.typeCode());
 		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping)
 				.hasSize(1).containsEntry("previouslySavedRecordLegacyId", "previouslySavedRecordId");
 		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds).isEmpty();
@@ -1289,16 +1290,24 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String testResource1 = getTestResourceFile("resource1.docx").getAbsolutePath();
 		String testResource2 = getTestResourceFile("resource2.pdf").getAbsolutePath();
 		String testResource3 = "https://dl.dropboxusercontent.com/u/422508/pg338.txt";
+		String testResource4 = getTestResourceFile("resource4.docx").getAbsolutePath();
+		String testResource5 = getTestResourceFile("resource5.pdf").getAbsolutePath();
 		String testResource1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
 		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
 		String testResource3Hash = "jLWaqQbCOSAPT4G3P75XnJJOmmo=";
+		String testResource4Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
+		String testResource5Hash = "T+4zq4cGP/tXkdJp/qz1WVWYhoQ=";
 
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAContentMetadata()
 				.withAContentListMetadata());
 
+		ContentImportVersion version1 = new ContentImportVersion(testResource1, "Ze document.docx", true);
+		ContentImportVersion version2 = new ContentImportVersion(testResource4, "Ze document.docx", false);
+		ContentImportVersion version3 = new ContentImportVersion(testResource5, "Ze document.docx", true);
+
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-				.addField("contentMetadata", new ContentImport(testResource1, "Ze document.docx", true)));
+				.addField("contentMetadata", new ContentImport(Arrays.asList(version1, version2, version3))));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
@@ -1322,9 +1331,19 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		Content record3Content = record3.get(zeSchema.contentMetadata());
 		List<Content> record3ContentList = record3.get(zeSchema.contentListMetadata());
 
-		assertThat(record1Content.getCurrentVersion().getHash()).isEqualTo(testResource1Hash);
+		assertThat(record1Content.getCurrentVersion().getHash()).isEqualTo(testResource5Hash);
 		assertThat(record1Content.getCurrentVersion().getFilename()).isEqualTo("Ze document.docx");
-		assertThat(record1Content.getCurrentVersion().getVersion()).isEqualTo("1.0");
+		assertThat(record1Content.getCurrentVersion().getVersion()).isEqualTo("2.0");
+		assertThat(record1Content.getHistoryVersions()).hasSize(2);
+
+		assertThat(record1Content.getHistoryVersions().get(0).getHash()).isEqualTo(testResource1Hash);
+		assertThat(record1Content.getHistoryVersions().get(0).getFilename()).isEqualTo("Ze document.docx");
+		assertThat(record1Content.getHistoryVersions().get(0).getVersion()).isEqualTo("1.0");
+
+		assertThat(record1Content.getHistoryVersions().get(1).getHash()).isEqualTo(testResource4Hash);
+		assertThat(record1Content.getHistoryVersions().get(1).getFilename()).isEqualTo("Ze document.docx");
+		assertThat(record1Content.getHistoryVersions().get(1).getVersion()).isEqualTo("1.1");
+
 		assertThat(record1ContentList).hasSize(0);
 
 		assertThat(record2Content).isNull();
@@ -1343,7 +1362,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(contentManager.getParsedContent(testResource1Hash).getParsedContent()).contains("My document");
 		assertThat(contentManager.getParsedContent(testResource2Hash).getParsedContent()).contains("Gestion des documents");
 		assertThat(contentManager.getParsedContent(testResource3Hash).getParsedContent())
-				.contains("He is your friend, but his arrow will kill one of your kind! He is a\nDakota");
+				.contains("He is your friend, but his arrow will kill one of your kind! He is a\r\nDakota");//\nDakota");
 
 		assertThat(results.getInvalidIds()).isEmpty();
 

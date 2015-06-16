@@ -17,13 +17,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.services.schemasDisplay;
 
+import static com.constellio.app.services.schemasDisplay.SchemasDisplayManager.REQUIRED_METADATA_IN_FORM_LIST;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +40,11 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
@@ -361,7 +371,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(schemaUserDisplay.getFormMetadataCodes()).hasSize(initialDisplaySize);
 
 		manager.saveSchema(manager.getSchema(zeCollection, Group.DEFAULT_SCHEMA).withFormMetadataCodes(asList(
-				Group.DEFAULT_SCHEMA + "_" + Group.TITLE)));
+				Group.DEFAULT_SCHEMA + "_" + Group.TITLE, Group.DEFAULT_SCHEMA + "_" + Group.CODE)));
 		manager.saveSchema(manager.getSchema(zeCollection, User.DEFAULT_SCHEMA).withFormMetadataCodes(asList(
 				User.DEFAULT_SCHEMA + "_" + User.FIRSTNAME)));
 
@@ -369,9 +379,126 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		schemaUserDisplay = manager.getSchema(zeCollection, User.DEFAULT_SCHEMA);
 
 		assertThat(schemaGroupDisplay.getFormMetadataCodes())
-				.containsOnly(Group.DEFAULT_SCHEMA + "_" + Group.TITLE);
+				.containsOnly("group_default_title", "group_default_code");
 		assertThat(schemaUserDisplay.getFormMetadataCodes())
 				.containsOnly(User.DEFAULT_SCHEMA + "_" + User.FIRSTNAME);
+	}
+
+	@Test
+	public void whenSavingFormMetadatasWithoutEssentialMetadataThenValidationException()
+			throws Exception {
+
+		Map<String, String> anEssentialMetadataParams = asMap(
+				"code", "mySchemaType_default_anEssentialMetadata",
+				"label", "zeEssentialMetadata");
+
+		Map<String, String> aMetadataThatWillOneDayBeEssentialParams = asMap(
+				"code", "mySchemaType_default_aMetadataThatWillOneDayBeEssential",
+				"label", "zeMetadataThatWillOneDayBeEssential");
+
+		Map<String, String> aTrivialMetadataParams = asMap(
+				"code", "mySchemaType_default_aTrivialMetadata",
+				"label", "ZeTrivialMetadata");
+
+		Map<String, String> titleParams = asMap(
+				"code", "mySchemaType_default_title",
+				"label", "Ze title");
+
+		Map<String, String> codeParams = asMap(
+				"code", "mySchemaType_default_code",
+				"label", "Ze code");
+
+		givenCollection(zeCollection);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder schemaBuilder = types.createNewSchemaType("mySchemaType").getDefaultSchema();
+				schemaBuilder.create("aMetadataThatWillOneDayBeEssential").setType(TEXT).setEssential(false)
+						.setLabel("zeMetadataThatWillOneDayBeEssential");
+				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true).setLabel("zeEssentialMetadata");
+				schemaBuilder.create("aTrivialMetadata").setType(TEXT).setEssential(false).setLabel("ZeTrivialMetadata");
+				schemaBuilder.create("code").setType(TEXT).setLabel("Ze code");
+				schemaBuilder.get("title").setLabel("Ze title");
+			}
+		});
+
+		SchemaDisplayConfig schemaUserDisplay = manager.getSchema(zeCollection, "mySchemaType_default");
+		assertThat(schemaUserDisplay.getFormMetadataCodes()).containsOnly(
+				"mySchemaType_default_anEssentialMetadata",
+				"mySchemaType_default_aTrivialMetadata",
+				"mySchemaType_default_aMetadataThatWillOneDayBeEssential",
+				"mySchemaType_default_title",
+				"mySchemaType_default_code");
+
+		try {
+			schemaUserDisplay = manager.getSchema(zeCollection, "mySchemaType_default");
+			manager.saveSchema(schemaUserDisplay.withFormMetadataCodes(asList(
+					"mySchemaType_default_anEssentialMetadata",
+					"mySchemaType_default_code")));
+			fail("ValidationRuntimeException expected");
+		} catch (ValidationRuntimeException e) {
+			assertThat(e.getValidationErrorsList()).containsOnly(
+					error(REQUIRED_METADATA_IN_FORM_LIST, titleParams));
+		}
+
+		try {
+			schemaUserDisplay = manager.getSchema(zeCollection, "mySchemaType_default");
+			manager.saveSchema(schemaUserDisplay.withFormMetadataCodes(new ArrayList<String>()));
+			fail("ValidationRuntimeException expected");
+		} catch (ValidationRuntimeException e) {
+			assertThat(e.getValidationErrorsList()).containsOnly(
+					error(REQUIRED_METADATA_IN_FORM_LIST, anEssentialMetadataParams),
+					error(REQUIRED_METADATA_IN_FORM_LIST, titleParams),
+					error(REQUIRED_METADATA_IN_FORM_LIST, codeParams));
+		}
+
+		schemaUserDisplay = manager.getSchema(zeCollection, "mySchemaType_default");
+		manager.saveSchema(schemaUserDisplay.withFormMetadataCodes(asList(
+				"mySchemaType_default_anEssentialMetadata",
+				"mySchemaType_default_title",
+				"mySchemaType_default_code")));
+
+		schemaUserDisplay = manager.getSchema(zeCollection, "mySchemaType_default");
+		assertThat(schemaUserDisplay.getFormMetadataCodes()).containsOnly(
+				"mySchemaType_default_anEssentialMetadata",
+				"mySchemaType_default_title",
+				"mySchemaType_default_code");
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder schemaBuilder = types.getSchema("mySchemaType_default");
+				schemaBuilder.get("aMetadataThatWillOneDayBeEssential").setEssential(true);
+			}
+		});
+
+		schemaUserDisplay = manager.getSchema(zeCollection, "mySchemaType_default");
+		assertThat(schemaUserDisplay.getFormMetadataCodes()).containsOnly(
+				"mySchemaType_default_anEssentialMetadata",
+				"mySchemaType_default_aMetadataThatWillOneDayBeEssential",
+				"mySchemaType_default_title",
+				"mySchemaType_default_code");
+
+		try {
+			schemaUserDisplay = manager.getSchema(zeCollection, "mySchemaType_default");
+			manager.saveSchema(schemaUserDisplay.withFormMetadataCodes(new ArrayList<String>()));
+			fail("ValidationRuntimeException expected");
+		} catch (ValidationRuntimeException e) {
+			assertThat(e.getValidationErrorsList()).containsOnly(
+					error(REQUIRED_METADATA_IN_FORM_LIST, aMetadataThatWillOneDayBeEssentialParams),
+					error(REQUIRED_METADATA_IN_FORM_LIST, anEssentialMetadataParams),
+					error(REQUIRED_METADATA_IN_FORM_LIST, titleParams),
+					error(REQUIRED_METADATA_IN_FORM_LIST, codeParams));
+		}
+
+	}
+
+	private ValidationError error(final String code, final Map<String, String> params) {
+		return new ValidationError(SchemasDisplayManager.class.getName() + "_" + code, params);
+	}
+
+	private void assertThatValidationErrors(ValidationRuntimeException e) {
+
 	}
 
 	@Test

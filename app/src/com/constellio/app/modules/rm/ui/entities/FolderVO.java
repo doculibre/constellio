@@ -23,6 +23,10 @@ import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DESTRUCTION_D
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_TRANSFER_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.ARCHIVISTIC_STATUS;
+import static com.constellio.app.modules.rm.wrappers.Folder.BORROWED;
+import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_DATE;
+import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_PREVIEW_RETURN_DATE;
+import static com.constellio.app.modules.rm.wrappers.Folder.BORROW_USER;
 import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_CODE;
 import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.CLOSING_DATE;
@@ -54,6 +58,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -306,6 +311,38 @@ public class FolderVO extends RecordVO {
 
 	public LocalDate getDecommissioningDate() {
 		return get(DECOMMISSIONING_DATE);
+	}
+
+	public void setBorrowed(Boolean borrowed) {
+		set(BORROWED, borrowed);
+	}
+
+	public Boolean getBorrowed() {
+		return get(BORROWED);
+	}
+
+	public void setBorrowDate(LocalDateTime borrowDate) {
+		set(BORROW_DATE, borrowDate);
+	}
+
+	public LocalDateTime getBorrowDate() {
+		return get(BORROW_DATE);
+	}
+
+	public void setPreviewReturnDate(LocalDateTime previewReturnDate) {
+		set(BORROW_PREVIEW_RETURN_DATE, previewReturnDate);
+	}
+
+	public LocalDateTime getPreviewReturnDate() {
+		return get(BORROW_PREVIEW_RETURN_DATE);
+	}
+
+	public void setBorrowUserId(String borrowUserId) {
+		set(BORROW_USER, borrowUserId);
+	}
+
+	public String getBorrowUserId() {
+		return get(BORROW_USER);
 	}
 
 }

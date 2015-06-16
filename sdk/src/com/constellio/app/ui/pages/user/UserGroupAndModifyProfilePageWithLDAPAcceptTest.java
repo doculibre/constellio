@@ -488,7 +488,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 	}
 
 	private void givenAdministrator() {
-		addAdministratorinCollection(userServices);
+		addAdministratorInCollection(userServices);
 		sessionContext = loggedAsUserInCollection(ADMINISTRATOR, zeCollection);
 		driver = newWebDriver(sessionContext);
 		addEditUserCredentialPage = new AddEditUserCredentialPage(driver);
@@ -520,7 +520,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		getModelLayerFactory().getLdapUserSyncManager().synchronize();
 	}
 
-	private void addAdministratorinCollection(UserServices userServices) {
+	private void addAdministratorInCollection(UserServices userServices) {
 		UserCredential administrator = userServices.getUser(ADMINISTRATOR);
 		userServices.addUserToCollection(administrator, zeCollection);
 		administratorInZeCollection = userServices.getUserInCollection(ADMINISTRATOR, zeCollection);

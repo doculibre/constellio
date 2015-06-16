@@ -62,11 +62,12 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(edouardUserCredential);
 		manager.addUpdate(chuckUserCredential);
 
-		assertThat(manager.getActifUserCredentials()).hasSize(3);
-		assertThat(manager.getActifUserCredentials().get(1)).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getActifUserCredentials().get(2)).isEqualToComparingFieldByField(edouardUserCredential);
+		assertThat(manager.getActiveUserCredentials()).hasSize(3);
+		assertThat(manager.getActiveUserCredentials().get(1)).isEqualToComparingFieldByField(chuckUserCredential);
+		assertThat(manager.getActiveUserCredentials().get(2)).isEqualToComparingFieldByField(edouardUserCredential);
 		assertThat(manager.getUserCredential("chuck")).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getUserCredential("edouard")).isEqualToComparingFieldByField(edouardUserCredential);
+		assertThat(manager.getUserCredential("Chuck")).isEqualToComparingFieldByField(chuckUserCredential);
+		assertThat(manager.getUserCredential("Édouard")).isEqualToComparingFieldByField(edouardUserCredential);
 	}
 
 	@Test
@@ -80,9 +81,9 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 				Arrays.asList("group11"), Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain");
 		manager.addUpdate(chuckUserCredential);
 
-		assertThat(manager.getActifUserCredentials()).hasSize(3);
-		assertThat(manager.getActifUserCredentials().get(1)).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getActifUserCredentials().get(2)).isEqualToComparingFieldByField(edouardUserCredential);
+		assertThat(manager.getActiveUserCredentials()).hasSize(3);
+		assertThat(manager.getActiveUserCredentials().get(1)).isEqualToComparingFieldByField(chuckUserCredential);
+		assertThat(manager.getActiveUserCredentials().get(2)).isEqualToComparingFieldByField(edouardUserCredential);
 		assertThat(manager.getUserCredential("chuck")).isEqualToComparingFieldByField(chuckUserCredential);
 		assertThat(manager.getUserCredential("edouard")).isEqualToComparingFieldByField(edouardUserCredential);
 		assertThat(manager.getUserCredential("edouard").getTokens().get("token1")).isEqualTo(endDate);
@@ -99,7 +100,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 				Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain");
 
 		manager.addUpdate(chuckUserCredential);
-		assertThat(manager.getActifUserCredentials()).hasSize(2);
+		assertThat(manager.getActiveUserCredentials()).hasSize(2);
 		assertThat(manager.getUserCredential("chuck")).isEqualToComparingFieldByField(chuckUserCredential);
 	}
 
@@ -151,14 +152,14 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 		manager.removeUserCredentialFromCollection(chuckUserCredential, zeCollection);
 
-		assertThat(manager.getActifUserCredentials()).hasSize(3);
+		assertThat(manager.getActiveUserCredentials()).hasSize(3);
 
-		assertThat(manager.getActifUserCredentials().get(0).getUsername()).isEqualTo("admin");
-		assertThat(manager.getActifUserCredentials().get(0).getCollections()).hasSize(0);
-		assertThat(manager.getActifUserCredentials().get(1).getUsername()).isEqualTo(chuckUserCredential.getUsername());
-		assertThat(manager.getActifUserCredentials().get(1).getCollections()).isEmpty();
-		assertThat(manager.getActifUserCredentials().get(2).getUsername()).isEqualTo(edouardUserCredential.getUsername());
-		assertThat(manager.getActifUserCredentials().get(2).getCollections()).hasSize(2);
+		assertThat(manager.getActiveUserCredentials().get(0).getUsername()).isEqualTo("admin");
+		assertThat(manager.getActiveUserCredentials().get(0).getCollections()).hasSize(0);
+		assertThat(manager.getActiveUserCredentials().get(1).getUsername()).isEqualTo(chuckUserCredential.getUsername());
+		assertThat(manager.getActiveUserCredentials().get(1).getCollections()).isEmpty();
+		assertThat(manager.getActiveUserCredentials().get(2).getUsername()).isEqualTo(edouardUserCredential.getUsername());
+		assertThat(manager.getActiveUserCredentials().get(2).getCollections()).hasSize(2);
 	}
 
 	@Test
@@ -170,28 +171,28 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.DELETED);
 		manager.addUpdate(chuckUserCredential);
 
-		assertThat(manager.getActifUserCredentials()).hasSize(2);
+		assertThat(manager.getActiveUserCredentials()).hasSize(2);
 		assertThat(manager.getDeletedUserCredentials()).hasSize(1);
 		assertThat(manager.getDeletedUserCredentials().get(0).getUsername()).isEqualTo(chuckUserCredential.getUsername());
 
 		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.SUPENDED);
 		manager.addUpdate(chuckUserCredential);
 
-		assertThat(manager.getActifUserCredentials()).hasSize(2);
+		assertThat(manager.getActiveUserCredentials()).hasSize(2);
 		assertThat(manager.getDeletedUserCredentials()).isEmpty();
 		assertThat(manager.getSuspendedUserCredentials().get(0).getUsername()).isEqualTo(chuckUserCredential.getUsername());
 
 		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.PENDING);
 		manager.addUpdate(chuckUserCredential);
 
-		assertThat(manager.getActifUserCredentials()).hasSize(2);
+		assertThat(manager.getActiveUserCredentials()).hasSize(2);
 		assertThat(manager.getSuspendedUserCredentials()).isEmpty();
 		assertThat(manager.getPendingApprovalUserCredentials().get(0).getUsername()).isEqualTo(chuckUserCredential.getUsername());
 
 		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.ACTIVE);
 		manager.addUpdate(chuckUserCredential);
 
-		assertThat(manager.getActifUserCredentials()).hasSize(3);
+		assertThat(manager.getActiveUserCredentials()).hasSize(3);
 		assertThat(manager.getPendingApprovalUserCredentials()).isEmpty();
 	}
 
@@ -205,6 +206,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(manager.getUserCredential("chuck").getGlobalGroups()).isEmpty();
 		assertThat(manager.getUserCredential("edouard").getGlobalGroups()).hasSize(1);
+		assertThat(manager.getUserCredential("Edouard").getGlobalGroups()).hasSize(1);
 		assertThat(manager.getUserCredential("edouard").getGlobalGroups().get(0)).isEqualTo("group2");
 	}
 
@@ -237,7 +239,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 	private Set<String> getAllCollectionsInUserCredentialFile() {
 		Set<String> collections = new HashSet<>();
-		List<UserCredential> userCredentials = manager.getActifUserCredentials();
+		List<UserCredential> userCredentials = manager.getActiveUserCredentials();
 		for (UserCredential userCredential : userCredentials) {
 			collections.addAll(userCredential.getCollections());
 		}

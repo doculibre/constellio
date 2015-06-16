@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -97,10 +99,14 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 	public void saveButtonClicked() {
 		Record record = toRecord(retentionRuleVO);
-		addOrUpdate(record);
-		saveCategories(record.getId(), retentionRuleVO.getCategories());
-		saveUniformSubdivisions(record.getId(), retentionRuleVO.getUniformSubdivisions());
-		view.navigateTo().listRetentionRules();
+		try {
+			addOrUpdate(record);
+			saveCategories(record.getId(), retentionRuleVO.getCategories());
+			saveUniformSubdivisions(record.getId(), retentionRuleVO.getUniformSubdivisions());
+			view.navigateTo().listRetentionRules();
+		} catch (ValidationRuntimeException e) {
+			view.showErrorMessage($(e.getValidationErrors()));
+		}
 	}
 
 	private void saveCategories(String id, List<String> categories) {
@@ -145,7 +151,20 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 	}
 
 	public void disposalTypeChanged(CopyRetentionRule copyRetentionRule) {
-		updateDisposalTypeForDocumentTypes(copyRetentionRule.canSort());
+		boolean sortPossible;
+		if (copyRetentionRule.canSort()) {
+			sortPossible = true;
+		} else {
+			sortPossible = false;
+			List<CopyRetentionRule> copyRetentionRules = retentionRuleVO.getCopyRetentionRules();
+			for (CopyRetentionRule existingCopyRetentionRule : copyRetentionRules) {
+				if (!existingCopyRetentionRule.equals(copyRetentionRule) && existingCopyRetentionRule.canSort()) {
+					sortPossible = true;
+					break;
+				}
+			}
+		}
+		updateDisposalTypeForDocumentTypes(sortPossible);
 	}
 
 	private void updateDisposalTypeForDocumentTypes(boolean sortDisposal) {

@@ -31,19 +31,20 @@ public class QueryResponseDTO {
 	private Map<String, List<FacetValue>> fieldFacetValues;
 	private Map<String, Map<String, List<String>>> highlights;
 	private Map<String, Integer> queryFacetValues;
-	
-	private boolean correctlySpelled;
+
+	private boolean correctlySpelt;
 	private List<String> spellCheckerSuggestions;
 
 	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound, Map<String, List<FacetValue>> fieldFacetValues,
-			Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelled, List<String> spellCheckerSuggestions) {
+			Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
+			List<String> spellCheckerSuggestions) {
 		this.results = results;
 		this.qtime = qtime;
 		this.numFound = numFound;
 		this.fieldFacetValues = fieldFacetValues;
 		this.queryFacetValues = queryFacetValues;
 		this.highlights = highlights;
-		this.correctlySpelled = correctlySpelled;
+		this.correctlySpelt = correctlySpelt;
 		this.spellCheckerSuggestions = spellCheckerSuggestions;
 	}
 
@@ -70,11 +71,11 @@ public class QueryResponseDTO {
 	public Map<String, Map<String, List<String>>> getHighlights() {
 		return highlights;
 	}
-	
-	public boolean isCorrectlySpelled() {
-		return correctlySpelled;
+
+	public boolean isCorrectlySpelt() {
+		return correctlySpelt;
 	}
-	
+
 	public List<String> getSpellCheckerSuggestions() {
 		return spellCheckerSuggestions;
 	}

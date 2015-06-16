@@ -122,7 +122,6 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 
 @UiTest
 public class UserSecurityAcceptanceTest extends ConstellioTest {
-	
 	public static final String SYSTEM_USAGE = "SYSTEM_USAGE";
 	public static final String USERS_AND_GROUPS_ADD_OR_REMOVE = "USERS_AND_GROUPS_ADD_OR_REMOVE";
 	public static final String FOLDERS_AND_DOCUMENTS_CREATION = "FOLDERS_AND_DOCUMENTS_CREATION";
@@ -134,8 +133,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	public static final String EVENTS_BY_FOLDER = "EVENTS_BY_FOLDER";
 	public static final String EVENTS_BY_USER = "EVENTS_BY_USER";
 	public static final String DECOMMISSIONING_EVENTS = "DECOMMISSIONING_EVENTS";
-	
-	public static final String RECORDS_MANAGEMENT_LINK = "recordsManagementLink"; 
+
+	public static final String RECORDS_MANAGEMENT_LINK = "recordsManagementLink";
 	public static final String USER_DOCUMENTS_LINK = "userDocumentsLink";
 	public static final String ARCHIVES_MANAGEMENT_LINK = "archivesManagementLink";
 	public static final String LOGS_LINK = "logsLink";
@@ -151,15 +150,15 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	public static final String BY_FOLDER_EVENTS_LINK = "byFolderEventsLinkButton";
 	public static final String BY_USER_EVENTS_LINK = "byUserEventsLinkButton";
 	public static final String DECOMMISSIONING_EVENTS_LINK = "decommissioningEventsLinkButton";
-	
-	public static final String ADD_FOLDER = "addFolder"; 
+
+	public static final String ADD_FOLDER = "addFolder";
 	public static final String ADD_DOCUMENT = "addDocument";
-	
+
 	public static final String DECOMMISSIONING_CAPTION = "decommissioning-caption";
 	public static final String REPORTS_CAPTION = "reports-caption";
 	public static final String CONTAINERS_CAPTION = "containers-caption";
 	public static final String ROBOTS_CAPTION = "robots-caption";
-	
+
 	public static final String TAXONOMIES_BUTTON = "taxonomiesButton";
 	public static final String FILING_SPACES_BUTTON = "filingSpacesButton";
 	public static final String VALUE_DOMAIN_BUTTON = "valueDomainButton";
@@ -536,9 +535,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenAliceInZeCollectionThenCanDoEverythingGivenSheHaveRequiredPermissions()
 			throws Exception {
-
 		logAsIn(aliceWonderland, zeCollection);
-		
+
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		recordServices.update(userServices.getUserRecordInCollection(aliceWonderland, zeCollection)
 				.setUserRoles(asList("roleDeAlice")));
@@ -572,7 +570,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		givenAliceHasPermission(CorePermissions.VIEW_EVENTS);
 		assertThatUserHasOnlyAccessToRMArchivesPages();
 		assertThatUserHasAccessToRMAdminModulePages();
-		assertThatUserHasAccessTORMEventsPages(SYSTEM_USAGE_LINK, USERS_AND_GROUPS_LINK,RECORDS_CREATION_LINK,
+		assertThatUserHasAccessTORMEventsPages(SYSTEM_USAGE_LINK, USERS_AND_GROUPS_LINK, RECORDS_CREATION_LINK,
 				RECORDS_MODIFICATION_LINK, RECORDS_DELETION_LINK, CURRENTLY_BORROWED_DOCUMENTS_LINK, BORROWED_DOCUMENTS_LINK,
 				FILING_SPACE_EVENTS_LINK, BY_FOLDER_EVENTS_LINK, BY_USER_EVENTS_LINK, DECOMMISSIONING_EVENTS_LINK);
 		assertThatCanNavigateToAllEventPages();
@@ -591,10 +589,11 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 		givenAliceHasPermission(CorePermissions.MANAGE_SECURITY);
 		assertThatUserHasOnlyAccessToRMArchivesPages();
-		assertThatUserHasAccessToRMAdminModulePages(MANAGE_USERS_BUTTON, FILING_SPACES_BUTTON, TAXONOMIES_BUTTON, MANAGE_ROLES_BUTTON);
+		assertThatUserHasAccessToRMAdminModulePages(MANAGE_USERS_BUTTON, FILING_SPACES_BUTTON, TAXONOMIES_BUTTON,
+				MANAGE_ROLES_BUTTON);
 		assertThatUserHasAccessTORMEventsPages();
 		assertThatCanNavigateToAllSecurityPages();
-		
+
 		givenAliceHasPermission(RMPermissionsTo.MANAGE_UNIFORMSUBDIVISIONS);
 		assertThatUserHasOnlyAccessToRMArchivesPages();
 		assertThatUserHasAccessToRMAdminModulePages(UNIFORM_SUBDIVISIONS_BUTTON);
@@ -606,12 +605,12 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThatUserHasAccessToRMAdminModulePages(VALUE_DOMAIN_BUTTON);
 		assertThatUserHasAccessTORMEventsPages();
 		assertThatCanNavigateToAllValueDomainPages();
-		
+
 		givenAliceHasPermission(CorePermissions.MANAGE_METADATASCHEMAS);
 		assertThatUserHasOnlyAccessToRMArchivesPages();
 		assertThatUserHasAccessToRMAdminModulePages(METADATA_SCHEMAS_BUTTON);
 		assertThatUserHasAccessTORMEventsPages();
-		assertThatCanNavigateToAllMetadataSchemaPages();				
+		assertThatCanNavigateToAllMetadataSchemaPages();
 
 		givenAliceHasPermission(RMPermissionsTo.MANAGE_RETENTIONRULE);
 		assertThatUserHasOnlyAccessToRMArchivesPages();
@@ -654,7 +653,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThatUserHasAccessToRMAdminModulePages(UPDATE_CENTER_BUTTON);
 		assertThatUserHasAccessTORMEventsPages();
 		assertThat(navigateToUpdateCenterPossible()).isTrue();
-		
+
 		givenAliceHasPermission(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS);
 		assertThatUserHasOnlyAccessToRMArchivesPages();
 		assertThatUserHasAccessToRMAdminModulePages(IMPORT_BUTTON);
@@ -755,12 +754,12 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThatCannotNavigateToAllEventPages();
 		assertThatCannotNavigateToAllAdminModulePages();
 	}
-	
+
 	@Test
 	public void givenDakotaCannotNavigateToManageSecurityPages() {
-		
+
 		logAsIn(dakota, zeCollection);
-		
+
 		assertThatCannotNavigateToAllAdminModulePages();
 	}
 
@@ -920,7 +919,6 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenAliceHasPermission(String... permissions) {
-
 		Role role = rolesManager.getRole(zeCollection, "roleDeAlice");
 		role = role.withPermissions(asList(permissions));
 		rolesManager.updateRole(role);
@@ -962,7 +960,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	//DOC 
+	//DOC
 	private boolean navigationToFolderPossible(String folderId) {
 		try {
 			driver.navigateTo().url(DISPLAY_FOLDER + "/" + folderId);
@@ -1035,8 +1033,8 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	//ARCHIVES 
-	
+	//ARCHIVES
+
 	private boolean navigateToSearchContainerForDecommissioningListPossible(String listId) {
 		try {
 			driver.navigateTo().url(DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + listId);
@@ -1054,7 +1052,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToDecommissioningListPossible(String decommissioningList) {
 		try {
 			driver.navigateTo().url(DECOMMISSIONING + "/" + decommissioningList);
@@ -1203,10 +1201,10 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToADisplayEventPossible() {
 		try {
-			driver.navigateTo().url(EVENT_DISPLAY 
+			driver.navigateTo().url(EVENT_DISPLAY
 					+ "/id%253D%253BstartDate%253D2015-04-22T11%253A49%253A19.520%253BendDate%253D2015-04-29T11%253A49%253A19."
 					+ "520%253BeventType%253Dopen_session%253BeventCategory%253DSYSTEM_USAGE");
 			return !isOnHomePage();
@@ -1525,7 +1523,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToCollectionSecurityPossible() {
 		try {
 			driver.navigateTo()
@@ -1702,7 +1700,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToDisplaySchemaTypePossible() {
 		try {
 			driver.navigateTo().url(DISPLAY_SCHEMA_TYPE);
@@ -1711,30 +1709,30 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToListMetadatasPossible() {
 		try {
-			driver.navigateTo().url(ADD_EDIT_SCHEMA_METADATA + "/" + ADD_EDIT_SCHEMA_METADATA 
+			driver.navigateTo().url(ADD_EDIT_SCHEMA_METADATA + "/" + ADD_EDIT_SCHEMA_METADATA
 					+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToEditSchemaTypePossible() {
 		try {
-			driver.navigateTo().url(ADD_EDIT_SCHEMA + "/" + ADD_EDIT_SCHEMA 
+			driver.navigateTo().url(ADD_EDIT_SCHEMA + "/" + ADD_EDIT_SCHEMA
 					+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToAddSchemaTypePossible() {
 		try {
-			driver.navigateTo().url(ADD_EDIT_SCHEMA + "/" + ADD_EDIT_SCHEMA 
+			driver.navigateTo().url(ADD_EDIT_SCHEMA + "/" + ADD_EDIT_SCHEMA
 					+ "/schemaTypeCode%253DcontainerRecord%253BschemaCode%253D");
 			return !isOnHomePage();
 		} catch (Exception e) {
@@ -1744,57 +1742,54 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	private boolean navigateToEditMetadataPossible() {
 		try {
-			driver.navigateTo().url(ADD_EDIT_METADATA + "/" + ADD_EDIT_METADATA 
+			driver.navigateTo().url(ADD_EDIT_METADATA + "/" + ADD_EDIT_METADATA
 					+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToDisplayFormMetadatasPossible() {
 		try {
-			driver.navigateTo().url(FORM_DISPLAY_FORM + "/" + FORM_DISPLAY_FORM 
+			driver.navigateTo().url(FORM_DISPLAY_FORM + "/" + FORM_DISPLAY_FORM
 					+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToDisplayDetailsMetadatasPossible() {
 		try {
-			driver.navigateTo().url(EDIT_DISPLAY_FORM + "/" + EDIT_DISPLAY_FORM 
+			driver.navigateTo().url(EDIT_DISPLAY_FORM + "/" + EDIT_DISPLAY_FORM
 					+ "/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToSearchDisplayFormMetadatasPossible() {
 		try {
-			driver.navigateTo().url(SEARCH_DISPLAY_FORM + "/" + SEARCH_DISPLAY_FORM 
+			driver.navigateTo().url(SEARCH_DISPLAY_FORM + "/" + SEARCH_DISPLAY_FORM
 					+ "/searchDisplayForm/schemaTypeCode%253DcontainerRecord%253BmetadataCode%253D%253BschemaCode%253DcontainerRecord_default");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToListOngletMetadatasPossible() {
 		try {
-			driver.navigateTo().url(LIST_ONGLET + "/" + LIST_ONGLET 
+			driver.navigateTo().url(LIST_ONGLET + "/" + LIST_ONGLET
 					+ "/schemaTypeCode%253Dcategory");
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
 		}
 	}
-	
-	
-	
-	
+
 	private boolean navigateToPermissionsManagementPossible() {
 		try {
 			driver.navigateTo().url(PERMISSION_MANAGEMENT);
@@ -1957,7 +1952,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 	}
-	
+
 	private boolean navigateToImportFilePossible() {
 		try {
 			driver.navigateTo().url(IMPORT_FILE);
@@ -1974,34 +1969,34 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	private boolean isOnHomePage() {
 		return driver.getCurrentUrl().endsWith("/constellio/#!/lastViewedFolders");
 	}
-	
+
 	//------------------------------------------------------------------------------------------------------
-	
+
 	private void assertThatCanNavigateToAllArchivesPages() {
-	
+
 		assertThatCanNavigateToAllDecommissioningPages();
 		assertThatCanNavigateToAllContainersPages();
 		assertThat(navigateToReportsPossible()).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllArchivesPages() {
 		assertThatCannotNavigateToAllDecommissioningPages();
-		assertThatCannotNavigateToAllContainersPages(); 
+		assertThatCannotNavigateToAllContainersPages();
 
 		assertThat(navigateToReportsPossible()).isFalse();
 	}
-	
+
 	private void assertThatCanNavigateToAllAdminModulePages() {
-		
+
 		assertThatCanNavigateToTaxonomiesPages();
 		assertThatCanNavigateToAllClassificationPlanPages();
 		assertThatCanNavigateToAllSecurityPages();
 		assertThatCanNavigateToAllUniformSubdivisionsPages();
 		assertThatCanNavigateToAllRetentionRulesPages();
-		
+
 		assertThatCanNavigateToAllValueDomainPages();
 		assertThatCanNavigateToAllMetadataSchemaPages();
-		
+
 		assertThat(navigateToConfigurationPossible()).isTrue();
 		assertThat(navigateToLdapPossible()).isTrue();
 
@@ -2011,18 +2006,18 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToUpdateCenterPossible()).isTrue();
 		assertThat(navigateToImportFilePossible()).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllAdminModulePages() {
-		
+
 		assertThatCannotNavigateToTaxonomiesPages();
 		assertThatCannotNavigateToAllClassificationPlanPages();
 		assertThatCannotNavigateToAllSecurityPages();
 		assertThatCannotNavigateToAllUniformSubdivisionsPages();
 		assertThatCannotNavigateToAllRetentionRulesPages();
-		
+
 		assertThatCannotNavigateToAllValueDomainPages();
 		assertThatCannotNavigateToAllMetadataSchemaPages();
-		
+
 		assertThat(navigateToConfigurationPossible()).isFalse();
 		assertThat(navigateToLdapPossible()).isFalse();
 
@@ -2033,7 +2028,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToUpdateCenterPossible()).isFalse();
 		assertThat(navigateToImportFilePossible()).isFalse();
 	}
-	
+
 	private void assertThatCanNavigateToTaxonomiesPages() {
 		assertThat(navigateToTaxonomiesPossible()).isTrue();
 		assertThat(navigateToEditTaxonomyPossible(customTaxonomyCode)).isTrue();
@@ -2045,7 +2040,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToEditTaxonomyPossible(customTaxonomyCode)).isFalse();
 		assertThat(navigateToAddTaxonomyPossible()).isFalse();
 	}
-	
+
 	private void assertThatCannotNavigateToAllDecommissioningPages() {
 		assertThat(navigateToDecommissioningListPossible(records.list_01)).isFalse();
 		assertThat(navigateToBuildDecommissioningListPossible("fixedPeriod")).isFalse();
@@ -2056,11 +2051,11 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToBuildDecommissioningListPossible("activeToDestroy")).isFalse();
 		assertThat(navigateToBuildDecommissioningListPossible("semiActiveToDeposit")).isFalse();
 		assertThat(navigateToBuildDecommissioningListPossible("semiActiveToDestroy")).isFalse();
-		
+
 		assertThat(navigateToSearchContainerForDecommissioningListPossible(records.list_04)).isFalse();
 		assertThat(navigateToCreateContainerForDecommissioningListPossible(records.list_04)).isFalse();
 	}
-	
+
 	private void assertThatCanNavigateToAllDecommissioningPages() {
 		assertThat(navigateToDecommissioningListPossible(records.list_01)).isTrue();
 		assertThat(navigateToBuildDecommissioningListPossible("fixedPeriod")).isTrue();
@@ -2071,24 +2066,24 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToBuildDecommissioningListPossible("activeToDestroy")).isTrue();
 		assertThat(navigateToBuildDecommissioningListPossible("semiActiveToDeposit")).isTrue();
 		assertThat(navigateToBuildDecommissioningListPossible("semiActiveToDestroy")).isTrue();
-		
+
 		assertThat(navigateToSearchContainerForDecommissioningListPossible(records.list_04)).isTrue();
 		assertThat(navigateToCreateContainerForDecommissioningListPossible(records.list_04)).isTrue();
 	}
-	
+
 	private void assertThatCanNavigateToAllSystemCollectionsPages() {
 		assertThat(navigateToListCollectionsPossible()).isTrue();
 		assertThat(navigateToCollectionEditPossible(records.getCollection().toString())).isTrue();
 		assertThat(navigateToCollectionAddPossible()).isTrue();
-		
+
 		assertThat(navigateToCollectionSecurityPossible()).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllSystemCollectionsPages() {
 		assertThat(navigateToListCollectionsPossible()).isFalse();
 		assertThat(navigateToCollectionEditPossible(records.getCollection().toString())).isFalse();
 		assertThat(navigateToCollectionAddPossible()).isFalse();
-		
+
 		assertThat(navigateToCollectionSecurityPossible()).isFalse();
 	}
 
@@ -2098,7 +2093,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToUserAddPossible()).isTrue();
 		assertThat(navigateToUserEditPossible(records.getAlice().getFirstName().toLowerCase())).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllSystemUsersPages() {
 		assertThat(navigateToUserListPossible()).isFalse();
 		assertThat(navigateToUserDisplayPossible(records.getAlice().getFirstName().toLowerCase())).isFalse();
@@ -2121,14 +2116,14 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToGroupAddPossible()).isFalse();
 		assertThat(navigateToGroupEditPossible(records.getHeroes().getCode())).isFalse();
 	}
-	
+
 	private void assertThatCanNavigateToAllRetentionRulesPages() {
 		assertThat(navigateToListRetentionRulesPossible()).isTrue();
 		assertThat(navigateToRetentionRuleDisplayPossible(records.ruleId_1)).isTrue();
 		assertThat(navigateToAddRetentionRulePossible()).isTrue();
 		assertThat(navigateToEditRetentionRulePossible(records.ruleId_1)).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllRetentionRulesPages() {
 		assertThat(navigateToListRetentionRulesPossible()).isFalse();
 		assertThat(navigateToRetentionRuleDisplayPossible(records.ruleId_1)).isFalse();
@@ -2147,7 +2142,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToEditMetadataPossible()).isTrue();
 		assertThat(navigateToDisplayFormMetadatasPossible()).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllMetadataSchemaPages() {
 		assertThat(navigateToDisplaySchemaTypePossible()).isFalse();
 		assertThat(navigateToEditSchemaTypePossible()).isFalse();
@@ -2184,7 +2179,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToStorageSpaceTypeListPossible()).isTrue();
 		assertThat(navigateToAddStorageSpaceTypePossible()).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllValueDomainPages() {
 		assertThat(navigateToValueDomainsPossible()).isFalse();
 
@@ -2223,7 +2218,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToAddUniformSubdivisionPossible()).isFalse();
 		assertThat(navigateToEditUniformSubdivisionPossible(records.subdivId_1)).isFalse();
 	}
-	
+
 	private void assertThatCanNavigateToAllClassificationPlanPages() {
 		assertThat(navigateToCategoriesPlanPossible()).isTrue();
 		assertThat(navigateToACategoryPlanDisplayPossible(records.categoryId_X)).isTrue();
@@ -2242,7 +2237,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToEditTaxonomyConceptAdministrativeUnitPossible(records.unitId_30)).isFalse();
 		assertThat(navigateToAdministrativeUnitAuthorizationsPossible(records.unitId_30)).isFalse();
 	}
-	
+
 	private void assertThatCanNavigateToAllSecurityPages() {
 		assertThat(navigateToCollectionUserList()).isTrue();
 		assertThat(navigateToCollectionUser(edouardIdInZeCollection)).isTrue();
@@ -2261,10 +2256,10 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToAddTaxonomyConceptAdministrativeUnitWithParentPossible(records.unitId_12)).isTrue();
 		assertThat(navigateToEditTaxonomyConceptAdministrativeUnitPossible(records.unitId_30)).isTrue();
 		assertThat(navigateToAdministrativeUnitAuthorizationsPossible(records.unitId_30)).isTrue();
-		
+
 		assertThat(navigateToPermissionsManagementPossible()).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllSecurityPages() {
 		assertThat(navigateToCollectionUserList()).isFalse();
 		assertThat(navigateToCollectionUser(edouardIdInZeCollection)).isFalse();
@@ -2276,7 +2271,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToSchemaRecordAdd(FilingSpace.DEFAULT_SCHEMA)).isFalse();
 		assertThat(navigateToSchemaRecordEdit(FilingSpace.DEFAULT_SCHEMA, records.filingId_A)).isFalse();
 		assertThat(navigateToListPrincipalAuthorizationsPossible(edouardIdInZeCollection)).isFalse();
-		
+
 		assertThat(navigateToPermissionsManagementPossible()).isFalse();
 	}
 
@@ -2285,29 +2280,29 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToDepositNoStorageSpaceContainerPossible(records.unitId_10)).isTrue();
 		assertThat(navigateToTransferWithStorageSpaceContainerPossible(records.unitId_10)).isTrue();
 		assertThat(navigateToDepositWithStorageSpaceContainerPossible(records.unitId_10)).isTrue();
-		
+
 		//		assertThat(navigateToTransferNoStorageSpaceFilingSpacePossible(records.unitId_10, records.filingId_A)).isTrue();
 		//		assertThat(navigateToDepositNoStorageSpaceFilingSpacePossible(records.unitId_10, records.filingId_A)).isTrue();
 		//		assertThat(navigateToTransferWithStorageSpaceFilingSpacePossible(records.unitId_10, records.filingId_A)).isTrue();
 		//		assertThat(navigateToDepositWithStorageSpaceFilingSpacePossible(records.unitId_10, records.filingId_A)).isTrue();
 		//		assertThat(navigateToDisplayContainerPossible(records.containerId_bac15)).isTrue();
 	}
-	
+
 	private void assertThatCannotNavigateToAllContainersPages() {
 		assertThat(navigateToTransferNoStorageSpaceContainerPossible(records.unitId_11)).isFalse();
 		assertThat(navigateToDepositNoStorageSpaceContainerPossible(records.unitId_10)).isFalse();
 		assertThat(navigateToTransferWithStorageSpaceContainerPossible(records.unitId_10)).isFalse();
 		assertThat(navigateToDepositWithStorageSpaceContainerPossible(records.unitId_10)).isFalse();
-		
+
 		//		assertThat(navigateToTransferNoStorageSpaceFilingSpacePossible(records.unitId_10, records.filingId_A)).isFalse();
 		//		assertThat(navigateToDepositNoStorageSpaceFilingSpacePossible(records.unitId_10, records.filingId_A)).isFalse();
 		//		assertThat(navigateToTransferWithStorageSpaceFilingSpacePossible(records.unitId_10, records.filingId_A)).isFalse();
 		//		assertThat(navigateToDepositWithStorageSpaceFilingSpacePossible(records.unitId_10, records.filingId_A)).isFalse();
 		//		assertThat(navigateToDisplayContainerPossible(records.containerId_bac15)).isFalse();
 	}
-	
+
 	private void assertThatCanNavigateToAllEventPages() {
-		
+
 		assertThat(navigateToEventListPossible()).isTrue();
 		assertThat(navigateToADisplayEventPossible()).isTrue();
 		assertThat(navigateToEventCategoryPossible(SYSTEM_USAGE)).isTrue();
@@ -2324,7 +2319,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	private void assertThatCannotNavigateToAllEventPages() {
-		
+
 		assertThat(navigateToEventListPossible()).isFalse();
 		assertThat(navigateToADisplayEventPossible()).isFalse();
 		assertThat(navigateToEventCategoryPossible(SYSTEM_USAGE)).isFalse();
@@ -2353,6 +2348,5 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigationToRecordAuthorizationsPossible(documentInA13)).isTrue();
 		assertThat(navigationToShareContentPossible(documentInA13)).isTrue();
 	}
-
 
 }
