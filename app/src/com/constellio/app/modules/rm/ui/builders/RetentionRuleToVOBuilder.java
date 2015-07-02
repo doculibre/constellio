@@ -121,8 +121,16 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		List<String> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode).getMetadataGroup();
 		String groupLabel = groups.get(0);
 
+		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getDisplayMetadataCodes());
+		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());
+
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
 				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP,
 				new AllowedReferences(referencedSchemaType, references), groupLabel, null);
+	}
+
+	private void insertMetadataCodeBefore(String codeToInsert, String codeToSearch, List<String> codes) {
+		int index = codes.indexOf(RetentionRule.DEFAULT_SCHEMA + "_" + codeToSearch);
+		codes.add(index, codeToInsert);
 	}
 }

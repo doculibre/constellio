@@ -25,6 +25,7 @@ import java.util.Locale;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -35,6 +36,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.security.roles.Roles;
 
 public class BasePresenterUtils implements Serializable {
 
@@ -164,6 +166,15 @@ public class BasePresenterUtils implements Serializable {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(LogicalSearchQueryOperators.from(schema).returnAll());
 		return searchServices.searchRecordIds(query);
+	}
+
+	public User wrapUser(Record record) {
+		return new User(record, types(), getCollectionRoles());
+	}
+
+	public Roles getCollectionRoles() {
+		String collection = getCollection();
+		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
 	}
 
 }

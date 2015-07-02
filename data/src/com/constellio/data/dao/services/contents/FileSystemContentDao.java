@@ -94,6 +94,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
+	public boolean isFolderExisting(String folderId) {
+		File folder = new File(rootFolder, folderId.replace("/", File.separator));
+		return folder.exists();
+	}
+
+	@Override
 	public List<String> getFolderContents(String folderId) {
 		File folder = new File(rootFolder, folderId.replace("/", File.separator));
 		String[] fileArray = folder.list();

@@ -19,8 +19,10 @@ package com.constellio.model.services.contents;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -58,9 +60,13 @@ public class ContentImpl implements Content {
 
 	private boolean dirty;
 
+	private boolean emptyVersion;
+
 	public ContentImpl(String id, ContentVersion currentVersion, Lazy<List<ContentVersion>> lazyHistory,
-			ContentVersion currentCheckedOutVersion, LocalDateTime checkoutDateTime, String checkoutUserId) {
+			ContentVersion currentCheckedOutVersion, LocalDateTime checkoutDateTime, String checkoutUserId,
+			boolean emptyVersion) {
 		this.currentVersion = currentVersion;
+		this.emptyVersion = emptyVersion;
 		this.checkoutDateTime = checkoutDateTime;
 		if (currentCheckedOutVersion == null && checkoutUserId != null) {
 			this.currentCheckedOutVersion = currentVersion;
@@ -76,7 +82,8 @@ public class ContentImpl implements Content {
 
 	}
 
-	public static ContentImpl create(String id, User user, String filename, ContentVersionDataSummary newVersion, boolean major) {
+	public static ContentImpl create(String id, User user, String filename, ContentVersionDataSummary newVersion, boolean major,
+			boolean empty) {
 		validateArgument("id", id);
 		validateUserArgument(user);
 		validateFilenameArgument(filename);
@@ -89,6 +96,7 @@ public class ContentImpl implements Content {
 		content.id = id;
 		content.history = new ArrayList<>();
 		content.dirty = true;
+		content.emptyVersion = empty;
 		content.setNewCurrentVersion(new ContentVersion(newVersion, correctFilename, version, user.getId(), now));
 		return content;
 	}
@@ -166,7 +174,11 @@ public class ContentImpl implements Content {
 		this.checkoutUserId = null;
 		this.dirty = true;
 
-		if (!currentCheckedOutVersion.getVersion().equals(currentVersion.getVersion())) {
+		if (emptyVersion) {
+			currentVersion = currentCheckedOutVersion;
+			emptyVersion = false;
+
+		} else if (!currentCheckedOutVersion.getVersion().equals(currentVersion.getVersion())) {
 			setNewCurrentVersion(currentCheckedOutVersion);
 		}
 		this.currentCheckedOutVersion = null;
@@ -190,8 +202,18 @@ public class ContentImpl implements Content {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		String correctFilename = correctFilename(name);
 		String userId = this.getCheckoutUserId();
-		String nextVersion = getNextVersion(finalize);
+		String nextVersion;
+
+		if (emptyVersion) {
+			nextVersion = finalize ? "1.0" : "0.1";
+		} else {
+			nextVersion = getNextVersion(finalize);
+		}
 		setNewCurrentVersion(new ContentVersion(newVersion, correctFilename, nextVersion, userId, now));
+		if (emptyVersion) {
+			this.history.clear();
+			this.emptyVersion = false;
+		}
 		this.checkoutDateTime = null;
 		this.checkoutUserId = null;
 		this.currentCheckedOutVersion = null;
@@ -271,9 +293,16 @@ public class ContentImpl implements Content {
 		validateUserArgument(user);
 		valdiateNewVersionArgument(newVersion);
 		LocalDateTime now = TimeProvider.getLocalDateTime();
-		String version = getNextVersion(finalize);
+
 		String correctedFilename = correctFilename(name);
-		setNewCurrentVersion(new ContentVersion(newVersion, correctedFilename, version, user.getId(), now));
+		if (emptyVersion) {
+			emptyVersion = false;
+			String version = finalize ? "1.0" : "0.1";
+			currentVersion = new ContentVersion(newVersion, correctedFilename, version, user.getId(), now);
+		} else {
+			String version = getNextVersion(finalize);
+			setNewCurrentVersion(new ContentVersion(newVersion, correctedFilename, version, user.getId(), now));
+		}
 		this.dirty = true;
 		return this;
 	}
@@ -309,7 +338,7 @@ public class ContentImpl implements Content {
 		String correctedFilename = correctFilename(name);
 		String version = currentCheckedOutVersion.getVersion();
 
-		if (version.equals(getCurrentVersion().getVersion())) {
+		if (!emptyVersion && version.equals(getCurrentVersion().getVersion())) {
 			version = getNextVersion(false);
 		}
 
@@ -395,6 +424,11 @@ public class ContentImpl implements Content {
 		return this;
 	}
 
+	@Override
+	public boolean isEmptyVersion() {
+		return emptyVersion;
+	}
+
 	private void setNewCurrentVersion(ContentVersion version) {
 		ensureHistoryIsLoaded();
 		if (currentVersion != null) {
@@ -440,6 +474,19 @@ public class ContentImpl implements Content {
 	public boolean isDeleteContentVersionPossible(String version) {
 		ContentVersion currentVersion = getCurrentVersion();
 		return currentVersion != null && !currentVersion.getVersion().equals(version);
+	}
+
+	@Override
+	public Set<String> getHashOfAllVersions() {
+		Set<String> hashes = new HashSet<>();
+		hashes.add(currentVersion.getHash());
+		if (currentCheckedOutVersion != null) {
+			hashes.add(currentCheckedOutVersion.getHash());
+		}
+		for (ContentVersion version : getHistoryVersions()) {
+			hashes.add(version.getHash());
+		}
+		return hashes;
 	}
 
 }

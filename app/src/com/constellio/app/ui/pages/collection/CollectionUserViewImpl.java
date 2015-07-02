@@ -109,14 +109,14 @@ public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUs
 
 	public class UserMetadataDisplayFactory extends MetadataDisplayFactory {
 		@Override
-		public Component buildSingleValue(MetadataVO metadata, Object displayValue) {
+		public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
 			switch (metadata.getCode()) {
 			case COMPUTED_USER_ROLES:
 				return new Label(presenter.getRoleTitle((String) displayValue));
 			case USER_ROLES:
 				return null;
 			default:
-				return super.buildSingleValue(metadata, displayValue);
+				return super.buildSingleValue(recordVO, metadata, displayValue);
 			}
 		}
 	}

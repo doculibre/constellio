@@ -21,19 +21,20 @@ import java.io.Serializable;
 import java.util.List;
 
 public interface LazyTreeDataProvider<T extends Serializable> extends DataProvider {
-	
+
 	int getRootObjectsCount();
-	
+
 	List<T> getRootObjects(int start, int maxSize);
-	
+
 	T getParent(T child);
-	
+
 	int getChildrenCount(T parent);
-	
+
 	List<T> getChildren(T parent, int start, int maxSize);
-	
+
 	boolean hasChildren(T parent);
-	
+
 	boolean isLeaf(T object);
-	
+
+	String getTaxonomyCode();
 }

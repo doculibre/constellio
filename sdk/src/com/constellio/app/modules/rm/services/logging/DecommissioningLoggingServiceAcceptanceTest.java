@@ -61,16 +61,21 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 	DecommissioningLoggingService loggingServices;
 	NotificationsServices notificationsServices;
 
-	RMSchemasRecordsServices schemas;
-	private RMTestRecords records;
+	RMSchemasRecordsServices rm;
+	private RMTestRecords records = new RMTestRecords(zeCollection);
 
-	RMEventsSearchServices rmSchemasRecordsServices;
+	RMEventsSearchServices rmEventsSearchServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers().andUsersWithReadAccess("admin");
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
+		inCollection(zeCollection).giveReadAccessTo(admin);
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		loggingServices = new DecommissioningLoggingService(getModelLayerFactory());
@@ -81,10 +86,8 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy,
 				getModelLayerFactory().getMetadataSchemasManager());
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		rmSchemasRecordsServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
-		records = new RMTestRecords(zeCollection);
-		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		users.setUp(userServices);
 		userServices.addUserToCollection(users.alice(), zeCollection);
@@ -116,20 +119,20 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 
 	private void whenDecommissioningEventThenAdequateEventCreated(DecommissioningListType decommissioningListType,
 			String eventType) {
-		DecommissioningList decommissioningList = schemas.newDecommissioningList()
+		DecommissioningList decommissioningList = rm.newDecommissioningList()
 				.setDecommissioningListType(decommissioningListType);
 		User bob = users.bobIn(zeCollection);
 		loggingServices.logDecommissioning(decommissioningList, bob);
 		recordServices.flush();
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(eventType));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(eventType));
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		List<Record> events = searchServices.search(query);
 
 		assertThat(events).hasSize(1);
-		Event event = schemas.wrapEvent(events.get(0));
+		Event event = rm.wrapEvent(events.get(0));
 		event.getUsername().contains(bob.getUsername());
 	}
 

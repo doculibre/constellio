@@ -34,6 +34,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -47,7 +48,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.borrowingServices.BorrowingServices;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -65,29 +65,29 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	EventcategoriesFacade1 eventCategoriesFacade;
 
 	RecordServices recordServices;
-	private RMTestRecords records;
-	RMSchemasRecordsServices schemas;
+	private RMTestRecords records = new RMTestRecords(zeCollection);
+	RMSchemasRecordsServices rm;
 	LoggingServices loggingServices;
 	AuthorizationsServices authorizationsServices;
 
 	LocalDateTime testDate = new LocalDateTime().minusDays(1);
-	Users users;
+	Users users = new Users();
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers()
-				.andUsersWithReadAccess("admin");
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withEvents()
+		);
+		inCollection(zeCollection).giveReadAccessTo(admin).setCollectionTitleTo("Collection de test");
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		loggingServices = getModelLayerFactory().newLoggingServices();
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
-		users = records.getUsers();
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 
 		eventCategoriesFacade = new EventcategoriesFacade1(driver);
@@ -95,7 +95,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	}
 
 	private Folder createFolder(AdministrativeUnit administrativeUnit) {
-		Folder folder = schemas.newFolder();
+		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(administrativeUnit.getId());
 		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
@@ -496,7 +496,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	}
 
 	private Map<String, String> addUserClaraByAdminInAdminUnit11() {
-		addUserInAdminUnit("Clara", users.adminIn(zeCollection), schemas.getAdministrativeUnit(records.unitId_11));
+		addUserInAdminUnit("Clara", users.adminIn(zeCollection), rm.getAdministrativeUnit(records.unitId_11));
 		Map<String, String> expectedEventValuesMap = new HashMap<>();
 		expectedEventValuesMap.put("", "");
 		return expectedEventValuesMap;
@@ -521,7 +521,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	}
 
 	private void addUserInAdminUnit(String username, User user, AdministrativeUnit administrativeUnit) {
-		User userToAdd = schemas.newUser();
+		User userToAdd = rm.newUser();
 		userToAdd.setUsername(username);
 		addAuthorizationForUserToAccessAdministrativeUnit(userToAdd, administrativeUnit);
 		loggingServices.addUser(userToAdd.getWrappedRecord(), user);
@@ -613,7 +613,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	}
 
 	private Event createDocument(String creatorUserName) {
-		return schemas.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_DOCUMENT);
+		return rm.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_DOCUMENT);
 	}
 
 	private RecordWrapper createFolderEvent(String creatorUserName, LocalDateTime eventDate) {
@@ -621,13 +621,13 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	}
 
 	private Event createFolderEvent(String creatorUserName) {
-		return schemas.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER);
+		return rm.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER);
 	}
 
 	private Event createFolderEvent(String creatorUserName, Folder folder) {
 		String folderId = folder.getId();
 		String principalPath = folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH);
-		Event event = schemas.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER).setRecordId(folderId)
+		Event event = rm.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER).setRecordId(folderId)
 				.setEventPrincipalPath(principalPath);
 
 		return event;

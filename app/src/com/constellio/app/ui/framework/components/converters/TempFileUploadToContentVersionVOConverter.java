@@ -96,7 +96,7 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 			}
 		};
 		return tempFileUpload != null ?
-				new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, inputStreamProvider) :
+				new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, null, null, inputStreamProvider) :
 				null;
 	}
 

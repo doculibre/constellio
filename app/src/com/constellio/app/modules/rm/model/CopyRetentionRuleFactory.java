@@ -25,6 +25,7 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.services.search.query.logical.criteria.IsContainingTextCriterion;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class CopyRetentionRuleFactory implements StructureFactory {
@@ -57,7 +58,6 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 	private DisposalType readDisposalType(StringTokenizer stringTokenizer) {
 
 		String value = readString(stringTokenizer);
-		;
 		return value == null ? null : (DisposalType) EnumWithSmallCodeUtils.toEnum(DisposalType.class, value);
 	}
 
@@ -69,11 +69,9 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		writeString(stringBuilder, rule.getCode());
 		writeString(stringBuilder, rule.getCopyType() == null ? "" : rule.getCopyType().getCode());
 		writeString(stringBuilder, rule.getContentTypesComment());
-		writeString(stringBuilder,
-				"" + (rule.getActiveRetentionPeriod() == null ? NULL : rule.getActiveRetentionPeriod().getValue()));
+		writeString(stringBuilder, write(rule.getActiveRetentionPeriod()));
 		writeString(stringBuilder, rule.getActiveRetentionComment());
-		writeString(stringBuilder,
-				"" + (rule.getSemiActiveRetentionPeriod() == null ? NULL : rule.getSemiActiveRetentionPeriod().getValue()));
+		writeString(stringBuilder, write(rule.getSemiActiveRetentionPeriod()));
 		writeString(stringBuilder, rule.getSemiActiveRetentionComment());
 		writeString(stringBuilder, rule.getInactiveDisposalType() == null ? NULL : rule.getInactiveDisposalType().getCode());
 		writeString(stringBuilder, rule.getInactiveDisposalComment());
@@ -83,6 +81,15 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		}
 
 		return stringBuilder.toString();
+	}
+
+	private String write(RetentionPeriod activeRetentionPeriod) {
+		if (activeRetentionPeriod == null) {
+			return NULL;
+		} else {
+			String type = activeRetentionPeriod.isVariablePeriod() ? "V" : "F";
+			return type + activeRetentionPeriod.getValue();
+		}
 	}
 
 	private String readString(StringTokenizer stringTokenizer) {
@@ -109,7 +116,19 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 
 	private RetentionPeriod readRetentionPeriod(StringTokenizer stringTokenizer) {
 		String value = readString(stringTokenizer);
-		return value == null ? null : new RetentionPeriod(Integer.valueOf(value));
+		if (value.startsWith("F")) {
+			return RetentionPeriod.fixed(Integer.valueOf(value.substring(1)));
+
+		} else if (value.startsWith("V")) {
+			return RetentionPeriod.variable(value.substring(1));
+
+		} else {
+			return value == null ? null : new RetentionPeriod(Integer.valueOf(value));
+		}
+	}
+
+	public static IsContainingTextCriterion variablePeriodCode(String code) {
+		return new IsContainingTextCriterion(":V" + code + ":");
 	}
 
 }

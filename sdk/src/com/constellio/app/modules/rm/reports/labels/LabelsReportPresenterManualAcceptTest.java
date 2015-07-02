@@ -23,55 +23,51 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jdom2.Document;
+import org.jdom2.input.SAXBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportPresenter;
-import com.constellio.app.modules.rm.services.LabelTemplateServices;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.model.services.records.RecordServices;
 
-@SlowTest
 public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
 	private String[] labelReportFieldsToCheck = { "value" };
 
-	private RMTestRecords records;
+	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private LabelsReportPresenter presenter;
-	private LabelTemplateServices labelTemplateServices;
+	private LabelTemplateManager labelTemplateManager;
 	private static final String LABELS_TEMPLATES_FOLDER = "labelTemplates";
+	private RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		records = new RMTestRecords(zeCollection);
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
+		recordServices = getModelLayerFactory().newRecordServices();
 
 		presenter = new LabelsReportPresenter(zeCollection, getModelLayerFactory());
 
-		givenInvalidExtesionFileInFolder();
-		labelTemplateServices = new LabelTemplateServices(getAppLayerFactory());
-		labelTemplateServices.getTemplates("");
+		labelTemplateManager = getAppLayerFactory().getLabelTemplateManager();
 
-	}
-
-	private void givenInvalidExtesionFileInFolder() {
-		ConfigManager configManager = getDataLayerFactory().getConfigManager();
-		for (String filename : configManager.list(LABELS_TEMPLATES_FOLDER)) {
-			if (!filename.endsWith(".bkp")) {
-				configManager.rename(LABELS_TEMPLATES_FOLDER + "/" + filename, LABELS_TEMPLATES_FOLDER + "/" + filename + ".bkp");
-			}
-		}
 	}
 
 	@Test
@@ -80,7 +76,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -142,7 +138,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(1);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -196,7 +192,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -210,7 +206,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A02", "A03"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(1);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -224,7 +220,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A04"));
 		int startPosition = 1;
 		int copies = 2;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -238,7 +234,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A05"));
 		int startPosition = 2;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(1);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -254,7 +250,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A06"));
 		int startPosition = 3;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -270,7 +266,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A07", "A08"));
 		int startPosition = 2;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(1);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -286,7 +282,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A07", "A08", "A01"));
 		int startPosition = 2;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(1);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -302,7 +298,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A09"));
 		int startPosition = 1;
 		int copies = 14;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -318,7 +314,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A10"));
 		int startPosition = 14;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(1);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(1);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -334,7 +330,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A11", "A12"));
 		int startPosition = 14;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -351,7 +347,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 				"A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A20"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -367,7 +363,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A00"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -385,7 +381,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("bac01"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -401,7 +397,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("bac01"));
 		int startPosition = 1;
 		int copies = 2;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -417,7 +413,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("bac01"));
 		int startPosition = 2;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateServices.getTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(ContainerRecord.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -426,4 +422,46 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		build(new LabelsReportBuilder(model));
 
 	}
+
+	@Test
+	public void givenVilleStLaurentTemplateThenOk()
+			throws Exception {
+		givenVilleStLaurentTemplate();
+		List<String> folderIds = new ArrayList<>();
+		folderIds.addAll(Arrays.asList("C30"));
+		String title =
+				"15-14464 Distribuition massive de bacs pour la collecte des matières organiques - Devis technique - Formulaire soumission 2015 - 2016 "
+						+ "15-14464 Distribuition massive de bacs pour la collecte des matières organiques - Devis technique - Formulaire soumission 2015 - 2016"
+						+ "15-14464 Distribuition massive de bacs pour la collecte des matières organiques - Devis technique - Formulaire soumission 2015 - 2016"
+						+ "15-14464 Distribuition massive de bacs pour la collecte des matières organiques - Devis technique - Formulaire soumission 2015 - 2016"
+						+ "15-14464 Distribuition massive de bacs pour la collecte des matières organiques - Devis technique - Formulaire soumission 2015 - 2016";
+		Folder folder30 = records.getFolder_C30()
+				.setTitle(title);
+		Category category = records.getCategory_X110().setDescription("Analyse des besoins");
+		recordServices.update(folder30.getWrappedRecord());
+		recordServices.update(category.getWrappedRecord());
+		recordServices.flush();
+
+		int startPosition = 1;
+		int copies = 1;
+		LabelTemplate labelTemplate = labelTemplateManager.getLabelTemplate("villeStLaurent.xml");
+
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
+
+		build(new LabelsReportBuilder(model));
+	}
+
+	private void givenVilleStLaurentTemplate()
+			throws Exception {
+		ConfigManager configManager = getDataLayerFactory().getConfigManager();
+
+		String filename = "villeStLaurent.xml";
+		String path = LABELS_TEMPLATES_FOLDER + "/" + filename;
+		SAXBuilder saxBuilder = new SAXBuilder();
+		Document document = saxBuilder.build(getTestResourceFile(filename));
+		configManager.add(path, document);
+		assertThat(configManager.exist(path)).isTrue();
+		assertThat(configManager.list(LABELS_TEMPLATES_FOLDER)).hasSize(1);
+	}
+
 }

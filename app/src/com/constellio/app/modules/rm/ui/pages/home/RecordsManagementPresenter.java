@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.home;
 
+import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +42,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
@@ -49,6 +53,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -69,10 +74,12 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 
 	private static final String TAB_NAME_LAST_VIEWED_FOLDERS = "lastViewedFolders";
 	private static final String TAB_NAME_LAST_VIEWED_DOCUMENTS = "lastViewedDocuments";
+	private static final String TAB_NAME_CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
 	private static final String TAB_NAME_TAXONOMIES = "taxonomies";
 
 	private RecordsManagementViewTab tabLastViewedFolders;
 	private RecordsManagementViewTab tabLastViewedDocuments;
+	private RecordsManagementViewTab tabCheckedOutDocuments;
 	private RecordsManagementViewTab tabTaxonomies;
 
 	private List<RecordsManagementViewTab> tabs;
@@ -81,9 +88,13 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 
 	private DocumentEventSchemaToVOBuilder documentEventSchemaToVOBuilder = new DocumentEventSchemaToVOBuilder();
 
+	private MetadataSchemaToVOBuilder documentSchemaToVOBuilder = new MetadataSchemaToVOBuilder();
+
 	private RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
 
-	private MetadataSchemaVO foldersSchemaVO;
+	private MetadataSchemaVO folderEventsSchemaVO;
+
+	private MetadataSchemaVO documentEventsSchemaVO;
 
 	private MetadataSchemaVO documentsSchemaVO;
 
@@ -124,10 +135,11 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 
 		if (foldersSchema != null) {
 			List<String> wantedMetadata = Arrays.asList(CommonMetadataBuilder.TITLE, CommonMetadataBuilder.MODIFIED_ON);
-			foldersSchemaVO = folderEventSchemaToVOBuilder
+			folderEventsSchemaVO = folderEventSchemaToVOBuilder
 					.build(foldersSchema, VIEW_MODE.TABLE, wantedMetadata, view.getSessionContext());
-			documentsSchemaVO = documentEventSchemaToVOBuilder
+			documentEventsSchemaVO = documentEventSchemaToVOBuilder
 					.build(documentsSchema, VIEW_MODE.TABLE, wantedMetadata, view.getSessionContext());
+			documentsSchemaVO = documentSchemaToVOBuilder.build(documentsSchema, VIEW_MODE.TABLE, view.getSessionContext());
 
 			tabLastViewedFolders = new RecordsManagementViewTab(
 					TAB_NAME_LAST_VIEWED_FOLDERS,
@@ -137,12 +149,16 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 					TAB_NAME_LAST_VIEWED_DOCUMENTS,
 					TabType.RECORD_LIST,
 					getDataProviders(TAB_NAME_LAST_VIEWED_DOCUMENTS), true);
+			tabCheckedOutDocuments = new RecordsManagementViewTab(
+					TAB_NAME_CHECKED_OUT_DOCUMENTS,
+					TabType.RECORD_LIST,
+					getDataProviders(TAB_NAME_CHECKED_OUT_DOCUMENTS), true);
 			tabTaxonomies = new RecordsManagementViewTab(
 					TAB_NAME_TAXONOMIES,
 					TabType.RECORD_TREE,
 					getDataProviders(TAB_NAME_TAXONOMIES), true);
 
-			tabs = Arrays.asList(tabLastViewedFolders, tabLastViewedDocuments, tabTaxonomies);
+			tabs = Arrays.asList(tabLastViewedFolders, tabLastViewedDocuments, tabCheckedOutDocuments, tabTaxonomies);
 		} else {
 			tabs = new ArrayList<>();
 		}
@@ -151,7 +167,7 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 	private List<DataProvider> getDataProviders(String tabName) {
 		List<DataProvider> dataProviders = new ArrayList<DataProvider>();
 		if (TAB_NAME_LAST_VIEWED_FOLDERS.equals(tabName)) {
-			DataProvider dataProvider = new RecordVODataProvider(foldersSchemaVO, recordToVOBuilder, modelLayerFactory) {
+			DataProvider dataProvider = new RecordVODataProvider(folderEventsSchemaVO, recordToVOBuilder, modelLayerFactory) {
 				@Override
 				protected LogicalSearchQuery getQuery() {
 					return recentEventsQuery(Folder.SCHEMA_TYPE, "view_folder");
@@ -159,10 +175,25 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 			};
 			dataProviders.add(dataProvider);
 		} else if (TAB_NAME_LAST_VIEWED_DOCUMENTS.equals(tabName)) {
-			DataProvider dataProvider = new RecordVODataProvider(documentsSchemaVO, recordToVOBuilder, modelLayerFactory) {
+			DataProvider dataProvider = new RecordVODataProvider(documentEventsSchemaVO, recordToVOBuilder, modelLayerFactory) {
 				@Override
 				protected LogicalSearchQuery getQuery() {
 					return recentEventsQuery(Document.SCHEMA_TYPE, "view_document");
+				}
+			};
+			dataProviders.add(dataProvider);
+		} else if (TAB_NAME_CHECKED_OUT_DOCUMENTS.equals(tabName)) {
+			DataProvider dataProvider = new RecordVODataProvider(documentsSchemaVO, recordToVOBuilder, modelLayerFactory) {
+				@Override
+				protected LogicalSearchQuery getQuery() {
+					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+					MetadataSchemaType documentSchemaType = rm.documentSchemaType();
+					Metadata contentMetadata = rm.documentContent();
+					
+					LogicalSearchQuery query = new LogicalSearchQuery();
+					query.setCondition(from(documentSchemaType).where(contentMetadata).is(isCheckedOutBy(getCurrentUser())));
+					query.sortDesc(Schemas.MODIFIED_ON);
+					return query;
 				}
 			};
 			dataProviders.add(dataProvider);
@@ -190,7 +221,8 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 
 		MetadataSchemaType type = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(typeCode);
 		return new LogicalSearchQuery()
-				.setCondition(LogicalSearchQueryOperators.from(type).where(Schemas.IDENTIFIER).isIn(recordIds))
+				.setCondition(LogicalSearchQueryOperators.from(type).where(Schemas.IDENTIFIER).isIn(recordIds)
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setResultsProjection(new SortRecordsUsingIdsAndApplyViewDateResultsProjection(recordIds, eventsViewDateTimes));
 	}
 
@@ -250,9 +282,10 @@ public class RecordsManagementPresenter extends BasePresenter<RecordsManagementV
 		RecordsManagementViewTab initialTab;
 		if (StartTab.RECENT_FOLDERS.getCode().equals(initialTabName) || TAB_NAME_LAST_VIEWED_FOLDERS.equals(initialTabName)) {
 			initialTab = tabLastViewedFolders;
-		} else if (StartTab.RECENT_DOCUMENTS.getCode().equals(initialTabName) || TAB_NAME_LAST_VIEWED_DOCUMENTS
-				.equals(initialTabName)) {
+		} else if (StartTab.RECENT_DOCUMENTS.getCode().equals(initialTabName) || TAB_NAME_LAST_VIEWED_DOCUMENTS.equals(initialTabName)) {
 			initialTab = tabLastViewedDocuments;
+		} else if (StartTab.CHECKED_OUT_DOCUMENTS.getCode().equals(initialTabName) || TAB_NAME_CHECKED_OUT_DOCUMENTS.equals(initialTabName)) {
+			initialTab = tabCheckedOutDocuments;
 		} else if (StartTab.TAXONOMIES.getCode().equals(initialTabName) || TAB_NAME_TAXONOMIES.equals(initialTabName)) {
 			initialTab = tabTaxonomies;
 		} else {

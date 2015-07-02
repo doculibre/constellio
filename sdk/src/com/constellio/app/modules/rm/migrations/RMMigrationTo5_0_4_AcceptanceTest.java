@@ -43,7 +43,9 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenInCurrentVersionThenCodeAndTitleEnabledAndRequired() {
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule()
+		);
 
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 

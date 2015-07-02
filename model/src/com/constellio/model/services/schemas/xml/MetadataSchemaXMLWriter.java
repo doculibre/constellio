@@ -132,6 +132,7 @@ public class MetadataSchemaXMLWriter {
 		metadataElement.addContent(newElementWithContent("schemaAutocomplete", metadata.isSchemaAutocomplete()));
 		metadataElement.addContent(newElementWithContent("systemReserved", metadata.isSystemReserved()));
 		metadataElement.addContent(newElementWithContent("essential", metadata.isEssential()));
+		metadataElement.addContent(newElementWithContent("writeNullValues", metadata.isWriteNullValues()));
 		metadataElement.addContent(newElementWithContent("childOfRelationship", metadata.isChildOfRelationship()));
 		metadataElement.addContent(newElementWithContent("taxonomyRelationship", metadata.isTaxonomyRelationship()));
 		metadataElement.addContent(newElementWithContent("uniqueValue", metadata.isUniqueValue()));

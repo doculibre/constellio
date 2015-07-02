@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.ui.entities.ComponentState;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
@@ -119,9 +120,14 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					if (contentVersionVO != null) {
-						ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
-						Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
-						Page.getCurrent().open(downloadedResource, null, false);
+						String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
+						if (agentURL != null) {
+							Page.getCurrent().open(agentURL, null);
+						} else {
+							ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
+							Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
+							Page.getCurrent().open(downloadedResource, null, false);
+						}
 					}
 				}
 			});

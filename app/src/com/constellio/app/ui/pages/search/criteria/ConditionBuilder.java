@@ -116,8 +116,7 @@ public class ConditionBuilder {
 		case IS_FALSE:
 			return from(schemaType).where(metadata).isFalseOrNull();
 		case IN_HIERARCHY:
-			String prefix = criterion.getValue() + "/";
-			return from(schemaType).where(Schemas.PATH).isStartingWithText(prefix);
+			return from(schemaType).where(Schemas.PATH).isContainingText("/" + criterion.getValue() + "/");
 		default:
 			throw new RuntimeException("Unsupported search operator");
 		}

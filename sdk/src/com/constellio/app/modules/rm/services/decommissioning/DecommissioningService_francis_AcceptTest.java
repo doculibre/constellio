@@ -37,15 +37,18 @@ import com.constellio.sdk.tests.ConstellioTest;
 public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	DecommissioningService service;
 	RMSchemasRecordsServices rm;
-	RMTestRecords test = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
 	SearchServices searchServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		test.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		service = new DecommissioningService(zeCollection, getModelLayerFactory());
@@ -57,49 +60,50 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	public void whenGetUserAdministrativeUnitsThenValidValues()
 			throws Exception {
 
-		assertThat(service.getAdministrativeUnitsForUser(test.getBob_userInAC()))
-				.hasSize(4).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_30);
+		assertThat(service.getAdministrativeUnitsForUser(records.getBob_userInAC()))
+				.hasSize(4).containsOnly(records.unitId_10, records.unitId_11, records.unitId_12, records.unitId_30);
 
-		assertThat(service.getAdministrativeUnitsForUser(test.getCharles_userInA()))
-				.hasSize(3).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12);
+		assertThat(service.getAdministrativeUnitsForUser(records.getCharles_userInA()))
+				.hasSize(3).containsOnly(records.unitId_10, records.unitId_11, records.unitId_12);
 
-		assertThat(service.getAdministrativeUnitsForUser(test.getDakota_managerInA_userInB()))
-				.hasSize(3).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12);
+		assertThat(service.getAdministrativeUnitsForUser(records.getDakota_managerInA_userInB()))
+				.hasSize(3).containsOnly(records.unitId_10, records.unitId_11, records.unitId_12);
 
-		assertThat(service.getAdministrativeUnitsForUser(test.getEdouard_managerInB_userInC()))
-				.hasSize(3).containsOnly(test.unitId_30, test.unitId_11, test.unitId_12);
+		assertThat(service.getAdministrativeUnitsForUser(records.getEdouard_managerInB_userInC()))
+				.hasSize(3).containsOnly(records.unitId_30, records.unitId_11, records.unitId_12);
 
-		assertThat(service.getAdministrativeUnitsForUser(test.getGandalf_managerInABC()))
-				.hasSize(4).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_30);
+		assertThat(service.getAdministrativeUnitsForUser(records.getGandalf_managerInABC()))
+				.hasSize(4).containsOnly(records.unitId_10, records.unitId_11, records.unitId_12, records.unitId_30);
 
-		assertThat(service.getAdministrativeUnitsForUser(test.getChuckNorris()))
-				.hasSize(5).containsOnly(test.unitId_10, test.unitId_11, test.unitId_12, test.unitId_20, test.unitId_30);
+		assertThat(service.getAdministrativeUnitsForUser(records.getChuckNorris()))
+				.hasSize(5)
+				.containsOnly(records.unitId_10, records.unitId_11, records.unitId_12, records.unitId_20, records.unitId_30);
 	}
 
 	@Test
 	public void whenGetUserAdministrativeUnitsWithFilingSpaceThenValidValues()
 			throws Exception {
 
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingA(), test.getBob_userInAC()))
-				.containsExactly(test.unitId_10);
+		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingA(), records.getBob_userInAC()))
+				.containsExactly(records.unitId_10);
 
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingB(), test.getBob_userInAC()))
-				.hasSize(2).containsOnly(test.unitId_11, test.unitId_12);
+		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingB(), records.getBob_userInAC()))
+				.hasSize(2).containsOnly(records.unitId_11, records.unitId_12);
 
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingC(), test.getBob_userInAC()))
-				.hasSize(2).containsOnly(test.unitId_12, test.unitId_30);
+		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingC(), records.getBob_userInAC()))
+				.hasSize(2).containsOnly(records.unitId_12, records.unitId_30);
 
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingA(), test.getGandalf_managerInABC()))
-				.containsExactly(test.unitId_10);
+		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingA(), records.getGandalf_managerInABC()))
+				.containsExactly(records.unitId_10);
 
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingB(), test.getGandalf_managerInABC()))
-				.hasSize(2).containsOnly(test.unitId_11, test.unitId_12);
+		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingB(), records.getGandalf_managerInABC()))
+				.hasSize(2).containsOnly(records.unitId_11, records.unitId_12);
 
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingC(), test.getGandalf_managerInABC()))
-				.hasSize(2).containsOnly(test.unitId_12, test.unitId_30);
+		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingC(), records.getGandalf_managerInABC()))
+				.hasSize(2).containsOnly(records.unitId_12, records.unitId_30);
 
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(test.getFilingA(), test.getCharles_userInA()))
-				.containsExactly(test.unitId_10);
+		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingA(), records.getCharles_userInA()))
+				.containsExactly(records.unitId_10);
 
 	}
 
@@ -107,20 +111,20 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	public void whenGetUserFilingSpacesThenValidValues()
 			throws Exception {
 
-		assertThat(service.getUserFilingSpaces(test.getBob_userInAC()))
-				.hasSize(2).containsOnly(test.filingId_A, test.filingId_C);
+		assertThat(service.getUserFilingSpaces(records.getBob_userInAC()))
+				.hasSize(2).containsOnly(records.filingId_A, records.filingId_C);
 
-		assertThat(service.getUserFilingSpaces(test.getCharles_userInA()))
-				.containsExactly(test.filingId_A);
+		assertThat(service.getUserFilingSpaces(records.getCharles_userInA()))
+				.containsExactly(records.filingId_A);
 
-		assertThat(service.getUserFilingSpaces(test.getDakota_managerInA_userInB()))
-				.hasSize(2).containsOnly(test.filingId_A, test.filingId_B);
+		assertThat(service.getUserFilingSpaces(records.getDakota_managerInA_userInB()))
+				.hasSize(2).containsOnly(records.filingId_A, records.filingId_B);
 
-		assertThat(service.getUserFilingSpaces(test.getEdouard_managerInB_userInC()))
-				.hasSize(2).containsOnly(test.filingId_B, test.filingId_C);
+		assertThat(service.getUserFilingSpaces(records.getEdouard_managerInB_userInC()))
+				.hasSize(2).containsOnly(records.filingId_B, records.filingId_C);
 
-		assertThat(service.getUserFilingSpaces(test.getGandalf_managerInABC()))
-				.hasSize(3).containsOnly(test.filingId_A, test.filingId_B, test.filingId_C);
+		assertThat(service.getUserFilingSpaces(records.getGandalf_managerInABC()))
+				.hasSize(3).containsOnly(records.filingId_A, records.filingId_B, records.filingId_C);
 
 	}
 
@@ -128,14 +132,14 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	public void whenDuplicateFolderThenAllMetadataDuplicated()
 			throws Exception {
 
-		Folder a13 = test.getFolder_A13();
-		a13.setParentFolder(test.folder_A04);
+		Folder a13 = records.getFolder_A13();
+		a13.setParentFolder(records.folder_A04);
 		a13.setCategoryEntered((String) null);
 		a13.setAdministrativeUnitEntered((String) null);
 		recordServices.update(a13);
 
-		Folder a04 = test.getFolder_A04();
-		Folder duplicatedFolder = service.duplicateAndSave(test.getFolder_A04());
+		Folder a04 = records.getFolder_A04();
+		Folder duplicatedFolder = service.duplicateAndSave(records.getFolder_A04());
 
 		assertThat(duplicatedFolder.getDescription()).isEqualTo(a04.getDescription());
 		assertThat(duplicatedFolder.getTitle()).isEqualTo(a04.getTitle() + " (Copie)");
@@ -167,14 +171,14 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	public void whenDuplicateFolderStructureThenAllMetadataDuplicated()
 			throws Exception {
 
-		Folder a13 = test.getFolder_A13();
-		a13.setParentFolder(test.folder_A04);
+		Folder a13 = records.getFolder_A13();
+		a13.setParentFolder(records.folder_A04);
 		a13.setCategoryEntered((String) null);
 		a13.setAdministrativeUnitEntered((String) null);
 		recordServices.update(a13);
 
-		Folder a04 = test.getFolder_A04();
-		Folder duplicatedFolder = service.duplicateStructureAndSave(test.getFolder_A04());
+		Folder a04 = records.getFolder_A04();
+		Folder duplicatedFolder = service.duplicateStructureAndSave(records.getFolder_A04());
 
 		assertThat(duplicatedFolder.getDescription()).isEqualTo(a04.getDescription());
 		assertThat(duplicatedFolder.getTitle()).isEqualTo(a04.getTitle() + " (Copie)");
@@ -227,8 +231,8 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	public void whenDuplicateSubFolderThenAllMetadataDuplicated()
 			throws Exception {
 
-		Folder a13 = test.getFolder_A13();
-		a13.setParentFolder(test.folder_A04);
+		Folder a13 = records.getFolder_A13();
+		a13.setParentFolder(records.folder_A04);
 		a13.setCategoryEntered((String) null);
 		a13.setAdministrativeUnitEntered((String) null);
 		recordServices.update(a13);
@@ -253,7 +257,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 
 		assertThat(duplicatedFolder.getCategory()).isEqualTo(a13.getCategory());
 		assertThat(duplicatedFolder.getApplicableAdministrative()).isEqualTo(a13.getApplicableAdministrative());
-		assertThat(duplicatedFolder.getParentFolder()).isEqualTo(test.folder_A04);
+		assertThat(duplicatedFolder.getParentFolder()).isEqualTo(records.folder_A04);
 	}
 
 	@Test
@@ -262,48 +266,41 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		assertThat(service.getRetentionRulesForCategory(null, null))
 				.isEmpty();
 
-		assertThat(service.getRetentionRulesForCategory(test.categoryId_X100, null))
-				.containsExactly(test.ruleId_1);
+		assertThat(service.getRetentionRulesForCategory(records.categoryId_X100, null))
+				.containsExactly(records.ruleId_1);
 
-		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, null))
-				.hasSize(2).containsOnly(test.ruleId_1, test.ruleId_2);
+		assertThat(service.getRetentionRulesForCategory(records.categoryId_X110, null))
+				.hasSize(2).containsOnly(records.ruleId_1, records.ruleId_2);
 
-		assertThat(service.getRetentionRulesForCategory(test.categoryId_X100, test.subdivId_2))
-				.containsExactly(test.ruleId_1);
+		assertThat(service.getRetentionRulesForCategory(records.categoryId_X100, records.subdivId_2))
+				.containsExactly(records.ruleId_1);
 
-		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, test.subdivId_2))
-				.hasSize(2).containsOnly(test.ruleId_1, test.ruleId_2);
+		assertThat(service.getRetentionRulesForCategory(records.categoryId_X110, records.subdivId_2))
+				.hasSize(2).containsOnly(records.ruleId_1, records.ruleId_2);
 
-		assertThat(service.getRetentionRulesForCategory(test.categoryId_X100, test.subdivId_1))
-				.containsExactly(test.ruleId_2);
+		assertThat(service.getRetentionRulesForCategory(records.categoryId_X100, records.subdivId_1))
+				.containsExactly(records.ruleId_2);
 
-		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, test.subdivId_1))
-				.containsExactly(test.ruleId_2);
+		assertThat(service.getRetentionRulesForCategory(records.categoryId_X110, records.subdivId_1))
+				.containsExactly(records.ruleId_2);
 
-		recordServices.logicallyDelete(test.getRule2().getWrappedRecord(), test.getAdmin());
-
-		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, null))
-				.containsExactly(test.ruleId_1);
-
-		assertThat(service.getRetentionRulesForCategory(test.categoryId_X110, test.subdivId_2))
-				.containsExactly(test.ruleId_1);
 	}
 
 	@Test
 	public void givenCopyRuleTypeAlwaysModifiableWhenDeterminingIfCopyTypeVisibleThenAlwaysTrue() {
 		givenConfig(RMConfigs.COPY_RULE_TYPE_ALWAYS_MODIFIABLE, true);
 
-		assertThat(service.isCopyStatusInputPossible(test.getFolder_A04())).isTrue();
-		assertThat(service.isCopyStatusInputPossible(test.getFolder_A10())).isTrue();
-		assertThat(service.isCopyStatusInputPossible(test.getFolder_A12().setRetentionRuleEntered((String) null))).isTrue();
+		assertThat(service.isCopyStatusInputPossible(records.getFolder_A04())).isTrue();
+		assertThat(service.isCopyStatusInputPossible(records.getFolder_A10())).isTrue();
+		assertThat(service.isCopyStatusInputPossible(records.getFolder_A12().setRetentionRuleEntered((String) null))).isTrue();
 	}
 
 	@Test
 	public void givenCopyRuleTypeNOTAlwaysModifiableWhenDeterminingIfCopyTypeVisibleThenAlwaysTrue() {
 		givenConfig(RMConfigs.COPY_RULE_TYPE_ALWAYS_MODIFIABLE, false);
 
-		assertThat(service.isCopyStatusInputPossible(test.getFolder_A04())).isFalse();
-		assertThat(service.isCopyStatusInputPossible(test.getFolder_A10())).isTrue();
+		assertThat(service.isCopyStatusInputPossible(records.getFolder_A04())).isFalse();
+		assertThat(service.isCopyStatusInputPossible(records.getFolder_A10())).isTrue();
 	}
 
 	//TODO Ajouter medium type when updating document

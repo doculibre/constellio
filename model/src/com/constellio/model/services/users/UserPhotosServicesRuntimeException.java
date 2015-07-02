@@ -38,4 +38,10 @@ public class UserPhotosServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class UserPhotosServicesRuntimeException_NoSuchUserLog extends UserPhotosServicesRuntimeException {
+
+		public UserPhotosServicesRuntimeException_NoSuchUserLog(String username, String userLog) {
+			super("No such log '" + userLog + "' for user '" + username + "'");
+		}
+	}
 }

@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -37,7 +38,6 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.borrowingServices.BorrowingServices;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -48,31 +48,34 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
 	LocalDateTime testDate = new LocalDateTime().minusMonths(1);
 
-	Users users;
+	Users users = new Users();
 
-	RMSchemasRecordsServices schemas;
+	RMSchemasRecordsServices rm;
 
 	SearchServices searchServices;
 
-	RMEventsSearchServices rmSchemasRecordsServices;
+	RMEventsSearchServices services;
 
 	BorrowingServices borrowingServices;
-	private RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	LocalDateTime nowDateTime = TimeProvider.getLocalDateTime();
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers().andUsersWithReadAccess("admin");
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
+		inCollection(zeCollection).giveReadAccessTo(admin);
+
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		searchServices = getModelLayerFactory().newSearchServices();
 		borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
-		rmSchemasRecordsServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
-		users = new Users().using(getModelLayerFactory().newUserServices());
-		records = new RMTestRecords(zeCollection);
-		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		services = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 	}
 
 	//by user
@@ -91,11 +94,11 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		LogicalSearchQuery query = rmSchemasRecordsServices
+		LogicalSearchQuery query = services
 				.newFindCreatedDocumentsByDateRangeAndByUserQuery(users.adminIn(zeCollection), testDate,
 						testDate.plusDays(1), users.dakotaLIndienIn(zeCollection).getUsername());
 
-		List<Event> events = schemas.wrapEvents(searchServices.search(query));
+		List<Event> events = rm.wrapEvents(searchServices.search(query));
 		assertThat(events).hasSize(1);
 		assertThat(events.get(0).getId()).isEqualTo(expectedId);
 		assertThat(events.get(0).getRecordId()).isEqualTo("42");
@@ -118,10 +121,10 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 				.add(createDocument(user, testDate));
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		LogicalSearchQuery query = rmSchemasRecordsServices
+		LogicalSearchQuery query = services
 				.newFindCreatedDocumentsByDateRangeQuery(users.adminIn(zeCollection), testDate, new LocalDateTime());
 
-		List<Event> events = schemas.wrapEvents(searchServices.search(query));
+		List<Event> events = rm.wrapEvents(searchServices.search(query));
 		assertThat(events.size()).isEqualTo(1);
 		assertThat(events.get(0).getId().equals(expectedId));
 	}
@@ -130,8 +133,8 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetGrantedPermissionsByFolderThenReturnValidEvents()
 			throws Exception {
-		Folder folder1 = schemas.newFolder();
-		Folder folder2 = schemas.newFolder();
+		Folder folder1 = rm.newFolder();
+		Folder folder2 = rm.newFolder();
 		Transaction transaction = new Transaction();
 		String expectedId = transaction
 				.add(grantPermission(folder1)).getId();
@@ -139,11 +142,11 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 				.add(grantPermission(folder2));
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		LogicalSearchQuery query = rmSchemasRecordsServices
+		LogicalSearchQuery query = services
 				.newFindGrantedPermissionsByDateRangeAndByFolderQuery(users.adminIn(zeCollection), testDate, new LocalDateTime(),
 						folder1);
 
-		List<Event> events = schemas.wrapEvents(searchServices.search(query));
+		List<Event> events = rm.wrapEvents(searchServices.search(query));
 		assertThat(events).hasSize(1);
 		assertThat(events.get(0).getId().equals(expectedId));
 	}
@@ -159,7 +162,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		User charles = users.charlesIn(zeCollection);
 		loggingServices.borrowRecord(records.getFolder_A02().getWrappedRecord(), charles);
 		getModelLayerFactory().newRecordServices().flush();
-		List<Event> borrowedFoldersEvents = rmSchemasRecordsServices
+		List<Event> borrowedFoldersEvents = services
 				.findCurrentlyBorrowedFolders(records.getAdmin());
 		assertThat(borrowedFoldersEvents.size()).isEqualTo(1);
 		Event event = borrowedFoldersEvents.get(0);
@@ -184,7 +187,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		List<Event> loggedUsers = rmSchemasRecordsServices
+		List<Event> loggedUsers = services
 				.findLoggedUsers(users.adminIn(zeCollection));
 
 		assertThat(loggedUsers).hasSize(1);
@@ -202,7 +205,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 				.add(closeSession(unloggedUserName, testDate.plusMinutes(1)));
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		loggedUsers = rmSchemasRecordsServices
+		loggedUsers = services
 				.findLoggedUsers(users.adminIn(zeCollection));
 
 		assertThat(loggedUsers).hasSize(2);
@@ -238,7 +241,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		String[] nonAcceptedPaths = { "/c", "/ab", "/b", "/a/b/c/a/b/c" };
 		LogicalSearchQuery createdFoldersInFilingSpaceQuery;
 		for (String currentNonAcceptedPath : nonAcceptedPaths) {
-			createdFoldersInFilingSpaceQuery = rmSchemasRecordsServices
+			createdFoldersInFilingSpaceQuery = services
 					.newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(users.adminIn(zeCollection), testDate,
 							new LocalDateTime(), currentNonAcceptedPath);
 			long count = searchServices.getResultsCount(createdFoldersInFilingSpaceQuery);
@@ -247,10 +250,10 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
 		String[] acceptedPaths = { "/a/b/c/a/b", "/a/b/c/a/b/", "/a/b/c" };
 		for (String currentNonAcceptedPath : acceptedPaths) {
-			createdFoldersInFilingSpaceQuery = rmSchemasRecordsServices
+			createdFoldersInFilingSpaceQuery = services
 					.newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(users.adminIn(zeCollection), testDate,
 							new LocalDateTime(), currentNonAcceptedPath);
-			List<Event> events = schemas.wrapEvents(searchServices.search(createdFoldersInFilingSpaceQuery));
+			List<Event> events = rm.wrapEvents(searchServices.search(createdFoldersInFilingSpaceQuery));
 			assertThat(events.size()).isEqualTo(1);
 			assertThat(events.get(0).getEventPrincipalPath()).isEqualTo(filingSpacePath1);
 		}
@@ -266,7 +269,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(), records.getAlice());
 
-		LogicalSearchQuery query = rmSchemasRecordsServices
+		LogicalSearchQuery query = services
 				.newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(records.getAdmin(), records.getAlice().getId());
 		List<Record> records = searchServices.search(query);
 		assertThat(records.size()).isEqualTo(1);
@@ -282,7 +285,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		borrowingServices
 				.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(), records.getAlice());
 
-		LogicalSearchQuery query = rmSchemasRecordsServices
+		LogicalSearchQuery query = services
 				.newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(records.getAdmin(),
 						records.getEdouard_managerInB_userInC().getId());
 		List<Record> records = searchServices.search(query);
@@ -301,7 +304,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		nowDateTime = nowDateTime.plusDays(2);
 		givenTimeIs(nowDateTime);
 
-		LogicalSearchQuery query = rmSchemasRecordsServices
+		LogicalSearchQuery query = services
 				.newFindLateBorrowedFoldersByUserAndDateRangeQuery(records.getAdmin(), records.getAlice().getId());
 		List<Record> records = searchServices.search(query);
 		assertThat(records.size()).isEqualTo(1);
@@ -320,7 +323,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 		nowDateTime = nowDateTime.plusDays(2);
 		givenTimeIs(nowDateTime);
 
-		LogicalSearchQuery query = rmSchemasRecordsServices
+		LogicalSearchQuery query = services
 				.newFindLateBorrowedFoldersByUserAndDateRangeQuery(records.getAdmin(),
 						records.getEdouard_managerInB_userInC().getId());
 		List<Record> records = searchServices.search(query);
@@ -332,7 +335,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private Event createDocument(String creatorUserName) {
-		return schemas.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_DOCUMENT);
+		return rm.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_DOCUMENT);
 	}
 
 	private RecordWrapper deleteDocument(String creatorUserName, LocalDateTime eventDate) {
@@ -340,7 +343,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private Event deleteDocument(String creatorUserName) {
-		return schemas.newEvent().setUsername(creatorUserName).setType(EventType.DELETE_DOCUMENT);
+		return rm.newEvent().setUsername(creatorUserName).setType(EventType.DELETE_DOCUMENT);
 	}
 
 	private RecordWrapper createFolder(String creatorUserName, LocalDateTime eventDate) {
@@ -348,7 +351,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private Event createFolder(String creatorUserName) {
-		return schemas.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER);
+		return rm.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER);
 	}
 
 	private RecordWrapper deleteFolder(String creatorUserName, LocalDateTime eventDate) {
@@ -356,23 +359,23 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private Event deleteFolder(String creatorUserName) {
-		return schemas.newEvent().setUsername(creatorUserName).setType(EventType.DELETE_FOLDER);
+		return rm.newEvent().setUsername(creatorUserName).setType(EventType.DELETE_FOLDER);
 	}
 
 	private RecordWrapper grantPermission(Folder folder) {
-		return schemas.newEvent().setType(EventType.GRANT_PERMISSION).setRecordId(folder.getId());
+		return rm.newEvent().setType(EventType.GRANT_PERMISSION).setRecordId(folder.getId());
 	}
 
 	private RecordWrapper openSession(String username, LocalDateTime date) {
-		return schemas.newEvent().setType(EventType.OPEN_SESSION).setUsername(username).setCreatedOn(date);
+		return rm.newEvent().setType(EventType.OPEN_SESSION).setUsername(username).setCreatedOn(date);
 	}
 
 	private RecordWrapper closeSession(String username, LocalDateTime date) {
-		return schemas.newEvent().setType(EventType.CLOSE_SESSION).setUsername(username).setCreatedOn(date);
+		return rm.newEvent().setType(EventType.CLOSE_SESSION).setUsername(username).setCreatedOn(date);
 	}
 
 	private Event createFolderInFilingSpace(String principalPath) {
-		return schemas.newEvent().setType(EventType.CREATE_FOLDER).setEventPrincipalPath(principalPath);
+		return rm.newEvent().setType(EventType.CREATE_FOLDER).setEventPrincipalPath(principalPath);
 	}
 
 }

@@ -116,6 +116,14 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	}
 
+	public void signalDefaultValueModification(final SystemConfiguration config, final Object previousDefaultValue) {
+		String propertyKey = getPropertyKey(config);
+		Object currentValue = toObject(config, configValues.getProperties().get(propertyKey));
+		if (currentValue == null) {
+			reindex(config, config.getDefaultValue(), previousDefaultValue);
+		}
+	}
+
 	public void setValue(final SystemConfiguration config, final Object newValue) {
 
 		if (config.getType() == SystemConfigurationType.BINARY) {
@@ -168,49 +176,53 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			if (!errors.getValidationErrors().isEmpty()) {
 				throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), newValue);
 			}
-			BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-			SystemConfigurationScript<Object> listener = getInstanciatedScriptFor(config);
-			List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
-			ConstellioModulesManager modulesManager = constellioModulesManagerDelayed.get();
-			Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
+			reindex(config, newValue, oldValue);
 
-			List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
-			try {
+		}
+	}
 
-				if (listener != null) {
-					listener.onValueChanged(oldValue, newValue, modelLayerFactory);
+	private void reindex(SystemConfiguration config, Object newValue, Object oldValue) {
+		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		SystemConfigurationScript<Object> listener = getInstanciatedScriptFor(config);
+		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
+		ConstellioModulesManager modulesManager = constellioModulesManagerDelayed.get();
+		Module module = config.getModule() == null ? null : modulesManager.getInstalledModule(config.getModule());
 
-					for (String collection : collections) {
-						if (module == null || modulesManager.isModuleEnabled(collection, module)) {
-							listener.onValueChanged(oldValue, newValue, modelLayerFactory, collection);
-						}
+		List<BatchProcess> batchProcesses = startBatchProcessesToReindex(config);
+		try {
+
+			if (listener != null) {
+				listener.onValueChanged(oldValue, newValue, modelLayerFactory);
+
+				for (String collection : collections) {
+					if (module == null || modulesManager.isModuleEnabled(collection, module)) {
+						listener.onValueChanged(oldValue, newValue, modelLayerFactory, collection);
 					}
 				}
-
-				configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
-
-				for (BatchProcess batchProcess : batchProcesses) {
-					batchProcessesManager.markAsPending(batchProcess);
-				}
-
-			} catch (RuntimeException e) {
-				if (listener != null) {
-					listener.onValueChanged(newValue, oldValue, modelLayerFactory);
-
-					for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-						if (module == null || modulesManager.isModuleEnabled(collection, module)) {
-							listener.onValueChanged(newValue, oldValue, modelLayerFactory, collection);
-						}
-					}
-				}
-				for (BatchProcess batchProcess : batchProcesses) {
-
-					batchProcessesManager.cancelStandByBatchProcess(batchProcess);
-				}
-
-				throw new SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(config.getCode(), newValue, e);
 			}
 
+			configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
+
+			for (BatchProcess batchProcess : batchProcesses) {
+				batchProcessesManager.markAsPending(batchProcess);
+			}
+
+		} catch (RuntimeException e) {
+			if (listener != null) {
+				listener.onValueChanged(newValue, oldValue, modelLayerFactory);
+
+				for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+					if (module == null || modulesManager.isModuleEnabled(collection, module)) {
+						listener.onValueChanged(newValue, oldValue, modelLayerFactory, collection);
+					}
+				}
+			}
+			for (BatchProcess batchProcess : batchProcesses) {
+
+				batchProcessesManager.cancelStandByBatchProcess(batchProcess);
+			}
+
+			throw new SystemConfigurationsManagerRuntimeException_UpdateScriptFailed(config.getCode(), newValue, e);
 		}
 	}
 

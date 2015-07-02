@@ -17,11 +17,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.search.query.logical.criteria;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 
 public class IsContainingTextCriterion extends LogicalSearchValueCondition {
@@ -39,7 +42,8 @@ public class IsContainingTextCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public boolean isValidFor(DataStoreField dataStoreField) {
-		return dataStoreField.getType() == MetadataValueType.STRING || dataStoreField.getType() == MetadataValueType.CONTENT;
+
+		return dataStoreField.getType() == STRING || dataStoreField.getType() == CONTENT || dataStoreField.getType() == STRUCTURE;
 	}
 
 	@Override

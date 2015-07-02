@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.model.entities.schemas.DataStoreField;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -36,6 +37,7 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 	@Mock User user;
 	LogicalSearchQuery query;
 	List<String> userTokens = Arrays.asList("rtokenA", "rtokenB", "wtokenC", "wtokenD", "dtokenE", "dtokenF");
+	@Mock DataStoreField metadata;
 
 	@Before
 	public void setUp()
@@ -162,5 +164,12 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 		query.filteredByStatus(StatusFilter.ALL);
 
 		assertThat(query.filterStatus).isNull();
+	}
+
+	@Test
+	public void whenAddStatsOnFieldThenFilterAdded()
+			throws Exception {
+		query.computeStatsOnField(metadata);
+		assertThat(query.getStatisticFields()).contains(metadata);
 	}
 }

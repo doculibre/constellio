@@ -83,7 +83,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		WindowButton batchProcess = new BatchProcessingButton();
 		batchProcess.addStyleName(ValoTheme.BUTTON_LINK);
 		batchProcess.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
-		//TODO Thiago test
 		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
@@ -95,11 +94,13 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 		labelsButton.addStyleName(LABELS_BUTTONSTYLE);
 		Label separatorLabel = new Label("|");
-		boolean printLabelVisible = !"document".equals(getSchemaType());
-		labelsButton.setVisible(printLabelVisible);
-		separatorLabel.setVisible(printLabelVisible);
 		ReportSelector reportSelector = new ReportSelector(presenter);
 		return results.createSummary(batchProcess, separatorLabel, labelsButton, reportSelector);
+	}
+
+	@Override
+	public Boolean computeStatistics() {
+		return presenter.computeStatistics();
 	}
 
 	private class BatchProcessingButton extends WindowButton {

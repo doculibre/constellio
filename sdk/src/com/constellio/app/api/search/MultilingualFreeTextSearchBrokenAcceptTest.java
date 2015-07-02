@@ -52,7 +52,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
@@ -186,7 +185,6 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	//@Test
-	@SlowTest
 	public void givenAMultilingualCollectionAndASinglelingual_run2()
 			throws Exception {
 
@@ -195,7 +193,6 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	//@Test
-	@SlowTest
 	public void givenAMultilingualCollectionAndASinglelingual_run3()
 			throws Exception {
 
@@ -204,7 +201,6 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	//@Test
-	@SlowTest
 	public void givenAMultilingualCollectionAndASinglelingual_run4()
 			throws Exception {
 
@@ -213,7 +209,6 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	}
 
 	//@Test
-	@SlowTest
 	public void givenAMultilingualCollectionAndASinglelingual_run5()
 			throws Exception {
 

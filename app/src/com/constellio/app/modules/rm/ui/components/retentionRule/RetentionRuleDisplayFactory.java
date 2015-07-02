@@ -22,12 +22,20 @@ import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPE
 
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.ui.Component;
 
+import java.util.List;
+
 public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
+	private List<VariableRetentionPeriodVO> openPeriodsDDVList;
+
+	public RetentionRuleDisplayFactory(List<VariableRetentionPeriodVO> openPeriodsDDVList) {
+		this.openPeriodsDDVList = openPeriodsDDVList;
+	}
 
 	@Override
 	public Component build(RecordVO recordVO, MetadataValueVO metadataValueVO) {
@@ -36,7 +44,7 @@ public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 		String metadataCode = MetadataVO.getCodeWithoutPrefix(metadataVO.getCode());
 		RetentionRuleVO retentionRuleVO = (RetentionRuleVO) recordVO;
 		if (COPY_RETENTION_RULES.equals(metadataCode)) {
-			component = new CopyRetentionRuleTable(retentionRuleVO, false);
+			component = new CopyRetentionRuleTable(retentionRuleVO, false, openPeriodsDDVList);
 		} else if (DOCUMENT_TYPES_DETAILS.equals(metadataCode)) {
 			component = new RetentionRuleDocumentTypeDisplay(retentionRuleVO);
 		} else {

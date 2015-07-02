@@ -54,6 +54,9 @@ public class FileIconUtils implements Serializable {
 		String defaultIconPath = ICONS_DIR + DEFAULT_VALUE + ICON_EXTENSION;
 		if (fileName != null) {
 			String extension = FilenameUtils.getExtension(fileName);
+			if (StringUtils.isBlank(extension)) {
+				extension = fileName;
+			}
 			iconPath = ICON_PATH_CACHE.get(extension);
 			if (iconPath == null) {
 				iconPath = ICONS_DIR + extension + ICON_EXTENSION;

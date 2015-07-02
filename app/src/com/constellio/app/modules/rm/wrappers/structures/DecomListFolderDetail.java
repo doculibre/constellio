@@ -33,6 +33,7 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	String containerRecordId;
 	boolean reversedSort;
 	boolean dirty;
+	Double folderLinearSize;
 
 	public DecomListFolderDetail() {
 	}
@@ -102,6 +103,15 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	public void setReversedSort(boolean reversedSort) {
 		dirty = true;
 		this.reversedSort = reversedSort;
+	}
+
+	public Double getFolderLinearSize() {
+		return folderLinearSize;
+	}
+
+	public void setFolderLinearSize(Double folderLinearSize) {
+		dirty = true;
+		this.folderLinearSize = folderLinearSize;
 	}
 
 	@Override

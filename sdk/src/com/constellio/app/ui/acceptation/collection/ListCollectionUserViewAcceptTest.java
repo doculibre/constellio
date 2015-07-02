@@ -59,15 +59,16 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 
 	UserServices userServices;
 	RolesManager rolesManager;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConstellioWebDriver driver;
 	CollectionSecurityPage page;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		);
 
 		userServices = getModelLayerFactory().newUserServices();
 		userServices.addUpdateGlobalGroup(

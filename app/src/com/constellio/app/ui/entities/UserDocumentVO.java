@@ -37,6 +37,14 @@ public class UserDocumentVO extends RecordVO {
 		super.set(UserDocument.CONTENT, contentVersionVO);
 	}
 	
+	public String getFolder() {
+		return super.get(UserDocument.FOLDER);
+	}
+	
+	public void setFolder(String folder) {
+		super.set(UserDocument.FOLDER, folder);
+	}
+	
 	public final String getFileName() {
 		ContentVersionVO contentVersionVO = getContent();
 		return contentVersionVO != null ? contentVersionVO.getFileName() : null;

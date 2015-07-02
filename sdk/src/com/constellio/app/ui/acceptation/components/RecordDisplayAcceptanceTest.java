@@ -80,7 +80,9 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		withSpiedServices(AppLayerFactory.class);
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
 
 		AppLayerFactory factory = getAppLayerFactory();
 		NavigatorConfigurationService navigatorConfigurationService = new NavigatorConfigurationService() {
@@ -154,7 +156,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenANumberIdMetadataThenDisplayedWithoutZeroBeforeTheNumber() {
 		MetadataVO metadata1 = new MetadataVO("metadata_default_id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null,null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "000000000304050670");
 
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(metadata1Value), VIEW_MODE.DISPLAY);
@@ -170,7 +172,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenANotNumberIdMetadataThenTheId() {
 		MetadataVO metadata1 = new MetadataVO("metadata_default_id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null,null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "00000C0670");
 
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(metadata1Value), VIEW_MODE.DISPLAY);

@@ -88,7 +88,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void processButtonClicked() {
 		decommissioningService().decommission(decommissioningList(), getCurrentUser());
-		view.showMessage($("DecommissioningListView.processed"));
+		view.showMessage($(mayContainAnalogicalMedia() ?
+				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
 		view.navigateTo().displayDecommissioningList(recordId);
 	}
 
@@ -126,6 +127,24 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			folderVO.setPackageable(true);
 			view.setPackageable(folderVO);
 		}
+		view.updateProcessButtonState(isProcessable());
+	}
+
+	public void setFolderLinearSize(FolderDetailVO folder, String linearSizeAsString) {
+		Double linearSize = Double.valueOf(linearSizeAsString);
+		folder.setLinearSize(linearSize);
+		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderLinearSize(linearSize);
+		addOrUpdate(decommissioningList().getWrappedRecord());
+	}
+
+	public Double getLinearSize(FolderDetailVO folder) {
+		return decommissioningList().getFolderDetail(folder.getFolderId()).getFolderLinearSize();
+	}
+
+	public void folderRemoved(FolderDetailVO folder) {
+		decommissioningList().removeFolderDetail(folder.getFolderId());
+		addOrUpdate(decommissioningList().getWrappedRecord());
+		view.removeFolder(folder);
 		view.updateProcessButtonState(isProcessable());
 	}
 
@@ -196,6 +215,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean shouldDisplaySort() {
 		return decommissioningService().isSortable(decommissioningList());
+	}
+
+	private boolean mayContainAnalogicalMedia() {
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.getType().potentiallyHasAnalogMedium()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	DecommissioningService decommissioningService() {

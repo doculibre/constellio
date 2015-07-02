@@ -26,6 +26,7 @@ public class LabelsReportFont {
 	private boolean italic = false;
 	private boolean underlined = false;
 	private float size = Font.DEFAULTSIZE;
+	private FontFamily fontFamily = FontFamily.HELVETICA;
 
 	public boolean isBold() {
 		return bold;
@@ -63,6 +64,15 @@ public class LabelsReportFont {
 		return this;
 	}
 
+	public FontFamily getFontFamily() {
+		return fontFamily;
+	}
+
+	public LabelsReportFont setFontFamily(FontFamily fontFamily) {
+		this.fontFamily = fontFamily;
+		return this;
+	}
+
 	public Font getFont() {
 		int style = Font.NORMAL;
 		if (isBold() && isItalic()) {
@@ -72,7 +82,7 @@ public class LabelsReportFont {
 		} else if (isItalic()) {
 			style = Font.ITALIC;
 		}
-		Font font = new Font(FontFamily.HELVETICA, size, style);
+		Font font = new Font(fontFamily, size, style);
 		return font;
 	}
 }

@@ -1,0 +1,200 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.modules.rm.reports.builders.search.stats;
+
+import com.constellio.app.modules.rm.reports.PageEvent;
+import com.constellio.app.modules.rm.reports.PdfTableUtils;
+import com.constellio.app.modules.rm.reports.model.search.stats.StatsReportModel;
+import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.conf.FoldersLocator;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
+public class StatsReportBuilder implements ReportBuilder {
+
+	private static final int COLUMN_NUMBER = 20;
+	public static final int TABLE_WIDTH_PERCENTAGE = 90;
+	public static final int INITIAL_FONT_SIZE = 14;
+	public static final int INITIAL_LEVEL = 0;
+	private static final float MAX_LEVEL = 4;
+
+	public static final float MARGIN_LEFT = 0f;
+	public static final float MARGIN_RIGHT = 0f;
+	public static final float MARGIN_TOP = 87f;
+	public static final float MARGIN_BOTTOM = 20f;
+
+	private final Font fontValue = FontFactory.getFont("Arial", 10);
+
+	private StatsReportModel model;
+
+	private PdfTableUtils pdfTableUtils;
+	private FoldersLocator foldersLocator;
+
+	public StatsReportBuilder(StatsReportModel model, FoldersLocator foldersLocator) {
+		this.model = model;
+		this.pdfTableUtils = new PdfTableUtils();
+
+		this.foldersLocator = foldersLocator;
+	}
+
+	public String getFileExtension() {
+		return pdfTableUtils.PDF;
+	}
+
+	public void build(OutputStream output)
+			throws IOException {
+		Document document = new Document(PageSize.A4, MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM);
+
+		try {
+			PdfWriter writer = PdfWriter.getInstance(document, output);
+			configPageEvents(writer);
+
+			document.open();
+			document.add(createReport(writer));
+			document.close();
+		} catch (DocumentException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void configPageEvents(PdfWriter writer)
+			throws BadElementException, IOException {
+		PageEvent pageEvent = new PageEvent(foldersLocator);
+
+		String title = $("FolderLinearMeasureStatsReport.Title");
+
+		pageEvent.setTitle(title);
+		pageEvent.setLogo("constellio-logo.png");
+		pageEvent.setFooter(TimeProvider.getLocalDateTime().toString("yyyy-MM-dd HH:mm"));
+
+		writer.setPageEvent(pageEvent);
+	}
+
+	private PdfPTable createReport(PdfWriter writer) {
+
+		PdfPTable table = new PdfPTable(1);
+
+		table.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+		table.setWidthPercentage(TABLE_WIDTH_PERCENTAGE);
+		table.setExtendLastRow(true);
+
+		PdfPCell cell = new PdfPCell();
+		cell.setBorder(Rectangle.NO_BORDER);
+		Map<String, Object> stats = model.getStats();
+		if(stats != null){
+			for(KeyCaption keyCaption: orderAccordingToCaptions(stats.keySet())){
+				String caption = keyCaption.getCaption();
+				Object value = stats.get(keyCaption.getKey());
+				if(value != null){
+					cell = addLine(writer, caption, value.toString());
+					table.addCell(cell);
+					table.completeRow();
+				}
+			}
+		}else{
+			cell = addLine(writer, $("FolderLinearMeasureStatsReport.sum"), "0");
+			table.addCell(cell);
+			table.completeRow();
+		}
+
+		return table;
+	}
+
+	private java.util.List<KeyCaption> orderAccordingToCaptions(Set<String> keys) {
+		java.util.List<KeyCaption> keyCaptionList = new ArrayList<>();
+		for(String key : keys){
+			String caption = $("FolderLinearMeasureStatsReport." + key);
+			keyCaptionList.add(new KeyCaption(key, caption));
+		}
+		Collections.sort(keyCaptionList, new Comparator<KeyCaption>() {
+			@Override
+			public int compare(KeyCaption keyCaption1, KeyCaption keyCaption2) {
+
+				return keyCaption1.caption.compareTo(keyCaption2.caption);
+			}
+		});
+
+		return keyCaptionList;
+	}
+
+	private PdfPCell addLine(PdfWriter writer, String caption, String value) {
+		PdfPTable userTable = new PdfPTable(2);
+
+		float[] columnWidths = new float[] { 0.7f, 0.8f};
+
+		try {
+			userTable.setWidths(columnWidths);
+		} catch (DocumentException e) {
+			throw new RuntimeException(e);
+		}
+
+		addUserInfoCell(userTable, caption, Rectangle.ALIGN_LEFT);
+		addUserInfoCell(userTable, value.toString(), Rectangle.ALIGN_LEFT);
+
+		PdfPCell userCell = new PdfPCell(userTable);
+		userCell.setBorder(Rectangle.NO_BORDER);
+		return userCell;
+	}
+
+	private void addUserInfoCell(PdfPTable table, String info, int alignment) {
+
+		if (info == null)
+			info = "";
+
+		Chunk chunk = new Chunk(info);
+		chunk.setFont(fontValue);
+
+		Paragraph text = new Paragraph(chunk);
+		text.setAlignment(alignment);
+
+		PdfPCell currentCell = new PdfPCell();
+		currentCell.addElement(text);
+
+		currentCell.setBorder(Rectangle.NO_BORDER);
+
+		table.addCell(currentCell);
+	}
+
+	private class KeyCaption {
+		private String caption;
+		private String key;
+
+		public KeyCaption(String key, String caption) {
+			this.key = key;
+			this.caption = caption;
+		}
+
+		public String getCaption() {
+			return caption;
+		}
+
+		public String getKey() {
+			return key;
+		}
+
+	}
+}

@@ -41,13 +41,16 @@ public class ListSchemaTypeViewAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withAllTestUsers();
+
+		prepareSystem(
+				withZeCollection().withAllTestUsers()
+		);
 
 		defineSchemasManager().using(setup.withAStringMetadata(whichIsMultivalue, whichIsSearchable).withAContentMetadata(
 				whichIsSearchable));
 
 		recordServices = getModelLayerFactory().newRecordServices();
-		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection) );
+		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 	}
 
 	@Test

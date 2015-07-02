@@ -17,18 +17,21 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.extensions.behaviors;
 
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.bulkImport.ImportDataErrors;
-import com.constellio.model.services.records.bulkImport.data.ImportData;
+import com.constellio.model.extensions.events.recordsImport.BuildParams;
+import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
+import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 
-public interface RecordImportExtension {
+public abstract class RecordImportExtension {
 
-	String getDecoratedSchemaType();
+	public abstract String getDecoratedSchemaType();
 
-	void prevalidate(ImportDataErrors errors, ImportData importRecord);
+	public void prevalidate(PrevalidationParams event) {
+	}
 
-	void validate(ImportDataErrors errors, ImportData importRecord);
+	public void validate(ValidationParams event) {
+	}
 
-	void build(Record record, MetadataSchemaTypes types, ImportData importRecord);
+	public void build(BuildParams event) {
+	}
+
 }

@@ -20,11 +20,12 @@ package com.constellio.model.entities.records;
 import java.io.Serializable;
 import java.util.List;
 
+import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataList;
 
-public interface Record extends Serializable {
+public interface Record extends Serializable, CollectionObject {
 
 	public String getId();
 

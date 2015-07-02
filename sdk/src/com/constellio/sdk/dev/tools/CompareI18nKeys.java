@@ -35,21 +35,23 @@ public class CompareI18nKeys {
 			throws Exception {
 
 		ListComparisonResults<String> results = compare(Language.English);
-		printComparison(Language.English, results);
+		System.out.println(getComparisonMessage(Language.English, results));
 
 	}
 
-	public static void printComparison(Language language, ListComparisonResults<String> comparisonResults) {
+	public static String getComparisonMessage(Language language, ListComparisonResults<String> comparisonResults) {
+		StringBuilder result = new StringBuilder("");
 		String languageFilename = "i18n_" + language.getCode() + ".properties";
-		System.out.println("Keys in i18n.properties that are not in " + languageFilename);
+		result.append("Keys in i18n.properties that are not in " + languageFilename);
 		for (String key : comparisonResults.getRemovedItems()) {
-			System.out.println(key);
+			result.append("\n\t" + key);
 		}
 
-		System.out.println("\n\n\nKeys in " + languageFilename + " that are not in i18n.properties");
+		result.append("\n\n\nKeys in " + languageFilename + " that are not in i18n.properties");
 		for (String key : comparisonResults.getNewItems()) {
-			System.out.println(key);
+			result.append("\n\t" + key);
 		}
+		return result.toString();
 	}
 
 	public static ListComparisonResults<String> compare(Language language)

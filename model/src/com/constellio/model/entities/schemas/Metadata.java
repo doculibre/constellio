@@ -76,7 +76,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false);
+				false, false, false, false, true);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.accessRestriction = new MetadataAccessRestriction();
@@ -256,6 +256,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isEssential() {
 		return getInheritedMetadataBehaviors().isEssential();
+	}
+
+	public boolean isWriteNullValues() {
+		return getInheritedMetadataBehaviors().isWriteNullValues();
 	}
 
 	public boolean isSchemaAutocomplete() {

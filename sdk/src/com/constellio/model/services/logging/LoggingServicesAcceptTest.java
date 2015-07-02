@@ -54,12 +54,10 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
 
-@SlowTest
 public class LoggingServicesAcceptTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime().minusHours(3);
@@ -75,8 +73,8 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	LoggingServices loggingServices;
 	NotificationsServices notificationsServices;
 
-	RMSchemasRecordsServices schemas;
-	private RMTestRecords records;
+	RMSchemasRecordsServices rm;
+	private RMTestRecords records = new RMTestRecords(zeCollection);
 
 	RMEventsSearchServices rmEventsSearchServices;
 	SearchServices searchServices;
@@ -86,7 +84,11 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers().andUsersWithReadAccess("admin");
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection(zeCollection).giveReadAccessTo(admin);
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		loggingServices = getModelLayerFactory().newLoggingServices();
@@ -97,11 +99,9 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy,
 				getModelLayerFactory().getMetadataSchemasManager());
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		searchServices = getModelLayerFactory().newSearchServices();
-		records = new RMTestRecords(zeCollection);
-		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		users.setUp(userServices);
 		userServices.addUserToCollection(users.charles(), zeCollection);
@@ -333,12 +333,12 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.GRANT_PERMISSION_FOLDER));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.GRANT_PERMISSION_FOLDER));
 		List<Record> events = searchServices.search(query);
 
 		assertThat(events).hasSize(1);
-		Event event = schemas.wrapEvent(events.get(0));
+		Event event = rm.wrapEvent(events.get(0));
 		assertThat(event.getType()).isEqualTo(EventType.GRANT_PERMISSION_FOLDER);
 	}
 
@@ -378,12 +378,12 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.DELETE_FOLDER));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.DELETE_FOLDER));
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		List<Record> folders = searchServices.search(query);
 		assertThat(folders.size()).isEqualTo(1);
-		Event event = schemas.wrapEvent(folders.get(0));
+		Event event = rm.wrapEvent(folders.get(0));
 		assertThat(event.getType()).isEqualTo(EventType.DELETE_FOLDER);
 		//assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
 
@@ -423,13 +423,13 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.MODIFY_PERMISSION_FOLDER));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.MODIFY_PERMISSION_FOLDER));
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		List<Record> events = searchServices.search(query);
 
 		assertThat(events).hasSize(1);
-		Event event = schemas.wrapEvent(events.get(0));
+		Event event = rm.wrapEvent(events.get(0));
 		assertThat(event.getDelta().contains("-[" + records.getFolder_A02().getId() + "]"));
 		assertThat(event.getDelta().contains("[" + startDate + ", " + endDate.minusDays(1) + "]"));
 		assertThat(event.getUsername()).isEqualTo(alice.getUsername());
@@ -455,7 +455,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		getDataLayerFactory().getDataLayerLogger().monitor("00000000279");
 
-		Folder folder = schemas.newFolder().setTitle("Ze Folder").setRetentionRuleEntered(records.ruleId_1)
+		Folder folder = rm.newFolder().setTitle("Ze Folder").setRetentionRuleEntered(records.ruleId_1)
 				.setFilingSpaceEntered(records.filingId_A).setAdministrativeUnitEntered(records.unitId_10)
 				.setCategoryEntered(records.categoryId_X110).setOpenDate(new LocalDate(2010, 4, 4));
 		User alice = users.aliceIn(zeCollection);
@@ -466,12 +466,12 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.CREATE_FOLDER));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.CREATE_FOLDER));
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		List<Record> folders = searchServices.search(query);
 		assertThat(folders.size()).isEqualTo(1);
-		Event event = schemas.wrapEvent(folders.get(0));
+		Event event = rm.wrapEvent(folders.get(0));
 		assertThat(event.getType()).isEqualTo(EventType.CREATE_FOLDER);
 		assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
 	}
@@ -480,7 +480,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	public void whenModifyFolderThenCreateValidEvent()
 			throws Exception {
 
-		Folder folder = schemas.newFolder().setRetentionRuleEntered(records.ruleId_1).setFilingSpaceEntered(records.filingId_A)
+		Folder folder = rm.newFolder().setRetentionRuleEntered(records.ruleId_1).setFilingSpaceEntered(records.filingId_A)
 				.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X110).setTitle("titre1")
 				.setOpenDate(new LocalDate(2010, 1, 1));
 		User alice = users.aliceIn(zeCollection);
@@ -497,12 +497,12 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.MODIFY_FOLDER));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.MODIFY_FOLDER));
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		List<Record> folders = searchServices.search(query);
 		assertThat(folders.size()).isEqualTo(1);
-		Event event = schemas.wrapEvent(folders.get(0));
+		Event event = rm.wrapEvent(folders.get(0));
 		assertThat(event.getType()).isEqualTo(EventType.MODIFY_FOLDER);
 		assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
 		String expectedDelta = "[ Titre :\n" +
@@ -519,12 +519,12 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		recordServices.flush();
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.OPEN_SESSION));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.OPEN_SESSION));
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		List<Record> folders = searchServices.search(query);
 		assertThat(folders.size()).isEqualTo(1);
-		Event event = schemas.wrapEvent(folders.get(0));
+		Event event = rm.wrapEvent(folders.get(0));
 		assertThat(event.getType()).isEqualTo(EventType.OPEN_SESSION);
 		assertThat(event.getUsername()).isEqualTo(alice.getUsername());
 	}
@@ -543,20 +543,20 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.BORROW_FOLDER));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.BORROW_FOLDER));
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		long borrowEventsCount = searchServices.getResultsCount(query);
 
 		assertThat(borrowEventsCount).isEqualTo(2l);
 		query = new LogicalSearchQuery();
 		query.setCondition(
-				LogicalSearchQueryOperators.from(schemas.eventSchema()).where(
-						schemas.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.RETURN_FOLDER));
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.RETURN_FOLDER));
 		List<Record> events = searchServices.search(query);
 
 		assertThat(events).hasSize(1);
-		Event event = schemas.wrapEvent(events.get(0));
+		Event event = rm.wrapEvent(events.get(0));
 		event.getUsername().contains(alice.getUsername());
 	}
 

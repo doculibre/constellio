@@ -38,7 +38,12 @@ public class TextFieldWebFacade {
 		int attempts = 0;
 		while (!enteredValue.equals(getValue()) && attempts < 10) {
 			attempts++;
-			wrappedElement.changeValueTo(value);
+			wrappedElement.changeValueTo(enteredValue);
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

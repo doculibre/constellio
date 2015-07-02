@@ -137,6 +137,11 @@ public abstract class SchemasSetup {
 		types = manager.getSchemaTypes(collection);
 	}
 
+	public void refresh(MetadataSchemasManager manager) {
+		SchemasSetup.manager = manager;
+		types = manager.getSchemaTypes(collection);
+	}
+
 	public void refresh() {
 		types = manager.getSchemaTypes(collection);
 	}

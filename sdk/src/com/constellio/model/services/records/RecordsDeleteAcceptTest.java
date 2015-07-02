@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import com.carrotsearch.junitbenchmarks.annotation.BenchmarkHistoryChart;
 import com.carrotsearch.junitbenchmarks.annotation.LabelType;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -40,6 +41,10 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
+import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
@@ -61,11 +66,9 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.setups.Users;
 
-@SlowTest
 public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 	RecordDeleteServices recordDeleteServices;
@@ -85,10 +88,16 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	User bob, userWithDeletePermission;
 	Record folder4, folder4_1, folder4_2, folder4_1_doc1, folder4_2_doc1, folder2, category2, category2_1, folder3, folder1, valueListItem;
 	List<Record> recordsInFolder4Hierarchy, recordsInFolder4_2Hierarchy;
+	private ModelLayerCollectionExtensions extensions;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withAllTest(users),
+				withCollection("anotherCollection").withAllTestUsers()
+		);
 
 		recordServices = spy(getModelLayerFactory().newRecordServices());
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
@@ -100,10 +109,6 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		recordDeleteServices = spy(recordServices.newRecordDeleteServices());
 
 		doReturn(recordDeleteServices).when(recordServices).newRecordDeleteServices();
-
-		users.setUp(getModelLayerFactory().newUserServices());
-		givenCollection(zeCollection).withAllTestUsers();
-		givenCollection("anotherCollection").withAllTestUsers();
 
 		defineSchemasManager().using(schemas.with(schemaNotAttachedToTaxonomies()));
 		taxonomiesManager.addTaxonomy(schemas.getTaxonomy1(), schemasManager);
@@ -133,7 +138,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		recordsInFolder4Hierarchy = Arrays.asList(folder4, folder4_1, folder4_2, folder4_1_doc1, folder4_2_doc1);
 		recordsInFolder4_2Hierarchy = Arrays.asList(folder4_2, folder4_2_doc1);
-
+		extensions = getModelLayerFactory().getExtensions().forCollection(zeCollection);
 	}
 
 	private void givenValueListSchemaHasSecurity() {
@@ -146,6 +151,61 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		} catch (OptimistickLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
 		}
+	}
+
+	@Test
+	public void givenNotPhysicallyDeletableByExtensionThenNotPhysicallyDeletable()
+			throws Exception {
+		extensions.recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
+				return ExtensionBooleanResult.FALSE;
+			}
+		});
+		given(bob).logicallyDelete(valueListItem);
+
+		assertThat(valueListItem).isNot(physicallyDeletableBy(bob));
+	}
+
+	@Test
+	public void givenPhysicallyDeletableByExtensionThenPhysicallyDeletable()
+			throws Exception {
+		extensions.recordExtensions.add(new RecordExtension() {
+			@Override
+			public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
+				return ExtensionBooleanResult.TRUE;
+			}
+		});
+		given(bob).logicallyDelete(valueListItem);
+
+		assertThat(valueListItem).is(physicallyDeletableBy(bob));
+	}
+
+	@Test
+	public void givenNotLogicallyDeletableByExtensionThenNotLogicallyDeletable()
+			throws Exception {
+		extensions.recordExtensions.add(new RecordExtension() {
+			@Override
+			public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
+				return ExtensionBooleanResult.FALSE;
+			}
+
+		});
+		assertThat(valueListItem).isNot(logicallyDeletableBy(bob));
+	}
+
+	@Test
+	public void givenLogicallyDeletableByExtensionThenLogicallyDeletable()
+			throws Exception {
+		extensions.recordExtensions.add(new RecordExtension() {
+			@Override
+			public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
+				return ExtensionBooleanResult.TRUE;
+			}
+
+		});
+		assertThat(valueListItem).is(logicallyDeletableBy(bob));
 	}
 
 	@Test

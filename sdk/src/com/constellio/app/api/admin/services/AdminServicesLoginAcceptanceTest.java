@@ -152,21 +152,6 @@ public class AdminServicesLoginAcceptanceTest extends ConstellioTest {
 	}
 
 	//This test is runned by AllAdminServicesAcceptTest
-	public void givenTokenIsModifiedThenPreviousTokensDoNotWorkAnymore()
-			throws Exception {
-
-		AdminServicesSession aliceSession = newRestClient(aliceServiceKey, users.alice().getUsername(), alicePassword);
-		newRestClient(aliceServiceKey, users.alice().getUsername(), alicePassword);
-
-		try {
-			aliceSession.schema();
-			fail("NotAuthorizedException expected");
-		} catch (NotAuthorizedException e) {
-			// OK
-		}
-	}
-
-	//This test is runned by AllAdminServicesAcceptTest
 	public void givenServiceKeyIsModifiedThenPreviousServiceKeyDoNotWorkAnymore()
 			throws Exception {
 

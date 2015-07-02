@@ -19,6 +19,7 @@ package com.constellio.app.modules.rm.wrappers.structures;
 
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 
 import com.constellio.model.entities.schemas.ModifiableStructure;
@@ -40,8 +41,18 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 		decomListFolderDetail.setValidationDate(readLocalDate(stringTokenizer));
 		decomListFolderDetail.setContainerRecordId(readString(stringTokenizer));
 		decomListFolderDetail.setReversedSort(Boolean.valueOf(readString(stringTokenizer)));
+		decomListFolderDetail.setFolderLinearSize(getDouble(stringTokenizer));
 		decomListFolderDetail.dirty = false;
 		return decomListFolderDetail;
+	}
+
+	private Double getDouble(StringTokenizer stringTokenizer) {
+		String doubleAsString = readString(stringTokenizer);
+		if(StringUtils.isBlank(doubleAsString) || doubleAsString.contains(NULL)){
+			return null;
+		}else{
+			return Double.valueOf(doubleAsString);
+		}
 	}
 
 	@Override
@@ -72,11 +83,20 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 		writeString(stringBuilder, "" + decomListFolderDetail.isReversedSort() == null ?
 				String.valueOf(false) :
 				String.valueOf(decomListFolderDetail.isReversedSort()));
+		Double linearSize = decomListFolderDetail.getFolderLinearSize();
+		if(linearSize == null){
+			writeString(stringBuilder, NULL);
+		} else {
+			writeString(stringBuilder, linearSize.toString());
+		}
 
 		return stringBuilder.toString();
 	}
 
 	private String readString(StringTokenizer stringTokenizer) {
+		if(!stringTokenizer.hasMoreElements()){
+			return null;
+		}
 		String value = stringTokenizer.nextToken();
 		if (NULL.equals(value)) {
 			return null;

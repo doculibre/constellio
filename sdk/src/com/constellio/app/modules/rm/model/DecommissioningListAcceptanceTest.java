@@ -53,8 +53,8 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	LocalDate december12 = new LocalDate(2009, 12, 12);
 	LocalDate january12_2010 = new LocalDate(2010, 1, 12);
 
-	RMSchemasRecordsServices schemas;
-	RMTestRecords rm;
+	RMSchemasRecordsServices rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
 
 	ContainerRecord containerRecord;
@@ -64,15 +64,19 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		rm = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		decommissioningList = schemas.newDecommissioningList();
+		decommissioningList = rm.newDecommissioningList();
 		containerRecord = getContainerRecord();
 
 	}
@@ -94,14 +98,14 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		ContainerRecord aContainer = newContainerRecord("A");
 		ContainerRecord anotherContainer = newContainerRecord("B");
 
-		decommissioningList = schemas.newDecommissioningList();
+		decommissioningList = rm.newDecommissioningList();
 		decommissioningList.setTitle("Ze list");
-		decommissioningList.setAdministrativeUnit(rm.unitId_10);
+		decommissioningList.setAdministrativeUnit(records.unitId_10);
 		decommissioningList.setApprovalDate(november4);
 		decommissioningList.setDescription("zeDescription");
-		decommissioningList.setApprovalRequest(rm.getUsers().dakotaLIndienIn(zeCollection).getId());
-		decommissioningList.setApprovalUser(rm.getUsers().dakotaLIndienIn(zeCollection));
-		decommissioningList.setFilingSpace(rm.filingId_A);
+		decommissioningList.setApprovalRequest(records.getUsers().dakotaLIndienIn(zeCollection).getId());
+		decommissioningList.setApprovalUser(records.getUsers().dakotaLIndienIn(zeCollection));
+		decommissioningList.setFilingSpace(records.filingId_A);
 		decommissioningList.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_CLOSE);
 		decommissioningList.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE);
 
@@ -109,19 +113,19 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		decommissioningList.setContainerDetailsFor(aContainer.getId(), anotherContainer.getId());
 
 		decommissioningList.setProcessingDate(december12);
-		decommissioningList.setProcessingUser(rm.getUsers().dakotaLIndienIn(zeCollection).getId());
+		decommissioningList.setProcessingUser(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		decommissioningList.setValidationDate(january12_2010);
-		decommissioningList.setValidationUser(rm.getUsers().dakotaLIndienIn(zeCollection).getId());
+		decommissioningList.setValidationUser(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 
 		decommissioningList = saveAndLoad(decommissioningList);
 
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(rm.unitId_10);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
 		assertThat(decommissioningList.getApprovalDate()).isEqualTo(november4);
 		assertThat(decommissioningList.getDescription()).isEqualTo("zeDescription");
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze list");
-		assertThat(decommissioningList.getApprovalRequest()).isEqualTo(rm.getUsers().dakotaLIndienIn(zeCollection).getId());
-		assertThat(decommissioningList.getApprovalUser()).isEqualTo(rm.getUsers().dakotaLIndienIn(zeCollection).getId());
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(rm.filingId_A);
+		assertThat(decommissioningList.getApprovalRequest()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
+		assertThat(decommissioningList.getApprovalUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
+		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
 		assertThat(decommissioningList.getFolders()).isEqualTo(asList(aFolder.getId(), anotherFolder.getId()));
 		assertThat(decommissioningList.getFolderDetails())
 				.isEqualTo(asList(new DecomListFolderDetail(aFolder.getId()), new DecomListFolderDetail(anotherFolder.getId())));
@@ -130,9 +134,9 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 				new DecomListContainerDetail(aContainer.getId()),
 				new DecomListContainerDetail(anotherContainer.getId())));
 		assertThat(decommissioningList.getProcessingDate()).isEqualTo(december12);
-		assertThat(decommissioningList.getProcessingUser()).isEqualTo(rm.getUsers().dakotaLIndienIn(zeCollection).getId());
+		assertThat(decommissioningList.getProcessingUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		assertThat(decommissioningList.getValidationDate()).isEqualTo(january12_2010);
-		assertThat(decommissioningList.getValidationUser()).isEqualTo(rm.getUsers().dakotaLIndienIn(zeCollection).getId());
+		assertThat(decommissioningList.getValidationUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
 		assertThat(decommissioningList.getOriginArchivisticStatus()).isEqualTo(OriginStatus.SEMI_ACTIVE);
 
@@ -142,56 +146,58 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	public void givenFoldersWithUniformRuleAndNonUniformCopyAndCategoryThenNotUniform()
 			throws Exception {
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(rm.folders("A04-A06")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(records.folders("A04-A06")));
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(true);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(true);
 		assertThat(decommissioningList.getFoldersMediaTypes()).containsOnly(HYBRID, HYBRID, HYBRID);
 		assertThat(decommissioningList.getStatus()).isEqualTo(DecomListStatus.GENERATED);
-		assertThat(decommissioningList.getUniformCategory()).isEqualTo(rm.categoryId_X110);
-		assertThat(decommissioningList.getUniformCopyRule().toString()).isEqualTo(newPrincipal(rm.PA_MD, "888-5-C").toString());
+		assertThat(decommissioningList.getUniformCategory()).isEqualTo(records.categoryId_X110);
+		assertThat(decommissioningList.getUniformCopyRule().toString())
+				.isEqualTo(newPrincipal(records.PA_MD, "42-5-C").toString());
 		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(decommissioningList.getUniformRule()).isEqualTo(rm.ruleId_1);
+		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
 		assertThat(decommissioningList.isUniform()).isEqualTo(true);
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(rm.folders("A04-A06, A16-A18")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(records.folders("A04-A06, A16-A18")));
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(true);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(true);
 		assertThat(decommissioningList.getFoldersMediaTypes()).containsOnly(HYBRID, HYBRID, HYBRID, HYBRID, HYBRID, HYBRID);
 		assertThat(decommissioningList.getStatus()).isEqualTo(DecomListStatus.GENERATED);
 		assertThat(decommissioningList.getUniformCategory()).isNull();
-		assertThat(decommissioningList.getUniformCopyRule().toString()).isEqualTo(newPrincipal(rm.PA_MD, "888-5-C").toString());
+		assertThat(decommissioningList.getUniformCopyRule().toString())
+				.isEqualTo(newPrincipal(records.PA_MD, "42-5-C").toString());
 		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(decommissioningList.getUniformRule()).isEqualTo(rm.ruleId_1);
+		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
 		assertThat(decommissioningList.isUniform()).isEqualTo(false);
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(rm.folders("A22-A24")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(records.folders("A22-A24")));
 		assertThat(decommissioningList.getFoldersMediaTypes()).containsOnly(ANALOG, ANALOG, ANALOG);
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(true);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(false);
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(rm.folders("A25-A27")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(records.folders("A25-A27")));
 		assertThat(decommissioningList.getFoldersMediaTypes()).containsOnly(ELECTRONIC, ELECTRONIC, ELECTRONIC);
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(false);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(true);
 
-		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(rm.folders("A22-A27")));
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(records.folders("A22-A27")));
 		assertThat(decommissioningList.hasAnalogicalMedium()).isEqualTo(true);
 		assertThat(decommissioningList.hasElectronicMedium()).isEqualTo(true);
 		assertThat(decommissioningList.getFoldersMediaTypes())
 				.containsOnly(ANALOG, ANALOG, ANALOG, ELECTRONIC, ELECTRONIC, ELECTRONIC);
 		assertThat(decommissioningList.getStatus()).isEqualTo(DecomListStatus.GENERATED);
-		assertThat(decommissioningList.getUniformCategory()).isEqualTo(rm.categoryId_X120);
+		assertThat(decommissioningList.getUniformCategory()).isEqualTo(records.categoryId_X120);
 		assertThat(decommissioningList.getUniformCopyRule()).isNull();
 		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(decommissioningList.getUniformRule()).isEqualTo(rm.ruleId_4);
+		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_4);
 		assertThat(decommissioningList.isUniform()).isEqualTo(false);
 	}
 
 	private DecommissioningList newFilingSpaceAList() {
-		DecommissioningList decommissioningList = schemas.newDecommissioningList();
+		DecommissioningList decommissioningList = rm.newDecommissioningList();
 		decommissioningList.setTitle("Ze list");
-		decommissioningList.setAdministrativeUnit(rm.unitId_10);
-		decommissioningList.setFilingSpace(rm.filingId_A);
+		decommissioningList.setAdministrativeUnit(records.unitId_10);
+		decommissioningList.setFilingSpace(records.filingId_A);
 		return decommissioningList;
 	}
 
@@ -199,24 +205,24 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 
 	private DecommissioningList saveAndLoad(DecommissioningList decommissioningList)
 			throws RecordServicesException {
-		recordServices.add(decommissioningList, rm.getGandalf_managerInABC());
-		return schemas.getDecommissioningList(decommissioningList.getId());
+		recordServices.add(decommissioningList, records.getGandalf_managerInABC());
+		return rm.getDecommissioningList(decommissioningList.getId());
 	}
 
 	private Folder getFolder() {
-		if (folder != null && schemas.getFolder(folder.getId()) != null) {
-			return schemas.getFolder(folder.getId());
+		if (folder != null && rm.getFolder(folder.getId()) != null) {
+			return rm.getFolder(folder.getId());
 		} else {
 			return folder = newFolder();
 		}
 	}
 
 	private Folder newFolder() {
-		Folder folder = schemas.newFolder();
-		folder.setAdministrativeUnitEntered(rm.unitId_11);
-		folder.setFilingSpaceEntered(rm.filingId_A);
-		folder.setCategoryEntered(rm.categoryId_X110);
-		folder.setRetentionRuleEntered(rm.ruleId_2);
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11);
+		folder.setFilingSpaceEntered(records.filingId_A);
+		folder.setCategoryEntered(records.categoryId_X110);
+		folder.setRetentionRuleEntered(records.ruleId_2);
 		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
 		folder.setTitle("Ze folder");
 		folder.setOpenDate(november4);
@@ -226,7 +232,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
-		return schemas.getFolder(folder.getId());
+		return rm.getFolder(folder.getId());
 	}
 
 	private ContainerRecord getContainerRecord() {
@@ -239,12 +245,12 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 
 	private ContainerRecord newContainerRecord(String token) {
 		ContainerRecordType type = newContainerRecordType(token);
-		ContainerRecord containerRecord = schemas.newContainerRecord();
+		ContainerRecord containerRecord = rm.newContainerRecord();
 		containerRecord.setType(type);
 		containerRecord.setTitle("zeContainerRecord Title " + token);
-		containerRecord.setAdministrativeUnit(rm.getUnit10());
+		containerRecord.setAdministrativeUnit(records.getUnit10());
 		containerRecord.setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
-		containerRecord.setFilingSpace(rm.filingId_A);
+		containerRecord.setFilingSpace(records.filingId_A);
 		containerRecord.setFull(true);
 		containerRecord.setStorageSpace(newStorageSpace());
 		containerRecord.setTemporaryIdentifier("zeContainerRecord " + token);
@@ -258,7 +264,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 
 	StorageSpace newStorageSpace() {
 		int token = anInteger();
-		StorageSpace storageSpace = schemas.newStorageSpace();
+		StorageSpace storageSpace = rm.newStorageSpace();
 		storageSpace.setTitle("Storage space " + token);
 		storageSpace.setCode("storageSpace" + token);
 		try {
@@ -270,7 +276,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	}
 
 	ContainerRecordType newContainerRecordType(String token) {
-		ContainerRecordType type = schemas.newContainerRecordType();
+		ContainerRecordType type = rm.newContainerRecordType();
 		type.setCode("zeContainerType." + token);
 		type.setDescription("zeContainerType Description");
 		type.setTitle("zeContainerType Title " + token);

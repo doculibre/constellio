@@ -40,7 +40,10 @@ public class SimpleSearchViewAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection, Arrays.asList("fr", "en")).withAllTestUsers().andUsersWithReadAccess(gandalf);
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
+		inCollection(zeCollection).giveReadAccessTo(gandalf);
 		defineSchemasManager().using(setup);
 
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();

@@ -17,16 +17,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.schemas.validators;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 
 public class ValueRequirementValidator implements Validator<Record> {
+
+	public static final String BASED_ON_METADATAS = "basedOnMetadatas";
 
 	public static final String REQUIRED_VALUE_FOR_METADATA = "requiredValueForMetadata";
 
@@ -52,6 +58,14 @@ public class ValueRequirementValidator implements Validator<Record> {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
 		parameters.put(METADATA_LABEL, metadata.getLabel());
+		if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+			List<String> basedOnMetadatas = new ArrayList<>();
+			CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadata.getDataEntry();
+			for (Dependency dependency : calculatedDataEntry.getCalculator().getDependencies()) {
+				basedOnMetadatas.add(dependency.getLocalMetadataCode());
+			}
+			parameters.put(BASED_ON_METADATAS, basedOnMetadatas.toString());
+		}
 		validationErrors.add(getClass(), errorCode, parameters);
 	}
 }

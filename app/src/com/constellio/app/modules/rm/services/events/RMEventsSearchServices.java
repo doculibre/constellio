@@ -32,20 +32,17 @@ import org.joda.time.LocalDateTime;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RMEventsSearchServices {
-
 	private ModelLayerFactory modelLayerFactory;
 
 	private RMSchemasRecordsServices schemas;
@@ -95,38 +92,28 @@ public class RMEventsSearchServices {
 	}
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedDocumentsQuery(User currentUser) {
-		return new LogicalSearchQuery()
-				.filteredWithUser(currentUser)
-				.setCondition(
-						from(schemas.documentSchemaType())
-								.where(schemas.documentContent()).is(checkedOut()));
+		return new LogicalSearchQuery(from(schemas.documentSchemaType()).where(schemas.documentContent()).is(checkedOut()))
+				.filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersQuery(User currentUser) {
-		return new LogicalSearchQuery()
-				.filteredWithUser(currentUser)
-				.setCondition(
-						from(schemas.folderSchemaType())
-								.where(schemas.folderBorrowed()).isTrue());
+		return new LogicalSearchQuery(from(schemas.folderSchemaType()).where(schemas.folderBorrowed()).isTrue())
+				.filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(User currentUser, String userId) {
-		return new LogicalSearchQuery()
-				.filteredWithUser(currentUser)
-				.setCondition(
-						from(schemas.folderSchemaType())
-								.where(schemas.folderBorrowed()).isTrue().andWhere(schemas.folderBorrowedUserEntered())
-								.is(userId));
+		LogicalSearchCondition condition = from(schemas.folderSchemaType())
+				.where(schemas.folderBorrowed()).isTrue()
+				.andWhere(schemas.folderBorrowedUserEntered()).is(userId);
+		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindLateBorrowedFoldersByUserAndDateRangeQuery(User currentUser, String userId) {
-		return new LogicalSearchQuery()
-				.filteredWithUser(currentUser)
-				.setCondition(
-						from(schemas.folderSchemaType())
-								.where(schemas.folderBorrowed()).isTrue().andWhere(schemas.folderBorrowedUserEntered())
-								.is(userId).andWhere(schemas.folderBorrowPreviewReturnDate())
-								.isLessThan(TimeProvider.getLocalDateTime()));
+		LogicalSearchCondition condition = from(schemas.folderSchemaType())
+				.where(schemas.folderBorrowed()).isTrue().andWhere(schemas.folderBorrowedUserEntered())
+				.is(userId).andWhere(schemas.folderBorrowPreviewReturnDate())
+				.isLessThan(TimeProvider.getLocalDateTime());
+		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindCreatedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
@@ -205,173 +192,6 @@ public class RMEventsSearchServices {
 				principalPath);
 	}
 
-	/*public LogicalSearchQuery newFindModifiedFoldersByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.MODIFY_FOLDER, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindDeletedFoldersByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.DELETE_FOLDER, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindCreatedDocumentsByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.CREATE_DOCUMENT, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindModifiedDocumentsByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.MODIFY_DOCUMENT, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindDeletedDocumentsByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.DELETE_DOCUMENT, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindCreatedUsersByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.CREATE_USER, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindModifiedUsersByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.MODIFY_USER, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindDeletedUsersByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.DELETE_USER, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindGrantedPermissionsByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.GRANT_PERMISSION, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindModifiedPermissionsByDateRangeAndByFilingSpaceQuery(User currentUser,
-			LocalDateTime startDate, LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.MODIFY_PERMISSION, startDate, endDate,
-				principalPath);
-	}
-
-	public LogicalSearchQuery newFindDeletedPermissionsByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.DELETE_PERMISSION, startDate, endDate,
-				principalPath);
-	}
-
-	//By user and date range
-	public LogicalSearchQuery newFindCreatedFoldersByDateRangeAndByUserQuery(LocalDateTime startDate, LocalDateTime endDate,
-			String username,
-			User currentUser) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.CREATE_FOLDER, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindModifiedFoldersByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.MODIFY_FOLDER, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindDeletedFoldersByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.DELETE_FOLDER, startDate, endDate, username);
-	}
-
-
-
-	public LogicalSearchQuery newFindModifiedDocumentsByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.MODIFY_DOCUMENT, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindDeletedDocumentsByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.DELETE_DOCUMENT, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindCreatedUsersByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.CREATE_USER, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindModifiedUsersByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.MODIFY_USER, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindDeletedUsersByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.DELETE_USER, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindGrantedPermissionsByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.GRANT_PERMISSION, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindModifiedPermissionsByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.MODIFY_PERMISSION, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindDeletedPermissionsByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.DELETE_PERMISSION, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindConsultedFoldersByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.VIEW_FOLDER, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindConsultedDocumentsByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.VIEW_DOCUMENT, startDate, endDate, username);
-	}
-
-	public LogicalSearchQuery newFindOpenedSessionsByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
-		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.OPEN_SESSION, startDate, endDate, username);
-	}
-
-	//By Folder and by date range
-	public LogicalSearchQuery newFindCreatedFoldersByDateRangeAndByFolderQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, Folder folder) {
-		return newFindEventByDateRangeAndByFolderQuery(currentUser, EventType.CREATE_FOLDER, startDate, endDate, folder);
-	}
-
-	public LogicalSearchQuery newFindModifiedFoldersByDateRangeAndByFolderQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, Folder folder) {
-		return newFindEventByDateRangeAndByFolderQuery(currentUser, EventType.MODIFY_FOLDER, startDate, endDate, folder);
-	}
-
-	public LogicalSearchQuery newFindDeletedFoldersByDateRangeAndByFolderQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, Folder folder) {
-		return newFindEventByDateRangeAndByFolderQuery(currentUser, EventType.DELETE_FOLDER, startDate, endDate, folder);
-	}
-
-
-	public LogicalSearchQuery newFindModifiedPermissionsByDateRangeAndByFolderQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, Folder folder) {
-		return newFindEventByDateRangeAndByFolderQuery(currentUser, EventType.MODIFY_PERMISSION, startDate, endDate, folder);
-	}
-
-	public LogicalSearchQuery newFindDeletedPermissionsByDateRangeAndByFolderQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, Folder folder) {
-		return newFindEventByDateRangeAndByFolderQuery(currentUser, EventType.DELETE_PERMISSION, startDate, endDate, folder);
-	}*/
-
 	public LogicalSearchQuery newFindGrantedPermissionsByDateRangeAndByFolderQuery(User currentUser, LocalDateTime startDate,
 			LocalDateTime endDate, Folder folder) {
 		return newFindEventByDateRangeAndByFolderQuery(currentUser, EventType.GRANT_PERMISSION, startDate, endDate, folder);
@@ -383,121 +203,80 @@ public class RMEventsSearchServices {
 	}
 
 	private LogicalSearchQuery newFindEventQuery(User currentUser, String eventType) {
-		Metadata eventTypeMetadata = schemas.eventSchema().getMetadata(Event.TYPE);
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.filteredWithUser(currentUser);
-		query.setCondition(
-				from(schemas.eventSchema()).where(eventTypeMetadata).isEqualTo(eventType));
-		return query;
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata timestamp = Schemas.CREATED_ON;
+
+		return new LogicalSearchQuery(from(schemas.eventSchema()).where(type).isEqualTo(eventType))
+				.filteredWithUser(currentUser).sortDesc(timestamp);
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeQuery(User currentUser, String eventType, LocalDateTime startDate,
 			LocalDateTime endDate) {
-		Metadata eventTypeMetadata = schemas.eventSchema().getMetadata(Event.TYPE);
-		Metadata eventMetaData = Schemas.CREATED_ON;
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.filteredWithUser(currentUser);
-		query.setCondition(
-				from(schemas.eventSchema()).where(eventTypeMetadata).isEqualTo(eventType)
-						.andWhere(eventMetaData).isValueInRange(
-						startDate, endDate));
-		return query;
-	}
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata timestamp = Schemas.CREATED_ON;
 
-	public LogicalSearchQuery newFindEventByDateRangeAndByFolderQuery(User currentUser, String eventType, LocalDateTime startDate,
-			LocalDateTime endDate, String folderId) {
-
-		Folder folder = schemas.wrapFolder(getRecord(folderId));
-		return newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, folder);
-	}
-
-	private Record getRecord(String recordId) {
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		return recordServices.getDocumentById(recordId);
+		LogicalSearchCondition condition = from(schemas.eventSchema())
+				.where(type).isEqualTo(eventType).andWhere(timestamp).isValueInRange(startDate, endDate);
+		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeAndByFolderQuery(User currentUser, String eventType, LocalDateTime startDate,
 			LocalDateTime endDate, Folder folder) {
-		Metadata eventTypeMetadata = schemas.eventSchema().getMetadata(Event.TYPE);
-		Metadata recordIdMetadata = schemas.eventSchema().getMetadata(Event.RECORD_ID);
-		Metadata eventMetaData = Schemas.CREATED_ON;
-		String folderId = folder.getId();
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.filteredWithUser(currentUser);
-		query.setCondition(
-				from(schemas.eventSchema()).where(eventTypeMetadata).isEqualTo(eventType)
-						.andWhere(eventMetaData).isValueInRange(
-						startDate, endDate).andWhere(recordIdMetadata).isEqualTo(folderId));
-		return query;
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata recordId = schemas.eventSchema().getMetadata(Event.RECORD_ID);
+		Metadata timestamp = Schemas.CREATED_ON;
+
+		LogicalSearchCondition condition = from(schemas.eventSchema())
+				.where(type).isEqualTo(eventType)
+				.andWhere(timestamp).isValueInRange(startDate, endDate)
+				.andWhere(recordId).isEqualTo(folder);
+		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeAndByUserIdQuery(User currentUser, String eventType, LocalDateTime startDate,
 			LocalDateTime endDate, String userId) {
-		Record userRecord = getRecord(userId);
-		User user = schemas.wrapUser(userRecord);
+		User user = schemas.getUser(userId);
 		String username = user.getUsername();
 		return newFindEventByDateRangeAndByUserQuery(currentUser, eventType, startDate, endDate, username);
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeAndByUserQuery(User currentUser, String eventType, LocalDateTime startDate,
 			LocalDateTime endDate, String userName) {
-		Metadata eventTypeMetadata = schemas.eventSchema().getMetadata(Event.TYPE);
-		Metadata eventMetaData = Schemas.CREATED_ON;
-		Metadata userMetaData = schemas.eventSchema().getMetadata(Event.USERNAME);
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.filteredWithUser(currentUser);
-		query.setCondition(
-				from(schemas.eventSchema()).where(eventTypeMetadata).isEqualTo(eventType)
-						.andWhere(eventMetaData).isValueInRange(
-						startDate, endDate).andWhere(userMetaData).isEqualTo(userName));
-		return query;
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata timestamp = Schemas.CREATED_ON;
+		Metadata user = schemas.eventSchema().getMetadata(Event.USERNAME);
+
+		LogicalSearchCondition condition = from(schemas.eventSchema())
+				.where(type).isEqualTo(eventType)
+				.andWhere(timestamp).isValueInRange(startDate, endDate)
+				.andWhere(user).isEqualTo(userName);
+		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
 	}
 
-	/*public LogicalSearchQuery newFindEventByDateRangeAndByAdministrativeUnitIdQuery(User currentUser, String eventType,
-			LocalDateTime startDate,
-			LocalDateTime endDate, String administrativeUnitId) {
-		Record administrativeUnitRecord = getRecord(administrativeUnitId);
-		String filingSpacePath = administrativeUnitRecord.get(Schemas.PRINCIPAL_PATH);
-		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate, endDate, filingSpacePath);
-	}*/
-
 	public LogicalSearchQuery newFindEventByDateRangeAndByAdministrativeUnitQuery(User currentUser, String eventType,
-			LocalDateTime startDate,
-			LocalDateTime endDate, String id) {
-		Metadata eventTypeMetadata = schemas.eventSchema().getMetadata(Event.TYPE);
-		Metadata eventMetaData = Schemas.CREATED_ON;
-		Metadata principalPathMetadata = schemas.eventSchema().getMetadata(Event.EVENT_PRINCIPAL_PATH);
+			LocalDateTime startDate, LocalDateTime endDate, String id) {
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata timestamp = Schemas.CREATED_ON;
+		Metadata principalPath = schemas.eventSchema().getMetadata(Event.EVENT_PRINCIPAL_PATH);
+
 		String filteringSpacePathWithoutFirstAndLastSeparator = StringUtils.removeEnd(id, "/");
 		if (filteringSpacePathWithoutFirstAndLastSeparator.startsWith("/")) {
 			filteringSpacePathWithoutFirstAndLastSeparator = StringUtils
 					.removeStart("/", filteringSpacePathWithoutFirstAndLastSeparator);
 		}
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.filteredWithUser(currentUser);
 
-		LogicalSearchCondition containingId = where(principalPathMetadata).isAny(
+		LogicalSearchCondition containingId = where(principalPath).isAny(
 				endingWithText("/" + filteringSpacePathWithoutFirstAndLastSeparator),
 				containingText("/" + filteringSpacePathWithoutFirstAndLastSeparator + "/"));
-
-		query.setCondition(from(schemas.eventSchema())
+		LogicalSearchCondition condition = from(schemas.eventSchema())
 				.where(containingId)
-				.andWhere(eventTypeMetadata).isEqualTo(eventType)
-				.andWhere(eventMetaData).isValueInRange(startDate, endDate));
-
-		return query;
-	}
-
-	LogicalSearchQuery newFindAllQuery(User currentUser) {
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.filteredWithUser(currentUser);
-		Metadata eventTypeMetadata = schemas.eventSchema().getMetadata(Event.TYPE);
-		query.setCondition(
-				from(schemas.eventSchema()).where(eventTypeMetadata).isNotNull());
-		return query;
+				.andWhere(type).isEqualTo(eventType)
+				.andWhere(timestamp).isValueInRange(startDate, endDate);
+		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
 	}
 
 	private List<Event> findNotCanceledEventsPerUser(User currentUser, String eventType, String eventTypeCancellation) {
-		List<Event> returnList = new ArrayList<Event>();
+		List<Event> returnList = new ArrayList<>();
 		LogicalSearchQuery searchedEventsQuery = newFindEventQuery(currentUser, eventType);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Event> searchedEvents = schemas.wrapEvents(searchServices.search(searchedEventsQuery));
@@ -517,16 +296,14 @@ public class RMEventsSearchServices {
 
 	private LogicalSearchQuery newFindEventForUserAfterDateQuery(User currentUser, String eventType, String username,
 			LocalDateTime date) {
-		Metadata eventTypeMetadata = schemas.eventSchema().getMetadata(Event.TYPE);
-		Metadata eventMetaData = Schemas.CREATED_ON;
-		Metadata userMetaData = schemas.eventSchema().getMetadata(Event.USERNAME);
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.filteredWithUser(currentUser);
-		query.setCondition(
-				from(schemas.eventSchema()).where(eventTypeMetadata).isEqualTo(eventType)
-						.andWhere(userMetaData).isEqualTo(username)
-						.andWhere(eventMetaData).isGreaterOrEqualThan(
-						date));
-		return query;
+		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
+		Metadata timestamp = Schemas.CREATED_ON;
+		Metadata user = schemas.eventSchema().getMetadata(Event.USERNAME);
+
+		LogicalSearchCondition condition = from(schemas.eventSchema())
+				.where(type).isEqualTo(eventType)
+				.andWhere(user).isEqualTo(username)
+				.andWhere(timestamp).isGreaterOrEqualThan(date);
+		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
 	}
 }

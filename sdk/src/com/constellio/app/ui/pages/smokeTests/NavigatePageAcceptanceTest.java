@@ -53,7 +53,6 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 
@@ -63,22 +62,24 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 	NavigatePage page;
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	String folderId;
+	DemoTestRecords records2 = new DemoTestRecords("LaCollectionDeRida");
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
-		givenCollectionWithTitle("LaCollectionDeRida", "Collection d'entreprise").withConstellioRMModule()
-				.withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus().withEvents(),
+				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
-		new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 	}
 
@@ -228,7 +229,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.RECORDS_MANAGEMENT + "/lastViewedDocuments");
 
-		clickOnTabMenuAndWaitForReload(3);
+		clickOnTabMenuAndWaitForReload(4);
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.RECORDS_MANAGEMENT + "/taxonomies");
 

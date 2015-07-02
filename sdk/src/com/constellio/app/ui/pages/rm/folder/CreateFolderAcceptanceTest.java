@@ -42,7 +42,6 @@ import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 
 @UiTest
-//@InDevelopmentTest
 public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 	private boolean withAllResponsibleAdminUnitFlag = true;
@@ -64,13 +63,23 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 	ConstellioWebDriver driver;
 
 	RMSchemasRecordsServices rm;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	DemoTestRecords records2 = new DemoTestRecords("LaCollectionDeRida");
 	RetentionRule ruleCustom;
 	RetentionRule backupRule;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus().withEvents(),
+				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		getConfigurationManager().setValue(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
 		filingSpaceFinderA = "A";
@@ -82,14 +91,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		getConfigurationManager().setValue(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
-		givenCollectionWithTitle("LaCollectionDeRida", "Collection d'entreprise").withConstellioRMModule().withAllTestUsers();
-
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
-		new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		backupRule = records.getRule1();
 	}
@@ -298,6 +300,56 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 		completeFormWithoutExemplary();
 
+	}
+
+	@Test
+	public void whenAddingFolderThenPreviewReturnDateIsInvisible()
+			throws Exception {
+		collection = zeCollection;
+		classificationFinder = "X13";
+		administrativeUnitFinder = "12";
+
+		modifyRule1RemovingPrincipalCopyRule(withAllResponsibleAdminUnitFlag);
+
+		navigateToAddFolderFormLoggedAs(admin, collection);
+
+		assertThat(zeForm.isVisible("folder_default_previewReturnDate")).isFalse();
+	}
+
+	@Test
+	public void whenAddingFolderThenLinearSizeIsInvisible()
+			throws Exception {
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		driver.navigateTo().url(NavigatorConfigurationService.ADD_FOLDER);
+		zeForm = new RecordFormWebElement(driver.findElement(By.className(BaseForm.BASE_FORM)));
+
+		assertThat(zeForm.isVisible("folder_default_linearSize")).isFalse();
+	}
+
+	@Test
+	public void whenModifyingFolderWithoutContainerThenLinearSizeInvisible()
+			throws Exception {
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		driver.navigateTo().url("editFolder/id=" + records.folder_A04);
+		zeForm = new RecordFormWebElement(driver.findElement(By.className(BaseForm.BASE_FORM)));
+
+		assertThat(zeForm.isVisible("folder_default_linearSize")).isFalse();
+	}
+
+	@Test
+	public void whenModifyingFolderWithContainerThenLinearSizeVisible()
+			throws Exception {
+		assertThat(records.getFolder_A45().getLinearSize()).isNull();
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		driver.navigateTo().url("editFolder/id=" + records.folder_A45);
+		zeForm = new RecordFormWebElement(driver.findElement(By.className(BaseForm.BASE_FORM)));
+
+		assertThat(zeForm.isVisible("folder_default_linearSize")).isTrue();
+
+		zeForm.getTextField("folder_default_linearSize").setValue("42");
+		zeForm.clickSaveButtonAndWaitForPageReload();
+		assertThat(records.getFolder_A45().getLinearSize()).isEqualTo(42);
 	}
 
 	private void modifyRule1RemovingPrincipalCopyRule(boolean isResponsibleUnit)

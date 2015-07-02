@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -58,6 +59,7 @@ public abstract class Decommissioner {
 	protected final RMConfigs configs;
 	protected final SearchServices searchServices;
 	protected final ContentManager contentManager;
+	protected final DecommissioningLoggingService loggingServices;
 
 	protected DecommissioningList decommissioningList;
 	private ContentConversionManager conversionManager;
@@ -91,6 +93,7 @@ public abstract class Decommissioner {
 		configs = decommissioningService.getRMConfigs();
 		searchServices = modelLayerFactory.newSearchServices();
 		contentManager = modelLayerFactory.getContentManager();
+		loggingServices = new DecommissioningLoggingService(modelLayerFactory);
 	}
 
 	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
@@ -99,6 +102,7 @@ public abstract class Decommissioner {
 		processFolders();
 		processContainers();
 		markProcessed();
+		loggingServices.logDecommissioning(decommissioningList, user);
 		execute();
 	}
 
@@ -151,6 +155,9 @@ public abstract class Decommissioner {
 		if (detail.getContainerRecordId() != null) {
 			folder.setContainer(detail.getContainerRecordId());
 		}
+		if (detail.getFolderLinearSize() != null) {
+			folder.setLinearSize(detail.getFolderLinearSize());
+		}
 	}
 
 	protected abstract void processFolder(Folder folder, DecomListFolderDetail detail);
@@ -197,9 +204,19 @@ public abstract class Decommissioner {
 	}
 
 	protected void destroyDocumentsIn(Folder folder) {
-		for (Document document : getDocumentsWithContentInFolder(folder)) {
-			destroyContent(document.getContent());
-			add(document.setContent(null));
+		if (configs.deleteDocumentRecordsWithDestruction()) {
+			for (Document document : getAllDocumentsInFolder(folder)) {
+				if (document.getContent() != null) {
+					destroyContent(document.getContent());
+					add(document.setContent(null));
+				}
+				delete(document);
+			}
+		} else {
+			for (Document document : getDocumentsWithContentInFolder(folder)) {
+				destroyContent(document.getContent());
+				add(document.setContent(null));
+			}
 		}
 	}
 
@@ -244,6 +261,12 @@ public abstract class Decommissioner {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.documentSchemaType())
 				.where(rm.documentFolder()).isEqualTo(folder)
 				.andWhere(rm.documentContent()).isNotNull());
+		return rm.wrapDocuments(searchServices.search(query));
+	}
+
+	private List<Document> getAllDocumentsInFolder(Folder folder) {
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.documentSchemaType())
+				.where(rm.documentFolder()).isEqualTo(folder));
 		return rm.wrapDocuments(searchServices.search(query));
 	}
 

@@ -221,6 +221,77 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    
+    <servlet>
+        <servlet-name>ConfigAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.ConfigAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>AuthenticateAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.AuthenticateAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>CheckInAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.CheckInAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>CompareContentAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.CompareContentAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>GetCheckedOutDocumentsAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.GetCheckedOutDocumentsAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>GetCollectionLabelsAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.GetCollectionLabelsAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>GetContentAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.GetContentAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>GetLatestVersionInfoAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.GetLatestVersionInfoAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>GetLatestVersionJarAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.GetLatestVersionJarAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>GetUserDocumentsAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.GetUserDocumentsAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>ImportFileAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.ImportFileAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>SendLogsAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.SendLogsAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>ServerStatusAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.ServerStatusAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>UpdateContentAgentServlet</servlet-name>
+        <servlet-class>com.constellio.app.modules.rm.agent.services.UpdateContentAgentServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>VaadinServlet</servlet-name>
@@ -268,5 +339,62 @@
     <servlet-mapping>
         <servlet-name>Benchmark Service</servlet-name>
         <url-pattern>/benchmark</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>AuthenticateAgentServlet</servlet-name>
+        <url-pattern>/agent/authenticate</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CheckInAgentServlet</servlet-name>
+        <url-pattern>/agent/checkIn</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CompareContentAgentServlet</servlet-name>
+        <url-pattern>/agent/compareContent</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ConfigAgentServlet</servlet-name>
+        <url-pattern>/agent/config</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetCheckedOutDocumentsAgentServlet</servlet-name>
+        <url-pattern>/agent/getCheckedOutDocuments</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetCollectionLabelsAgentServlet</servlet-name>
+        <url-pattern>/agent/getCollectionLabels</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetContentAgentServlet</servlet-name>
+        <url-pattern>/agent/getContent</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetLatestVersionInfoAgentServlet</servlet-name>
+        <url-pattern>/agent/getLatestVersionInfo</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetLatestVersionJarAgentServlet</servlet-name>
+        <url-pattern>/agent/getLatestVersionJar</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetUserDocumentsAgentServlet</servlet-name>
+        <url-pattern>/agent/getUserDocuments</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ImportFileAgentServlet</servlet-name>
+        <url-pattern>/agent/importFile</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SendLogsAgentServlet</servlet-name>
+        <url-pattern>/agent/sendLogs</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ServerStatusAgentServlet</servlet-name>
+        <url-pattern>/agent/serverStatus</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UpdateContentAgentServlet</servlet-name>
+        <url-pattern>/agent/updateContent</url-pattern>
     </servlet-mapping>
 </web-app>

@@ -55,8 +55,6 @@ public interface ConfigManager {
 
 	void delete(String path);
 
-	boolean rename(String path, String newPath);
-
 	void delete(String path, String hash)
 			throws ConfigManagerException.OptimisticLockingConfiguration;
 

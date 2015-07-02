@@ -29,7 +29,6 @@ import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 
 @UiTest
-@InDevelopmentTest
 public class GeneralUIAcceptTest extends ConstellioTest {
 	ConstellioWebDriver driver;
 	RMSchemasRecordsServices schemas;
@@ -38,17 +37,20 @@ public class GeneralUIAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(rm)
+						.withFoldersAndContainersOfEveryStatus(),
+				withCollection("otherCollection").withConstellioRMModule().withAllTestUsers()
+		);
+
 		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-
-		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 
 	}
 
 	@Test
+	@InDevelopmentTest
 	public void navigateToDisplayFolder() {
 		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/C30");
 		waitUntilICloseTheBrowsers();

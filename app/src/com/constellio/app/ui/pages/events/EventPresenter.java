@@ -233,7 +233,9 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public void recordLinkClicked(MetadataValueVO metadataValue) {
 		String recordId = metadataValue.getValue().toString();
-		if (getEventType().contains("folder")) {
+		if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
+			view.navigateTo().displayDecommissioningList(recordId);
+		} else if (getEventType().contains("folder")) {
 			view.navigateTo().displayFolder(recordId);
 		} else {
 			view.navigateTo().displayDocument(recordId);

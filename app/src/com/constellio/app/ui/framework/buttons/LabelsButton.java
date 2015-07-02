@@ -63,7 +63,7 @@ public class LabelsButton extends WindowButton {
 		format = new ComboBox($("LabelsButton.labelFormat"));
 		for (LabelTemplate configuration : configurations) {
 			format.addItem(configuration);
-			format.setItemCaption(configuration, $("LabelsButton.labelFormat." + configuration.getKey()));
+			format.setItemCaption(configuration, $(configuration.getName()));
 		}
 		format.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		format.setNullSelectionAllowed(false);

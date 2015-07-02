@@ -33,7 +33,7 @@ public class DateTimeFieldWebElement {
 	private DateTimeFormatter format;
 
 	public DateTimeFieldWebElement(ConstellioWebElement element) {
-		this(element, "yyyy-MM-dd HH:mm");
+		this(element, "yyyy-MM-dd HH:mm:ss");
 	}
 
 	public DateTimeFieldWebElement(ConstellioWebElement element, String pattern) {

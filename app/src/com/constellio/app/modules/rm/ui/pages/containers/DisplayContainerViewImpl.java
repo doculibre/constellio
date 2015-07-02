@@ -27,6 +27,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.ReportButton;
@@ -42,11 +43,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayContainerView, RecordSelector {
@@ -61,7 +58,17 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
 
-		layout.addComponent(new RecordDisplay(presenter.getContainer(event.getParameters())));
+		RecordVO container = presenter.getContainer(event.getParameters());
+		layout.addComponent(new RecordDisplay(container));
+
+		try {
+			Double fillRatio = presenter.getFillRatio(container);
+			layout.addComponent(new ContainerRatioPanel(fillRatio));
+		} catch (ContainerWithoutCapacityException e) {
+			layout.addComponent(new ContainerRatioPanel($("ContainerWithoutCapacityException")));
+		} catch (RecordInContainerWithoutLinearMeasure e) {
+			layout.addComponent(new ContainerRatioPanel($("RecordInContainerWithoutLinearMeasure")));
+		}
 
 		final String containerId = event.getParameters();
 
@@ -107,6 +114,14 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
 
+		Button editContainer = new BaseButton($("DisplayContainerView.edit")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.editContainer();
+			}
+
+		};
+
 		ReportButton printBordereau = new ReportButton("Reports.ContainerRecordReport", presenter);
 		printBordereau.setCaption($("DisplayContainerView.slip"));
 		printBordereau.setStyleName(ValoTheme.BUTTON_LINK);
@@ -116,6 +131,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				presenter.getTemplates());
 		labelsButton.setEnabled(presenter.isPrintReportEnable());
 
+		actionMenuButtons.add(editContainer);
 		actionMenuButtons.add(printBordereau);
 		actionMenuButtons.add(labelsButton);
 		return actionMenuButtons;
@@ -153,7 +169,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			labelConfiguration = new ComboBox($("LabelsButton.labelFormat"));
 			for (LabelTemplate labelTemplate : labelTemplates) {
 				labelConfiguration.addItem(labelTemplate);
-				labelConfiguration.setItemCaption(labelTemplate, $("LabelsButton.labelFormat." + labelTemplate.getKey()));
+				labelConfiguration.setItemCaption(labelTemplate, $(labelTemplate.getName()));
 			}
 			labelConfiguration.setNullSelectionAllowed(false);
 

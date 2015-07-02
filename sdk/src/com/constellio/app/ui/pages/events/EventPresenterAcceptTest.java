@@ -32,6 +32,7 @@ import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -41,21 +42,19 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.services.borrowingServices.BorrowingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 
 public class EventPresenterAcceptTest extends ConstellioTest {
-
 	@Mock EventView view;
 	@Mock ConstellioNavigator navigator;
-	RMTestRecords rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	SearchServices searchServices;
 	EventPresenter presenter;
 	SessionContext sessionContext;
 	RMEventsSearchServices rmEventsSearchServices;
-	RMSchemasRecordsServices schemas;
+	RMSchemasRecordsServices rm;
 	BorrowingServices borrowingServices;
 	LocalDateTime nowDateTime = TimeProvider.getLocalDateTime();
 	MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
@@ -63,13 +62,14 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withEvents()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
-
-		rm = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
@@ -96,12 +96,12 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenBorrowedFolderByAliceWhenGetDataProviderForCurrentlyBorrowedFoldersByUserThenOk()
+	public void givenBorrowedFolderByBobWhenGetDataProviderForCurrentlyBorrowedFoldersByUserThenOk()
 			throws Exception {
+		borrowingServices.borrowFolder("C30", nowDateTime.plusDays(1).toDate(), records.getAdmin(), records.getBob_userInAC());
 
-		borrowingServices.borrowFolder("C30", nowDateTime.plusDays(1).toDate(), rm.getAdmin(), rm.getBob_userInAC());
-		Map params = new HashMap<>();
-		params.put("id", "00000000011");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", records.getBob_userInAC().getId());
 		params.put("startDate", nowDateTime.toString());
 		params.put("endDate", nowDateTime.plusDays(1).toString());
 		params.put("eventType", EventType.CURRENTLY_BORROWED_FOLDERS);
@@ -117,7 +117,7 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 
 	private MetadataValueVO getMetadataValueVO(String localCode) {
 		MetadataVO metadataVO = metadataToVOBuilder
-				.build(schemas.defaultFolderSchema().getMetadata(localCode), sessionContext);
+				.build(rm.defaultFolderSchema().getMetadata(localCode), sessionContext);
 		return new MetadataValueVO(metadataVO);
 	}
 }

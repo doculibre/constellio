@@ -23,13 +23,11 @@ import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import org.junit.Test;
 
+import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 import javax.naming.ldap.LdapContext;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,6 +59,71 @@ public class LDAPServicesAcceptanceTest {
         }
         assertThat(groupsNames).contains("group1", "group2", "group3", "group4");
     }
+
+   /* @Test
+    public void testMFA()
+            throws Exception{
+        LdapContext ldapContext = new LDAPServices().connectToLDAP(Arrays.asList(new String[]{"DC=mes,DC=reseau,DC=intra"}),//mes.reseau.intra
+                "ldap://127.0.0.1:3389",
+                "cs_065_IntelliGid_de",
+                "R*tsQ5yzt2Zfb#Xd");
+        String groupCN = "CN=guMFA,OU=Groupes Users (gu),OU=Groupes,DC=mes,DC=reseau,DC=intra";
+        Set<LDAPGroup> groups = new LDAPServices().getAllGroups(ldapContext, Arrays.asList(new String[]{groupCN}));
+        List<String> groupsNames = new ArrayList<>();
+        for(LDAPGroup group : groups){
+            groupsNames.add(group.getSimpleName());
+            System.out.println(group.getSimpleName());
+            System.out.println(group.getMembers().size());
+            if(!group.getMembers().isEmpty()){
+                System.out.println(group);
+            }
+        }
+        ldapContext.close();
+    }
+
+    @Test
+    public void testUsersMFA()
+            throws Exception{
+        LdapContext ldapContext = new LDAPServices().connectToLDAP(Arrays.asList(new String[]{"DC=mes,DC=reseau,DC=intra"}),//mes.reseau.intra
+                "ldap://127.0.0.1:3389",
+                "cs_065_IntelliGid_de",
+                "R*tsQ5yzt2Zfb#Xd");
+        String groupCN = "CN=guMFA,OU=Groupes Users (gu),OU=Groupes,DC=mes,DC=reseau,DC=intra";
+        Set<String> usersIds = new HashSet<>();
+        LDAPServices ldapServices = new LDAPServices();
+        for(String baseContextName : getBaseContextList()){
+            List<String> currentUsersIds;
+            try{
+                currentUsersIds = ldapServices.searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, baseContextName);
+            } catch (NamingException e) {
+                throw new RuntimeException(e);
+            }
+            usersIds.addAll(currentUsersIds);
+        }
+        System.out.println(usersIds.size());
+        ldapContext.close();
+    }
+
+    private String[] getBaseContextList() {
+        return new String[]{
+            "OU=Utilisateurs,DC=mes,DC=reseau,DC=intra",
+                "OU=A_B,OU=Utilisateurs,DC=mes,DC=reseau,DC=intra"
+        };
+    }
+
+    @Test
+    public void testAcceptedUserMFA()
+            throws Exception{
+        LdapContext ldapContext = new LDAPServices().connectToLDAP(Arrays.asList(new String[]{"DC=mes,DC=reseau,DC=intra"}),//mes.reseau.intra
+                "ldap://127.0.0.1:3389",
+                "cs_065_IntelliGid_de",
+                "R*tsQ5yzt2Zfb#Xd");//
+        boolean isUser = new LDAPServices().isUser(LDAPDirectoryType.ACTIVE_DIRECTORY, "CN=Boulanger\\\\, Sylvain,OU=A_B,OU=Utilisateurs,DC=mes,DC=reseau,DC=intra",
+                //
+                ldapContext);
+        System.out.println(isUser);
+    }*/
+
 
     @Test
     public void whenSearchingMoreThan1000GroupsThenReturnAllGroups()

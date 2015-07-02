@@ -22,9 +22,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.components.BaseForm;
-import com.vaadin.ui.*;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -33,6 +30,12 @@ import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
@@ -42,11 +45,20 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
+	
 	private VerticalLayout mainLayout;
 	private Label borrowedLabel;
 	private RecordVO recordVO;
@@ -80,6 +92,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void setRecordVO(RecordVO recordVO) {
 		this.recordVO = recordVO;
+		if (recordDisplay != null) {
+			recordDisplay.setRecordVO(recordVO);
+		}
 	}
 
 	@Override
@@ -137,6 +152,16 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void refreshMetadataDisplay() {
 		recordDisplay.refresh();
+	}
+
+	@Override
+	protected boolean isBackgroundViewMonitor() {
+		return true;
+	}
+
+	@Override
+	protected void onBackgroundViewMonitor() {
+		presenter.backgroundViewMonitor();
 	}
 
 	@Override
@@ -225,7 +250,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		actionMenuButtons.add(editDocumentButton);
-		if(presenter.hasContent()){
+		if (presenter.hasContent()) {
 			WindowButton.WindowConfiguration config = new WindowButton.WindowConfiguration(true, false, "40%", "20%");
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), "", config) {
 				@Override

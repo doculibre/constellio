@@ -67,7 +67,7 @@ public class ReportViewer extends VerticalLayout {
 		};
 	}
 
-	private static class DownloadStreamResource extends StreamResource {
+	public static class DownloadStreamResource extends StreamResource {
 		public static String PDF_MIMETYPE = "application/pdf";
 
 		public DownloadStreamResource(StreamSource source, String filename) {

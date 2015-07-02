@@ -43,7 +43,7 @@ public class FoldersLocator {
 			File classFolder = new File(path);
 
 			finalPath = classFolder.getParentFile();
-			while(!finalPath.getName().equals("model") && !finalPath.getName().equals("WEB-INF")) {
+			while (!finalPath.getName().equals("model") && !finalPath.getName().equals("WEB-INF")) {
 				finalPath = finalPath.getParentFile();
 			}
 
@@ -106,6 +106,10 @@ public class FoldersLocator {
 		} else {
 			return new File(getConstellioWebappFolder(), "conf");
 		}
+	}
+
+	public File getImportationProject() {
+		return new File(getConstellioWebappFolder(), "importation");
 	}
 
 	public File getAppProject() {
@@ -189,7 +193,8 @@ public class FoldersLocator {
 
 		// TODO Remove intelligid
 		if ("constellio".equals(lowercaseJavaRootFolder) || "intelligid".equals(lowercaseJavaRootFolder)
-				|| lowercaseJavaRootFolder.startsWith("constellio-") || lowercaseJavaRootFolder.startsWith("constellio_") || lowercaseJavaRootFolder.startsWith("intelligid-")) {
+				|| lowercaseJavaRootFolder.startsWith("constellio-") || lowercaseJavaRootFolder.startsWith("constellio_")
+				|| lowercaseJavaRootFolder.startsWith("intelligid-")) {
 			return javaRootFolder;
 
 		} else if (gitSubProjects.contains(lowercaseJavaRootFolder)) {

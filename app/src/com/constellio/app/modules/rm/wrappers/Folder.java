@@ -73,7 +73,9 @@ public class Folder extends RMObject {
 	public static final String RETENTION_RULE_ADMINISTRATIVE_UNITS = "ruleAdminUnit";
 	public static final String DECOMMISSIONING_DATE = "decommissioningDate";
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
+	public static final String ACTIVE_RETENTION_CODE = "activeRetentionPeriodCode";
 	public static final String SEMIACTIVE_RETENTION_TYPE = "semiactiveRetentionType";
+	public static final String SEMIACTIVE_RETENTION_CODE = "semiactiveRetentionPeriodCode";
 	public static final String INACTIVE_DISPOSAL_TYPE = "inactiveDisposalType";
 	public static final String MEDIA_TYPE = "mediaType";
 	public static final String CONTAINER = "container";
@@ -86,6 +88,7 @@ public class Folder extends RMObject {
 	public static final String RETURN_BORROW_USER_ENTERED = "returnBorrowUserEntered";
 	public static final String BORROW_USER = "borrowUser";
 	public static final String BORROW_USER_ENTERED = "borrowUserEntered";
+	public static final String LINEAR_SIZE = "linearSize";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -94,6 +97,15 @@ public class Folder extends RMObject {
 
 	public Folder setTitle(String title) {
 		super.setTitle(title);
+		return this;
+	}
+
+	public Double getLinearSize() {
+		return get(LINEAR_SIZE);
+	}
+
+	public Folder setLinearSize(Double linearSize) {
+		set(LINEAR_SIZE, linearSize);
 		return this;
 	}
 
@@ -252,8 +264,16 @@ public class Folder extends RMObject {
 		return get(ACTIVE_RETENTION_TYPE);
 	}
 
+	public String getActiveRetentionCode() {
+		return get(ACTIVE_RETENTION_CODE);
+	}
+
 	public RetentionType getSemiActiveRetentionType() {
 		return get(SEMIACTIVE_RETENTION_TYPE);
+	}
+
+	public String getSemiActiveRetentionCode() {
+		return get(SEMIACTIVE_RETENTION_CODE);
 	}
 
 	public DisposalType getInactiveDisposalType() {

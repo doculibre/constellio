@@ -47,6 +47,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
+	
 	protected SchemaPresenterUtils presenterUtils;
 	protected DocumentToVOBuilder voBuilder = new DocumentToVOBuilder();
 	protected ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder();

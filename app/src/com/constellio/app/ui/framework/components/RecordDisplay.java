@@ -77,6 +77,14 @@ public class RecordDisplay extends BaseDisplay {
 		return captionsAndComponents;
 	}
 
+	public final RecordVO getRecordVO() {
+		return recordVO;
+	}
+
+	public final void setRecordVO(RecordVO recordVO) {
+		this.recordVO = recordVO;
+	}
+
 	@Override
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
 		if (displayComponent instanceof RecordCommentsEditorImpl) {

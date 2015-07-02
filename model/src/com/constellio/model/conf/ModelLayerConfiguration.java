@@ -17,11 +17,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.conf;
 
-import com.constellio.model.services.notifications.EventEmailBuilder;
-import com.constellio.model.services.notifications.SmtpServerConfig;
+import java.io.File;
+
 import org.joda.time.Duration;
 
-import java.io.File;
+import com.constellio.model.services.notifications.EventEmailBuilder;
+import com.constellio.model.services.notifications.SmtpServerConfig;
 
 public interface ModelLayerConfiguration {
 
@@ -49,7 +50,9 @@ public interface ModelLayerConfiguration {
 
 	Duration getUnreferencedContentsThreadDelayBetweenChecks();
 
-	int getTokenDuration();
+	Duration getTokenRemovalThreadDelayBetweenChecks();
+
+	Duration getTokenDuration();
 
 	int getDelayBeforeSendingNotificationEmailsInMinutes();
 

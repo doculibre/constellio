@@ -17,10 +17,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.reindexing;
 
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +43,9 @@ import com.constellio.model.services.records.utils.RecordDTOIterator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class ReindexingServices {
 
@@ -53,44 +58,59 @@ public class ReindexingServices {
 	}
 
 	public void reindexCollections(ReindexationMode reindexationMode) {
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-			reindexCollection(collection, reindexationMode);
-		}
+		reindexCollections(new ReindexationParams(reindexationMode));
 	}
 
-	public void reindexCollections(ReindexationMode reindexationMode, int batchSize) {
+	public void reindexCollections(ReindexationParams params) {
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-			reindexCollection(collection, reindexationMode, batchSize);
+			reindexCollection(collection, params);
 		}
 	}
 
 	public void reindexCollection(String collection, ReindexationMode reindexationMode) {
-		reindexCollection(collection, reindexationMode, 100);
+		reindexCollection(collection, new ReindexationParams(reindexationMode));
 	}
 
-	public void reindexCollection(String collection, ReindexationMode reindexationMode, int batchSize) {
+	public void reindexCollection(String collection, ReindexationParams params) {
+
+		if (!params.getReindexedSchemaTypes().isEmpty()) {
+			long count = getRecordCountOfType(collection, params.getReindexedSchemaTypes());
+			if (count == 0) {
+				return;
+			}
+		}
 
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
 		transactionOptions.setValidationsEnabled(false);
-		if (reindexationMode.isFullRecalculation()) {
+		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.forceReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
-		transactionOptions.setFullRewrite(reindexationMode.isFullRewrite());
-		reindexCollection(collection, reindexationMode, transactionOptions, batchSize);
+		transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
+		reindexCollection(collection, params, transactionOptions);
 
 	}
 
-	private void reindexCollection(String collection, ReindexationMode reindexationMode, RecordUpdateOptions transactionOptions,
-			int batchSize) {
+	private long getRecordCountOfType(String collection, List<String> reindexedSchemaTypes) {
+		List<LogicalSearchValueCondition> conditions = new ArrayList<>();
 
-		if (reindexationMode.isFullRewrite()) {
+		for (String reindexedSchemaType : reindexedSchemaTypes) {
+			conditions.add(LogicalSearchQueryOperators.startingWithText(reindexedSchemaType));
+		}
+
+		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(SCHEMA).isAny(conditions);
+		return modelLayerFactory.newSearchServices().getResultsCount(new LogicalSearchQuery(condition));
+	}
+
+	private void reindexCollection(String collection, ReindexationParams params, RecordUpdateOptions transactionOptions) {
+
+		if (params.getReindexationMode().isFullRewrite()) {
 			recreateIndexes(collection);
 		}
 
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
 				.withBulkRecordTransactionImpactHandling(NO_IMPACT_HANDLING)
 				.setTransactionOptions(transactionOptions)
-				.withRecordsPerBatch(batchSize);
+				.withRecordsPerBatch(params.getBatchSize());
 
 		BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
 				modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);

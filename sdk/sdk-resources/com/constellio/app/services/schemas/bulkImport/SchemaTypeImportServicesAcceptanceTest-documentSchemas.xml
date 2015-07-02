@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<type codePrefix="document">
+    <schema code="default">
+        <description>Nouveau document</description>
+        <metadataList multivalue="true" type="structure">
+            <element localCode="cat1" label="cat 1" required="false" type="string" enabled="true"/>
+        </metadataList>
+    </schema>
+    <schema code="papier">
+        <description>Document papier</description>
+        <metadataList multivalue="true" type="structure">
+            <element localCode="cat1" label="cat 1" required="false" type="string" enabled="false"/>
+            <element localCode="md2Papier" label="md2 papier" required="true" type="string"/>
+        </metadataList>
+    </schema>
+</type>

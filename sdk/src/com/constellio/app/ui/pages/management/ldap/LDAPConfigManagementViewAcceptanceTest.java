@@ -17,6 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.ldap;
 
+import org.joda.time.Duration;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.LDAPServerConfiguration;
@@ -25,33 +29,34 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
-import org.joda.time.Duration;
-import org.junit.Before;
-import org.junit.Test;
 
 @UiTest
 @InDevelopmentTest
 public class LDAPConfigManagementViewAcceptanceTest extends ConstellioTest {
-    ConstellioWebDriver driver;
+	ConstellioWebDriver driver;
 
-    @Before
-    public void setUp()
-            throws Exception {
-        givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-        saveValidLDAPConfig();
+	@Before
+	public void setUp()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
+		saveValidLDAPConfig();
 
-        driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
-    }
+		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
+	}
 
-    private void saveValidLDAPConfig() {
-        LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
-        LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration(new Duration(1000*60*12));
-        getModelLayerFactory().getLdapConfigurationManager().saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
-    }
+	private void saveValidLDAPConfig() {
+		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig
+				.getLDAPUserSyncConfiguration(new Duration(1000 * 60 * 12));
+		getModelLayerFactory().getLdapConfigurationManager()
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+	}
 
-    @Test
-    public void navigateToLDAP() {
-        driver.navigateTo().url(NavigatorConfigurationService.LDAP_CONFIG_MANAGEMENT);
-        waitUntilICloseTheBrowsers();
-    }
+	@Test
+	public void navigateToLDAP() {
+		driver.navigateTo().url(NavigatorConfigurationService.LDAP_CONFIG_MANAGEMENT);
+		waitUntilICloseTheBrowsers();
+	}
 }

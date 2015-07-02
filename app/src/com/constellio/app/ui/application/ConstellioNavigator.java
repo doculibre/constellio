@@ -28,6 +28,10 @@ import com.vaadin.navigator.Navigator;
 public class ConstellioNavigator {
 	Navigator vaadinNavigator;
 
+	public String getState() {
+		return vaadinNavigator.getState();
+	}
+
 	public ConstellioNavigator(Navigator vaadinNavigator) {
 		this.vaadinNavigator = vaadinNavigator;
 	}
@@ -443,5 +447,25 @@ public class ConstellioNavigator {
 
 	public void importUsers() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.IMPORT_USERS);
+	}
+
+	public void importSchemaTypes() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.IMPORT_SCHEMA_TYPES);
+	}
+
+	public void exporter() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.EXPORTER);
+	}
+
+	public void agentSetup() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.AGENT_SETUP);
+	}
+
+	public void listAgentLogs() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_AGENT_LOGS);
+	}
+
+	public void editContainer(String params) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.EDIT_CONTAINER + "/" + params);
 	}
 }

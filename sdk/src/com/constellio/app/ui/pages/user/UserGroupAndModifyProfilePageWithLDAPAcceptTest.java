@@ -58,7 +58,6 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioTest {
 	public static final String ADMINISTRATOR = "Administrator";
 	public static final String RGD = "RGD";
-	//	RMTestRecords rm = new RMTestRecords(zeCollection);
 
 	AddEditUserCredentialPage addEditUserCredentialPage;
 	ListUserCredentialPage listUserCredentialPage;
@@ -71,7 +70,8 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 	AuthenticationService authenticationService;
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	DemoTestRecords records2 = new DemoTestRecords("LaCollectionDeRida");
 	RMSchemasRecordsServices schemas;
 	SessionContext sessionContext;
 	User administratorInZeCollection;
@@ -84,15 +84,19 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 	public void setUp()
 			throws Exception {
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
-		givenCollectionWithTitle("LaCollectionDeRida", "Collection d'entreprise").withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus().withEvents(),
+				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 		ldapConfigurationManager = getModelLayerFactory().getLdapConfigurationManager();
 		authenticationService = getModelLayerFactory().newAuthenticationService();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
-		new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		givenAdmin();
 
@@ -399,7 +403,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 
 		listUserCredentialPage.getSearchInput().setValue("admin@organization.com");
 		listUserCredentialPage.getSearchButton().clickAndWaitForPageReload();
-		givenDisplayUserPageForIndex(0);
+		givenDisplayUserPageForIndex(1);
 
 		assertThat(displayUserCredentialPage.getEditGlobalGroupButtonMenuAction().isEnabled()).isFalse();
 		assertThat(displayUserCredentialPage.findEditButtonElements()).hasSize(1);

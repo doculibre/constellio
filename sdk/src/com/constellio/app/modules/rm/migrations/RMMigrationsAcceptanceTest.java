@@ -31,14 +31,17 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
@@ -48,6 +51,16 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
 
 	@Test
+	public void testAll()
+			throws Exception {
+		whenMigratingToCurrentVersionThenValidSchemas();
+		whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly();
+		whenMigratingToCurrentVersionThenHasValueListWithDefaultItems();
+		whenMigratingToCurrentVersionThenHasEssentialMetadatas();
+		whenMigratingToCurrentVersionThenHasRolesWithRightPermissions();
+		whenMigratingToCurrentVersionThenConfigHasValidDefaultValue();
+	}
+
 	public void whenMigratingToCurrentVersionThenValidSchemas()
 			throws Exception {
 
@@ -57,9 +70,18 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel()).isEqualTo("Date de l'événement");
 
+		MetadataSchema filingSpaceSchema = metadataSchemaTypes.getSchema(FilingSpace.DEFAULT_SCHEMA);
+		MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
+
+		assertThat(filingSpaceSchema.getMetadata(FilingSpace.USERS).isWriteNullValues()).isTrue();
+		assertThat(folderSchema.getMetadata(Folder.DESCRIPTION).isWriteNullValues()).isFalse();
+		assertThat(folderSchema.getMetadata(Folder.LINEAR_SIZE).isWriteNullValues()).isFalse();
+		assertThat(folderSchema.getMetadata(Folder.COMMENTS).isWriteNullValues()).isFalse();
+		assertThat(folderSchema.getMetadata(Folder.BORROW_DATE).isWriteNullValues()).isTrue();
+		assertThat(folderSchema.getMetadata(Folder.MAIN_COPY_RULE).isWriteNullValues()).isFalse();
+
 	}
 
-	@Test
 	public void whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly()
 			throws Exception {
 
@@ -67,13 +89,15 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				.getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
 
 		assertThat(folderDisplayConfig.getFormMetadataCodes()).endsWith(
-				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE);
+				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE);
 
 		assertThat(folderDisplayConfig.getDisplayMetadataCodes()).endsWith(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROWED,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_DATE,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_USER_ENTERED,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS);
 
 		//		SchemaDisplayConfig categoryDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
@@ -85,7 +109,6 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
 	public void whenMigratingToCurrentVersionThenHasValueListWithDefaultItems()
 			throws Exception {
 
@@ -94,7 +117,13 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(rm.FI()).isNotNull();
 	}
 
-	@Test
+	public void whenMigratingToCurrentVersionThenConfigHasValidDefaultValue()
+			throws Exception {
+
+		SystemConfigurationsManager manager = getModelLayerFactory().getSystemConfigurationsManager();
+		assertThat(manager.getValue(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT)).isEqualTo(Boolean.FALSE);
+	}
+
 	public void whenMigratingToCurrentVersionThenHasEssentialMetadatas()
 			throws Exception {
 
@@ -108,7 +137,6 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
 	public void whenMigratingToCurrentVersionThenHasRolesWithRightPermissions() {
 		Role userRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.USER);
 		Role managerRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.MANAGER);
@@ -171,7 +199,9 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		if ("givenNewInstallation".equals(testCase)) {
 			givenTransactionLogIsEnabled();
-			givenCollection(zeCollection).withConstellioRMModule();
+			prepareSystem(
+					withZeCollection().withAllTestUsers().withConstellioRMModule()
+			);
 
 		} else {
 

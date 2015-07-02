@@ -51,6 +51,11 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	}
 
 	@Override
+	protected void afterViewAssembled(ViewChangeEvent event) {
+		presenter.viewAssembled();
+	}
+
+	@Override
 	public void setRecord(RecordVO recordVO) {
 		this.recordVO = recordVO;
 	}

@@ -17,13 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
-
-import com.constellio.app.api.extensions.TaxonomyAccessExtension;
-import com.constellio.app.extensions.AppLayerCollectionEventsListeners;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
-import com.constellio.data.frameworks.extensions.ExtensionUtils.BehaviorCaller;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
@@ -41,17 +36,10 @@ public class TaxonomyPresentersService {
 		final Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
 				.getEnabledTaxonomyWithCode(user.getCollection(), taxonomyCode);
 
-		AppLayerCollectionEventsListeners extensions = appLayerFactory.getExtensions()
-				.getCollectionListeners(user.getCollection());
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 		boolean defaultValue = user.has(CorePermissions.MANAGE_TAXONOMIES).globally();
 
-		return getBooleanValue(extensions.taxonomyAccessExtensions, defaultValue,
-				new BehaviorCaller<TaxonomyAccessExtension, ExtensionBooleanResult>() {
-					@Override
-					public ExtensionBooleanResult call(TaxonomyAccessExtension behavior) {
-						return behavior.canManageTaxonomy(user, taxonomy);
-					}
-				});
+		return extensions.canManageTaxonomy(defaultValue, user, taxonomy);
 
 	}
 

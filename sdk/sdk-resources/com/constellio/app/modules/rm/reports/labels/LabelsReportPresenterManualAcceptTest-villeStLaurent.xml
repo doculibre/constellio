@@ -1,0 +1,169 @@
+<labelTemplate>
+    <key>villeStLaurent</key>
+    <name>villeStLaurent</name>
+    <schemaType>folder</schemaType>
+    <layout>AVERY_5159</layout>
+    <columns>60</columns>
+    <lines>7</lines>
+
+    <!-- Line 1  -->
+    <!-- CategoryId   -->
+    <field>
+        <metadataCode>folder_default_category</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>0</x>
+        <y>0</y>
+        <width>20</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>11</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>10</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+    </field>
+
+    <!-- +Vol.:  /   -->
+    <field>
+        <metadataCode></metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>20</x>
+        <y>0</y>
+        <width>20</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>10</maxLength>
+        <horizontalAlignment>CENTER</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+        <prefix xml:space="preserve">Vol.:    /    </prefix>
+    </field>
+
+    <field>
+        <metadataCode>folder_default_id</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>40</x>
+        <y>0</y>
+        <width>20</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>30</maxLength>
+        <horizontalAlignment>RIGHT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+        <prefix xml:space="preserve">Dossier Id.: </prefix>
+    </field>
+
+    <!-- Line 2  -->
+    <!-- Category description  -->
+    <field>
+        <metadataCode>folder_default_category</metadataCode>
+        <referenceMetadataCode>category_default_description</referenceMetadataCode>
+        <x>0</x>
+        <y>1</y>
+        <width>60</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>10</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>100</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+    </field>
+
+    <!-- Line 3, 4 and 5  -->
+    <!-- Folder Id ? -->
+    <field>
+        <metadataCode>folder_default_title</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>0</x>
+        <y>2</y>
+        <width>59</width>
+        <height>3</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>10</fontSize>
+        <bold>true</bold>
+        <italic>false</italic>
+        <maxLength>10000</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+    </field>
+    <field>
+        <metadataCode></metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>59</x>
+        <y>2</y>
+        <width>1</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>10</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>100</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>BOTTOM</verticalAlignment>
+        <prefix xml:space="preserve"> </prefix>
+    </field>
+
+    <!-- Line 6  -->
+
+    <!-- Line 7  -->
+    <!-- administrativeUnit title ? -->
+    <field>
+        <metadataCode>folder_default_administrativeUnitId</metadataCode>
+        <referenceMetadataCode>administrativeUnit_default_title</referenceMetadataCode>
+        <x>0</x>
+        <y>6</y>
+        <width>40</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>80</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+    </field>
+    <!-- open year ? -->
+    <field>
+        <metadataCode>folder_default_openingDate</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>40</x>
+        <y>6</y>
+        <width>15</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>10</maxLength>
+        <horizontalAlignment>RIGHT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+        <pattern>yyyy</pattern>
+        <suffix xml:space="preserve">    à</suffix>
+    </field>
+    <!-- close year ? -->
+    <field>
+        <metadataCode>folder_default_closingDate</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>50</x>
+        <y>6</y>
+        <width>5</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>6</maxLength>
+        <horizontalAlignment>RIGHT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+        <!--<prefix xml:space="preserve">à </prefix>-->
+        <pattern>yyyy</pattern>
+    </field>
+</labelTemplate>

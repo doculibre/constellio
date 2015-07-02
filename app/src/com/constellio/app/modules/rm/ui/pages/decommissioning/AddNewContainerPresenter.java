@@ -29,6 +29,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 
@@ -51,6 +52,9 @@ public class AddNewContainerPresenter extends SingleSchemaBasePresenter<AddNewCo
 	}
 
 	public RecordVO getContainer() {
+		/*Record record = newRecord();
+		ContainerRecord container = rmRecordsServices().wrapContainerRecord(record);
+		container.setCapacity();*/
 		return new RecordToVOBuilder().build(newRecord(), VIEW_MODE.FORM);
 	}
 

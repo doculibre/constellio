@@ -43,6 +43,21 @@ public class OngoingAddMetadatasToSchemas {
 		this.mode = mode;
 	}
 
+	void remove() {
+		transaction.updateAllSchemas(schemaType.getCode(), new SchemaDisplayAlteration() {
+			@Override
+			public SchemaDisplayConfig alter(SchemaDisplayConfig schemaDisplayConfig) {
+				List<String> list = getList(schemaDisplayConfig);
+				List<String> metadataCodes = getMetadataCodesFor(schemaDisplayConfig.getSchemaCode());
+
+				list.removeAll(metadataCodes);
+
+				return withList(schemaDisplayConfig, list);
+			}
+
+		});
+	}
+
 	public void afterMetadata(final String afterMetadata) {
 		transaction.updateAllSchemas(schemaType.getCode(), new SchemaDisplayAlteration() {
 			@Override
@@ -103,6 +118,22 @@ public class OngoingAddMetadatasToSchemas {
 		});
 	}
 
+	public void atFirstPosition() {
+		transaction.updateAllSchemas(schemaType.getCode(), new SchemaDisplayAlteration() {
+			@Override
+			public SchemaDisplayConfig alter(SchemaDisplayConfig schemaDisplayConfig) {
+				List<String> list = getList(schemaDisplayConfig);
+				List<String> metadataCodes = getMetadataCodesFor(schemaDisplayConfig.getSchemaCode());
+
+				list.removeAll(metadataCodes);
+				list.addAll(0, metadataCodes);
+
+				return withList(schemaDisplayConfig, list);
+			}
+
+		});
+	}
+
 	private List<String> getMetadataCodesFor(String schemaCode) {
 		List<String> metadataCodes = new ArrayList<>();
 
@@ -117,7 +148,7 @@ public class OngoingAddMetadatasToSchemas {
 		beforeMetadata("comments");
 	}
 
-	private List<String> getList(SchemaDisplayConfig schemaDisplayConfig) {
+	public List<String> getList(SchemaDisplayConfig schemaDisplayConfig) {
 		switch (mode) {
 
 		case FORM:
@@ -133,7 +164,7 @@ public class OngoingAddMetadatasToSchemas {
 		return null;
 	}
 
-	private SchemaDisplayConfig withList(SchemaDisplayConfig schemaDisplayConfig, List<String> newValue) {
+	public SchemaDisplayConfig withList(SchemaDisplayConfig schemaDisplayConfig, List<String> newValue) {
 		switch (mode) {
 
 		case FORM:

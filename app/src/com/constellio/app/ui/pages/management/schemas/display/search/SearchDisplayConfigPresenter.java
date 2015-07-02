@@ -121,8 +121,8 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 			metadataCode.add(formMetadataVO.getCode());
 		}
 
-		metadataCode.add(schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata(Schemas.TITLE.getCode())
-				.getCode());
+		metadataCode.add(0, schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode())
+				.getMetadata(Schemas.TITLE.getCode()).getCode());
 
 		config = config.withSearchResultsMetadataCodes(metadataCode);
 		manager.saveSchema(config);

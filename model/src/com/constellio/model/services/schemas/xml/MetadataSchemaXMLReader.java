@@ -36,7 +36,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeExcept
 import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -93,9 +92,9 @@ public class MetadataSchemaXMLReader {
 		String codeValue = getCodeValue(metadataElement);
 
 		MetadataBuilder metadataBuilder;
-		try {
+		if (schemaBuilder.hasMetadata(codeValue)) {
 			metadataBuilder = schemaBuilder.get(codeValue);
-		} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
+		} else {
 			metadataBuilder = schemaBuilder.create(codeValue);
 		}
 
@@ -120,6 +119,7 @@ public class MetadataSchemaXMLReader {
 			metadataBuilder.setUndeletable(getBooleanFlagValue(metadataElement, "undeletable"));
 			metadataBuilder.setSystemReserved(getBooleanFlagValue(metadataElement, "systemReserved"));
 			metadataBuilder.setEssential(getBooleanFlagValue(metadataElement, "essential"));
+			metadataBuilder.setWriteNullValues(getBooleanFlagValueWithTrueAsDefaultValue(metadataElement, "writeNullValues"));
 			metadataBuilder.setUnmodifiable(getBooleanFlagValue(metadataElement, "unmodifiable"));
 			metadataBuilder.setSearchable(getBooleanFlagValue(metadataElement, "searchable"));
 			metadataBuilder.setSortable(getBooleanFlagValue(metadataElement, "sortable"));
@@ -286,6 +286,12 @@ public class MetadataSchemaXMLReader {
 		Element childTag = element.getChild(childTagName);
 		String stringValue = childTag == null ? null : childTag.getText();
 		return stringValue != null && Boolean.parseBoolean(stringValue);
+	}
+
+	private boolean getBooleanFlagValueWithTrueAsDefaultValue(Element element, String childTagName) {
+		Element childTag = element.getChild(childTagName);
+		String stringValue = childTag == null ? null : childTag.getText();
+		return stringValue == null || Boolean.parseBoolean(stringValue);
 	}
 
 	private String getStringValue(Element element, String childTagName) {

@@ -24,8 +24,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -33,7 +31,6 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -83,13 +80,13 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		setHeight("450px");
 		setZIndex(null);
 		
-		setCaption($("UpdateContentVersionWindow.title"));
-		
 		mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");
 		
-		titleLabel = new Label($("UpdateContentVersionWindow.title"));
+		String title = $("UpdateContentVersionWindow.newVersionTitle"); 
+		setCaption(title);
+		titleLabel = new Label(title);
 		titleLabel.addStyleName(ValoTheme.LABEL_H1);
 		
 		errorLabel = new Label();
@@ -232,16 +229,6 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	}
 
 	@Override
-	public SessionContext getSessionContext() {
-		return ConstellioUI.getCurrentSessionContext();
-	}
-
-	@Override
-	public ConstellioFactories getConstellioFactories() {
-		return ConstellioFactories.getInstance();
-	}
-
-	@Override
 	public boolean isFormVisible() {
 		return uploadField.isVisible();
 	}
@@ -275,6 +262,14 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	
 	public void open(boolean checkingIn) {
 		this.checkingIn = checkingIn;
+		String updatedTitle;
+		if (checkingIn) {
+			updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
+		} else {
+			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle"); 
+		}
+		setCaption(updatedTitle);
+		titleLabel.setValue(updatedTitle);
 		UI.getCurrent().addWindow(this);
 	}
 

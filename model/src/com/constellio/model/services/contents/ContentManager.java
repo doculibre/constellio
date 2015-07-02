@@ -129,12 +129,17 @@ public class ContentManager implements StatefulService {
 
 	public Content createMajor(User user, String filename, ContentVersionDataSummary newVersion) {
 		String uniqueId = uniqueIdGenerator.next();
-		return ContentImpl.create(uniqueId, user, filename, newVersion, true);
+		return ContentImpl.create(uniqueId, user, filename, newVersion, true, false);
 	}
 
 	public Content createMinor(User user, String filename, ContentVersionDataSummary newVersion) {
 		String uniqueId = uniqueIdGenerator.next();
-		return ContentImpl.create(uniqueId, user, filename, newVersion, false);
+		return ContentImpl.create(uniqueId, user, filename, newVersion, false, false);
+	}
+
+	public Content createEmptyMinor(User user, String filename, ContentVersionDataSummary newVersion) {
+		String uniqueId = uniqueIdGenerator.next();
+		return ContentImpl.create(uniqueId, user, filename, newVersion, false, true);
 	}
 
 	public InputStream getContentInputStream(String id, String streamName)

@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.reports.administration.plan;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
@@ -27,6 +28,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.RetentionPeriod;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportBuilder;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Copy;
@@ -34,20 +38,31 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.Conservat
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportPresenter;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 
 public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
 
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConservationRulesReportPresenter presenter;
 	RMSchemasRecordsServices rm;
+	RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
+		);
+
+		recordServices = getModelLayerFactory().newRecordServices();
 		presenter = new ConservationRulesReportPresenter(zeCollection, getModelLayerFactory());
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 	}
@@ -76,7 +91,11 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 	}
 
 	@Test
-	public void whenBuildingModelByAdministrativeUnitThenGetAppropriateModel() {
+	public void givenNewRetentionRuleInAdministrativeUnitWhenBuildingModelByAdministrativeUnitThenGetAppropriateModel()
+			throws Exception {
+
+		givenNewRetentionRule();
+
 		boolean withAdministrativeUnit = true;
 		presenter = new ConservationRulesReportPresenter(zeCollection, getModelLayerFactory(), withAdministrativeUnit);
 		ConservationRulesReportModel model = presenter.build();
@@ -84,16 +103,15 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 		Map<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> adminUnitRulesMap = model
 				.getRulesByAdministrativeUnitMap();
-		assertThat(adminUnitRulesMap.size()).isEqualTo(3);
+		assertThat(adminUnitRulesMap.size()).isEqualTo(2);
 
-		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).size()).isEqualTo(1);
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).size()).isEqualTo(2);
 		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(0));
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(1).getRuleNumber()).isEqualTo("zeCode");
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(1).getTitle()).isEqualTo("zeTitle");
 
-		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_12")).size()).isEqualTo(1);
-		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_12")).get(0));
-
-		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_30")).size()).isEqualTo(1);
-		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_30")).get(0));
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_20")).size()).isEqualTo(1);
+		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_20")).get(0));
 
 		build(new ConservationRulesReportBuilder(model,
 				getModelLayerFactory().getFoldersLocator()));
@@ -120,7 +138,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		assertThat(principalCopies.size()).isEqualTo(1);
 
 		ConservationRulesReportModel_Copy principalCopy = principalCopies.get(0);
-		assertThat(principalCopy.getActive()).isEqualTo("888");
+		assertThat(principalCopy.getActive()).isEqualTo("42");
 		assertThat(principalCopy.getSemiActive()).isEqualTo("5");
 		assertThat(principalCopy.getInactive()).isEqualTo("C");
 		assertThat(principalCopy.getSupportTypes()).containsOnly("PA", "DM");
@@ -217,10 +235,47 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		assertThat(principalCopy2.getObservations()).isEmpty();
 
 		ConservationRulesReportModel_Copy secondaryCopy = rule4.getSecondaryCopy();
-		assertThat(secondaryCopy.getActive()).isEqualTo("888");
+		assertThat(secondaryCopy.getActive()).isEqualTo("666");
 		assertThat(secondaryCopy.getSemiActive()).isEqualTo("0");
 		assertThat(secondaryCopy.getInactive()).isEqualTo("D");
 		assertThat(secondaryCopy.getSupportTypes()).containsOnly("PA", "DM");
 		assertThat(secondaryCopy.getObservations()).isEqualTo("Semi-actif: comment3");
+	}
+
+	private void givenNewRetentionRule()
+			throws RecordServicesException {
+		VariableRetentionPeriod period42 = rm.newVariableRetentionPeriod().setCode("42").setTitle("Ze 42");
+		VariableRetentionPeriod period666 = rm.newVariableRetentionPeriod().setCode("666").setTitle("Ze 666");
+
+		CopyRetentionRule principal = CopyRetentionRule.newPrincipal(asList("PA"))
+				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
+				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
+				.setInactiveDisposalType(DisposalType.DEPOSIT);
+
+		CopyRetentionRule secondary = CopyRetentionRule.newSecondary(asList("PA"))
+				.setActiveRetentionPeriod(RetentionPeriod.fixed(42))
+				.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(666))
+				.setInactiveDisposalType(DisposalType.DEPOSIT);
+
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		RetentionRule retentionRule = rm.newRetentionRuleWithId("newRetentionRule");
+		retentionRule.setAdministrativeUnits(asList("unitId_10"));
+		retentionRule.setCode("zeCode");
+		retentionRule.setTitle("zeTitle");
+		retentionRule.setCopyRetentionRules(asList(principal, secondary));
+
+		DocumentType documentType1 = rm.newDocumentType();
+		documentType1.setCode("docType1").setTitle("docType1");
+		DocumentType documentType2 = rm.newDocumentType();
+		documentType2.setCode("docType2").setTitle("docType2");
+		recordServices.add(documentType1);
+		recordServices.add(documentType2);
+
+		List<RetentionRuleDocumentType> documentTypes = asList(
+				new RetentionRuleDocumentType(documentType1.getId(), DisposalType.DEPOSIT),
+				new RetentionRuleDocumentType(documentType2.getId(), DisposalType.DESTRUCTION)
+		);
+		retentionRule.setDocumentTypesDetails(documentTypes);
+		recordServices.add(retentionRule);
 	}
 }

@@ -28,4 +28,8 @@ public enum ExtensionBooleanResult {
 	public static ExtensionBooleanResult forceTrueIf(boolean value) {
 		return value ? FORCE_TRUE : FALSE;
 	}
+
+	public static ExtensionBooleanResult falseIf(boolean value) {
+		return value ? FALSE : TRUE;
+	}
 }

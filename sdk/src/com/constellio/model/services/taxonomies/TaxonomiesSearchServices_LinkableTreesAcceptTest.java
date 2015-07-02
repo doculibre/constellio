@@ -67,17 +67,20 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	DecommissioningService decommissioningService;
 	TaxonomiesSearchServices service;
 	RMSchemasRecordsServices rm;
-	RMTestRecords test = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
 		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, false);
 		givenConfig(RMConfigs.LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES, false);
 
-		test.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 		givenRule3IsDisabled();
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -125,48 +128,49 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	@Test
 	public void whenGetListOfTaxonomiesVisibleInHomePageThenReturnOnlyVisiblesInHomePage() {
 
-		String charlesId = test.getCharles_userInA().getId();
-		String heroesId = test.getHeroes().getId();
-		String legendsId = test.getLegends().getId();
+		String charlesId = records.getCharles_userInA().getId();
+		String heroesId = records.getHeroes().getId();
+		String legendsId = records.getLegends().getId();
 
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy storageSpaceTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, RMTaxonomies.STORAGES);
 		Taxonomy planTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, RMTaxonomies.CLASSIFICATION_PLAN);
 		Taxonomy unitsTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, RMTaxonomies.ADMINISTRATIVE_UNITS);
 
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getCharles_userInA()))
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getCharles_userInA()))
 				.containsOnly(planTaxonomy, unitsTaxonomy);
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getAdmin())).containsOnly(planTaxonomy, unitsTaxonomy);
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getAdmin()))
+				.containsOnly(planTaxonomy, unitsTaxonomy);
 
 		//Disable plan taxonomy + enable storage space taxonomy
 		taxonomiesManager.editTaxonomy(planTaxonomy = planTaxonomy.withVisibleInHomeFlag(false));
 		taxonomiesManager.editTaxonomy(storageSpaceTaxonomy = storageSpaceTaxonomy.withVisibleInHomeFlag(true));
 
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getCharles_userInA()))
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getCharles_userInA()))
 				.containsOnly(storageSpaceTaxonomy, unitsTaxonomy);
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getAdmin())).containsOnly(storageSpaceTaxonomy,
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getAdmin())).containsOnly(storageSpaceTaxonomy,
 				unitsTaxonomy);
 
 		//Allow charles to view storage taxonomy
 		taxonomiesManager.editTaxonomy(storageSpaceTaxonomy = storageSpaceTaxonomy.withUserIds(asList(charlesId)));
 
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getCharles_userInA()))
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getCharles_userInA()))
 				.containsOnly(storageSpaceTaxonomy, unitsTaxonomy);
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getAdmin())).containsOnly(unitsTaxonomy);
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getAdmin())).containsOnly(unitsTaxonomy);
 
 		//Allow legends to view storage and units taxonomy
 		taxonomiesManager.editTaxonomy(unitsTaxonomy = unitsTaxonomy.withGroupIds(asList(legendsId)));
 
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getCharles_userInA()))
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getCharles_userInA()))
 				.containsOnly(storageSpaceTaxonomy);
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getAdmin())).isEmpty();
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getAdmin())).isEmpty();
 
 		//Allow heroes to view units taxonomy
 		taxonomiesManager.editTaxonomy(unitsTaxonomy = unitsTaxonomy.withGroupIds(asList(heroesId, legendsId)));
 
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getCharles_userInA()))
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getCharles_userInA()))
 				.containsOnly(storageSpaceTaxonomy, unitsTaxonomy);
-		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(test.getAdmin())).isEmpty();
+		assertThat(taxonomiesManager.getAvailableTaxonomiesInHomePage(records.getAdmin())).isEmpty();
 
 	}
 
@@ -174,21 +178,21 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnSomeFoldersThenValidTreeForFolderSelectionUsingPlanTaxonomy()
 			throws Exception {
 
-		givenUserHasReadAccessTo(test.folder_A18, test.folder_A08);
+		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
 				.hasSize(2)
-				.has(unlinkable(test.categoryId_X, test.categoryId_Z));
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_X)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
 				.hasSize(1)
-				.has(unlinkable(test.categoryId_X100));
+				.has(unlinkable(records.categoryId_X100));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_X100)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)
 				.hasSize(1)
-				.has(linkable(test.folder_A18));
+				.has(linkable(records.folder_A18));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.folder_A18)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A18)
 				.isEmpty();
 
 	}
@@ -197,17 +201,17 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnSomeFoldersThenValidTreeForFolderSelectionUsingUnitsTaxonomy()
 			throws Exception {
 
-		givenUserHasReadAccessTo(test.folder_A18, test.folder_A08);
+		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
 				.hasSize(1)
-				.has(unlinkable(test.unitId_10));
+				.has(unlinkable(records.unitId_10));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.unitId_10)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10)
 				.hasSize(2)
-				.has(linkable(test.folder_A18, test.folder_A08));
+				.has(linkable(records.folder_A18, records.folder_A08));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.folder_A18)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.folder_A18)
 				.isEmpty();
 
 	}
@@ -216,22 +220,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnSomeFoldersThenValidTreeForCategorySelectionUsingPlanTaxonomy()
 			throws Exception {
 
-		givenUserHasReadAccessTo(test.folder_A18, test.folder_A08);
+		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
 				.hasSize(2)
-				.has(linkable(test.categoryId_X))
-				.has(unlinkable(test.categoryId_Z));
+				.has(linkable(records.categoryId_X))
+				.has(unlinkable(records.categoryId_Z));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_X)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
 				.hasSize(2)
-				.has(linkable(test.categoryId_X100, test.categoryId_X13));
+				.has(linkable(records.categoryId_X100, records.categoryId_X13));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_X100)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)
 				.hasSize(2)
-				.has(linkable(test.categoryId_X110, test.categoryId_X120));
+				.has(linkable(records.categoryId_X110, records.categoryId_X120));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_X110)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_X110)
 				.isEmpty();
 
 	}
@@ -240,7 +244,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnSomeFoldersThenEmptyTreeForUnitSelectionUsingUnitTaxonomy()
 			throws Exception {
 
-		givenUserHasReadAccessTo(test.folder_A18, test.folder_A08);
+		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters)
 				.isEmpty();
@@ -251,28 +255,28 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnASubFolderThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
 			throws Exception {
 
-		Folder subFolder = decommissioningService.newSubFolderIn(test.getFolder_A20()).setTitle("Ze sub folder");
+		Folder subFolder = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
 		getModelLayerFactory().newRecordServices().add(subFolder);
 
 		givenUserHasReadAccessTo(subFolder.getId());
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
 				.hasSize(1)
-				.has(unlinkable(test.categoryId_Z));
+				.has(unlinkable(records.categoryId_Z));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_Z)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
 				.hasSize(1)
-				.has(unlinkable(test.categoryId_Z100));
+				.has(unlinkable(records.categoryId_Z100));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_Z100)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
 				.hasSize(1)
-				.has(unlinkable(test.categoryId_Z120));
+				.has(unlinkable(records.categoryId_Z120));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_Z120)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120)
 				.hasSize(1)
-				.has(unlinkable(test.folder_A20));
+				.has(unlinkable(records.folder_A20));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.folder_A20)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20)
 				.hasSize(1)
 				.has(linkable(subFolder.getId()));
 
@@ -285,20 +289,20 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnASubFolderThenValidTreeForFolderSelectionUsingUnitTaxonomy()
 			throws Exception {
 
-		Folder subFolder = decommissioningService.newSubFolderIn(test.getFolder_A20()).setTitle("Ze sub folder");
+		Folder subFolder = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
 		getModelLayerFactory().newRecordServices().add(subFolder);
 
 		givenUserHasReadAccessTo(subFolder.getId());
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
 				.hasSize(1)
-				.has(unlinkable(test.unitId_10));
+				.has(unlinkable(records.unitId_10));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.unitId_10)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10)
 				.hasSize(1)
-				.has(unlinkable(test.folder_A20));
+				.has(unlinkable(records.folder_A20));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.folder_A20)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.folder_A20)
 				.hasSize(1)
 				.has(linkable(subFolder.getId()));
 
@@ -310,26 +314,26 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnAnAdministrativeUnitThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
 			throws Exception {
 
-		givenUserHasReadAccessTo(test.unitId_12);
+		givenUserHasReadAccessTo(records.unitId_12);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
 				.hasSize(1)
-				.has(unlinkable(test.categoryId_X));
+				.has(unlinkable(records.categoryId_X));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_X)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
 				.hasSize(1)
-				.has(unlinkable(test.categoryId_X100));
+				.has(unlinkable(records.categoryId_X100));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_X100)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)
 				.hasSize(5)
-				.has(unlinkable(test.categoryId_X110, test.categoryId_X120))
-				.has(linkable(test.folder_B06, test.folder_B32, test.folder_B52));
+				.has(unlinkable(records.categoryId_X110, records.categoryId_X120))
+				.has(linkable(records.folder_B06, records.folder_B32, records.folder_B52));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_X110)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X110)
 				.hasSize(4)
-				.has(linkable(test.folder_B02, test.folder_B04, test.folder_B30, test.folder_B50));
+				.has(linkable(records.folder_B02, records.folder_B04, records.folder_B30, records.folder_B50));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.folder_B02)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_B02)
 				.isEmpty();
 	}
 
@@ -337,22 +341,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnAnAdministrativeUnitThenValidTreeForFolderSelectionUsingUnitTaxonomy()
 			throws Exception {
 
-		givenUserHasReadAccessTo(test.unitId_12);
+		givenUserHasReadAccessTo(records.unitId_12);
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
 				.hasSize(1)
-				.has(unlinkable(test.unitId_10));
+				.has(unlinkable(records.unitId_10));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.unitId_10)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10)
 				.hasSize(1)
-				.has(unlinkable(test.unitId_12));
+				.has(unlinkable(records.unitId_12));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.unitId_12)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12)
 				.hasSize(10)
-				.has(linkable(test.folder_B02, test.folder_B04, test.folder_B06, test.folder_B08, test.folder_B30,
-						test.folder_B32, test.folder_B34, test.folder_B50, test.folder_B52, test.folder_B54));
+				.has(linkable(records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08, records.folder_B30,
+						records.folder_B32, records.folder_B34, records.folder_B50, records.folder_B52, records.folder_B54));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.folder_B02)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.folder_B02)
 				.isEmpty();
 
 	}
@@ -361,28 +365,28 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnAnAdministrativeUnitThenAllCategoriesTreeVisibleForCategorySelection()
 			throws Exception {
 
-		givenUserHasReadAccessTo(test.unitId_12);
+		givenUserHasReadAccessTo(records.unitId_12);
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
 				.hasSize(2)
-				.has(linkable(test.categoryId_X))
-				.has(unlinkable(test.categoryId_Z));
+				.has(linkable(records.categoryId_X))
+				.has(unlinkable(records.categoryId_Z));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
 				.hasSize(4)
-				.has(unlinkable(test.categoryId_Z100, test.categoryId_Z200))
-				.has(linkable(test.categoryId_ZE42, test.categoryId_Z999));
+				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200))
+				.has(linkable(records.categoryId_ZE42, records.categoryId_Z999));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z100)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
 				.hasSize(2)
-				.has(linkable(test.categoryId_Z110, test.categoryId_Z120));
+				.has(linkable(records.categoryId_Z110, records.categoryId_Z120));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z110)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z110)
 				.hasSize(2)
-				.has(unlinkable(test.categoryId_Z111))
-				.has(linkable(test.categoryId_Z112));
+				.has(unlinkable(records.categoryId_Z111))
+				.has(linkable(records.categoryId_Z112));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z112)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z112)
 				.isEmpty();
 
 	}
@@ -391,17 +395,17 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	public void givenUserHaveAuthorizationsOnAnAdministrativeUnitThenValidTreeForUnitSelectionUsingUnitTaxonomy()
 			throws Exception {
 
-		givenUserHasReadAccessTo(test.unitId_12);
+		givenUserHasReadAccessTo(records.unitId_12);
 
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters)
 				.hasSize(1)
-				.has(unlinkable(test.unitId_10));
+				.has(unlinkable(records.unitId_10));
 
-		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, test.unitId_10)
+		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_10)
 				.hasSize(1)
-				.has(linkable(test.unitId_12));
+				.has(linkable(records.unitId_12));
 
-		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, test.unitId_12)
+		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_12)
 				.isEmpty();
 
 	}
@@ -414,17 +418,17 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
 				.hasSize(2)
-				.has(unlinkable(test.categoryId_X, test.categoryId_Z));
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_X)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
 				.hasSize(1)
-				.has(unlinkable(test.categoryId_X100));
+				.has(unlinkable(records.categoryId_X100));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.categoryId_X100)
-				.has(unlinkable(test.categoryId_X110, test.categoryId_X120))
-				.has(linkable(test.folder_A17, test.folder_A18));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)
+				.has(unlinkable(records.categoryId_X110, records.categoryId_X120))
+				.has(linkable(records.folder_A17, records.folder_A18));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, test.folder_A18)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A18)
 				.isEmpty();
 
 	}
@@ -437,18 +441,18 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
 				.hasSize(2)
-				.has(unlinkable(test.unitId_10, test.unitId_30));
+				.has(unlinkable(records.unitId_10, records.unitId_30));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.unitId_10)
-				.has(unlinkable(test.unitId_11, test.unitId_12))
-				.has(linkable(test.folder_A42, test.folder_A43, test.folder_A44));
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10)
+				.has(unlinkable(records.unitId_11, records.unitId_12))
+				.has(linkable(records.folder_A42, records.folder_A43, records.folder_A44));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.unitId_12)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12)
 				.hasSize(10)
-				.has(linkable(test.folder_B02, test.folder_B04, test.folder_B06, test.folder_B08, test.folder_B30,
-						test.folder_B32, test.folder_B34, test.folder_B50, test.folder_B52, test.folder_B54));
+				.has(linkable(records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08, records.folder_B30,
+						records.folder_B32, records.folder_B34, records.folder_B50, records.folder_B52, records.folder_B54));
 
-		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, test.folder_B02)
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.folder_B02)
 				.isEmpty();
 
 	}
@@ -460,19 +464,19 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
 				.hasSize(2)
-				.has(linkable(test.categoryId_X))
-				.has(unlinkable(test.categoryId_Z));
+				.has(linkable(records.categoryId_X))
+				.has(unlinkable(records.categoryId_Z));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
 				.hasSize(4)
-				.has(unlinkable(test.categoryId_Z100, test.categoryId_Z200))
-				.has(linkable(test.categoryId_ZE42, test.categoryId_Z999));
+				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200))
+				.has(linkable(records.categoryId_ZE42, records.categoryId_Z999));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z100)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
 				.hasSize(2)
-				.has(linkable(test.categoryId_Z110, test.categoryId_Z120));
+				.has(linkable(records.categoryId_Z110, records.categoryId_Z120));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z112)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z112)
 				.isEmpty();
 
 	}
@@ -484,13 +488,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters)
 				.hasSize(3)
-				.has(linkable(test.unitId_10, test.unitId_20, test.unitId_30));
+				.has(linkable(records.unitId_10, records.unitId_20, records.unitId_30));
 
-		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, test.unitId_10)
+		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_10)
 				.hasSize(2)
-				.has(linkable(test.unitId_11, test.unitId_12));
+				.has(linkable(records.unitId_11, records.unitId_12));
 
-		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, test.unitId_12)
+		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_12)
 				.isEmpty();
 
 	}
@@ -506,23 +510,23 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
 				.hasSize(2)
-				.has(unlinkable(test.categoryId_X, test.categoryId_Z));
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
 				.hasSize(4)
-				.has(linkable(test.categoryId_ZE42))
-				.has(unlinkable(test.categoryId_Z100, test.categoryId_Z200, test.categoryId_Z999));
+				.has(linkable(records.categoryId_ZE42))
+				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z100)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
 				.hasSize(2)
-				.has(linkable(test.categoryId_Z110))
-				.has(unlinkable(test.categoryId_Z120));
+				.has(linkable(records.categoryId_Z110))
+				.has(unlinkable(records.categoryId_Z120));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z110)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z110)
 				.hasSize(2)
-				.has(unlinkable(test.categoryId_Z111, test.categoryId_Z112));
+				.has(unlinkable(records.categoryId_Z111, records.categoryId_Z112));
 
-		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, test.categoryId_Z112)
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z112)
 				.isEmpty();
 
 	}
@@ -726,7 +730,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	private void givenRule3IsDisabled() {
-		RetentionRule rule3 = test.getRule3();
+		RetentionRule rule3 = records.getRule3();
 		rule3.setApproved(false);
 		try {
 			getModelLayerFactory().newRecordServices().update(rule3);

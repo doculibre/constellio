@@ -43,6 +43,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
@@ -61,6 +62,7 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -327,6 +329,35 @@ public class RMTestRecords {
 		this.collection = collection;
 	}
 
+	public RMTestRecords alreadySettedUp(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+		UserServices userServices = modelLayerFactory.newUserServices();
+		users.setUp(userServices);
+		alice_userWithNoWriteAccess = users.aliceIn(collection).getId();
+		admin_userIdWithAllAccess = users.adminIn(collection).getId();
+		bob_userInAC = users.bobIn(collection).getId();
+		charles_userInA = users.charlesIn(collection).getId();
+		dakota_managerInA_userInB = users.dakotaIn(collection).getId();
+		edouard_managerInB_userInC = users.edouardIn(collection).getId();
+		gandalf_managerInABC = users.gandalfIn(collection).getId();
+		chuckNorris = users.chuckNorrisIn(collection).getId();
+		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		recordServices = modelLayerFactory.newRecordServices();
+		loggingServices = modelLayerFactory.newLoggingServices();
+		decommissioningLoggingService = new DecommissioningLoggingService(modelLayerFactory);
+		searchServices = modelLayerFactory.newSearchServices();
+		rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
+		contentManager = modelLayerFactory.getContentManager();
+		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+
+		PA = rm.PA();
+		MD = rm.DM();
+		MV = rm.FI();
+		PA_MD = asList(PA, MD);
+
+		return this;
+	}
+
 	public RMTestRecords setup(ModelLayerFactory modelLayerFactory)
 			throws RecordServicesException {
 		this.modelLayerFactory = modelLayerFactory;
@@ -354,7 +385,6 @@ public class RMTestRecords {
 		setupAdministrativeUnits(transaction);
 		setupDocumentTypes(transaction);
 		setupRetentionRules(transaction);
-
 		recordServices.execute(transaction);
 
 		//		setupAuthorizations(modelLayerFactory.newAuthorizationsServices(), modelLayerFactory.getRolesManager());
@@ -570,16 +600,28 @@ public class RMTestRecords {
 	}
 
 	private void setupRetentionRules(Transaction transaction) {
-		CopyRetentionRule principal888_5_C = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "888-5-C");
-		principal888_5_C.setContentTypesComment("R1");
-		principal888_5_C.setActiveRetentionComment("R2");
+
+		VariableRetentionPeriod period42 = rm.newVariableRetentionPeriod().setCode("42").setTitle("Ze 42")
+				.setDescription("Ze ultimate 42");
+		VariableRetentionPeriod period666 = rm.newVariableRetentionPeriod().setCode("666").setTitle("Ze 666")
+				.setDescription("Ze ultimate 666");
+
+		transaction.add(period42);
+		transaction.add(period666);
+
+		CopyRetentionRule principal42_5_C = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "42-5-C");
+		principal42_5_C.setActiveRetentionPeriod(RetentionPeriod.variable(period42));
+		principal42_5_C.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(5));
+		principal42_5_C.setInactiveDisposalType(DisposalType.DEPOSIT);
+		principal42_5_C.setContentTypesComment("R1");
+		principal42_5_C.setActiveRetentionComment("R2");
 		CopyRetentionRule secondary888_0_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
 		secondary888_0_D.setSemiActiveRetentionComment("R3");
 		secondary888_0_D.setInactiveDisposalComment("R4");
 
 		transaction.add(rm.newRetentionRuleWithId(ruleId_1)).setCode("1").setTitle("Rule #1")
 				.setAdministrativeUnits(asList(unitId_10, unitId_20)).setApproved(true)
-				.setCopyRetentionRules(asList(principal888_5_C, secondary888_0_D)).setKeywords(asList("Rule #1"))
+				.setCopyRetentionRules(asList(principal42_5_C, secondary888_0_D)).setKeywords(asList("Rule #1"))
 				.setCorpus("Corpus Rule 1").setDescription("Description Rule 1")
 				.setJuridicReference("Juridic reference Rule 1").setGeneralComment("General Comment Rule 1")
 				.setCopyRulesComment(asList("R1:comment1", "R2:comment2", "R3:comment3", "R4:comment4"))
@@ -609,11 +651,17 @@ public class RMTestRecords {
 						new RetentionRuleDocumentType(documentTypeId_1, DisposalType.DEPOSIT),
 						new RetentionRuleDocumentType(documentTypeId_2, DisposalType.DEPOSIT)));
 
+		CopyRetentionRule secondary666_0_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()));
+		secondary666_0_D.setActiveRetentionPeriod(RetentionPeriod.variable(period666));
+		secondary666_0_D.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(0));
+		secondary666_0_D.setInactiveDisposalType(DisposalType.DESTRUCTION);
+		secondary666_0_D.setSemiActiveRetentionComment("R3");
+		secondary666_0_D.setInactiveDisposalComment("R4");
 		CopyRetentionRule principal_PA_3_888_D = CopyRetentionRule.newPrincipal(asList(rm.PA()), "3-888-D");
 		CopyRetentionRule principal_MD_3_888_C = CopyRetentionRule.newPrincipal(asList(rm.DM()), "3-888-C");
 		transaction.add(rm.newRetentionRuleWithId(ruleId_4)).setCode("4").setTitle("Rule #4")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
-				.setCopyRetentionRules(asList(principal_PA_3_888_D, principal_MD_3_888_C, secondary888_0_D))
+				.setCopyRetentionRules(asList(principal_PA_3_888_D, principal_MD_3_888_C, secondary666_0_D))
 				.setCopyRulesComment(Arrays.asList("R3:comment3")).setDocumentTypesDetails(asList(
 				new RetentionRuleDocumentType(documentTypeId_1),
 				new RetentionRuleDocumentType(documentTypeId_3),
@@ -2055,6 +2103,14 @@ public class RMTestRecords {
 		return rm.getDecommissioningList(list_21);
 	}
 
+	public VariableRetentionPeriod getVariableRetentionPeriod_42() {
+		return rm.getVariableRetentionPeriodWithCode("42");
+	}
+
+	public VariableRetentionPeriod getVariableRetentionPeriod_666() {
+		return rm.getVariableRetentionPeriodWithCode("666");
+	}
+
 	public Folder getFolder_A01() {
 		return rm.getFolder(folder_A01);
 	}
@@ -2492,7 +2548,7 @@ public class RMTestRecords {
 	}
 
 	public Document getDocumentWithContent_A79() {
-		return rm.getDocument(document_A49);
+		return rm.getDocument(document_A79);
 	}
 
 	public Users getUsers() {

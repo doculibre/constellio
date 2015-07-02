@@ -98,16 +98,18 @@ public class EventType {
 	public static final String DELETE_PERMISSION_DOCUMENT = "delete_permission_document";
 
 	//decommissiong
-	public static final String FOLDER_RELOCATION = "Relocate_folder";
+	public static final String DECOMMISSIONING_LIST = "decommissioningList";
 
-	public static final String FOLDER_DEPOSIT = "Deposit_folder";
+	public static final String FOLDER_RELOCATION = "Relocate_folder_" + DECOMMISSIONING_LIST;
 
-	public static final String FOLDER_DESTRUCTION = "destruct_folder";
+	public static final String FOLDER_DEPOSIT = "Deposit_folder_" + DECOMMISSIONING_LIST;
+
+	public static final String FOLDER_DESTRUCTION = "destruct_folder_" + DECOMMISSIONING_LIST;
 
 	public static final String PDF_A_GENERATION = "pdfAGeneration";
 
-	public static final String RECEIVE_FOLDER = "receive_folder";
+	public static final String RECEIVE_FOLDER = "receive_folder_" + DECOMMISSIONING_LIST;
 
-	public static final String RECEIVE_CONTAINER = "receive_containerRecord";
+	public static final String RECEIVE_CONTAINER = "receive_containerRecord" + DECOMMISSIONING_LIST;
 
 }

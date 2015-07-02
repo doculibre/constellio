@@ -41,13 +41,14 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 	@Mock AddEditSchemaRecordView view;
 	AddEditSchemaRecordPresenter presenter;
 
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+		);
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));

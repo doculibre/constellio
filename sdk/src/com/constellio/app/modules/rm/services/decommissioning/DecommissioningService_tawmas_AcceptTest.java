@@ -38,6 +38,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -50,8 +51,10 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
+		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		service = new DecommissioningService(zeCollection, getModelLayerFactory());
@@ -508,8 +511,17 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenListToDestroyThenDocumentsAreDestroyed() {
+	public void givenListToDestroyThenDocumentsContentsAreDestroyed() {
 		service.decommission(records.getList21(), records.getGandalf_managerInABC());
+		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();
+	}
+
+	@Test
+	public void givenListToDestroyThenDocumentsAndTheirContentsAreDestroyed() {
+		getConfigurationManager().setValue(RMConfigs.DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION, true);
+
+		service.decommission(records.getList21(), records.getGandalf_managerInABC());
+		assertThat(records.getDocumentWithContent_A19().get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).isEqualTo(true);
 		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();
 	}
 

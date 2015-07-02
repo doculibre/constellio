@@ -45,7 +45,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 
 	SearchServices searchServices;
 	RMSchemasRecordsServices rm;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
 
@@ -57,12 +57,14 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 	private void prepare()
 			throws Exception {
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus()
+						.withEvents()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
 
 		searchServices = getModelLayerFactory().newSearchServices();
 

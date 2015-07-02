@@ -60,8 +60,10 @@ public class ContentVersionToVOBuilder implements Serializable {
 		Date lastModificationDateTime = jodaLastModificationDateTime != null ? jodaLastModificationDateTime.toDate() : null;
 		String lastModifiedBy = contentVersion.getModifiedBy();
 		InputStreamProvider inputStreamProvider = new ContentInputStreamProvider(hash);
+		String checkouUserId = content.getCheckoutUserId();
+		LocalDateTime checkoutDateTime = content.getCheckoutDateTime();
 		return new ContentVersionVO(contentId, hash, fileName, mimeType, length, version, lastModificationDateTime,
-				lastModifiedBy, inputStreamProvider);
+				lastModifiedBy, checkouUserId, checkoutDateTime, inputStreamProvider);
 	}
 
 	private static class ContentInputStreamProvider implements InputStreamProvider {

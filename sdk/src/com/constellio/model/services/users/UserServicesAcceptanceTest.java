@@ -23,6 +23,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
@@ -33,12 +34,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -64,8 +67,12 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class UserServicesAcceptanceTest extends ConstellioTest {
+
+	LocalDateTime shishOClock = LocalDateTime.now();
 
 	CollectionsManager collectionsManager;
 	UserServices userServices;
@@ -89,6 +96,17 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		withSpiedServices(ModelLayerConfiguration.class);
+		configure(new ModelLayerConfigurationAlteration() {
+			@Override
+			public void alter(ModelLayerConfiguration configuration) {
+				org.joda.time.Duration fourSeconds = org.joda.time.Duration.standardSeconds(4);
+				org.joda.time.Duration oneSecond = org.joda.time.Duration.standardSeconds(1);
+				doReturn(fourSeconds).when(configuration).getTokenDuration();
+				doReturn(oneSecond).when(configuration).getTokenRemovalThreadDelayBetweenChecks();
+			}
+		});
+
 		allCollections = new ArrayList<>();
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 		userServices = getModelLayerFactory().newUserServices();
@@ -641,6 +659,40 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		user = userServices.getUser(user.getUsername());
 		assertThat(user.getTokens()).containsKey(token);
+	}
+
+	@Test
+	@SlowTest
+	public void givenTokenIsGivenToUserThenExpiresAutomatically()
+			throws Exception {
+
+		givenUserAndPassword();
+		String serviceKey = userServices.giveNewServiceToken(user);
+		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
+
+		user = userServices.getUser(user.getUsername());
+		for (int i = 0; i < 2000 && !userServices.getUser(user.getUsername()).getTokens().isEmpty(); i++) {
+			Thread.sleep(50);
+		}
+
+		assertThat(userServices.getUser(user.getUsername()).getTokens()).isEmpty();
+	}
+
+	@Test
+	public void whenGeneratingALotOfTokensOnlyKeepLastFive()
+			throws Exception {
+		givenUserAndPassword();
+
+		for (int i = 0; i < 10; i++) {
+			userServices.generateToken(user.getUsername());
+		}
+		String token1 = userServices.generateToken(user.getUsername());
+		String token2 = userServices.generateToken(user.getUsername());
+		String token3 = userServices.generateToken(user.getUsername());
+		String token4 = userServices.generateToken(user.getUsername());
+		String token5 = userServices.generateToken(user.getUsername());
+
+		assertThat(userServices.getUser(user.getUsername()).getTokensKeys()).containsOnly(token1, token2, token3, token4, token5);
 	}
 
 	@Test(expected = UserServicesRuntimeException_InvalidUserNameOrPassword.class)

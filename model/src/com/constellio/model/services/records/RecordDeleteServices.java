@@ -35,6 +35,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -44,7 +45,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
+import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -165,7 +168,14 @@ public class RecordDeleteServices {
 			LOGGER.info("Not physically deletable : A record in the hierarchy is referenced outside of the hierarchy");
 		}
 
-		return correctStatus && hasPermissions && noActiveRecords && notReferenced;
+		boolean physicallyDeletable = correctStatus && hasPermissions && noActiveRecords && notReferenced;
+
+		if (physicallyDeletable) {
+			RecordPhysicalDeletionValidationEvent event = new RecordPhysicalDeletionValidationEvent(record, user);
+			physicallyDeletable = extensions.forCollectionOf(record).isPhysicallyDeletable(event);
+		}
+
+		return physicallyDeletable;
 	}
 
 	public void physicallyDelete(Record record, User user) {
@@ -186,7 +196,7 @@ public class RecordDeleteServices {
 
 		for (Record hierarchyRecord : records) {
 			RecordPhysicalDeletionEvent event = new RecordPhysicalDeletionEvent(hierarchyRecord);
-			extensions.getCollectionListeners(record.getCollection()).recordsPhysicallyDeletionListeners.notify(event);
+			extensions.forCollectionOf(record).callRecordPhysicallyDeleted(event);
 		}
 	}
 
@@ -202,13 +212,27 @@ public class RecordDeleteServices {
 		return new ContentModificationsBuilder(types);
 	}
 
-	public boolean isLogicallyDeletable(Record record, User user) {
+	public boolean isLogicallyDeletable(final Record record, User user) {
 		ensureSameCollection(user, record);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
-		return !schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchy(user, record);
+		boolean logicallyDeletable =
+				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchy(user, record);
+
+		if (logicallyDeletable) {
+			Factory<Boolean> referenced = new Factory<Boolean>() {
+				@Override
+				public Boolean get() {
+					return !recordDao.getReferencedRecordsInHierarchy(record.getId()).isEmpty();
+				}
+			};
+			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced);
+			logicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
+		}
+
+		return logicallyDeletable;
 	}
 
 	private void removedDefaultValues(String collection, List<Record> records) {

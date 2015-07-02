@@ -17,7 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.extensions.events.records;
 
-import com.constellio.data.frameworks.extensions.VaultEventListener;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.schemas.MetadataList;
 
@@ -49,6 +48,4 @@ public class RecordModificationEvent implements RecordEvent {
 		return false;
 	}
 
-	public interface RecordModificationEventListener extends VaultEventListener<RecordModificationEvent> {
-	}
 }

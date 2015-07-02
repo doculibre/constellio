@@ -22,16 +22,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.api.extensions.SchemaTypeAccessExtension;
-import com.constellio.app.extensions.AppLayerCollectionEventsListeners;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
-import com.constellio.data.frameworks.extensions.ExtensionUtils;
-import com.constellio.data.frameworks.extensions.ExtensionUtils.BehaviorCaller;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -48,7 +44,7 @@ public class SchemaTypeVODataProvider implements Serializable {
 
 	transient List<MetadataSchemaTypeVO> schemaTypes;
 
-	transient AppLayerCollectionEventsListeners extensions;
+	transient AppLayerCollectionExtensions extensions;
 
 	MetadataSchemaTypeToVOBuilder voBuilder;
 	String collection;
@@ -70,7 +66,7 @@ public class SchemaTypeVODataProvider implements Serializable {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
-		extensions = appLayerFactory.getExtensions().getCollectionListeners(collection);
+		extensions = appLayerFactory.getExtensions().forCollection(collection);
 		schemaTypes = listSchemaTypeVO();
 
 	}
@@ -120,13 +116,7 @@ public class SchemaTypeVODataProvider implements Serializable {
 					visible = true;
 				}
 
-				visible = ExtensionUtils.getBooleanValue(extensions.schemaTypeAccessExtensions, visible,
-						new BehaviorCaller<SchemaTypeAccessExtension, ExtensionBooleanResult>() {
-							@Override
-							public ExtensionBooleanResult call(SchemaTypeAccessExtension behavior) {
-								return behavior.isSchemaTypeConfigurable(type);
-							}
-						});
+				visible = extensions.isSchemaTypeConfigurable(visible, type);
 
 				if (visible) {
 					typeVOs.add(voBuilder.build(type));

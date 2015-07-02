@@ -60,6 +60,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private List<String> queryFacets = new ArrayList<>();
 	private List<DataStoreField> fieldFacets = new ArrayList<>();
+	private List<DataStoreField> statisticFields = new ArrayList<>();
 	private int fieldFacetLimit;
 
 	private boolean highlighting = false;
@@ -96,6 +97,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		queryFacets = new ArrayList<>(query.queryFacets);
 		fieldFacets = new ArrayList<>(query.fieldFacets);
+		statisticFields = new ArrayList<>(query.statisticFields);
 		fieldFacetLimit = query.fieldFacetLimit;
 
 		highlighting = query.highlighting;
@@ -133,6 +135,12 @@ public class LogicalSearchQuery implements SearchQuery {
 	@Override
 	public LogicalSearchQuery filteredWithUser(User user) {
 		filterUser = FilterUtils.userReadFilter(user);
+		return this;
+	}
+
+	@Override
+	public LogicalSearchQuery computeStatsOnField(DataStoreField metadata) {
+		this.statisticFields.add(metadata);
 		return this;
 	}
 
@@ -216,6 +224,10 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public List<DataStoreField> getFieldFacets() {
 		return fieldFacets;
+	}
+
+	public List<DataStoreField> getStatisticFields() {
+		return statisticFields;
 	}
 
 	public LogicalSearchQuery addFieldFacet(DataStoreField fieldFacet) {

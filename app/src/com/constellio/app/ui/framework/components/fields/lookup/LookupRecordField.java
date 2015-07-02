@@ -47,7 +47,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 
 public class LookupRecordField extends LookupField<String> {
-
 	private TaxonomyCodeToCaptionConverter captionConverter = new TaxonomyCodeToCaptionConverter();
 
 	public LookupRecordField(String schemaTypeCode) {
@@ -92,8 +91,7 @@ public class LookupRecordField extends LookupField<String> {
 
 	@Override
 	protected String getCaptionForLazyTree(LazyTreeDataProvider<String> lazyTreeDataProvider) {
-		RecordLookupTreeDataProvider lookupTreeDataProvider = (RecordLookupTreeDataProvider) lazyTreeDataProvider;
-		String taxonomyCode = lookupTreeDataProvider.getTaxonomyCode();
+		String taxonomyCode = lazyTreeDataProvider.getTaxonomyCode();
 		return captionConverter.convertToPresentation(taxonomyCode, String.class, getLocale());
 	}
 

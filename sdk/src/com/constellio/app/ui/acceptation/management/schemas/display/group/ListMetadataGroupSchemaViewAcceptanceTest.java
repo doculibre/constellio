@@ -34,7 +34,7 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 @UiTest
 public class ListMetadataGroupSchemaViewAcceptanceTest extends ConstellioTest {
 	MetadataSchemasManager schemasManager;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConstellioWebDriver driver;
 	MetadataGroupSchemaPage page;
 	MetadataSchemaType type;
@@ -42,8 +42,9 @@ public class ListMetadataGroupSchemaViewAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		);
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		type = schemasManager.getSchemaTypes(zeCollection).getSchemaTypes().get(0);

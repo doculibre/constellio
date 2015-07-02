@@ -23,7 +23,6 @@ import java.util.List;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate.SchemaType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldHorizontalAlignment;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldVerticalAlignment;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
@@ -49,6 +48,11 @@ public class LabelTemplateReader {
 	private static final String HORIZONTAL_ALIGMENT_FIELD = "horizontalAlignment";
 	private static final String VERTICAL_ALIGMENT_FIELD = "verticalAlignment";
 	public static final String MAX_LENGTH = "maxLength";
+	public static final String PREFIX = "prefix";
+	public static final String SUFFIX = "suffix";
+	public static final String PATTERN = "pattern";
+	public static final String ITALIC = "italic";
+	public static final String BOLD = "bold";
 
 	Document document;
 
@@ -67,7 +71,7 @@ public class LabelTemplateReader {
 		Element labelTemplateElement = document.getRootElement();
 		String key = labelTemplateElement.getChildText(KEY);
 		String name = labelTemplateElement.getChildText(NAME);
-		SchemaType schemaType = SchemaType.valueOf(labelTemplateElement.getChildText(SCHEMA_TYPE));
+		String schemaType = labelTemplateElement.getChildText(SCHEMA_TYPE);
 		LabelsReportLayout layout = LabelsReportLayout.valueOf(labelTemplateElement.getChildText(LAYOUT));
 		int columns = Integer.valueOf(labelTemplateElement.getChildText(COLUMNS));
 		int lines = Integer.valueOf(labelTemplateElement.getChildText(LINES));
@@ -81,7 +85,9 @@ public class LabelTemplateReader {
 			int width = Integer.valueOf(fieldElement.getChildText(WIDTH_FIELD));
 			int height = Integer.valueOf(fieldElement.getChildText(HEIGHT_FIELD));
 			String fontName = fieldElement.getChildText(FONT_NAME_FIELD);
-			int fontSize = Integer.valueOf(fieldElement.getChildText(FONT_SIZE_FIELD));
+			float fontSize = Float.valueOf(fieldElement.getChildText(FONT_SIZE_FIELD));
+			boolean bold = Boolean.valueOf(fieldElement.getChildText(BOLD));
+			boolean italic = Boolean.valueOf(fieldElement.getChildText(ITALIC));
 			int maxLength = Integer.valueOf(fieldElement.getChildText(MAX_LENGTH));
 			String horizontalAligment = fieldElement.getChildText(HORIZONTAL_ALIGMENT_FIELD);
 			LabelTemplateFieldHorizontalAlignment labelTemplateFieldHorizontalAlignment = LabelTemplateFieldHorizontalAlignment
@@ -89,10 +95,13 @@ public class LabelTemplateReader {
 			String verticalAligment = fieldElement.getChildText(VERTICAL_ALIGMENT_FIELD);
 			LabelTemplateFieldVerticalAlignment labelTemplateFieldVerticalAlignment = LabelTemplateFieldVerticalAlignment
 					.valueOf(verticalAligment);
+			String prefix = fieldElement.getChildText(PREFIX);
+			String suffix = fieldElement.getChildText(SUFFIX);
+			String pattern = fieldElement.getChildText(PATTERN);
 
 			LabelTemplateField labelTemplateField = new LabelTemplateField(metadataCode, referenceMetadataCode, x, y, width,
-					height, fontName, fontSize, maxLength, labelTemplateFieldHorizontalAlignment,
-					labelTemplateFieldVerticalAlignment);
+					height, fontName, fontSize, bold, italic, maxLength, labelTemplateFieldHorizontalAlignment,
+					labelTemplateFieldVerticalAlignment, prefix, suffix, pattern);
 			labelTemplateFields.add(labelTemplateField);
 		}
 		labelTemplate = new LabelTemplate(key, name, layout, schemaType, columns, lines, labelTemplateFields);

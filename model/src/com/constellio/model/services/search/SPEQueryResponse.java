@@ -17,10 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.search;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
@@ -29,6 +26,7 @@ import com.constellio.model.entities.schemas.DataStoreField;
 public class SPEQueryResponse {
 
 	private final Map<DataStoreField, List<FacetValue>> fieldFacetValues;
+	private final Map<DataStoreField, Map<String, Object>> statisticsValues;
 
 	private final Map<String, Integer> queryFacetsValues;
 
@@ -45,6 +43,7 @@ public class SPEQueryResponse {
 
 	public SPEQueryResponse(List<Record> records) {
 		this.fieldFacetValues = new HashMap<>();
+		this.statisticsValues = new HashMap<>();
 		this.queryFacetsValues = new HashMap<>();
 		this.qtime = -1;
 		this.numFound = records.size();
@@ -55,10 +54,11 @@ public class SPEQueryResponse {
 	}
 
 	public SPEQueryResponse(
-			Map<DataStoreField, List<FacetValue>> fieldFacetValues, Map<String, Integer> queryFacetsValues, long qtime,
+			Map<DataStoreField, List<FacetValue>> fieldFacetValues, Map<DataStoreField, Map<String, Object>> statisticsValues, Map<String, Integer> queryFacetsValues, long qtime,
 			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
 			List<String> spellcheckerSuggestions) {
 		this.fieldFacetValues = fieldFacetValues;
+		this.statisticsValues = statisticsValues;
 		this.queryFacetsValues = queryFacetsValues;
 		this.qtime = qtime;
 		this.numFound = numFound;
@@ -70,6 +70,10 @@ public class SPEQueryResponse {
 
 	public List<FacetValue> getFieldFacetValues(DataStoreField metadata) {
 		return getFieldFacetValues(metadata);
+	}
+
+	public Map<String, Object> getStatValues(DataStoreField metadata) {
+		return this.statisticsValues.get(metadata);
 	}
 
 	public Integer getQueryFacetCount(String query) {
@@ -109,12 +113,12 @@ public class SPEQueryResponse {
 	}
 
 	public SPEQueryResponse withModifiedRecordList(List<Record> records) {
-		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelt,
+		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelt,
 				spellcheckerSuggestions);
 	}
 
 	public SPEQueryResponse withNumFound(int numFound) {
-		return new SPEQueryResponse(fieldFacetValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelt,
+		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelt,
 				spellcheckerSuggestions);
 	}
 

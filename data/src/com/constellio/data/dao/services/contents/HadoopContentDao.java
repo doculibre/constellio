@@ -113,6 +113,11 @@ public class HadoopContentDao implements StatefulService, ContentDao {
 	}
 
 	@Override
+	public boolean isFolderExisting(String folderId) {
+		return false;
+	}
+
+	@Override
 	public long getContentLength(String vaultContentId) {
 		throw new UnsupportedOperationException("getContentLength is not yet supported for HadoopContentDao");
 	}

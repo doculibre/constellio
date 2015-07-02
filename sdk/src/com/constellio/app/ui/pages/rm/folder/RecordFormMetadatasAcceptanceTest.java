@@ -85,7 +85,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices rm;
 
 	String classificationFinder = "X100";
@@ -106,10 +106,13 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		createValueListAndTaxonomyWithRecords();
@@ -118,8 +121,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	// --------------------------------------------------------------------------------------------------------
 	// Record Form
 
-	// @Test
-	// TODO Vincent
+	//TODO Vincent
+	//@Test
 	public void givenCheckboxesMetadataReferencingAnAdministrativeUnitThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -132,9 +135,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		});
 
 		navigateToAddFolderFormLoggedAs(admin);
-		waitUntilICloseTheBrowsers();
 
-		// TODO Sacha
+		//TODO To be continued...
 	}
 
 	@Test
@@ -189,8 +191,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO Vincent
-	// @Test
+	//TODO Vincent
+	//@Test
 	public void givenCheckboxesMetadataReferencingSomeTaxonomyThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -205,11 +207,11 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		navigateToAddFolderFormLoggedAs(admin);
 		waitUntilICloseTheBrowsers();
 
-		// TODO Sacha
+		//TODO continue
 	}
 
-	// TODO : Vincent Modify doesn't work
-	// @Test
+	//TODO Vincent
+	//@Test
 	public void givenLookupMetadataReferencingSomeUserUnitThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -239,35 +241,35 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		waitUntilICloseTheBrowsers();
 
-		// assertThatMetadata1().doesNotContain("Gandalf").contains("Bob");
-		// assertThatMetadata2().doesNotContain("Chuck").contains("Dakota");
-		//
-		// // Delete
-		// navigateToEditFolder(getFolderId());
-		// zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
-		// zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		assertThatMetadata1().doesNotContain("Gandalf").contains("Bob");
+		assertThatMetadata2().doesNotContain("Chuck").contains("Dakota");
 
-		// assertThatMetadata1().doesNotContain("Gandalf").contains("Bob");
-		// assertThatMetadata2().doesNotContain("Chuck").contains("Dakota");
-		//
-		// // Delete
-		// navigateToEditFolder(getFolderId());
-		// zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
-		// zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		// Delete
+		navigateToEditFolder(getFolderId());
+		zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
+		zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThatMetadatasNotVisibleInFolderDetails();
+
+		hideMetadatasAndAssertThatNotVisible();
+
+		assertThatMetadata1().doesNotContain("Gandalf").contains("Bob");
+		assertThatMetadata2().doesNotContain("Chuck").contains("Dakota");
+
+		// Delete
+		navigateToEditFolder(getFolderId());
+		zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
+		zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThatMetadatasNotVisibleInFolderDetails();
+
+		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO : Vincent Modify doesn't work
-	// @Test
+	//TODO Vincent
+	//@Test
 	public void givenLookupMetadataReferencingSomeTaxonomyThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -297,35 +299,35 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		waitUntilICloseTheBrowsers();
 
-		// assertThatMetadata1().doesNotContain("Sprint retrospective").contains("Burndown chart");
-		// assertThatMetadata2().doesNotContain("Sprint review").contains("Sprint retrospective");
-		//
-		// // Delete
-		// navigateToEditFolder(getFolderId());
-		// zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
-		// zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		assertThatMetadata1().doesNotContain("Sprint retrospective").contains("Burndown chart");
+		assertThatMetadata2().doesNotContain("Sprint review").contains("Sprint retrospective");
 
-		// assertThatMetadata1().doesNotContain("Sprint retrospective").contains("Burndown chart");
-		// assertThatMetadata2().doesNotContain("Sprint review").contains("Sprint retrospective");
-		//
-		// // Delete
-		// navigateToEditFolder(getFolderId());
-		// zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
-		// zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		// Delete
+		navigateToEditFolder(getFolderId());
+		zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
+		zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThatMetadatasNotVisibleInFolderDetails();
+
+		hideMetadatasAndAssertThatNotVisible();
+
+		assertThatMetadata1().doesNotContain("Sprint retrospective").contains("Burndown chart");
+		assertThatMetadata2().doesNotContain("Sprint review").contains("Sprint retrospective");
+
+		// Delete
+		navigateToEditFolder(getFolderId());
+		zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
+		zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThatMetadatasNotVisibleInFolderDetails();
+
+		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO : Vincent Modify doesn't work
-	// @Test
+	//TODO Vincent
+	//@Test
 	public void givenLookupMetadataReferencingSomeValueListThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -355,31 +357,31 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		waitUntilICloseTheBrowsers();
 
-		// assertThatMetadata1().doesNotContain("Red").contains("Blue");
-		// assertThatMetadata2().doesNotContain("Red").contains("Green");
-		//
-		// // Delete
-		// navigateToEditFolder(getFolderId());
-		// zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
-		// zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		assertThatMetadata1().doesNotContain("Red").contains("Blue");
+		assertThatMetadata2().doesNotContain("Red").contains("Green");
 
-		// assertThatMetadata1().doesNotContain("Red").contains("Blue");
-		// assertThatMetadata2().doesNotContain("Red").contains("Green");
-		//
-		// // Delete
-		// navigateToEditFolder(getFolderId());
-		// zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
-		// zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		// Delete
+		navigateToEditFolder(getFolderId());
+		zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
+		zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThatMetadatasNotVisibleInFolderDetails();
+
+		hideMetadatasAndAssertThatNotVisible();
+
+		assertThatMetadata1().doesNotContain("Red").contains("Blue");
+		assertThatMetadata2().doesNotContain("Red").contains("Green");
+
+		// Delete
+		navigateToEditFolder(getFolderId());
+		zeForm.getListAddRemoveLookupWebElement(METADATA1_FINDER).remove(0);
+		zeForm.getListAddRemoveLookupWebElement(METADATA2_FINDER).remove(0);
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThatMetadatasNotVisibleInFolderDetails();
+
+		hideMetadatasAndAssertThatNotVisible();
 	}
 
 	@Test
@@ -424,8 +426,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO : Vincent
-	// @Test
+	//TODO Vincent
+	//@Test
 	public void givenDropDownMetadataReferencingSomeTaxonomyThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -440,29 +442,29 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		// Create
 		navigateToAddFolderFormLoggedAs(admin);
 
-		// zeForm.getListAddRemoveDropDownWebElement(METADATA1_FINDER).add("Sprint retrospective");
-		// zeForm.getListAddRemoveDropDownWebElement(METADATA2_FINDER).add("Sprint review");
-		// completeRequiredField();
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadata1().contains("retrospective");
-		// assertThatMetadata2().contains("review");
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		zeForm.getListAddRemoveDropDownWebElement(METADATA1_FINDER).add("Sprint retrospective");
+		zeForm.getListAddRemoveDropDownWebElement(METADATA2_FINDER).add("Sprint review");
+		completeRequiredField();
+		zeForm.clickSaveButtonAndWaitForPageReload();
 
-		// zeForm.getListAddRemoveDropDownWebElement(METADATA1_FINDER).add("Sprint retrospective");
-		// zeForm.getListAddRemoveDropDownWebElement(METADATA2_FINDER).add("Sprint review");
-		// completeRequiredField();
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadata1().contains("retrospective");
-		// assertThatMetadata2().contains("review");
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		assertThatMetadata1().contains("retrospective");
+		assertThatMetadata2().contains("review");
+
+		hideMetadatasAndAssertThatNotVisible();
+
+		zeForm.getListAddRemoveDropDownWebElement(METADATA1_FINDER).add("Sprint retrospective");
+		zeForm.getListAddRemoveDropDownWebElement(METADATA2_FINDER).add("Sprint review");
+		completeRequiredField();
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThatMetadata1().contains("retrospective");
+		assertThatMetadata2().contains("review");
+
+		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	@InDevelopmentTest
-	@Test
+	//TODO Vincent
+	//@Test
 	public void givenDropDownMetadataReferencingSomeValueListThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -546,8 +548,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO : Vincent
-	// @Test
+	//TODO Vincent
+	//@Test
 	public void givenDropDownMetadataReferencingOneTaxonomyThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -562,25 +564,25 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		// Create
 		navigateToAddFolderFormLoggedAs(admin);
 
-		// zeForm.getDropDown(METADATA1_FINDER).selectItemContainingText("Burndown");
-		// zeForm.getDropDown(METADATA2_FINDER).selectItemContainingText("Review");
-		// completeRequiredField();
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadata1().contains("Burndown chart");
-		// assertThatMetadata2().contains("Sprint review");
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		zeForm.getDropDown(METADATA1_FINDER).selectItemContainingText("Burndown");
+		zeForm.getDropDown(METADATA2_FINDER).selectItemContainingText("Review");
+		completeRequiredField();
+		zeForm.clickSaveButtonAndWaitForPageReload();
 
-		// zeForm.getDropDown(METADATA1_FINDER).selectItemContainingText("Burndown");
-		// zeForm.getDropDown(METADATA2_FINDER).selectItemContainingText("Review");
-		// completeRequiredField();
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadata1().contains("Burndown chart");
-		// assertThatMetadata2().contains("Sprint review");
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		assertThatMetadata1().contains("Burndown chart");
+		assertThatMetadata2().contains("Sprint review");
+
+		hideMetadatasAndAssertThatNotVisible();
+
+		zeForm.getDropDown(METADATA1_FINDER).selectItemContainingText("Burndown");
+		zeForm.getDropDown(METADATA2_FINDER).selectItemContainingText("Review");
+		completeRequiredField();
+		zeForm.clickSaveButtonAndWaitForPageReload();
+
+		assertThatMetadata1().contains("Burndown chart");
+		assertThatMetadata2().contains("Sprint review");
+
+		hideMetadatasAndAssertThatNotVisible();
 	}
 
 	@Test
@@ -752,8 +754,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	@Test
-	@InDevelopmentTest
+	//TODO Vincent
+	//@Test
 	public void givenRadioButtonMetadataReferencingOneUserUnitThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.RADIO_BUTTONS, new MetadataBuilderConfigurator() {
@@ -780,8 +782,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO : Vincent
-	// @Test
+	//TODO Vincent
+	//@Test
 	public void givenRadioButtonMetadataReferencingOneTaxonomyThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.RADIO_BUTTONS, new MetadataBuilderConfigurator() {
@@ -796,7 +798,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		createFolderWithCheckboxMetadata();
 		waitUntilICloseTheBrowsers();
 
-		// TODO Sacha
+		//TODO continue the test
 	}
 
 	@Test
@@ -959,8 +961,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO : Tommaso (deleting Metadata impossible)
-	// @Test
+	//TODO Vincent
+	//@Test
 	public void givenFieldMetadataNumbersMultivaluesThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -996,17 +998,16 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		deleteMetadata(zeForm.getListAddRemoveTextField(METADATA2_FINDER));
 		zeForm.clickSaveButtonAndWaitForPageReload();
 
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		assertThatMetadatasNotVisibleInFolderDetails();
 
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		hideMetadatasAndAssertThatNotVisible();
+
+		assertThatMetadatasNotVisibleInFolderDetails();
+
+		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO : Tommaso Delete really weird !
-	// @Test
+	@Test
 	public void givenFieldMetadataNumberThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1042,13 +1043,13 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		zeForm.getTextField(METADATA2_FINDER).clear();
 		zeForm.clickSaveButtonAndWaitForPageReload();
 
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		assertThatMetadatasNotVisibleInFolderDetails();
 
-		// assertThatMetadatasNotVisibleInFolderDetails();
-		//
-		// hideMetadatasAndAssertThatNotVisible();
+		hideMetadatasAndAssertThatNotVisible();
+
+		assertThatMetadatasNotVisibleInFolderDetails();
+
+		hideMetadatasAndAssertThatNotVisible();
 	}
 
 	@Test
@@ -1133,8 +1134,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO Vincent doesn't work with PhantomJS
-	// @Test
+	@Test
+	//TODO Maxime : Décommenter ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenRichTextMetadataTextMultivaluesThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.RICHTEXT, new MetadataBuilderConfigurator() {
@@ -1257,8 +1259,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO Vincent doesn't work with PhantomJS
-	// @Test
+	@Test
+	//TODO Maxime : Décommenter ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenRichTextMetadataTextThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.RICHTEXT, new MetadataBuilderConfigurator() {
@@ -1382,11 +1385,11 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		hideMetadatasAndAssertThatNotVisible();
 	}
 
-	// TODO Vincent : Modify doesn't work
-	// @Test
-	// @InDevelopmentTest
+	@Test
 	public void givenTextFieldMetadataDatetimeMultivaluesThenOK()
-			throws Exception {
+			throws Exception
+
+	{
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
 
 			@Override
@@ -1407,18 +1410,14 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		// Modify
 		navigateToEditFolder(getFolderId());
-		waitUntilICloseTheBrowsers();
 
-		// zeForm.getListAddRemoveDateTimeFieldWebElement(METADATA1_FINDER).modifyTo(anOtherDateTime);
-		// zeForm.getListAddRemoveDateTimeFieldWebElement(METADATA2_FINDER).modifyTo(aDateTime);
+		zeForm.getListAddRemoveDateTimeFieldWebElement(METADATA1_FINDER).modify(0, anOtherDateTime);
+		zeForm.getListAddRemoveDateTimeFieldWebElement(METADATA2_FINDER).modify(0, aDateTime);
 
-		// zeForm.getListAddRemoveTextField(METADATA1_FINDER).modifyTo(0, "2000-03-23 15:00:00");
-		// zeForm.getListAddRemoveTextField(METADATA2_FINDER).modifyTo(0, "1990-10-22 15:00:00");
+		zeForm.clickSaveButtonAndWaitForPageReload();
 
-		// zeForm.clickSaveButtonAndWaitForPageReload();
-		//
-		// assertThatMetadata1().doesNotContain("2015").contains("2005");
-		// assertThatMetadata2().doesNotContain("2005").contains("2015");
+		assertThatMetadata1().doesNotContain("2015").contains("2005");
+		assertThatMetadata2().doesNotContain("2005").contains("2015");
 	}
 
 	@Test
@@ -1573,6 +1572,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	// Batch Processing
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1593,6 +1594,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1613,6 +1616,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1633,6 +1638,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1653,6 +1660,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1673,6 +1682,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1693,6 +1704,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateTimeWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1713,6 +1726,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateTimeWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1733,6 +1748,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateTimeWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1753,6 +1770,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateTimeMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1773,6 +1792,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateTimeMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1793,6 +1814,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataDateTimeMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1813,6 +1836,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataStringWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1833,6 +1858,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataStringWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1853,6 +1880,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataStringWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1873,6 +1902,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataStringMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1893,6 +1924,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataStringMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1913,6 +1946,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataStringMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1933,6 +1968,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenTextAreaMetadataTextWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1953,6 +1990,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenTextAreaMetadataTextWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.TEXTAREA, new MetadataBuilderConfigurator() {
@@ -1973,6 +2012,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenTextAreaMetadataTextWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -1992,8 +2033,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("a Value");
 	}
 
-	// TODO Vincent : doesn't work with PhantomJS
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenRichTextMetadataTextWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.RICHTEXT, new MetadataBuilderConfigurator() {
@@ -2013,8 +2055,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1().contains("a Value");
 	}
 
-	// TODO Vincent : doesn't work with PhantomJS
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenRichTextMetadataTextWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.RICHTEXT, new MetadataBuilderConfigurator() {
@@ -2034,8 +2077,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InContainer().contains("a Value");
 	}
 
-	// TODO Vincent : doesn't work with PhantomJS
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenRichTextMetadataTextWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.RICHTEXT, new MetadataBuilderConfigurator() {
@@ -2056,6 +2100,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataTextAreaMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.TEXTAREA, new MetadataBuilderConfigurator() {
@@ -2076,6 +2122,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataTextAreaMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.TEXTAREA, new MetadataBuilderConfigurator() {
@@ -2096,6 +2144,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataTextAreaMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.TEXTAREA, new MetadataBuilderConfigurator() {
@@ -2115,8 +2165,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("a Value");
 	}
 
-	// TODO Vincent : doesn't work with PhantomJS
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenRichTextMetadataTextMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.RICHTEXT, new MetadataBuilderConfigurator() {
@@ -2136,8 +2187,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1().contains("a Value");
 	}
 
-	// TODO Vincent : doesn't work with PhantomJS
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenRichTextMetadataTextMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.RICHTEXT, new MetadataBuilderConfigurator() {
@@ -2157,8 +2209,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InContainer().contains("a Value");
 	}
 
-	// TODO Vincent : doesn't work with PhantomJS
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenRichTextMetadataTextMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.RICHTEXT, new MetadataBuilderConfigurator() {
@@ -2178,8 +2231,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("a Value");
 	}
 
-	// TODO Tommaso : PhantomJA need a "," and Firefox need a "."
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataNumberWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -2199,8 +2253,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1().contains("3.14");
 	}
 
-	// TODO Tommaso : PhantomJA need a "," and Firefox need a "."
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataNumberWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -2221,8 +2276,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		// assertThatMetadata1InContainer().contains("3.14");
 	}
 
-	// TODO Tommaso : Same problem as before
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataNumberWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -2242,8 +2298,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("3.14");
 	}
 
-	// TODO Tommaso : Same problem as before
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataNumberMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -2263,8 +2320,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1().contains("3.14");
 	}
 
-	// TODO Tommaso : Same problem as before
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataNumberMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -2284,8 +2342,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InContainer().contains("3.14");
 	}
 
-	// TODO Tommaso : Same problem as before
-	// @Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenFieldMetadataNumberMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
@@ -2305,8 +2364,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("3.14");
 	}
 
-	//TODO Vincent : doesn't work 
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingATaxonomyWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2327,8 +2387,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1().contains("Daily scrum");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingATaxonomyWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2349,8 +2410,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InContainer().contains("Daily scrum");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingATaxonomyWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2372,6 +2434,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingATaxonomyWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2393,6 +2457,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingATaxonomyWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2414,6 +2480,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingATaxonomyWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2434,8 +2502,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("Daily scrum");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingATaxonomyMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2456,8 +2525,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1().contains("Daily scrum");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingATaxonomyMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2478,8 +2548,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InContainer().contains("Daily scrum");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingATaxonomyMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2500,8 +2571,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("Daily scrum");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingATaxonomyMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -2522,8 +2594,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		//assertThatMetadata1() contains the right value
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingATaxonomyMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -2544,8 +2617,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		//assertThatMetadata1InContainer() contains the right value
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingATaxonomyMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -2567,6 +2641,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingATaxonomymMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2588,6 +2664,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingATaxonomyMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2609,6 +2687,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingATaxonomyMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2630,6 +2710,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingUsersWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2651,6 +2733,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingUsersWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2672,6 +2756,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingUsersWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2693,6 +2779,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingUsersWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2714,6 +2802,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingUsersWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2735,6 +2825,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingUsersWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2756,6 +2848,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingUsersMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2777,6 +2871,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingUsersMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2798,6 +2894,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingUsersMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2819,6 +2917,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingUsersMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -2840,6 +2940,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingUsersMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -2861,6 +2963,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingUsersMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -2882,6 +2986,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingUsersMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2903,6 +3009,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingUsersMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2924,6 +3032,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingUsersMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -2944,8 +3054,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("Dakota");
 	}
 
-	//TODO Vincent : doesn't work 
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingAdministrativeUnitWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2966,8 +3077,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1().contains("12");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingAdministrativeUnitWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -2988,8 +3100,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InContainer().contains("12");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingAdministrativeUnitWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -3011,6 +3124,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingAdministrativeUnitWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -3032,6 +3147,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingAdministrativeUnitWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -3053,6 +3170,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingAdministrativeUnitWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -3073,8 +3192,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("12");
 	}
 
-	//TODO Vincent : NOT SUPPORTED
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingAdministrativeUnitMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -3095,8 +3215,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1().contains("12");
 	}
 
-	//TODO Vincent : NOT SUPPORTED
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingAdministrativeUnitMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -3117,8 +3238,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InContainer().contains("12");
 	}
 
-	//TODO Vincent : NOT SUPPORTED
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenDropDownMetadataReferencingAdministrativeUnitMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.DROPDOWN, new MetadataBuilderConfigurator() {
@@ -3139,8 +3261,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		assertThatMetadata1InDocument().contains("12");
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingAdministrativeUnitMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -3161,8 +3284,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		//assertThatMetadata1() contains the right value
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingAdministrativeUnitMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -3183,8 +3307,9 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		//assertThatMetadata1InContainer() contains the right value
 	}
 
-	//TODO Vincent : doesn't work
-	//@Test
+	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenCheckboxMetadataReferencingAdministrativeUnitMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -3206,6 +3331,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingAdministrativeUnitMultivaluesWithFolderBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -3227,6 +3354,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingAdministrativeUnitMultivaluesWithContainerBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultContainerSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {
@@ -3248,6 +3377,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	//TODO Maxime : Activer ce test lorsque firefox installé sur le serveur d'intégration
+	@InDevelopmentTest
 	public void givenLookupMetadataReferencingAdministrativeUnitMultivaluesWithDocumentBatchProcessingThenOK()
 			throws Exception {
 		updateDefaultDocumentSchema(MetadataInputType.LOOKUP, new MetadataBuilderConfigurator() {

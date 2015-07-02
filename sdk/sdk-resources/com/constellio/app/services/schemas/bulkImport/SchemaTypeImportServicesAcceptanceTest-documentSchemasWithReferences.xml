@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<type codePrefix="document">
+    <schema code="ref">
+        <description>Ref</description>
+        <metadataList multivalue="true" type="structure">
+            <element localCode="mdRefFolder" label="ref folder" required="true" type="reference" reference="folder"/>
+            <element localCode="mdRefTaxo" label="ref taxo" required="true" type="reference" reference="taxoDomaineHierarchiqueType"/>
+        </metadataList>
+    </schema>
+</type>

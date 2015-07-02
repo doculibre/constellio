@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,6 +155,8 @@ public class ConservationRulesReportPresenter {
 		MetadataSchemaType administrativeUnitSchemaType = rm.administrativeUnitSchemaType();
 		Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = new HashMap<>();
 
+		MetadataSchemaType retentionRuleSchemaType = rm.retentionRuleSchemaType();
+
 		LogicalSearchQuery alladministrativesUnits = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(administrativeUnitSchemaType).returnAll())
 				.sortAsc(Schemas.CODE);
@@ -164,8 +167,15 @@ public class ConservationRulesReportPresenter {
 		if (administrativeUnits != null) {
 			for (AdministrativeUnit administrativeUnit : administrativeUnits) {
 				List<RetentionRule> newRetentionRules = new ArrayList<>();
-				List<RetentionRule> retentionRules = decommissioningService
-						.getRetentionRulesForAdministrativeUnit(administrativeUnit.getId());
+
+				LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
+						.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
+								.where(rm.retentionRuleAdministrativeUnitsId())
+								.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
+
+				List<RetentionRule> retentionRules = rm.wrapRetentionRules(searchServices
+						.search(retentionRulesQuery));
+
 				for (RetentionRule retentionRule : retentionRules) {
 					if (!retentionRule.isResponsibleAdministrativeUnits()) {
 						newRetentionRules.add(retentionRule);

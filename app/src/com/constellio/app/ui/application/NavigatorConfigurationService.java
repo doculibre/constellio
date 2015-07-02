@@ -21,10 +21,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
+import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrativeUnitViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.containers.edit.EditContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.AddExistingContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.AddNewContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
@@ -36,14 +39,13 @@ import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.RecordsManagementViewImpl;
-import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
-import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
 import com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.AddEditRetentionRuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.DisplayRetentionRuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.ListRetentionRulesViewImpl;
+import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
@@ -55,6 +57,10 @@ import com.constellio.app.ui.pages.events.EventViewImpl;
 import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.DisplayGlobalGroupViewImpl;
 import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
+import com.constellio.app.ui.pages.imports.ExportViewImpl;
+import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportSchemaTypesFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.app.ui.pages.management.authorizations.ListContentAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAuthorizationsViewImpl;
@@ -88,7 +94,6 @@ import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
-import com.constellio.app.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.Navigator.ClassBasedViewProvider;
 import com.vaadin.navigator.View;
@@ -168,6 +173,11 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LDAP_CONFIG_MANAGEMENT = "ldapConfigManagement";
 	public static final String IMPORT_FILE = "importFile";
 	public static final String IMPORT_USERS = "importUsers";
+	public static final String EDIT_CONTAINER = "editContainer";
+	public static final String IMPORT_SCHEMA_TYPES = "importSchemaTypes";
+	public static final String AGENT_SETUP = "agentSetup";
+	public static final String LIST_AGENT_LOGS = "listAgentLogs";
+	public static final String EXPORTER = "export";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -231,6 +241,7 @@ public class NavigatorConfigurationService implements Serializable {
 				.add(new ClassBasedViewProvider(DISPLAY_FILING_SPACE_WITH_CONTAINERS, ContainersInFilingSpaceViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_CONTAINER, DisplayContainerViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(PERMISSION_MANAGEMENT, PermissionsManagementViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EXPORTER, ExportViewImpl.class));
 
 		// TODO Use generic system to configure
 		viewProviders.add(new ClassBasedViewProvider(ADMIN_MODULE, AdminRMModuleViewImpl.class));
@@ -265,6 +276,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_FILE, ImportFileViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_USERS, ImportUsersFileViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(IMPORT_SCHEMA_TYPES, ImportSchemaTypesFileViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_MANAGEMENT, CollectionManagementViewImpl.class));
@@ -272,6 +284,9 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(MODIFY_PROFILE, ModifyProfileViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(UPDATE_MANAGER, UpdateManagerViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_CONTAINER, EditContainerViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(AGENT_SETUP, AgentSetupViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_AGENT_LOGS, ListAgentLogsViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

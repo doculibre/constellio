@@ -124,13 +124,13 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value1")
 				.hasMetadataValue(zeSchema.metadata("calculatedMetadata"), "value2");
 
-		reindexingServices.reindexCollections(ReindexationMode.REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
 
 		assertThatRecord(withId("000666"))
 				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value1")
 				.hasMetadataValue(zeSchema.metadata("calculatedMetadata"), "value2");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 
 		assertThatRecord(withId("000666"))
 				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value3")
@@ -160,7 +160,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 		assertNoActiveIndexForRecord("000042");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertNoActiveIndexForRecord("000042");
 
@@ -184,7 +184,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 		assertNoActiveIndexForRecord("000666");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertNoActiveIndexForRecord("000666");
 
@@ -226,13 +226,13 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value1")
 				.hasMetadataValue(zeSchema.metadata("calculatedMetadata"), "value2");
 
-		reindexingServices.reindexCollections(ReindexationMode.REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
 
 		assertThatRecord(withId("000042"))
 				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value1")
 				.hasMetadataValue(zeSchema.metadata("calculatedMetadata"), "value2");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 
 		assertThatRecord(withId("000042"))
 				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value3")
@@ -273,14 +273,14 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		assertNoCounterIndexForRecord("000042");
 		assertNoCounterIndexForRecord("000666");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 
 		assertNoActiveIndexForRecord("000042");
 		assertNoActiveIndexForRecord("000666");
 		assertNoCounterIndexForRecord("000042");
 		assertNoCounterIndexForRecord("000666");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertActiveIndexForRecord("000042");
 		assertActiveIndexForRecord("000666");
@@ -317,14 +317,14 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		assertNoCounterIndexForRecord("000666");
 		assertNoCounterIndexForRecord("000042");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 
 		assertNoActiveIndexForRecord("000666");
 		assertNoActiveIndexForRecord("000042");
 		assertNoCounterIndexForRecord("000666");
 		assertNoCounterIndexForRecord("000042");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertActiveIndexForRecord("000666");
 		assertActiveIndexForRecord("000042");
@@ -359,14 +359,14 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		assertCounterIndexForRecordWithValue("000666", 42);
 		assertCounterIndexForRecordWithValue("000042", 666);
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 
 		assertActiveIndexForRecord("000666");
 		assertActiveIndexForRecord("000042");
 		assertCounterIndexForRecordWithValue("000666", 42);
 		assertCounterIndexForRecordWithValue("000042", 666);
 
-		reindexingServices.reindexCollections(ReindexationMode.REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
 
 		assertActiveIndexForRecord("000666");
 		assertActiveIndexForRecord("000042");
@@ -401,14 +401,14 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		assertCounterIndexForRecordWithValue("000042", 42);
 		assertCounterIndexForRecordWithValue("000666", 666);
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 
 		assertActiveIndexForRecord("000042");
 		assertActiveIndexForRecord("000666");
 		assertCounterIndexForRecordWithValue("000042", 42);
 		assertCounterIndexForRecordWithValue("000666", 666);
 
-		reindexingServices.reindexCollections(ReindexationMode.REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
 
 		assertActiveIndexForRecord("000042");
 		assertActiveIndexForRecord("000666");

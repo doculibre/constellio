@@ -119,7 +119,8 @@ public class RecordImplTest extends ConstellioTest {
 		when(zeSchema.getMetadatas()).thenReturn(zeSchemaMetadatas);
 
 		when(zeSchema.getMetadata(multipleTextMetadataCode)).thenReturn(multipleTextMetadata);
-		when(multipleTextMetadata.getCode()).thenReturn(multipleTextMetadataCode);
+		when(multipleTextMetadata.isWriteNullValues()).thenReturn(true);
+		when(multipleTextMetadata.getLocalCode()).thenReturn(multipleTextMetadataCode);
 		when(multipleTextMetadata.getCode()).thenReturn(theSchemaCode + "_" + multipleTextMetadataCode);
 		when(multipleTextMetadata.isMultivalue()).thenReturn(true);
 		when(multipleTextMetadata.getDataStoreType()).thenReturn("ss");
@@ -127,14 +128,16 @@ public class RecordImplTest extends ConstellioTest {
 		when(multipleTextMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(dateMetadataCode)).thenReturn(dateMetadata);
-		when(dateMetadata.getCode()).thenReturn(dateMetadataCode);
+		when(dateMetadata.isWriteNullValues()).thenReturn(true);
+		when(dateMetadata.getLocalCode()).thenReturn(dateMetadataCode);
 		when(dateMetadata.getCode()).thenReturn(theSchemaCode + "_" + dateMetadataCode);
 		when(dateMetadata.getDataStoreType()).thenReturn("dt");
 		when(dateMetadata.getDataStoreCode()).thenReturn(dateMetadataCodeAndType);
 		when(dateMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(multipleBooleanMetadataCode)).thenReturn(multipleBooleanMetadata);
-		when(multipleBooleanMetadata.getCode()).thenReturn(multipleBooleanMetadataCode);
+		when(multipleBooleanMetadata.isWriteNullValues()).thenReturn(true);
+		when(multipleBooleanMetadata.getLocalCode()).thenReturn(multipleBooleanMetadataCode);
 		when(multipleBooleanMetadata.getCode()).thenReturn(theSchemaCode + "_" + multipleBooleanMetadataCode);
 		when(multipleBooleanMetadata.isMultivalue()).thenReturn(true);
 		when(multipleBooleanMetadata.getDataStoreType()).thenReturn("bs");
@@ -142,42 +145,48 @@ public class RecordImplTest extends ConstellioTest {
 		when(multipleBooleanMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(numberMetadataCode)).thenReturn(numberMetadata);
-		when(numberMetadata.getCode()).thenReturn(numberMetadataCode);
+		when(numberMetadata.isWriteNullValues()).thenReturn(true);
+		when(numberMetadata.getLocalCode()).thenReturn(numberMetadataCode);
 		when(numberMetadata.getCode()).thenReturn(theSchemaCode + "_" + numberMetadataCode);
 		when(numberMetadata.getDataStoreType()).thenReturn("d");
 		when(numberMetadata.getDataStoreCode()).thenReturn(numberMetadataCodeAndType);
 		when(numberMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(otherNumberMetadataCode)).thenReturn(otherNumberMetadata);
-		when(otherNumberMetadata.getCode()).thenReturn(otherNumberMetadataCode);
+		when(otherNumberMetadata.isWriteNullValues()).thenReturn(true);
+		when(otherNumberMetadata.getLocalCode()).thenReturn(otherNumberMetadataCode);
 		when(otherNumberMetadata.getCode()).thenReturn(theSchemaCode + "_" + otherNumberMetadataCode);
 		when(otherNumberMetadata.getDataStoreType()).thenReturn("d");
 		when(otherNumberMetadata.getDataStoreCode()).thenReturn(otherNumberMetadataCodeAndType);
 		when(otherNumberMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(textMetadataCode)).thenReturn(textMetadata);
-		when(textMetadata.getCode()).thenReturn(textMetadataCode);
+		when(textMetadata.isWriteNullValues()).thenReturn(true);
+		when(textMetadata.getLocalCode()).thenReturn(textMetadataCode);
 		when(textMetadata.getCode()).thenReturn(theSchemaCode + "_" + textMetadataCode);
 		when(textMetadata.getDataStoreType()).thenReturn("s");
 		when(textMetadata.getDataStoreCode()).thenReturn(textMetadataCodeAndType);
 		when(textMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(copyMetadataCode)).thenReturn(copyMetadata);
-		when(copyMetadata.getCode()).thenReturn(copyMetadataCode);
+		when(copyMetadata.isWriteNullValues()).thenReturn(true);
+		when(copyMetadata.getLocalCode()).thenReturn(copyMetadataCode);
 		when(copyMetadata.getCode()).thenReturn(theSchemaCode + "_" + copyMetadataCode);
 		when(copyMetadata.getDataStoreType()).thenReturn("s");
 		when(copyMetadata.getDataStoreCode()).thenReturn(copyMetadataCodeAndType);
 		when(copyMetadata.getDataEntry()).thenReturn(new CopiedDataEntry(aString(), aString()));
 
 		when(zeSchema.getMetadata(calculatedMetadataCode)).thenReturn(calculatedMetadata);
-		when(calculatedMetadata.getCode()).thenReturn(calculatedMetadataCode);
+		when(calculatedMetadata.isWriteNullValues()).thenReturn(true);
+		when(calculatedMetadata.getLocalCode()).thenReturn(calculatedMetadataCode);
 		when(calculatedMetadata.getCode()).thenReturn(theSchemaCode + "_" + calculatedMetadataCode);
 		when(calculatedMetadata.getDataStoreType()).thenReturn("s");
 		when(calculatedMetadata.getDataStoreCode()).thenReturn(calculatedMetadataCodeAndType);
 		when(calculatedMetadata.getDataEntry()).thenReturn(new CalculatedDataEntry(null));
 
 		when(zeSchema.getMetadata(factoredMetadataCode)).thenReturn(factoredMetadata);
-		when(factoredMetadata.getCode()).thenReturn(factoredMetadataCode);
+		when(factoredMetadata.isWriteNullValues()).thenReturn(true);
+		when(factoredMetadata.getLocalCode()).thenReturn(factoredMetadataCode);
 		when(factoredMetadata.getCode()).thenReturn(theSchemaCode + "_" + factoredMetadataCode);
 		when(factoredMetadata.getDataStoreType()).thenReturn("s");
 		when(factoredMetadata.getDataStoreCode()).thenReturn(factoredMetadataCodeAndType);
@@ -186,7 +195,8 @@ public class RecordImplTest extends ConstellioTest {
 		when(factoredMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(factoredListMetadataCode)).thenReturn(factoredListMetadata);
-		when(factoredListMetadata.getCode()).thenReturn(factoredListMetadataCode);
+		when(factoredListMetadata.isWriteNullValues()).thenReturn(true);
+		when(factoredListMetadata.getLocalCode()).thenReturn(factoredListMetadataCode);
 		when(factoredListMetadata.getCode()).thenReturn(theSchemaCode + "_" + factoredListMetadataCode);
 		when(factoredListMetadata.getDataStoreType()).thenReturn("s");
 		when(factoredListMetadata.getDataStoreCode()).thenReturn(factoredListMetadataCodeAndType);

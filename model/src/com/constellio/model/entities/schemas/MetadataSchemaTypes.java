@@ -20,6 +20,7 @@ package com.constellio.model.entities.schemas;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -180,5 +181,17 @@ public class MetadataSchemaTypes {
 
 	public List<String> getReferenceDefaultValues() {
 		return referenceDefaultValues;
+	}
+
+	public List<MetadataSchemaType> getSchemaTypesWithCodesSortedByDependency(Set<String> returnedTypeCodes) {
+		List<MetadataSchemaType> returnedMetadataSchemaTypes = new ArrayList<>();
+		for (String typeCode : getSchemaTypesSortedByDependency()) {
+			if (returnedTypeCodes.contains(typeCode)) {
+				MetadataSchemaType type = getSchemaType(typeCode);
+				returnedMetadataSchemaTypes.add(type);
+			}
+		}
+
+		return returnedMetadataSchemaTypes;
 	}
 }

@@ -27,14 +27,17 @@ import com.constellio.app.reports.builders.administration.plan.ReportBuilderTest
 
 public class DocumentVersementReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
 
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ContainerRecordReportPresenter presenter;
 
 	@Before
-	public void setUp() throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+	public void setUp()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 		presenter = new ContainerRecordReportPresenter(zeCollection, getModelLayerFactory());
 
 	}

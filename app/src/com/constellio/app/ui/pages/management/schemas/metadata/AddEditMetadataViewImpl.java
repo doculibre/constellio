@@ -423,6 +423,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			defaultValueField.setEnabled(false);
 		}
 		defaultValueField.setCaption($("AddEditMetadataView.defaultValue"));
+		defaultValueField.setId("defaultValue");
 		if (previousDefaultValueField != null) {
 			if (defaultValueField == null) {
 				formMetadataVO.setDefaultValue(null);
@@ -430,6 +431,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				formMetadataVO.setDefaultValue(null);
 			}
 		}
+		defaultValueField.setRequired(false);
 
 		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, titleField, valueType, multivalueType,
 				inputType, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,

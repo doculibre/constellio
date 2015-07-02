@@ -29,18 +29,15 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
+import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordCreationEvent.RecordCreationEventListener;
 import com.constellio.model.extensions.events.records.RecordEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent.RecordModificationEventListener;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent.RecordPhysicalDeletionEventListener;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.security.AuthorizationsServices;
 
-public class AdministrativeUnitRecordSynchronization {
+public class AdministrativeUnitRecordSynchronization extends RecordExtension {
 
 	String collection;
 
@@ -130,36 +127,27 @@ public class AdministrativeUnitRecordSynchronization {
 		return event.getRecord().getSchemaCode().startsWith(AdministrativeUnit.SCHEMA_TYPE);
 	}
 
-	public void registerTo(ModelLayerCollectionEventsListeners listeners) {
-		listeners.recordsCreationListeners.add(new RecordCreationEventListener() {
+	@Override
+	public void recordCreated(RecordCreationEvent event) {
+		if (isAdministrativeUnitRecord(event)) {
+			AdministrativeUnit administrativeUnit = rm.wrapAdministrativeUnit(event.getRecord());
+			createUserAuthorizations(administrativeUnit);
+			createAdministratorAuthorizations(administrativeUnit);
+		}
+	}
 
-			public void notify(RecordCreationEvent event) {
-				if (isAdministrativeUnitRecord(event)) {
-					AdministrativeUnit administrativeUnit = rm.wrapAdministrativeUnit(event.getRecord());
-					createUserAuthorizations(administrativeUnit);
-					createAdministratorAuthorizations(administrativeUnit);
-				}
-			}
-		});
+	@Override
+	public void recordModified(RecordModificationEvent event) {
+		if (isAdministrativeUnitRecord(event)) {
+			sync(event);
+		}
+	}
 
-		listeners.recordsModificationListeners.add(new RecordModificationEventListener() {
-
-			public void notify(RecordModificationEvent event) {
-				if (isAdministrativeUnitRecord(event)) {
-					sync(event);
-				}
-			}
-		});
-
-		listeners.recordsPhysicallyDeletionListeners.add(new RecordPhysicalDeletionEventListener() {
-
-			public void notify(RecordPhysicalDeletionEvent event) {
-				if (isAdministrativeUnitRecord(event)) {
-					deleteAuthorizations(event.getRecord().getId());
-				}
-			}
-		});
-
+	@Override
+	public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
+		if (isAdministrativeUnitRecord(event)) {
+			deleteAuthorizations(event.getRecord().getId());
+		}
 	}
 
 }

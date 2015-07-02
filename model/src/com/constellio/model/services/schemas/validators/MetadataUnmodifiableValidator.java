@@ -21,10 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
+import com.constellio.model.services.records.RecordImpl;
 
 public class MetadataUnmodifiableValidator implements Validator<Record> {
 
@@ -38,6 +40,19 @@ public class MetadataUnmodifiableValidator implements Validator<Record> {
 
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
+
+		for (Metadata metadata : metadatas) {
+			if (metadata.isUnmodifiable()) {
+				RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
+				if (recordDTO != null) {
+					Object currentValue = recordDTO.getFields().get(metadata.getDataStoreCode());
+					if (currentValue != null && record.isModified(metadata)) {
+						addValidationErrors(validationErrors, UNMODIFIABLE_METADATA, metadata);
+					}
+				}
+			}
+		}
+
 		//Validate no unmodifiable metadata are modified
 		//		if (record.isSaved()) {
 		//			RecordImpl recordImpl = (RecordImpl) record;

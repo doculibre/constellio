@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.schemas;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichNullValuesAreNotWritten;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -28,6 +29,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -42,12 +44,43 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 
 	@Test
-	public void givenMultivalueStringMetadataWithDefaultValueThenValueSaved()
+	public void whenAddUpdateSchemasThenSaveEssentialFlag()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAStringMetadata(whichIsEssential).withABooleanMetadata());
 
 		assertThat(zeSchema.stringMetadata().isEssential()).isTrue();
 		assertThat(zeSchema.booleanMetadata().isEssential()).isFalse();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setEssential(false);
+				types.getSchema(zeSchema.code()).get(zeSchema.booleanMetadata().getLocalCode()).setEssential(true);
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().isEssential()).isFalse();
+		assertThat(zeSchema.booleanMetadata().isEssential()).isTrue();
+	}
+
+	@Test
+	public void whenAddUpdateSchemasThenSaveWriteNullValuesFlag()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichNullValuesAreNotWritten).withABooleanMetadata());
+
+		assertThat(zeSchema.stringMetadata().isWriteNullValues()).isFalse();
+		assertThat(zeSchema.booleanMetadata().isWriteNullValues()).isTrue();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setWriteNullValues(true);
+				types.getSchema(zeSchema.code()).get(zeSchema.booleanMetadata().getLocalCode()).setWriteNullValues(false);
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().isWriteNullValues()).isTrue();
+		assertThat(zeSchema.booleanMetadata().isWriteNullValues()).isFalse();
 	}
 
 	@Before

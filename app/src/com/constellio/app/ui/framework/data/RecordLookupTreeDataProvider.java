@@ -45,9 +45,9 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 	private String taxonomyCode;
 	private String schemaTypeCode;
 	private int rootObjectsCount = -1;
-	private Map<String, Integer> childrenCounts = new HashMap<String, Integer>();
-	private Map<String, String> parentCache = new HashMap<String, String>();
-	private Map<String, Boolean> selectableCache = new HashMap<String, Boolean>();
+	private Map<String, Integer> childrenCounts = new HashMap<>();
+	private Map<String, String> parentCache = new HashMap<>();
+	private Map<String, Boolean> selectableCache = new HashMap<>();
 	private boolean ignoreLinkability;
 
 	public RecordLookupTreeDataProvider(String schemaTypeCode, String taxonomyCode) {
@@ -56,6 +56,7 @@ public class RecordLookupTreeDataProvider implements LookupTreeDataProvider<Stri
 		ignoreLinkability = false;
 	}
 
+	@Override
 	public final String getTaxonomyCode() {
 		return taxonomyCode;
 	}

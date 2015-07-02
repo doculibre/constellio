@@ -235,6 +235,15 @@ public class MetadataSchemaBuilder {
 		}
 	}
 
+	public MetadataBuilder getUserMetadata(String localCode) {
+		for (MetadataBuilder metadataBuilder : getMetadatas()) {
+			if (metadataBuilder.getLocalCode().equals("USR" + localCode)) {
+				return metadataBuilder;
+			}
+		}
+		throw new MetadataSchemaBuilderRuntimeException.NoSuchMetadata("USR" + localCode);
+	}
+
 	public MetadataBuilder getMetadata(String codeOrLocalCode) {
 		String partialCode;
 		if (codeOrLocalCode.split(UNDERSCORE).length == 3) {
@@ -267,34 +276,34 @@ public class MetadataSchemaBuilder {
 		return this.create(code).setUndeletable(true);
 	}
 
-	public MetadataBuilder create(String metadataCode) {
+	public MetadataBuilder create(String metadataLocaleCode) {
 
 		for (MetadataSchemaBuilder schemaBuilder : schemaTypeBuilder.getCustomSchemas()) {
 			if (schemaBuilder != null) {
 				for (MetadataBuilder metadata : schemaBuilder.metadatas) {
-					if (metadata.getLocalCode().equals(metadataCode)) {
+					if (metadata.getLocalCode().equals(metadataLocaleCode)) {
 						throw new MetadataSchemaBuilderRuntimeException
-								.CannotCreateTwoMetadataWithSameNameInDifferentCustomSchemasOfTheSameType(metadataCode);
+								.CannotCreateTwoMetadataWithSameNameInDifferentCustomSchemasOfTheSameType(metadataLocaleCode);
 					}
 
 				}
 			}
 		}
 
-		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataCode);
+		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataLocaleCode);
 
 		validateLocalCode(metadataLocalCode);
 
 		try {
-			MetadataBuilder metadata = getMetadata(metadataCode);
-			throw new MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists(metadataCode);
+			MetadataBuilder metadata = getMetadata(metadataLocaleCode);
+			throw new MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists(metadataLocaleCode);
 		} catch (NoSuchMetadata e) {
 
 			LOGGER.debug("No metadata with code {} found, creating one", metadataLocalCode);
 			if (this.getLocalCode().equals(DEFAULT)) {
-				return createDefaultMetadata(metadataCode);
+				return createDefaultMetadata(metadataLocaleCode);
 			} else {
-				return createCustomMetadata(metadataCode);
+				return createCustomMetadata(metadataLocaleCode);
 			}
 		}
 

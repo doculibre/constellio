@@ -35,7 +35,7 @@ import com.constellio.model.services.users.UserServices;
 public class UserReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
 	private String[] filingSpaceFields = { "firstName", "lastName", "userName" };
 
-	private RMTestRecords records;
+	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private UserReportPresenter presenter;
 
 	private UserReportModel_User referenceUserBob;
@@ -53,10 +53,12 @@ public class UserReportPresenterManualAcceptTest extends ReportBuilderTestFramew
 	private UserReportModel_FilingSpace referenceFilingSpaceE;
 
 	@Before
-	public void setUp() throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+	public void setUp()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+		);
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 		presenter = new UserReportPresenter(zeCollection, getModelLayerFactory());
 
 		UserServices userServices = getModelLayerFactory().newUserServices();

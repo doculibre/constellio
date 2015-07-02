@@ -29,14 +29,19 @@ public class LabelTemplateField implements Serializable {
 	private int height;
 	private String fontName;
 	private float fontSize;
+	private boolean bold;
+	private boolean italic;
 	private int maxLength;
 	private LabelTemplateFieldHorizontalAlignment horizontalAlignment;
 	private LabelTemplateFieldVerticalAlignment verticalAlignment;
+	private String prefix;
+	private String suffix;
+	private String pattern;
 
 	public LabelTemplateField(String metadataCode, String referenceMetadataCode, int x, int y, int width, int height,
-			String fontName, float fontSize, int maxLength,
+			String fontName, float fontSize, boolean bold, boolean italic, int maxLength,
 			LabelTemplateFieldHorizontalAlignment horizontalAlignment,
-			LabelTemplateFieldVerticalAlignment verticalAlignment) {
+			LabelTemplateFieldVerticalAlignment verticalAlignment, String prefix, String suffix, String pattern) {
 		this.metadataCode = metadataCode;
 		this.referenceMetadataCode = referenceMetadataCode;
 		this.x = x;
@@ -45,9 +50,14 @@ public class LabelTemplateField implements Serializable {
 		this.height = height;
 		this.fontName = fontName;
 		this.fontSize = fontSize;
+		this.bold = bold;
+		this.italic = italic;
 		this.horizontalAlignment = horizontalAlignment;
 		this.verticalAlignment = verticalAlignment;
 		this.maxLength = maxLength;
+		this.prefix = prefix;
+		this.suffix = suffix;
+		this.pattern = pattern;
 	}
 
 	public String getMetadataCode() {
@@ -82,6 +92,14 @@ public class LabelTemplateField implements Serializable {
 		return fontSize;
 	}
 
+	public boolean isBold() {
+		return bold;
+	}
+
+	public boolean isItalic() {
+		return italic;
+	}
+
 	public LabelTemplateFieldHorizontalAlignment getHorizontalAlignment() {
 		return horizontalAlignment;
 	}
@@ -98,4 +116,15 @@ public class LabelTemplateField implements Serializable {
 
 	public enum LabelTemplateFieldHorizontalAlignment {LEFT, CENTER, RIGHT}
 
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public String getSuffix() {
+		return suffix;
+	}
+
+	public String getPattern() {
+		return pattern;
+	}
 }

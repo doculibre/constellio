@@ -57,6 +57,12 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	Locale locale;
 	Locale defaultLocale;
 
+	private static List<String> keysWithSameFrenchEnglishValue = new ArrayList<>();
+
+	static {
+		keysWithSameFrenchEnglishValue.add("SystemConfigurationGroup.agent");
+	}
+
 	@Test
 	public void givenEnglishSystemEnsureAllObjectsHasATitle()
 			throws Exception {
@@ -83,8 +89,8 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.English);
 
 		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
-			CompareI18nKeys.printComparison(Language.English, results);
-			fail("Missing i18n keys");
+			String comparisonMessage = CompareI18nKeys.getComparisonMessage(Language.English, results);
+			fail("Missing i18n keys\n" + comparisonMessage);
 		}
 	}
 
@@ -195,7 +201,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		} else if (locale != Locale.FRENCH) {
 			i18n.setLocale(Locale.FRENCH);
 			String frenchLabel = $(key);
-			if (label.equals(frenchLabel) && !missingKeys.contains(key)) {
+			if (label.equals(frenchLabel) && !missingKeys.contains(key) && !keysWithSameFrenchEnglishValue.contains(key)) {
 				missingKeys.add(key);
 			}
 		}

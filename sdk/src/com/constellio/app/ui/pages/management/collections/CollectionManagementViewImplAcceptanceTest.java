@@ -48,7 +48,9 @@ public class CollectionManagementViewImplAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
 
 		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 

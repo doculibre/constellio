@@ -42,8 +42,8 @@ public class BaseEventCategoryViewAcceptanceTest extends ConstellioTest {
 	ConstellioWebDriver driver;
 
 	TaxonomyManagementViewAcceptTestSetup setup = new TaxonomyManagementViewAcceptTestSetup(zeCollection);
-	private RMTestRecords records;
-	RMSchemasRecordsServices schemas;
+	private RMTestRecords records = new RMTestRecords(zeCollection);
+	RMSchemasRecordsServices rm;
 
 	LocalDateTime testDate = new LocalDateTime();
 	Users users;
@@ -52,10 +52,11 @@ public class BaseEventCategoryViewAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		);
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 		driver = newWebDriver(FakeSessionContext.adminInCollection(zeCollection));
 		users = new Users().using(getModelLayerFactory().newUserServices());
 		String user = users.dakotaLIndien().getUsername();
@@ -83,7 +84,7 @@ public class BaseEventCategoryViewAcceptanceTest extends ConstellioTest {
 	}
 
 	private Event createDocument(String creatorUserName) {
-		return schemas.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_DOCUMENT);
+		return rm.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_DOCUMENT);
 	}
 
 	private RecordWrapper createFolder(String creatorUserName, LocalDateTime eventDate) {
@@ -91,7 +92,7 @@ public class BaseEventCategoryViewAcceptanceTest extends ConstellioTest {
 	}
 
 	private Event createFolder(String creatorUserName) {
-		return schemas.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER);
+		return rm.newEvent().setUsername(creatorUserName).setType(EventType.CREATE_FOLDER);
 	}
 
 }

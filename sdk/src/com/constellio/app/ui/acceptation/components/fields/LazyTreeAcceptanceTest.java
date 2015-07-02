@@ -73,7 +73,9 @@ public class LazyTreeAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		withSpiedServices(AppLayerFactory.class);
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
 
 		loadDummyBeans();
 
@@ -343,7 +345,6 @@ public class LazyTreeAcceptanceTest extends ConstellioTest {
 	}
 
 	private class DummyLazyTreeDataProvider implements LazyTreeDataProvider<DummyBean> {
-
 		private List<DummyBean> subList(List<DummyBean> list, int start, int maxSize) {
 			List<DummyBean> subList = new ArrayList<DummyBean>();
 			for (int i = start; i < list.size() && subList.size() < maxSize; i++) {
@@ -388,9 +389,13 @@ public class LazyTreeAcceptanceTest extends ConstellioTest {
 			return object.children.isEmpty();
 		}
 
+		@Override
+		public String getTaxonomyCode() {
+			return null;
+		}
 	}
 
-	private static interface DummyComponentFactory<T extends Component> extends Serializable {
+	private interface DummyComponentFactory<T extends Component> extends Serializable {
 
 		List<T> build(ViewChangeEvent event);
 

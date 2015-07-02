@@ -32,15 +32,18 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 
 @UiTest
 public class DecommissioningBuilderViewAcceptTest extends ConstellioTest {
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConstellioWebDriver driver;
 	DecommissioningBuilderPage page;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
 		driver = newWebDriver(loggedAsUserInCollection(gandalf, zeCollection));
 	}

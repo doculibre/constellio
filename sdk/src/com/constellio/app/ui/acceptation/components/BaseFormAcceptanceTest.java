@@ -67,7 +67,9 @@ public class BaseFormAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		withSpiedServices(AppLayerFactory.class);
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
 
 		AppLayerFactory factory = getAppLayerFactory();
 		NavigatorConfigurationService navigatorConfigurationService = new NavigatorConfigurationService() {

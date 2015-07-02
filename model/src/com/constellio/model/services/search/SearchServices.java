@@ -24,12 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.common.params.DisMaxParams;
-import org.apache.solr.common.params.FacetParams;
-import org.apache.solr.common.params.HighlightParams;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.ShardParams;
+import org.apache.solr.common.params.*;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -182,6 +177,12 @@ public class SearchServices {
 				params.add(FacetParams.FACET_LIMIT, "" + query.getFieldFacetLimit());
 			}
 		}
+		if(!query.getStatisticFields().isEmpty()){
+			params.set(StatsParams.STATS, "true");
+			for(DataStoreField field : query.getStatisticFields()){
+				params.add(StatsParams.STATS_FIELD, field.getDataStoreCode());
+			}
+		}
 		if (!query.getQueryFacets().isEmpty()) {
 			for (String facetQuery : query.getQueryFacets()) {
 				params.add(FacetParams.FACET_QUERY, facetQuery);
@@ -233,7 +234,8 @@ public class SearchServices {
 				queryResponseDTO.getFieldFacetValues());
 		Map<String, Integer> queryFacetValues = queryResponseDTO.getQueryFacetValues();
 
-		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, queryFacetValues, queryResponseDTO.getQtime(),
+		Map<DataStoreField, Map<String, Object>> statisticsValues = buildStats(query.getStatisticFields(), queryResponseDTO.getFieldsStatistics());
+		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetValues, queryResponseDTO.getQtime(),
 				queryResponseDTO.getNumFound(), records, queryResponseDTO.getHighlights(),
 				queryResponseDTO.isCorrectlySpelt(), queryResponseDTO.getSpellCheckerSuggestions());
 
@@ -249,6 +251,18 @@ public class SearchServices {
 		Map<DataStoreField, List<FacetValue>> result = new HashMap<>();
 		for (DataStoreField field : fields) {
 			List<FacetValue> values = facetValues.get(field.getDataStoreCode());
+			if (values != null) {
+				result.put(field, values);
+			}
+		}
+		return result;
+	}
+
+	private Map<DataStoreField, Map<String, Object>> buildStats(
+			List<DataStoreField> fields, Map<String, Map<String, Object>> fieldStatsValues) {
+		Map<DataStoreField, Map<String, Object>> result = new HashMap<>();
+		for (DataStoreField field : fields) {
+			Map<String, Object> values = fieldStatsValues.get(field.getDataStoreCode());
 			if (values != null) {
 				result.put(field, values);
 			}

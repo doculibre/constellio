@@ -51,7 +51,7 @@ public class SchemasRecordsServices {
 	//
 
 	//Generic
-	
+
 	protected ModelLayerFactory getModelLayerFactory() {
 		return modelLayerFactory;
 	}
@@ -68,8 +68,17 @@ public class SchemasRecordsServices {
 		return getTypes().getSchema(code);
 	}
 
+	public MetadataSchemaType schemaType(String code) {
+		return getTypes().getSchemaType(code);
+	}
+
 	public Record get(String id) {
 		return modelLayerFactory.newRecordServices().getDocumentById(id);
+	}
+
+	public Record getByLegacyId(String schemaTypeCode, String id) {
+		LogicalSearchCondition condition = from(schemaType(schemaTypeCode)).where(Schemas.LEGACY_ID).isEqualTo(id);
+		return modelLayerFactory.newSearchServices().searchSingleResult(condition);
 	}
 
 	public List<Record> get(List<String> id) {

@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.entities.records;
 
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.LocalDateTime;
 
@@ -71,8 +72,12 @@ public interface Content extends ModifiableStructure {
 
 	Content deleteVersion(String versionLabel);
 
+	boolean isEmptyVersion();
+
 	// TODO Write a test
 	boolean isDeleteContentVersionPossible(String version);
+
+	Set<String> getHashOfAllVersions();
 
 	//List<String> getDeletedVersionHashes();
 }

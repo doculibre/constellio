@@ -33,6 +33,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
@@ -112,6 +113,7 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 				.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
 
 		LogicalSearchQuery query = new LogicalSearchQuery()
+				.filteredByStatus(StatusFilter.ACTIVES)
 				.setCondition(from(type).where(conditionTemplate))
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);

@@ -34,19 +34,20 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConstellioWebDriver driver;
 	TaxonomyManagementWebElement taxoManagementWebElement;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withEvents()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
 
 		driver = newWebDriver(loggedAsUserInCollection(chuckNorris, zeCollection));
 		taxoManagementWebElement = new TaxonomyManagementWebElement(driver);

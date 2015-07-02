@@ -34,7 +34,9 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.NewFileClickListener;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
+import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
@@ -76,6 +78,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private SchemaPresenterUtils userDocumentPresenterUtils;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+	
+	private boolean newFile;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
 		super(view, Document.DEFAULT_SCHEMA);
@@ -211,6 +215,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		Content content = userDocument.getContent();
 		ContentVersion contentVersion = content.getCurrentVersion();
 		ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content, contentVersion);
+		String folderId = userDocument.getFolder();
+		if (StringUtils.isNotBlank(folderId)) {
+			documentVO.setFolder(folderId);
+		}
 		// Reset as new content
 		contentVersionVO.setHash(null);
 		contentVersionVO.setVersion(null);
@@ -236,9 +244,13 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	public void saveButtonClicked() {
-		Record record = toRecord(documentVO);
+		Record record = toRecord(documentVO, newFile);
 		if (addViewWithCopy) {
 			setRecordContent(record, documentVO);
+		}
+		if (newFile) {
+			Document document = new Document(record, types());
+			document.getContent().checkOut(getCurrentUser());
 		}
 		addOrUpdate(record);
 		if (userDocumentId != null) {
@@ -276,19 +288,19 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	public void customFieldValueChanged(CustomDocumentField<?> customField) {
 		adjustTypeField(customField);
+		adjustContentField(customField);
 	}
 
 	void adjustTypeField(CustomDocumentField<?> valueChangeField) {
 		String currentSchemaCode = getSchemaCode();
-		CustomDocumentField<?> documentTypeField = view.getForm().getCustomField(Document.TYPE);
-		CustomDocumentField<?> contentField = view.getForm().getCustomField(Document.CONTENT);
+		DocumentTypeField documentTypeField = getTypeField();
+		DocumentContentField contentField = getContentField();
 		String recordIdForDocumentType = (String) documentTypeField.getFieldValue();
 		if (valueChangeField instanceof DocumentTypeField) {
 			// Ensure that we don't change the schema for the record
 			if (!isAddView()) {
 				if (StringUtils.isNotBlank(recordIdForDocumentType)) {
-					String schemaCodeForDocumentTypeRecordId = rmSchemasRecordsServices
-							.getSchemaCodeForDocumentTypeRecordId(recordIdForDocumentType);
+					String schemaCodeForDocumentTypeRecordId = rmSchemasRecordsServices.getSchemaCodeForDocumentTypeRecordId(recordIdForDocumentType);
 					if (schemaCodeForDocumentTypeRecordId == null) {
 						schemaCodeForDocumentTypeRecordId = Document.DEFAULT_SCHEMA;
 					}
@@ -296,14 +308,14 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						view.showErrorMessage($("AddEditDocumentView.cannotSelectDocumentType"));
 						// Set initial value
 						documentTypeField.setFieldValue(documentVO.getType());
-					}
-				}
+					}	
+				}	
 			}
 			if (isReloadRequiredAfterDocumentTypeChange()) {
 				reloadFormAfterDocumentTypeChange();
 			}
 		} else if (valueChangeField instanceof DocumentContentField) {
-			ContentVersionVO contentVersionVO = (ContentVersionVO) contentField.getFieldValue();
+			ContentVersionVO contentVersionVO = contentField.getFieldValue();
 			if (contentVersionVO != null && isAddView()) {
 				String fileName = contentVersionVO.getFileName();
 				if (rmSchemasRecordsServices.isEmail(fileName)) {
@@ -316,6 +328,18 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					}
 				}
 			}
+		}
+	}
+	
+	void adjustContentField(CustomDocumentField<?> valueChangeField) {
+		if (isAddView() && valueChangeField instanceof DocumentContentField) {
+			DocumentContentField contentField = getContentField();
+			boolean newFileButtonVisible = contentField.getFieldValue() == null;
+			contentField.setNewFileButtonVisible(newFileButtonVisible);
+			if (newFileButtonVisible) {
+				newFile = false;
+			}
+			contentField.setMajorVersionFieldVisible(!newFile);
 		}
 	}
 
@@ -402,6 +426,48 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		view.setRecord(documentVO);
 		view.getForm().reload();
+	}
+	
+	private DocumentTypeField getTypeField() {
+		return (DocumentTypeField) view.getForm().getCustomField(Document.TYPE);
+	}
+	
+	private DocumentContentField getContentField() {
+		return (DocumentContentField) view.getForm().getCustomField(Document.CONTENT);
+	}
+
+	public void viewAssembled() {
+		addContentFieldListeners();
+	}
+	
+	private void addContentFieldListeners() {
+		boolean newFileButtonVisible = isAddView() && documentVO.getContent() == null;
+		final DocumentContentField contentField = getContentField();
+		contentField.setNewFileButtonVisible(newFileButtonVisible);
+		contentField.addNewFileClickListener(new NewFileClickListener() {
+			@Override
+			public void newFileClicked() {
+				contentField.getNewFileWindow().open();
+			}
+		});
+		contentField.setMajorVersionFieldVisible(!newFile);
+		contentField.getNewFileWindow().addNewFileCreatedListener(new NewFileCreatedListener() {
+			@Override
+			public void newFileCreated(Content content) {
+				view.getForm().commit();
+				contentField.setNewFileButtonVisible(false);
+				contentField.setMajorVersionFieldVisible(false);
+				contentField.getNewFileWindow().close();
+				ContentVersionVO contentVersionVO = contentVersionToVOBuilder.build(content);
+				contentVersionVO.setMajorVersion(false);
+				contentVersionVO.setHash(null);
+				documentVO.setContent(contentVersionVO);
+				newFile = true;
+			 	view.getForm().reload();
+			 	// Will have been lost after reloading the form
+			 	addContentFieldListeners();
+			}
+		});
 	}
 
 }

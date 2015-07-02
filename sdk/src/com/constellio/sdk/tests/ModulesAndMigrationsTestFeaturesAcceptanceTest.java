@@ -44,6 +44,7 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.services.extensions.ConstellioPluginManager;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Taxonomy;
@@ -68,15 +69,16 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void setUp()
 			throws Exception {
 
-		pluginManager = getAppLayerFactory().getPluginManager();
-
 	}
 
 	@Test
 	public void givenKeyI18nWhenGetLabelInI18nThenOk()
 			throws Exception {
 
-		givenCollection("zeCollection").withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes().size()).isNotZero();
@@ -85,7 +87,11 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	@Test
 	public void testToCurrentVersion()
 			throws Exception {
-		givenCollection("zeCollection");
+
+		prepareSystem(
+				withZeCollection()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes().size()).isNotZero();
@@ -103,7 +109,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void whenGetFoldersFormMetadataCodesThenItIsInOrder()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA)
@@ -139,7 +148,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void whenGetDocumentsFormMetadataCodesThenItIsInOrder()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Document.DEFAULT_SCHEMA)
@@ -159,7 +171,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void whenGetAdministrativeUnitsFormMetadataCodesThenItIsInOrder()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, AdministrativeUnit.DEFAULT_SCHEMA)
@@ -173,7 +188,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void whenGetCategorysFormMetadataCodesThenItIsInOrder()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, Category.DEFAULT_SCHEMA)
@@ -193,7 +211,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void whenGetDecommissioningListsFormMetadataCodesThenItIsInOrder()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, DecommissioningList.DEFAULT_SCHEMA)
@@ -213,7 +234,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void whenGetFilingSpacesFormMetadataCodesThenItIsInOrder()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, FilingSpace.DEFAULT_SCHEMA)
@@ -245,7 +269,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void whenGetStorageSpacesFormMetadataCodesThenItIsInOrder()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, StorageSpace.DEFAULT_SCHEMA)
@@ -265,7 +292,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void whenGetUniformSubdivionsFormMetadataCodesThenItIsInOrder()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		List<String> metadataCodes = schemasDisplayManager.getSchema(zeCollection, UniformSubdivision.DEFAULT_SCHEMA)
@@ -282,10 +312,12 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	public void testWithRMModule()
 			throws Exception {
 
-		givenCollection("zeCollection").withConstellioRMModule();
-
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
+		pluginManager = getAppLayerFactory().getPluginManager();
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(21);
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(22);
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(UserDocument.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(AdministrativeUnit.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(DecommissioningList.SCHEMA_TYPE)).isNotNull();
@@ -307,6 +339,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(ContainerRecordType.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(MediumType.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Event.SCHEMA_TYPE)).isNotNull();
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(VariableRetentionPeriod.SCHEMA_TYPE)).isNotNull();
 
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy administrativeUnitsTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode("zeCollection",

@@ -20,6 +20,8 @@ package com.constellio.app.ui.pages.search;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
+import java.util.Map;
+
 public class SimpleSearchViewImpl extends SearchViewImpl<SimpleSearchPresenter> implements SimpleSearchView {
 
 	public SimpleSearchViewImpl() {
@@ -30,5 +32,10 @@ public class SimpleSearchViewImpl extends SearchViewImpl<SimpleSearchPresenter> 
 	protected Component buildSearchUI() {
 		setSearchExpression(presenter.getUserSearchExpression());
 		return new VerticalLayout();
+	}
+
+	@Override
+	public Boolean computeStatistics() {
+		return false;
 	}
 }

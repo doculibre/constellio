@@ -87,7 +87,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	LocalDate march31_2066 = new LocalDate(2066, 3, 31);
 
 	RMSchemasRecordsServices rm;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
 
 	Transaction transaction = new Transaction();
@@ -107,12 +107,13 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+		);
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		zeCategory = records.categoryId_ZE42;
@@ -156,6 +157,10 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X110);
 		assertThat(folder.getCategoryCode()).isEqualTo(records.getCategory_X110().getCode());
 		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_2);
+		assertThat(folder.getActiveRetentionCode()).isNull();
+		assertThat(folder.getSemiActiveRetentionCode()).isNull();
+		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_2);
+
 		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folder.getTitle()).isEqualTo("Ze folder");
 		assertThat(folder.getMediumTypes()).isEqualTo(Arrays.asList(PA, MV));
@@ -348,6 +353,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getActualDestructionDate()).isNull();
 		assertThat(folder.getApplicableCopyRules()).containsExactly(principal("888-5-T", PA), principal("888-5-D", MD));
 		assertThat(folder.getMainCopyRule()).isEqualTo(principal("888-5-T", PA));
+		assertThat(folder.getActiveRetentionCode()).isEqualTo("888");
+		assertThat(folder.getSemiActiveRetentionCode()).isNull();
 		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[] { null, null }));
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2020, march31_2020);
 		assertThat(folder.getCopyRulesExpectedDepositDates()).containsExactly(march31_2020, null);
@@ -463,6 +470,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getActualDestructionDate()).isNull();
 		assertThat(folder.getApplicableCopyRules()).containsExactly(secondary("999-0-D", PA));
 		assertThat(folder.getMainCopyRule()).isEqualTo(secondary("999-0-D", PA));
+		assertThat(folder.getActiveRetentionCode()).isEqualTo("999");
+		assertThat(folder.getSemiActiveRetentionCode()).isNull();
 		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly(march31_2065);
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2065);
 		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null }));

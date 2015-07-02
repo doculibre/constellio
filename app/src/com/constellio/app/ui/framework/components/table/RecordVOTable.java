@@ -19,7 +19,6 @@ package com.constellio.app.ui.framework.components.table;
 
 import java.util.List;
 
-import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
@@ -52,6 +51,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 
 public class RecordVOTable extends Table {
+	
 	public static final String STYLE_NAME = "record-table";
 	public static final String CLICKABLE_ROW_STYLE_NAME = "clickable-row";
 	private RecordContextMenu contextMenu;

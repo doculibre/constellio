@@ -33,6 +33,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.itextpdf.text.Font.FontFamily;
 
 public class LabelsReportPresenter {
 
@@ -88,8 +89,9 @@ public class LabelsReportPresenter {
 	}
 
 	private LabelsReportField buildField(LabelTemplateField fieldInfo, String value) {
-		//TODO Thiago font
-		//		LabelsReportFont font = new LabelsReportFont().setSize(0.8f).setBold(true).setItalic(true);
+		FontFamily fontFamily = FontFamily.valueOf(fieldInfo.getFontName());
+		LabelsReportFont font = new LabelsReportFont().setFontFamily(fontFamily)
+				.setSize(fieldInfo.getFontSize()).setBold(fieldInfo.isBold()).setItalic(fieldInfo.isItalic());
 		int width = fieldInfo.getWidth() != 0 ? fieldInfo.getWidth() : value.length();
 		int horizontalAlignment;
 		int verticalAlignment;
@@ -97,7 +99,7 @@ public class LabelsReportPresenter {
 
 		verticalAlignment = getVerticalAligment(fieldInfo);
 		LabelsReportField labelsReportField = newField(value, fieldInfo.getX(), fieldInfo.getY(), fieldInfo.getHeight(),
-				width, horizontalAlignment, verticalAlignment, FONT);
+				width, horizontalAlignment, verticalAlignment, font);
 		return labelsReportField;
 	}
 
@@ -143,33 +145,46 @@ public class LabelsReportPresenter {
 		MetadataSchemaTypes types = rmSchemasRecordsServices.getTypes();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		String value;
-		if (fieldInfo.getReferenceMetadataCode() != null && StringUtils.isNotBlank(fieldInfo.getReferenceMetadataCode())) {
+		if (StringUtils.isNotBlank(fieldInfo.getReferenceMetadataCode())) {
 			Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
 			String referenceId = record.get(metadata);
 			Record referenceRecord = recordServices.getDocumentById(referenceId);
 			Metadata referenceMetadata = types.getMetadata(fieldInfo.getReferenceMetadataCode());
 			Object valueObject = referenceRecord.get(referenceMetadata);
-			value = getStringValue(valueObject);
-		} else {
+			value = getStringValue(valueObject, fieldInfo);
+		} else if (StringUtils.isNotBlank(fieldInfo.getMetadataCode())) {
 			Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
 			Object valueObject = record.get(metadata);
-			value = getStringValue(valueObject);
+			value = getStringValue(valueObject, fieldInfo);
+		} else {
+			value = getStringValue("", fieldInfo);
 		}
 		value = truncate(value, fieldInfo.getMaxLength());
-		//		if (fieldInfo.getHorizontalAlignment() == LabelTemplateFieldHorizontalAlignment.RIGHT) {
-		//			value = pad(value, fieldInfo.getMaxLength() - value.length());
-		//		}
 		return value;
 	}
 
-	private String getStringValue(Object valueObject) {
+	private String getStringValue(Object valueObject, LabelTemplateField fieldInfo) {
 		String value;
 		if (valueObject instanceof EnumWithSmallCode) {
 			value = ((EnumWithSmallCode) valueObject).getCode();
 		} else if (valueObject instanceof LocalDate || valueObject instanceof LocalDateTime) {
-			value = valueObject.toString();
+			if (StringUtils.isNotBlank(fieldInfo.getPattern())) {
+				if (valueObject instanceof LocalDate) {
+					value = ((LocalDate) valueObject).toString(fieldInfo.getPattern());
+				} else {
+					value = ((LocalDateTime) valueObject).toString(fieldInfo.getPattern());
+				}
+			} else {
+				value = valueObject.toString();
+			}
 		} else {
 			value = (String) valueObject;
+		}
+		if (StringUtils.isNotBlank(fieldInfo.getPrefix())) {
+			value = fieldInfo.getPrefix() + value;
+		}
+		if (StringUtils.isNotBlank(fieldInfo.getSuffix())) {
+			value = value + fieldInfo.getSuffix();
 		}
 		return value;
 	}

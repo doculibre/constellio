@@ -23,29 +23,37 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleFieldFactory;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleForm;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 
+import java.util.List;
+
 public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEditRetentionRuleView {
-	
 	private final AddEditRetentionRulePresenter presenter;
 	private RetentionRuleVO retentionRuleVO;
-	
+
 	private RetentionRuleFieldFactory fieldFactory;
 	private RetentionRuleForm form;
-	
+
 	private Boolean delayedDisposalTypeVisibleForDocumentTypes;
 
 	public AddEditRetentionRuleViewImpl() {
 		presenter = new AddEditRetentionRulePresenter(this);
 		fieldFactory = new RetentionRuleFieldFactory() {
 			@Override
+			protected List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
+				return presenter.getOpenPeriodsDDVList();
+			}
+
+			@Override
 			protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
 				presenter.disposalTypeChanged(copyRetentionRule);
 			}
+
 		};
 	}
 
@@ -98,5 +106,4 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 			delayedDisposalTypeVisibleForDocumentTypes = visible;
 		}
 	}
-
 }

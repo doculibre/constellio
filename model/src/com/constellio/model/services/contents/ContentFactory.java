@@ -28,6 +28,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.search.query.logical.criteria.IsContainingTextCriterion;
@@ -37,6 +38,14 @@ public class ContentFactory implements StructureFactory {
 
 	public static final String INFO_SEPARATOR = ":";
 	private static final String NULL_STRING = "null";
+
+	public static IsContainingTextCriterion isCheckedOutBy(User user) {
+		return isCheckedOutBy(user.getId());
+	}
+
+	public static IsContainingTextCriterion isCheckedOutBy(String userId) {
+		return new IsContainingTextCriterion(INFO_SEPARATOR + userId + INFO_SEPARATOR);
+	}
 
 	public static IsContainingTextCriterion isFilename(String filename) {
 		return new IsContainingTextCriterion(INFO_SEPARATOR + "f=" + filename + INFO_SEPARATOR);
@@ -85,11 +94,19 @@ public class ContentFactory implements StructureFactory {
 		skipIsCheckedOut(iterator);
 		ContentVersion current = toContentVersion(iterator.next());
 		ContentVersion currentCheckedOut = toContentVersion(iterator.next());
-		String checkedOutBy = toNullableString(iterator.next());
+
+		String nextLine = iterator.next();
+		boolean emptyVersion = false;
+		if ("_EMPTY_VERSION_".equals(nextLine)) {
+			emptyVersion = true;
+			nextLine = iterator.next();
+		}
+
+		String checkedOutBy = toNullableString(nextLine);
 		LocalDateTime checkedOutDateTime = toDateTime(iterator.next());
 		Lazy<List<ContentVersion>> lazyLoadedHistory = newLazyLoadedHistory(iterator);
 
-		return new ContentImpl(id, current, lazyLoadedHistory, currentCheckedOut, checkedOutDateTime, checkedOutBy);
+		return new ContentImpl(id, current, lazyLoadedHistory, currentCheckedOut, checkedOutDateTime, checkedOutBy, emptyVersion);
 
 	}
 
@@ -138,6 +155,10 @@ public class ContentFactory implements StructureFactory {
 		stringBuilder.append(toString(contentInfo.getCurrentVersion()));
 		stringBuilder.append(toString(contentInfo.getCurrentCheckedOutVersion()));
 		stringBuilder.append(":");
+		if (contentInfo.isEmptyVersion()) {
+			stringBuilder.append("_EMPTY_VERSION_::");
+		}
+
 		stringBuilder.append(contentInfo.getCheckoutUserId());
 		stringBuilder.append("::");
 		stringBuilder.append(toString(contentInfo.getCheckoutDateTime()));

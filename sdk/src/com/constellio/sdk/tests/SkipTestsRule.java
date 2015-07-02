@@ -21,6 +21,7 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,8 @@ import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.LoadTest;
+import com.constellio.sdk.tests.annotations.MainTest;
+import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.PerformanceTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -51,7 +54,10 @@ public class SkipTestsRule implements TestRule {
 	boolean skipDriver;
 	boolean runPerformance;
 	boolean skipAllTests;
+	boolean skipImportTests;
+	boolean skipTestsWithGradle;
 	private boolean inDevelopmentTest;
+	private boolean mainTest;
 	private List<String> whiteList;
 	private List<String> blackList;
 	private Class<? extends AbstractConstellioTest> currentTestClass;
@@ -79,11 +85,13 @@ public class SkipTestsRule implements TestRule {
 			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
 			this.skipAllTests = "true".equals(properties.get("skip.alltests"));
 			this.skipSlow = skipAllTests || "true".equals(properties.get("skip.slowtests"));
+			this.skipImportTests = skipAllTests || !"false".equals(properties.get("skip.importtests"));
 			this.skipReal = skipAllTests || "true".equals(properties.get("skip.realtests"));
 			this.skipLoad = skipAllTests || "true".equals(properties.get("skip.loadtests"));
 			this.skipInDevelopment = skipAllTests || "true".equals(properties.get("skip.indevelopment")) || "true"
 					.equals(properties.get("skip.indevelopmenttests"));
 			this.skipDriver = skipAllTests || "true".equals(properties.get("skip.drivertests"));
+			this.skipTestsWithGradle = skipAllTests || "true".equals(properties.get("skip.testsWithGradle"));
 			this.runPerformance = "true".equals(properties.get("run.performancetests"));
 			this.skipUI = skipAllTests || "true".equals(properties.get("skip.uitests"));
 			this.whiteList = getFilterList("tests.whitelist", properties);
@@ -107,8 +115,13 @@ public class SkipTestsRule implements TestRule {
 	}
 
 	public boolean evaluateIfSkipped(Class<?> testClass, Description description) {
+
 		currentTestClass = (Class) testClass;
 		currentTestName = description.getMethodName();
+
+		boolean testClassDirectlyTargetted = isTestClassDirectlyTargetted(testClass);
+
+		MainTest mainTestAnnotation = testClass.getAnnotation(MainTest.class);
 		SlowTest slowTest = testClass.getAnnotation(SlowTest.class);
 		LoadTest loadTest = testClass.getAnnotation(LoadTest.class);
 		UiTest uiTest = testClass.getAnnotation(UiTest.class);
@@ -118,14 +131,38 @@ public class SkipTestsRule implements TestRule {
 		DoNotRunOnIntegrationServer doNotRunOnIntegrationServer = testClass.getAnnotation(DoNotRunOnIntegrationServer.class);
 
 		boolean isRealTest = !ConstellioTest.isUnitTest(testClass.getSimpleName());
-		inDevelopmentTest = inDevelopmentTestAnnotation != null;
-		//
-		//		if (sunJavaCommand.contains(testClass.getName())) {
-		//			return false;
-		//		}
+		inDevelopmentTest = inDevelopmentTestAnnotation != null || description.getAnnotation(InDevelopmentTest.class) != null;
+		mainTest = mainTestAnnotation != null;
 
-		if (isClassSkipped(testClass)) {
+		if (skipTestsWithGradle && isRunnedByGradle()) {
 			return true;
+		}
+
+		if (isTestDirectlyTargetted(testClass, currentTestName)) {
+			//No matter which parameters are defined, the test is runned
+			return false;
+		}
+
+		if (!testClassDirectlyTargetted && isClassFiltered(testClass)) {
+			return true;
+		}
+
+		Class<?> testSuperClass = testClass.getSuperclass();
+		if (!testClassDirectlyTargetted && testSuperClass != null && "ConstellioImportAcceptTest"
+				.equals(testSuperClass.getSimpleName()) && skipImportTests) {
+			return true;
+		}
+
+		if (mainTestAnnotation != null) {
+			if (!testClassDirectlyTargetted) {
+				return true;
+
+			} else if (hasMainTestOnlyOneStarter(testClass)) {
+				return false;
+
+			} else {
+				return description.getAnnotation(MainTestDefaultStart.class) == null;
+			}
 		}
 
 		if (slowTest == null) {
@@ -147,22 +184,22 @@ public class SkipTestsRule implements TestRule {
 		} else if (loadTest != null && skipLoad) {
 			return true;
 
-		} else if (uiTest != null && skipUI) {
+		} else if (!testClassDirectlyTargetted && uiTest != null && skipUI) {
 			return true;
 
-		} else if (driverTest != null && skipDriver) {
+		} else if (!testClassDirectlyTargetted && driverTest != null && skipDriver) {
 			return true;
 
-		} else if (slowTest != null && skipSlow) {
+		} else if (!testClassDirectlyTargetted && slowTest != null && skipSlow) {
 			return true;
 
-		} else if (performanceTest != null && !runPerformance) {
+		} else if (!testClassDirectlyTargetted && performanceTest != null && !runPerformance) {
 			return true;
 
 		} else if (inDevelopmentTestAnnotation != null && skipInDevelopment) {
 			return true;
 
-		} else if (isRealTest && skipReal) {
+		} else if (!testClassDirectlyTargetted && isRealTest && skipReal) {
 			return true;
 
 		} else {
@@ -170,7 +207,58 @@ public class SkipTestsRule implements TestRule {
 		}
 	}
 
-	private boolean isClassSkipped(Class<?> testClass) {
+	private boolean isRunnedByGradle() {
+		return sunJavaCommand.toLowerCase().contains("gradle");
+	}
+
+	private boolean hasMainTestOnlyOneStarter(Class<?> testClass) {
+
+		int testMethodsCount = 0;
+
+		for (Method method : testClass.getDeclaredMethods()) {
+			if (method.getAnnotation(org.junit.Test.class) != null) {
+				testMethodsCount++;
+			}
+		}
+
+		return testMethodsCount == 1;
+	}
+
+	private boolean isTestDirectlyTargetted(Class<?> testClass, String currentTestName) {
+
+		if (isIntelliJTestRunner()) {
+			return sunJavaCommand.contains(testClass.getName() + "," + currentTestName);
+
+		} else if (isEclipseTestRunner()) {
+			return sunJavaCommand.contains(testClass.getName() + ":" + currentTestName);
+
+		} else {
+			return false;
+		}
+	}
+
+	private boolean isTestClassDirectlyTargetted(Class<?> testClass) {
+
+		if (isIntelliJTestRunner()) {
+			return sunJavaCommand.contains(testClass.getName());
+
+		} else if (isEclipseTestRunner()) {
+			return sunJavaCommand.contains(testClass.getName() + ":" + currentTestName);
+
+		} else {
+			return false;
+		}
+	}
+
+	private boolean isEclipseTestRunner() {
+		return sunJavaCommand.contains("org.eclipse.jdt.internal.junit.runner.RemoteTestRunner");
+	}
+
+	private boolean isIntelliJTestRunner() {
+		return sunJavaCommand.contains("com.intellij.rt.execution.junit.JUnitStarter");
+	}
+
+	private boolean isClassFiltered(Class<?> testClass) {
 		if (!whiteList.isEmpty()) {
 			for (String whiteFilter : whiteList) {
 				if (isFilteredBy(testClass, whiteFilter)) {
@@ -214,9 +302,7 @@ public class SkipTestsRule implements TestRule {
 	@Override
 	public Statement apply(Statement base, Description description) {
 
-		boolean runNormallySkippedTests = isRunningNormallySkippedTest();
-
-		if (runNormallySkippedTests || isUnitMode) {
+		if (isUnitMode) {
 			return base;
 		}
 
@@ -227,10 +313,10 @@ public class SkipTestsRule implements TestRule {
 		}
 	}
 
-	private boolean isRunningNormallySkippedTest() {
-		String javaCommand = ManagementFactory.getRuntimeMXBean().getSystemProperties().get("sun.java.command");
-		return javaCommand.contains("eclipse") && javaCommand.contains("-classNames");
-	}
+	//	private boolean isRunningNormallySkippedTest() {
+	//		String javaCommand = ManagementFactory.getRuntimeMXBean().getSystemProperties().get("sun.java.command");
+	//		return javaCommand.contains("eclipse") && javaCommand.contains("-classNames");
+	//	}
 
 	private Statement newSkipStatement() {
 		return new Statement() {
@@ -245,6 +331,10 @@ public class SkipTestsRule implements TestRule {
 
 	public boolean isInDevelopmentTest() {
 		return inDevelopmentTest;
+	}
+
+	public boolean isMainTest() {
+		return mainTest;
 	}
 
 	public String getCurrentTestName() {

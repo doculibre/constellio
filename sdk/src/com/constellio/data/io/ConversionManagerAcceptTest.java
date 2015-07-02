@@ -32,7 +32,9 @@ import org.junit.Test;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
+@SlowTest
 public class ConversionManagerAcceptTest extends ConstellioTest {
 	IOServices ioServices;
 	ConversionManager manager;

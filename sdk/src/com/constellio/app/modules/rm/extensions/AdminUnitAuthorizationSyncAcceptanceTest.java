@@ -41,7 +41,7 @@ public class AdminUnitAuthorizationSyncAcceptanceTest extends ConstellioTest {
 
 	RMSchemasRecordsServices rm;
 
-	Users users;
+	Users users = new Users();
 
 	FilingSpace filingSpace1WithUserAliceBob;
 	FilingSpace filingSpace2WithUserBobCharles;
@@ -64,8 +64,8 @@ public class AdminUnitAuthorizationSyncAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withAllTestUsers().withConstellioRMModule();
-		users = new Users().setUp(getModelLayerFactory().newUserServices());
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users));
+
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		alice = users.aliceIn(zeCollection).getId();

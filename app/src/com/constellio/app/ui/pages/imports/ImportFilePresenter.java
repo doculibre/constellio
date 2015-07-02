@@ -17,30 +17,25 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.imports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import org.apache.commons.io.FileUtils;
-
+import com.constellio.app.services.schemas.bulkImport.*;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
+import com.constellio.app.services.schemas.bulkImport.data.excel.ExcelImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.bulkImport.BulkImportProgressionListener;
-import com.constellio.model.services.records.bulkImport.BulkImportResults;
-import com.constellio.model.services.records.bulkImport.ImportError;
-import com.constellio.model.services.records.bulkImport.LoggerBulkImportProgressionListener;
-import com.constellio.model.services.records.bulkImport.RecordsImportServices;
-import com.constellio.model.services.records.bulkImport.data.ImportDataProvider;
-import com.constellio.model.services.records.bulkImport.data.ImportServices;
-import com.constellio.model.services.records.bulkImport.data.excel.ExcelImportDataProvider;
-import com.constellio.model.services.records.bulkImport.data.xml.XMLImportDataProvider;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ImportFilePresenter extends BasePresenter<ImportFileView> {
 
@@ -106,19 +101,19 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> {
 
 				ImportDataProvider importDataProvider = null;
 				if (upload.getFileName().endsWith(".xls")) {
-					importDataProvider = ExcelImportDataProvider.fromFile(file);
+					importDataProvider = getExcelImportDataProviderFromFile(file);
 
 				} else if (upload.getFileName().endsWith(".zip")) {
-					importDataProvider = XMLImportDataProvider.forZipFile(modelLayerFactory, file);
-				} else if (upload.getFileName().endsWith(".xml")) {
-					importDataProvider = XMLImportDataProvider.forSingleXMLFile(modelLayerFactory, file);
-				} else {
+					importDataProvider = getXMLImportDataProviderForZipFile(modelLayerFactory, file);
+				} else if(upload.getFileName().endsWith(".xml")){
+					importDataProvider = getXMLImportDataProviderForSingleXMLFile(modelLayerFactory, file, upload.getFileName());
+				}else{
 					view.showErrorMessage("Only xml, zip or xls formats are accepted");
 				}
-				if (importDataProvider != null) {
-					BulkImportResults errors = importServices
-							.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections());
-					for (ImportError error : errors.getImportErrors()) {
+
+				if(importDataProvider != null){
+					BulkImportResults errors = importServices.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections());
+					for(ImportError error :errors.getImportErrors()){
 						view.showErrorMessage(format(error));
 					}
 					view.showImportCompleteMessage();
@@ -137,8 +132,20 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> {
 		}
 	}
 
-	private String format(ImportError error) {
-		return $("ImportUsersFileViewImpl.errorWithUser") + " " + error.getInvalidElementId() + " : " + error.getErrorMessage();
+	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory, File file, String fileName) {
+		return XMLImportDataProvider.forSingleXMLFile(modelLayerFactory, file, fileName);
+	}
+
+	protected ImportDataProvider getXMLImportDataProviderForZipFile(ModelLayerFactory modelLayerFactory, File file) {
+		return XMLImportDataProvider.forZipFile(modelLayerFactory, file);
+	}
+
+	protected ImportDataProvider getExcelImportDataProviderFromFile(File file) {
+		return ExcelImportDataProvider.fromFile(file);
+	}
+
+	protected String format(ImportError error) {
+		return $("ImportUsersFileViewImpl.errorWith") + " " + error.getInvalidElementId() + " : " + error.getErrorMessage();
 	}
 
 	public void backButtonClicked() {

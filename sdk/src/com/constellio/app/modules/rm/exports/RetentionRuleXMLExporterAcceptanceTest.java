@@ -37,13 +37,12 @@ public class RetentionRuleXMLExporterAcceptanceTest extends ConstellioTest {
 
 	File builtXML;
 
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records));
 
 		builtXML = new File(newTempFolder(), "test.xml");
 
@@ -81,7 +80,7 @@ public class RetentionRuleXMLExporterAcceptanceTest extends ConstellioTest {
 			if (sb.length() > 0) {
 				sb.append("\n");
 			}
-			sb.append(line.trim());
+			sb.append(line.replace(" />", "/>").trim());
 		}
 		return sb.toString();
 	}

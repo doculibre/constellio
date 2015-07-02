@@ -41,12 +41,34 @@ public class AutocompleteWebElement {
 		driver = element.getWebDriver();
 	}
 
+	public AutocompleteWebElement listTypeAndSelectFirst(String text) {
+		getListValues();
+		typeAndSelectFirst(text);
+		return this;
+	}
+
 	public AutocompleteWebElement typeAndSelectFirst(String text) {
-		clear();
-		getInputText().sendKeys(text);
-		select(0);
+		return typeAndSelectFirst(text, 0);
+	}
+
+	private AutocompleteWebElement typeAndSelectFirst(String text, int attempt) {
+
+		try {
+			element.scrollIntoView();
+			clear();
+			getInputText().sendKeys(text);
+			select(0);
+
+		} catch (Exception e) {
+			if (attempt < 9) {
+				return typeAndSelectFirst(text, attempt + 1);
+			} else {
+				throw new RuntimeException(e);
+			}
+		}
+
 		// This is a workaround for a problem on PhantomJS on OSX
-		element.click();
+		//		element.click();
 		return this;
 	}
 
@@ -84,6 +106,14 @@ public class AutocompleteWebElement {
 		String xpathIndex = "[" + (index + 1) + "]";
 		ConstellioWebElement choiceElement = driver.waitUntilElementExist(By.xpath(ROW_XPATH + xpathIndex + "//span"));
 		choiceElement.click();
+		return this;
+
+	}
+
+	public AutocompleteWebElement selectWithoutScrolling(int index) {
+		String xpathIndex = "[" + (index + 1) + "]";
+		ConstellioWebElement choiceElement = driver.waitUntilElementExist(By.xpath(ROW_XPATH + xpathIndex + "//span"));
+		choiceElement.getAdaptedElement().click();
 		return this;
 
 	}

@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.valueDomains;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,7 +68,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 			}
 			view.refreshTable();
 		} else {
-			view.showErrorMessage("Un domaine de valeur avec ce titre existe déjà.");
+			view.showErrorMessage($("ListValueDomainView.existingValueDomain", newLabel));
 		}
 	}
 
@@ -120,5 +122,4 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_VALUELIST).globally();
 	}
-
 }

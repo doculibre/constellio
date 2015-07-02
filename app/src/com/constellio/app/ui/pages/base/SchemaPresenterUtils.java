@@ -128,6 +128,11 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 	@SuppressWarnings("unchecked")
 	public final Record toRecord(RecordVO recordVO) {
+		return toRecord(recordVO, false);
+	}
+
+	@SuppressWarnings("unchecked")
+	public final Record toRecord(RecordVO recordVO, boolean newMinorEmpty) {
 		Record record;
 		try {
 			record = recordServices().getDocumentById(recordVO.getId());
@@ -154,7 +159,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 					metadataVOValue = ((RecordVO) metadataVOValue).getId();
 				} else if (metadataVOValue instanceof ContentVersionVO) {
 					ContentVersionVO contentVersionVO = (ContentVersionVO) metadataVOValue;
-					Content content = toContent(contentVersionVO);
+					Content content = toContent(contentVersionVO, newMinorEmpty);
 					if (content != null) {
 						metadataVOValue = content;
 					} else {
@@ -172,7 +177,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 						} else if (element instanceof ContentVersionVO) {
 							contentMetadata = true;
 							ContentVersionVO contentVersionVO = (ContentVersionVO) element;
-							Content content = toContent(contentVersionVO);
+							Content content = toContent(contentVersionVO, newMinorEmpty);
 							if (content == null) {
 								content = getContent(contentVersionVO.getHash(), (List<Content>) metadataValue);
 							}
@@ -223,6 +228,10 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public Content toContent(ContentVersionVO contentVersionVO) {
+		return toContent(contentVersionVO, false);
+	}
+
+	public Content toContent(ContentVersionVO contentVersionVO, boolean newMinorEmpty) {
 		Content content;
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -262,6 +271,8 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				throw new RuntimeException("Must specify if the version is minor or major");
 			} else if (majorVersion) {
 				content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
+			} else if (newMinorEmpty) {
+				content = contentManager.createEmptyMinor(currentUser, fileName, contentVersionDataSummary);
 			} else {
 				content = contentManager.createMinor(currentUser, fileName, contentVersionDataSummary);
 			}

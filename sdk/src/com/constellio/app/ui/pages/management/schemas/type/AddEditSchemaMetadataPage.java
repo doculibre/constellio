@@ -116,4 +116,9 @@ public class AddEditSchemaMetadataPage extends PageHelper {
 		ConstellioWebElement element = driver.findElement(By.id("autocomplete"));
 		return new CheckboxWebElement(element);
 	}
+
+	public ConstellioWebElement getDefaultValueElement() {
+		ConstellioWebElement element = driver.findElement(By.id("defaultValue"));
+		return new ConstellioWebElement(element);
+	}
 }

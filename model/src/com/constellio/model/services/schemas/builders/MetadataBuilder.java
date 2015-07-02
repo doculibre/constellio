@@ -65,6 +65,7 @@ public class MetadataBuilder {
 	private boolean searchable = false;
 	private boolean schemaAutocomplete = false;
 	private boolean sortable = false;
+	private boolean writeNullValues = true;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
 	private ClassListBuilder<RecordMetadataValidator<?>> recordMetadataValidators;
@@ -146,6 +147,7 @@ public class MetadataBuilder {
 		builder.uniqueValue = metadata.isUniqueValue();
 		builder.systemReserved = metadata.isSystemReserved();
 		builder.essential = metadata.isEssential();
+		builder.writeNullValues = metadata.isWriteNullValues();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.defaultValue = metadata.getDefaultValue();
@@ -180,6 +182,7 @@ public class MetadataBuilder {
 		builder.uniqueValue = metadata.isUniqueValue();
 		builder.systemReserved = metadata.isSystemReserved();
 		builder.essential = metadata.isEssential();
+		builder.writeNullValues = metadata.isWriteNullValues();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(RecordMetadataValidator.class,
@@ -358,6 +361,16 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public boolean isWriteNullValues() {
+		return inheritance == null ? writeNullValues : inheritance.writeNullValues;
+	}
+
+	public MetadataBuilder setWriteNullValues(boolean writeNullValues) {
+		ensureCanModify("writeNullValues");
+		this.writeNullValues = writeNullValues;
+		return this;
+	}
+
 	public Object getDefaultValue() {
 		return defaultValue;
 	}
@@ -382,6 +395,12 @@ public class MetadataBuilder {
 
 	public MetadataValueType getType() {
 		return inheritance == null ? type : inheritance.type;
+	}
+
+	public MetadataBuilder setTypeWithoutValidation(MetadataValueType newType) {
+		//Warning : Dangerous!
+		this.type = newType;
+		return this;
 	}
 
 	public MetadataBuilder setType(MetadataValueType newType) {
@@ -513,7 +532,7 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential);
+				essential, writeNullValues);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 

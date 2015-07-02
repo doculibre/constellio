@@ -122,10 +122,6 @@ public class LabelsReportBuilder implements ReportBuilder {
 		return printableLabelField;
 	}
 
-	private int approximateNumberOfRowsBasedOnHeight10PerRow(float labelHeight) {
-		return (int) Math.floor(labelHeight / 10);
-	}
-
 	float calculateExactRowHeight(float labelHeight, int numRows) {
 		return labelHeight / numRows;
 	}
@@ -169,5 +165,9 @@ public class LabelsReportBuilder implements ReportBuilder {
 			emptyCell.setBorder(Rectangle.NO_BORDER);
 			labels.addCell(emptyCell);
 		}
+	}
+
+	private int approximateNumberOfRowsBasedOnHeight10PerRow(float labelHeight) {
+		return (int) Math.floor(labelHeight / 10);
 	}
 }

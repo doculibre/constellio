@@ -326,6 +326,17 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
+	public DecommissioningList removeFolderDetail(String folderId) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (DecomListFolderDetail detail : getFolderDetails()) {
+			if (!folderId.equals(detail.getFolderId())) {
+				details.add(detail);
+			}
+		}
+		setFolderDetails(details);
+		return this;
+	}
+
 	public DecommissioningList setFolderDetailsFrom(List<Folder> folders) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		for (Folder folder : folders) {

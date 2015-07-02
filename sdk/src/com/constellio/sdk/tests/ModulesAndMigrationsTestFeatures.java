@@ -86,6 +86,18 @@ public class ModulesAndMigrationsTestFeatures {
 		return withModule(ConstellioRMModule.class);
 	}
 
+	public ModulesAndMigrationsTestFeatures withAdmin() {
+		UserServices userServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory().newUserServices();
+		UserPhotosServices userPhotosServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory()
+				.newUserPhotosServices();
+		if (users == null) {
+			users = new Users();
+			users.setUp(userServices).withPhotos(userPhotosServices);
+		}
+		userServices.addUserToCollection(users.admin(), collection);
+		return this;
+	}
+
 	public ModulesAndMigrationsTestFeatures withAllTestUsers() {
 		UserServices userServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory().newUserServices();
 		UserPhotosServices userPhotosServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory()

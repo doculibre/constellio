@@ -25,8 +25,6 @@ import java.util.List;
 
 import org.joda.time.LocalDateTime;
 
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
@@ -35,12 +33,10 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.fields.lookup.PathLookupField;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServices;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.converter.StringToDoubleConverter;
@@ -223,20 +219,13 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildHierarchyValueCriterion(final Criterion criterion) {
-			final RecordServices recordServices = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices();
-
-			final LookupRecordField lookup = new LookupRecordField(Folder.SCHEMA_TYPE);
-			String path = (String) criterion.getValue();
-			if (path != null) {
-				String[] parts = path.split("/");
-				lookup.setValue(parts[parts.length - 1]);
-			}
+			final PathLookupField lookup = new PathLookupField();
+			lookup.setValue((String) criterion.getValue());
 
 			lookup.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					Record record = recordServices.getDocumentById(lookup.getValue());
-					criterion.setValue(record.getList(Schemas.PATH).get(0));
+					criterion.setValue(lookup.getValue());
 				}
 			});
 

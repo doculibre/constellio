@@ -56,98 +56,108 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return code;
 	}
 
-	public void setCode(String code) {
+	public CopyRetentionRule setCode(String code) {
 		dirty = true;
 		this.code = code;
+		return this;
 	}
 
 	public CopyType getCopyType() {
 		return copyType;
 	}
 
-	public void setCopyType(CopyType copyType) {
+	public CopyRetentionRule setCopyType(CopyType copyType) {
 		dirty = true;
 		this.copyType = copyType;
+		return this;
 	}
 
 	public List<String> getMediumTypeIds() {
 		return mediumTypeIds;
 	}
 
-	public void setMediumTypeIds(List<String> mediumTypeIds) {
+	public CopyRetentionRule setMediumTypeIds(List<String> mediumTypeIds) {
 		dirty = true;
 		this.mediumTypeIds = mediumTypeIds;
+		return this;
 	}
 
 	public String getContentTypesComment() {
 		return contentTypesComment;
 	}
 
-	public void setContentTypesComment(String contentTypesComment) {
+	public CopyRetentionRule setContentTypesComment(String contentTypesComment) {
 		dirty = true;
 		this.contentTypesComment = contentTypesComment;
+		return this;
 	}
 
 	public RetentionPeriod getActiveRetentionPeriod() {
 		return activeRetentionPeriod;
 	}
 
-	public void setActiveRetentionPeriod(RetentionPeriod activeRetentionPeriod) {
+	public CopyRetentionRule setActiveRetentionPeriod(RetentionPeriod activeRetentionPeriod) {
 		dirty = true;
 		if (activeRetentionPeriod == null || activeRetentionPeriod.getValue() == 0) {
 			this.activeRetentionPeriod = RetentionPeriod.ZERO;
 		} else {
 			this.activeRetentionPeriod = activeRetentionPeriod;
 		}
+		return this;
 	}
 
 	public String getActiveRetentionComment() {
 		return activeRetentionComment;
 	}
 
-	public void setActiveRetentionComment(String activeRetentionComment) {
+	public CopyRetentionRule setActiveRetentionComment(String activeRetentionComment) {
 		dirty = true;
 		this.activeRetentionComment = activeRetentionComment;
+		return this;
 	}
 
 	public RetentionPeriod getSemiActiveRetentionPeriod() {
 		return semiActiveRetentionPeriod;
 	}
 
-	public void setSemiActiveRetentionPeriod(RetentionPeriod semiActiveRetentionPeriod) {
+	public CopyRetentionRule setSemiActiveRetentionPeriod(RetentionPeriod semiActiveRetentionPeriod) {
 		dirty = true;
 		if (semiActiveRetentionPeriod == null || semiActiveRetentionPeriod.getValue() == 0) {
 			this.semiActiveRetentionPeriod = RetentionPeriod.ZERO;
 		} else {
 			this.semiActiveRetentionPeriod = semiActiveRetentionPeriod;
 		}
+		return this;
 	}
 
 	public String getSemiActiveRetentionComment() {
 		return semiActiveRetentionComment;
 	}
 
-	public void setSemiActiveRetentionComment(String semiActiveRetentionComment) {
+	public CopyRetentionRule setSemiActiveRetentionComment(String semiActiveRetentionComment) {
 		dirty = true;
 		this.semiActiveRetentionComment = semiActiveRetentionComment;
+		return this;
 	}
 
 	public DisposalType getInactiveDisposalType() {
 		return inactiveDisposalType;
 	}
 
-	public void setInactiveDisposalType(DisposalType inactiveDisposalType) {
+	public CopyRetentionRule setInactiveDisposalType(DisposalType inactiveDisposalType) {
 		dirty = true;
 		this.inactiveDisposalType = inactiveDisposalType;
+		return this;
 	}
 
 	public String getInactiveDisposalComment() {
 		return inactiveDisposalComment;
 	}
 
-	public void setInactiveDisposalComment(String inactiveDisposalComment) {
+	public CopyRetentionRule setInactiveDisposalComment(String inactiveDisposalComment) {
 		dirty = true;
 		this.inactiveDisposalComment = inactiveDisposalComment;
+		return this;
 	}
 
 	@Override
@@ -187,6 +197,20 @@ public class CopyRetentionRule implements ModifiableStructure {
 
 	public static CopyRetentionRule newSecondary(List<String> contentTypesCodes, String value) {
 		return newRetentionRule(CopyType.SECONDARY, contentTypesCodes, value);
+	}
+
+	public static CopyRetentionRule newPrincipal(List<String> contentTypesCodes) {
+		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
+		copyRetentionRule.setMediumTypeIds(contentTypesCodes);
+		copyRetentionRule.setCopyType(CopyType.PRINCIPAL);
+		return copyRetentionRule;
+	}
+
+	public static CopyRetentionRule newSecondary(List<String> contentTypesCodes) {
+		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
+		copyRetentionRule.setMediumTypeIds(contentTypesCodes);
+		copyRetentionRule.setCopyType(CopyType.SECONDARY);
+		return copyRetentionRule;
 	}
 
 	public static CopyRetentionRule newRetentionRule(CopyType copyType, List<String> contentTypesCodes, String value) {

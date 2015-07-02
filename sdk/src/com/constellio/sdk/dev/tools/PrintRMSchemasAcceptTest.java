@@ -30,8 +30,10 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.MainTest;
+import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 
+@MainTest
 public class PrintRMSchemasAcceptTest extends ConstellioTest {
 
 	private static List<String> restrictedTypes = asList(Collection.SCHEMA_TYPE, Event.SCHEMA_TYPE, Task.SCHEMA_TYPE);
@@ -40,13 +42,14 @@ public class PrintRMSchemasAcceptTest extends ConstellioTest {
 			"removedauthorizations", "detachedauthorizations", "authorizations", "deleted");
 
 	@Test
-	@InDevelopmentTest
+	@MainTestDefaultStart
 	public void printSchemas()
 			throws Exception {
 
 		givenCollection(zeCollection).withConstellioRMModule();
 
 		System.out.println("_Généré avec com.constellio.sdk.dev.tools.PrintRMSchemasAcceptTest_\n\n");
+		System.out.println("Utiliser http://yuml.me pour générer le diagramme.");
 
 		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getSchemaTypes()) {

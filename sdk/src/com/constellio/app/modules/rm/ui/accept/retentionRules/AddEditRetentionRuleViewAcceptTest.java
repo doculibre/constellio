@@ -36,8 +36,11 @@ public class AddEditRetentionRuleViewAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		page = new AddEditRetentionRulePage(driver).navigateToPage();
@@ -53,8 +56,7 @@ public class AddEditRetentionRuleViewAcceptTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void loadRetentionRuleForm() {
 		RecordFormWebElement form = page.getForm();
-		
+
 		waitUntilICloseTheBrowsers();
 	}
-	
 }

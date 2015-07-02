@@ -28,6 +28,7 @@ import static com.constellio.sdk.tests.TestUtils.ids;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichNullValuesAreNotWritten;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -52,10 +53,10 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -111,7 +112,12 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	@Before
 	public void setUp() {
-		givenCollection(zeCollection, Arrays.asList(Language.French.getCode(), Language.English.getCode()));
+
+		prepareSystem(
+				withZeCollection(),
+				withCollection("collection2")
+		);
+		//givenCollection(zeCollection, Arrays.asList(Language.French.getCode(), Language.English.getCode()));
 		recordServices = getModelLayerFactory().newRecordServices();
 		recordDao = spy(getDataLayerFactory().newRecordDao());
 		searchServices = new SearchServices(recordDao, recordServices);
@@ -180,6 +186,87 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(findRecords(whereMetadata.isNotIn(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE)))).isEmpty();
 		assertThat(findRecords(whereMetadata.isNotIn(new ArrayList<>()))).containsOnly(record1, record2, record3, record4);
 
+	}
+
+	@Test
+	public void whenSearchingStatsForCollectionThenFindResults()
+			throws Exception {
+		//recordServices.execute(transaction);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+
+	}
+
+	@Test
+	public void whenSearchingStatsForNumberMetadataThenFindResults()
+			throws Exception {
+		defineSchemasManager().using(schema.withANumberMetadata(whichIsSearchable));
+		Metadata statsMetadata = zeSchema.numberMetadata();
+		transaction.addUpdate(expectedRecord = newRecordOfZeSchema()
+				.set(statsMetadata, 12.0));
+		transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema()
+				.set(statsMetadata, 13.5));
+		//transaction.addUpdate(expectedRecord3 = newRecordOfZeSchema());
+		recordServices.execute(transaction);
+
+		condition = from(zeSchema.instance()).returnAll();
+		//when
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.computeStatsOnField(statsMetadata);
+		//then
+		SPEQueryResponse response = searchServices.query(query);
+		Map<String, Object> values = response.getStatValues(statsMetadata);
+		assertThat(values.get("min")).isEqualTo(12.0);
+		assertThat(values.get("max")).isEqualTo(13.5);
+		assertThat(values.get("sum")).isEqualTo(25.5);
+		assertThat(values.get("count")).isEqualTo(2L);
+		assertThat(values.get("missing")).isEqualTo(0L);
+	}
+
+	@Test
+	public void whenSearchingStatsForNumberMetadataWithMissingValueThenFindResults()
+			throws Exception {
+		defineSchemasManager().using(schema.withANumberMetadata(whichIsSearchable, whichNullValuesAreNotWritten));
+		Metadata statsMetadata = zeSchema.numberMetadata();
+		transaction.addUpdate(expectedRecord = newRecordOfZeSchema()
+				.set(statsMetadata, 12.0));
+		transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema()
+				.set(statsMetadata, 13.5));
+		transaction.addUpdate(expectedRecord3 = newRecordOfZeSchema());
+		recordServices.execute(transaction);
+
+		condition = from(zeSchema.instance()).returnAll();
+		//when
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.computeStatsOnField(statsMetadata);
+		//then
+		SPEQueryResponse response = searchServices.query(query);
+		Map<String, Object> values = response.getStatValues(statsMetadata);
+		assertThat(values.get("missing")).isEqualTo(1L);
+		assertThat(values.get("count")).isEqualTo(2L);
+		assertThat(values.get("min")).isEqualTo(12.0);
+		assertThat(values.get("max")).isEqualTo(13.5);
+		assertThat(values.get("sum")).isEqualTo(25.5);
+	}
+
+	@Test
+	public void whenSearchingStatsForAllContainersOfACollectionThenFindResults()
+			throws Exception {
+	}
+
+	@Test
+	public void whenSearchingStatsForContainerWithAtLeastOneFolderWithoutLinearSizeThenReturnFolderWithoutLinearSizeException()
+			throws Exception {
+	}
+
+	@Test
+	public void whenSearchingStatsForCollectionWithAtLeastOneFolderWithoutLinearSizeThenReturnFolderWithoutLinearSizeException()
+			throws Exception {
+	}
+
+	@Test
+	public void whenSearchingStatsForContainerWithInvalidCapacityThenReturnContainerCapacityNotFoundException()
+			throws Exception {
 	}
 
 	@Test
@@ -2538,6 +2625,12 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		return searchServices.search(query);
+	}
+
+	private SPEQueryResponse query(LogicalSearchCondition condition) {
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		return searchServices.query(query);
 	}
 
 	private List<String> findRecordIds(LogicalSearchCondition condition) {

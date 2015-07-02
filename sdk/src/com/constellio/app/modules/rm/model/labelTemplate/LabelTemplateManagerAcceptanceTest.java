@@ -19,71 +19,86 @@ package com.constellio.app.modules.rm.model.labelTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jdom2.Document;
 import org.jdom2.input.SAXBuilder;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate.SchemaType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldHorizontalAlignment;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldVerticalAlignment;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManagerRuntimeException.LabelTemplateManagerRuntimeException_CannotCreateLabelTemplate;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.itextpdf.text.FontFactory;
 
 public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 
-	private static final String LABELS_TEMPLATES_FOLDER = "labelTemplates";
+	private static final String LABELS_TEMPLATES_FOLDER = "/labelTemplates";
 	LabelTemplateManager labelTemplateManager;
+	ConfigManager configManager;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		givenValidExtesionFileInFolder();
-
+		configManager = getDataLayerFactory().getConfigManager();
 		labelTemplateManager = getAppLayerFactory().getLabelTemplateManager();
 	}
 
-	private void addCustomLabelTemplates()
+	@Test
+	public void givenNoLabelTemplateWhenListTemplatesThenReturnDefaultLabels()
 			throws Exception {
-		SAXBuilder jdomBuilder = new SAXBuilder();
-		Document labelTemplate = jdomBuilder.build(getTestResourceFile("customTemplate.xml"));
-		getDataLayerFactory().getConfigManager().add("/labelTemplates/custom.xml", labelTemplate);
-	}
 
-	@After
-	public void givenInvalidExtesionFileInFolder() {
-		ConfigManager configManager = getDataLayerFactory().getConfigManager();
-		for (String filename : configManager.list(LABELS_TEMPLATES_FOLDER)) {
-			assertThat(configManager
-					.rename(LABELS_TEMPLATES_FOLDER + "/" + filename, LABELS_TEMPLATES_FOLDER + "/" + filename + ".bkp"))
-					.isTrue();
-		}
+		List<LabelTemplate> labelTemplates = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE);
+		assertThat(labelTemplates).hasSize(2);
+		assertThat(labelTemplates.get(0).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5159");
+		assertThat(labelTemplates.get(1).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5159");
 	}
 
 	@Test
-	public void whenNoFilesInLabelTemplateFolderThenReturnDefaultLabel()
+	public void givenCustomLabelTemplatesWhenListFolderTemplatesThenOk()
 			throws Exception {
-		givenInvalidExtesionFileInFolder();
 
-		assertThat(labelTemplateManager.listTemplates(SchemaType.FOLDER.name())).hasSize(2);
+		givenCustomTemplates();
+
+		List<LabelTemplate> labelTemplates = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE);
+		assertThat(labelTemplates).hasSize(2);
+		assertThat(labelTemplates.get(0).getKey()).isEqualTo("folderTemplate1");
+		assertThat(labelTemplates.get(1).getKey()).isEqualTo("folderTemplate2");
 	}
 
 	@Test
-	public void whenListTemplatesThenOk()
+	public void givenCustomLabelTemplatesWhenListTemplatesWithEmptyStringThenOk()
 			throws Exception {
-		assertThat(labelTemplateManager.listTemplates(SchemaType.FOLDER.name())).hasSize(2);
+
+		givenCustomTemplates();
+
+		List<LabelTemplate> labelTemplates = labelTemplateManager.listTemplates("");
+		assertThat(labelTemplates).hasSize(1);
+		assertThat(labelTemplates.get(0).getKey()).isEqualTo("");
 	}
 
-	//TODO Thiago @Test
-	public void givenDocumentWhenGetTemplateThenOk()
+	@Test
+	public void givenCustomLabelTemplatesWhenListTemplatesWithNullStringThenOk()
 			throws Exception {
 
-		labelTemplateManager.listTemplates(SchemaType.FOLDER.name());
-		assertThat(labelTemplateManager.listTemplates(SchemaType.FOLDER.name())).hasSize(2);
+		givenCustomTemplates();
+
+		List<LabelTemplate> labelTemplates = labelTemplateManager.listTemplates(null);
+		assertThat(labelTemplates).hasSize(1);
+		assertThat(labelTemplates.get(0).getKey()).isEqualTo("");
+	}
+
+	@Test
+	public void whenGetTemplateThenOk()
+			throws Exception {
+
+		givenCustomTemplates();
 		LabelTemplate template = labelTemplateManager.getLabelTemplate("folderTemplate1.xml");
 
 		assertThat(template.getKey()).isEqualTo("folderTemplate1");
@@ -91,7 +106,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(template.getColumns()).isEqualTo(2);
 		assertThat(template.getLines()).isEqualTo(7);
 		assertThat(template.getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
-		assertThat(template.getSchemaType()).isEqualTo(SchemaType.FOLDER);
+		assertThat(template.getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(template.getFields()).hasSize(2);
 
 		assertThat(template.getFields().get(0).getFontName()).isEqualTo(FontFactory.COURIER);
@@ -121,14 +136,55 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(template.getFields().get(1).getVerticalAlignment()).isEqualTo(LabelTemplateFieldVerticalAlignment.TOP);
 	}
 
-	//
+	@Test(expected = LabelTemplateManagerRuntimeException_CannotCreateLabelTemplate.class)
+	public void givenInvalidTemplateFileWhenGetTemplateThenException()
+			throws Exception {
 
-	private void givenValidExtesionFileInFolder() {
-		ConfigManager configManager = getDataLayerFactory().getConfigManager();
-		for (String filename : configManager.list(LABELS_TEMPLATES_FOLDER)) {
-			String newFilename = filename.replace(".bkp", "");
-			configManager
-					.rename(LABELS_TEMPLATES_FOLDER + "/" + filename, LABELS_TEMPLATES_FOLDER + "/" + newFilename);
-		}
+		givenInvalidTemplateFile();
+		labelTemplateManager.getLabelTemplate("invalidTemplate.xml");
 	}
+
+	@Test
+	public void givenInexistentFilenameWhenGetTemplateThenReturnNull()
+			throws Exception {
+
+		this.givenCustomTemplates();
+		LabelTemplate template = labelTemplateManager.getLabelTemplate("InexistentFilename.xml");
+		assertThat(template).isNull();
+	}
+
+	public void givenCustomTemplates()
+			throws Exception {
+
+		List<String> filenames = new ArrayList<>();
+		String filename1 = "folderTemplate1.xml";
+		String filename2 = "folderTemplate2.xml";
+		String filename3 = "containerTemplate1.xml";
+		filenames.add(filename1);
+		filenames.add(filename2);
+		filenames.add(filename3);
+
+		for (String filename : filenames) {
+			String path = LABELS_TEMPLATES_FOLDER + "/" + filename;
+			SAXBuilder saxBuilder = new SAXBuilder();
+			Document document = saxBuilder.build(getTestResourceFile(filename));
+			configManager.add(path, document);
+			assertThat(configManager.exist(path)).isTrue();
+		}
+		assertThat(configManager.list(LABELS_TEMPLATES_FOLDER)).hasSize(3);
+	}
+
+	private void givenInvalidTemplateFile()
+			throws Exception {
+
+		String filename = "invalidTemplate.xml";
+
+		String path = LABELS_TEMPLATES_FOLDER + "/" + filename;
+		SAXBuilder saxBuilder = new SAXBuilder();
+		Document document = saxBuilder.build(getTestResourceFile(filename));
+		configManager.add(path, document);
+		assertThat(configManager.exist(path)).isTrue();
+		assertThat(configManager.list(LABELS_TEMPLATES_FOLDER)).hasSize(1);
+	}
+
 }

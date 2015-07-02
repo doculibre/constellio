@@ -31,7 +31,9 @@ public class NavigationAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
 		driver = newWebDriver(FakeSessionContext.adminInCollection(zeCollection));
 
 	}

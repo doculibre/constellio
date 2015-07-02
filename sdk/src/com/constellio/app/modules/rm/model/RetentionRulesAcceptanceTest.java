@@ -17,10 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.model;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -35,6 +35,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -73,7 +74,9 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule()
+		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -96,7 +99,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		principalAnalogicRetentionRule = new CopyRetentionRule();
 		principalAnalogicRetentionRule.setCode("rule1");
 		principalAnalogicRetentionRule.setCopyType(CopyType.PRINCIPAL);
-		principalAnalogicRetentionRule.setMediumTypeIds(Arrays.asList(rm.PA(), rm.FI()));
+		principalAnalogicRetentionRule.setMediumTypeIds(asList(rm.PA(), rm.FI()));
 		principalAnalogicRetentionRule.setContentTypesComment("R1");
 		principalAnalogicRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
 		principalAnalogicRetentionRule.setActiveRetentionComment("R2");
@@ -108,7 +111,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		principalNumericRetentionRule = new CopyRetentionRule();
 		principalNumericRetentionRule.setCode("rule2");
 		principalNumericRetentionRule.setCopyType(CopyType.PRINCIPAL);
-		principalNumericRetentionRule.setMediumTypeIds(Arrays.asList(rm.DM()));
+		principalNumericRetentionRule.setMediumTypeIds(asList(rm.DM()));
 		principalNumericRetentionRule.setContentTypesComment("R5");
 		principalNumericRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_999);
 		principalNumericRetentionRule.setActiveRetentionComment("R6");
@@ -120,7 +123,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		secondaryRetentionRule = new CopyRetentionRule();
 		secondaryRetentionRule.setCode("rule3");
 		secondaryRetentionRule.setCopyType(CopyType.SECONDARY);
-		secondaryRetentionRule.setMediumTypeIds(Arrays.asList(rm.PA(), rm.FI(), rm.DM()));
+		secondaryRetentionRule.setMediumTypeIds(asList(rm.PA(), rm.FI(), rm.DM()));
 		secondaryRetentionRule.setContentTypesComment("R9");
 		secondaryRetentionRule.setActiveRetentionPeriod(RetentionPeriod.fixed(10));
 		secondaryRetentionRule.setActiveRetentionComment("R10");
@@ -135,54 +138,48 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 	public void whenSaveRetentionRuleThenAllValuesAreValid()
 			throws Exception {
 
+		VariableRetentionPeriod period42 = rm.newVariableRetentionPeriod().setCode("42").setTitle("Ze 42");
+		VariableRetentionPeriod period666 = rm.newVariableRetentionPeriod().setCode("666").setTitle("Ze 666");
+
+		CopyRetentionRule principal = CopyRetentionRule.newPrincipal(asList("PA"))
+				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
+				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
+				.setInactiveDisposalType(DisposalType.DEPOSIT);
+
+		CopyRetentionRule secondary = CopyRetentionRule.newSecondary(asList("PA"))
+				.setActiveRetentionPeriod(RetentionPeriod.fixed(42))
+				.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(666))
+				.setInactiveDisposalType(DisposalType.DEPOSIT);
+
 		Record retentionRuleRecord = recordServices.newRecordWithSchema(retentionRuleSchema);
 		RetentionRule retentionRule = new RetentionRule(retentionRuleRecord, types);
-		assertThat(retentionRule.isApproved()).isFalse();
-		assertThat(retentionRule.isResponsibleAdministrativeUnits()).isFalse();
-		assertThat(retentionRule.isConfidentialDocuments()).isFalse();
-		assertThat(retentionRule.isEssentialDocuments()).isFalse();
-		retentionRule.setAdministrativeUnits(Arrays.asList(anAdministrativeUnitId, anotherAdministrativeUnitId));
-		retentionRule.setApproved(true);
-		retentionRule.setApprovalDate(january31_2014);
+		retentionRule.setAdministrativeUnits(asList(anAdministrativeUnitId, anotherAdministrativeUnitId));
 		retentionRule.setCode("zeCode");
 		retentionRule.setTitle("zeTitle");
-		retentionRule.setResponsibleAdministrativeUnits(false);
-		retentionRule.setCopyRetentionRules(
-				Arrays.asList(principalAnalogicRetentionRule, principalNumericRetentionRule, secondaryRetentionRule));
-		retentionRule.setHistory(history);
-		retentionRule.setConfidentialDocuments(true);
-		retentionRule.setEssentialDocuments(true);
-		retentionRule.setKeywords(Arrays.asList(keyword1, keyword2));
+		retentionRule.setCopyRetentionRules(asList(principal, secondary));
 
-		List<RetentionRuleDocumentType> documentTypes = Arrays.asList(
+		List<RetentionRuleDocumentType> documentTypes = asList(
 				new RetentionRuleDocumentType(zeFirstType, DisposalType.DEPOSIT),
 				new RetentionRuleDocumentType(anotherType, DisposalType.DESTRUCTION)
 		);
-
 		retentionRule.setDocumentTypesDetails(documentTypes);
 
 		recordServices.add(retentionRuleRecord);
 		RetentionRule savedRetentionRule = new RetentionRule(recordServices.getDocumentById(retentionRuleRecord.getId()), types);
 
-		assertThat(savedRetentionRule.isApproved()).isTrue();
-		assertThat(savedRetentionRule.getApprovalDate()).isEqualTo(january31_2014);
-		assertThat(savedRetentionRule.getCode()).isEqualTo("zeCode");
-		assertThat(savedRetentionRule.getTitle()).isEqualTo("zeTitle");
-		assertThat(savedRetentionRule.isResponsibleAdministrativeUnits()).isFalse();
-		assertThat(savedRetentionRule.getAdministrativeUnits()).containsOnly(anAdministrativeUnitId, anotherAdministrativeUnitId);
-		assertThat(savedRetentionRule.getCopyRetentionRules())
-				.containsOnly(principalAnalogicRetentionRule, principalNumericRetentionRule, secondaryRetentionRule);
-		assertThat(savedRetentionRule.getPrincipalCopies()).containsOnlyOnce(principalAnalogicRetentionRule,
-				principalNumericRetentionRule);
-		assertThat(savedRetentionRule.getSecondaryCopy()).isEqualTo(secondaryRetentionRule);
+		assertThat(savedRetentionRule.getPrincipalCopies()).hasSize(1);
+		assertThat(savedRetentionRule.getPrincipalCopies().get(0).getActiveRetentionPeriod().isVariablePeriod()).isTrue();
+		assertThat(savedRetentionRule.getPrincipalCopies().get(0).getActiveRetentionPeriod().getVariablePeriodCode())
+				.isEqualTo("42");
+		assertThat(savedRetentionRule.getPrincipalCopies().get(0).getSemiActiveRetentionPeriod().isVariablePeriod()).isTrue();
+		assertThat(savedRetentionRule.getPrincipalCopies().get(0).getSemiActiveRetentionPeriod().getVariablePeriodCode())
+				.isEqualTo("666");
 
-		assertThat(savedRetentionRule.getDocumentTypes()).isEqualTo(Arrays.asList(zeFirstType, anotherType));
-		assertThat(savedRetentionRule.getDocumentTypesDetails()).isEqualTo(documentTypes);
+		assertThat(savedRetentionRule.getSecondaryCopy().getActiveRetentionPeriod().isVariablePeriod()).isFalse();
+		assertThat(savedRetentionRule.getSecondaryCopy().getActiveRetentionPeriod().getFixedValue()).isEqualTo(42);
+		assertThat(savedRetentionRule.getSecondaryCopy().getSemiActiveRetentionPeriod().isVariablePeriod()).isFalse();
+		assertThat(savedRetentionRule.getSecondaryCopy().getSemiActiveRetentionPeriod().getFixedValue()).isEqualTo(666);
 
-		assertThat(savedRetentionRule.getHistory()).isEqualTo(history);
-		assertThat(savedRetentionRule.isEssentialDocuments()).isTrue();
-		assertThat(savedRetentionRule.isConfidentialDocuments()).isTrue();
-		assertThat(savedRetentionRule.getKeywords()).containsExactly(keyword1, keyword2);
 	}
 
 	@Test
@@ -200,7 +197,41 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		retentionRule.setTitle("zeTitle");
 		retentionRule.setResponsibleAdministrativeUnits(true);
 		retentionRule.setCopyRetentionRules(
-				Arrays.asList(principalAnalogicRetentionRule, principalNumericRetentionRule, secondaryRetentionRule));
+				asList(principalAnalogicRetentionRule, principalNumericRetentionRule, secondaryRetentionRule));
+
+		recordServices.add(retentionRuleRecord);
+		RetentionRule savedRetentionRule = new RetentionRule(recordServices.getDocumentById(retentionRuleRecord.getId()), types);
+
+		assertThat(savedRetentionRule.isApproved()).isTrue();
+		assertThat(savedRetentionRule.getApprovalDate()).isEqualTo(january31_2014);
+		assertThat(savedRetentionRule.getCode()).isEqualTo("zeCode");
+		assertThat(savedRetentionRule.getTitle()).isEqualTo("zeTitle");
+		assertThat(savedRetentionRule.isResponsibleAdministrativeUnits()).isTrue();
+		assertThat(savedRetentionRule.getAdministrativeUnits()).isEmpty();
+		assertThat(savedRetentionRule.getCopyRetentionRules())
+				.containsOnly(principalAnalogicRetentionRule, principalNumericRetentionRule, secondaryRetentionRule);
+		assertThat(savedRetentionRule.getPrincipalCopies()).containsOnlyOnce(principalAnalogicRetentionRule,
+				principalNumericRetentionRule);
+		assertThat(savedRetentionRule.getSecondaryCopy()).isEqualTo(secondaryRetentionRule);
+
+	}
+
+	@Test
+	public void whenSaveRetentionRuleWithSpecialVariablePeriodThenSavedCorrectly()
+			throws Exception {
+
+		Record retentionRuleRecord = recordServices.newRecordWithSchema(retentionRuleSchema);
+		RetentionRule retentionRule = new RetentionRule(retentionRuleRecord, types);
+		assertThat(retentionRule.isApproved()).isFalse();
+		assertThat(retentionRule.isResponsibleAdministrativeUnits()).isFalse();
+		retentionRule.setAdministrativeUnits(new ArrayList<String>());
+		retentionRule.setApproved(true);
+		retentionRule.setApprovalDate(january31_2014);
+		retentionRule.setCode("zeCode");
+		retentionRule.setTitle("zeTitle");
+		retentionRule.setResponsibleAdministrativeUnits(true);
+		retentionRule.setCopyRetentionRules(
+				asList(principalAnalogicRetentionRule, principalNumericRetentionRule, secondaryRetentionRule));
 
 		recordServices.add(retentionRuleRecord);
 		RetentionRule savedRetentionRule = new RetentionRule(recordServices.getDocumentById(retentionRuleRecord.getId()), types);
@@ -227,13 +258,13 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		RetentionRule retentionRule = new RetentionRule(retentionRuleRecord, types);
 		assertThat(retentionRule.isApproved()).isFalse();
 		assertThat(retentionRule.isResponsibleAdministrativeUnits()).isFalse();
-		retentionRule.setAdministrativeUnits(Arrays.asList(anAdministrativeUnitId, anotherAdministrativeUnitId));
+		retentionRule.setAdministrativeUnits(asList(anAdministrativeUnitId, anotherAdministrativeUnitId));
 		retentionRule.setApproved(true);
 		retentionRule.setApprovalDate(january31_2014);
 		retentionRule.setCode("zeCode");
 		retentionRule.setTitle("zeTitle");
 		retentionRule.setResponsibleAdministrativeUnits(true);
-		retentionRule.setCopyRetentionRules(Arrays.asList(new CopyRetentionRule()));
+		retentionRule.setCopyRetentionRules(asList(new CopyRetentionRule()));
 
 		try {
 			recordServices.add(retentionRuleRecord);

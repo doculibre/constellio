@@ -115,4 +115,9 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 
 		return results.createSummary(addContainers);
 	}
+
+	@Override
+	public Boolean computeStatistics() {
+		return false;
+	}
 }

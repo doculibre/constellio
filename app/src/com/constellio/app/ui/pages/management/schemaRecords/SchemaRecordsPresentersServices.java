@@ -17,13 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
-
-import com.constellio.app.api.extensions.SchemaTypeAccessExtension;
-import com.constellio.app.extensions.AppLayerCollectionEventsListeners;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
-import com.constellio.data.frameworks.extensions.ExtensionUtils.BehaviorCaller;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -58,17 +53,9 @@ public class SchemaRecordsPresentersServices {
 		//			return false;
 		//		}
 
-		AppLayerCollectionEventsListeners extensions = appLayerFactory.getExtensions()
-				.getCollectionListeners(user.getCollection());
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 		boolean defaultValue = schemaTypeCode.startsWith("ddv") && user.has(CorePermissions.MANAGE_VALUELIST).globally();
-
-		return getBooleanValue(extensions.schemaTypeAccessExtensions, defaultValue,
-				new BehaviorCaller<SchemaTypeAccessExtension, ExtensionBooleanResult>() {
-					@Override
-					public ExtensionBooleanResult call(SchemaTypeAccessExtension behavior) {
-						return behavior.canManageSchema(user, metadataSchemaType);
-					}
-				});
+		return extensions.canManageSchema(defaultValue, user, metadataSchemaType);
 	}
 
 	public boolean canViewSchemaTypeRecord(final Record restrictedRecord, final User user) {
@@ -81,17 +68,9 @@ public class SchemaRecordsPresentersServices {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(user.getCollection());
 		final MetadataSchemaType metadataSchemaType = types.getSchemaType(schemaTypeCode);
 
-		AppLayerCollectionEventsListeners extensions = appLayerFactory.getExtensions()
-				.getCollectionListeners(user.getCollection());
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 		boolean defaultValue = user.has(CorePermissions.MANAGE_VALUELIST).globally();
-
-		return getBooleanValue(extensions.schemaTypeAccessExtensions, defaultValue,
-				new BehaviorCaller<SchemaTypeAccessExtension, ExtensionBooleanResult>() {
-					@Override
-					public ExtensionBooleanResult call(SchemaTypeAccessExtension behavior) {
-						return behavior.canViewSchemaRecord(user, metadataSchemaType, restrictedRecord);
-					}
-				});
+		return extensions.canViewSchemaRecord(defaultValue, user, metadataSchemaType, restrictedRecord);
 	}
 
 }

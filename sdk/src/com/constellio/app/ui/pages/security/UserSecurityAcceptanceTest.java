@@ -52,11 +52,14 @@ import static com.constellio.app.ui.application.NavigatorConfigurationService.ED
 import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENTS_LIST;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENT_CATEGORY;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENT_DISPLAY;
+import static com.constellio.app.ui.application.NavigatorConfigurationService.EXPORTER;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.FORM_DISPLAY_FORM;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_ADD_EDIT;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_DISPLAY;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_LIST;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.IMPORT_FILE;
+import static com.constellio.app.ui.application.NavigatorConfigurationService.IMPORT_SCHEMA_TYPES;
+import static com.constellio.app.ui.application.NavigatorConfigurationService.IMPORT_USERS;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LDAP_CONFIG_MANAGEMENT;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_OBJECT_AUTHORIZATIONS;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_ONGLET;
@@ -184,7 +187,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 	RolesManager rolesManager;
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	String documentInA13;
 	String documentInC04;
 	String semiactiveFolderA49;
@@ -197,22 +200,22 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	String customTaxonomyCode;
 	UserServices userServices;
-	DemoTestRecords demoTestRecords;
+	DemoTestRecords records2 = new DemoTestRecords("LaCollectionDeRida");
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
-		givenCollectionWithTitle("LaCollectionDeRida", "Collection d'entreprise").withConstellioRMModule()
-				.withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus().withEvents(),
+				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
-		demoTestRecords = new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory())
-				.withFoldersAndContainersOfEveryStatus();
 
 		semiactiveFolderA49 = records.folder_A49;
 		inactiveFolderA81 = records.folder_A81;
@@ -658,7 +661,10 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThatUserHasOnlyAccessToRMArchivesPages();
 		assertThatUserHasAccessToRMAdminModulePages(IMPORT_BUTTON);
 		assertThatUserHasAccessTORMEventsPages();
-		assertThat(navigateToImportFilePossible()).isTrue();
+		assertThat(navigateToImportRecordsPossible()).isTrue();
+		assertThat(navigateToImportSchemaTypesPossible()).isTrue();
+		assertThat(navigateToImportUsersPossible()).isTrue();
+		assertThat(navigateToExportPossible()).isTrue();
 	}
 
 	@Test
@@ -674,12 +680,12 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		User sasquatchInOtherCollection = userServices.getUserInCollection(sasquatch, "LaCollectionDeRida");
 		recordServices.update(sasquatchInZeCollection.setCollectionReadAccess(true).setUserRoles(asList("roleDeSasquatch")));
 		recordServices.update(sasquatchInOtherCollection.setUserRoles(asList("roleDeSasquatch")));
-		giveAReadAccessToAFolderToSasquatch(sasquatchInOtherCollection, demoTestRecords.folder_A01);
+		giveAReadAccessToAFolderToSasquatch(sasquatchInOtherCollection, records2.folder_A01);
 		waitForBatchProcess();
 
 		//Starts on LaCollectionDeRida
 		logAsIn(sasquatch, "LaCollectionDeRida");
-		assertThat(navigationToFolderPossible(demoTestRecords.folder_A01)).isTrue();
+		assertThat(navigationToFolderPossible(records2.folder_A01)).isTrue();
 		assertThat(navigateToCategoriesPlanPossible()).isFalse();
 		assertThat(navigateToListRetentionRulesPossible()).isTrue();
 
@@ -689,12 +695,12 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToListRetentionRulesPossible()).isFalse();
 
 		//Has no access to that record in LaCollectionDeRida, still in zeCollection
-		assertThat(navigationToFolderPossible(demoTestRecords.folder_A03)).isFalse();
+		assertThat(navigationToFolderPossible(records2.folder_A03)).isFalse();
 		assertThat(navigateToCategoriesPlanPossible()).isTrue();
 		assertThat(navigateToListRetentionRulesPossible()).isFalse();
 
 		//Has access to that record in LaCollectionDeRida, switching...
-		assertThat(navigationToFolderPossible(demoTestRecords.folder_A01)).isTrue();
+		assertThat(navigationToFolderPossible(records2.folder_A01)).isTrue();
 		assertThat(navigateToCategoriesPlanPossible()).isFalse();
 		assertThat(navigateToListRetentionRulesPossible()).isTrue();
 
@@ -708,7 +714,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToCategoriesPlanPossible()).isFalse();
 
 		//waitUntilICloseTheBrowsers();
-		assertThat(navigationToFolderPossible(demoTestRecords.folder_A01)).isTrue();
+		assertThat(navigationToFolderPossible(records2.folder_A01)).isTrue();
 		//waitUntilICloseTheBrowsers();
 		assertThat(navigateToListRetentionRulesPossible()).isTrue();
 
@@ -1953,9 +1959,36 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private boolean navigateToImportFilePossible() {
+	private boolean navigateToExportPossible() {
+		try {
+			driver.navigateTo().url(EXPORTER);
+			return !isOnHomePage();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private boolean navigateToImportRecordsPossible() {
 		try {
 			driver.navigateTo().url(IMPORT_FILE);
+			return !isOnHomePage();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private boolean navigateToImportUsersPossible() {
+		try {
+			driver.navigateTo().url(IMPORT_USERS);
+			return !isOnHomePage();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private boolean navigateToImportSchemaTypesPossible() {
+		try {
+			driver.navigateTo().url(IMPORT_SCHEMA_TYPES);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -2004,7 +2037,10 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThatCanNavigateToAllSystemUsersPages();
 
 		assertThat(navigateToUpdateCenterPossible()).isTrue();
-		assertThat(navigateToImportFilePossible()).isTrue();
+		assertThat(navigateToImportRecordsPossible()).isTrue();
+		assertThat(navigateToImportSchemaTypesPossible()).isTrue();
+		assertThat(navigateToImportUsersPossible()).isTrue();
+		assertThat(navigateToExportPossible()).isTrue();
 	}
 
 	private void assertThatCannotNavigateToAllAdminModulePages() {
@@ -2026,7 +2062,10 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThatCannotNavigateToAllSystemCollectionsPages();
 
 		assertThat(navigateToUpdateCenterPossible()).isFalse();
-		assertThat(navigateToImportFilePossible()).isFalse();
+		assertThat(navigateToImportRecordsPossible()).isFalse();
+		assertThat(navigateToImportSchemaTypesPossible()).isFalse();
+		assertThat(navigateToImportUsersPossible()).isFalse();
+		assertThat(navigateToExportPossible()).isFalse();
 	}
 
 	private void assertThatCanNavigateToTaxonomiesPages() {

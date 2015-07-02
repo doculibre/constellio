@@ -180,6 +180,7 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 			for (Metadata metadata : schema.getMetadatas()) {
 				if (!metadata.getLocalCode().startsWith("USR") && !exceptList.contains(metadata.getLocalCode())
 						&& metadata.getInheritance() == null) {
+					schemaBuilder.getMetadata(metadata.getLocalCode()).setEnabled(true);
 					schemaBuilder.getMetadata(metadata.getLocalCode()).setEssential(true);
 				}
 			}

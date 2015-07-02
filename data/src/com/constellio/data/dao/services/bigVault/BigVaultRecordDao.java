@@ -43,6 +43,7 @@ import java.util.Set;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
+import org.apache.solr.client.solrj.response.FieldStatsInfo;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Collation;
@@ -796,6 +797,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 		Map<String, Map<String, List<String>>> highlights = response.getHighlighting();
 		Map<String, List<FacetValue>> fieldFacetValues = getFieldFacets(response);
+		Map<String, Map<String, Object>> fieldsStatistics = getFieldsStats(response);
 		Map<String, Integer> facetQueries = response.getFacetQuery();
 
 		boolean correctlySpelt = true;
@@ -807,8 +809,27 @@ public class BigVaultRecordDao implements RecordDao {
 			spellcheckerSuggestions = spellcheckerSuggestions(spellCheckResponse);
 		}
 
-		return new QueryResponseDTO(documents, response.getQTime(), response.getResults().getNumFound(), fieldFacetValues,
+		return new QueryResponseDTO(documents, response.getQTime(), response.getResults().getNumFound(), fieldFacetValues, fieldsStatistics,
 				facetQueries, highlights, correctlySpelt, spellcheckerSuggestions);
+	}
+
+	private Map<String, Map<String, Object>> getFieldsStats(QueryResponse response) {
+		Map<String, Map<String, Object>> fieldsStats = new HashMap<>();
+		Map<String, FieldStatsInfo> statsInfo = response.getFieldStatsInfo();
+		if (statsInfo != null) {
+			for (String key : statsInfo.keySet()) {
+				FieldStatsInfo fieldStatsInfo = response.getFieldStatsInfo().get(key);
+				Map<String, Object> currentFieldStats = new HashMap<>();
+				currentFieldStats.put("min", fieldStatsInfo.getMin());
+				currentFieldStats.put("max", fieldStatsInfo.getMax());
+				currentFieldStats.put("count", fieldStatsInfo.getCount());
+				currentFieldStats.put("sum", fieldStatsInfo.getSum());
+				currentFieldStats.put("missing", fieldStatsInfo.getMissing());
+				fieldsStats.put(key, currentFieldStats);
+			}
+		}
+
+		return fieldsStats;
 	}
 
 	private List<String> spellcheckerSuggestions(SpellCheckResponse spellCheckResponse) {

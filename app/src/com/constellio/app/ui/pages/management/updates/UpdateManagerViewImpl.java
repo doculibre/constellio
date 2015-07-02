@@ -130,8 +130,6 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 						uploadWaitWindow.setProgressMessage(progressMessage);
 					}
 				};
-				// Important to allow update of components in current UI from another Thread
-				UI.getCurrent().setPollInterval(200);
 				UI.getCurrent().addWindow(uploadWaitWindow);
 				new Thread(UpdateManagerViewImpl.class.getName() + "-updateFromServer") {
 					@Override
@@ -143,14 +141,6 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 						} catch (Throwable t) {
 							uploadWaitWindow.setProgressMessage($("UpdateManagerViewImpl.error.automaticUpdate"));
 							throw t;
-						} finally {
-							UI.getCurrent().access(new Runnable() {
-								@Override
-								public void run() {
-									// No need to update components in current UI from another Thread anymore
-									UI.getCurrent().setPollInterval(-1);
-								}
-							});
 						}
 					}
 				}.start();

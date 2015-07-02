@@ -19,8 +19,8 @@ package com.constellio.app.ui.pages.imports;
 
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.bulkImport.UserImportServices;
-import com.constellio.model.services.records.bulkImport.data.ImportServices;
+import com.constellio.app.services.schemas.bulkImport.UserImportServices;
+import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 
 import java.io.File;
 import java.util.List;

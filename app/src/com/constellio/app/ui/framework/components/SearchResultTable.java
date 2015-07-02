@@ -113,7 +113,9 @@ public class SearchResultTable extends PagedTable {
 		selection.setSizeUndefined();
 		selection.setSpacing(true);
 		for (Component component : extra) {
-			component.setEnabled(selected.size() > 0);
+			if(!(component instanceof ReportSelector)){
+				component.setEnabled(selected.size() > 0);
+			}
 			selection.addComponent(component);
 			selection.setComponentAlignment(component, Alignment.MIDDLE_LEFT);
 		}
@@ -126,7 +128,9 @@ public class SearchResultTable extends PagedTable {
 			public void selectionChanged(SelectionChangeEvent event) {
 				selectedCount.setValue($("SearchResultTable.selection", event.getSelectionSize()));
 				for (Component component : extra) {
-					component.setEnabled(event.getSelectionSize() > 0);
+					if(!(component instanceof ReportSelector)){
+						component.setEnabled(event.getSelectionSize() > 0);
+					}
 				}
 			}
 		});

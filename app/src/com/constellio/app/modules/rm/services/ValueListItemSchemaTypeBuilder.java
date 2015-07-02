@@ -44,6 +44,7 @@ public class ValueListItemSchemaTypeBuilder {
 			ValueListItemSchemaTypeCodeMode codeMode) {
 		MetadataSchemaTypeBuilder typeBuilder = metadataSchemaTypesBuilder.createNewSchemaType(code);
 		typeBuilder.setLabel(label);
+		typeBuilder.setSecurity(false);
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 
 		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(true).setDefaultRequirement(true);
@@ -51,6 +52,7 @@ public class ValueListItemSchemaTypeBuilder {
 		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE).setType(
 				MetadataValueType.STRING).setSearchable(true).setUndeletable(true).setSchemaAutocomplete(true);
 		codeMetadata.setLabel($("init.valuelist.default.code"));
+		codeMetadata.setSchemaAutocomplete(true);
 		if (codeMode == ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE) {
 			codeMetadata.setUniqueValue(true).setDefaultRequirement(true);
 

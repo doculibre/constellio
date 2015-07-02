@@ -46,10 +46,6 @@ public class AdminRMModulePresenter extends BasePresenter<AdminRMModuleView> {
 		view.navigateTo().listTaxonomies();
 	}
 
-	//	public void classificationFilePlanButtonClicked() {
-	//		view.navigateTo().taxonomyManagement(RMTaxonomies.CLASSIFICATION_PLAN);
-	//	}
-
 	public void valueDomainButtonClicked() {
 		view.navigateTo().listValueDomains();
 	}
@@ -72,9 +68,6 @@ public class AdminRMModulePresenter extends BasePresenter<AdminRMModuleView> {
 
 	public void importFileButtonClicked() {
 		view.navigateTo().importFile();
-	}
-
-	public void optionsButtonClicked() {
 	}
 
 	public void manageGroupsButtonClicked() {
@@ -177,5 +170,13 @@ public class AdminRMModulePresenter extends BasePresenter<AdminRMModuleView> {
 
 	public void importUsersFileButtonClicked() {
 		view.navigateTo().importUsers();
+	}
+
+	public void importSchemaTypesFileButtonClicked() {
+		view.navigateTo().importSchemaTypes();
+	}
+
+	public void exportButtonClicked() {
+		view.navigateTo().exporter();
 	}
 }

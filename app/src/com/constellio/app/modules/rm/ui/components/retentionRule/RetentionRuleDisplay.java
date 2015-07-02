@@ -18,14 +18,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 
+import java.util.ArrayList;
+
 public class RetentionRuleDisplay extends RecordDisplay {
 
 	public RetentionRuleDisplay(RetentionRuleVO retentionRuleVO) {
-		super(retentionRuleVO, new RetentionRuleDisplayFactory());
+		super(retentionRuleVO, new RetentionRuleDisplayFactory(new ArrayList<VariableRetentionPeriodVO>()));
 	}
 
 	@Override

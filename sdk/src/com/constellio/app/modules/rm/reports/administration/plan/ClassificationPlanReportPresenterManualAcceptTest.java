@@ -34,15 +34,18 @@ import com.constellio.app.reports.builders.administration.plan.ReportBuilderTest
 public class ClassificationPlanReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
 
 	// Initiate Presenter Class
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ClassificationPlanReportPresenter presenter;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
 		presenter = new ClassificationPlanReportPresenter(zeCollection, getModelLayerFactory());
 	}
 

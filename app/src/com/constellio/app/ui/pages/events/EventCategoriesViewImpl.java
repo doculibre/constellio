@@ -19,7 +19,11 @@ package com.constellio.app.ui.pages.events;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
@@ -43,10 +47,19 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String BY_FOLDER_EVENTS_LINK_BUTTON = "byFolderEventsLinkButton";
 	public static final String BY_USER_EVENTS_LINK_BUTTON = "byUserEventsLinkButton";
 	public static final String DECOMMISSIONING_EVENTS_LINK_BUTTON = "decommissioningEventsLinkButton";
+	public static final String AGENT_EVENTS_LINK_BUTTON = "agentEventsLinkButton";
+	
+	private boolean agentEventsVisible;
+	
 	private EventCategoriesPresenter presenter;
 
 	public EventCategoriesViewImpl() {
 		this.presenter = new EventCategoriesPresenter(this);
+	}
+
+	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		presenter.viewEntered();
 	}
 
 	@Override
@@ -111,6 +124,12 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		decommissioningEventsLink.addStyleName(DECOMMISSIONING_EVENTS_LINK_BUTTON);
 		mainLayout.addComponent(decommissioningEventsLink);
 
+		if (agentEventsVisible) {
+			Button agentEventsLink = newAgentEventsLink();
+			agentEventsLink.addStyleName(AGENT_EVENTS_LINK_BUTTON);
+			mainLayout.addComponent(agentEventsLink);
+		}
+
 		return mainLayout;
 	}
 
@@ -162,6 +181,11 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 				"platform_truck_clock");
 	}
 
+	private Button newAgentEventsLink() {
+		return createLink($("ListEventsView.agentEvents"), EventCategory.AGENT_EVENTS,
+				"agent_clock");
+	}
+
 	private Button newRecordsDeletionLink() {
 		return createLink($("ListEventsView.foldersAndDocumentsDeletion"), EventCategory.FOLDERS_AND_DOCUMENTS_DELETION,
 				"folder_document_delete");
@@ -199,4 +223,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		});
 		return returnLink;
 	}
+
+	@Override
+	public void setAgentEventsVisible(boolean visible) {
+		this.agentEventsVisible = visible;
+	}
+	
 }

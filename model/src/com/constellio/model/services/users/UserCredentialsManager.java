@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users;
 
+import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 import static com.constellio.model.services.users.UserUtils.toCacheKey;
 
 import java.util.ArrayList;
@@ -33,6 +34,11 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.threads.BackgroundThreadConfiguration;
+import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 
@@ -42,12 +48,18 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 
 	private final ConfigManager configManager;
 
+	private final BackgroundThreadsManager backgroundThreadsManager;
+
+	private final ModelLayerConfiguration configuration;
+
 	private Map<String, UserCredential> cache = new LinkedHashMap<>();
 
 	private List<String> usersWithServiceKey = new ArrayList<>();
 
-	public UserCredentialsManager(ConfigManager configManager) {
-		this.configManager = configManager;
+	public UserCredentialsManager(DataLayerFactory dataLayerFactory, ModelLayerConfiguration configuration) {
+		this.configManager = dataLayerFactory.getConfigManager();
+		this.configuration = configuration;
+		this.backgroundThreadsManager = dataLayerFactory.getBackgroundThreadsManager();
 	}
 
 	@Override
@@ -57,6 +69,18 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 		Document document = configManager.getXML(USER_CREDENTIALS_CONFIG).getDocument();
 		UserCredentialsReader reader = newUserCredencialsReader(document);
 		cache = Collections.unmodifiableMap(reader.readAll());
+
+		Runnable removedTimedOutTokens = new Runnable() {
+			@Override
+			public void run() {
+				removedTimedOutTokens();
+			}
+		};
+
+		this.backgroundThreadsManager.configure(BackgroundThreadConfiguration
+				.repeatingAction("removedTimedOutTokens", removedTimedOutTokens)
+				.handlingExceptionWith(CONTINUE)
+				.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));
 	}
 
 	public void addUpdate(UserCredential userCredential) {
@@ -231,6 +255,23 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	@Override
 	public void close() {
 
+	}
+
+	public void removedTimedOutTokens() {
+		for (UserCredential userCredential : getUserCredentials()) {
+			UserCredential modifiedUserCredential = null;
+			for (Map.Entry<String, LocalDateTime> token : userCredential.getTokens().entrySet()) {
+				if (!token.getValue().isAfter(TimeProvider.getLocalDateTime())) {
+					if (modifiedUserCredential == null) {
+						modifiedUserCredential = userCredential;
+					}
+					modifiedUserCredential = modifiedUserCredential.withRemovedToken(token.getKey());
+				}
+			}
+			if (modifiedUserCredential != null) {
+				addUpdate(modifiedUserCredential);
+			}
+		}
 	}
 
 	private void sort(List<UserCredential> userCredentials) {

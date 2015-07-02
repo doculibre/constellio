@@ -39,6 +39,10 @@ public class ValidationErrors {
 		validationErrors.add(new ValidationError(validatorClass.getName() + "_" + code, parameters));
 	}
 
+	public void add(String code, Map<String, String> parameters) {
+		validationErrors.add(new ValidationError(code, parameters));
+	}
+
 	public String toMultilineErrorsSummaryString() {
 		StringBuilder sb = new StringBuilder();
 		for (ValidationError validationError : validationErrors) {

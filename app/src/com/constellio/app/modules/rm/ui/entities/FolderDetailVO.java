@@ -36,6 +36,7 @@ public class FolderDetailVO implements Serializable {
 	private boolean sortable;
 	private boolean reversedSort;
 	private boolean selected;
+	private Double linearSize;
 
 	public String getFolderId() {
 		return folderId;
@@ -131,5 +132,13 @@ public class FolderDetailVO implements Serializable {
 
 	public void setSelected(boolean selected) {
 		this.selected = selected;
+	}
+
+	public Double getLinearSize() {
+		return linearSize;
+	}
+
+	public void setLinearSize(Double linearSize) {
+		this.linearSize = linearSize;
 	}
 }

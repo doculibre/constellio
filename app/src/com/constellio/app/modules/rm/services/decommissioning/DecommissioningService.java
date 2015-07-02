@@ -157,22 +157,25 @@ public class DecommissioningService {
 
 	public List<Folder> getFoldersForAdministrativeUnit(String administrativeUnitId) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folderAdministrativeUnit()).is(administrativeUnitId).andWhere(
-						Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+				from(rm.folderSchemaType()).where(rm.folderAdministrativeUnit()).is(administrativeUnitId))
+				.filteredByStatus(StatusFilter.ACTIVES)
+				.sortAsc(Schemas.TITLE);
 		return rm.wrapFolders(searchServices.search(query));
 	}
 
 	public List<Folder> getFoldersForClassificationPlan(String classificationPlanId) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folderCategory()).is(classificationPlanId).andWhere(
-						Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+				from(rm.folderSchemaType()).where(rm.folderCategory()).is(classificationPlanId))
+				.filteredByStatus(StatusFilter.ACTIVES)
+				.sortAsc(Schemas.TITLE);
 		return rm.wrapFolders(searchServices.search(query));
 	}
 
 	public List<Folder> getFoldersForRetentionRule(String retentionRuleId) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folderRetentionRule()).is(retentionRuleId).andWhere(
-						Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+				from(rm.folderSchemaType()).where(rm.folderRetentionRule()).is(retentionRuleId))
+				.filteredByStatus(StatusFilter.ACTIVES)
+				.sortAsc(Schemas.TITLE);
 		return rm.wrapFolders(searchServices.search(query));
 	}
 
@@ -388,14 +391,6 @@ public class DecommissioningService {
 		return mediumTypes;
 	}
 
-	public boolean hasFolderToDestroy(ContainerRecord container) {
-		return true;
-	}
-
-	public boolean hasFolderToSort(ContainerRecord container) {
-		return true;
-	}
-
 	public boolean hasFolderToDeposit(ContainerRecord container) {
 		List<Record> records = getFoldersInContainer(container, rm.folderMainCopyRule(), rm.folderContainer());
 		for (Record record : records) {
@@ -408,13 +403,12 @@ public class DecommissioningService {
 	}
 
 	public Folder newSubFolderIn(Folder parentfolder) {
-		//TODO
 		Folder subFolder = rm.newFolder();
 		subFolder.setParentFolder(parentfolder);
 		subFolder.setRetentionRuleEntered(parentfolder.getRetentionRule());
 		subFolder.setMediumTypes(parentfolder.getMediumTypes());
 		subFolder.setCopyStatusEntered(parentfolder.getCopyStatusEntered());
-		subFolder.setOpenDate(new LocalDate(2014, 11, 4));
+		subFolder.setOpenDate(TimeProvider.getLocalDate());
 		return subFolder;
 	}
 

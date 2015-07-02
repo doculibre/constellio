@@ -26,6 +26,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.CONTAINER;
 import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.FILING_SPACE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.LINEAR_SIZE;
 import static com.constellio.app.modules.rm.wrappers.Folder.PARENT_FOLDER;
 import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.TYPE;
@@ -41,6 +42,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderFilingSpaceFieldImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
@@ -83,6 +85,8 @@ public class FolderFieldFactory extends RMMetadataFieldFactory {
 			field = new FolderActualDestructionDateFieldImpl();
 		} else if (CONTAINER.equals(metadataCode) || CONTAINER.equals(metadataCodeWithoutPrefix)) {
 			field = new FolderContainerFieldImpl();
+		} else if (LINEAR_SIZE.equals(metadataCode) || LINEAR_SIZE.equals(metadataCodeWithoutPrefix)) {
+			field = new FolderLinearSizeFieldImpl();
 		} else if (BORROW_PREVIEW_RETURN_DATE.equals(metadataCode) || BORROW_PREVIEW_RETURN_DATE
 				.equals(metadataCodeWithoutPrefix)) {
 			field = new FolderPreviewReturnDateFieldImpl();

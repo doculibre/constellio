@@ -139,6 +139,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 				provider.setFilter(text);
 				return provider.size();
 			}
+
+			@Override
+			public User getCurrentUser() {
+				return ListCollectionUserPresenter.this.getCurrentUser();
+			}
 		};
 	}
 
@@ -157,6 +162,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 			public int size(String text) {
 				provider.setFilter(text);
 				return provider.size();
+			}
+
+			@Override
+			public User getCurrentUser() {
+				return ListCollectionUserPresenter.this.getCurrentUser();
 			}
 		};
 	}

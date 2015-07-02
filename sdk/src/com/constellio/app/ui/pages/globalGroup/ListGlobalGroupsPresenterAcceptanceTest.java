@@ -48,10 +48,12 @@ public class ListGlobalGroupsPresenterAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
+
 		userServices = getModelLayerFactory().newUserServices();
 		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
-
-		givenCollection(zeCollection).withAllTestUsers();
 
 		createGroup("Legends", "Legends group");
 		createGroup("Heroes", "Heroes group");

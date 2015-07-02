@@ -33,19 +33,23 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class EmailAcceptanceTest extends ConstellioTest {
 
-	RMSchemasRecordsServices schemas;
-	RMTestRecords records;
+	RMSchemasRecordsServices rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
 	}
@@ -54,7 +58,7 @@ public class EmailAcceptanceTest extends ConstellioTest {
 	public void whenCreatingAnEmailWithoutDescriptionThenOK()
 			throws Exception {
 
-		Email email = schemas.newEmail();
+		Email email = rm.newEmail();
 		email.setTitle("My email").setDescription("test").setFolder(records.folder_A03);
 		email.setEmailTo(Arrays.asList("dest1", "dest2"));
 		recordServices.add(email);

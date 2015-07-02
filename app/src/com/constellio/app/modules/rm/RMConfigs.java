@@ -46,7 +46,8 @@ public class RMConfigs {
 			COPY_RULE_PRINCIPAL_REQUIRED,
 			MINOR_VERSIONS_PURGED_ON,
 			ALSO_PURGE_CURRENT_VERSION_IF_MINOR,
-			PDFA_CREATED_ON;
+			PDFA_CREATED_ON,
+			DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -54,6 +55,10 @@ public class RMConfigs {
 	// Tree configs
 	public static final SystemConfiguration DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, DISPLAY_DEPOSITED_RECORDS_IN_TREES,
 			DISPLAY_DESTROYED_RECORDS_IN_TREES, DISPLAY_CONTAINERS_IN_TREES;
+
+	// Agent configs
+	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS;
 
 	static {
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, "decommissioning");
@@ -99,6 +104,10 @@ public class RMConfigs {
 				.createInteger("closeDateRequiredDaysBeforeYearEnd")
 				.withDefaultValue(90));
 
+		//Supprimer ou non les fiches documents lors de la destruction par déclassement.
+		add(DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION = decommissioning
+				.createBooleanFalseByDefault("deleteDocumentRecordsWithDestruction"));
+
 		add(COPY_RULE_TYPE_ALWAYS_MODIFIABLE = decommissioning
 				.createBooleanFalseByDefault("copyRuleTypeAlwaysModifiable"));
 
@@ -117,7 +126,7 @@ public class RMConfigs {
 				.withDefaultValue(DecommissioningPhase.NEVER));
 
 		// Considérer ou non la position à la racine de la category dans le calculateur
-		add(LINKABLE_CATEGORY_MUST_NOT_BE_ROOT = decommissioning.createBooleanTrueByDefault("linkableCategoryMustNotBeRoot"));
+		add(LINKABLE_CATEGORY_MUST_NOT_BE_ROOT = decommissioning.createBooleanFalseByDefault("linkableCategoryMustNotBeRoot"));
 
 		// Considérer ou non le statut "approuvé" de la category dans le calculateur
 		add(LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES = decommissioning
@@ -132,6 +141,18 @@ public class RMConfigs {
 		add(DISPLAY_DESTROYED_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displayDestroyedInTrees"));
 
 		add(DISPLAY_CONTAINERS_IN_TREES = trees.createBooleanFalseByDefault("displayContainersInTrees"));
+
+		SystemConfigurationGroup agent = new SystemConfigurationGroup(ID, "agent");
+
+		add(AGENT_ENABLED = agent.createBooleanTrueByDefault("enabled"));
+
+		add(AGENT_SWITCH_USER_POSSIBLE = agent.createBooleanTrueByDefault("switchUserPossible"));
+
+		add(AGENT_DOWNLOAD_ALL_USER_CONTENT = agent.createBooleanTrueByDefault("downloadAllUserContent"));
+
+		add(AGENT_EDIT_USER_DOCUMENTS = agent.createBooleanTrueByDefault("editUserDocuments"));
+
+		add(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS = agent.createInteger("backupRetentionPeriodInDays").withDefaultValue(30));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -167,4 +188,29 @@ public class RMConfigs {
 	public boolean createPDFaOnDeposit() {
 		return manager.getValue(PDFA_CREATED_ON) == DecommissioningPhase.ON_DEPOSIT;
 	}
+
+	public boolean deleteDocumentRecordsWithDestruction() {
+		return manager.getValue(DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION);
+	}
+
+	public boolean isAgentEnabled() {
+		return manager.getValue(AGENT_ENABLED);
+	}
+
+	public boolean isAgentSwitchUserPossible() {
+		return manager.getValue(AGENT_SWITCH_USER_POSSIBLE);
+	}
+
+	public boolean isAgentDownloadAllUserContent() {
+		return manager.getValue(AGENT_DOWNLOAD_ALL_USER_CONTENT);
+	}
+
+	public boolean isAgentEditUserDocuments() {
+		return manager.getValue(AGENT_EDIT_USER_DOCUMENTS);
+	}
+
+	public int getAgentBackupRetentionPeriodInDays() {
+		return manager.getValue(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS);
+	}
+
 }

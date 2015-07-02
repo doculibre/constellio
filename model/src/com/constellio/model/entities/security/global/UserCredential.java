@@ -55,7 +55,7 @@ public class UserCredential {
 	private final String domain;
 
 	public UserCredential(String username, String firstName, String lastName, String email, List<String> globalGroups,
-						  List<String> collections, UserCredentialStatus status){
+			List<String> collections, UserCredentialStatus status) {
 		this(username, firstName, lastName, email, globalGroups, collections, status, "");
 
 	}
@@ -77,10 +77,10 @@ public class UserCredential {
 	}
 
 	public UserCredential(String username, String firstName, String lastName, String email, String serviceKey,
-						  boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-						  UserCredentialStatus status){
+			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+			UserCredentialStatus status) {
 		this(username, firstName, lastName, email, serviceKey,
-		systemAdmin,  globalGroups,  collections, tokens,
+				systemAdmin, globalGroups, collections, tokens,
 				status, "");
 	}
 
@@ -205,12 +205,40 @@ public class UserCredential {
 				tokensMap, status, domain);
 	}
 
+	public UserCredential withToken(String token, LocalDateTime dateTime) {
+		Map<String, LocalDateTime> tokens = new HashMap<>();
+		tokens.put(token, dateTime);
+		return withTokens(tokens);
+	}
+
+	public UserCredential withRemovedToken(String key) {
+		Map<String, LocalDateTime> allTokens = new HashMap<>();
+		allTokens.putAll(this.getTokens());
+		allTokens.remove(key);
+		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
+				allTokens, status, domain);
+	}
+
 	public UserCredential withTokens(Map<String, LocalDateTime> tokens) {
 		Map<String, LocalDateTime> allTokens = new HashMap<>();
-		//allTokens = this.getTokens();
+		allTokens.putAll(this.getTokens());
+		while (allTokens.size() > 4) {
+
+			String olderToken = null;
+			LocalDateTime dateTime = null;
+			for (Map.Entry<String, LocalDateTime> token : allTokens.entrySet()) {
+				if (dateTime == null || dateTime.isAfter(token.getValue())) {
+					olderToken = token.getKey();
+					dateTime = token.getValue();
+				}
+			}
+			allTokens.remove(olderToken);
+
+		}
 		for (Map.Entry<String, LocalDateTime> token : tokens.entrySet()) {
 			allTokens.put(token.getKey(), token.getValue());
 		}
+
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
 				allTokens, status, domain);
 	}
@@ -248,7 +276,12 @@ public class UserCredential {
 
 	public UserCredential withNewServiceKey() {
 		String serviceKey = UUID.randomUUID().toString();
+		return withServiceKey(serviceKey);
+	}
+
+	public UserCredential withServiceKey(String serviceKey) {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
 				tokensMap, status, domain);
 	}
+
 }

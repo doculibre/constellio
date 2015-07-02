@@ -35,8 +35,8 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 public class GlobalGroupPageAcceptTest extends ConstellioTest {
 
 	ConstellioWebDriver driver;
-	RMSchemasRecordsServices schemas;
-	RMTestRecords rm = new RMTestRecords(zeCollection);
+	RMSchemasRecordsServices rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	AddEditGlobalGroupPage addEditGlobalGroupPage;
 	ListGlobalGroupPage listGlobalGroupPage;
@@ -47,12 +47,14 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+
 		givenCollection("otherCollection");
-
-		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
 

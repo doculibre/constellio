@@ -106,6 +106,22 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
+	public static MetadataBuilderConfigurator whichNullValuesAreNotWritten = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setWriteNullValues(false);
+		}
+
+	};
+	public static MetadataBuilderConfigurator whichIsUnmodifiable = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setUnmodifiable(true);
+		}
+
+	};
 	public static MetadataBuilderConfigurator whichIsEssential = new MetadataBuilderConfigurator() {
 
 		@Override

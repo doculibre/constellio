@@ -22,16 +22,16 @@ import java.util.Map;
 
 public class DataLayerExtensions {
 
-	Map<String, DataLayerCollectionEventsListeners> collectionListeners = new HashMap<>();
+	Map<String, DataLayerCollectionExtensions> collectionExtensions = new HashMap<>();
 
-	DataLayerSystemEventsListeners systemListeners = new DataLayerSystemEventsListeners();
+	DataLayerSystemExtensions systemWideExtensions = new DataLayerSystemExtensions();
 
-	public DataLayerSystemEventsListeners getSystemListeners() {
-		return systemListeners;
+	public DataLayerSystemExtensions getSystemWideExtensions() {
+		return systemWideExtensions;
 	}
 
-	public DataLayerCollectionEventsListeners getCollectionListeners(String collection) {
-		return collectionListeners.get(collection);
+	public DataLayerCollectionExtensions getCollectionListeners(String collection) {
+		return collectionExtensions.get(collection);
 	}
 
 }

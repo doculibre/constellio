@@ -36,7 +36,7 @@ import com.constellio.app.reports.builders.administration.plan.ReportBuilderTest
 
 public class AdministrativeUnitReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
 
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	AdministrativeUnitReportPresenter presenter;
 	AdministrativeUnitReportModel_User referenceUserBob;
 	AdministrativeUnitReportModel_User referenceUserCharles;
@@ -48,9 +48,11 @@ public class AdministrativeUnitReportPresenterManualAcceptTest extends ReportBui
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 		presenter = new AdministrativeUnitReportPresenter(zeCollection, getModelLayerFactory());
 
 		referenceUserBob = new AdministrativeUnitReportModel_User();
@@ -91,7 +93,6 @@ public class AdministrativeUnitReportPresenterManualAcceptTest extends ReportBui
 
 	}
 
-	// TODO Benoit
 	@Test
 	public void givenAdministrativeUnitsTreeWhenBuildingModelWithUsersThenGetAppropriateModel() {
 		AdministrativeUnitReportModel model = presenter.build();

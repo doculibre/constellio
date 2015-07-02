@@ -37,13 +37,13 @@ import org.openqa.selenium.Keys;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.borrowingServices.BorrowingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -62,7 +62,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	RecordFormWebElement zeForm;
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices schemas;
 	RolesManager rolesManager;
 
@@ -70,14 +70,17 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus()
+						.withEvents()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		rolesManager = getModelLayerFactory().getRolesManager();
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
 	}
 
 	@Test

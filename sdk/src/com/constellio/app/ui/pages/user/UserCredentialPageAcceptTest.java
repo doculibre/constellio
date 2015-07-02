@@ -34,7 +34,7 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 public class UserCredentialPageAcceptTest extends ConstellioTest {
 	ConstellioWebDriver driver;
 	RMSchemasRecordsServices schemas;
-	RMTestRecords rm = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	AddEditUserCredentialPage addEditUserCredentialPage;
 	ListUserCredentialPage listUserCredentialPage;
@@ -44,12 +44,15 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus(),
+				withCollection("otherCollection")
+		);
+
 		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		givenCollection("otherCollection");
-
-		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 		userServices = getModelLayerFactory().newUserServices();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));

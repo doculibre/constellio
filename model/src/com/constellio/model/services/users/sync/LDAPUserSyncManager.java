@@ -108,9 +108,8 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
 		for (String url : serverConfiguration.getUrls()) {
-			LdapContext ldapContext = ldapServices
-					.connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
-							userSyncConfiguration.getPassword());
+			LdapContext ldapContext = ldapServices.connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
+					userSyncConfiguration.getPassword());
 			Set<LDAPGroup> ldapGroups = ldapServices.getAllGroups(ldapContext, userSyncConfiguration.getGroupBaseContextList());
 			ldapGroups = getAcceptedGroups(ldapGroups);
 
@@ -131,6 +130,12 @@ public class LDAPUserSyncManager implements StatefulService {
 
 			usersIdsAfterSynchronisation.addAll(updatedUsersAndGroups.getUsersNames());
 			groupsIdsAfterSynchronisation.addAll(updatedUsersAndGroups.getGroupsCodes());
+
+			try {
+				ldapContext.close();
+			} catch (NamingException e) {
+				e.printStackTrace();
+			}
 
 		}
 
@@ -221,7 +226,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		return (value == null) ? "" : value;
 	}
 
-	private List<LDAPUser> getAcceptedUsersFromGroups(Set<LDAPGroup> ldapGroups, LdapContext ldapContext) {
+	public List<LDAPUser> getAcceptedUsersFromGroups(Set<LDAPGroup> ldapGroups, LdapContext ldapContext) {
 		List<LDAPUser> returnUsers = new ArrayList<>();
 		Set<String> groupsMembersIds = new HashSet<>();
 		LDAPServices ldapServices = new LDAPServices();

@@ -23,6 +23,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -171,4 +173,14 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		view.setDisposalTypeVisibleForDocumentTypes(sortDisposal);
 	}
 
+	public List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
+		List<VariableRetentionPeriodVO> returnList = new ArrayList<>();
+		LogicalSearchCondition condition = from(schemaType(VariableRetentionPeriod.SCHEMA_TYPE).getDefaultSchema()).returnAll();
+		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
+		for(Record record : records){
+			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId()).setTitle((String)record.get(Schemas.TITLE)).setCode((String)record.get(Schemas.CODE));
+			returnList.add(variableRetentionPeriodVO);
+		}
+		return returnList;
+	}
 }

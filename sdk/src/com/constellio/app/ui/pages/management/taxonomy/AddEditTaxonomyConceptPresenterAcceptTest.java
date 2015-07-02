@@ -35,7 +35,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 public class AddEditTaxonomyConceptPresenterAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	@Mock AddEditTaxonomyConceptView view;
 	@Mock SessionContext sessionContext;
 	AddEditTaxonomyConceptPresenter presenter;
@@ -43,12 +43,13 @@ public class AddEditTaxonomyConceptPresenterAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withEvents()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withEvents();
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getCollection()).thenReturn(zeCollection);

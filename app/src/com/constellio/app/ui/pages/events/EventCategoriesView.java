@@ -24,5 +24,7 @@ import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
  * Created by Nouha on 2015-01-21.
  */
 public interface EventCategoriesView extends BaseView, LogsViewGroup {
+	
+	void setAgentEventsVisible(boolean visible);
 
 }

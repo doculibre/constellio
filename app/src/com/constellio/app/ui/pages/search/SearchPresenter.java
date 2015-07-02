@@ -17,18 +17,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.search;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactory;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactory;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -145,8 +142,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	@Override
 	public List<String> getSupportedReports() {
-		//return Arrays.asList("Reports.fakeReport");
-		return new ArrayList<>();
+		if(view.computeStatistics()){
+			return Arrays.asList("Reports.FolderLinearMeasureStats");
+		}else{
+			return new ArrayList<>();
+		}
 	}
 
 	@Override
@@ -154,6 +154,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		switch (report) {
 		case "Reports.fakeReport":
 			return new ExampleReportFactory(view.getSelectedRecordIds());
+		case "Reports.FolderLinearMeasureStats":
+			return new StatsReportBuilderFactory(view.getCollection(), modelLayerFactory, getSearchQuery());
 		}
 		throw new RuntimeException("BUG: Unknown report " + report);
 	}
@@ -229,5 +231,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			}
 		}
 		return result;
+	}
+
+	public List<LabelTemplate> getTemplates() {
+		return appLayerFactory.getLabelTemplateManager().listTemplates(null);
 	}
 }

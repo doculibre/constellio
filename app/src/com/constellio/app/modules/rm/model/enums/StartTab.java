@@ -23,6 +23,7 @@ public enum StartTab implements EnumWithSmallCode {
 
 	RECENT_FOLDERS("F"),
 	RECENT_DOCUMENTS("D"),
+	CHECKED_OUT_DOCUMENTS("C"),
 	TAXONOMIES("T");
 
 	private final String code;

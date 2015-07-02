@@ -30,6 +30,9 @@ public class UserDocument extends RecordWrapper {
 	public static final String USER = "user";
 
 	public static final String CONTENT = "content";
+	
+	// TODO Move to RM
+	public static final String FOLDER = "folder";
 
 	public UserDocument(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -62,4 +65,14 @@ public class UserDocument extends RecordWrapper {
 		set(CONTENT, content);
 		return this;
 	}
+	
+	public String getFolder() {
+		return get(FOLDER);
+	}
+	
+	public UserDocument setFolder(String folder) {
+		set(FOLDER, folder);
+		return this;
+	}
+	
 }

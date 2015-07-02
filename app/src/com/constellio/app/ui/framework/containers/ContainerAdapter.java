@@ -47,11 +47,14 @@ public abstract class ContainerAdapter<T extends Container & Indexed & Sortable>
 	public T getNestedContainer() {
 		return adapted;
 	}
-
+	
 	@Override
 	public Collection<?> getContainerPropertyIds() {
-		List<Object> propertyIds = new ArrayList<>(adapted.getContainerPropertyIds());
-		propertyIds.addAll(getOwnContainerPropertyIds());
+		List<Object> propertyIds = new ArrayList<>();
+		Collection<?> adaptedPropertyIds = adapted.getContainerPropertyIds();
+		Collection<?> ownPropertyIds = getOwnContainerPropertyIds();
+		propertyIds.addAll(adaptedPropertyIds);
+		propertyIds.addAll(ownPropertyIds);
 		return propertyIds;
 	}
 

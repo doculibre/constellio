@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+    <record id="22">
+        <code>HOT</code>
+        <title>Hot</title>
+        <description>I am a Hot Box.</description>
+        <users multivalue="true">
+            <item>username:alice</item>
+            <item>username:chuck</item>
+        </users>
+        <administrators multivalue="true">
+            <item>username:admin</item>
+            <item>username:bob</item>
+        </administrators>
+    </record>
+    <record id="23">
+        <code>COLD</code>
+        <title>Cold</title>
+        <description>I am a Cold Box.</description>
+        <users multivalue="true">
+            <item>username:alice</item>
+            <item>username:chuck</item>
+            <item>username:bob</item>
+        </users>
+        <administrators multivalue="true">
+            <item>username:charles</item>
+        </administrators>
+    </record>
+    <record id="00">
+        <code>3RR0R_B0X : S@S</code>
+        <title>Error box</title>
+        <description>I am a Sick Box.</description>
+        <users></users>
+        <administrators>null</administrators>
+    </record>
+</records>

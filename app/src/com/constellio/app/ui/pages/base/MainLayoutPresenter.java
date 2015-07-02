@@ -21,13 +21,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 
@@ -75,8 +78,19 @@ public class MainLayoutPresenter implements Serializable {
 		mainLayout.navigateTo().listUserDocuments();
 	}
 
+	public void agentButtonClicked() {
+		mainLayout.navigateTo().agentSetup();
+	}
+
 	public boolean isRecordsManagementViewVisible() {
 		return true;
+	}
+
+	public boolean isAgentViewVisible() {
+		ModelLayerFactory modelLayerFactory = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory();
+		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
+		return rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported();
 	}
 
 	public boolean isArchivesManagementViewVisible() {

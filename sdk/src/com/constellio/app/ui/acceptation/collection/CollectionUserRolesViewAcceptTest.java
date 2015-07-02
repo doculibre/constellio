@@ -35,7 +35,7 @@ public class CollectionUserRolesViewAcceptTest extends ConstellioTest {
 	public static final String RGD = "Responsable de la gestion documentaire";
 	public static final String MANAGER = "Gestionnaire";
 
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConstellioWebDriver driver;
 	CollectionUserRolesPage page;
 	User user;
@@ -43,8 +43,9 @@ public class CollectionUserRolesViewAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		);
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		user = records.getAlice();

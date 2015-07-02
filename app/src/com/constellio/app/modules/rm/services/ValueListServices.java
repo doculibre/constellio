@@ -71,6 +71,14 @@ public class ValueListServices {
 
 	public MetadataSchemaType createValueDomain(String title) {
 		String code = generateCode("ddv");
+		return createValueDomain(code, title);
+	}
+
+	public MetadataSchemaType createValueDomain(String code, String title) {
+
+		if (!code.startsWith("ddv")) {
+			throw new RuntimeException("Code must start with ddv");
+		}
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
@@ -88,8 +96,7 @@ public class ValueListServices {
 		return taxonomiesManager.getEnabledTaxonomies(collection);
 	}
 
-	public Taxonomy createTaxonomy(String title) {
-		String code = generateCode("");
+	public Taxonomy createTaxonomy(String code, String title) {
 		MetadataSchemaType type = createTaxonomyType("taxo" + code + "Type", title);
 		Taxonomy taxonomy = Taxonomy.createPublic("taxo" + code, title, collection, Arrays.asList(type.getCode()));
 
@@ -97,6 +104,12 @@ public class ValueListServices {
 
 		return taxonomy;
 	}
+
+	public Taxonomy createTaxonomy(String title) {
+		String code = generateCode("");
+		return createTaxonomy(code, title);
+	}
+
 
 	public Taxonomy createTaxonomy(String title, List<String> userIds, List<String> groupIds, boolean isVisibleInHomePage) {
 		String code = generateCode("");

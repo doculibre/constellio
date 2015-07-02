@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.contents;
 
+import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doReturn;
@@ -57,15 +59,15 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
-@SlowTest
 public class ContentManagementAcceptTest extends ConstellioTest {
 
 	private AtomicInteger threadCalls = new AtomicInteger();
@@ -101,7 +103,6 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	@Mock UserPermissionsChecker userPermissionsChecker;
 
 	@Before
-	@SlowTest
 	public void setUp()
 			throws Exception {
 
@@ -114,7 +115,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 						org.joda.time.Duration.standardMinutes(42));
 
 				Mockito.when(configuration.getUnreferencedContentsThreadDelayBetweenChecks()).thenReturn(
-						org.joda.time.Duration.standardSeconds(1));
+						org.joda.time.Duration.standardHours(10));
 			}
 		});
 
@@ -166,9 +167,53 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())).isSaved();
 
+		assertThat(theRecordContent()).isNot(emptyVersion);
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
 				.is(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThatVaultOnlyContains(pdf1Hash);
+	}
+
+	@Test
+	public void whenAddingMinorEmptyContentThenContentRetreivable()
+			throws Exception {
+
+		givenRecord().withSingleValueContent(contentManager.createEmptyMinor(bob, "ZePdf.pdf", uploadPdf1InputStream()))
+				.isSaved();
+
+		assertThat(theRecordContent()).is(emptyVersion);
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
+				.is(version("0.1")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+		assertThatVaultOnlyContains(pdf1Hash);
+	}
+
+	@Test
+	public void whenSearchingByBorrowedContentThenFindDocuments()
+			throws Exception {
+
+		Content minorContentAddedByBob = contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream()).checkOut(bob);
+		Content contentAddedByAliceThenBorrowedByBob = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())
+				.checkOut(bob);
+		Content returnedContent = contentManager.createMajor(alice, "ZePdf.pdf", uploadPdf1InputStream());
+		Content minorContentAddedByAlice = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())
+				.checkOut(alice);
+		Content minorContentAddedByBobThenBorrowedByAlice = contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())
+				.checkOut(bob).checkIn().checkOut(alice);
+
+		givenRecordWithId("bobDoc1").withSingleValueContent(minorContentAddedByBob).isSaved();
+		givenRecordWithId("bobDoc2").withSingleValueContent(contentAddedByAliceThenBorrowedByBob).isSaved();
+		givenRecordWithId("aliceDoc1").withSingleValueContent(minorContentAddedByAlice).isSaved();
+		givenRecordWithId("aliceDoc2").withSingleValueContent(minorContentAddedByAlice).isSaved();
+		givenRecordWithId("notBorrowedDoc").withSingleValueContent(returnedContent).isSaved();
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		LogicalSearchQuery bobBorrowerdDocumentsQuery = new LogicalSearchQuery()
+				.setCondition(from(zeSchema.instance()).where(zeSchema.contentMetadata()).is(isCheckedOutBy(bob)));
+
+		LogicalSearchQuery aliceBorrowerdDocumentsQuery = new LogicalSearchQuery()
+				.setCondition(from(zeSchema.instance()).where(zeSchema.contentMetadata()).is(isCheckedOutBy(alice)));
+
+		assertThat(searchServices.searchRecordIds(bobBorrowerdDocumentsQuery)).containsOnly("bobDoc1", "bobDoc2");
+		assertThat(searchServices.searchRecordIds(aliceBorrowerdDocumentsQuery)).containsOnly("aliceDoc1", "aliceDoc2");
 	}
 
 	@Test
@@ -430,11 +475,9 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThatVaultOnlyContains(pdf1Hash, docx1Hash, pdf2Hash);
 	}
 
-	@SlowTest
 	@Test
 	public void givenAContentIsReplacedWithAVersionConcentThenAllVersionsAreDeletedExceptTheGivenVersion()
 			throws Exception {
-
 		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "1.pdf", uploadPdf1InputStream())).isSaved();
 
 		givenTimeIs(shishOClock);
@@ -466,7 +509,6 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThatVaultOnlyContains(pdf2Hash);
 	}
 
-	@SlowTest
 	@Test
 	public void givenARecordIsLogicallyDeletedThenPhysicallyDeletedThenAllContentVersionsAreAvailableBeforePhysicalDelete()
 			throws Exception {
@@ -591,6 +633,116 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
 		assertThat(theRecordContent()).is(notCheckedOut());
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
+	}
+
+	@Test
+	public void givenMinorEmptyVersionCheckedOutContentWhenCheckinInAsMinorVersionThenVersionHas0_1Version()
+			throws Exception {
+
+		Record record = givenRecord().withSingleValueContent(
+				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).contentCheckedOutBy(alice)
+				.isSaved();
+
+		givenTimeIs(shishOClock);
+		when(theRecord()).contentCheckedInAsMinor(uploadPdf2InputStream()).and().isSaved();
+
+		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
+				.has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+
+		assertThat(theRecordContentHistory()).isEmpty();
+		assertThat(theRecordContent()).is(notCheckedOut());
+		assertThat(theRecordContent()).isNot(emptyVersion);
+		assertThatVaultOnlyContains(pdf2Hash);
+	}
+
+	@Test
+	public void givenMinorEmptyVersionCheckedOutContentWhenUpdatingTwiceThenCheckinInAsMinorVersionThenVersionHas0_1Version()
+			throws Exception {
+
+		Record record = givenRecord().withSingleValueContent(
+				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).contentCheckedOutBy(alice)
+				.isSaved();
+
+		givenTimeIs(shishOClock);
+		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf2InputStream()).and().isSaved();
+		assertThat(theRecordContentHistory()).isEmpty();
+		assertThat(theRecordContent()).is(checkedOutBy(alice, smashOClock));
+		assertThat(theRecordContent()).is(emptyVersion);
+
+		givenTimeIs(teaOClock);
+		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf3InputStream()).and().isSaved();
+		assertThat(theRecordContentHistory()).isEmpty();
+		assertThat(theRecordContent()).is(checkedOutBy(alice, smashOClock));
+		assertThat(theRecordContent()).is(emptyVersion);
+
+		givenTimeIs(teaOClock.plusDays(1));
+		when(theRecord()).contentCheckedIn().and().isSaved();
+
+		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf3HashAndLength())
+				.has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(teaOClock));
+		assertThat(theRecordContentHistory()).isEmpty();
+		assertThat(theRecordContent()).is(notCheckedOut());
+		assertThat(theRecordContent()).isNot(emptyVersion);
+
+		assertThatVaultOnlyContains(pdf3Hash);
+	}
+
+	@Test
+	public void givenMinorEmptyContentWhenUpdatingThen0_1Version()
+			throws Exception {
+
+		Record record = givenRecord().withSingleValueContent(
+				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).isSaved();
+
+		givenTimeIs(shishOClock);
+		when(theRecord()).hasItsContentUpdated(bob, uploadPdf2InputStream()).and().isSaved();
+
+		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
+				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(shishOClock));
+		assertThat(theRecordContentHistory()).isEmpty();
+		assertThat(theRecordContent()).is(notCheckedOut());
+		assertThat(theRecordContent()).isNot(emptyVersion);
+	}
+
+	@Test
+	public void givenMinorEmptyVersionCheckedOutContentWhenCheckinInAsMajorVersionThenVersionHas1_0Version()
+			throws Exception {
+
+		Record record = givenRecord().withSingleValueContent(
+				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).contentCheckedOutBy(alice)
+				.isSaved();
+
+		givenTimeIs(shishOClock);
+		when(theRecord()).contentCheckedInAsMajor(uploadPdf2InputStream()).and().isSaved();
+
+		assertThat(theRecordContentCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf2HashAndLength())
+				.has(version("1.0")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+
+		assertThat(theRecordContentHistory()).isEmpty();
+		assertThat(theRecordContent()).is(notCheckedOut());
+		assertThat(theRecordContent()).isNot(emptyVersion);
+		assertThatVaultOnlyContains(pdf2Hash);
+	}
+
+	@Test
+	public void givenMinorEmptyVersionCheckedOutContentWhenSavingModifiedVersionVersionThenHas0_1Version()
+			throws Exception {
+
+		Record record = givenRecord().withSingleValueContent(
+				contentManager.createEmptyMinor(alice, "ZePdf.pdf", uploadPdf1InputStream())).contentCheckedOutBy(alice)
+				.isSaved();
+
+		givenTimeIs(shishOClock);
+		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf2InputStream()).and().isSaved();
+
+		assertThat(theRecordContentCurrentCheckedOutVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf"))
+				.has(pdf2HashAndLength()).has(version("0.1")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+
+		assertThat(theRecordContentHistory()).isEmpty();
+		assertThat(theRecordContent()).is(checkedOutBy(alice, smashOClock));
+		assertThat(theRecordContent()).is(emptyVersion);
+		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
+
 	}
 
 	@Test
@@ -796,7 +948,6 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThatVaultOnlyContains(pdf1Hash, pdf2Hash);
 	}
 
-	@SlowTest
 	@Test
 	public void whenUploadingNeverUsedContentWhenCleaningVaultThenContentRemoved()
 			throws Exception {
@@ -1040,6 +1191,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		return new RecordPreparation(record);
 	}
 
+	private RecordPreparation givenRecordWithId(String id) {
+		Record record = new TestRecord(zeSchema, id);
+		return new RecordPreparation(record);
+	}
+
 	private RecordPreparation givenAnotherCollectionRecord() {
 		Record record = new TestRecord(anotherCollectionSchema, "anotherCollectionRecord");
 		return new RecordPreparation(record);
@@ -1149,10 +1305,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		RecordDao recordDao = getDataLayerFactory().newRecordDao();
 		recordDao.flush();
 
-		int threadCallsInitialValue = threadCalls.intValue();
-		while (threadCalls.intValue() - 1 <= threadCallsInitialValue) {
-			Thread.sleep(20);
-		}
+		getModelLayerFactory().getContentManager().deleteUnreferencedContents();
 
 		List<String> hashList = Arrays.asList(hashes);
 		if (hashList.contains(pdf1Hash)) {
@@ -1359,4 +1512,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			return this;
 		}
 	}
+
+	Condition<? super Content> emptyVersion = new Condition<Content>() {
+		@Override
+		public boolean matches(Content value) {
+			return value.isEmptyVersion();
+		}
+	};
 }

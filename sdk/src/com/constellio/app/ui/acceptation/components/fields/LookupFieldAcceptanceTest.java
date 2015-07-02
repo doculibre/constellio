@@ -40,6 +40,7 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.LookupTreeDataProvider;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -75,7 +76,9 @@ public class LookupFieldAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		withSpiedServices(AppLayerFactory.class);
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
 
 		loadDummyBeans();
 
@@ -239,6 +242,11 @@ public class LookupFieldAcceptanceTest extends ConstellioTest {
 			return search(text, suggest).size();
 		}
 
+		@Override
+		public User getCurrentUser() {
+			return null;
+		}
+
 	}
 
 	private class DummyLookupTreeDataProvider implements LookupTreeDataProvider<DummyBean> {
@@ -288,6 +296,11 @@ public class LookupFieldAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
+		public String getTaxonomyCode() {
+			return null;
+		}
+
+		@Override
 		public boolean isSelectable(DummyBean selection) {
 			return true;
 		}
@@ -299,7 +312,7 @@ public class LookupFieldAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private static interface DummyComponentFactory<T extends Component> extends Serializable {
+	private interface DummyComponentFactory<T extends Component> extends Serializable {
 
 		List<T> build(ViewChangeEvent event);
 

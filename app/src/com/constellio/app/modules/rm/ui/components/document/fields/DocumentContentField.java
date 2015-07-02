@@ -17,8 +17,29 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.components.document.fields;
 
+import java.io.Serializable;
+
+import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow;
 import com.constellio.app.ui.entities.ContentVersionVO;
 
 public interface DocumentContentField extends CustomDocumentField<ContentVersionVO> {
+	
+	void setNewFileButtonVisible(boolean visible);
+	
+	void addNewFileClickListener(NewFileClickListener listener);
+	
+	void removeNewFileClickListener(NewFileClickListener listener);
+	
+	NewFileWindow getNewFileWindow();
+	
+	boolean isMajorVersionFieldVisible();
 
+	void setMajorVersionFieldVisible(boolean visible);
+	
+	public static interface NewFileClickListener extends Serializable {
+		
+		void newFileClicked();
+		
+	}
+	
 }

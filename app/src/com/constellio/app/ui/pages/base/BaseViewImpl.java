@@ -25,6 +25,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.modules.rm.ui.pages.home.RecordsManagementViewImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -73,7 +74,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			e.printStackTrace();
 
 			LOGGER.error(e.getMessage(), e);
-			navigateTo().home();
+			// TODO Obtain home without hard-coding the class
+			if (!(this instanceof RecordsManagementViewImpl)) {
+				navigateTo().home();
+			}
 			return;
 		}
 		//}
@@ -137,9 +141,47 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		if (titleLabel != null) {
 			titleBackButtonLayout.setExpandRatio(titleLabel, 1);
 		}
+		
+		if (isBackgroundViewMonitor()) {
+			addBackgroundViewMonitor();
+		}
 
 		afterViewAssembled(event);
+	}
 
+	protected boolean isBackgroundViewMonitor() {
+		return false;
+	}
+	
+	protected void onBackgroundViewMonitor() {
+	}
+	
+	protected void addBackgroundViewMonitor() {
+		new Thread(BaseViewImpl.class.getName() + "-addBackgroundViewMonitor-" + BaseViewImpl.this.toString()) {
+			@Override
+			public void run() {
+				while (true) {
+					try {
+						Thread.sleep(1000);
+						onBackgroundViewMonitor();
+					} catch (Throwable t) {
+//						UI ui = UI.getCurrent();
+//						VaadinSession session = ui.getSession();
+//						if (session != null) {
+////							LOGGER.warn("Exception while monitoring view in the background " + Thread.currentThread().getName(), t);
+//							UI.getCurrent().access(new Runnable() {
+//								@Override
+//								public void run() {
+//									// No need to update components in current UI from another Thread anymore
+//									UI.getCurrent().setPollInterval(-1);
+//								}
+//							});
+//						}
+						break;
+					}
+				} 
+			}
+		}.start();	
 	}
 
 	@Override

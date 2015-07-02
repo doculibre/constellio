@@ -34,7 +34,7 @@ public class CollectionGroupRolesViewAcceptTest extends ConstellioTest {
 	public static final String USER = "Utilisateur";
 	public static final String MANAGER = "Gestionnaire";
 
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConstellioWebDriver driver;
 	CollectionGroupRolesPage page;
 	Group group;
@@ -42,8 +42,9 @@ public class CollectionGroupRolesViewAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		);
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		group = records.getHeroes();

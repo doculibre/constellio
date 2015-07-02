@@ -17,7 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.extensions.events.records;
 
-import com.constellio.data.frameworks.extensions.VaultEventListener;
 import com.constellio.model.entities.records.Record;
 
 public class RecordLogicalDeletionEvent implements RecordEvent {
@@ -32,6 +31,4 @@ public class RecordLogicalDeletionEvent implements RecordEvent {
 		return record;
 	}
 
-	public interface RecordLogicalDeletionEventListener extends VaultEventListener<RecordLogicalDeletionEvent> {
-	}
 }

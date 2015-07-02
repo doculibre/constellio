@@ -35,7 +35,7 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 @UiTest
 public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 	MetadataSchemasManager schemasManager;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConstellioWebDriver driver;
 	SchemaTypePage page;
 	List<MetadataSchemaType> types;
@@ -43,8 +43,9 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		);
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		page = new SchemaTypePage(driver).navigateToPage();
@@ -54,8 +55,7 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenBaseConfigurationThenDisplayCorrectInformation() {
 		RecordContainerWebElement typeTable = page.getTypeTable();
-		assertThat(typeTable.countRows()).isEqualTo(14);
-
+		assertThat(typeTable.countRows()).isEqualTo(15);
 		assertThat(typeTable.hasRowWithValueInColumn("Rubrique du plan", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Contenant", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Types de contenants", 0)).isTrue();
@@ -70,6 +70,6 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 		assertThat(typeTable.hasRowWithValueInColumn("Unité administrative", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Règle de conservation", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Subdivision uniforme", 0)).isTrue();
-
+		assertThat(typeTable.hasRowWithValueInColumn("Délais variables", 0)).isTrue();
 	}
 }

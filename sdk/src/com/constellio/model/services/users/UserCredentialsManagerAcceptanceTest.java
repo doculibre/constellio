@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.users;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,23 +31,35 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 
 public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
+
+	LocalDateTime shishOClock = new LocalDateTime();
 
 	String edouardServiceKey = "myKey";
 
 	UserCredentialsManager manager;
-	UserCredential chuckUserCredential;
-	UserCredential edouardUserCredential;
+	UserCredential chuckUserCredential, edouardUserCredential, bobUserCredential;
 
 	LocalDateTime endDate = new LocalDateTime().plusMinutes(30);
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		withSpiedServices(ModelLayerConfiguration.class);
+		configure(new ModelLayerConfigurationAlteration() {
+			@Override
+			public void alter(ModelLayerConfiguration configuration) {
+				org.joda.time.Duration fortyTwoMinutes = org.joda.time.Duration.standardSeconds(42);
+				doReturn(fortyTwoMinutes).when(configuration).getTokenDuration();
+			}
+		});
 
 		createUserCredentials();
 
@@ -224,8 +237,51 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(serviceKey3).isNull();
 	}
 
+	@Test
+	public void givenUserHasTokensThenAreAutomaticallyDeletedAfterTheGivenTime()
+			throws Exception {
+
+		givenTimeIs(shishOClock.minusYears(1));
+		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
+
+		manager.addUpdate(chuckUserCredential);
+		manager.addUpdate(bobUserCredential);
+
+		manager.addUpdate(chuckUserCredential.withToken("A", shishOClock).withToken("B", shishOClock.plusHours(1)));
+		manager.addUpdate(bobUserCredential.withToken("C", shishOClock.plusMinutes(1)));
+
+		givenTimeIs(shishOClock.minusSeconds(1));
+		manager.removedTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).containsOnly("A", "B");
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).containsOnly("C");
+
+		givenTimeIs(shishOClock);
+		manager.removedTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).containsOnly("B");
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).containsOnly("C");
+
+		givenTimeIs(shishOClock.plusMinutes(1));
+		manager.removedTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).containsOnly("B");
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).isEmpty();
+
+		givenTimeIs(shishOClock.plusMinutes(59));
+		manager.removedTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).containsOnly("B");
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).isEmpty();
+
+		givenTimeIs(shishOClock.plusMinutes(60));
+		manager.removedTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).isEmpty();
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).isEmpty();
+	}
+
 	private void createUserCredentials() {
 		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", null, true,
+				Arrays.asList("group1"), Arrays.asList(zeCollection), new HashMap<String, LocalDateTime>(),
+				UserCredentialStatus.ACTIVE, "domain");
+
+		bobUserCredential = new UserCredential("bob", "Bob", "Gratton", "bob.gratton@gmail.com", null, true,
 				Arrays.asList("group1"), Arrays.asList(zeCollection), new HashMap<String, LocalDateTime>(),
 				UserCredentialStatus.ACTIVE, "domain");
 

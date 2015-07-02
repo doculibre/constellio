@@ -30,6 +30,7 @@ import org.mockito.Mock;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.validators.ValueRequirementValidator;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -75,6 +76,10 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(optionalMetadata.isEnabled()).thenReturn(true);
 		when(requiredMetadata1.isEnabled()).thenReturn(true);
 		when(requiredMetadata2.isEnabled()).thenReturn(true);
+
+		when(optionalMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
+		when(requiredMetadata1.getDataEntry()).thenReturn(new ManualDataEntry());
+		when(requiredMetadata2.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		validator = new ValueRequirementValidator(metadatas);
 

@@ -21,14 +21,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
-import com.constellio.model.extensions.ModelLayerSystemEventsListeners;
+import com.constellio.model.entities.CollectionObject;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.ModelLayerSystemExtensions;
 
 public class ModelLayerExtensions implements StatefulService {
 
-	Map<String, ModelLayerCollectionEventsListeners> collectionListeners = new HashMap<>();
+	Map<String, ModelLayerCollectionExtensions> collectionExtensions = new HashMap<>();
 
-	ModelLayerSystemEventsListeners systemListeners = new ModelLayerSystemEventsListeners();
+	ModelLayerSystemExtensions systemWideExtensions = new ModelLayerSystemExtensions();
 
 	@Override
 	public void initialize() {
@@ -38,15 +39,19 @@ public class ModelLayerExtensions implements StatefulService {
 	public void close() {
 	}
 
-	public ModelLayerSystemEventsListeners getSystemListeners() {
-		return systemListeners;
+	public ModelLayerSystemExtensions getSystemWideExtensions() {
+		return systemWideExtensions;
 	}
 
-	public final ModelLayerCollectionEventsListeners getCollectionListeners(String collection) {
-		if (!collectionListeners.containsKey(collection)) {
-			collectionListeners.put(collection, new ModelLayerCollectionEventsListeners());
+	public final ModelLayerCollectionExtensions forCollectionOf(CollectionObject collectionObject) {
+		return forCollection(collectionObject.getCollection());
+	}
+
+	public final ModelLayerCollectionExtensions forCollection(String collection) {
+		if (!collectionExtensions.containsKey(collection)) {
+			collectionExtensions.put(collection, new ModelLayerCollectionExtensions());
 		}
-		return collectionListeners.get(collection);
+		return collectionExtensions.get(collection);
 	}
 
 }

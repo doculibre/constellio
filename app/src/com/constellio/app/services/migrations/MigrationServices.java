@@ -123,10 +123,16 @@ public class MigrationServices {
 		List<Migration> filteredMigrations = filterRunnedMigration(collection, migrations);
 		LOGGER.info("Filtered migrations : " + filteredMigrations);
 
-		ensureSchemasHaveCommonMetadata(collection);
+		boolean firstMigration = true;
 
 		for (Migration migration : filteredMigrations) {
 			if (toVersion == null || VersionsComparator.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
+
+				if (firstMigration) {
+					ensureSchemasHaveCommonMetadata(collection);
+					firstMigration = false;
+				}
+
 				migrate(migration);
 			}
 		}

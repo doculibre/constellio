@@ -41,6 +41,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderFilingSpaceField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
@@ -291,6 +292,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			adjustUniformSubdivisionField();
 			adjustRetentionRuleField();
 			adjustStatusCopyEnteredField();
+			adjustLinearSizeField();
 			adjustActualTransferDateField();
 			adjustActualDepositDateField();
 			adjustActualDestructionDateField();
@@ -584,6 +586,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		return decommissioningService().isTransferDateInputPossibleForUser(folder, getCurrentUser());
 	}
 
+	void adjustLinearSizeField() {
+		FolderLinearSizeField linearSizeField = (FolderLinearSizeField) view.getForm().getCustomField(Folder.LINEAR_SIZE);
+		if (linearSizeField != null) {
+			linearSizeField.setVisible(folderVO.getContainer() != null);
+		}
+	}
+
 	void adjustActualTransferDateField() {
 		FolderActualTransferDateField actualTransferDateField = (FolderActualTransferDateField) view.getForm().getCustomField(
 				Folder.ACTUAL_TRANSFER_DATE);
@@ -654,7 +663,6 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
-	//TODO Thiago test
 	void adjustPreviewReturnDateField() {
 		FolderPreviewReturnDateField previewReturnDateField = (FolderPreviewReturnDateField) view.getForm()
 				.getCustomField(Folder.BORROW_PREVIEW_RETURN_DATE);

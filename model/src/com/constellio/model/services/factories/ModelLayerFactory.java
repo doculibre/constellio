@@ -127,7 +127,7 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.batchProcessesController = add(new BatchProcessController(batchProcessesManager, newRecordServices(),
 				modelLayerConfiguration.getNumberOfRecordsPerTask(), schemasManager, newSearchServices()));
-		this.userCredentialsManager = add(new UserCredentialsManager(configManager));
+		this.userCredentialsManager = add(new UserCredentialsManager(dataLayerFactory, modelLayerConfiguration));
 		this.globalGroupsManager = add(new GlobalGroupsManager(configManager));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
 		this.rolesManager = add(new RolesManager(configManager, collectionsListManager));
@@ -302,8 +302,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public UserPhotosServices newUserPhotosServices() {
-		ConfigManager configManager = dataLayerFactory.getConfigManager();
-		return new UserPhotosServices(configManager);
+		return new UserPhotosServices(dataLayerFactory);
 	}
 
 	public ReindexingServices newReindexingServices() {

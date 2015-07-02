@@ -35,10 +35,9 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate.SchemaType;
 import com.constellio.app.modules.rm.services.FolderDocumentMetadataSyncServices;
-import com.constellio.app.modules.rm.services.LabelTemplateServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
@@ -64,13 +63,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.borrowingServices.BorrowingServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.security.roles.Roles;
 
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
@@ -341,8 +339,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void viewAssembled() {
 		MetadataSchema documentsSchema = getDocumentsSchema();
-		MetadataSchemaVO documentsSchemaVO = schemaVOBuilder.build(documentsSchema, VIEW_MODE.TABLE);
-		documentsDataProvider = new RecordVODataProvider(documentsSchemaVO, voBuilder, modelLayerFactory) {
+		MetadataSchemaVO documentsSchemaVO = schemaVOBuilder.build(documentsSchema, VIEW_MODE.TABLE, view.getSessionContext());
+		documentsDataProvider = new RecordVODataProvider(
+				documentsSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				Record record = getRecord(folderVO.getId());
@@ -351,13 +350,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(from(documentsSchemaType).where(folderMetadata).is(record));
-				return query.sortDesc(Schemas.MODIFIED_ON);
+				return query.filteredByStatus(StatusFilter.ACTIVES).sortDesc(Schemas.MODIFIED_ON);
 			}
 		};
 		view.setDocuments(documentsDataProvider);
 
-		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(schema(), VIEW_MODE.TABLE);
-		subFoldersDataProvider = new RecordVODataProvider(foldersSchemaVO, voBuilder, modelLayerFactory) {
+		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(schema(), VIEW_MODE.TABLE, view.getSessionContext());
+		subFoldersDataProvider = new RecordVODataProvider(
+				foldersSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				Record record = getRecord(folderVO.getId());
@@ -366,7 +366,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				Metadata parentFolderMetadata = foldersSchema.getMetadata(Folder.PARENT_FOLDER);
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
-				return query.sortDesc(Schemas.MODIFIED_ON);
+				return query.filteredByStatus(StatusFilter.ACTIVES).sortDesc(Schemas.MODIFIED_ON);
 			}
 		};
 		view.setSubFolders(subFoldersDataProvider);
@@ -557,17 +557,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	private User wrapUser(Record record) {
-		return new User(record, types(), getRoles());
-	}
-
-	private Roles getRoles() {
-		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
-	}
-
-	//TODO Thiago
 	public List<LabelTemplate> getTemplates() {
-		LabelTemplateServices labelTemplateServices = new LabelTemplateServices(appLayerFactory);
-		return labelTemplateServices.getTemplates(SchemaType.FOLDER.name());
+		return appLayerFactory.getLabelTemplateManager().listTemplates(Folder.SCHEMA_TYPE);
 	}
+	
 }

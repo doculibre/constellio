@@ -46,7 +46,9 @@ public class RMModuleTypesAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule()
+		);
 
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 		authenticationService.changePassword(chuckNorris, "1qaz2wsx");

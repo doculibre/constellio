@@ -20,7 +20,6 @@ package com.constellio.app.ui.framework.data;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -64,39 +63,43 @@ public class RecordLookupInputDataProviderAcceptTest extends ConstellioTest {
 	String s_record6 = "s_record6";
 	String s_record7 = "s_record7";
 
-	RMSchemasRecordsServices schemas;
+	RMSchemasRecordsServices rm;
 	RecordTextInputDataProvider dataProvider;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection, Arrays.asList("fr", "en")).withConstellioRMModule().withAllTestUsers()
-				.andUsersWithReadAccess(dakota);
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule()
+		);
+		inCollection(zeCollection).giveReadAccessTo(dakota);
+
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		Transaction transaction = new Transaction();
 
-		transaction.add(schemas.newAdministrativeUnitWithId(ua_record1).setCode("10").setTitle("Gestion DocuLibre"));
-		transaction.add(schemas.newAdministrativeUnitWithId(ua_record2).setCode("11").setTitle("Direction générale"));
-		transaction.add(schemas.newAdministrativeUnitWithId(ua_record3).setCode("20").setTitle("Ressources humaines"));
-		transaction.add(schemas.newAdministrativeUnitWithId(ua_record4).setCode("30").setTitle("Ressources financières"));
-		transaction.add(schemas.newAdministrativeUnitWithId(ua_record5).setCode("S1").setTitle("Secrétariat"));
-		transaction.add(schemas.newAdministrativeUnitWithId(ua_record6).setCode("AB-20").setTitle("Records management"));
+		transaction.add(rm.newAdministrativeUnitWithId(ua_record1).setCode("10").setTitle("Gestion DocuLibre"));
+		transaction.add(rm.newAdministrativeUnitWithId(ua_record2).setCode("11").setTitle("Direction générale"));
+		transaction.add(rm.newAdministrativeUnitWithId(ua_record3).setCode("20").setTitle("Ressources humaines"));
+		transaction.add(rm.newAdministrativeUnitWithId(ua_record4).setCode("30").setTitle("Ressources financières"));
+		transaction.add(rm.newAdministrativeUnitWithId(ua_record5).setCode("S1").setTitle("Secrétariat"));
+		transaction.add(rm.newAdministrativeUnitWithId(ua_record6).setCode("AB-20").setTitle("Records management"));
 
-		transaction.add(schemas.newCategoryWithId(c_record1).setCode("10").setTitle("Gestion DocuLibre"));
-		transaction.add(schemas.newCategoryWithId(c_record2).setCode("11").setTitle("Direction générale"));
-		transaction.add(schemas.newCategoryWithId(c_record3).setCode("20").setTitle("Ressources humaines"));
-		transaction.add(schemas.newCategoryWithId(c_record4).setCode("30").setTitle("Ressources financières"));
-		transaction.add(schemas.newCategoryWithId(c_record5).setCode("S1").setTitle("Secrétariat"));
-		transaction.add(schemas.newCategoryWithId(c_record6).setCode("AB-20").setTitle("Records management"));
+		transaction.add(rm.newCategoryWithId(c_record1).setCode("10").setTitle("Gestion DocuLibre"));
+		transaction.add(rm.newCategoryWithId(c_record2).setCode("11").setTitle("Direction générale"));
+		transaction.add(rm.newCategoryWithId(c_record3).setCode("20").setTitle("Ressources humaines"));
+		transaction.add(rm.newCategoryWithId(c_record4).setCode("30").setTitle("Ressources financières"));
+		transaction.add(rm.newCategoryWithId(c_record5).setCode("S1").setTitle("Secrétariat"));
+		transaction.add(rm.newCategoryWithId(c_record6).setCode("AB-20").setTitle("Records management"));
 
-		transaction.add(schemas.newFilingSpaceWithId(s_record1).setCode("10").setTitle("Gestion DocuLibre"));
-		transaction.add(schemas.newFilingSpaceWithId(s_record2).setCode("11").setTitle("Direction générale"));
-		transaction.add(schemas.newFilingSpaceWithId(s_record3).setCode("20").setTitle("Ressources humaines"));
-		transaction.add(schemas.newFilingSpaceWithId(s_record4).setCode("30").setTitle("Ressources financières"));
-		transaction.add(schemas.newFilingSpaceWithId(s_record5).setCode("S1").setTitle("Secrétariat"));
-		transaction.add(schemas.newFilingSpaceWithId(s_record6).setCode("AB-20").setTitle("Records management"));
-		transaction.add(schemas.newFilingSpaceWithId(s_record7).setCode("A").setTitle("Room A"));
+		transaction.add(rm.newFilingSpaceWithId(s_record1).setCode("10").setTitle("Gestion DocuLibre"));
+		transaction.add(rm.newFilingSpaceWithId(s_record2).setCode("11").setTitle("Direction générale"));
+		transaction.add(rm.newFilingSpaceWithId(s_record3).setCode("20").setTitle("Ressources humaines"));
+		transaction.add(rm.newFilingSpaceWithId(s_record4).setCode("30").setTitle("Ressources financières"));
+		transaction.add(rm.newFilingSpaceWithId(s_record5).setCode("S1").setTitle("Secrétariat"));
+		transaction.add(rm.newFilingSpaceWithId(s_record6).setCode("AB-20").setTitle("Records management"));
+		transaction.add(rm.newFilingSpaceWithId(s_record7).setCode("A").setTitle("Room A"));
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 	}

@@ -51,6 +51,8 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String POSITION = "position";
 	public static final String COMMENTS = "comments";
 	public static final String BORROWED = "borrowed";
+	public static final String CAPACITY = "capacity";
+	public static final String FILL_RATIO_ENTRED = "fillRatioEntered";
 
 	public ContainerRecord(Record record,
 			MetadataSchemaTypes types) {
@@ -68,6 +70,24 @@ public class ContainerRecord extends RecordWrapper {
 
 	public ContainerRecord setDescription(String description) {
 		set(DESCRIPTION, description);
+		return this;
+	}
+
+	public Double getCapacity() {
+		return get(CAPACITY);
+	}
+
+	public ContainerRecord setCapacity(Double capacity) {
+		set(CAPACITY, capacity);
+		return this;
+	}
+
+	public Double getFillRatioEntered() {
+		return get(FILL_RATIO_ENTRED);
+	}
+
+	public ContainerRecord setFillRatioEntered(Double fillRatioEntered) {
+		set(FILL_RATIO_ENTRED, fillRatioEntered);
 		return this;
 	}
 

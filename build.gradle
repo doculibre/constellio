@@ -4,6 +4,16 @@ apply plugin: 'application'
 
 defaultTasks 'clean', 'compileJava'
 
+ext {
+    version_mime = "0.7.2"
+}
+
+configurations.all {
+    resolutionStrategy {
+        force "org.apache.james:apache-mime4j:${version_mime}"
+    }
+}
+
 allprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
@@ -87,7 +97,7 @@ allprojects {
 
 war {
     baseName = "constellio"
-    version = "5.0.5"
+    version = "5.0.6"
 
     webInf {
         from("resources_i18n/") {
@@ -109,7 +119,7 @@ task compileData() {
 }
 
 task buildClient() {
-    dependsOn project(":client").build
+//    dependsOn project(":client").build
 }
 
 task compileModel() {
@@ -134,6 +144,7 @@ task unWar(type: Copy) {
 task installer(type: Zip, dependsOn: [build, unWar]) {
     from(buildDir.getAbsolutePath() + "/tmp/war_tmp/") {
         exclude "WEB-INF/lib/tika-app*.jar"
+        exclude "WEB-INF/lib/apache-mime4j-0.6.jar"
         into("webapp")
     }
 

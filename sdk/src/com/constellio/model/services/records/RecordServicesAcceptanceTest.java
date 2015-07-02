@@ -17,16 +17,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records;
 
+import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
+import static com.constellio.model.frameworks.validation.Validator.METADATA_LABEL;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedReferenceFromDummyCalculatorUsingOtherMetadata;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculatorReturningInvalidType;
+import static com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator.UNMODIFIABLE_METADATA;
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichNullValuesAreNotWritten;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
@@ -52,10 +59,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
+import com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -660,6 +670,107 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		assertThat(anotherSchemaRecord.get(anotherSchema.metadataWithCopiedEntry())).isEqualTo("2.2");
 	}
 
+	@Test
+	public void givenNullValuesNotWrittenThenCanAddUpdateStringMetadata()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichNullValuesAreNotWritten));
+		RecordImpl record = saveZeSchemaRecordAndReload();
+		assertThat(record.get(zeSchema.stringMetadata())).isNull();
+		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.stringMetadata().getDataStoreCode());
+
+		record = updateAndReload(record.set(zeSchema.stringMetadata(), "ze value"));
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("ze value");
+
+		record = updateAndReload(record.set(zeSchema.stringMetadata(), null));
+		assertThat(record.get(zeSchema.stringMetadata())).isNull();
+		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.stringMetadata().getDataStoreCode());
+	}
+
+	@Test
+	public void givenNullValuesNotWrittenThenCanAddUpdateMultivalueStringMetadata()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichIsMultivalue, whichNullValuesAreNotWritten));
+		RecordImpl record = saveZeSchemaRecordAndReload();
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo(new ArrayList<>());
+		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.stringMetadata().getDataStoreCode());
+
+		record = updateAndReload(record.set(zeSchema.stringMetadata(), asList("ze value 1", "ze value 2")));
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo(asList("ze value 1", "ze value 2"));
+
+		record = updateAndReload(record.set(zeSchema.stringMetadata(), null));
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo(new ArrayList<>());
+		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.stringMetadata().getDataStoreCode());
+	}
+
+	@Test
+	public void givenNullValuesNotWrittenThenCanAddUpdateNumberMetadata()
+			throws Exception {
+		defineSchemasManager().using(schemas.withANumberMetadata(whichNullValuesAreNotWritten));
+		RecordImpl record = saveZeSchemaRecordAndReload();
+		assertThat(record.get(zeSchema.numberMetadata())).isNull();
+		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.numberMetadata().getDataStoreCode());
+
+		record = updateAndReload(record.set(zeSchema.numberMetadata(), 42.0));
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(42.0);
+
+		record = updateAndReload(record.set(zeSchema.numberMetadata(), null));
+		assertThat(record.get(zeSchema.numberMetadata())).isNull();
+		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.numberMetadata().getDataStoreCode());
+	}
+
+	@Test
+	public void givenNullValuesNotWrittenThenCanAddUpdateBooleanMetadata()
+			throws Exception {
+		defineSchemasManager().using(schemas.withABooleanMetadata(whichNullValuesAreNotWritten));
+		RecordImpl record = saveZeSchemaRecordAndReload();
+		assertThat(record.get(zeSchema.booleanMetadata())).isNull();
+		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.booleanMetadata().getDataStoreCode());
+
+		record = updateAndReload(record.set(zeSchema.booleanMetadata(), true));
+		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(true);
+
+		record = updateAndReload(record.set(zeSchema.booleanMetadata(), null));
+		assertThat(record.get(zeSchema.booleanMetadata())).isNull();
+		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.booleanMetadata().getDataStoreCode());
+	}
+
+	@Test
+	public void givenUnmodifiableMetadataThenCanSetValueButCannotUpdateIt()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichIsUnmodifiable));
+		RecordImpl record = saveZeSchemaRecordAndReload();
+		assertThat(record.get(zeSchema.stringMetadata())).isNull();
+
+		record = updateAndReload(record.set(zeSchema.stringMetadata(), "ze value"));
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("ze value");
+
+		record = updateAndReload(record.set(zeSchema.stringMetadata(), "ze value"));
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("ze value");
+
+		try {
+			recordServices.update(record.set(zeSchema.stringMetadata(), "another value"));
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
+							MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
+							asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
+									METADATA_LABEL, "A toAString metadata"))
+			);
+		}
+
+		try {
+			recordServices.update(record.set(zeSchema.stringMetadata(), null));
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
+							MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
+							asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
+									METADATA_LABEL, "A toAString metadata"))
+			);
+		}
+
+	}
+
 	@SlowTest
 	@Test
 	public void whenExecutingWithMoreThan1000RecordsAndMergeOptimisticLockingResolutionThenOk()
@@ -782,6 +893,19 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		}
 		recordServices.add(recordReference);
 		return recordReference.getId();
+	}
+
+	private RecordImpl updateAndReload(Record record)
+			throws RecordServicesException {
+		recordServices.update(record);
+		return (RecordImpl) recordServices.getDocumentById(record.getId());
+	}
+
+	private RecordImpl saveZeSchemaRecordAndReload()
+			throws RecordServicesException {
+		Record record = new TestRecord(zeSchema);
+		recordServices.add(record);
+		return (RecordImpl) recordServices.getDocumentById(record.getId());
 	}
 
 	private Record saveAnotherSchemaRecordWithDateMetadataToJanuary1()

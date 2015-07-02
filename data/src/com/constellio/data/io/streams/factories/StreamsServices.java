@@ -37,14 +37,17 @@ import java.io.StringReader;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ReaderInputStream;
 
+import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streams.factories.StreamsServicesRuntimeException.StreamsServicesRuntimeException_FileNotFound;
 
 public class StreamsServices {
 
-	public StreamsServices() {
-		super();
+	private FileService fileService;
+
+	public StreamsServices(FileService fileService) {
+		this.fileService = fileService;
 	}
 
 	public byte[] readBytes(InputStream inputStream)
@@ -162,6 +165,11 @@ public class StreamsServices {
 
 	public InputStream newFileInputStream(final File file, final String name)
 			throws FileNotFoundException {
+		return newFileInputStream(file, name, false);
+	}
+
+	public InputStream newFileInputStream(final File file, final String name, final boolean deleteFileOnclose)
+			throws FileNotFoundException {
 
 		FileInputStream fileInputStream = OpenedResourcesWatcher.onOpen(new FileInputStream(file) {
 
@@ -174,6 +182,9 @@ public class StreamsServices {
 			public void close()
 					throws IOException {
 				OpenedResourcesWatcher.onClose(this);
+				if (deleteFileOnclose) {
+					fileService.deleteQuietly(file);
+				}
 				super.close();
 			}
 		});
@@ -209,6 +220,11 @@ public class StreamsServices {
 	public BufferedInputStream newBufferedFileInputStream(File file, final String name)
 			throws FileNotFoundException {
 		return (BufferedInputStream) newFileInputStream(file, name);
+	}
+
+	public BufferedInputStream newBufferedFileInputStreamWithFileDeleteOnClose(File file, final String name)
+			throws FileNotFoundException {
+		return (BufferedInputStream) newFileInputStream(file, name, true);
 	}
 
 	public OutputStream newFileOutputStream(final File file, final String name)

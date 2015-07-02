@@ -34,19 +34,22 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class ContainerAcceptanceTest extends ConstellioTest {
-	RMSchemasRecordsServices schemas;
-	RMTestRecords records;
+	RMSchemasRecordsServices rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+		);
+
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
 	}
@@ -55,13 +58,13 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 	public void givenContainerWithTemporaryIdentifierThenUsedHasTitle()
 			throws Exception {
 
-		StorageSpace storage42 = schemas.newStorageSpaceWithId("42");
+		StorageSpace storage42 = rm.newStorageSpaceWithId("42");
 		storage42.setCode("Ze42");
 		storage42.setTitle("Ze storage");
 		storage42.setDescription("Ze description");
 		storage42.setCapacity(42L);
 
-		StorageSpace storage666 = schemas.newStorageSpaceWithId("666");
+		StorageSpace storage666 = rm.newStorageSpaceWithId("666");
 		storage666.setCode("Ze666");
 		storage666.setTitle("Ze child storage");
 		storage666.setDescription("Ze description");
@@ -69,11 +72,11 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		storage666.setDecommissioningType(DecommissioningType.DEPOSIT);
 		storage666.setParentStorageSpace("42");
 
-		ContainerRecordType zeBoite = schemas.newContainerRecordTypeWithId("zeBoite");
+		ContainerRecordType zeBoite = rm.newContainerRecordTypeWithId("zeBoite");
 		zeBoite.setTitle("Ze Boite");
 		zeBoite.setCode("BOITE");
 
-		ContainerRecord zeContainer = schemas.newContainerRecordWithId("zeContainer");
+		ContainerRecord zeContainer = rm.newContainerRecordWithId("zeContainer");
 		zeContainer.setTemporaryIdentifier("Ze temp identifier");
 		zeContainer.setDescription("Ze description");
 		zeContainer.setFull(false);
@@ -83,7 +86,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		zeContainer.setFilingSpace(records.filingId_A);
 		zeContainer.setType("zeBoite");
 
-		ContainerRecord anotherContainer = schemas.newContainerRecordWithId("anotherContainer");
+		ContainerRecord anotherContainer = rm.newContainerRecordWithId("anotherContainer");
 		anotherContainer.setTemporaryIdentifier("Ze temp identifier");
 		anotherContainer.setIdentifier("Ze ultimate identifier");
 		anotherContainer.setDescription("Ze description");
@@ -102,10 +105,10 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		transaction.add(anotherContainer);
 		recordServices.execute(transaction);
 
-		storage42 = schemas.getStorageSpace("42");
-		storage666 = schemas.getStorageSpace("666");
-		zeContainer = schemas.getContainerRecord("zeContainer");
-		anotherContainer = schemas.getContainerRecord("anotherContainer");
+		storage42 = rm.getStorageSpace("42");
+		storage666 = rm.getStorageSpace("666");
+		zeContainer = rm.getContainerRecord("zeContainer");
+		anotherContainer = rm.getContainerRecord("anotherContainer");
 
 		assertThat(storage42.getCode()).isEqualTo("Ze42");
 		assertThat(storage42.getTitle()).isEqualTo("Ze storage");

@@ -43,6 +43,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -257,6 +258,18 @@ public class TestUtils {
 		return map;
 	}
 
+	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4, K key5,
+			V value5, K key6, V value6) {
+		Map<K, V> map = new HashMap<K, V>();
+		map.put(key1, value1);
+		map.put(key2, value2);
+		map.put(key3, value3);
+		map.put(key4, value4);
+		map.put(key5, value5);
+		map.put(key6, value6);
+		return map;
+	}
+
 	public static Map<String, Object> asStringObjectMap(String key1, Object value1) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(key1, value1);
@@ -389,6 +402,10 @@ public class TestUtils {
 		}
 	}
 
+	public static RecordWrapperAssert assertThatRecord(RecordWrapper recordWrapper) {
+		return new RecordWrapperAssert(recordWrapper);
+	}
+
 	public static RecordAssert assertThatRecord(Record actual) {
 		return new RecordAssert(actual);
 	}
@@ -404,6 +421,24 @@ public class TestUtils {
 				@Override
 				public boolean matches(Record value) {
 					assertThat(actual.get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+					return true;
+				}
+			});
+		}
+	}
+
+	public static class RecordWrapperAssert extends ObjectAssert<RecordWrapper> {
+
+		protected RecordWrapperAssert(RecordWrapper actual) {
+			super(actual);
+		}
+
+		public RecordWrapperAssert hasMetadata(final String metadataLocalCode, final Object expectedValue) {
+			return (RecordWrapperAssert) super.has(new Condition<RecordWrapper>() {
+				@Override
+				public boolean matches(RecordWrapper value) {
+					Metadata metadata = value.getSchema().getMetadata(metadataLocalCode);
+					assertThat(actual.getWrappedRecord().get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
 					return true;
 				}
 			});

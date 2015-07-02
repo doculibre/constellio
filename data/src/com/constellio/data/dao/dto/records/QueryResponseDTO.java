@@ -29,6 +29,7 @@ public class QueryResponseDTO {
 	private long numFound;
 
 	private Map<String, List<FacetValue>> fieldFacetValues;
+	private Map<String, Map<String, Object>> fieldsStatistics;
 	private Map<String, Map<String, List<String>>> highlights;
 	private Map<String, Integer> queryFacetValues;
 
@@ -36,12 +37,14 @@ public class QueryResponseDTO {
 	private List<String> spellCheckerSuggestions;
 
 	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound, Map<String, List<FacetValue>> fieldFacetValues,
+							Map<String, Map<String, Object>> fieldsStatistics,
 			Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
 			List<String> spellCheckerSuggestions) {
 		this.results = results;
 		this.qtime = qtime;
 		this.numFound = numFound;
 		this.fieldFacetValues = fieldFacetValues;
+		this.fieldsStatistics = fieldsStatistics;
 		this.queryFacetValues = queryFacetValues;
 		this.highlights = highlights;
 		this.correctlySpelt = correctlySpelt;
@@ -78,5 +81,9 @@ public class QueryResponseDTO {
 
 	public List<String> getSpellCheckerSuggestions() {
 		return spellCheckerSuggestions;
+	}
+
+	public Map<String, Map<String, Object>> getFieldsStatistics() {
+		return fieldsStatistics;
 	}
 }

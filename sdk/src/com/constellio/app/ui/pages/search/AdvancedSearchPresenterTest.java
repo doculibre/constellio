@@ -31,6 +31,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -43,6 +46,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 	@Mock AdvancedSearchView view;
 	@Mock ConstellioNavigator navigator;
 	@Mock SchemasDisplayManager schemasDisplayManager;
+	@Mock LabelTemplateManager labelTemplateManager;
 	@Mock SchemaTypesDisplayConfig typesDisplayConfig;
 	MockedFactories factories = new MockedFactories();
 
@@ -60,6 +64,8 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(factories.getAppLayerFactory().getMetadataSchemasDisplayManager()).thenReturn(schemasDisplayManager);
 		when(schemasDisplayManager.getTypes(zeCollection)).thenReturn(typesDisplayConfig);
 		when(typesDisplayConfig.getFacetMetadataCodes()).thenReturn(Arrays.asList(FACET_CODE));
+
+		when(factories.getAppLayerFactory().getLabelTemplateManager()).thenReturn(labelTemplateManager);
 
 		when(view.getSchemaType()).thenReturn("zeSchemaType");
 
@@ -102,5 +108,38 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 	public void givenSchemaTypeIsNullThenMustDisplayResultsIsFalse() {
 		when(view.getSchemaType()).thenReturn(null);
 		assertThat(presenter.forRequestParameters("").mustDisplayResults()).isFalse();
+	}
+
+	@Test
+	public void givenNullSchemaTypeWhenGetTemplateThenReturnDefaultEmptyTemplate()
+			throws Exception {
+		when(view.getSchemaType()).thenReturn(null);
+		presenter.forRequestParameters("");
+
+		presenter.getTemplates();
+
+		verify(labelTemplateManager).listTemplates(null);
+	}
+
+	@Test
+	public void givenFolderSchemaTypeWhenGetTemplateThenReturnDefaultEmptyTemplate()
+			throws Exception {
+		when(view.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
+		presenter.forRequestParameters("");
+
+		presenter.getTemplates();
+
+		verify(labelTemplateManager).listTemplates(Folder.SCHEMA_TYPE);
+	}
+
+	@Test
+	public void givenContainerSchemaTypeWhenGetTemplateThenReturnDefaultEmptyTemplate()
+			throws Exception {
+		when(view.getSchemaType()).thenReturn(ContainerRecord.SCHEMA_TYPE);
+		presenter.forRequestParameters("");
+
+		presenter.getTemplates();
+
+		verify(labelTemplateManager).listTemplates(ContainerRecord.SCHEMA_TYPE);
 	}
 }

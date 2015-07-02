@@ -55,7 +55,7 @@ public class ContentFactoryTest extends ConstellioTest {
 	ContentVersion currentVersion, currentCOVersion;
 	ContentVersion firstVersion;
 	ContentVersion secondVersion;
-	Content content;
+	Content content, emptyContent;
 	long zeLength1;
 	long zeLength2;
 	long zeLength3;
@@ -74,7 +74,9 @@ public class ContentFactoryTest extends ConstellioTest {
 		secondVersion = new ContentVersion(new ContentVersionDataSummary("ze2ndHash", "zeMime2", zeLength2), "zeFileName_2.pdf",
 				"0.2", bobId, shishOClock);
 		content = new ContentImpl("zeContent", currentVersion, lazy(firstVersion, secondVersion), currentCOVersion, tockOClock,
-				dakotaId);
+				dakotaId, false);
+		emptyContent = new ContentImpl("zeContent", currentVersion, lazy(firstVersion, secondVersion), currentCOVersion,
+				tockOClock, dakotaId, true);
 
 		when(alice.getId()).thenReturn(aliceId);
 		when(bob.getId()).thenReturn(bobId);
@@ -91,6 +93,59 @@ public class ContentFactoryTest extends ConstellioTest {
 
 		assertThat(content2.getHistoryVersions()).hasSize(2);
 		assertThat(content2.getId()).isEqualTo("zeContent");
+		assertThat(content2.isEmptyVersion()).isFalse();
+
+		assertThat(content2.getCurrentVersion().getHash()).isEqualTo("zeHash");
+		assertThat(content2.getCurrentCheckedOutVersion().getHash()).isEqualTo("zeCOHash");
+		assertThat(content2.getHistoryVersions().get(0).getHash()).isEqualTo("ze1stHash");
+		assertThat(content2.getHistoryVersions().get(1).getHash()).isEqualTo("ze2ndHash");
+
+		assertThat(content2.getCurrentVersion().getFilename()).isEqualTo("zeFileName_3.pdf");
+		assertThat(content2.getCurrentCheckedOutVersion().getFilename()).isEqualTo("zeCOFileName_3.pdf");
+		assertThat(content2.getHistoryVersions().get(0).getFilename()).isEqualTo("zeFileName_1.pdf");
+		assertThat(content2.getHistoryVersions().get(1).getFilename()).isEqualTo("zeFileName_2.pdf");
+
+		assertThat(content2.getCurrentVersion().getMimetype()).isEqualTo("zeMime3");
+		assertThat(content2.getCurrentCheckedOutVersion().getMimetype()).isEqualTo("zeCOMime3");
+		assertThat(content2.getHistoryVersions().get(0).getMimetype()).isEqualTo("zeMime1");
+		assertThat(content2.getHistoryVersions().get(1).getMimetype()).isEqualTo("zeMime2");
+
+		assertThat(content2.getCurrentVersion().getLength()).isEqualTo(zeLength3);
+		assertThat(content2.getCurrentCheckedOutVersion().getLength()).isEqualTo(zeCOLength3);
+		assertThat(content2.getHistoryVersions().get(0).getLength()).isEqualTo(zeLength1);
+		assertThat(content2.getHistoryVersions().get(1).getLength()).isEqualTo(zeLength2);
+
+		assertThat(content2.getCurrentVersion().getVersion()).isEqualTo("1.0");
+		assertThat(content2.getCurrentCheckedOutVersion().getVersion()).isEqualTo("1.1");
+		assertThat(content2.getHistoryVersions().get(0).getVersion()).isEqualTo("0.1");
+		assertThat(content2.getHistoryVersions().get(1).getVersion()).isEqualTo("0.2");
+
+		assertThat(content2.getCurrentVersion().getModifiedBy()).isEqualTo(charlesId);
+		assertThat(content2.getCurrentCheckedOutVersion().getModifiedBy()).isEqualTo(dakotaId);
+		assertThat(content2.getHistoryVersions().get(0).getModifiedBy()).isEqualTo(aliceId);
+		assertThat(content2.getHistoryVersions().get(1).getModifiedBy()).isEqualTo(bobId);
+
+		assertThat(content2.getCurrentVersion().getLastModificationDateTime()).isEqualTo(teaOClock);
+		assertThat(content2.getCurrentCheckedOutVersion().getLastModificationDateTime()).isEqualTo(sushiOClock);
+		assertThat(content2.getHistoryVersions().get(0).getLastModificationDateTime()).isEqualTo(meetingOClock);
+		assertThat(content2.getHistoryVersions().get(1).getLastModificationDateTime()).isEqualTo(shishOClock);
+
+		assertThat(content2.getCheckoutDateTime()).isEqualTo(tockOClock);
+		assertThat(content2.getCheckoutUserId()).isEqualTo(dakotaId);
+
+		assertThat(text2).isEqualTo(text);
+	}
+
+	@Test
+	public void givenEmptyContentInfoConvertedBetweenStringAndObjectThenValueIsConserved() {
+
+		String text = factory.toString(emptyContent);
+		Content content2 = (Content) factory.build(text);
+		String text2 = factory.toString(content2);
+
+		assertThat(content2.getHistoryVersions()).hasSize(2);
+		assertThat(content2.getId()).isEqualTo("zeContent");
+		assertThat(content2.isEmptyVersion()).isTrue();
 
 		assertThat(content2.getCurrentVersion().getHash()).isEqualTo("zeHash");
 		assertThat(content2.getCurrentCheckedOutVersion().getHash()).isEqualTo("zeCOHash");
@@ -171,6 +226,16 @@ public class ContentFactoryTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenContentInfoConvertedToStringThenCanFindTheContentByBorrower()
+			throws Exception {
+
+		String text = factory.toString(content);
+		assertThat(text).contains(ContentFactory.isCheckedOutBy(dakota).getText());
+		assertThat(text).doesNotContain(ContentFactory.isCheckedOutBy(alice).getText());
+
+	}
+
+	@Test
 	public void givenContentInfoConvertedToStringThenCanFindHashInText()
 			throws Exception {
 
@@ -193,7 +258,7 @@ public class ContentFactoryTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenContentInfoConvertedToStringThenCanFinMimeInText()
+	public void givenContentInfoConvertedToStringThenCanFindMimeInText()
 			throws Exception {
 
 		String text = factory.toString(content);

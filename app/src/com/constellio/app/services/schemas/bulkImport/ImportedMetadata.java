@@ -1,0 +1,230 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.services.schemas.bulkImport;
+
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public class ImportedMetadata implements Serializable {
+	String schemaTypeCode;
+	String schemaCode;
+	String localCode;
+	MetadataValueType valueType;
+	String reference;
+	String label;
+	boolean required;
+	boolean multivalue;
+	boolean searchable;
+	boolean sortable;
+	boolean advancedSearch;
+	boolean facet;
+	boolean highlight;
+	boolean autocomplete;
+	boolean enabled;
+	String metadataGroup;
+	MetadataInputType input;
+	boolean global = false;
+	boolean inherited = false;
+	boolean newMetadata = false;
+	String code;
+
+	public ImportedMetadata(String schemaTypeCode, String schemaCode, String localCode, MetadataValueType type, boolean required, String reference,
+							String label, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch, boolean facet,
+							MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup) {
+		super();
+
+		if (localCode.contains("USR")) {
+			this.localCode = localCode.split("USR")[1];
+		}else{
+			this.localCode = localCode;
+		}
+
+		this.schemaTypeCode = schemaTypeCode;
+		this.schemaCode = schemaCode;
+		this.valueType = type;
+		this.required = required;
+		this.label = label;
+		this.multivalue = multivalue;
+		this.searchable = searchable;
+		this.sortable = sortable;
+		this.advancedSearch = advancedSearch;
+		this.facet = facet;
+		this.reference = reference;
+		this.input = input;
+		this.highlight = highlight;
+		this.autocomplete = autocomplete;
+		this.enabled = enabled;
+		this.metadataGroup = metadataGroup;
+
+	}
+
+	public String getLocalCode() {
+		return localCode;
+	}
+
+	public boolean isSearchable() {
+		return searchable;
+	}
+
+	public boolean isSortable() {
+		return sortable;
+	}
+
+	public boolean isRequired() {
+		return required;
+	}
+
+	public boolean isAdvancedSearch() {
+		return advancedSearch;
+	}
+
+	public boolean isFacet() {
+		return facet;
+	}
+
+	public String getReference() {
+		return reference;
+	}
+
+	public MetadataInputType getInput() {
+		return input;
+	}
+
+	public MetadataValueType getValueType() {
+		return valueType;
+	}
+
+	public boolean isMultivalue() {
+		return multivalue;
+	}
+
+	public boolean isHighlight() {
+		return highlight;
+	}
+
+	public boolean isAutocomplete() {
+		return autocomplete;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public String getMetadataGroup() {
+		return this.metadataGroup;
+	}
+
+	public void setLocalCode(String localcode) {
+		this.localCode = localcode;
+	}
+
+	public void setSearchable(boolean searchable) {
+		this.searchable = searchable;
+	}
+
+	public void setSortable(boolean sortable) {
+		this.sortable = sortable;
+	}
+
+	public void setAdvancedSearch(boolean advancedSearch) {
+		this.advancedSearch = advancedSearch;
+	}
+
+	public void setFacet(boolean facet) {
+		this.facet = facet;
+	}
+
+	public void setReference(String reference) {
+		this.reference = reference;
+	}
+
+	public void setInput(MetadataInputType input) {
+		this.input = input;
+	}
+
+	public void setValueType(MetadataValueType type) {
+		this.valueType = type;
+	}
+
+	public void setMultivalue(boolean multivalue) {
+		this.multivalue = multivalue;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
+	public void setHighlight(boolean highlight) {
+		this.highlight = highlight;
+	}
+
+	public void setAutocomplete(boolean autocomplete) {
+		this.autocomplete = autocomplete;
+	}
+
+	public void setRequired(boolean required) {
+		this.required = required;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public void setMetadataGroup(String metadataGroup) {
+		this.metadataGroup = metadataGroup;
+	}
+
+	public boolean isGlobal() {
+		return global;
+	}
+
+	public void setGlobal(boolean global) {
+		this.global = global;
+	}
+
+	public boolean isInherited() {
+		return inherited;
+	}
+
+	public void setInherited(boolean inherited) {
+		this.inherited = inherited;
+	}
+
+	public boolean isNewMetadata() {
+		return newMetadata;
+	}
+
+	public void setNewMetadata(boolean newMetadata) {
+		this.newMetadata = newMetadata;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+}

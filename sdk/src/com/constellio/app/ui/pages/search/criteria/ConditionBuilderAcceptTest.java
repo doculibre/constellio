@@ -39,7 +39,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class ConditionBuilderAcceptTest extends ConstellioTest {
 
 	SearchServices searchServices;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices rm;
 	ConditionBuilder folderConditionBuilder;
 
@@ -69,8 +69,10 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
 		searchServices = getModelLayerFactory().newSearchServices();
 

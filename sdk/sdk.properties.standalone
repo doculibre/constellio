@@ -28,8 +28,8 @@ run.performancetests=false
 
 #tests.whitelist=com.constellio.app*
 
-validateTransactionLog=false
-validateDataIntegrity=false
+validateTransactionLog=true
+validateDataIntegrity=true
 bruteForceRMSecurityTest=false
 
 # === MASSIVE BIGVAULT LOGGER (empty bigVaultLogger_loggedFields => all fields)

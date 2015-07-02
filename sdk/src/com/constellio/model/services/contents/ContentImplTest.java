@@ -484,7 +484,7 @@ public class ContentImplTest extends ConstellioTest {
 		givenTimeIs(shishOClock);
 
 		ContentImpl content = (ContentImpl) ContentImpl
-				.create("zeId", alice, "file:name.pdf", new ContentVersionDataSummary("zeHash", "zeMime", zeLength), true);
+				.create("zeId", alice, "file:name.pdf", new ContentVersionDataSummary("zeHash", "zeMime", zeLength), true, false);
 		assertThat(content.isDirty()).isTrue();
 
 		assertThat(content.getCurrentVersion().getFilename()).isEqualTo("filename.pdf");
@@ -507,7 +507,8 @@ public class ContentImplTest extends ConstellioTest {
 		givenTimeIs(shishOClock);
 
 		ContentImpl content = (ContentImpl) ContentImpl
-				.create("zeId", alice, "file:name.pdf", new ContentVersionDataSummary("zeHash", "zeMime", zeLength), false);
+				.create("zeId", alice, "file:name.pdf", new ContentVersionDataSummary("zeHash", "zeMime", zeLength), false,
+						false);
 		assertThat(content.isDirty()).isTrue();
 
 		assertThat(content.getCurrentVersion().getFilename()).isEqualTo("filename.pdf");
@@ -530,21 +531,21 @@ public class ContentImplTest extends ConstellioTest {
 		givenTimeIs(shishOClock);
 
 		try {
-			ContentImpl.create("zeId", alice, "file:name.pdf", null, false);
+			ContentImpl.create("zeId", alice, "file:name.pdf", null, false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
 		}
 
 		try {
-			ContentImpl.create("zeId", alice, "file:name.pdf", new ContentVersionDataSummary(null, "zeMime", 1l), false);
+			ContentImpl.create("zeId", alice, "file:name.pdf", new ContentVersionDataSummary(null, "zeMime", 1l), false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
 		}
 
 		try {
-			ContentImpl.create("zeId", alice, "file:name.pdf", new ContentVersionDataSummary("zeHash", null, 1l), false);
+			ContentImpl.create("zeId", alice, "file:name.pdf", new ContentVersionDataSummary("zeHash", null, 1l), false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
@@ -560,42 +561,42 @@ public class ContentImplTest extends ConstellioTest {
 		ContentVersionDataSummary dataSummary = new ContentVersionDataSummary("zeHash", "zeMime", 42);
 
 		try {
-			ContentImpl.create(null, alice, "file:name.pdf", dataSummary, false);
+			ContentImpl.create(null, alice, "file:name.pdf", dataSummary, false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
 		}
 
 		try {
-			ContentImpl.create(" ", alice, "file:name.pdf", dataSummary, false);
+			ContentImpl.create(" ", alice, "file:name.pdf", dataSummary, false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
 		}
 
 		try {
-			ContentImpl.create("zeId", null, "file:name.pdf", dataSummary, false);
+			ContentImpl.create("zeId", null, "file:name.pdf", dataSummary, false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
 		}
 
 		try {
-			ContentImpl.create("zeId", alice, null, dataSummary, false);
+			ContentImpl.create("zeId", alice, null, dataSummary, false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
 		}
 
 		try {
-			ContentImpl.create("zeId", alice, " ", dataSummary, false);
+			ContentImpl.create("zeId", alice, " ", dataSummary, false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
 		}
 
 		try {
-			ContentImpl.create("zeId", alice, "file:name.pdf", null, false);
+			ContentImpl.create("zeId", alice, "file:name.pdf", null, false, false);
 			fail("ContentImplRuntimeException_InvalidArgument expected");
 		} catch (ContentImplRuntimeException_InvalidArgument e) {
 			//OK
@@ -670,14 +671,14 @@ public class ContentImplTest extends ConstellioTest {
 	}
 
 	private void givenNonCheckedOutContent() {
-		content = new ContentImpl(contentId1, currentVersion, history, null, null, null);
+		content = new ContentImpl(contentId1, currentVersion, history, null, null, null, false);
 	}
 
 	private void givenCheckedOutContentNotYetModified() {
-		content = new ContentImpl(contentId1, currentVersion, history, currentVersion, teaOClock, aliceId);
+		content = new ContentImpl(contentId1, currentVersion, history, currentVersion, teaOClock, aliceId, false);
 	}
 
 	private void givenModifiedCheckedOutContent() {
-		content = new ContentImpl(contentId1, currentVersion, history, modifiedCheckedOut, teaOClock, aliceId);
+		content = new ContentImpl(contentId1, currentVersion, history, modifiedCheckedOut, teaOClock, aliceId, false);
 	}
 }

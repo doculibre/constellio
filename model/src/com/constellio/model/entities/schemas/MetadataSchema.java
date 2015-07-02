@@ -101,6 +101,10 @@ public class MetadataSchema {
 		return indexByAtomicCode.get(localCode) != null;
 	}
 
+	public Metadata get(String metadataCode) {
+		return getMetadata(metadataCode);
+	}
+
 	public Metadata getMetadata(String metadataCode) {
 
 		String localCode = new SchemaUtils().getLocalCode(metadataCode, code);

@@ -110,12 +110,12 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 
 	public class GroupMetadataDisplayFactory extends MetadataDisplayFactory {
 		@Override
-		public Component buildSingleValue(MetadataVO metadata, Object displayValue) {
+		public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
 			switch (metadata.getCode()) {
 			case GROUP_ROLES:
 				return new Label(presenter.getRoleTitle((String) displayValue));
 			default:
-				return super.buildSingleValue(metadata, displayValue);
+				return super.buildSingleValue(recordVO, metadata, displayValue);
 			}
 		}
 	}

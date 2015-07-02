@@ -600,6 +600,34 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenNoFilesInFolderWhenListThenOk()
+			throws Exception {
+
+		assertThat(configManager.list("/listFiles")).isEmpty();
+	}
+
+	@Test
+	public void givenFilesInFolderWhenListThenOk()
+			throws Exception {
+
+		givenTwoFilesInFolder();
+
+		assertThat(configManager.list("/listFiles")).hasSize(2);
+
+	}
+
+	private void givenTwoFilesInFolder() {
+		Document document = new Document();
+		Element root = new Element("root");
+		root.setAttribute("a", "0");
+		root.setAttribute("b", "0");
+		document.addContent(root);
+
+		configManager.add("listFiles/zePath.xml", document);
+		configManager.add("listFiles/ze1Path.xml", document);
+	}
+
 	private DocumentAlteration newIncrementDecrementAlteration(final String increment, final String decrement) {
 		return new DocumentAlteration() {
 			@Override

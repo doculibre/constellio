@@ -24,8 +24,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
@@ -36,6 +38,7 @@ import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.google.common.base.Strings;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -80,6 +83,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		presenter.resetFacetSelection();
 		presenter.forRequestParameters(event.getParameters());
 	}
 
@@ -132,18 +136,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	protected abstract Component buildSearchUI();
 
 	protected Component buildSummary(SearchResultTable results) {
-		//		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-		//			@Override
-		//			public List<LabelTemplate> get() {
-		//				return presenter.getTemplates();
-		//			}
-		//		};
-		//		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-		//				labelTemplatesFactory);
-		//		labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
+		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getTemplates();
+			}
+		};
+		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
+				labelTemplatesFactory);
+		labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 		ReportSelector reportSelector = new ReportSelector(presenter);
-		return results.createSummary(reportSelector);
-		//		return results.createSummary(labelsButton, reportSelector);
+		return results.createSummary(labelsButton, reportSelector);
 	}
 
 	private Component buildResultsUI() {
@@ -287,7 +290,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 			} else if (Strings.isNullOrEmpty(facetValue.getValue()) || EMPTY_FACET_VALUE.equals(facetValue.getValue())) {
 				caption = $("SearchView.noValue");
 			} else {
-				Component displayComponent = factory.buildSingleValue(facet, facetValue.getValue());
+				Component displayComponent = factory.buildSingleValue(null, facet, facetValue.getValue());
 				if (displayComponent instanceof Label) {
 					caption = ((Label) displayComponent).getValue();
 				} else {

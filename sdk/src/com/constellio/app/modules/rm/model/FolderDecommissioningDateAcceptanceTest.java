@@ -75,8 +75,8 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 	LocalDate february16_2017 = new LocalDate(2017, 2, 16);
 	LocalDate february17_2017 = new LocalDate(2017, 2, 17);
 
-	RMSchemasRecordsServices schemas;
-	RMTestRecords records;
+	RMSchemasRecordsServices rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
 
 	Transaction transaction = new Transaction();
@@ -95,12 +95,15 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+		);
+
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		zeCategory = records.categoryId_ZE42;
@@ -289,7 +292,7 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 			transaction = new Transaction();
 		}
 
-		Folder folder = schemas.newFolder();
+		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(aPrincipalAdminUnit);
 		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
@@ -303,7 +306,7 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 	private Folder saveAndLoad(Folder folder)
 			throws RecordServicesException {
 		recordServices.add(folder.getWrappedRecord());
-		return schemas.getFolder(folder.getId());
+		return rm.getFolder(folder.getId());
 	}
 
 	private RetentionRule givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(CopyRetentionRule... rules) {
@@ -315,7 +318,7 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 	}
 
 	private RetentionRule givenRetentionRule(CopyRetentionRule... rules) {
-		RetentionRule retentionRule = schemas.newRetentionRule();
+		RetentionRule retentionRule = rm.newRetentionRule();
 
 		retentionRule.setCode("Rule " + anInteger());
 		retentionRule.setTitle("Ze rule");

@@ -37,7 +37,6 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateConverter;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateTimeConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
@@ -86,8 +85,8 @@ public class MetadataDisplayFactory implements Serializable {
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
 				for (Object elementDisplayValue : collectionDisplayValue) {
-					Component elementDisplayComponent = buildSingleValue(metadataValue.getMetadata(),
-							elementDisplayValue);
+					Component elementDisplayComponent = buildSingleValue(recordVO,
+							metadataValue.getMetadata(), elementDisplayValue);
 					if (elementDisplayComponent != null) {
 						elementDisplayComponent.setSizeFull();
 						elementDisplayComponents.add(elementDisplayComponent);
@@ -100,12 +99,18 @@ public class MetadataDisplayFactory implements Serializable {
 				}
 			}
 		} else {
-			displayComponent = buildSingleValue(metadataVO, displayValue);
+			displayComponent = buildSingleValue(recordVO, metadataVO, displayValue);
 		}
 		return displayComponent;
 	}
 
-	public Component buildSingleValue(MetadataVO metadata, Object displayValue) {
+	/**
+	 * @param recordVO May be null, be careful!
+	 * @param metadata The metadata for which we want a display component
+	 * @param displayValue The value to display
+	 * @return
+	 */
+	public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
 		Component displayComponent;
 		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 
@@ -176,7 +181,7 @@ public class MetadataDisplayFactory implements Serializable {
 				break;
 			case CONTENT:
 				ContentVersionVO contentVersionVO = (ContentVersionVO) displayValue;
-				displayComponent = new DownloadContentVersionLink(contentVersionVO);
+				displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO);
 				break;
 			case REFERENCE:
 				switch (metadataInputType) {
@@ -210,6 +215,10 @@ public class MetadataDisplayFactory implements Serializable {
 		}
 		return displayComponent;
 	}
+	
+//	protected Component newContentVersionDisplayComponent(RecordVO recordVO, ContentVersionVO contentVersionVO) {
+//		return new DownloadContentVersionLink(contentVersionVO);
+//	}
 
 	public Component newCollectionValueDisplayComponent(List<Component> elementDisplayComponents) {
 		VerticalLayout verticalLayout = new VerticalLayout();

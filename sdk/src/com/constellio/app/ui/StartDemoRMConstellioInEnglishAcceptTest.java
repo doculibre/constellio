@@ -27,12 +27,13 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.MainTest;
+import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 
 @UiTest
-@InDevelopmentTest
+@MainTest
 public class StartDemoRMConstellioInEnglishAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
@@ -57,6 +58,7 @@ public class StartDemoRMConstellioInEnglishAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	@MainTestDefaultStart
 	public void startOnHomePageAsAdmin()
 			throws Exception {
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));

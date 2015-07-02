@@ -102,7 +102,10 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		withSpiedServices(AppLayerFactory.class);
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers().andUsersWithWriteAndDeleteAccess(dakota);
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
+		inCollection(zeCollection).giveWriteAndDeleteAccessTo(dakota);
 
 		modelLayerFactory = getModelLayerFactory();
 		recordServices = modelLayerFactory.newRecordServices();

@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui;
 
+import java.io.File;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,39 +27,59 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.MainTest;
+import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 
 @UiTest
-@InDevelopmentTest
+@MainTest
 public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	DemoTestRecords records2 = new DemoTestRecords("LaCollectionDeRida");
 	RMSchemasRecordsServices schemas;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
 		givenTransactionLogIsEnabled();
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
-		givenCollectionWithTitle("LaCollectionDeRida", "Collection d'entreprise").withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus(),
+				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory())
-				.withFoldersAndContainersOfEveryStatus();//				.withEvents();
-		new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 	}
 
 	@Test
+	@MainTestDefaultStart
 	public void startOnHomePageAsAdmin()
 			throws Exception {
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		//driver.navigateTo().appManagement();
 		waitUntilICloseTheBrowsers();
+	}
+
+	@Test
+	public void startApplicationWithSaveState()
+			throws Exception {
+
+		givenTransactionLogIsEnabled();
+		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(
+				new File("/path/to/the/saveState.zip")).withPasswordsReset();
+
+		newWebDriver(loggedAsUserInCollection("zeUser", "myCollection"));
+		waitUntilICloseTheBrowsers();
+
 	}
 
 	@Test

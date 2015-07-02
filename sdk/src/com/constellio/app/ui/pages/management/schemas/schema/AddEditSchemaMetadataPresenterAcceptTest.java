@@ -58,7 +58,9 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection);
+		prepareSystem(
+				withZeCollection()
+		);
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)

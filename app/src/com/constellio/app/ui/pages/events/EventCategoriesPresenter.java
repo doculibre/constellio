@@ -17,18 +17,33 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.events;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView> {
 
 	public EventCategoriesPresenter(EventCategoriesView view) {
 		super(view);
 	}
+	
+	void viewEntered() {
+		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
+		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
+		boolean agentEnabled = rmConfigs.isAgentEnabled();
+		view.setAgentEventsVisible(agentEnabled);
+	}
 
 	public void eventButtonClicked(EventCategory eventCategory) {
-		view.navigateTo().showEventCategory(eventCategory);
+		if (eventCategory == EventCategory.AGENT_EVENTS) {
+			view.navigateTo().listAgentLogs();
+		} else {
+			view.navigateTo().showEventCategory(eventCategory);
+		}
 	}
 
 	@Override

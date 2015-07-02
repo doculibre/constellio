@@ -18,32 +18,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.conf;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.PatternSyntaxException;
 
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.Duration;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidEmail;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidHost;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidLdapType;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidPassword;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidPort;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidRegex;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidUser;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_NotABooleanValue;
-import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.Filter;
-import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.services.notifications.EventEmailBuilder;
 import com.constellio.model.services.notifications.HtmlEventEmailBuilder;
 import com.constellio.model.services.notifications.SmtpServerConfig;
@@ -54,7 +41,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	private final FoldersLocator foldersLocator;
 
 	public PropertiesModelLayerConfiguration(Map<String, String> configs, DataLayerConfiguration dataLayerConfiguration,
-											 FoldersLocator foldersLocator) {
+			FoldersLocator foldersLocator) {
 		super(configs);
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		this.foldersLocator = foldersLocator;
@@ -136,9 +123,13 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		return Duration.standardMinutes(5);
 	}
 
+	public Duration getTokenRemovalThreadDelayBetweenChecks() {
+		return Duration.standardHours(1);
+	}
+
 	@Override
-	public int getTokenDuration() {
-		return 42;
+	public Duration getTokenDuration() {
+		return Duration.standardHours(10);
 	}
 
 	@Override

@@ -53,6 +53,8 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 	public static final String CONNECTORS_BUTTON = "connectorsButton";
 	public static final String SEARCH_ENGINE_BUTTON = "searchEngineButton";
 	public static final String BIG_DATA_BUTTON = "bigDataButton";
+	public static final String EXPORT_BUTTON = "exportButton";
+
 	private final AdminRMModulePresenter presenter;
 	private Button configButton;
 	private Button ldapConfigButton;
@@ -63,6 +65,8 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 	private Button uniformSubdivisionsButton;
 	private Button importButton;
 	private Button importUsersButton;
+	private Button importSchemaTypesButton;
+	private Button exportButton;
 	private Button manageUsersButton;
 	private Button manageRolesButton;
 	private Button manageGroupsButton;
@@ -88,7 +92,6 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		// TODO: Split in two sections
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.addStyleName("view-group");
 
@@ -166,17 +169,6 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		valueDomainButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		valueDomainButton.addStyleName(VALUE_DOMAIN_BUTTON);
 
-		//		classificationFilePlanButton = new Button($("AdminRMModuleView.classificationFilePlan"),
-		//				new ThemeResource("images/icons/classification.png"));
-		//		classificationFilePlanButton.addClickListener(new ClickListener() {
-		//			@Override
-		//			public void buttonClick(ClickEvent event) {
-		//				presenter.classificationFilePlanButtonClicked();
-		//			}
-		//		});
-		//		classificationFilePlanButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		//		classificationFilePlanButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-
 		retentionCalendarButton = new Button($("AdminRMModuleView.retentionCalendar"),
 				new ThemeResource("images/icons/experience/calendar.png"));
 		retentionCalendarButton.addClickListener(new ClickListener() {
@@ -225,7 +217,8 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		importButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		importButton.addStyleName(IMPORT_BUTTON);
 
-		importUsersButton = new Button($("AdminRMModuleView.importUsers"), new ThemeResource("images/icons/experience/import.png"));
+		importUsersButton = new Button($("AdminRMModuleView.importUsers"),
+				new ThemeResource("images/icons/experience/import-users.png"));
 		importUsersButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -234,7 +227,6 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		});
 		importUsersButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		importUsersButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-
 
 		// TODO Change icon for trash bin
 		trashBinButton = new Button($("AdminRMModuleView.trashBin"), new ThemeResource("images/icons/experience/garbage.png"));
@@ -308,7 +300,6 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		manageCollectionsButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		manageCollectionsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		manageCollectionsButton.addStyleName(MANAGE_COLLECTIONS_BUTTON);
-		//manageCollectionsButton.setEnabled(false);
 
 		dataExtractorButton = new Button($("AdminRMModuleView.dataExtractor"),
 				new ThemeResource("images/icons/experience/metadata-extract.png"));
@@ -373,6 +364,28 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		updateCenterButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		updateCenterButton.addStyleName(UPDATE_CENTER_BUTTON);
 
+		importSchemaTypesButton = new Button($("AdminRMModuleView.importSchemaTypes"),
+				new ThemeResource("images/icons/experience/import.png"));
+		importSchemaTypesButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.importSchemaTypesFileButtonClicked();
+			}
+		});
+		importSchemaTypesButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		importSchemaTypesButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+
+		exportButton = new Button($("AdminRMModuleView.export"), new ThemeResource("images/icons/experience/export.png"));
+		exportButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.exportButtonClicked();
+			}
+		});
+		exportButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		exportButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		exportButton.addStyleName(EXPORT_BUTTON);
+
 		mainLayout.addComponent(buttonsLayout);
 
 		buttonsLayout.addComponent(taxonomiesButton);
@@ -384,6 +397,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 		buttonsLayout.addComponent(manageUsersButton);
 		buttonsLayout.addComponent(manageRolesButton);
 		buttonsLayout.addComponent(dataExtractorButton);
+		buttonsLayout.addComponent(importSchemaTypesButton);
 		buttonsLayout.addComponent(connectorsButton);
 		buttonsLayout.addComponent(searchEngineButton);
 		buttonsLayout.addComponent(trashBinButton);
@@ -400,6 +414,7 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 			systemSectionButtonsLayout.addComponent(modulesButton);
 			systemSectionButtonsLayout.addComponent(importButton);
 			systemSectionButtonsLayout.addComponent(importUsersButton);
+			systemSectionButtonsLayout.addComponent(exportButton);
 			systemSectionButtonsLayout.addComponent(bigDataButton);
 			systemSectionButtonsLayout.addComponent(updateCenterButton);
 			mainLayout.addComponent(systemSectionButtonsLayout);
@@ -503,6 +518,9 @@ public class AdminRMModuleViewImpl extends BaseViewImpl implements AdminRMModule
 	@Override
 	public void setManageSystemDataImports(boolean visible) {
 		importButton.setVisible(visible);
+		importSchemaTypesButton.setVisible(visible);
+		importUsersButton.setVisible(visible);
+		exportButton.setVisible(visible);
 	}
 
 	@Override

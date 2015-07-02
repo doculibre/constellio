@@ -48,13 +48,16 @@ import com.constellio.sdk.tests.ConstellioTest;
 public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 
 	Session cmisSession;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 		authenticationService.changePassword(chuckNorris, "1qaz2wsx");

@@ -19,17 +19,16 @@ package com.constellio.app.modules.rm.imports;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
+import com.constellio.app.services.schemas.bulkImport.LoggerBulkImportProgressionListener;
+import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.records.bulkImport.BulkImportProgressionListener;
-import com.constellio.model.services.records.bulkImport.LoggerBulkImportProgressionListener;
-import com.constellio.model.services.records.bulkImport.RecordsImportServices;
-import com.constellio.model.services.records.bulkImport.data.ImportDataProvider;
-import com.constellio.model.services.records.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class RMImportsAcceptanceTest extends ConstellioTest {
@@ -37,19 +36,15 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 	RecordsImportServices importServices;
 	RMSchemasRecordsServices rm;
 
-	@Before
-	public void setUp()
-			throws Exception {
-		importServices = new RecordsImportServices(getModelLayerFactory(), 1);
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-
-	}
-
 	@Test
 	public void whenImportingDocumentTypesAndRetentionRulesAtTheSameMomentThenOK()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule()
+		);
+		importServices = new RecordsImportServices(getModelLayerFactory(), 1);
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		ImportDataProvider importDataProvider = XMLImportDataProvider.forZipFile(
 				getModelLayerFactory(), getTestResourceFile("data.zip"));

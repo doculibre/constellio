@@ -19,11 +19,8 @@ package com.constellio.model.extensions;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,16 +34,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordCreationEvent.RecordCreationEventListener;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent.RecordLogicalDeletionEventListener;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent.RecordModificationEventListener;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent.RecordPhysicalDeletionEventListener;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.extensions.events.records.RecordRestorationEvent.RecordRestorationEventListener;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -64,25 +57,9 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
 	RecordServices recordServices;
 
-	@Mock RecordCreationEventListener recordCreationEventListener1;
-	@Mock RecordCreationEventListener recordCreationEventListener2;
-	@Mock RecordCreationEventListener otherCollectionRecordCreationEventListener;
-
-	@Mock RecordModificationEventListener recordModificationEventListener1;
-	@Mock RecordModificationEventListener recordModificationEventListener2;
-	@Mock RecordModificationEventListener otherCollectionRecordModificationEventListener;
-
-	@Mock RecordLogicalDeletionEventListener recordLogicalDeletionEventListener1;
-	@Mock RecordLogicalDeletionEventListener recordLogicalDeletionEventListener2;
-	@Mock RecordLogicalDeletionEventListener otherCollectionRecordLogicalDeletionEventListener;
-
-	@Mock RecordPhysicalDeletionEventListener recordPhysicalDeletionEventListener1;
-	@Mock RecordPhysicalDeletionEventListener recordPhysicalDeletionEventListener2;
-	@Mock RecordPhysicalDeletionEventListener otherCollectionRecordPhysicalDeletionEventListener;
-
-	@Mock RecordRestorationEventListener recordRestorationEventListener1;
-	@Mock RecordRestorationEventListener recordRestorationEventListener2;
-	@Mock RecordRestorationEventListener otherCollectionRecordRestorationEventListener2;
+	@Mock RecordExtension recordExtension1;
+	@Mock RecordExtension recordExtension2;
+	@Mock RecordExtension otherCollectionRecordExtension;
 
 	Record existingZeSchemaRecord, existingAnotherSchemaRecord, logicallyDeletedZeSchemaRecord, logicallyDeletedZeSchemaChildRecord, existingZeSchemaChildRecord;
 
@@ -115,53 +92,20 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		recordServices.logicallyDelete(logicallyDeletedZeSchemaRecord, User.GOD);
 
 		ModelLayerExtensions extensions = getModelLayerFactory().getExtensions();
-		ModelLayerCollectionEventsListeners zeCollectionListeners = extensions.getCollectionListeners(zeCollection);
-		ModelLayerCollectionEventsListeners anotherCollectionListeners = extensions.getCollectionListeners(anotherCollection);
+		ModelLayerCollectionExtensions zeCollectionListeners = extensions.forCollection(zeCollection);
+		ModelLayerCollectionExtensions anotherCollectionListeners = extensions.forCollection(anotherCollection);
 
-		zeCollectionListeners.recordsCreationListeners.add(1, recordCreationEventListener1);
-		zeCollectionListeners.recordsCreationListeners.add(2, recordCreationEventListener2);
-		anotherCollectionListeners.recordsCreationListeners.add(1, otherCollectionRecordCreationEventListener);
+		zeCollectionListeners.recordExtensions.add(1, recordExtension1);
+		zeCollectionListeners.recordExtensions.add(2, recordExtension2);
+		anotherCollectionListeners.recordExtensions.add(1, otherCollectionRecordExtension);
 
-		zeCollectionListeners.recordsModificationListeners.add(1, recordModificationEventListener1);
-		zeCollectionListeners.recordsModificationListeners.add(2, recordModificationEventListener2);
-		anotherCollectionListeners.recordsModificationListeners.add(1, otherCollectionRecordModificationEventListener);
-
-		zeCollectionListeners.recordsLogicallyDeletionListeners.add(1, recordLogicalDeletionEventListener1);
-		zeCollectionListeners.recordsLogicallyDeletionListeners.add(2, recordLogicalDeletionEventListener2);
-		anotherCollectionListeners.recordsLogicallyDeletionListeners.add(1, otherCollectionRecordLogicalDeletionEventListener);
-
-		zeCollectionListeners.recordsPhysicallyDeletionListeners.add(1, recordPhysicalDeletionEventListener1);
-		zeCollectionListeners.recordsPhysicallyDeletionListeners.add(2, recordPhysicalDeletionEventListener2);
-		anotherCollectionListeners.recordsPhysicallyDeletionListeners.add(1, otherCollectionRecordPhysicalDeletionEventListener);
-
-		zeCollectionListeners.recordsRestorationListeners.add(1, recordRestorationEventListener1);
-		zeCollectionListeners.recordsRestorationListeners.add(2, recordRestorationEventListener2);
-		anotherCollectionListeners.recordsRestorationListeners.add(1, otherCollectionRecordRestorationEventListener2);
 	}
 
 	@After
 	public void verifyThatOtherCollectionListenersAreNeverCalled() {
 
-		verifyNoMoreInteractions(recordCreationEventListener1);
-		verifyNoMoreInteractions(recordCreationEventListener2);
+		verifyZeroInteractions(otherCollectionRecordExtension);
 
-		verifyNoMoreInteractions(recordModificationEventListener1);
-		verifyNoMoreInteractions(recordModificationEventListener2);
-
-		verifyNoMoreInteractions(recordLogicalDeletionEventListener1);
-		verifyNoMoreInteractions(recordLogicalDeletionEventListener2);
-
-		verifyNoMoreInteractions(recordPhysicalDeletionEventListener1);
-		verifyNoMoreInteractions(recordPhysicalDeletionEventListener2);
-
-		verifyNoMoreInteractions(recordRestorationEventListener1);
-		verifyNoMoreInteractions(recordRestorationEventListener2);
-
-		verify(otherCollectionRecordCreationEventListener, never()).notify(any(RecordCreationEvent.class));
-		verify(otherCollectionRecordModificationEventListener, never()).notify(any(RecordModificationEvent.class));
-		verify(otherCollectionRecordLogicalDeletionEventListener, never()).notify(any(RecordLogicalDeletionEvent.class));
-		verify(otherCollectionRecordPhysicalDeletionEventListener, never()).notify(any(RecordPhysicalDeletionEvent.class));
-		verify(otherCollectionRecordRestorationEventListener2, never()).notify(any(RecordRestorationEvent.class));
 	}
 
 	@Test
@@ -172,11 +116,12 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		Record record2 = new TestRecord(anotherSchema, "newOtherSchemaRecord").set(TITLE, "My second record");
 		recordServices.execute(new Transaction(record1, record2));
 
-		InOrder inOrder = inOrder(recordCreationEventListener1, recordCreationEventListener2);
-		inOrder.verify(recordCreationEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordCreationEventListener2).notify(argumentCaptor.capture());
-		inOrder.verify(recordCreationEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordCreationEventListener2).notify(argumentCaptor.capture());
+		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
+		inOrder.verify(recordExtension1).recordCreated(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordCreated(argumentCaptor.capture());
+		inOrder.verify(recordExtension1).recordCreated(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordCreated(argumentCaptor.capture());
+		verifyZeroInteractions(otherCollectionRecordExtension);
 
 		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId()).isEqualTo("newOtherSchemaRecord");
 		assertThat(argumentCaptor.getAllValues().get(1).getRecord().getId()).isEqualTo("newOtherSchemaRecord");
@@ -192,11 +137,12 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		existingAnotherSchemaRecord.set(Schemas.TITLE, "an other new title");
 		recordServices.execute(new Transaction(existingZeSchemaRecord, existingAnotherSchemaRecord));
 
-		InOrder inOrder = inOrder(recordModificationEventListener1, recordModificationEventListener2);
-		inOrder.verify(recordModificationEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordModificationEventListener2).notify(argumentCaptor.capture());
-		inOrder.verify(recordModificationEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordModificationEventListener2).notify(argumentCaptor.capture());
+		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
+		inOrder.verify(recordExtension1).recordModified(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordModified(argumentCaptor.capture());
+		inOrder.verify(recordExtension1).recordModified(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordModified(argumentCaptor.capture());
+		verifyZeroInteractions(otherCollectionRecordExtension);
 
 		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
 		assertThat(argumentCaptor.getAllValues().get(0).getModifiedMetadatas().toMetadatasCodesList())
@@ -219,11 +165,11 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		recordServices.update(
 				existingAnotherSchemaRecord.set(Schemas.TITLE, "new title").set(anotherSchema.stringMetadata(), "New value!"));
 
-		InOrder inOrder = inOrder(recordModificationEventListener1, recordModificationEventListener2);
-		inOrder.verify(recordModificationEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordModificationEventListener2).notify(argumentCaptor.capture());
-		inOrder.verify(recordModificationEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordModificationEventListener2).notify(argumentCaptor.capture());
+		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
+		inOrder.verify(recordExtension1).recordModified(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordModified(argumentCaptor.capture());
+		inOrder.verify(recordExtension1).recordModified(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordModified(argumentCaptor.capture());
 
 		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
 		assertThat(argumentCaptor.getAllValues().get(1).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
@@ -237,11 +183,11 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		ArgumentCaptor<RecordLogicalDeletionEvent> argumentCaptor = ArgumentCaptor.forClass(RecordLogicalDeletionEvent.class);
 		recordServices.logicallyDelete(existingZeSchemaRecord, User.GOD);
 
-		InOrder inOrder = inOrder(recordLogicalDeletionEventListener1, recordLogicalDeletionEventListener2);
-		inOrder.verify(recordLogicalDeletionEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordLogicalDeletionEventListener2).notify(argumentCaptor.capture());
-		inOrder.verify(recordLogicalDeletionEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordLogicalDeletionEventListener2).notify(argumentCaptor.capture());
+		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
+		inOrder.verify(recordExtension1).recordLogicallyDeleted(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordLogicallyDeleted(argumentCaptor.capture());
+		inOrder.verify(recordExtension1).recordLogicallyDeleted(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordLogicallyDeleted(argumentCaptor.capture());
 
 		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
 		assertThat(argumentCaptor.getAllValues().get(1).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
@@ -255,11 +201,11 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		ArgumentCaptor<RecordRestorationEvent> argumentCaptor = ArgumentCaptor.forClass(RecordRestorationEvent.class);
 		recordServices.restore(logicallyDeletedZeSchemaRecord, User.GOD);
 
-		InOrder inOrder = inOrder(recordRestorationEventListener1, recordRestorationEventListener2);
-		inOrder.verify(recordRestorationEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordRestorationEventListener2).notify(argumentCaptor.capture());
-		inOrder.verify(recordRestorationEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordRestorationEventListener2).notify(argumentCaptor.capture());
+		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
+		inOrder.verify(recordExtension1).recordRestored(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordRestored(argumentCaptor.capture());
+		inOrder.verify(recordExtension1).recordRestored(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordRestored(argumentCaptor.capture());
 
 		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId())
 				.isEqualTo(logicallyDeletedZeSchemaRecord.getId());
@@ -277,11 +223,11 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		ArgumentCaptor<RecordPhysicalDeletionEvent> argumentCaptor = ArgumentCaptor.forClass(RecordPhysicalDeletionEvent.class);
 		recordServices.physicallyDelete(logicallyDeletedZeSchemaRecord, User.GOD);
 
-		InOrder inOrder = inOrder(recordPhysicalDeletionEventListener1, recordPhysicalDeletionEventListener2);
-		inOrder.verify(recordPhysicalDeletionEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordPhysicalDeletionEventListener2).notify(argumentCaptor.capture());
-		inOrder.verify(recordPhysicalDeletionEventListener1).notify(argumentCaptor.capture());
-		inOrder.verify(recordPhysicalDeletionEventListener2).notify(argumentCaptor.capture());
+		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
+		inOrder.verify(recordExtension1).recordPhysicallyDeleted(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordPhysicallyDeleted(argumentCaptor.capture());
+		inOrder.verify(recordExtension1).recordPhysicallyDeleted(argumentCaptor.capture());
+		inOrder.verify(recordExtension2).recordPhysicallyDeleted(argumentCaptor.capture());
 
 		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId())
 				.isEqualTo(logicallyDeletedZeSchemaRecord.getId());

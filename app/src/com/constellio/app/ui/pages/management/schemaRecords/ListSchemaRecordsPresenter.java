@@ -17,10 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -48,14 +45,10 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 	}
 
 	public RecordVODataProvider getDataProvider() {
-		final String schemaCode = getSchemaCode();
-		final List<String> metadataCodes = new ArrayList<String>();
-		metadataCodes.add(schemaCode + "_id");
-		//		metadataCodes.add(schemaCode + "_code");
-		metadataCodes.add(schemaCode + "_title");
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE, metadataCodes);
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE, view.getSessionContext());
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory) {
+		RecordVODataProvider dataProvider = new RecordVODataProvider(
+				schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(schema()).returnAll())

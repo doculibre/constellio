@@ -71,7 +71,7 @@ public class MetadataToVOBuilder implements Serializable {
 
 		boolean required = metadata.isDefaultRequirement();
 		boolean multivalue = metadata.isMultivalue();
-		boolean readOnly = metadata.isUnmodifiable();
+		boolean readOnly = false;
 		boolean enabled = metadata.isEnabled();
 		StructureFactory structureFactory = metadata.getStructureFactory();
 

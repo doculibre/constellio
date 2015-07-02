@@ -166,18 +166,6 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	}
 
 	@Override
-	public boolean rename(String path, String newPath) {
-		File file = new File(path);
-		File file2 = new File(newPath);
-		if (file2.exists()) {
-			//TODO Thiago
-			return false;
-			//			throw new RuntimeException();
-		}
-		return file.renameTo(file2);
-	}
-
-	@Override
 	public synchronized void delete(String path, String hash)
 			throws OptimisticLockingConfiguration {
 		LOGGER.debug("delete document  => " + path);
@@ -210,8 +198,8 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public List<String> list(String path) {
 		List<String> fileNames = new ArrayList<>();
-		File file = new File(path);
-		if (file != null && file.list() != null) {
+		File file = new File(configFolder, path);
+		if (file.exists()) {
 			fileNames.addAll(Arrays.asList(file.list()));
 		}
 		return fileNames;

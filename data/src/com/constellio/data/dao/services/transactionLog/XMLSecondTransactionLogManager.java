@@ -42,7 +42,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
@@ -54,7 +53,6 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
@@ -173,24 +171,20 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	private void replayTransactionLogs(List<File> tLogs) {
+		BigVaultLogAddUpdater addUpdater = new BigVaultLogAddUpdater(bigVaultServer);
 		for (File tLog : tLogs) {
-			replayTransactionLog(tLog);
+			replayTransactionLog(tLog, addUpdater);
 		}
+		addUpdater.close();
 	}
 
-	private void replayTransactionLog(File tLog) {
+	private void replayTransactionLog(File tLog, BigVaultLogAddUpdater addUpdater) {
 		BufferedReader tLogReader = ioServices.newFileReader(tLog, RECOVERED_TLOG_REPLAY);
 		try {
 			Iterator<BigVaultServerTransaction> operationsIterator = newTransactionsIterator(tLogReader);
 
 			while (operationsIterator.hasNext()) {
-				try {
-					bigVaultServer.addAll(operationsIterator.next());
-					bigVaultServer.softCommit();
-				} catch (BigVaultException | SolrServerException | IOException e) {
-					throw new RuntimeException(e);
-				}
-
+				addUpdater.add(operationsIterator.next());
 			}
 
 		} finally {
@@ -327,9 +321,9 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	private Object convertValueForLogReplay(String field, String value) {
 
-		if (value == null || value.isEmpty()) {
-			return SolrUtils.NULL_STRING;
-		}
+		//		if (value == null || value.isEmpty()) {
+		//			return SolrUtils.NULL_STRING;
+		//		}
 
 		//		} else if (field.endsWith("da") || field.endsWith("das")) {
 		//			if (value.contains("T")) {
@@ -776,6 +770,48 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	private void ensureNoExceptionOccured() {
 		if (exceptionOccured) {
 			throw new SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException();
+		}
+	}
+
+	private static class BigVaultLogAddUpdater {
+
+		BigVaultServerTransaction transaction;
+
+		BigVaultServer server;
+
+		private BigVaultLogAddUpdater(BigVaultServer server) {
+			this.server = server;
+		}
+
+		int merged = 0;
+		int notMerged = 0;
+
+		private void add(BigVaultServerTransaction newTransaction) {
+			if (transaction == null) {
+				transaction = newTransaction;
+
+			} else if (transaction.canMergeWith(newTransaction)) {
+				transaction = transaction.newTransactionOfMergeWith(newTransaction);
+
+			} else {
+				write(transaction);
+				transaction = newTransaction;
+			}
+		}
+
+		private void write(BigVaultServerTransaction transaction) {
+			try {
+				server.addAll(transaction);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		public void close() {
+
+			if (transaction != null) {
+				write(transaction);
+			}
 		}
 	}
 

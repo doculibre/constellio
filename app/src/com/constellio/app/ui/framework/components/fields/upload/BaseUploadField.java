@@ -19,7 +19,10 @@ package com.constellio.app.ui.framework.components.fields.upload;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.FileBuffer;
@@ -59,6 +62,8 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	private ButtonsContainer<IndexedContainer> fileUploadsContainer;
 
 	private Table fileUploadsTable;
+	
+	private Map<Object, Component> itemCaptions = new HashMap<>();
 
 	public BaseUploadField() {
 		super();
@@ -127,13 +132,15 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 					}
 				}
 
+				itemCaptions.clear();
 				fileUploadsContainer.removeAllItems();
 				for (Object listValueElement : listValue) {
 					Object itemId = listValueElement;
 					fileUploadsContainer.addItem(itemId);
 					Item listValueElementItem = fileUploadsContainer.getItem(itemId);
-					Component itemCaption = getItemCaption(itemId);
+					Component itemCaption = newItemCaption(itemId);
 					listValueElementItem.getItemProperty(CAPTION_PROPERTY_ID).setValue(itemCaption);
+					itemCaptions.put(itemId, itemCaption);
 				}
 			}
 		});
@@ -179,12 +186,24 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 		mainLayout.addComponents(multiFileUpload, fileUploadsTable);
 	}
+	
+	protected VerticalLayout getMainLayout() {
+		return mainLayout;
+	}
 
 	protected Object getItemId(TempFileUpload tempFileUpload) {
 		return tempFileUpload;
 	}
-
+	
 	protected Component getItemCaption(Object itemId) {
+		return itemCaptions.get(itemId);
+	}
+	
+	protected Map<Object, Component> getItemCaptions() {
+		return Collections.unmodifiableMap(itemCaptions);
+	}
+
+	protected Component newItemCaption(Object itemId) {
 		String itemCaption;
 		if (itemId instanceof TempFileUpload) {
 			TempFileUpload tempFileUpload = (TempFileUpload) itemId;

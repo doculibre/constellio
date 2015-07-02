@@ -64,7 +64,7 @@ public class IOServices {
 		super();
 		this.tempFolder = tempFolder;
 		this.fileServices = new FileService(tempFolder);
-		this.streamsServices = new StreamsServices();
+		this.streamsServices = new StreamsServices(fileServices);
 		this.streamFactoriesServices = new StreamFactoriesServices(streamsServices);
 	}
 
@@ -140,6 +140,11 @@ public class IOServices {
 	public InputStream newBufferedFileInputStream(File file, String name)
 			throws FileNotFoundException {
 		return streamsServices.newBufferedFileInputStream(file, uniqueIdWith(name));
+	}
+
+	public InputStream newBufferedFileInputStreamWithFileDeleteOnClose(File file, String name)
+			throws FileNotFoundException {
+		return streamsServices.newBufferedFileInputStreamWithFileDeleteOnClose(file, uniqueIdWith(name));
 	}
 
 	public BufferedInputStream newBufferedFileInputStreamWithoutExpectableFileNotFoundException(File file, String name) {

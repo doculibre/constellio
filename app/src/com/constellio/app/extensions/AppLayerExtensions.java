@@ -20,21 +20,23 @@ package com.constellio.app.extensions;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.model.entities.CollectionObject;
+
 public class AppLayerExtensions {
 
-	Map<String, AppLayerCollectionEventsListeners> collectionListeners = new HashMap<>();
+	Map<String, AppLayerCollectionExtensions> collectionExtensions = new HashMap<>();
 
-	AppLayerSystemEventsListeners systemListeners = new AppLayerSystemEventsListeners();
-
-	public AppLayerSystemEventsListeners getSystemListeners() {
-		return systemListeners;
+	AppLayerSystemExtensions systemWideExtensions = new AppLayerSystemExtensions();
+	
+	public AppLayerCollectionExtensions forCollection(String collection) {
+		if (!collectionExtensions.containsKey(collection)) {
+			collectionExtensions.put(collection, new AppLayerCollectionExtensions());
+		}
+		return collectionExtensions.get(collection);
 	}
 
-	public AppLayerCollectionEventsListeners getCollectionListeners(String collection) {
-		if (!collectionListeners.containsKey(collection)) {
-			collectionListeners.put(collection, new AppLayerCollectionEventsListeners());
-		}
-		return collectionListeners.get(collection);
+	public AppLayerCollectionExtensions forCollectionOf(CollectionObject collectionObject) {
+		return forCollection(collectionObject.getCollection());
 	}
 
 }

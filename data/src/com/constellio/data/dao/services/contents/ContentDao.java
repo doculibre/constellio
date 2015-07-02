@@ -33,5 +33,7 @@ public interface ContentDao {
 
 	List<String> getFolderContents(String folderId);
 
+	boolean isFolderExisting(String folderId);
+
 	long getContentLength(String vaultContentId);
 }

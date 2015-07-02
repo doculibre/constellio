@@ -19,6 +19,7 @@ package com.constellio.sdk.tests;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
@@ -35,8 +36,8 @@ import java.io.Reader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -60,8 +61,13 @@ import org.slf4j.LoggerFactory;
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptionsSystemProperties;
 import com.constellio.app.client.services.AdminServicesSession;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.DemoTestRecords;
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
+import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.tools.ServerThrowableContext;
 import com.constellio.app.ui.tools.vaadin.TestContainerButtonListener;
@@ -94,6 +100,7 @@ import com.constellio.sdk.tests.concurrent.ConcurrentJob;
 import com.constellio.sdk.tests.concurrent.OngoingConcurrentExecution;
 import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import com.constellio.sdk.tests.setups.Users;
 
 public abstract class AbstractConstellioTest implements FailureDetectionTestWatcherListener {
 
@@ -405,7 +412,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	@SuppressWarnings("unchecked")
 	protected <I> List<I> newArrayList(I... items) {
-		return new ArrayList<I>(Arrays.asList(items));
+		return new ArrayList<I>(asList(items));
 	}
 
 	protected void configure(DataLayerConfigurationAlteration dataLayerConfigurationAlteration) {
@@ -510,6 +517,21 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getSeleniumTestFeatures().newSearchClient();
 	}
 
+	protected String startApplicationWithWebServices() {
+		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
+		System.setProperty("driverEnabled", "true");
+		return getCurrentTestSession().getSeleniumTestFeatures().startApplication();
+	}
+
+	protected String startApplication() {
+		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
+		return getCurrentTestSession().getSeleniumTestFeatures().startApplication();
+	}
+
+	protected void stopApplication() {
+		getCurrentTestSession().getSeleniumTestFeatures().stopApplication();
+	}
+
 	protected ConstellioWebDriver newWebDriver() {
 		return newWebDriver(null);
 	}
@@ -530,7 +552,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		factory.getContainerButtonListeners().add(new TestContainerButtonListener());
 		ServerThrowableContext.LAST_THROWABLE.set(null);
 
-		return getCurrentTestSession().getSeleniumTestFeatures().newWebDriver(skipTestRule.isInDevelopmentTest());
+		return getCurrentTestSession().getSeleniumTestFeatures()
+				.newWebDriver(skipTestRule.isInDevelopmentTest() || skipTestRule.isMainTest());
 	}
 
 	private void ensureUITest() {
@@ -541,7 +564,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	private void ensureInDevelopmentTest() {
 
-		if (!skipTestRule.isInDevelopmentTest()) {
+		if (!skipTestRule.isInDevelopmentTest() && !skipTestRule.isMainTest()) {
 			throw new RuntimeException("The test class must have declared @InDevelopmentTest annotation");
 		}
 	}
@@ -633,7 +656,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollection(String collection) {
-		return givenCollection(collection, Arrays.asList("fr"));
+		return givenCollection(collection, asList("fr"));
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollection(String collection, List<String> languages) {
@@ -844,4 +867,299 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		});
 	}
 
+	private static boolean firstPreparation = true;
+
+	public static interface CustomSystemPreparation {
+		void prepare();
+
+		void initializeFromCache();
+	}
+
+	private File getTurboCacheFolder() {
+		File turboCacheFolder = new File(new FoldersLocator().getSDKProject(), "turboCache");
+
+		HyperTurboMode mode = getHyperturboMode();
+
+		if (mode == HyperTurboMode.AUTO && turboCacheFolder.exists() && firstPreparation) {
+			try {
+				FileUtils.deleteDirectory(turboCacheFolder);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			firstPreparation = false;
+		}
+
+		turboCacheFolder.mkdirs();
+		return turboCacheFolder;
+	}
+
+	public void customSystemPreparation(CustomSystemPreparation preparation) {
+		HyperTurboMode mode = getHyperturboMode();
+
+		if (mode.isEnabled()) {
+			givenTransactionLogIsEnabled();
+		}
+		File stateFile = new File(getTurboCacheFolder(), getClass().getSimpleName() + ".zip");
+
+		if (mode.isEnabled() && stateFile.exists()) {
+			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFile);
+			getModelLayerFactory();
+			preparation.initializeFromCache();
+		} else {
+
+			preparation.prepare();
+
+			if (mode.isEnabled()) {
+				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent();
+				new SystemStateExporter(getModelLayerFactory()).exportSystemToFile(stateFile, params);
+			}
+
+		}
+	}
+
+	private HyperTurboMode getHyperturboMode() {
+		String mode = sdkProperties.get("hyperTurbo");
+		if ("manual".equalsIgnoreCase(mode)) {
+			return HyperTurboMode.MANUAL;
+
+		} else if ("off".equalsIgnoreCase(mode)) {
+			return HyperTurboMode.OFF;
+
+		} else {
+			return HyperTurboMode.AUTO;
+		}
+
+	}
+
+	private enum HyperTurboMode {
+		AUTO, MANUAL, OFF;
+
+		boolean isEnabled() {
+			return this != OFF;
+		}
+
+	}
+
+	public void prepareSystem(CollectionPreparator... collectionPreparator) {
+
+		HyperTurboMode mode = getHyperturboMode();
+
+		List<CollectionPreparator> preparators = new ArrayList<>(asList(collectionPreparator));
+		Collections.sort(preparators, new Comparator<CollectionPreparator>() {
+
+			@Override
+			public int compare(CollectionPreparator o1, CollectionPreparator o2) {
+				return o1.collection.compareTo(o2.collection);
+			}
+		});
+
+		if (mode.isEnabled()) {
+			givenTransactionLogIsEnabled();
+		}
+
+		File stateFile = new File(getTurboCacheFolder(), preparators.hashCode() + ".zip");
+
+		if (mode.isEnabled() && stateFile.exists()) {
+
+			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFile);
+
+			for (CollectionPreparator preparator : preparators) {
+				if (preparator.rmTestRecords) {
+					preparator.rmTestRecordsObject.alreadySettedUp(getModelLayerFactory());
+				}
+				if (preparator.demoTestRecords) {
+					preparator.demoTestRecordsObject.alreadySettedUp(getModelLayerFactory());
+				}
+				if (preparator.users != null) {
+					preparator.users.setUp(getModelLayerFactory().newUserServices());
+				}
+			}
+		} else {
+
+			for (CollectionPreparator preparator : preparators) {
+				ModulesAndMigrationsTestFeatures modulesAndMigrationsTestFeatures = givenCollection(preparator.collection);
+				if (preparator.modules.contains(ConstellioRMModule.ID)) {
+					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioRMModule();
+				}
+
+				ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+				if (preparator.allTestUsers) {
+					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withAllTestUsers();
+					if (preparator.users != null) {
+						preparator.users.setUp(modelLayerFactory.newUserServices());
+					}
+				}
+
+				if (preparator.rmTestRecords) {
+					try {
+						RMTestRecords records = preparator.rmTestRecordsObject.setup(modelLayerFactory);
+						if (preparator.foldersAndContainersOfEveryStatus) {
+							records = records.withFoldersAndContainersOfEveryStatus();
+						}
+						if (preparator.documentsHavingContent) {
+							records = records.withDocumentsHavingContent();
+						}
+						if (preparator.events) {
+							records = records.withEvents();
+						}
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
+				}
+				if (preparator.demoTestRecords) {
+					try {
+						DemoTestRecords records = preparator.demoTestRecordsObject.setup(modelLayerFactory);
+						if (preparator.foldersAndContainersOfEveryStatus) {
+							records = records.withFoldersAndContainersOfEveryStatus();
+						}
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
+				}
+
+			}
+			if (mode.isEnabled()) {
+				try {
+					waitForBatchProcess();
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+
+				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent();
+				new SystemStateExporter(getModelLayerFactory()).exportSystemToFile(stateFile, params);
+			}
+		}
+
+	}
+
+	public static class CollectionPreparator {
+
+		Users users;
+		RMTestRecords rmTestRecordsObject;
+		DemoTestRecords demoTestRecordsObject;
+		boolean rmTestRecords;
+		boolean demoTestRecords;
+		boolean foldersAndContainersOfEveryStatus;
+		boolean events;
+		boolean documentsHavingContent;
+
+		boolean allTestUsers;
+
+		String collection;
+
+		List<String> modules = new ArrayList<>();
+
+		public CollectionPreparator(String collection) {
+			this.collection = collection;
+		}
+
+		public CollectionPreparator withConstellioRMModule() {
+			modules.add(ConstellioRMModule.ID);
+			Collections.sort(modules);
+			return this;
+		}
+
+		public CollectionPreparator withAllTest(Users users) {
+			allTestUsers = true;
+			this.users = users;
+			return this;
+		}
+
+		public CollectionPreparator withAllTestUsers() {
+			allTestUsers = true;
+			return this;
+		}
+
+		public CollectionPreparator withRMTest(RMTestRecords records) {
+			rmTestRecordsObject = records;
+			rmTestRecords = true;
+			return this;
+		}
+
+		public CollectionPreparator withRMTest(DemoTestRecords records) {
+			demoTestRecordsObject = records;
+			demoTestRecords = true;
+			return this;
+		}
+
+		public CollectionPreparator withFoldersAndContainersOfEveryStatus() {
+			foldersAndContainersOfEveryStatus = true;
+			return this;
+		}
+
+		public CollectionPreparator withEvents() {
+			events = true;
+			return this;
+		}
+
+		public CollectionPreparator withDocumentsHavingContent() {
+			documentsHavingContent = true;
+			return this;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof CollectionPreparator)) {
+				return false;
+			}
+
+			CollectionPreparator that = (CollectionPreparator) o;
+
+			if (allTestUsers != that.allTestUsers) {
+				return false;
+			}
+			if (demoTestRecords != that.demoTestRecords) {
+				return false;
+			}
+			if (documentsHavingContent != that.documentsHavingContent) {
+				return false;
+			}
+			if (events != that.events) {
+				return false;
+			}
+			if (foldersAndContainersOfEveryStatus != that.foldersAndContainersOfEveryStatus) {
+				return false;
+			}
+			if (rmTestRecords != that.rmTestRecords) {
+				return false;
+			}
+			if (!collection.equals(that.collection)) {
+				return false;
+			}
+			if (!modules.equals(that.modules)) {
+				return false;
+			}
+
+			return true;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = (rmTestRecords ? 1 : 0);
+			result = 31 * result + (demoTestRecords ? 1 : 0);
+			result = 31 * result + (foldersAndContainersOfEveryStatus ? 1 : 0);
+			result = 31 * result + (events ? 1 : 0);
+			result = 31 * result + (documentsHavingContent ? 1 : 0);
+			result = 31 * result + (allTestUsers ? 1 : 0);
+			result = 31 * result + collection.hashCode();
+			result = 31 * result + modules.hashCode();
+			return result;
+		}
+	}
+
+	public CollectionPreparator withZeCollection() {
+		return new CollectionPreparator(zeCollection);
+	}
+
+	public CollectionPreparator withCollection(String collection) {
+		return new CollectionPreparator(collection);
+	}
+
+	public CollectionTestHelper inCollection(String collectionName) {
+		return new CollectionTestHelper(asList(collectionName), getAppLayerFactory(),
+				getCurrentTestSession().getFileSystemTestFeatures());
+	}
 }

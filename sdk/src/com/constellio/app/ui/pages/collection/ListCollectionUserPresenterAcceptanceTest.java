@@ -67,8 +67,10 @@ public class ListCollectionUserPresenterAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withAllTestUsers();
-		givenCollection("otherCollection");
+		prepareSystem(
+				withZeCollection().withAllTestUsers(),
+				withCollection("otherCollection")
+		);
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		userServices = getModelLayerFactory().newUserServices();

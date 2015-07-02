@@ -40,8 +40,8 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioTest {
 
-	RMSchemasRecordsServices schemas;
-	RMTestRecords rm = new RMTestRecords(zeCollection);
+	RMSchemasRecordsServices rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	DecommissioningSearchConditionFactory factory;
 
 	ContainerSearchParameters params;
@@ -50,10 +50,12 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		factory = new DecommissioningSearchConditionFactory(zeCollection, getModelLayerFactory());
 	}
 
@@ -62,20 +64,20 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenActualTime();
-		assertThatResultsOf(factory.withoutClosingDateAndWithFixedPeriod(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A01, rm.folder_A02, rm.folder_A03);
+		assertThatResultsOf(factory.withoutClosingDateAndWithFixedPeriod(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A01, records.folder_A02, records.folder_A03);
 
 		givenTimeIs(new LocalDate(2000, 11, 5));
-		assertThatResultsOf(factory.withoutClosingDateAndWithFixedPeriod(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A01, rm.folder_A02, rm.folder_A03);
+		assertThatResultsOf(factory.withoutClosingDateAndWithFixedPeriod(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A01, records.folder_A02, records.folder_A03);
 
 		givenTimeIs(new LocalDate(2000, 11, 4));
-		assertThatResultsOf(factory.withoutClosingDateAndWithFixedPeriod(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A01, rm.folder_A02);
+		assertThatResultsOf(factory.withoutClosingDateAndWithFixedPeriod(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A01, records.folder_A02);
 
 		givenActualTime();
-		assertThatResultsOf(factory.withoutClosingDateAndWithFixedPeriod(rm.filingId_C, rm.unitId_30))
-				.containsOnlyOnce(rm.folder_C01);
+		assertThatResultsOf(factory.withoutClosingDateAndWithFixedPeriod(records.filingId_C, records.unitId_30))
+				.containsOnlyOnce(records.folder_C01);
 	}
 
 	@Test
@@ -83,20 +85,20 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenActualTime();
-		assertThatResultsOf(factory.withoutClosingDateAndWith888Period(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A04, rm.folder_A05, rm.folder_A06);
+		assertThatResultsOf(factory.withoutClosingDateAndWith888Period(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A04, records.folder_A05, records.folder_A06);
 
 		givenTimeIs(new LocalDate(2000, 11, 5));
-		assertThatResultsOf(factory.withoutClosingDateAndWith888Period(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A04, rm.folder_A05, rm.folder_A06);
+		assertThatResultsOf(factory.withoutClosingDateAndWith888Period(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A04, records.folder_A05, records.folder_A06);
 
 		givenTimeIs(new LocalDate(2000, 11, 04));
-		assertThatResultsOf(factory.withoutClosingDateAndWith888Period(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A04, rm.folder_A05);
+		assertThatResultsOf(factory.withoutClosingDateAndWith888Period(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A04, records.folder_A05);
 
 		givenActualTime();
-		assertThatResultsOf(factory.withoutClosingDateAndWith888Period(rm.filingId_C, rm.unitId_30))
-				.containsOnlyOnce(rm.folder_C02);
+		assertThatResultsOf(factory.withoutClosingDateAndWith888Period(records.filingId_C, records.unitId_30))
+				.containsOnlyOnce(records.folder_C02);
 	}
 
 	@Test
@@ -104,20 +106,20 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenActualTime();
-		assertThatResultsOf(factory.withoutClosingDateAndWith999Period(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A07, rm.folder_A08, rm.folder_A09);
+		assertThatResultsOf(factory.withoutClosingDateAndWith999Period(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A07, records.folder_A08, records.folder_A09);
 
 		givenTimeIs(new LocalDate(2000, 11, 05));
-		assertThatResultsOf(factory.withoutClosingDateAndWith999Period(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A07, rm.folder_A08, rm.folder_A09);
+		assertThatResultsOf(factory.withoutClosingDateAndWith999Period(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A07, records.folder_A08, records.folder_A09);
 
 		givenTimeIs(new LocalDate(2000, 11, 04));
-		assertThatResultsOf(factory.withoutClosingDateAndWith999Period(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A07, rm.folder_A08);
+		assertThatResultsOf(factory.withoutClosingDateAndWith999Period(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A07, records.folder_A08);
 
 		givenActualTime();
-		assertThatResultsOf(factory.withoutClosingDateAndWith999Period(rm.filingId_C, rm.unitId_30))
-				.containsOnlyOnce(rm.folder_C03);
+		assertThatResultsOf(factory.withoutClosingDateAndWith999Period(records.filingId_C, records.unitId_30))
+				.containsOnlyOnce(records.folder_C03);
 	}
 
 	@Test
@@ -125,25 +127,28 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenActualTime();
-		assertThatResultsOf(factory.activeToDeposit(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(10, 12)).contains(rm.folder_A(16, 21)).contains(rm.folder_A(25, 27)).hasSize(12);
+		assertThatResultsOf(factory.activeToDeposit(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(10, 12)).contains(records.folder_A(16, 21)).contains(records.folder_A(25, 27))
+				.hasSize(12);
 
 		givenTimeIs(new LocalDate(2009, 10, 31));
-		assertThatResultsOf(factory.activeToDeposit(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(10, 12)).contains(rm.folder_A(16, 21)).contains(rm.folder_A(25, 27)).hasSize(12);
+		assertThatResultsOf(factory.activeToDeposit(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(10, 12)).contains(records.folder_A(16, 21)).contains(records.folder_A(25, 27))
+				.hasSize(12);
 
 		givenTimeIs(new LocalDate(2007, 10, 31));
-		assertThatResultsOf(factory.activeToDeposit(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A16, rm.folder_A17, rm.folder_A19, rm.folder_A20, rm.folder_A21, rm.folder_A25,
-						rm.folder_A26, rm.folder_A27);
+		assertThatResultsOf(factory.activeToDeposit(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A16, records.folder_A17, records.folder_A19, records.folder_A20,
+						records.folder_A21, records.folder_A25,
+						records.folder_A26, records.folder_A27);
 
 		givenTimeIs(new LocalDate(2007, 10, 30));
-		assertThatResultsOf(factory.activeToDeposit(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A19, rm.folder_A20, rm.folder_A25, rm.folder_A26);
+		assertThatResultsOf(factory.activeToDeposit(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A19, records.folder_A20, records.folder_A25, records.folder_A26);
 
 		givenActualTime();
-		assertThatResultsOf(factory.activeToDeposit(rm.filingId_C, rm.unitId_30))
-				.containsOnlyOnce(rm.folder_C04, rm.folder_C07, rm.folder_C09);
+		assertThatResultsOf(factory.activeToDeposit(records.filingId_C, records.unitId_30))
+				.containsOnlyOnce(records.folder_C04, records.folder_C07, records.folder_C09);
 	}
 
 	@Test
@@ -151,22 +156,25 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenActualTime();
-		assertThatResultsOf(factory.activeToDestroy(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(10, 15)).contains(rm.folder_A(19, 24)).hasSize(12);
+		assertThatResultsOf(factory.activeToDestroy(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).hasSize(12);
 
 		givenTimeIs(new LocalDate(2009, 10, 31));
-		assertThatResultsOf(factory.activeToDestroy(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(10, 15)).contains(rm.folder_A(19, 24)).hasSize(12);
+		assertThatResultsOf(factory.activeToDestroy(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).hasSize(12);
 
 		givenTimeIs(new LocalDate(2004, 10, 31));
-		assertThatResultsOf(factory.activeToDestroy(rm.filingId_A, rm.unitId_10)).containsOnlyOnce(rm.folder_A(13, 15));
+		assertThatResultsOf(factory.activeToDestroy(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A(13, 15));
 
 		givenTimeIs(new LocalDate(2004, 10, 30));
-		assertThatResultsOf(factory.activeToDestroy(rm.filingId_A, rm.unitId_10)).containsOnlyOnce(rm.folder_A(13, 14));
+		assertThatResultsOf(factory.activeToDestroy(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A(13, 14));
 
 		givenActualTime();
-		assertThatResultsOf(factory.activeToDestroy(rm.filingId_C, rm.unitId_30))
-				.containsOnlyOnce(rm.folder_C04, rm.folder_C05, rm.folder_C06, rm.folder_C07, rm.folder_C08);
+		assertThatResultsOf(factory.activeToDestroy(records.filingId_C, records.unitId_30))
+				.containsOnlyOnce(records.folder_C04, records.folder_C05, records.folder_C06, records.folder_C07,
+						records.folder_C08);
 	}
 
 	@Test
@@ -174,25 +182,27 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenActualTime();
-		assertThatResultsOf(factory.activeToTransferToSemiActive(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A(10, 27));
+		assertThatResultsOf(factory.activeToTransferToSemiActive(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A(10, 27));
 
 		givenTimeIs(new LocalDate(2010, 11, 05));
-		assertThatResultsOf(factory.activeToTransferToSemiActive(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A(10, 27));
+		assertThatResultsOf(factory.activeToTransferToSemiActive(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A(10, 27));
 
 		givenTimeIs(new LocalDate(2003, 10, 31));
-		assertThatResultsOf(factory.activeToTransferToSemiActive(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A13, rm.folder_A14, rm.folder_A16, rm.folder_A17, rm.folder_A18, rm.folder_A19,
-						rm.folder_A20, rm.folder_A21);
+		assertThatResultsOf(factory.activeToTransferToSemiActive(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A13, records.folder_A14, records.folder_A16, records.folder_A17,
+						records.folder_A18, records.folder_A19,
+						records.folder_A20, records.folder_A21);
 
 		givenTimeIs(new LocalDate(2003, 10, 30));
-		assertThatResultsOf(factory.activeToTransferToSemiActive(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A16, rm.folder_A17, rm.folder_A19, rm.folder_A20);
+		assertThatResultsOf(factory.activeToTransferToSemiActive(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A16, records.folder_A17, records.folder_A19, records.folder_A20);
 
 		givenActualTime();
-		assertThatResultsOf(factory.activeToTransferToSemiActive(rm.filingId_C, rm.unitId_30))
-				.containsOnlyOnce(rm.folder_C04, rm.folder_C05, rm.folder_C06, rm.folder_C07, rm.folder_C08, rm.folder_C09);
+		assertThatResultsOf(factory.activeToTransferToSemiActive(records.filingId_C, records.unitId_30))
+				.containsOnlyOnce(records.folder_C04, records.folder_C05, records.folder_C06, records.folder_C07,
+						records.folder_C08, records.folder_C09);
 	}
 
 	@Test
@@ -200,26 +210,28 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenActualTime();
-		assertThatResultsOf(factory.semiActiveToDeposit(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(42, 44)).contains(rm.folder_A(48, 53)).contains(rm.folder_A(57, 59)).hasSize(12);
+		assertThatResultsOf(factory.semiActiveToDeposit(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(42, 44)).contains(records.folder_A(48, 53)).contains(records.folder_A(57, 59))
+				.hasSize(12);
 
-		System.out.println(rm.getFolder_A44().getExpectedDepositDate());
+		System.out.println(records.getFolder_A44().getExpectedDepositDate());
 
 		givenTimeIs(new LocalDate(2010, 10, 31));
-		assertThatResultsOf(factory.semiActiveToDeposit(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(42, 44)).contains(rm.folder_A(48, 53)).contains(rm.folder_A(57, 59)).hasSize(12);
+		assertThatResultsOf(factory.semiActiveToDeposit(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(42, 44)).contains(records.folder_A(48, 53)).contains(records.folder_A(57, 59))
+				.hasSize(12);
 
 		givenTimeIs(new LocalDate(2008, 10, 31));
-		assertThatResultsOf(factory.semiActiveToDeposit(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(51, 52)).contains(rm.folder_A(57, 59)).hasSize(5);
+		assertThatResultsOf(factory.semiActiveToDeposit(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(51, 52)).contains(records.folder_A(57, 59)).hasSize(5);
 
 		givenTimeIs(new LocalDate(2008, 10, 30));
-		assertThatResultsOf(factory.semiActiveToDeposit(rm.filingId_A, rm.unitId_10))
-				.containsOnlyOnce(rm.folder_A57, rm.folder_A58);
+		assertThatResultsOf(factory.semiActiveToDeposit(records.filingId_A, records.unitId_10))
+				.containsOnlyOnce(records.folder_A57, records.folder_A58);
 
 		givenActualTime();
-		assertThatResultsOf(factory.semiActiveToDeposit(rm.filingId_C, rm.unitId_30))
-				.containsOnlyOnce(rm.folder_C30, rm.folder_C33, rm.folder_C35);
+		assertThatResultsOf(factory.semiActiveToDeposit(records.filingId_C, records.unitId_30))
+				.containsOnlyOnce(records.folder_C30, records.folder_C33, records.folder_C35);
 	}
 
 	@Test
@@ -227,32 +239,33 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenActualTime();
-		assertThatResultsOf(factory.semiActiveToDestroy(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(42, 47)).contains(rm.folder_A(51, 56)).hasSize(12);
+		assertThatResultsOf(factory.semiActiveToDestroy(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(42, 47)).contains(records.folder_A(51, 56)).hasSize(12);
 
 		givenTimeIs(new LocalDate(2010, 11, 05));
-		assertThatResultsOf(factory.semiActiveToDestroy(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(42, 47)).contains(rm.folder_A(51, 56)).hasSize(12);
+		assertThatResultsOf(factory.semiActiveToDestroy(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(42, 47)).contains(records.folder_A(51, 56)).hasSize(12);
 
 		givenTimeIs(new LocalDate(2007, 10, 31));
-		assertThatResultsOf(factory.semiActiveToDestroy(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(45, 47)).contains(rm.folder_A(54, 55)).hasSize(5);
+		assertThatResultsOf(factory.semiActiveToDestroy(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(45, 47)).contains(records.folder_A(54, 55)).hasSize(5);
 
 		givenTimeIs(new LocalDate(2007, 10, 30));
-		assertThatResultsOf(factory.semiActiveToDestroy(rm.filingId_A, rm.unitId_10))
-				.contains(rm.folder_A(45, 47)).hasSize(3);
+		assertThatResultsOf(factory.semiActiveToDestroy(records.filingId_A, records.unitId_10))
+				.contains(records.folder_A(45, 47)).hasSize(3);
 
 		givenActualTime();
-		assertThatResultsOf(factory.semiActiveToDestroy(rm.filingId_C, rm.unitId_30))
-				.containsOnlyOnce(rm.folder_C30, rm.folder_C31, rm.folder_C32, rm.folder_C33, rm.folder_C34);
+		assertThatResultsOf(factory.semiActiveToDestroy(records.filingId_C, records.unitId_30))
+				.containsOnlyOnce(records.folder_C30, records.folder_C31, records.folder_C32, records.folder_C33,
+						records.folder_C34);
 	}
 
 	@Test
 	public void givenAdminWhenCountingFilingSpacesInAdministrativeUnitThenIncludeChildAdministrativeUnits()
 			throws RecordServicesException {
 
-		AdministrativeUnit unit10 = rm.getUnit10();
-		AdministrativeUnit unit12 = rm.getUnit12();
+		AdministrativeUnit unit10 = records.getUnit10();
+		AdministrativeUnit unit12 = records.getUnit12();
 
 		List<String> unit10Spaces = new ArrayList<>(unit10.getFilingSpaces());
 		unit10Spaces.add("filing10d");
@@ -261,16 +274,16 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		unit12Spaces.add("filing12d");
 
 		Transaction transaction = new Transaction();
-		transaction.add(schemas.newFilingSpaceWithId("filing12c").setTitle("12c").setCode("12c"));
-		transaction.add(schemas.newFilingSpaceWithId("filing12d").setTitle("12d").setCode("12d"));
-		transaction.add(schemas.newFilingSpaceWithId("filing10d").setTitle("10d").setCode("10d"));
-		transaction.addUpdate(rm.getUnit10().setFilingSpaces(unit10Spaces).getWrappedRecord());
-		transaction.addUpdate(rm.getUnit12().setFilingSpaces(unit12Spaces).getWrappedRecord());
+		transaction.add(rm.newFilingSpaceWithId("filing12c").setTitle("12c").setCode("12c"));
+		transaction.add(rm.newFilingSpaceWithId("filing12d").setTitle("12d").setCode("12d"));
+		transaction.add(rm.newFilingSpaceWithId("filing10d").setTitle("10d").setCode("10d"));
+		transaction.addUpdate(records.getUnit10().setFilingSpaces(unit10Spaces).getWrappedRecord());
+		transaction.addUpdate(records.getUnit12().setFilingSpaces(unit12Spaces).getWrappedRecord());
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(factory.getVisibleFilingSpacesCount(rm.unitId_10)).isEqualTo(6);
-		assertThat(factory.getVisibleFilingSpacesCount(rm.unitId_11)).isEqualTo(1);
-		assertThat(factory.getVisibleFilingSpacesCount(rm.unitId_12)).isEqualTo(4);
+		assertThat(factory.getVisibleFilingSpacesCount(records.unitId_10)).isEqualTo(6);
+		assertThat(factory.getVisibleFilingSpacesCount(records.unitId_11)).isEqualTo(1);
+		assertThat(factory.getVisibleFilingSpacesCount(records.unitId_12)).isEqualTo(4);
 	}
 
 	@Test
@@ -280,29 +293,29 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		assertThatContainersCountWith(unit10().setWithStorage(true).setType(TRANSFERT_TO_SEMI_ACTIVE)).isEqualTo(5);
 		assertThatContainersCountWith(unit10_filingA().setWithStorage(true).setType(TRANSFERT_TO_SEMI_ACTIVE)).isEqualTo(3);
 		assertThatContainersListWith(unit10_filingA().setWithStorage(true).setType(TRANSFERT_TO_SEMI_ACTIVE)).containsOnly(
-				rm.containerId_bac11, rm.containerId_bac12, rm.containerId_bac13);
+				records.containerId_bac11, records.containerId_bac12, records.containerId_bac13);
 
 		assertThatContainersCountWith(unit11().setWithStorage(true).setType(TRANSFERT_TO_SEMI_ACTIVE)).isEqualTo(1);
 		assertThatContainersCountWith(unit11_filingB().setWithStorage(true).setType(TRANSFERT_TO_SEMI_ACTIVE)).isEqualTo(1);
 		assertThatContainersListWith(unit11_filingB().setWithStorage(true).setType(TRANSFERT_TO_SEMI_ACTIVE)).containsOnly(
-				rm.containerId_bac09);
+				records.containerId_bac09);
 
 		assertThatContainersCountWith(unit10().setWithStorage(false).setType(TRANSFERT_TO_SEMI_ACTIVE)).isEqualTo(3);
 		assertThatContainersCountWith(unit10_filingA().setWithStorage(false).setType(TRANSFERT_TO_SEMI_ACTIVE))
 				.isEqualTo(3);
 		assertThatContainersListWith(unit10_filingA().setWithStorage(false).setType(TRANSFERT_TO_SEMI_ACTIVE)).containsOnly(
-				rm.containerId_bac10, rm.containerId_bac14, rm.containerId_bac15);
+				records.containerId_bac10, records.containerId_bac14, records.containerId_bac15);
 
 		assertThatContainersCountWith(unit10().setWithStorage(true).setType(DEPOSIT)).isEqualTo(3);
 		assertThatContainersCountWith(unit10_filingA().setWithStorage(true).setType(DEPOSIT)).isEqualTo(2);
 		assertThatContainersListWith(unit10_filingA().setWithStorage(true).setType(DEPOSIT)).containsOnly(
-				rm.containerId_bac04, rm.containerId_bac05);
+				records.containerId_bac04, records.containerId_bac05);
 
 		assertThatContainersCountWith(unit10().setWithStorage(false).setType(DEPOSIT)).isEqualTo(3);
 		assertThatContainersCountWith(unit12().setWithStorage(false).setType(DEPOSIT)).isEqualTo(1);
 		assertThatContainersCountWith(unit12_filingB().setWithStorage(false).setType(DEPOSIT)).isEqualTo(1);
 		assertThatContainersListWith(unit12_filingB().setWithStorage(false).setType(DEPOSIT)).containsOnly(
-				rm.containerId_bac02);
+				records.containerId_bac02);
 
 	}
 
@@ -327,27 +340,30 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 	}
 
 	private ContainerSearchParameters unit10() {
-		return params().setUserId(rm.getAdmin().getId()).setAdminUnitId(rm.unitId_10);
+		return params().setUserId(records.getAdmin().getId()).setAdminUnitId(records.unitId_10);
 	}
 
 	private ContainerSearchParameters unit10_filingA() {
-		return params().setUserId(rm.getAdmin().getId()).setAdminUnitId(rm.unitId_10).setFilingSpaceId(rm.filingId_A);
+		return params().setUserId(records.getAdmin().getId()).setAdminUnitId(records.unitId_10)
+				.setFilingSpaceId(records.filingId_A);
 	}
 
 	private ContainerSearchParameters unit11() {
-		return params().setUserId(rm.getAdmin().getId()).setAdminUnitId(rm.unitId_11);
+		return params().setUserId(records.getAdmin().getId()).setAdminUnitId(records.unitId_11);
 	}
 
 	private ContainerSearchParameters unit11_filingB() {
-		return params().setUserId(rm.getAdmin().getId()).setAdminUnitId(rm.unitId_11).setFilingSpaceId(rm.filingId_B);
+		return params().setUserId(records.getAdmin().getId()).setAdminUnitId(records.unitId_11)
+				.setFilingSpaceId(records.filingId_B);
 	}
 
 	private ContainerSearchParameters unit12() {
-		return params().setUserId(rm.getAdmin().getId()).setAdminUnitId(rm.unitId_12);
+		return params().setUserId(records.getAdmin().getId()).setAdminUnitId(records.unitId_12);
 	}
 
 	private ContainerSearchParameters unit12_filingB() {
-		return params().setUserId(rm.getAdmin().getId()).setAdminUnitId(rm.unitId_12).setFilingSpaceId(rm.filingId_B);
+		return params().setUserId(records.getAdmin().getId()).setAdminUnitId(records.unitId_12)
+				.setFilingSpaceId(records.filingId_B);
 	}
 
 }

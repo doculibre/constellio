@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -90,43 +91,64 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		recordServices = getModelLayerFactory().newRecordServices();
-		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-		searchServices = getModelLayerFactory().newSearchServices();
-		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
-		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		roleManager = getModelLayerFactory().getRolesManager();
-		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
+		customSystemPreparation(new CustomSystemPreparation() {
+			@Override
+			public void prepare() {
 
-		givenCollection(zeCollection).withAllTestUsers();
-		givenCollection(anotherCollection).withAllTestUsers();
+				givenCollection(zeCollection).withAllTestUsers();
+				givenCollection(anotherCollection).withAllTestUsers();
 
-		defineSchemasManager().using(setup);
-		taxonomiesManager.addTaxonomy(setup.getTaxonomy1(), schemasManager);
-		taxonomiesManager.addTaxonomy(setup.getTaxonomy2(), schemasManager);
+				setServices();
 
-		//users = setup.givenUsers(recordServices);
+				defineSchemasManager().using(setup);
+				taxonomiesManager.addTaxonomy(setup.getTaxonomy1(), schemasManager);
+				taxonomiesManager.addTaxonomy(setup.getTaxonomy2(), schemasManager);
 
-		defineSchemasManager().using(anothercollectionSetup);
-		taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy1(), schemasManager);
-		taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy2(), schemasManager);
+				defineSchemasManager().using(anothercollectionSetup);
+				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy1(), schemasManager);
+				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy2(), schemasManager);
 
-		//otherCollectionUsers = anothercollectionSetup.givenUsers(recordServices);
+				try {
+					givenChuckNorrisSeesEverything();
+					givenAliceCanModifyEverythingAndBobCanDeleteEverythingAndDakotaReadEverythingInAnotherCollection();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
 
-		givenChuckNorrisSeesEverything();
-		givenAliceCanModifyEverythingAndBobCanDeleteEverythingAndDakotaReadEverythingInAnotherCollection();
+			private void setServices() {
+				recordServices = getModelLayerFactory().newRecordServices();
+				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
+				searchServices = getModelLayerFactory().newSearchServices();
+				authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+				schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+				roleManager = getModelLayerFactory().getRolesManager();
+				collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+				userServices = getModelLayerFactory().newUserServices();
+				users.setUp(getModelLayerFactory().newUserServices());
+			}
+
+			@Override
+			public void initializeFromCache() {
+				setServices();
+				setup.refresh(schemasManager);
+				anothercollectionSetup.refresh(schemasManager);
+			}
+		});
+		users.setUp(getModelLayerFactory().newUserServices());
+
 	}
 
 	private void givenTaxonomy1IsThePrincipalAndSomeRecords() {
-		taxonomiesManager.setPrincipalTaxonomy(setup.getTaxonomy1(), schemasManager);
+		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1");
+		taxonomiesManager.setPrincipalTaxonomy(taxonomy, schemasManager);
 		records = setup.givenRecords(recordServices);
 		otherCollectionRecords = anothercollectionSetup.givenRecords(recordServices);
 	}
 
 	private void givenTaxonomy2IsThePrincipalAndSomeRecords() {
-		taxonomiesManager.setPrincipalTaxonomy(setup.getTaxonomy2(), schemasManager);
+		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo2");
+		taxonomiesManager.setPrincipalTaxonomy(taxonomy, schemasManager);
 		records = setup.givenRecords(recordServices);
 		otherCollectionRecords = anothercollectionSetup.givenRecords(recordServices);
 	}

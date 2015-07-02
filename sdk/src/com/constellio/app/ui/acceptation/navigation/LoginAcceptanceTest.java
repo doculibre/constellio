@@ -45,7 +45,10 @@ public class LoginAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers().andUsersWithWriteAndDeleteAccess(dakota);
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
+		inCollection(zeCollection).giveWriteAndDeleteAccessTo(dakota);
 
 		driver = newWebDriver(FakeSessionContext.edouardInCollection(zeCollection));
 		driver.logUserInCollection(dakota, zeCollection);

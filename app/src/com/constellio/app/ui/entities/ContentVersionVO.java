@@ -23,6 +23,7 @@ import java.util.Date;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 
 public class ContentVersionVO implements Serializable {
 	
@@ -53,8 +54,12 @@ public class ContentVersionVO implements Serializable {
 	private final String lastModifiedBy;
 	
 	private InputStreamProvider inputStreamProvider;
+	
+	private String checkoutUserId;
+	
+	private LocalDateTime checkoutDateTime;
 
-	public ContentVersionVO(String contentId, String hash, String fileName, String mimeType, long length, String version, Date lastModificationDateTime, String lastModifiedBy, InputStreamProvider inputStreamProvider) {
+	public ContentVersionVO(String contentId, String hash, String fileName, String mimeType, long length, String version, Date lastModificationDateTime, String lastModifiedBy, String checkoutUserId, LocalDateTime checkoutDateTime, InputStreamProvider inputStreamProvider) {
 		super();
 		this.contentId = contentId;
 		this.hash = hash;
@@ -65,6 +70,8 @@ public class ContentVersionVO implements Serializable {
 		this.lastModificationDateTime = lastModificationDateTime;
 		this.lastModifiedBy = lastModifiedBy;
 		this.inputStreamProvider = inputStreamProvider;
+		this.checkoutUserId = checkoutUserId;
+		this.checkoutDateTime = checkoutDateTime;
 	}
 
 	public final String getContentId() {
@@ -117,6 +124,14 @@ public class ContentVersionVO implements Serializable {
 
 	public final String getLastModifiedBy() {
 		return lastModifiedBy;
+	}
+
+	public final String getCheckoutUserId() {
+		return checkoutUserId;
+	}
+
+	public final LocalDateTime getCheckoutDateTime() {
+		return checkoutDateTime;
 	}
 
 	public final InputStreamProvider getInputStreamProvider() {

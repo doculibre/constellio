@@ -438,7 +438,9 @@ public class RecordImpl implements Record {
 			fields.putAll(recordDTO.getFields());
 		} else {
 			for (Metadata metadata : schema.getMetadatas()) {
-				fields.put(metadata.getDataStoreCode(), null);
+				if (metadata.isWriteNullValues()) {
+					fields.put(metadata.getDataStoreCode(), null);
+				}
 			}
 		}
 
@@ -532,9 +534,14 @@ public class RecordImpl implements Record {
 			Metadata metadata = schema.getMetadata(localCode);
 			Object value = entry.getValue();
 
+			if (!metadata.isWriteNullValues() && value == null) {
+				convertedValues.put(entry.getKey(), "");
+			}
+
 			if (metadata.getStructureFactory() != null) {
 				convertedValues.put(entry.getKey(), convertStructuredValueToString(value, metadata));
 			}
+
 		}
 
 		return new RecordDeltaDTO(id, version, convertedValues, recordDTO.getFields(), copyfields);

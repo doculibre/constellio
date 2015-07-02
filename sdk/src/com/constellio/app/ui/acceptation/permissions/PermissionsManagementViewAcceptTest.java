@@ -45,7 +45,10 @@ public class PermissionsManagementViewAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers().andUsersWithWriteAndDeleteAccess(admin);
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
+		inCollection(zeCollection).giveWriteAndDeleteAccessTo(admin);
 
 		permissions = new ArrayList<>();
 		ConstellioModulesManager modulesManager = getAppLayerFactory().getModulesManager();

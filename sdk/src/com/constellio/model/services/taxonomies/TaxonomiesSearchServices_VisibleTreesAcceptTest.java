@@ -61,15 +61,17 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	DecommissioningService decommissioningService;
 	TaxonomiesSearchServices service;
 	RMSchemasRecordsServices rm;
-	RMTestRecords test = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	MetadataSchemasManager manager;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-		test.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		prepareSystem(
+				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		service = getModelLayerFactory().newTaxonomiesSearchService();
@@ -103,15 +105,16 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	public void whenDakotaIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
 
-		assertThatRootWhenUserNavigateUsingPlanTaxonomy(test.getDakota_managerInA_userInB()).
-				containsOnly(test.categoryId_X, test.categoryId_Z);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB()).
+				containsOnly(records.categoryId_X, records.categoryId_Z);
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(test.getDakota_managerInA_userInB(), test.categoryId_X).
-				containsOnly(test.categoryId_X100);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X).
+				containsOnly(records.categoryId_X100);
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(test.getDakota_managerInA_userInB(), test.categoryId_X100).
-				containsOnly(test.categoryId_X110, test.categoryId_X120, test.folder_A16, test.folder_A17, test.folder_A18,
-						test.folder_B06);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100).
+				containsOnly(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
+						records.folder_A18,
+						records.folder_B06);
 
 	}
 
@@ -119,24 +122,25 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	public void whenAdminIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
 
-		assertThatRootWhenUserNavigateUsingPlanTaxonomy(test.getAdmin()).
-				containsOnly(test.categoryId_X, test.categoryId_Z);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin()).
+				containsOnly(records.categoryId_X, records.categoryId_Z);
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(test.getAdmin(), test.categoryId_X).
-				containsOnly(test.categoryId_X100);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X).
+				containsOnly(records.categoryId_X100);
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(test.getAdmin(), test.categoryId_X100).
-				containsOnly(test.categoryId_X110, test.categoryId_X120, test.folder_A16, test.folder_A17, test.folder_A18,
-						test.folder_B06, test.folder_C06);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100).
+				containsOnly(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
+						records.folder_A18,
+						records.folder_B06, records.folder_C06);
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(test.getAdmin(), test.categoryId_Z).
-				containsOnly(test.categoryId_Z100);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z).
+				containsOnly(records.categoryId_Z100);
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(test.getAdmin(), test.categoryId_Z100).
-				containsOnly(test.categoryId_Z110, test.categoryId_Z120);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100).
+				containsOnly(records.categoryId_Z110, records.categoryId_Z120);
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(test.getAdmin(), test.categoryId_Z110).
-				containsOnly(test.categoryId_Z112);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110).
+				containsOnly(records.categoryId_Z112);
 
 	}
 

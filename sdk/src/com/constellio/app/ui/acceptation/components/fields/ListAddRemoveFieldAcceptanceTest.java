@@ -81,7 +81,9 @@ public class ListAddRemoveFieldAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		withSpiedServices(AppLayerFactory.class);
-		givenCollection(zeCollection).withAllTestUsers().withConstellioRMModule();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
 
 		dummyView = new DummyView();
 

@@ -69,9 +69,9 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class DemoTestRecords {
 
-	private static int id = 4200;
+	private int id = 4200;
 
-	private static String nextId() {
+	private String nextId() {
 		String idWithTooMuchZeros = "0000000" + (id++);
 		return idWithTooMuchZeros.substring(idWithTooMuchZeros.length() - 10);
 	}
@@ -355,6 +355,33 @@ public class DemoTestRecords {
 		//setupAuthorizations(modelLayerFactory.newAuthorizationsServices(), modelLayerFactory.getRolesManager());
 		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+
+		return this;
+	}
+
+	public DemoTestRecords alreadySettedUp(ModelLayerFactory modelLayerFactory) {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		users.setUp(userServices);
+		alice_notInCollection = users.aliceIn(collection).getId();
+		admin_userIdWithAllAccess = users.adminIn(collection).getId();
+		bob_userInAC = users.bobIn(collection).getId();
+		charles_userInA = users.charlesIn(collection).getId();
+		dakota_managerInA_userInB = users.dakotaIn(collection).getId();
+		edouard_managerInB_userInC = users.edouardIn(collection).getId();
+		gandalf_managerInABC = users.gandalfIn(collection).getId();
+		chuckNorris = users.chuckNorrisIn(collection).getId();
+		schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		recordServices = modelLayerFactory.newRecordServices();
+		loggingServices = modelLayerFactory.newLoggingServices();
+		decommissioningLoggingService = new DecommissioningLoggingService(modelLayerFactory);
+		searchServices = modelLayerFactory.newSearchServices();
+		contentManager = modelLayerFactory.getContentManager();
+		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+
+		PA = schemas.PA();
+		MD = schemas.DM();
+		MV = schemas.FI();
+		PA_MD = asList(PA, MD);
 
 		return this;
 	}

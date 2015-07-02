@@ -22,7 +22,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import org.apache.commons.lang3.ObjectUtils;
+
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -36,8 +37,10 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
+	
 	protected DocumentToVOBuilder voBuilder = new DocumentToVOBuilder();
 	protected ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder();
 	private DocumentActionsPresenterUtils<DisplayDocumentView> presenterUtils;
@@ -69,8 +72,31 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 	}
 
-	private RMSchemasRecordsServices rmSchemasRecordsServices() {
-		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), modelLayerFactory);
+	public void backgroundViewMonitor() {
+		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		try {
+			ContentVersionVO contentVersionVO = documentVO.getContent();
+			String contentVersionNumber = contentVersionVO != null ? contentVersionVO.getVersion() : null;
+			String checkoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
+			Long length = contentVersionVO != null ? contentVersionVO.getLength() : null;
+			Record currentRecord = getRecord(documentVO.getId());
+			Document currentDocument = new Document(currentRecord, types());
+			Content currentContent = currentDocument.getContent();
+			ContentVersion currentContentVersion = currentContent != null ? currentContent.getCurrentVersionSeenBy(getCurrentUser()) : null;
+			String currentContentVersionNumber = currentContentVersion != null ? currentContentVersion.getVersion() : null;
+			String currentCheckoutUserId = currentContent != null ? currentContent.getCheckoutUserId() : null;
+			Long currentLength = currentContentVersion != null ? currentContentVersion.getLength() : null;
+			if (ObjectUtils.notEqual(contentVersionNumber, currentContentVersionNumber) 
+					|| ObjectUtils.notEqual(checkoutUserId, currentCheckoutUserId) 
+					|| ObjectUtils.notEqual(length, currentLength)) {
+				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY);
+				view.setRecordVO(documentVO);
+				presenterUtils.setRecordVO(documentVO);
+				presenterUtils.updateActionsComponent();
+			}
+		} catch (NoSuchRecordWithId e) {
+			view.navigateTo().home();
+		}
 	}
 
 	@Override

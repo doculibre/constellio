@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -193,7 +192,7 @@ public class SeleniumTestFeatures {
 		}
 
 		openedWebDriver.manage().window().setSize(new Dimension(1200, 1024));
-		
+
 		boolean ready = false;
 
 		Exception exception = null;
@@ -255,7 +254,7 @@ public class SeleniumTestFeatures {
 		waitUntilICloseTheBrowsers = true;
 	}
 
-	private void startApplication() {
+	public String startApplication() {
 		File webContent = new FoldersLocator().getAppProjectWebContent();
 		long time = new Date().getTime();
 
@@ -274,6 +273,12 @@ public class SeleniumTestFeatures {
 
 		applicationStarted = true;
 		System.out.println("Application started in " + (new Date().getTime() - time) + "ms");
+
+		return "http://localhost:" + port + "/constellio/";
+	}
+
+	public void stopApplication() {
+		ApplicationStarter.stopApplication();
 	}
 
 	private void waitForWebDriversToClose() {
@@ -293,7 +298,7 @@ public class SeleniumTestFeatures {
 		}
 	}
 
-	private void disableAllServices() {
+	public void disableAllServices() {
 		System.setProperty("driverEnabled", "false");
 		System.setProperty("cmisEnabled", "false");
 		System.setProperty("benchmarkServiceEnabled", "false");

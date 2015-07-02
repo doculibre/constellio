@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<types>
+    <type code="taxoDomaineHierarchiqueType">
+        <description>Nouvelle taxo</description>
+        <metadataList multivalue="true" type="structure">
+            <element localCode="md1Taxo" label="md1Taxo" required="true" type="string"/>
+            <element localCode="md2Taxo" label="md2Taxo" required="true" type="string"/>
+        </metadataList>
+    </type>
+    <type code="ddvMasqueSaisieLocalisation">
+        <description>Masque saisie</description>
+        <metadataList multivalue="true" type="structure">
+            <element localCode="regex" label="Regex" required="true" type="string"/>
+        </metadataList>
+    </type>
+    <type code="ddvMediumType">
+        <description>Analogique 2</description>
+    </type>
+    <type code="ddvCategoriesOrganisations">
+        <description>Catégories d'organisations</description>
+    </type>
+</types>

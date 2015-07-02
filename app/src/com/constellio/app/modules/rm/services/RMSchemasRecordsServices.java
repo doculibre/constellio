@@ -75,8 +75,10 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -418,6 +420,11 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	public DocumentType newDocumentTypeWithId(String id) {
 		return new DocumentType(create(documentTypeSchema(), id), getTypes());
 	}
+
+	public Metadata documentParentFolder() {
+		return defaultDocumentSchema().getMetadata(Document.FOLDER);
+	}
+
 	//
 
 	//Filing space
@@ -604,6 +611,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return defaultFolderSchema().getMetadata(Folder.BORROWED);
 	}
 
+	public Metadata folderBorrowedUser() {
+		return defaultFolderSchema().getMetadata(Folder.BORROW_USER);
+	}
+
 	public Metadata folderBorrowedUserEntered() {
 		return defaultFolderSchema().getMetadata(Folder.BORROW_USER_ENTERED);
 	}
@@ -774,6 +785,11 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return new RetentionRule(get(id), getTypes());
 	}
 
+	public RetentionRule getRetentionRuleByLegacyId(String id) {
+		Record record = getByLegacyId(RetentionRule.SCHEMA_TYPE, id);
+		return record == null ? null : new RetentionRule(record, getTypes());
+	}
+
 	public RetentionRule getRetentionRuleByCode(String code) {
 		return new RetentionRule(getByCode(retentionRuleSchemaType(), code), getTypes());
 	}
@@ -788,6 +804,14 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public Metadata retentionRuleApproved() {
 		return retentionRuleSchema().getMetadata(RetentionRule.APPROVED);
+	}
+
+	public Metadata retentionRuleCopyRetentionRules() {
+		return retentionRuleSchema().getMetadata(RetentionRule.COPY_RETENTION_RULES);
+	}
+
+	public Metadata retentionRuleAdministrativeUnitsId() {
+		return retentionRuleSchema().getMetadata(RetentionRule.ADMINISTRATIVE_UNITS);
 	}
 
 	//
@@ -824,6 +848,11 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public StorageSpace getStorageSpace(String id) {
 		return new StorageSpace(get(id), getTypes());
+	}
+
+	public StorageSpace getStorageSpaceByLegacyId(String id) {
+		Record record = getByLegacyId(StorageSpace.SCHEMA_TYPE, id);
+		return record == null ? null : new StorageSpace(record, getTypes());
 	}
 
 	public StorageSpace getStorageSpaceByCode(String code) {
@@ -920,6 +949,42 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return new UniformSubdivision(create(uniformSubdivisionSchema(), id), getTypes());
 	}
 
+	//User document
+
+	public MetadataSchemaType userDocumentSchemaType() {
+		return getTypes().getSchemaType(UserDocument.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema userDocumentSchema() {
+		return getTypes().getSchema(UserDocument.DEFAULT_SCHEMA);
+	}
+
+	public Metadata userDocumentUser() {
+		return userDocumentSchema().getMetadata(UserDocument.USER);
+	}
+
+	public UserDocument wrapUserDocument(Record record) {
+		return record == null ? null : new UserDocument(record, getTypes());
+	}
+
+	public List<UserDocument> wrapUserDocuments(List<Record> records) {
+		List<UserDocument> userDocuments = new ArrayList<>();
+		for (Record record : records) {
+			userDocuments.add(wrapUserDocument(record));
+		}
+		return userDocuments;
+	}
+
+	public UserDocument newUserDocument() {
+		return new UserDocument(create(uniformSubdivisionSchema()), getTypes());
+	}
+
+	public UserDocument newUserDocumentWithId(String id) {
+		return new UserDocument(create(userDocumentSchema(), id), getTypes());
+	}
+
+	//
+
 	//
 
 	//Value list item
@@ -938,6 +1003,56 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public ValueListItem newValueListItem(String schemaCode) {
 		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
+	}
+
+	// Variable retention period
+
+	public MetadataSchema variableRetentionPeriodSchema() {
+		return getTypes().getSchema(VariableRetentionPeriod.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchemaType variableRetentionPeriodSchemaType() {
+		return getTypes().getSchemaType(VariableRetentionPeriod.SCHEMA_TYPE);
+	}
+
+	public VariableRetentionPeriod wrapVariableRetentionPeriod(Record record) {
+		return record == null ? null : new VariableRetentionPeriod(record, getTypes());
+	}
+
+	public List<VariableRetentionPeriod> wrapVariableRetentionPeriods(List<Record> records) {
+		List<VariableRetentionPeriod> variableRetentionPeriods = new ArrayList<>();
+		for (Record record : records) {
+			variableRetentionPeriods.add(new VariableRetentionPeriod(record, getTypes()));
+		}
+		return variableRetentionPeriods;
+	}
+
+	public VariableRetentionPeriod getVariableRetentionPeriod(String id) {
+		return wrapVariableRetentionPeriod(get(id));
+	}
+
+	public List<VariableRetentionPeriod> getVariableRetentionPeriods(List<String> stringList) {
+		return wrapVariableRetentionPeriods(get(stringList));
+	}
+
+	public VariableRetentionPeriod getVariableRetentionPeriodWithCode(String code) {
+		return wrapVariableRetentionPeriod(getByCode(variableRetentionPeriodSchemaType(), code));
+	}
+
+	public VariableRetentionPeriod newVariableRetentionPeriod() {
+		return new VariableRetentionPeriod(create(variableRetentionPeriodSchema()), getTypes());
+	}
+
+	public VariableRetentionPeriod newVariableRetentionPeriodWithId(String id) {
+		return new VariableRetentionPeriod(create(variableRetentionPeriodSchema(), id), getTypes());
+	}
+
+	public VariableRetentionPeriod PERIOD_888() {
+		return getVariableRetentionPeriodWithCode("888");
+	}
+
+	public VariableRetentionPeriod PERIOD_999() {
+		return getVariableRetentionPeriodWithCode("999");
 	}
 
 	//DecommissioningList

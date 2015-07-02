@@ -278,4 +278,5 @@ public class Users {
 		authenticationService.changePassword(robinUsername, "password");
 		authenticationService.changePassword(sasquatchUsername, "password");
 	}
+
 }

@@ -25,22 +25,25 @@ import java.util.Map;
 
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.extensions.AppLayerCollectionEventsListeners;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.AdministrativeUnitRecordSynchronization;
-import com.constellio.app.modules.rm.extensions.RMModulePageAccessExtension;
-import com.constellio.app.modules.rm.extensions.RMSchemaTypeAccessExtension;
-import com.constellio.app.modules.rm.extensions.RMTaxonomyTypeAccessExtension;
+import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
+import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
+import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
+import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
+import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_6;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ConstellioRMModule implements InstallableModule {
@@ -70,7 +73,8 @@ public class ConstellioRMModule implements InstallableModule {
 				new RMMigrationTo5_0_3(),
 				new RMMigrationTo5_0_4(),
 				new RMMigrationTo5_0_4_1(),
-				new RMMigrationTo5_0_5());
+				new RMMigrationTo5_0_5(),
+				new RMMigrationTo5_0_6());
 	}
 
 	@Override
@@ -95,21 +99,20 @@ public class ConstellioRMModule implements InstallableModule {
 	}
 
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
-		AppLayerCollectionEventsListeners listeners = appLayerFactory.getExtensions().getCollectionListeners(collection);
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 
-		listeners.schemaTypeAccessExtensions.add(new RMSchemaTypeAccessExtension());
-		listeners.taxonomyAccessExtensions.add(new RMTaxonomyTypeAccessExtension());
-		listeners.pageAccessExtensions.add(new RMModulePageAccessExtension());
+		extensions.schemaTypeAccessExtensions.add(new RMGenericRecordPageExtension());
+		extensions.taxonomyAccessExtensions.add(new RMTaxonomyPageExtension());
+		extensions.pageAccessExtensions.add(new RMModulePageExtension());
+		extensions.downloadContentVersionLinkExtensions.add(new RMDownloadContentVersionLinkExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
-		ModelLayerCollectionEventsListeners listeners = modelLayerFactory.getExtensions().getCollectionListeners(collection);
+		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 
-		AdministrativeUnitRecordSynchronization synchronization =
-				new AdministrativeUnitRecordSynchronization(collection, modelLayerFactory);
-		synchronization.registerTo(listeners);
-
-		listeners.recordImportBehaviors.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new AdministrativeUnitRecordSynchronization(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMSchemasLogicalDeleteExtension(collection, modelLayerFactory));
+		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 	}
 
 	@Override

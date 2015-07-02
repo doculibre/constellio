@@ -97,7 +97,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 	@Test
 	public void givenARecordWithANewSingleValueContentWhenBuildingContentModificationThenInNewContentList() {
 
-		Content newContent = ContentImpl.create(id1, user, "file.pdf", contentVersionDataSummary(firstHash), true);
+		Content newContent = createMajor(id1, user, "file.pdf", contentVersionDataSummary(firstHash));
 
 		record = newRecord();
 		record.set(singleValueContentMetadata, newContent);
@@ -109,11 +109,11 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenARecordWithANewSingleValueContentReplacingAPreviousWhenBuildingContentModificationThenInNewContentListAndPreviousVersionsOfRemovedContentInDeletedList() {
-		ContentImpl oldContent = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl oldContent
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		oldContent.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 
-		Content newContent = ContentImpl.create(id2, user, "file.pdf", contentVersionDataSummary(thirdHash), true);
+		Content newContent = createMajor(id2, user, "file.pdf", contentVersionDataSummary(thirdHash));
 
 		record = newExistingRecordWith(singleValueContentMetadata, toStr(oldContent));
 		record.set(singleValueContentMetadata, newContent);
@@ -125,8 +125,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenARecordWithARemovedSingleValueContentWhenBuildingContentModificationThenInInDeletedList() {
-		ContentImpl oldContent = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl oldContent
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		oldContent.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 
 		record = newExistingRecordWith(singleValueContentMetadata, toStr(oldContent));
@@ -140,8 +140,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 	@Test
 	public void givenARecordWithANewMultiValueContentWhenBuildingContentModificationThenInNewContentList() {
 
-		Content newContent1 = ContentImpl.create(id1, user, "file.pdf", contentVersionDataSummary(firstHash), true);
-		Content newContent2 = ContentImpl.create(id2, user, "file.pdf", contentVersionDataSummary(secondHash), true);
+		Content newContent1 = createMajor(id1, user, "file.pdf", contentVersionDataSummary(firstHash));
+		Content newContent2 = createMajor(id2, user, "file.pdf", contentVersionDataSummary(secondHash));
 
 		record = newRecord();
 		record.set(multiValueContentMetadata, Arrays.asList(newContent1, newContent2));
@@ -154,13 +154,13 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 	@Test
 	public void givenARecordWithANewMultiValueContentReplacingAPreviousWhenBuildingContentModificationThenInNewContentListAndPreviousVersionsOfRemovedContentInDeletedList() {
 
-		ContentImpl oldContent1 = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl oldContent1
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		oldContent1.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
-		ContentImpl oldContent2 = ContentImpl
-				.create(id2, user, "file.pdf", new ContentVersionDataSummary(thirdHash, "mime1", length1), true);
+		ContentImpl oldContent2
+				= createMajor(id2, user, "file.pdf", new ContentVersionDataSummary(thirdHash, "mime1", length1));
 
-		ContentImpl newContent = ContentImpl.create(id3, user, "file.pdf", contentVersionDataSummary(fourthHash), true);
+		ContentImpl newContent = createMajor(id3, user, "file.pdf", contentVersionDataSummary(fourthHash));
 
 		record = newExistingRecordWith(multiValueContentMetadata, Arrays.asList(toStr(oldContent1), toStr(oldContent2)));
 		oldContent2 = (ContentImpl) record.getList(multiValueContentMetadata).get(1);
@@ -173,12 +173,12 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenARecordWithARemovedMultiValueContentWhenBuildingContentModificationThenInInDeletedList() {
-		ContentImpl oldContent1 = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl oldContent1
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		oldContent1.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 
-		ContentImpl oldContent2 = ContentImpl
-				.create(id2, user, "file.pdf", new ContentVersionDataSummary(thirdHash, "mime1", length1), true);
+		ContentImpl oldContent2
+				= createMajor(id2, user, "file.pdf", new ContentVersionDataSummary(thirdHash, "mime1", length1));
 
 		record = newExistingRecordWith(multiValueContentMetadata, Arrays.asList(toStr(oldContent1), toStr(oldContent2)));
 		record.set(multiValueContentMetadata, null);
@@ -190,8 +190,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenAContentWithNewVersionWhenBuildingContentModificationThenInNewVersionList() {
-		ContentImpl content = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl content
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		content.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 
 		record = newExistingRecordWith(singleValueContentMetadata, toStr(content));
@@ -205,8 +205,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenACheckedOutContentWithNewVersionWhenBuildingContentModificationThenInNewVersionList() {
-		ContentImpl content = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl content
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		content.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 
 		record = newExistingRecordWith(singleValueContentMetadata, toStr(content));
@@ -220,8 +220,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenACheckedOutContentWithNewVersionWhenBuildingContentModificationThenInNewVersionListAndPreviousWorkContentInDeleteList() {
-		ContentImpl content = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl content
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		content.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 		content.checkOut(user).updateCheckedOutContent(new ContentVersionDataSummary(thirdHash, "mime2", length2));
 
@@ -236,8 +236,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenACheckedOutRecordThenCurrentCheckedOutVersionCurrentVersionAndHistoryVersionAreInDeleteList() {
-		ContentImpl content = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl content
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		content.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 		content.checkOut(user).updateCheckedOutContent(new ContentVersionDataSummary(thirdHash, "mime2", length2));
 
@@ -250,13 +250,13 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenMultivalueContentThenAllVersionInDeleteList() {
-		ContentImpl content = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl content
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		content.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 		content.checkOut(user).updateCheckedOutContent(new ContentVersionDataSummary(thirdHash, "mime2", length2));
 
-		ContentImpl content2 = ContentImpl
-				.create(id1, user, "file2.pdf", new ContentVersionDataSummary(fourthHash, "mime1", length1), true);
+		ContentImpl content2
+				= createMajor(id1, user, "file2.pdf", new ContentVersionDataSummary(fourthHash, "mime1", length1));
 
 		record = newExistingRecordWith(multiValueContentMetadata, Arrays.asList(toStr(content), toStr(content2)));
 
@@ -268,16 +268,16 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenRecordWithTwoContentHashesInMultivalueMetadataWhenReplacingOneContentHashByAnotherOneThenInDelteList() {
-		ContentImpl content = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl content
+				= createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		content.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 		content.checkOut(user).updateCheckedOutContent(new ContentVersionDataSummary(thirdHash, "mime2", length2));
-		ContentImpl content2 = ContentImpl
-				.create(id1, user, "file2.pdf", new ContentVersionDataSummary(fourthHash, "mime1", length1), true);
+		ContentImpl content2
+				= createMajor(id1, user, "file2.pdf", new ContentVersionDataSummary(fourthHash, "mime1", length1));
 		record = newExistingRecordWith(multiValueContentMetadata, Arrays.asList(toStr(content), toStr(content2)));
 
-		ContentImpl content3 = ContentImpl
-				.create(id1, user, "file3.pdf", new ContentVersionDataSummary(fifthHash, "mime1", length1), true);
+		ContentImpl content3
+				= createMajor(id1, user, "file3.pdf", new ContentVersionDataSummary(fifthHash, "mime1", length1));
 		record.set(multiValueContentMetadata, Arrays.asList(content2, content3));
 
 		assertThatNewHashListOfBuildForModifiedRecords(record).containsOnly(fifthHash);
@@ -287,12 +287,10 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenRecordWithTwoContentHashesInsingleValueMetadataWhenReplacingOneContentHashByAnotherOneThenInDelteList() {
-		ContentImpl content = ContentImpl
-				.create(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1), true);
+		ContentImpl content = createMajor(id1, user, "file.pdf", new ContentVersionDataSummary(firstHash, "mime1", length1));
 		content.updateContent(user, new ContentVersionDataSummary(secondHash, "mime1", length1), true);
 		content.checkOut(user).updateCheckedOutContent(new ContentVersionDataSummary(thirdHash, "mime2", length2));
-		ContentImpl content2 = ContentImpl
-				.create(id1, user, "file2.pdf", new ContentVersionDataSummary(fourthHash, "mime1", length1), true);
+		ContentImpl content2 = createMajor(id1, user, "file2.pdf", new ContentVersionDataSummary(fourthHash, "mime1", length1));
 		record = newExistingRecordWith(singleValueContentMetadata, toStr(content));
 
 		record.set(singleValueContentMetadata, content2);
@@ -338,6 +336,14 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		RecordDTO recordDTO = new RecordDTO("zeId", 3L, null, params);
 
 		return new TestRecord(recordDTO);
+	}
+
+	private ContentImpl createMajor(String id, User user, String filename, ContentVersionDataSummary newVersion) {
+		return ContentImpl.create(id, user, filename, newVersion, true, false);
+	}
+
+	private ContentImpl createMinor(String id, User user, String filename, ContentVersionDataSummary newVersion) {
+		return ContentImpl.create(id, user, filename, newVersion, false, false);
 	}
 
 }

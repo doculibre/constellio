@@ -198,6 +198,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		return layout;
 	}
 
+	@Override
+	public Boolean computeStatistics() {
+		return false;
+	}
+
 	public class DecommissioningButton extends WindowButton {
 		public static final String TITLE = "dl-title";
 		public static final String DESCRIPTION = "dl-description";

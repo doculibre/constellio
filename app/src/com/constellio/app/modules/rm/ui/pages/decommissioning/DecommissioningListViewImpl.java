@@ -52,6 +52,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -141,6 +142,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	public void setPackageable(FolderDetailVO folderVO) {
 		removeFolderFromComponent(folderVO, processableFolders, processableFolderComponent);
 		addFolderToComponent(folderVO, packageableFolders, packageableFolderComponent);
+	}
+
+	@Override
+	public void removeFolder(FolderDetailVO folder) {
+		removeFolderFromComponent(folder, packageableFolders, packageableFolderComponent);
+		removeFolderFromComponent(folder, processableFolders, processableFolderComponent);
 	}
 
 	private void removeFolderFromComponent(FolderDetailVO folder, Table table, Component component) {
@@ -279,7 +286,6 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	private Table buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
 		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<>(FolderDetailVO.class, folders);
-
 		Table table = new Table($("DecommissioningListView.folderDetails", container.size()), container);
 		table.setPageLength(container.size());
 		table.setWidth("100%");
@@ -331,10 +337,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		public static final String FOLDER_ID = "id";
 		public static final String FOLDER = "folder";
 		public static final String RETENTION_RULE = "rule";
-		public static final String CATEGORY_CODE = "category";
+		public static final String CATEGORY_CODE = "categoryCode";
 		public static final String SORT = "SORT";
 		public static final String MEDIUM = "medium";
 		public static final String CONTAINER = "container";
+		public static final String LINEAR_SIZE = "linearSize";
+		public static final String REMOVE = "remove";
 
 		private final boolean packageable;
 		private boolean displayRetentionRule;
@@ -344,7 +352,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		public FolderDetailTableGenerator(boolean packageable) {
 			this.packageable = packageable;
 			displayRetentionRule = false;
-			displayCategory = false;
+			displayCategory = true;
 			displaySort = false;
 		}
 
@@ -399,7 +407,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				table.addGeneratedColumn(CATEGORY_CODE, this);
 				table.setColumnHeader(CATEGORY_CODE, $("DecommissioningListView.folderDetails.categoryCode"));
 				visibleColumns.add(CATEGORY_CODE);
+				table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
 			}
+
+			table.addGeneratedColumn(LINEAR_SIZE, this);
+			table.setColumnHeader(LINEAR_SIZE, $("folderLinearSize"));
+			visibleColumns.add(LINEAR_SIZE);
 
 			table.addGeneratedColumn(MEDIUM, this);
 			table.setColumnHeader(MEDIUM, $("DecommissioningListView.folderDetails.medium"));
@@ -408,6 +421,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			table.addGeneratedColumn(CONTAINER, this);
 			table.setColumnHeader(CONTAINER, $("DecommissioningListView.folderDetails.container"));
 			visibleColumns.add(CONTAINER);
+
+			if (presenter.isEditable()) {
+				table.addGeneratedColumn(REMOVE, this);
+				table.setColumnHeader(REMOVE, "");
+				visibleColumns.add(REMOVE);
+			}
 
 			table.setVisibleColumns(visibleColumns.toArray());
 		}
@@ -433,6 +452,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				return new EnumWithSmallCodeDisplay<>(detail.getMediumType());
 			case CONTAINER:
 				return buildContainer(detail);
+			case LINEAR_SIZE:
+				return buildLinearSize(detail);
+			case REMOVE:
+				return buildRemove(detail);
 			}
 
 			return null;
@@ -472,6 +495,33 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			return new Label($(detail.isReversedSort() ? "yes" : "no"));
 		}
 
+		private Component buildLinearSize(final FolderDetailVO detail) {
+			if (detail.getMediumType() == FolderMediaType.ELECTRONIC || detail.getMediumType() == FolderMediaType.UNKNOWN) {
+				return null;
+			}
+
+			if (!(presenter.shouldAllowContainerEditing() && detail.isPackageable())) {
+				Double linearSize = presenter.getLinearSize(detail);
+				if (linearSize == null) {
+					return null;
+				}
+				return new Label(linearSize.toString());
+			}
+
+			final TextField linearSizeTextField = new TextField();
+			Double linearSize = detail.getLinearSize();
+			if (linearSize != null) {
+				linearSizeTextField.setValue(linearSize.toString());
+			}
+			linearSizeTextField.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					presenter.setFolderLinearSize(detail, linearSizeTextField.getValue());
+				}
+			});
+			return linearSizeTextField;
+		}
+
 		private Component buildContainer(final FolderDetailVO detail) {
 			if (detail.getMediumType() == FolderMediaType.ELECTRONIC) {
 				return null;
@@ -499,6 +549,15 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			});
 
 			return container;
+		}
+
+		private Component buildRemove(final FolderDetailVO detail) {
+			return new DeleteButton() {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.folderRemoved(detail);
+				}
+			};
 		}
 	}
 
@@ -548,4 +607,5 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			return checkBox;
 		}
 	}
+
 }

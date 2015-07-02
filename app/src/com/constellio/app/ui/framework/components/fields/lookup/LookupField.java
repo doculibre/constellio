@@ -40,11 +40,9 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
 import com.constellio.app.ui.framework.components.tree.LazyTree;
-import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
-import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Container;
@@ -73,35 +71,20 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<T> {
-
 	public static final String STYLE_NAME = "lookup";
-
 	public static final String ERROR_STYLE_NAME = STYLE_NAME + "-error";
-
 	public static final String AUTOCOMPLETE_FIELD_STYLE_NAME = STYLE_NAME + "-autocomplete-field";
-
 	public static final String OPEN_WINDOW_BUTTON_STYLE_NAME = STYLE_NAME + "-open-window-button";
-
 	public static final String LOOKUP_WINDOW_STYLE_NAME = STYLE_NAME + "-window";
-
 	public static final String LOOKUP_WINDOW_CONTENT_STYLE_NAME = LOOKUP_WINDOW_STYLE_NAME + "-content";
-
 	private static final String CAPTION_PROPERTY_ID = "caption";
-
 	private HorizontalLayout mainLayout;
-
 	private TextInputDataProvider<T> suggestInputDataProvider;
-
-	private List<LookupTreeDataProvider<T>> lookupTreeDataProviders = new ArrayList<LookupField.LookupTreeDataProvider<T>>();
-
+	private List<LookupTreeDataProvider<T>> lookupTreeDataProviders = new ArrayList<>();
 	private BaseAutocompleteField<T> autoCompleteField;
-
 	private WindowButton lookupWindowButton;
-
 	private Converter<String, T> itemConverter;
-
 	private int treeBufferSize = 100;
-
 	/**
 	 * The component should receive focus (if {@link Focusable}) when attached.
 	 */
@@ -182,7 +165,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	protected BaseAutocompleteField<T> newAutocompleteField(AutocompleteSuggestionsProvider<T> suggestionsProvider) {
-		return new BaseAutocompleteField<T>(suggestionsProvider);
+		return new BaseAutocompleteField<>(suggestionsProvider);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -203,7 +186,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		this.itemConverter = itemConverter;
 	}
 
-	private String getCaption(T object) {
+	protected String getCaption(T object) {
 		String caption;
 		if (object != null) {
 			if (itemConverter != null) {
@@ -406,22 +389,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	private void selectDefaultUserTaxonomyTab(LazyTree<T> lazyTree, TabSheet tabSheet) {
-		RecordTextInputDataProvider recordTextInputDataProvider = (RecordTextInputDataProvider) suggestInputDataProvider;
-		User user = recordTextInputDataProvider.getCurrentUser();
-		RecordLazyTree recordLazyTree = (RecordLazyTree) lazyTree;
-		RecordLookupTreeDataProvider recordLookupTreeDataProvider = (RecordLookupTreeDataProvider) recordLazyTree
-				.getDataProvider();
-		if (recordLookupTreeDataProvider.getTaxonomyCode().equals(user.getDefaultTaxonomy())) {
+		User user = suggestInputDataProvider.getCurrentUser();
+		if (lazyTree.getDataProvider().getTaxonomyCode().equals(user.getDefaultTaxonomy())) {
 			tabSheet.setSelectedTab(lazyTree);
 		}
 	}
 
-	public static interface LookupTreeDataProvider<T extends Serializable> extends LazyTreeDataProvider<T> {
+	public interface LookupTreeDataProvider<T extends Serializable> extends LazyTreeDataProvider<T> {
 
 		TextInputDataProvider<T> search();
 
 		boolean isSelectable(T selection);
-
 	}
 
 	public interface TextInputDataProvider<T> extends DataProvider {
@@ -430,27 +408,23 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 		int size(String text);
 
+		User getCurrentUser();
 	}
 
 	private class LookupSearchResultContainer extends LazyQueryContainer {
-
 		public LookupSearchResultContainer(TextInputDataProvider<T> lookupData, Property<String> property) {
 			super(new LookupSearchResultLazyQueryDefinition(), new LookupSearchResultLazyQueryFactory(lookupData, property));
 		}
-
 	}
 
 	private class LookupSearchResultLazyQueryDefinition extends LazyQueryDefinition {
-
 		public LookupSearchResultLazyQueryDefinition() {
 			super(true, 100, null);
 			addProperty(CAPTION_PROPERTY_ID, Button.class, null, true, false);
 		}
-
 	}
 
 	private class LookupSearchResultLazyQueryFactory implements QueryFactory, Serializable {
-
 		private TextInputDataProvider<T> lookupData;
 
 		private Property<String> property;
@@ -505,11 +479,9 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				}
 			};
 		}
-
 	}
 
 	private class DataItem implements Item {
-
 		private T item;
 
 		public DataItem(T item) {
@@ -559,5 +531,4 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private interface SerializableQuery extends Query, Serializable {
 
 	}
-
 }

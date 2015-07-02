@@ -20,11 +20,14 @@ package com.constellio.app.modules.rm.ui.components.retentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.vaadin.ui.Field;
+
+import java.util.List;
 
 public abstract class RetentionRuleFieldFactory extends RecordFieldFactory {
 
@@ -35,7 +38,7 @@ public abstract class RetentionRuleFieldFactory extends RecordFieldFactory {
 		RetentionRuleVO retentionRuleVO = (RetentionRuleVO) recordVO;
 		switch (metadataCode) {
 		case RetentionRule.COPY_RETENTION_RULES:
-			field = new CopyRetentionRuleTable(retentionRuleVO, true) {
+			field = new CopyRetentionRuleTable(retentionRuleVO, true, getOpenPeriodsDDVList()) {
 				@Override
 				protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
 					RetentionRuleFieldFactory.this.onDisposalTypeChange(copyRetentionRule);
@@ -55,6 +58,8 @@ public abstract class RetentionRuleFieldFactory extends RecordFieldFactory {
 			return super.build(recordVO, metadataVO);
 		}
 	}
+
+	protected abstract List<VariableRetentionPeriodVO> getOpenPeriodsDDVList();
 
 	protected abstract void onDisposalTypeChange(CopyRetentionRule rule);
 }

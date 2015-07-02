@@ -20,22 +20,22 @@ package com.constellio.app.ui.pages.management.configs;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import java.io.InputStream;
+
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
-
-import java.io.InputStream;
 
 @UiTest
 @InDevelopmentTest
@@ -43,18 +43,19 @@ public class ConfigsManagementViewAcceptTest extends ConstellioTest {
 	private static int DECOMMISSIONING_DATE_BASED_ON_CONFIG_INDEX = 5;
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
-	RMTestRecords records;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices schemas;
 	ConfigManagementFacade configManagementFacade;
 
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		);
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 	}

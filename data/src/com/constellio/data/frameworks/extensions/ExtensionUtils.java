@@ -20,11 +20,11 @@ package com.constellio.data.frameworks.extensions;
 public class ExtensionUtils {
 
 	public static <T> Boolean getBooleanValue(VaultBehaviorsList<T> behaviors, Boolean defaultValue,
-			BehaviorCaller<T, ExtensionBooleanResult> caller) {
+			BooleanCaller<T> caller) {
 
 		Boolean value = defaultValue;
 		boolean forced = false;
-		for (T behavior : behaviors.getBehaviors()) {
+		for (T behavior : behaviors) {
 			ExtensionBooleanResult behaviorValue = caller.call(behavior);
 
 			if (value == null && behaviorValue == ExtensionBooleanResult.TRUE) {
@@ -45,9 +45,9 @@ public class ExtensionUtils {
 		}
 	}
 
-	public static interface BehaviorCaller<T, O> {
+	public static interface BooleanCaller<T> {
 
-		O call(T behavior);
+		ExtensionBooleanResult call(T behavior);
 
 	}
 }

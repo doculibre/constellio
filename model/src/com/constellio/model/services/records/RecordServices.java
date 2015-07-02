@@ -60,7 +60,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.extensions.ModelLayerCollectionEventsListeners;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
@@ -72,6 +72,7 @@ import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
@@ -331,6 +332,11 @@ public class RecordServices {
 
 	void prepareRecords(Transaction transaction)
 			throws RecordServicesException.ValidationException {
+		prepareRecords(transaction, null);
+	}
+
+	void prepareRecords(Transaction transaction, String onlyValidateRecord)
+			throws RecordServicesException.ValidationException {
 
 		RecordProvider recordProvider = newRecordProvider(null, transaction);
 		RecordValidationServices validationServices = newRecordValidationServices();
@@ -339,20 +345,34 @@ public class RecordServices {
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(transaction.getCollection());
 		boolean valdations = transaction.getRecordUpdateOptions().isValidationsEnabled();
 		for (Record record : transaction.getRecords()) {
-			if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
-				updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
-			}
-			if (valdations) {
-				validationServices.validateManualMetadatas(record, recordProvider, transaction);
-			}
-			automaticMetadataServices
-					.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
-			if (valdations) {
-				validationServices.validateCyclicReferences(record, recordProvider, transaction);
-				validationServices.validateAutomaticMetadatas(record, recordProvider, transaction);
-				validationServices.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
+			if (onlyValidateRecord == null || onlyValidateRecord.equals(record.getId())) {
+				if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
+					updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
+				}
+				if (valdations) {
+					validationServices.validateManualMetadatas(record, recordProvider, transaction);
+				}
+				automaticMetadataServices
+						.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
+				if (valdations) {
+					validationServices.validateCyclicReferences(record, recordProvider, transaction);
+					validationServices.validateAutomaticMetadatas(record, recordProvider, transaction);
+					validationServices.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
+				}
 			}
 		}
+	}
+
+	public void validateRecordInTransaction(Record record, Transaction transaction)
+			throws ValidationException {
+		prepareRecords(transaction, record.getId());
+	}
+
+	public void validateRecord(Record record)
+			throws RecordServicesException.ValidationException {
+
+		Transaction transaction = new Transaction(record);
+		prepareRecords(transaction);
 	}
 
 	private void updateCreationModificationUsersAndDates(Record record, Transaction transaction, MetadataSchema metadataSchema) {
@@ -453,7 +473,7 @@ public class RecordServices {
 				modificationImpactHandler.handle();
 			}
 
-			notifyListeners(transaction.getCollection(), recordEvents);
+			callExtensions(transaction.getCollection(), recordEvents);
 
 		} catch (OptimisticLocking e) {
 			if (modificationImpactHandler != null) {
@@ -494,20 +514,20 @@ public class RecordServices {
 		return events;
 	}
 
-	private void notifyListeners(String collection, List<RecordEvent> recordEvents) {
-		ModelLayerCollectionEventsListeners listeners = modelFactory.getExtensions().getCollectionListeners(collection);
+	private void callExtensions(String collection, List<RecordEvent> recordEvents) {
+		ModelLayerCollectionExtensions extensions = modelFactory.getExtensions().forCollection(collection);
 		for (RecordEvent recordEvent : recordEvents) {
 			if (recordEvent instanceof RecordCreationEvent) {
-				listeners.recordsCreationListeners.notify((RecordCreationEvent) recordEvent);
+				extensions.callRecordCreated((RecordCreationEvent) recordEvent);
 
 			} else if (recordEvent instanceof RecordModificationEvent) {
-				listeners.recordsModificationListeners.notify((RecordModificationEvent) recordEvent);
+				extensions.callRecordModified((RecordModificationEvent) recordEvent);
 
 			} else if (recordEvent instanceof RecordLogicalDeletionEvent) {
-				listeners.recordsLogicallyDeletionListeners.notify((RecordLogicalDeletionEvent) recordEvent);
+				extensions.callRecordLogicallyDeleted((RecordLogicalDeletionEvent) recordEvent);
 
 			} else if (recordEvent instanceof RecordRestorationEvent) {
-				listeners.recordsRestorationListeners.notify((RecordRestorationEvent) recordEvent);
+				extensions.callRecordRestored((RecordRestorationEvent) recordEvent);
 			}
 		}
 

@@ -25,12 +25,13 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import com.constellio.app.modules.rm.ui.components.userDocument.UserDocumentsWindow;
+import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.framework.components.userDocument.UserDocumentsWindow;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
 import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
@@ -128,6 +129,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			license.addStyleName("license");
 		}
 
+		// TODO UserDocumentsWindow should not be used if RM module is not enabled
 		userDocumentsWindow = new UserDocumentsWindow();
 		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout);
 		dragAndDropWrapper.setSizeFull();
@@ -280,6 +282,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		});
 		caseManagementButton.addStyleName("caseManagementLink");
 
+		// TODO ListUserDocumentsView should not be used if RM module is not enabled
 		Button userDocumentsButton = new Button($("MainLayout.userDocuments"), new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -287,6 +290,14 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			}
 		});
 		userDocumentsButton.addStyleName("userDocumentsLink");
+
+		Button agentButton = new Button($("MainLayout.agent"), new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.agentButtonClicked();
+			}
+		});
+		userDocumentsButton.addStyleName("agentLink");
 
 		//		mainMenuButtons.add(new ConstellioMenuButton(DashboardViewGroup.class, dashboardButton));
 		if (presenter.isRecordsManagementViewVisible()) {
@@ -300,6 +311,9 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		}
 		if (presenter.isAdminModuleViewVisible()) {
 			mainMenuButtons.add(new ConstellioMenuButton(AdminModuleViewGroup.class, adminModuleButton));
+		}
+		if (presenter.isAgentViewVisible()) {
+			mainMenuButtons.add(new ConstellioMenuButton(AgentViewGroup.class, agentButton));
 		}
 		mainMenuButtons.add(new ConstellioMenuButton(UserDocumentsViewGroup.class, userDocumentsButton));
 		//		mainMenuButtons.add(new ConstellioMenuButton(EnterpriseSearchViewGroup.class, enterpriseSearchButton));

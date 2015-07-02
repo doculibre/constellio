@@ -20,6 +20,7 @@ package com.constellio.app.ui.framework.components.fields.upload;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
@@ -32,6 +33,8 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ContentVersionUploadField extends BaseUploadField {
+	
+	private boolean majorVersionFieldVisible = true;
 	
 	public ContentVersionUploadField() {
 		this(false);
@@ -48,34 +51,29 @@ public class ContentVersionUploadField extends BaseUploadField {
 	}
 
 	@Override
-	protected Component getItemCaption(Object itemId) {
+	protected Component newItemCaption(Object itemId) {
 		ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
-		HorizontalLayout itemLayout = new HorizontalLayout();
-		itemLayout.setSpacing(true);
-		
-		Component captionComponent = new DownloadContentVersionLink(contentVersionVO); 
-		itemLayout.addComponent(captionComponent);
-
-		if (isMajorVersionField(contentVersionVO)) {
-			OptionGroup majorVersionField = new OptionGroup();
-			majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
-			majorVersionField.addItem(true);
-			majorVersionField.addItem(false);
-			majorVersionField.setItemCaption(true, $("yes"));
-			majorVersionField.setItemCaption(false, $("no"));
-			majorVersionField.setCaption($("ContentVersionUploadField.majorVersion"));
-			majorVersionField.setRequired(true);
-			majorVersionField.setImmediate(true);
-			majorVersionField.setPropertyDataSource(new NestedMethodProperty<Boolean>(contentVersionVO, "majorVersion"));
-			itemLayout.addComponent(majorVersionField);
-		}
-
-		return itemLayout;
+		return new ContentVersionCaption(contentVersionVO);
 	}
 	
 	protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
-		return contentVersionVO.getHash() == null;
+		return majorVersionFieldVisible && contentVersionVO.getHash() == null;
 	} 
+	
+	public final boolean isMajorVersionFieldVisible() {
+		return majorVersionFieldVisible;
+	}
+
+	public final void setMajorVersionFieldVisible(boolean visible) {
+		this.majorVersionFieldVisible = visible;
+		Map<Object, Component> itemCaptions = getItemCaptions();
+		for (Object itemId : itemCaptions.keySet()) {
+			ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
+			Component itemCaption = itemCaptions.get(itemId);
+			ContentVersionCaption contentVersionCaption = (ContentVersionCaption) itemCaption;
+			contentVersionCaption.setMajorVersionFieldVisible(isMajorVersionField(contentVersionVO));
+		}
+	}
 
 	@Override
 	protected void deleteTempFile(Object itemId) {
@@ -105,5 +103,38 @@ public class ContentVersionUploadField extends BaseUploadField {
 			throw new InvalidValueException($("ContentVersionUploadField.majorVersion"));
 		}
 	}
+	
+	class ContentVersionCaption extends HorizontalLayout {
+		
+		private Component captionComponent;
+		
+		private OptionGroup majorVersionField;
+		
+		private ContentVersionCaption(ContentVersionVO contentVersionVO) {
+			setSpacing(true);
+			
+			captionComponent = new DownloadContentVersionLink(contentVersionVO); 
 
+			majorVersionField = new OptionGroup();
+			majorVersionField.setVisible(isMajorVersionField(contentVersionVO));
+			majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
+			majorVersionField.addItem(true);
+			majorVersionField.addItem(false);
+			majorVersionField.setItemCaption(true, $("yes"));
+			majorVersionField.setItemCaption(false, $("no"));
+			majorVersionField.setCaption($("ContentVersionUploadField.majorVersion"));
+			majorVersionField.setRequired(true);
+			majorVersionField.setImmediate(true);
+			majorVersionField.setPropertyDataSource(new NestedMethodProperty<Boolean>(contentVersionVO, "majorVersion"));
+			
+			addComponent(captionComponent);
+			addComponent(majorVersionField);
+		}
+		
+		private void setMajorVersionFieldVisible(boolean visible) {
+			majorVersionField.setVisible(visible);
+		}
+		
+	}
+	
 }

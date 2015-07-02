@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.reindexing;
 
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.REWRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
@@ -92,15 +95,15 @@ public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extend
 		assertThat(freeTextSearch("serpent")).containsOnly("000042");
 		assertThat(autocompleteSearch("AC6")).containsOnly("000666");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE).setBatchSize(1));
 		assertThat(freeTextSearch("serpent")).containsOnly("000042");
 		assertThat(autocompleteSearch("AC6")).containsOnly("000666");
 
-		reindexingServices.reindexCollections(ReindexationMode.REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(REWRITE).setBatchSize(1));
 		assertThat(freeTextSearch("serpent")).containsOnly("000042");
 		assertThat(autocompleteSearch("AC6")).containsOnly("000666");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE).setBatchSize(1));
 		assertThat(freeTextSearch("serpent")).containsOnly("000042");
 		assertThat(autocompleteSearch("AC6")).containsOnly("000666");
 

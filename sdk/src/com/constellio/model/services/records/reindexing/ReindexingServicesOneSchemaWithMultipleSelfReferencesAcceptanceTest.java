@@ -129,7 +129,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		}
 		alterCalculedFieldIn(ids);
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 		for (int i = 3002; i <= 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
@@ -156,7 +156,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		transaction.add(new TestRecord(zeSchema, "003010").set(zeSchema.metadata(textMetadata), "Shish O Clock!"));
 		recordServices.execute(transaction);
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 		for (int i = 3001; i < 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
@@ -168,7 +168,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		}
 		alterCalculedFieldIn(ids);
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 		for (int i = 3001; i < 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
@@ -208,11 +208,11 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 
 		makeTheTitleOfZeSchemaRequired();
 
-		reindexingServices.reindexCollections(ReindexationMode.REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
 		assertThat(record("000042").get(Schemas.TITLE)).isNull();
 		assertThat(record("000042").get(zeSchema.metadata(childOfReference))).isEqualTo("000666");
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 		assertThat(record("000042").get(Schemas.TITLE)).isNull();
 		assertThat(record("000042").get(zeSchema.metadata(childOfReference))).isEqualTo("000666");
 	}
@@ -246,22 +246,22 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
-		reindexingServices.reindexCollections(ReindexationMode.REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
 
-		reindexingServices.reindexCollections(ReindexationMode.REWRITE, 100);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(100));
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE, 100);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(100));
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
@@ -285,12 +285,12 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("taxo", "000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, asList("taxo"));
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE, 1);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("taxo", "000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, asList("taxo"));
 
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE, 100);
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(100));
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("taxo", "000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, asList("taxo"));

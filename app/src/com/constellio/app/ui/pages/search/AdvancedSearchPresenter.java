@@ -28,8 +28,8 @@ import java.util.Map;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate.SchemaType;
-import com.constellio.app.modules.rm.services.LabelTemplateServices;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
@@ -172,15 +172,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return config.getInputType() != MetadataInputType.HIDDEN;
 	}
 
-	//TODO Thiago test
 	public List<LabelTemplate> getTemplates() {
-		LabelTemplateServices labelTemplateServices = new LabelTemplateServices(appLayerFactory);
-		if ("containerRecord".equals(schemaTypeCode)) {
-			return labelTemplateServices.getTemplates(SchemaType.CONTAINER.name());
-		} else if ("folder".equals(schemaTypeCode)) {
-			return labelTemplateServices.getTemplates(SchemaType.FOLDER.name());
-		} else {
-			return labelTemplateServices.getTemplates("");
+		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
+		return labelTemplateManager.listTemplates(schemaTypeCode);
+	}
+
+	public Boolean computeStatistics() {
+		if(schemaTypeCode != null && schemaTypeCode.equals(Folder.SCHEMA_TYPE)){
+			return true;
 		}
+		return false;
 	}
 }

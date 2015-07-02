@@ -17,8 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,8 +26,7 @@ import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.extensions.PageAccessExtension;
-import com.constellio.app.extensions.AppLayerCollectionEventsListeners;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -37,8 +34,6 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BaseView.ViewEnterListener;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
-import com.constellio.data.frameworks.extensions.ExtensionUtils.BehaviorCaller;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -49,6 +44,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 
@@ -139,32 +135,20 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 	}
 
 	private boolean hasPageAccess(final String params, final User user, List<Record> restrictedRecords) {
-		AppLayerCollectionEventsListeners listeners = appLayerFactory.getExtensions()
-				.getCollectionListeners(user.getCollection());
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 
-		boolean pageAccess = getBooleanValue(listeners.pageAccessExtensions, hasPageAccess(params, user),
-				new BehaviorCaller<PageAccessExtension, ExtensionBooleanResult>() {
-					@Override
-					public ExtensionBooleanResult call(PageAccessExtension behavior) {
-						return behavior.hasPageAccess(BasePresenter.this.getClass(), params, user);
-					}
-				});
+		boolean pageAccessDefaultValue = hasPageAccess(params, user);
+		boolean pageAccess = extensions.hasPageAccess(pageAccessDefaultValue, getClass(), params, user);
 
 		boolean restrictedRecordsAccess = true;
 		if (!restrictedRecords.isEmpty()) {
 			for (final Record restrictedRecord : restrictedRecords) {
 
-				boolean defaultValue = hasRestrictedRecordAccess(params, user, restrictedRecord);
-				boolean hasAccessToRestrictedRecord = getBooleanValue(listeners.pageAccessExtensions, defaultValue,
-						new BehaviorCaller<PageAccessExtension, ExtensionBooleanResult>() {
-							@Override
-							public ExtensionBooleanResult call(PageAccessExtension behavior) {
-								return behavior.hasRestrictedRecordAccess(BasePresenter.this.getClass(), params, user,
-										restrictedRecord);
-							}
-						});
+				boolean restrictedRecordAccessDefaultValue = hasRestrictedRecordAccess(params, user, restrictedRecord);
+				boolean restrictedRecordAccess = extensions.hasRestrictedRecordAccess(restrictedRecordAccessDefaultValue,
+						getClass(), params, user, restrictedRecord);
 
-				if (!hasAccessToRestrictedRecord) {
+				if (!restrictedRecordAccess) {
 					restrictedRecordsAccess = false;
 				}
 			}
@@ -236,5 +220,13 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 
 	public final List<String> getAllRecordIds(String schemaCode) {
 		return presenterUtils.getAllRecordIds(schemaCode);
+	}
+
+	public final User wrapUser(Record record) {
+		return presenterUtils.wrapUser(record);
+	}
+
+	public Roles getCollectionRoles() {
+		return presenterUtils.getCollectionRoles();
 	}
 }

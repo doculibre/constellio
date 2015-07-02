@@ -1,0 +1,23 @@
+<labelTemplate>
+    <key>containerTemplate1</key>
+    <name>nameTemplate2</name>
+    <schemaType>containerRecord</schemaType>
+    <layout>AVERY_5159</layout>
+    <columns>2</columns>
+    <lines>7</lines>
+    <field>
+        <metadataCode>containerRecord_default_title</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>1</x>
+        <y>2</y>
+        <width>6</width>
+        <height>5</height>
+        <fontName>Courier</fontName>
+        <fontSize>10</fontSize>
+        <maxLength>10</maxLength>
+        <horizontalAlignment>RIGHT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+        <prefix></prefix>
+        <suffix></suffix>
+    </field>
+</labelTemplate>	

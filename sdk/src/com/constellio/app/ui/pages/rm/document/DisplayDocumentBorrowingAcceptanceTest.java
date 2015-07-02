@@ -43,8 +43,8 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 	RecordFormWebElement zeForm;
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
-	DemoTestRecords records;
-	RMTestRecords zeRecords;
+	DemoTestRecords records2 = new DemoTestRecords("LaCollectionDeRida");
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices schemas;
 
 	String idDocument;
@@ -53,15 +53,17 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollectionWithTitle("LaCollectionDeRida", "Collection d'entreprise").withConstellioRMModule().withAllTestUsers();
-		givenCollectionWithTitle(zeCollection, "Collection de test").withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
+						records).withFoldersAndContainersOfEveryStatus()
+						.withDocumentsHavingContent(),
+				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		records = new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
-
-		zeRecords = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus()
-				.withDocumentsHavingContent();
 
 		idDocument = recordIdWithTitleInCollection("assurance-EmiliePoulain.odt", "LaCollectionDeRida");
 	}

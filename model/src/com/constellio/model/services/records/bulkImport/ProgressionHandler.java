@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.bulkImport;
 
+import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
+
 import java.util.HashMap;
 import java.util.Map;
 

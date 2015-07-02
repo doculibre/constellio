@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Window;
@@ -63,6 +66,14 @@ public class BaseWindow extends Window {
 	    zIndexFixJS.append("}");
 		
 		JavaScript.getCurrent().execute(zIndexFixJS.toString());
+	}
+
+	public SessionContext getSessionContext() {
+		return ConstellioUI.getCurrentSessionContext();
+	}
+
+	public ConstellioFactories getConstellioFactories() {
+		return ConstellioFactories.getInstance();
 	}
 	
 }

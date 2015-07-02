@@ -25,53 +25,84 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod.RetentionPeriodRuntimeException.RetentionPeriodRuntimeException_PeriodIsFixed;
 import com.constellio.app.modules.rm.model.RetentionPeriod.RetentionPeriodRuntimeException.RetentionPeriodRuntimeException_PeriodIsOpened;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 
 public class RetentionPeriod implements Serializable {
 
-	private static int PERIOD_888 = 888;
-	private static int PERIOD_999 = 999;
+	private static String PERIOD_888 = "888";
+	private static String PERIOD_999 = "999";
 
-	private int value;
+	private int fixedValue;
+
+	private int variableRetentionRuleCode = 0;
 
 	public int getValue() {
-		return value;
+		if (variableRetentionRuleCode != 0) {
+			return variableRetentionRuleCode;
+		} else {
+			return fixedValue;
+		}
+	}
+
+	public int getFixedValue() {
+		return fixedValue;
 	}
 
 	public boolean isVariablePeriod() {
-		return is888() || is999();
+		return variableRetentionRuleCode != 0;
 	}
 
 	public boolean is888() {
-		return PERIOD_888 == value;
+		return variableRetentionRuleCode != 0 && !is999();
 	}
 
 	public boolean is999() {
-		return PERIOD_999 == value;
+		return PERIOD_999.equals("" + variableRetentionRuleCode);
 	}
 
-	public RetentionPeriod(int value) {
-		this.value = value;
+	RetentionPeriod(int fixedValue) {
+		if (fixedValue == 888 || fixedValue == 999) {
+			this.variableRetentionRuleCode = fixedValue;
+		} else {
+			this.fixedValue = fixedValue;
+		}
+	}
+
+	RetentionPeriod(String variablePeriodCode) {
+		this.variableRetentionRuleCode = Integer.valueOf(variablePeriodCode);
 	}
 
 	public int getFixedPeriod() {
 		if (isVariablePeriod()) {
 			throw new RetentionPeriodRuntimeException_PeriodIsOpened();
 		} else {
-			return value;
+			return fixedValue;
 		}
 	}
 
-	public int getVariablePeriod() {
+	//	public String getVariablePeriodId() {
+	//		if (!isVariablePeriod()) {
+	//			throw new RetentionPeriodRuntimeException_PeriodIsFixed();
+	//		} else {
+	//			return variableRetentionRuleId;
+	//		}
+	//	}
+
+	public String getVariablePeriodCode() {
 		if (!isVariablePeriod()) {
 			throw new RetentionPeriodRuntimeException_PeriodIsFixed();
 		} else {
-			return value;
+			return "" + variableRetentionRuleCode;
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "" + value;
+		if (variableRetentionRuleCode != 0) {
+			return "" + variableRetentionRuleCode;
+		} else {
+			return "" + fixedValue;
+		}
 	}
 
 	@Override
@@ -88,17 +119,17 @@ public class RetentionPeriod implements Serializable {
 		return new RetentionPeriod(years);
 	}
 
-	public static RetentionPeriod OPEN_888 = new RetentionPeriod(PERIOD_888);
-
-	public static RetentionPeriod OPEN_999 = new RetentionPeriod(PERIOD_999);
-
 	public static RetentionPeriod ZERO = new RetentionPeriod(0);
 
+	public static RetentionPeriod OPEN_888 = new RetentionPeriod("888");
+
+	public static RetentionPeriod OPEN_999 = new RetentionPeriod("999");
+
 	public RetentionType getRetentionType() {
-		if (OPEN_888.equals(this)) {
+		if (is888()) {
 			return RetentionType.OPEN;
 
-		} else if (OPEN_999.equals(this)) {
+		} else if (is999()) {
 			return RetentionType.UNTIL_REPLACED;
 
 		} else {
@@ -113,6 +144,14 @@ public class RetentionPeriod implements Serializable {
 
 	public boolean isZero() {
 		return this.equals(RetentionPeriod.ZERO);
+	}
+
+	public static RetentionPeriod variable(String code) {
+		return new RetentionPeriod(code);
+	}
+
+	public static RetentionPeriod variable(VariableRetentionPeriod variablePeriod) {
+		return new RetentionPeriod(variablePeriod.getCode());
 	}
 
 	public static class RetentionPeriodRuntimeException extends RuntimeException {

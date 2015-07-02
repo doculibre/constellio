@@ -33,6 +33,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.entities.records.Record;
@@ -671,10 +672,10 @@ public class UserServices {
 		}
 	}
 
-	private String generateToken(String username) {
+	public String generateToken(String username) {
 		String token = UUID.randomUUID().toString();
 		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
-		tokens.put(token, new LocalDateTime().plusMinutes(modelLayerConfiguration.getTokenDuration()));
+		tokens.put(token, TimeProvider.getLocalDateTime().plus(modelLayerConfiguration.getTokenDuration()));
 		UserCredential userCredential = getUser(username).withTokens(tokens);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;

@@ -40,20 +40,22 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 	RMSchemasRecordsServices schemas;
 	UserServices userServices;
 	AuthenticationService authenticationService;
-	RMTestRecords rm = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	ModifyProfilePage modifyProfilePage;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
 		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
 		authenticationService = getModelLayerFactory().newAuthenticationService();
-
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
-
-		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 

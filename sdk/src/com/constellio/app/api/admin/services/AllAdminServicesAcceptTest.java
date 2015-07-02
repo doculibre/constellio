@@ -61,12 +61,6 @@ public class AllAdminServicesAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenTokenIsModifiedThenPreviousTokensDoNotWorkAnymore()
-			throws Exception {
-		runAdminServicesLoginAcceptanceTest().givenTokenIsModifiedThenPreviousTokensDoNotWorkAnymore();
-	}
-
-	@Test
 	public void givenServiceKeyIsModifiedThenPreviousServiceKeyDoNotWorkAnymore()
 			throws Exception {
 		runAdminServicesLoginAcceptanceTest().givenServiceKeyIsModifiedThenPreviousServiceKeyDoNotWorkAnymore();

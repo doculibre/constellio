@@ -19,9 +19,12 @@ package com.constellio.data.frameworks.extensions;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
-public class VaultBehaviorsList<T> {
+import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
+
+public class VaultBehaviorsList<T> implements Iterable<T> {
 
 	List<OrderedExtension<T>> extensions = new ArrayList<>();
 
@@ -34,7 +37,7 @@ public class VaultBehaviorsList<T> {
 		Collections.sort(extensions);
 	}
 
-	public List<T> getBehaviors() {
+	public List<T> getExtensions() {
 		List<T> returnedBehaviors = new ArrayList<>();
 		for (OrderedExtension<T> extension : extensions) {
 			returnedBehaviors.add(extension.behavior);
@@ -43,4 +46,12 @@ public class VaultBehaviorsList<T> {
 		return returnedBehaviors;
 	}
 
+	public boolean getBooleanValue(Boolean defaultValue, BooleanCaller<T> caller) {
+		return ExtensionUtils.getBooleanValue(this, defaultValue, caller);
+	}
+
+	@Override
+	public Iterator<T> iterator() {
+		return getExtensions().iterator();
+	}
 }

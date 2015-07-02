@@ -28,7 +28,7 @@ public class LabelTemplate implements Serializable {
 	private final LabelsReportLayout labelsReportLayout;
 	private final String key;
 	private final String name;
-	private final SchemaType schemaType;
+	private final String schemaType;
 	private final int columns;
 	private final int lines;
 	private final List<LabelTemplateField> fields;
@@ -36,7 +36,7 @@ public class LabelTemplate implements Serializable {
 	public LabelTemplate() {
 		this.key = "";
 		this.name = "";
-		this.schemaType = SchemaType.FOLDER;
+		this.schemaType = "";
 		this.columns = 1;
 		this.lines = 1;
 		this.fields = new ArrayList<>();
@@ -44,7 +44,7 @@ public class LabelTemplate implements Serializable {
 
 	}
 
-	public LabelTemplate(String key, String name, LabelsReportLayout labelsReportLayout, SchemaType schemaType, int columns,
+	public LabelTemplate(String key, String name, LabelsReportLayout labelsReportLayout, String schemaType, int columns,
 			int lines,
 			List<LabelTemplateField> fields) {
 		this.key = key;
@@ -80,9 +80,7 @@ public class LabelTemplate implements Serializable {
 		return key;
 	}
 
-	public SchemaType getSchemaType() {
+	public String getSchemaType() {
 		return schemaType;
 	}
-
-	public enum SchemaType {FOLDER, CONTAINER}
 }

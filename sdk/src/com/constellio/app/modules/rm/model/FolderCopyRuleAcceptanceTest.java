@@ -47,8 +47,8 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 
-	RMSchemasRecordsServices schemas;
-	RMTestRecords records;
+	RMSchemasRecordsServices rm;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
 
 	Transaction transaction = new Transaction();
@@ -68,12 +68,15 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule();
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+		);
+
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		zeCategory = records.categoryId_ZE42;
@@ -89,7 +92,7 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 	public void whenSaveFolderThenMetadataValuesSaved()
 			throws Exception {
 
-		Folder folder = schemas.newFolder();
+		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(records.unitId_11);
 		folder.setDescription("Ze description");
 		folder.setFilingSpaceEntered(records.filingId_A);
@@ -122,6 +125,8 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getCopyStatus()).isSameAs(PRINCIPAL);
 		assertThat(folder.getApplicableCopyRules()).containsOnlyOnce(principal("2-888-D", PA));
 		assertThat(folder.getMainCopyRule()).isEqualTo(principal("2-888-D", PA));
+		assertThat(folder.getActiveRetentionCode()).isNull();
+		assertThat(folder.getSemiActiveRetentionCode()).isEqualTo("888");
 		assertThat(folder.getActiveRetentionType()).isEqualTo(FIXED);
 		assertThat(folder.getSemiActiveRetentionType()).isEqualTo(OPEN);
 		assertThat(folder.getInactiveDisposalType()).isEqualTo(DESTRUCTION);
@@ -165,6 +170,8 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 		assertThat(secondaryFolderWithEnteredPrincipalCopyStatus.getApplicableCopyRules()).containsOnlyOnce(
 				principal("999-0-T", PA));
 		assertThat(secondaryFolderWithEnteredPrincipalCopyStatus.getMainCopyRule()).isEqualTo(principal("999-0-T", PA));
+		assertThat(secondaryFolderWithEnteredPrincipalCopyStatus.getActiveRetentionCode()).isEqualTo("999");
+		assertThat(secondaryFolderWithEnteredPrincipalCopyStatus.getSemiActiveRetentionCode()).isNull();
 		assertThat(secondaryFolderWithEnteredPrincipalCopyStatus.getActiveRetentionType()).isEqualTo(UNTIL_REPLACED);
 		assertThat(secondaryFolderWithEnteredPrincipalCopyStatus.getSemiActiveRetentionType()).isEqualTo(FIXED);
 		assertThat(secondaryFolderWithEnteredPrincipalCopyStatus.getInactiveDisposalType()).isEqualTo(SORT);
@@ -218,7 +225,7 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 			transaction = new Transaction();
 		}
 
-		Folder folder = schemas.newFolder();
+		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(administrativeUnit);
 		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
@@ -233,7 +240,7 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 	private Folder saveAndLoad(Folder folder)
 			throws RecordServicesException {
 		recordServices.add(folder.getWrappedRecord());
-		return schemas.getFolder(folder.getId());
+		return rm.getFolder(folder.getId());
 	}
 
 	private RetentionRule givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(CopyRetentionRule... rules) {
@@ -245,7 +252,7 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 	}
 
 	private RetentionRule givenRetentionRule(CopyRetentionRule... rules) {
-		RetentionRule retentionRule = schemas.newRetentionRuleWithId(zeRule);
+		RetentionRule retentionRule = rm.newRetentionRuleWithId(zeRule);
 
 		retentionRule.setCode("Ze rule");
 		retentionRule.setTitle("Ze rule");

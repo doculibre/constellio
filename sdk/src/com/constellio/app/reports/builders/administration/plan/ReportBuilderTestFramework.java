@@ -25,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public abstract class ReportBuilderTestFramework extends ConstellioTest {
@@ -46,7 +47,7 @@ public abstract class ReportBuilderTestFramework extends ConstellioTest {
 	public void ReportBuilderTestFrameworkSetUp()
 			throws Exception {
 		if (firstBefore) {
-			File allReportsFolder = new File(getFoldersLocator().getSDKProject(), "generatedReports");
+			File allReportsFolder = new File(new FoldersLocator().getSDKProject(), "generatedReports");
 			outputFolder = new File(allReportsFolder, getClass().getCanonicalName());
 			if (outputFolder.exists()) {
 				File[] files = outputFolder.listFiles();

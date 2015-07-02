@@ -38,10 +38,8 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 
-@SlowTest
 @DriverTest
 public class CmisNavigationAcceptanceTest extends ConstellioTest {
 	UserServices userServices;

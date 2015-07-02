@@ -23,14 +23,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.modules.rm.ui.components.userDocuments.DeclareUserDocumentContainerButton;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
 import com.constellio.app.modules.rm.ui.navigation.RMRecordNavigationHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
-import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.navigation.RecordNavigationHandler;
 import com.constellio.app.ui.handlers.ConstellioErrorHandler;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
@@ -67,17 +65,17 @@ public class ConstellioUI extends UI {
 
 	private List<RecordContextMenuHandler> recordContextMenuHandlers = new ArrayList<>();
 
-	private List<ContainerButton> userDocumentContainerButtons = new ArrayList<>();
-
 	@Override
 	protected void init(VaadinRequest request) {
+		// Important to allow update of components in current UI from another Thread
+		UI.getCurrent().setPollInterval(1000);
+		
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
 		// TODO instantiate in the RM layer
 		addRecordNavigationHandler(new RMRecordNavigationHandler(constellioFactories));
 		addRecordContextMenuHandler(new RMRecordContextMenuHandler(constellioFactories));
-		addUserDocumentContainerButton(new DeclareUserDocumentContainerButton());
 
 		List<InitUIListener> initUIListeners = appLayerFactory.getInitUIListeners();
 		for (InitUIListener initUIListener : initUIListeners) {
@@ -210,18 +208,6 @@ public class ConstellioUI extends UI {
 
 	public List<RecordContextMenuHandler> getRecordContextMenuHandlers() {
 		return recordContextMenuHandlers;
-	}
-
-	public List<ContainerButton> getUserDocumentContainerButtons() {
-		return userDocumentContainerButtons;
-	}
-
-	public void addUserDocumentContainerButton(ContainerButton userDocumentContainerButton) {
-		this.userDocumentContainerButtons.add(userDocumentContainerButton);
-	}
-
-	public void removeUserDocumentContainerButton(ContainerButton userDocumentContainerButton) {
-		this.userDocumentContainerButtons.remove(userDocumentContainerButton);
 	}
 
 	public static ConstellioUI getCurrent() {

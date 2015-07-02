@@ -34,7 +34,9 @@ public class ListValueDomainViewAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
+		);
 
 		driver = newWebDriver(loggedAsUserInCollection(gandalf, zeCollection));
 	}

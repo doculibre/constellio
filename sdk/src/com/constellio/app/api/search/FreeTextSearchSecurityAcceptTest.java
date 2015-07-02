@@ -52,12 +52,10 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
 
-@SlowTest
 public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 
 	String anotherCollection = "anotherCollection";
@@ -87,11 +85,16 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		prepareSystem(
+				withZeCollection().withAllTest(users),
+				withCollection(anotherCollection)
+		);
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
 
-		givenCollection(zeCollection, asList("fr", "en"));
-		givenCollection(anotherCollection, asList("fr"));
+		//		givenCollection(zeCollection, asList("fr", "en"));
+		//		givenCollection(anotherCollection, asList("fr"));
 
 		defineSchemasManager().using(zeCollectionSetup.withAStringMetadata(whichIsMultivalue).withAContentMetadata());
 		defineSchemasManager().using(anotherCollectionSetup.withAStringMetadata(whichIsMultivalue).withAContentListMetadata());
@@ -273,7 +276,6 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	private void setupUsers()
 			throws RecordServicesException, InterruptedException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
 		userServices.addUpdateUserCredential(users.chuckNorris().withSystemAdminPermission());
 
 		userWithZeCollectionReadAccess = users.alice();

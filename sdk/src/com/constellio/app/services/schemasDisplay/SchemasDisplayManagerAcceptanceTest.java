@@ -54,15 +54,15 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		prepareSystem(
+				withZeCollection()
+		);
 		manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 	}
 
 	@Test
 	public void givenNewCollectionWhenGetAndSetSchemaTypesThenInformationsConserved()
 			throws Exception {
-
-		givenCollection(zeCollection);
 
 		SchemaTypesDisplayConfig typesDisplay = manager.getTypes(zeCollection);
 		assertThat(typesDisplay.getFacetMetadataCodes()).isEmpty();
@@ -76,8 +76,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenNewCollectionWhenUpdatingSchemaTypesThenInformationsConservedUniquely()
 			throws Exception {
-
-		givenCollection(zeCollection);
 
 		SchemaTypesDisplayConfig typesDisplay = manager.getTypes(zeCollection);
 		assertThat(typesDisplay.getFacetMetadataCodes()).isEmpty();
@@ -99,7 +97,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
 		String zeCollection2 = "zeCollection2";
 
-		givenCollection(zeCollection);
 		givenCollection(zeCollection2);
 
 		SchemaTypesDisplayConfig typesDisplay = manager.getTypes(zeCollection);
@@ -121,8 +118,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenNewCollectionWhenGetAndSetSchemaTypeThenInformationsConserved()
 			throws Exception {
 
-		givenCollection(zeCollection);
-
 		SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.isAdvancedSearch()).isFalse();
 		assertThat(typeDisplay.isSimpleSearch()).isFalse();
@@ -140,8 +135,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenNewCollectionWhenGetAndSetMultipleSchemaTypeThenInformationsConserved()
 			throws Exception {
-
-		givenCollection(zeCollection);
 
 		SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.isAdvancedSearch()).isFalse();
@@ -173,8 +166,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenNewCollectionWhenUpdatingSchemaTypeThenInformationsOverwrittenAndConserved()
 			throws Exception {
 
-		givenCollection(zeCollection);
-
 		SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.isAdvancedSearch()).isFalse();
 		assertThat(typeDisplay.isSimpleSearch()).isFalse();
@@ -201,8 +192,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenNewCollectionWhenGetAndSetSchemaThenInformationsConserved()
 			throws Exception {
 
-		givenCollection(zeCollection);
-
 		SchemaDisplayConfig schemaDisplay = manager.getSchema(zeCollection, "group_default");
 		List<String> displayMetadataCodes = new ArrayList<>(schemaDisplay.getDisplayMetadataCodes());
 		List<String> formMetadataCodes = new ArrayList<>(schemaDisplay.getFormMetadataCodes());
@@ -225,8 +214,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenNewCollectionWhenGetAndSetMetadataThenInformationsConserved()
 			throws Exception {
 
-		givenCollection(zeCollection);
-
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.FIELD);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
@@ -243,8 +230,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenNewCollectionWhenGetAndSetMultipleMetadataThenInformationsConserved()
 			throws Exception {
-
-		givenCollection(zeCollection);
 
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
 		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.FIELD);
@@ -272,8 +257,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenNewCollectionWhenGetAndSetOnMultipleFieldsThenInformationsConserved()
 			throws Exception {
-
-		givenCollection(zeCollection);
 
 		// SchemaTypesDisplay
 		SchemaTypesDisplayConfig typesDisplay = manager.getTypes(zeCollection);
@@ -353,8 +336,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void whenSaveTwoSchemasThenTheyAreUpdatedCorrectly()
 			throws Exception {
 
-		givenCollection(zeCollection);
-
 		SchemaDisplayConfig schemaGroupDisplay = manager.getSchema(zeCollection, Group.DEFAULT_SCHEMA);
 		SchemaDisplayConfig schemaUserDisplay = manager.getSchema(zeCollection, User.DEFAULT_SCHEMA);
 
@@ -408,7 +389,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 				"code", "mySchemaType_default_code",
 				"label", "Ze code");
 
-		givenCollection(zeCollection);
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -504,8 +484,6 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenNewCollectionWhenAddingMetadataGroupInSchemaTypeThenInformationsConserved()
 			throws Exception {
-
-		givenCollection(zeCollection);
 
 		SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(1);

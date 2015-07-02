@@ -48,4 +48,16 @@ public class SchemaTypeDisplayTransactionBuilder {
 	public OngoingAddMetadatasToSchemas addToSearchResult(String... metadatas) {
 		return new OngoingAddMetadatasToSchemas(schemaType, schemasDisplayManager, asList(metadatas), transaction, SEARCH);
 	}
+
+	public void removeFromForm(String... metadatas) {
+		new OngoingAddMetadatasToSchemas(schemaType, schemasDisplayManager, asList(metadatas), transaction, FORM).remove();
+	}
+
+	public void removeFromDisplay(String... metadatas) {
+		new OngoingAddMetadatasToSchemas(schemaType, schemasDisplayManager, asList(metadatas), transaction, DISPLAY).remove();
+	}
+
+	public void removeFromSearchResult(String... metadatas) {
+		new OngoingAddMetadatasToSchemas(schemaType, schemasDisplayManager, asList(metadatas), transaction, SEARCH).remove();
+	}
 }
