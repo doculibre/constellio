@@ -36,4 +36,8 @@ public interface ContentDao {
 	boolean isFolderExisting(String folderId);
 
 	long getContentLength(String vaultContentId);
+
+	void moveFolder(String folderId, String newFolderId);
+
+	void deleteFolder(String folderId);
 }

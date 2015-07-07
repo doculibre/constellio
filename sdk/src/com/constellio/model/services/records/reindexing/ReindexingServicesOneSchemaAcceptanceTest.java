@@ -43,6 +43,7 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -86,6 +87,32 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.with(copiedAndCalculatedMetadatas()));
 
 		dakotaId = users.setUp(getModelLayerFactory().newUserServices()).dakotaLIndienIn(zeCollection).getId();
+	}
+
+	@Test
+	public void whenReindexingThenFlushBeforeReindexing()
+			throws Exception {
+
+		givenTimeIs(shishOClock);
+		Transaction transaction = new Transaction();
+		transaction.setUser(users.dakotaLIndienIn(zeCollection));
+		transaction.add(new TestRecord(zeSchema, "000042"))
+				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+
+		Record record666 = new TestRecord(zeSchema, "000666")
+				.set(zeSchema.metadata("referenceToZeSchema"), "000042");
+		transaction.add(record666);
+		recordServices.execute(transaction);
+
+		Transaction transaction2 = new Transaction();
+		transaction2.add(record666.set(zeSchema.metadata("referenceToZeSchema"), null));
+		transaction2.setRecordFlushing(RecordsFlushing.LATER());
+		recordServices.execute(transaction2);
+		assertThat(recordServices.getDocumentById("000666").get(zeSchema.metadata("referenceToZeSchema"))).isEqualTo("000042");
+
+		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE);
+		assertThat(recordServices.getDocumentById("000666").get(zeSchema.metadata("referenceToZeSchema"))).isNull();
 	}
 
 	@Test

@@ -21,8 +21,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.util.resource.ResourceCollection;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.FragmentConfiguration;
 import org.eclipse.jetty.webapp.MetaInfConfiguration;
@@ -30,6 +33,8 @@ import org.eclipse.jetty.webapp.TagLibConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
+
+import com.constellio.model.conf.FoldersLocator;
 
 public class ApplicationStarter {
 
@@ -40,11 +45,16 @@ public class ApplicationStarter {
 	}
 
 	public static void startApplication(boolean joinServerThread, File webContentDir, int port) {
+		startApplication(new ApplicationStarterParams().setJoinServerThread(joinServerThread).setWebContentDir(webContentDir)
+				.setPort(port));
+	}
+
+	public static void startApplication(ApplicationStarterParams params) {
 
 		List<String> resources = new ArrayList<String>();
-		resources.add(webContentDir.getAbsolutePath());
+		resources.add(params.getWebContentDir().getAbsolutePath());
 
-		server = new Server(port);
+		server = newServer(params);
 
 		// Static file handler
 		WebAppContext handler = new WebAppContext();
@@ -64,12 +74,20 @@ public class ApplicationStarter {
 			throw new ApplicationStarterRuntimeException(e);
 		}
 
-		if (joinServerThread) {
+		if (params.isJoinServerThread()) {
 			try {
 				server.join();
 			} catch (InterruptedException e) {
 				throw new ApplicationStarterRuntimeException(e);
 			}
+		}
+	}
+
+	private static Server newServer(ApplicationStarterParams params) {
+		if (params.isSSL()) {
+			return getSslServer(params);
+		} else {
+			return new Server(params.getPort());
 		}
 	}
 
@@ -79,6 +97,20 @@ public class ApplicationStarter {
 		} catch (Exception e) {
 			throw new ApplicationStarterRuntimeException(e);
 		}
+	}
+
+	private static Server getSslServer(ApplicationStarterParams params) {
+		Server sslServer = new Server();
+
+		String keystorePath = new FoldersLocator().getKeystoreFile().getAbsolutePath();
+		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);
+		sslContextFactory.setKeyStorePassword(params.getKeystorePassword());
+		SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
+		connector.setPort(params.getPort());
+
+		sslServer.setConnectors(new Connector[] { connector });
+
+		return sslServer;
 	}
 
 }

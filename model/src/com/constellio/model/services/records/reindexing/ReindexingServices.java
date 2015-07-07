@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
@@ -53,8 +54,11 @@ public class ReindexingServices {
 
 	private ModelLayerFactory modelLayerFactory;
 
+	private SecondTransactionLogManager logManager;
+
 	public ReindexingServices(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
+		this.logManager = modelLayerFactory.getDataLayerFactory().getSecondTransactionLogManager();
 	}
 
 	public void reindexCollections(ReindexationMode reindexationMode) {
@@ -62,8 +66,16 @@ public class ReindexingServices {
 	}
 
 	public void reindexCollections(ReindexationParams params) {
+		if (logManager != null && params.getReindexationMode().isFullRewrite()) {
+			logManager.regroupAndMoveInVault();
+			logManager.moveTLOGToBackup();
+		}
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 			reindexCollection(collection, params);
+		}
+		if (logManager != null && params.getReindexationMode().isFullRewrite()) {
+			logManager.regroupAndMoveInVault();
+			logManager.deleteLastTLOGBackup();
 		}
 	}
 

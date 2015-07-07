@@ -53,6 +53,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 
 public class AppLayerFactory extends LayerFactory {
 
@@ -119,6 +120,8 @@ public class AppLayerFactory extends LayerFactory {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
 		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager());
+
+		dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
 	}
 
 	private void setDefaultLocale() {
@@ -141,18 +144,31 @@ public class AppLayerFactory extends LayerFactory {
 
 	public AppManagementService newApplicationService() {
 		IOServicesFactory ioServicesFactory = dataLayerFactory.getIOServicesFactory();
-		return new AppManagementService(ioServicesFactory, foldersLocator);
+		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager);
 	}
 
 	@Override
 	public void initialize() {
+
 		this.pluginManager.detectPlugins();
 		super.initialize();
+
+		String warVersion = newApplicationService().getWarVersion();
+		if (warVersion != null && !"5.0.0".equals(warVersion)) {
+			System.out.println("----------- STARTING APPLICATION IN VERSION " + warVersion + " -----------");
+		}
+
 		try {
 			newMigrationServices().migrate(null);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
+
+		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
+			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
+			systemGlobalConfigsManager.setMarkedForReindexing(false);
+		}
+
 	}
 
 	@Override

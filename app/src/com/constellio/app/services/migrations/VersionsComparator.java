@@ -54,7 +54,7 @@ public class VersionsComparator implements Comparator<String> {
 
 	private String[] split(String version) {
 		int index = 0;
-		String[] normalizedVersion = new String[] { "0", "0", "0", "0" };
+		String[] normalizedVersion = new String[] { "0", "0", "0", "0", "0" };
 		for (String part : version.split("\\.")) {
 			normalizedVersion[index++] = part;
 		}

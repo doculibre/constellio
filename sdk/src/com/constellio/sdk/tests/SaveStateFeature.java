@@ -117,6 +117,11 @@ public class SaveStateFeature {
 			}
 			FileUtils.writeLines(authenticationFile, lines);
 
+			File ldapConfigsFile = new File(tempUnzipSettingsFolder, "ldapConfigs.properties");
+			//String newLDAPConfigs = "ldap.authentication.active=false";
+			//FileUtils.write(ldapConfigsFile, newLDAPConfigs, false);
+			FileUtils.deleteQuietly(ldapConfigsFile);
+
 		}
 
 		FileUtils.copyDirectory(tempUnzipSettingsFolder, settingsFolder);

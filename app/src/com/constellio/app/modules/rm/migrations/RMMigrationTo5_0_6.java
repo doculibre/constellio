@@ -61,14 +61,19 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {
-		new SchemaAlterationFor5_0_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
-		updateFormAndDisplayConfigs(collection, appLayerFactory);
-
-		addVariablePeriod888And999(collection, migrationResourcesProvider, appLayerFactory);
-
-		ReindexingServices reindexingServices = appLayerFactory.getModelLayerFactory().newReindexingServices();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+
+		if (!rm.defaultFolderSchema().hasMetadataWithCode(Folder.LINEAR_SIZE)) {
+			new SchemaAlterationFor5_0_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
+			updateFormAndDisplayConfigs(collection, appLayerFactory);
+		}
+
+		if (rm.getVariableRetentionPeriodWithCode("888") == null) {
+			addVariablePeriod888And999(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		ReindexingServices reindexingServices = appLayerFactory.getModelLayerFactory().newReindexingServices();
 		reindexingServices.reindexCollection(collection, recalculateSchemaTypes(asList(Folder.SCHEMA_TYPE)));
 
 		appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()

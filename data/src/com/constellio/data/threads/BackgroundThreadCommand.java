@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.data.threads;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.joda.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,14 +33,26 @@ public class BackgroundThreadCommand implements Runnable {
 
 	String threadName;
 
-	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration) {
+	AtomicBoolean systemStarted = new AtomicBoolean();
+
+	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted) {
 		this.configuration = configuration;
 		this.logger = LoggerFactory.getLogger(configuration.getRepeatedAction().getClass());
 		this.threadName = configuration.getId() + " (" + configuration.getRepeatedAction().getClass().getName() + ")";
+		this.systemStarted = systemStarted;
 	}
 
 	@Override
 	public void run() {
+
+		while (!systemStarted.get()) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		if (configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval()) {
 			runAndHandleException();
 		}

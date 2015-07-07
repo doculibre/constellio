@@ -250,9 +250,9 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 		boolean newContent = hash == null;
 
-		ContentVersionDataSummary contentVersionDataSummary;
-		if (hash == null) {
+		if (newContent) {
 			InputStream inputStream = null;
+			ContentVersionDataSummary contentVersionDataSummary;
 			try {
 				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
 				contentVersionDataSummary = contentManager.upload(inputStream);
@@ -262,10 +262,6 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			}
 			hash = contentVersionDataSummary.getHash();
 			//			contentVersionVO.setId(id);
-		} else {
-			contentVersionDataSummary = contentManager.getContentVersionSummary(hash);
-		}
-		if (newContent) {
 			if (majorVersion == null) {
 				// TODO Use the right kind of exception
 				throw new RuntimeException("Must specify if the version is minor or major");

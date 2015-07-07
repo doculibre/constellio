@@ -58,4 +58,6 @@ public interface DataLayerConfiguration {
 	int getBackgroudThreadsPoolSize();
 
 	Duration getSecondTransactionLogMergeFrequency();
+
+	int getSecondTransactionLogBackupCount();
 }

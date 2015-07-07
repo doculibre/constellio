@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.data.dao.services.transactionLog;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -38,7 +39,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.assertj.core.api.Condition;
 import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -49,13 +52,21 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.ThreadList;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexationParams;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -66,10 +77,19 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.LoadTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.setups.Users;
 
 public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
+	private LocalDateTime shishOClock = new LocalDateTime();
+	private LocalDateTime shishOClockPlus1Hour = shishOClock.plusHours(1);
+	private LocalDateTime shishOClockPlus2Hour = shishOClock.plusHours(2);
+	private LocalDateTime shishOClockPlus3Hour = shishOClock.plusHours(3);
+	private LocalDateTime shishOClockPlus4Hour = shishOClock.plusHours(4);
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(XMLSecondTransactionLogManagerAcceptTest.class);
+
+	Users users = new Users();
 
 	TestsSchemasSetup schemas = new TestsSchemasSetup();
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
@@ -78,6 +98,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 	XMLSecondTransactionLogManager log;
 
+	ReindexingServices reindexServices;
 	RecordServices recordServices;
 
 	private AtomicInteger index = new AtomicInteger(-1);
@@ -95,12 +116,15 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 				doReturn(true).when(configuration).isSecondTransactionLogEnabled();
 				doReturn(logBaseFolder).when(configuration).getSecondTransactionLogBaseFolder();
 				doReturn(Duration.standardSeconds(5)).when(configuration).getSecondTransactionLogMergeFrequency();
+				doReturn(3).when(configuration).getSecondTransactionLogBackupCount();
 			}
 		});
 
-		givenCollection(zeCollection);
-		defineSchemasManager().using(schemas.withAStringMetadata());
+		givenCollection(zeCollection).withAllTestUsers();
 
+		defineSchemasManager().using(schemas.withAStringMetadata().withAContentMetadata(whichIsSearchable));
+
+		reindexServices = getModelLayerFactory().newReindexingServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 		log = (XMLSecondTransactionLogManager) getDataLayerFactory().getSecondTransactionLogManager();
 	}
@@ -120,6 +144,192 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 		runAdding(500);
 
+	}
+
+	@Test
+	public void givenRecordWithParsedContentWithMultipleTypesOfLinebreakThenCanReplayWithoutProblems()
+			throws Exception {
+
+		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary data = contentManager
+				.upload(getTestResourceInputStreamFactory("guide.pdf").create(SDK_STREAM));
+
+		Record record1 = new TestRecord(zeSchema, "zeRecord");
+		record1.set(zeSchema.stringMetadata(), "Guide d'architecture");
+		record1.set(zeSchema.contentMetadata(), contentManager.createMajor(admin, "guide.pdf", data));
+		recordServices.add(record1);
+
+		log.regroupAndMoveInVault();
+		log.destroyAndRebuildSolrCollection();
+
+		Content content = recordServices.getDocumentById("zeRecord").get(zeSchema.contentMetadata());
+		assertThat(content.getCurrentVersion().getHash()).isEqualTo("io25znMv7hM3k+m441kYKBEHbbE=");
+
+	}
+
+	@Test
+	public void whenReindexingWithoutRewriteOrOnlyASpecificCollectionThenDoNotRewriteTLog()
+			throws Exception {
+
+		Record record1 = new TestRecord(zeSchema);
+		record1.set(zeSchema.stringMetadata(), "Darth Vador");
+		recordServices.add(record1);
+		log.regroupAndMoveInVault();
+
+		Record record2 = new TestRecord(zeSchema);
+		record2.set(zeSchema.stringMetadata(), "Luke Skywalker");
+		recordServices.add(record2);
+		log.regroupAndMoveInVault();
+
+		assertThat(completeTLOG()).is(onlyContainingValues("Darth Vador", "Luke Skywalker"));
+
+		recordServices.update(record1.set(zeSchema.stringMetadata(), "Obi-Wan Kenobi"));
+		recordServices.update(record2.set(zeSchema.stringMetadata(), "Yoda"));
+		recordServices.update(record2.set(zeSchema.stringMetadata(), "Anakin Skywalker"));
+
+		reindexServices.reindexCollection(zeCollection, new ReindexationParams(ReindexationMode.REWRITE));
+		log.regroupAndMoveInVault();
+		assertThat(completeTLOG()).is(containingAllValues());
+
+		reindexServices.reindexCollection(zeCollection, new ReindexationParams(ReindexationMode.RECALCULATE));
+		log.regroupAndMoveInVault();
+		assertThat(completeTLOG()).is(containingAllValues());
+
+		reindexServices.reindexCollection(zeCollection, new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE));
+		log.regroupAndMoveInVault();
+		assertThat(completeTLOG()).is(containingAllValues());
+
+		reindexServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE));
+		log.regroupAndMoveInVault();
+
+		assertThat(completeTLOG()).is(containingAllValues());
+	}
+
+	@Test
+	public void whenReindexingAllCollectionsWithRewriteThenBackupTLOGAndStartNewOne()
+			throws Exception {
+
+		givenTimeIs(shishOClock);
+		Record record1 = new TestRecord(zeSchema, "ze42");
+		record1.set(zeSchema.stringMetadata(), "Darth Vador");
+		recordServices.add(record1);
+		log.regroupAndMoveInVault();
+		assertThat(completeTLOG()).is(onlyContainingValues("Darth Vador"));
+
+		givenTimeIs(shishOClockPlus1Hour);
+		recordServices.update(record1.set(zeSchema.stringMetadata(), "Luke Skywalker"));
+		reindexServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE));
+		assertThat(completeTLOG()).is(onlyContainingValues("Luke Skywalker"));
+		assertThat(backupTLOG(shishOClockPlus1Hour)).is(onlyContainingValues("Darth Vador", "Luke Skywalker"));
+
+		givenTimeIs(shishOClockPlus2Hour);
+		recordServices.update(record1.set(zeSchema.stringMetadata(), "Obi-Wan Kenobi"));
+		reindexServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE));
+		assertThat(completeTLOG()).is(onlyContainingValues("Obi-Wan Kenobi"));
+		assertThat(backupTLOG(shishOClockPlus1Hour)).is(onlyContainingValues("Darth Vador", "Luke Skywalker"));
+		assertThat(backupTLOG(shishOClockPlus2Hour)).is(onlyContainingValues("Luke Skywalker", "Obi-Wan Kenobi"));
+
+		givenTimeIs(shishOClockPlus3Hour);
+		recordServices.update(record1.set(zeSchema.stringMetadata(), "Yoda"));
+		reindexServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE));
+		assertThat(completeTLOG()).is(onlyContainingValues("Yoda"));
+		assertThat(backupTLOG(shishOClockPlus1Hour)).is(onlyContainingValues("Darth Vador", "Luke Skywalker"));
+		assertThat(backupTLOG(shishOClockPlus2Hour)).is(onlyContainingValues("Luke Skywalker", "Obi-Wan Kenobi"));
+		assertThat(backupTLOG(shishOClockPlus3Hour)).is(onlyContainingValues("Obi-Wan Kenobi", "Yoda"));
+
+		givenTimeIs(shishOClockPlus4Hour);
+		recordServices.update(record1.set(zeSchema.stringMetadata(), "Anakin Skywalker"));
+		reindexServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE));
+		assertThat(completeTLOG()).is(onlyContainingValues("Anakin Skywalker"));
+		assertThat(backupTLOG(shishOClockPlus1Hour)).is(deleted());
+		assertThat(backupTLOG(shishOClockPlus2Hour)).is(onlyContainingValues("Luke Skywalker", "Obi-Wan Kenobi"));
+		assertThat(backupTLOG(shishOClockPlus3Hour)).is(onlyContainingValues("Obi-Wan Kenobi", "Yoda"));
+		assertThat(backupTLOG(shishOClockPlus4Hour)).is(onlyContainingValues("Yoda", "Anakin Skywalker"));
+	}
+
+	private Condition<? super String> deleted() {
+		return new Condition<String>() {
+			@Override
+			public boolean matches(String value) {
+				assertThat(value).isEmpty();
+				return true;
+			}
+		};
+	}
+
+	private List<String> allValues = asList("Darth Vador", "Luke Skywalker", "Obi-Wan Kenobi", "Yoda",
+			"Anakin Skywalker");
+
+	private Condition<? super String> containingAllValues() {
+		final List<String> expectedValuesList = allValues;
+		return new Condition<String>() {
+			@Override
+			public boolean matches(String value) {
+
+				for (String aValue : allValues) {
+					if (expectedValuesList.contains(aValue)) {
+						assertThat(value).contains(aValue);
+					} else {
+						assertThat(value).doesNotContain(aValue);
+					}
+				}
+
+				return true;
+			}
+		};
+	}
+
+	private Condition<? super String> onlyContainingValues(final String... expectedValues) {
+		final List<String> expectedValuesList = asList(expectedValues);
+		return new Condition<String>() {
+			@Override
+			public boolean matches(String value) {
+
+				for (String aValue : allValues) {
+					if (expectedValuesList.contains(aValue)) {
+						assertThat(value).contains(aValue);
+					} else {
+						assertThat(value).doesNotContain(aValue);
+					}
+				}
+
+				return true;
+			}
+		};
+	}
+
+	private String completeTLOG()
+			throws Exception {
+		StringBuilder stringBuilder = new StringBuilder();
+		List<String> transactionLogs = getDataLayerFactory().getContentsDao().getFolderContents("tlogs");
+
+		for (String id : transactionLogs) {
+			InputStream logStream = getDataLayerFactory().getContentsDao().getContentInputStream(id, SDK_STREAM);
+			for (String line : IOUtils.readLines(logStream)) {
+				stringBuilder.append(line + "\n");
+			}
+		}
+		return stringBuilder.toString();
+	}
+
+	private String backupTLOG(LocalDateTime dateTime)
+			throws Exception {
+		ContentDao contentDao = getDataLayerFactory().getContentsDao();
+		StringBuilder stringBuilder = new StringBuilder();
+
+		String folderId = "tlogs_bck/" + dateTime.toString("yyyy-MM-dd-HH-mm-ss");
+		if (contentDao.isFolderExisting(folderId)) {
+			List<String> transactionLogs = contentDao.getFolderContents(folderId);
+
+			for (String id : transactionLogs) {
+				InputStream logStream = getDataLayerFactory().getContentsDao().getContentInputStream(id, SDK_STREAM);
+				for (String line : IOUtils.readLines(logStream)) {
+					stringBuilder.append(line + "\n");
+				}
+			}
+		}
+		return stringBuilder.toString();
 	}
 
 	private void runAdding(final int nbRecordsToAdd)

@@ -35,9 +35,13 @@ import org.junit.Test;
 
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
+import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
+//TODO Maxime : Vérifier pourquoi ce test est extrêmement lent
+@SlowTest
 public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 
 	File webappsFolder;
@@ -60,12 +64,13 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		wrapperConf = new File(newTempFolder(), "wrapper.conf");
 		FileUtils.copyFile(getTestResourceFile("initial-wrapper.conf"), wrapperConf);
 
+		SystemGlobalConfigsManager systemGlobalConfigsManager = getAppLayerFactory().getSystemGlobalConfigsManager();
 		foldersLocator = getModelLayerFactory().getFoldersLocator();
 		doReturn(currentConstellioFolder).when(foldersLocator).getConstellioWebappFolder();
 		doReturn(commandFile).when(foldersLocator).getWrapperCommandFile();
 		doReturn(wrapperConf).when(foldersLocator).getWrapperConf();
 		doReturn(uploadWarFile).when(foldersLocator).getUploadConstellioWarFile();
-		appManagementService = spy(new AppManagementService(getIOLayerFactory(), foldersLocator));
+		appManagementService = spy(new AppManagementService(getIOLayerFactory(), foldersLocator, systemGlobalConfigsManager));
 
 		doReturn("5.0.5").when(appManagementService).getWarVersion();
 	}

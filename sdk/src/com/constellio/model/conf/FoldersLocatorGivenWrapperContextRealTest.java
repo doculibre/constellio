@@ -45,7 +45,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 
 	static String givenJavaRootFolderIsWebappFolder = "givenJavaRootFolderIsWebappFolder";
 	static String givenJavaRootFolderIsNewWebappFolder = "givenJavaRootFolderIsNewWebappFolder";
-	static File constellioProperties, constellioSetupProperties, wrapperInstallationFolder, conf, importation, bin, webapp,
+	static File constellioProperties, keystore, constellioSetupProperties, wrapperInstallationFolder, conf, importation, bin, webapp,
 			webapp2, webapp3, webinf, wrapperConf, command, deploy, temp, commandCmdTxt, uploadConstellioWar, settings, custom,
 			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, buildData;
 	@Rule public TestRule benchmarkRun = new BenchmarkRule();
@@ -86,6 +86,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 		lib = new File(webinf, "lib");
 		importation = new File(webinf, "to-import");
 		constellioProperties = new File(conf, "constellio.properties");
+		keystore = new File(conf, "keystore.jks");
 		constellioSetupProperties = new File(conf, "constellio.setup.properties");
 		wrapperConf = new File(conf, "wrapper.conf");
 		deploy = new File(webinf, "constellio-deploy");
@@ -182,6 +183,12 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	public void whenGetConstellioPropertiesFileThenReturnCorrectFile()
 			throws Exception {
 		assertThat(foldersLocator.getConstellioProperties()).isEqualTo(constellioProperties);
+	}
+
+	@Test
+	public void whenGetKeystoreFileThenReturnCorrectFile()
+			throws Exception {
+		assertThat(foldersLocator.getKeystoreFile()).isEqualTo(keystore);
 	}
 
 	@Test

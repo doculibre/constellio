@@ -26,10 +26,14 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_CannotDeleteFolder;
+import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_CannotMoveFolderTo;
+import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_NoSuchFolder;
 import com.constellio.data.dao.services.contents.FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_DatastoreFailure;
 import com.constellio.data.io.services.facades.IOServices;
 
@@ -117,6 +121,40 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	@Override
 	public long getContentLength(String vaultContentId) {
 		return getFileOf(vaultContentId).length();
+	}
+
+	@Override
+	public void moveFolder(String folderId, String newFolderId) {
+		File folder = getFolder(folderId);
+		if (!folder.exists()) {
+			throw new ContentDaoRuntimeException_NoSuchFolder(folderId);
+		}
+		File newfolder = getFolder(newFolderId);
+		newfolder.mkdirs();
+		newfolder.delete();
+		try {
+			FileUtils.moveDirectory(folder, newfolder);
+		} catch (IOException e) {
+			throw new ContentDaoRuntimeException_CannotMoveFolderTo(folderId, newFolderId, e);
+		}
+
+	}
+
+	private File getFolder(String folderId) {
+		return new File(rootFolder, folderId.replace("/", File.separator));
+	}
+
+	@Override
+	public void deleteFolder(String folderId) {
+
+		File folder = getFolder(folderId);
+		if (folder.exists()) {
+			try {
+				ioServices.deleteDirectory(getFolder(folderId));
+			} catch (IOException e) {
+				throw new ContentDaoRuntimeException_CannotDeleteFolder(folderId, e);
+			}
+		}
 	}
 
 	private File getFileOf(String contentId) {

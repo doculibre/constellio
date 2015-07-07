@@ -36,6 +36,7 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
 import com.constellio.app.services.migrations.VersionsComparator;
+import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
@@ -56,12 +57,15 @@ public class AppManagementService {
 	public static final String URL_CHANGELOG = "http://update.constellio.com/changelog";
 	public static final String URL_WAR = "http://update.constellio.com/constellio.war";
 
+	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
 	private final FileService fileService;
 	private final ZipService zipService;
 	private final IOServices ioServices;
 	private final FoldersLocator foldersLocator;
 
-	public AppManagementService(IOServicesFactory ioServicesFactory, FoldersLocator foldersLocator) {
+	public AppManagementService(IOServicesFactory ioServicesFactory, FoldersLocator foldersLocator,
+			SystemGlobalConfigsManager systemGlobalConfigsManager) {
+		this.systemGlobalConfigsManager = systemGlobalConfigsManager;
 		this.fileService = ioServicesFactory.newFileService();
 		this.zipService = ioServicesFactory.newZipService();
 		this.foldersLocator = foldersLocator;
@@ -161,7 +165,7 @@ public class AppManagementService {
 		File deployFolder = new File(parent, "webapp-" + version);
 
 		int subVersion = 1;
-		while(deployFolder.exists()) {
+		while (deployFolder.exists()) {
 			deployFolder = new File(parent, "webapp-" + version + "-" + subVersion);
 			subVersion++;
 		}
@@ -201,7 +205,7 @@ public class AppManagementService {
 			File webappLibs = foldersLocator.getLibFolder();
 			if (webappLibs.exists()) {
 				for (File lib : webappLibs.listFiles()) {
-					if (lib.getName().startsWith("core-model-")) {
+					if (lib.getName().startsWith("core-model-") && lib.getName().endsWith(".jar")) {
 						return lib.getName().replace("core-model-", "").replace(".jar", "");
 					}
 				}
@@ -223,13 +227,17 @@ public class AppManagementService {
 			}
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(stream));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				changelog += inputLine;
-			}
+			try {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					changelog += inputLine;
+				}
 
-			if (this.isProxyPage(changelog)) {
-				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
+				if (this.isProxyPage(changelog)) {
+					throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
+				}
+			} finally {
+				IOUtils.closeQuietly(in);
 			}
 
 		} catch (IOException io) {
@@ -295,4 +303,7 @@ public class AppManagementService {
 		return foldersLocator.getConstellioWebappFolder().getName();
 	}
 
+	public void markForReindexing() {
+		systemGlobalConfigsManager.setMarkedForReindexing(true);
+	}
 }

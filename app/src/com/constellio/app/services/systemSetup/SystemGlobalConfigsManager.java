@@ -26,6 +26,7 @@ import com.constellio.data.dao.managers.config.PropertiesAlteration;
 public class SystemGlobalConfigsManager implements StatefulService {
 
 	final static String SYSTEM_GLOBAL_PROPERTIES = "/globalProperties";
+	final static String MARKED_FOR_REINDEXING = "markedForReindexing";
 	final static String IS_SYSTEM_SETTED_UP = "systemSettedUp";
 	final static String MAIN_DATA_LANGUAGE = "mainLanguage";
 	final static String TOKEN_DURATION = "tokenDuration";
@@ -73,6 +74,14 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	public int getDelayBeforeSendingNotificationEmailsInMinutes() {
 		return Integer.parseInt(getGlobalProperties().get(NOTIFICATION_MINUTES));
+	}
+
+	public boolean isMarkedForReindexing() {
+		return "true".equals(getGlobalProperties().get(MARKED_FOR_REINDEXING));
+	}
+
+	public void setMarkedForReindexing(boolean value) {
+		setProperty(MARKED_FOR_REINDEXING, value ? "true" : "false");
 	}
 
 	private Map<String, String> getGlobalProperties() {

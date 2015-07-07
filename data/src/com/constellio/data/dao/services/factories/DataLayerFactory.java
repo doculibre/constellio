@@ -126,7 +126,7 @@ public class DataLayerFactory extends LayerFactory {
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
 			secondTransactionLogManager = add(
 					new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServicesFactory.newIOServices(),
-							newRecordDao(), contentDao, backgroundThreadsManager));
+							newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger));
 		} else {
 			secondTransactionLogManager = null;
 		}

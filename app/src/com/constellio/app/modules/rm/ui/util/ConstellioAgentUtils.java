@@ -44,14 +44,11 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Page;
-import com.vaadin.server.VaadinRequest;
-import com.vaadin.server.VaadinService;
+import com.vaadin.server.VaadinServlet;
 
 public class ConstellioAgentUtils {
 
 	public static final String AGENT_DOWNLOAD_URL = "http://constellio.com/agent/";
-
-	private static String contextPath;
 
 	public static boolean isAgentSupported() {
 		String address = Page.getCurrent().getWebBrowser().getAddress();
@@ -67,18 +64,23 @@ public class ConstellioAgentUtils {
 		if (rmConfigs.isAgentEnabled()) {
 			Page page = Page.getCurrent();
 			URI location = page.getLocation();
-			if (contextPath == null) {
-				VaadinRequest vaadinRequest = VaadinService.getCurrentRequest();
-				contextPath = vaadinRequest.getContextPath();
-			}
+			String contextPath = VaadinServlet.getCurrent().getServletContext().getContextPath();
+			
 			String schemeSpecificPart = location.getSchemeSpecificPart();
-			String schemeSpecificPartBeforeContextPath = StringUtils.substringBefore(schemeSpecificPart, contextPath);
+			String schemeSpecificPartBeforeContextPath;
+			if (StringUtils.isNotBlank(contextPath)) {
+				schemeSpecificPartBeforeContextPath = StringUtils.substringBeforeLast(schemeSpecificPart, contextPath);
+			} else {
+				schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
+			}
 
 			StringBuffer sb = new StringBuffer();
 			sb.append(location.getScheme());
 			sb.append(":");
 			sb.append(schemeSpecificPartBeforeContextPath);
-			sb.append(contextPath);
+			if (StringUtils.isNotBlank(contextPath)) {
+				sb.append(contextPath);
+			}
 			sb.append("/agentPath");
 			agentBaseURL = sb.toString();
 		} else {

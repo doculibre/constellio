@@ -112,4 +112,9 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return Duration.standardMinutes(15);
 	}
 
+	@Override
+	public int getSecondTransactionLogBackupCount() {
+		return 2;
+	}
+
 }

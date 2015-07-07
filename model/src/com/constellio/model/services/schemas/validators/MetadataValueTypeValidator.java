@@ -146,7 +146,7 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE_MESSAGE_PARAM, metadata.getCode());
 		parameters.put(EXPECTED_TYPE_MESSAGE_PARAM, expected);
-		parameters.put(WAS_VALUE_CLASS_MESSAGE_PARAM, value.getClass().getName());
+		parameters.put(WAS_VALUE_CLASS_MESSAGE_PARAM, value == null ? "null" : value.getClass().getName());
 		return parameters;
 	}
 }

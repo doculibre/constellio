@@ -31,6 +31,7 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class DocumentToVOBuilder extends RecordToVOBuilder {
@@ -65,7 +66,11 @@ public class DocumentToVOBuilder extends RecordToVOBuilder {
 				Content content = rm.wrapDocument(record).getContent();
 				if (content != null) {
 					ContentVersion contentVersion = content.getCurrentVersion();
-					parsedContent = modelLayerFactory.getContentManager().getParsedContent(contentVersion.getHash());
+					try {
+						parsedContent = modelLayerFactory.getContentManager().getParsedContent(contentVersion.getHash());
+					} catch (ContentManagerRuntimeException_NoSuchContent e) {
+						//OK
+					}
 				}
 			}
 		}

@@ -52,6 +52,7 @@ import org.mockito.Mock;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
@@ -98,6 +99,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	String deleteByQueryParams;
 	RecordsFlushing recordsFlushing = RecordsFlushing.LATER();
 
+	DataLayerLogger dataLayerLogger = new DataLayerLogger();
 	String firstTransactionId = "firstTransaction";
 	List<SolrInputDocument> firstTransactionNewRecords = new ArrayList<>();
 	List<SolrInputDocument> firstTransactionModifiedRecords = new ArrayList<>();
@@ -136,7 +138,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		when(recordDao.getBigVaultServer()).thenReturn(bigVaultServer);
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager));
+				backgroundThreadsManager, dataLayerLogger));
 		transactionLog.initialize();
 
 		record1 = newSolrInputDocument("record1", -1L);
@@ -326,7 +328,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager));
+				backgroundThreadsManager, dataLayerLogger));
 
 		doReturn(true).when(transactionLog).isCommitted(firstTransactionTempFile, recordDao);
 		doReturn(false).when(transactionLog).isCommitted(secondTransactionTempFile, recordDao);
@@ -344,7 +346,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	public void givenPreparedIsCalledBeforeInitializingTheTransactionLogThenException() {
 
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager));
+				backgroundThreadsManager, dataLayerLogger));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 
 	}

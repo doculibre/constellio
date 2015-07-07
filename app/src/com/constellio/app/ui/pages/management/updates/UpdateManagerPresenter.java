@@ -90,6 +90,15 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		}
 	}
 
+	public void restartAndReindex() {
+		appLayerFactory.newApplicationService().markForReindexing();
+		try {
+			appLayerFactory.newApplicationService().restart();
+		} catch (AppManagementServiceException ase) {
+			view.showError($("UpdateManagerViewImpl.error.restart"));
+		}
+	}
+
 	public String getCurrentVersion() {
 		return appLayerFactory.newApplicationService().getWarVersion();
 	}

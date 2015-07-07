@@ -129,28 +129,34 @@ public class MainLayoutPresenter implements Serializable {
 	public String getCurrentVersion() {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
-		String version = appLayerFactory.newMigrationServices().getCurrentVersion(collection);
+
+		String version = appLayerFactory.newApplicationService().getWarVersion();
+
+		if (version == null || version.equals("5.0.0")) {
+			version = appLayerFactory.newMigrationServices().getCurrentVersion(collection);
+		}
 
 		if (version != null) {
-			return toThreeDigitVersion(version) + (isBeta() ? " beta" : "");
+			return toPrintableVersion(version) + (isBeta() ? " beta" : "");
 		} else {
 			return isBeta() ? "beta" : "";
 		}
 
 	}
 
-	private String toThreeDigitVersion(String version) {
+	private String toPrintableVersion(String version) {
 
 		String[] versionSplitted = version.split("\\.");
 
-		if (versionSplitted.length == 4) {
-			return versionSplitted[0] + "." + versionSplitted[1] + "." + versionSplitted[2];
+		if (versionSplitted.length == 5) {
+			return versionSplitted[0] + "." + versionSplitted[1] + "." + versionSplitted[2] + "." + versionSplitted[3];
 		}
 		return version;
 	}
 
 	public boolean isBeta() {
-		return "t".equals(System.getProperty("b"));
+		return false;
+		//return "t".equals(System.getProperty("b"));
 	}
 
 }

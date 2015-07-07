@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Scanner;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ReaderInputStream;
@@ -307,6 +308,14 @@ public class StreamsServices {
 				});
 			}
 		};
+	}
+
+	public Scanner newFileScanner(File file) {
+		try {
+			return new Scanner(file);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public class FileInputStreamFactory implements StreamFactory<InputStream> {

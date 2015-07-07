@@ -19,6 +19,7 @@ package com.constellio.sdk.tests;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
 import java.io.File;
@@ -39,6 +40,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.constellio.app.services.extensions.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -56,10 +59,12 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class FactoriesTestFeatures {
 
+	private List<String> loggingOfRecords = new ArrayList<>();
 	private boolean dummyPasswords;
 
 	private File initialState;
@@ -179,6 +184,11 @@ public class FactoriesTestFeatures {
 
 				@Override
 				public DataLayerFactory decorateDataLayerFactory(DataLayerFactory dataLayerFactory) {
+
+					if (!loggingOfRecords.isEmpty()) {
+						dataLayerFactory.getDataLayerLogger().setMonitoredIds(loggingOfRecords);
+					}
+
 					if (spiedClasses.isEmpty()) {
 						return dataLayerFactory;
 					} else {
@@ -187,12 +197,41 @@ public class FactoriesTestFeatures {
 				}
 
 				@Override
-				public ModelLayerFactory decorateModelServicesFactory(ModelLayerFactory modelLayerFactory) {
-					if (spiedClasses.isEmpty()) {
+				public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
+
+					if (spiedClasses.isEmpty() && !dummyPasswords) {
 						return modelLayerFactory;
 					} else {
-						return spy(modelLayerFactory);
+						ModelLayerFactory spiedModelLayerFactory = spy(modelLayerFactory);
+
+						if (dummyPasswords) {
+							doAnswer(new Answer() {
+								@Override
+								public Object answer(InvocationOnMock invocation)
+										throws Throwable {
+									Object value = invocation.callRealMethod();
+
+									List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
+									StringBuilder passwordFileContent = new StringBuilder();
+									for (UserCredential user : users) {
+										passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
+									}
+									File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
+											.getSettingsFileSystemBaseFolder();
+									File authenticationFile = new File(settingsFolder, "authentification.properties");
+									try {
+										FileUtils.write(authenticationFile, passwordFileContent.toString());
+									} catch (IOException e) {
+										throw new RuntimeException(e);
+									}
+
+									return value;
+								}
+							}).when(spiedModelLayerFactory).initialize();
+						}
+						return spiedModelLayerFactory;
 					}
+
 				}
 
 				@Override
@@ -244,6 +283,7 @@ public class FactoriesTestFeatures {
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
+
 			}
 		}
 
@@ -327,5 +367,14 @@ public class FactoriesTestFeatures {
 
 	public void setSystemLanguage(String languageCode) {
 		this.systemLanguage = languageCode;
+	}
+
+	public FactoriesTestFeatures withLoggingOfRecords(String... loggingOfRecordsArray) {
+		loggingOfRecords.addAll(asList(loggingOfRecordsArray));
+		return this;
+	}
+
+	public boolean isInitialized() {
+		return factoriesInstance != null;
 	}
 }

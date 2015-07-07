@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.utils.LoggerUtils;
 
 public class DataLayerLogger {
@@ -85,6 +87,29 @@ public class DataLayerLogger {
 		}
 	}
 
+	public void logTransaction(BigVaultServerTransaction transaction) {
+		StringBuilder logBuilder = new StringBuilder();
+
+		for (SolrInputDocument recordDTO : transaction.getNewDocuments()) {
+			String id = (String) recordDTO.getFieldValue("id");
+			if (monitoredIds.contains(id)) {
+				logBuilder.append("\n\t" + toString(recordDTO));
+			}
+		}
+
+		for (SolrInputDocument recordDTO : transaction.getUpdatedDocuments()) {
+			String id = (String) recordDTO.getFieldValue("id");
+			if (monitoredIds.contains(id)) {
+				logBuilder.append("\n\t" + toString(recordDTO));
+			}
+		}
+
+		String log = logBuilder.toString();
+		if (!log.isEmpty()) {
+			LOGGER.info("Transaction #" + transaction.getTransactionId() + log);
+		}
+	}
+
 	private static List<String> hiddenFieldsInLogs = asList("modifiedOn_dt", "createdOn_dt");
 
 	private String toString(RecordDeltaDTO recordDeltaDTO) {
@@ -122,6 +147,23 @@ public class DataLayerLogger {
 				log.append(field.getKey());
 				log.append(":");
 				log.append(field.getValue());
+				log.append("; ");
+			}
+		}
+
+		return log.toString();
+	}
+
+	private String toString(SolrInputDocument document) {
+		StringBuilder log = new StringBuilder();
+		String id = (String) document.getFieldValue("id");
+		log.append(id + ">>  ");
+		for (String fieldName : document.getFieldNames()) {
+			Object fieldValues = document.getFieldValues(fieldName);
+			if (!hiddenFieldsInLogs.contains(fieldName)) {
+				log.append(fieldName);
+				log.append(":");
+				log.append(fieldValues);
 				log.append("; ");
 			}
 		}

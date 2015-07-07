@@ -81,6 +81,17 @@ public class VersionsComparatorTest extends ConstellioTest {
 		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.1", "5.0.1.0")).isFalse();
 		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.1.0", "5.0.1")).isFalse();
 		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.1.0", "5.0.1.0")).isFalse();
-	}
 
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.0.1", "5.1.1.1.0")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.0.1.0", "5.1.1.1")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.0.1.0", "5.1.1.1.0")).isTrue();
+
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.0.1", "5.1.0.1.0")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.0.1.0", "5.1.0.1")).isTrue();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.0.1.0", "5.1.0.1.0")).isTrue();
+
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.1.1", "5.1.0.1.0")).isFalse();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.1.1.0", "5.1.0.1")).isFalse();
+		assertThat(VersionsComparator.isFirstVersionBeforeOrEqualToSecond("5.1.1.1.0", "5.1.0.1.0")).isFalse();
+	}
 }

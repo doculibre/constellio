@@ -84,6 +84,10 @@ public class FoldersLocator {
 		return fileChildren.containsAll(fileChildrenExpectedList);
 	}
 
+	public File getKeystoreFile() {
+		return new File(getConfFolder(), "keystore.jks");
+	}
+
 	public File getWrapperConf() {
 		return new File(getConfFolder(), "wrapper.conf");
 	}

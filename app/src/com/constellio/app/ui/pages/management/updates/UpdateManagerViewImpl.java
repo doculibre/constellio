@@ -95,9 +95,19 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				presenter.restart();
 			}
 		});
+
 		restartMessage.setVisible(false);
 		layout.addComponent(restartMessage);
 		layout.addComponent(restart);
+
+		Button restartAndReindex = new Button($("UpdateManagerViewImpl.restartAndReindexButton"));
+		restartAndReindex.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.restartAndReindex();
+			}
+		});
+		layout.addComponent(restartAndReindex);
 
 		return layout;
 	}
@@ -195,9 +205,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 	@Override
 	public void uploadSucceeded(SucceededEvent event) {
-		if(event.getLength() == 0 || event.getFilename().isEmpty()){
+		if (event.getLength() == 0 || event.getFilename().isEmpty()) {
 			showErrorMessage($("UpdateManagerViewImpl.error.file"));
-		}else {
+		} else {
 			presenter.uploadSucceeded(new ProgressInfo());
 			if (!error) {
 				restartMessage.setVisible(true);

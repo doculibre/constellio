@@ -20,12 +20,15 @@ package com.constellio.data.threads;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured;
 
 public class BackgroundThreadsManager implements StatefulService {
+
+	AtomicBoolean systemStarted = new AtomicBoolean(false);
 
 	int threadPoolSize;
 
@@ -47,6 +50,10 @@ public class BackgroundThreadsManager implements StatefulService {
 		}
 	}
 
+	public void onSystemStarted() {
+		systemStarted.set(true);
+	}
+
 	public void configure(BackgroundThreadConfiguration backgroundThreadConfiguration) {
 		if (scheduledExecutorService == null) {
 			throw new BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads();
@@ -62,12 +69,13 @@ public class BackgroundThreadsManager implements StatefulService {
 	}
 
 	Runnable getRunnableCommand(BackgroundThreadConfiguration backgroundThreadConfiguration) {
-		return new BackgroundThreadCommand(backgroundThreadConfiguration);
+		return new BackgroundThreadCommand(backgroundThreadConfiguration, systemStarted);
 	}
 
 	ScheduledExecutorService newScheduledExecutorService() {
 		return Executors.newScheduledThreadPool(threadPoolSize);
 	}
+
 }
 
 

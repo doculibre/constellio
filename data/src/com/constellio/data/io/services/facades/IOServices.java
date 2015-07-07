@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.List;
+import java.util.Scanner;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
@@ -126,6 +127,10 @@ public class IOServices {
 	public StreamFactory<Reader> newFileReaderFactory(File file)
 			throws FileNotFoundException {
 		return streamsServices.newFileReaderFactory(file);
+	}
+
+	public Scanner newFileScanner(File file) {
+		return streamsServices.newFileScanner(file);
 	}
 
 	public InputStream newFileInputStream(File file, String name)
@@ -374,4 +379,5 @@ public class IOServices {
 			throw new RuntimeException(e);
 		}
 	}
+
 }

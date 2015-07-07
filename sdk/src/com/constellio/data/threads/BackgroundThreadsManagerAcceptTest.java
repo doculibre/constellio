@@ -58,6 +58,26 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 	@SlowTest
 	@Test
+	public void givenSystemIsNotYetStartedThenWaitUntilStartedBeforeExecuting()
+			throws Exception {
+		backgroundThreadsManager.systemStarted.set(false);
+		Runnable threadAction = spy(new TestSleepingRunnable(50, counter));
+		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("action1", threadAction).executedEvery(
+				Duration.standardSeconds(1)));
+
+		Thread.sleep(5000);
+		assertThat(counter.get()).isZero();
+
+		backgroundThreadsManager.systemStarted.set(true);
+		Thread.sleep(5000);
+		assertThat(counter.get()).isGreaterThan(1);
+
+		backgroundThreadsManager.close();
+
+	}
+
+	@SlowTest
+	@Test
 	public void whenConfiguringAThreadToExecuteAnActionOf2SecondsEvery3SecondsThenWait1SecondsBetweenRuns()
 			throws Exception {
 

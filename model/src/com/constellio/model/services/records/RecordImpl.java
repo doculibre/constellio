@@ -88,7 +88,7 @@ public class RecordImpl implements Record {
 		this.schemaCode = (String) recordDTO.getFields().get("schema_s");
 		this.collection = (String) recordDTO.getFields().get("collection_s");
 		if (collection == null) {
-			throw new IllegalArgumentException("Require collection code");
+			throw new IllegalArgumentException("Require collection code for record '" + id + "'");
 		}
 
 		this.followers = (List<String>) recordDTO.getFields().get("followers_ss");

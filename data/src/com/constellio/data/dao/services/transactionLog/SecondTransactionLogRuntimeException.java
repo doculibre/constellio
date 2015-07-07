@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.data.dao.services.transactionLog;
 
+import java.util.List;
+
 public class SecondTransactionLogRuntimeException extends RuntimeException {
 
 	public SecondTransactionLogRuntimeException(String message) {
@@ -76,6 +78,22 @@ public class SecondTransactionLogRuntimeException extends RuntimeException {
 
 		public SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault(Throwable t) {
 			super("Could not regroup and move in vault", t);
+		}
+	}
+
+	public static class SecondTransactionLogRuntimeException_CannotParseLogCommand
+			extends SecondTransactionLogRuntimeException {
+
+		public SecondTransactionLogRuntimeException_CannotParseLogCommand(List<String> lines, String fileName, Throwable t) {
+			super("Cannot parse log command in file '" + fileName + "' : " + toCommand(lines), t);
+		}
+
+		private static String toCommand(List<String> lines) {
+			StringBuilder stringBuilder = new StringBuilder();
+			for (String line : lines) {
+				stringBuilder.append("\n\t" + line);
+			}
+			return stringBuilder.toString();
 		}
 	}
 }

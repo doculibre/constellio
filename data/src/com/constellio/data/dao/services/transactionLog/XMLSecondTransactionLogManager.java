@@ -19,7 +19,6 @@ package com.constellio.data.dao.services.transactionLog;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -37,6 +36,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
@@ -46,12 +46,15 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
@@ -61,6 +64,7 @@ import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoE
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CannotParseLogCommand;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
@@ -109,8 +113,10 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	private BackgroundThreadsManager backgroundThreadsManager;
 
+	private DataLayerLogger dataLayerLogger;
+
 	public XMLSecondTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices, RecordDao recordDao,
-			ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager) {
+			ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager, DataLayerLogger dataLayerLogger) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
 		this.ioServices = ioServices;
@@ -118,6 +124,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		this.bigVaultServer = recordDao.getBigVaultServer();
 		this.contentDao = contentDao;
 		this.backgroundThreadsManager = backgroundThreadsManager;
+		this.dataLayerLogger = dataLayerLogger;
 	}
 
 	@Override
@@ -156,6 +163,38 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		}
 	}
 
+	@Override
+	public void moveTLOGToBackup() {
+		regroupAndMoveInVault();
+		String backupFolderId = "tlogs_bck/" + TimeProvider.getLocalDateTime().toString("yyyy-MM-dd-HH-mm-ss");
+		contentDao.moveFolder("tlogs", backupFolderId);
+
+	}
+
+	@Override
+	public void deleteLastTLOGBackup() {
+		List<String> backups;
+
+		while ((backups = contentDao.getFolderContents("tlogs_bck")).size() > configuration
+				.getSecondTransactionLogBackupCount()) {
+			String deletedFolderId = null;
+			LocalDateTime deletedFolderDateTime = null;
+
+			for (String backup : backups) {
+				String backupName = backup.split("/")[1];
+				DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd-HH-mm-ss");
+				LocalDateTime backupDateTime = LocalDateTime.parse(backupName, dateTimeFormatter);
+				if (deletedFolderId == null || deletedFolderDateTime.isAfter(backupDateTime)) {
+					deletedFolderId = backup;
+					deletedFolderDateTime = backupDateTime;
+				}
+			}
+
+			contentDao.deleteFolder(deletedFolderId);
+		}
+
+	}
+
 	private void clearSolrCollection() {
 
 		ModifiableSolrParams deleteAllSolrDocumentsOfEveryConstellioCollectionsQuery = new ModifiableSolrParams();
@@ -171,7 +210,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	private void replayTransactionLogs(List<File> tLogs) {
-		BigVaultLogAddUpdater addUpdater = new BigVaultLogAddUpdater(bigVaultServer);
+		BigVaultLogAddUpdater addUpdater = new BigVaultLogAddUpdater(bigVaultServer, dataLayerLogger);
 		for (File tLog : tLogs) {
 			replayTransactionLog(tLog, addUpdater);
 		}
@@ -179,22 +218,21 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	}
 
 	private void replayTransactionLog(File tLog, BigVaultLogAddUpdater addUpdater) {
-		BufferedReader tLogReader = ioServices.newFileReader(tLog, RECOVERED_TLOG_REPLAY);
-		try {
-			Iterator<BigVaultServerTransaction> operationsIterator = newTransactionsIterator(tLogReader);
+		String fileContent = ioServices.readFileToStringWithoutExpectableIOException(tLog);
+		fileContent = fileContent.replace("\r\n", "__LINEBREAK__");
+		StringTokenizer lines = new StringTokenizer(fileContent, "\n");
 
-			while (operationsIterator.hasNext()) {
-				addUpdater.add(operationsIterator.next());
-			}
+		Iterator<BigVaultServerTransaction> operationsIterator = newTransactionsIterator(tLog.getName(), lines);
 
-		} finally {
-			ioServices.closeQuietly(tLogReader);
+		while (operationsIterator.hasNext()) {
+			addUpdater.add(operationsIterator.next());
 		}
+
 	}
 
-	private Iterator<BigVaultServerTransaction> newTransactionsIterator(final BufferedReader tLogReader) {
+	private Iterator<BigVaultServerTransaction> newTransactionsIterator(final String fileName, StringTokenizer lines) {
 
-		final Iterator<List<String>> transactionLinesIterator = newTransactionsLinesIterator(tLogReader);
+		final Iterator<List<String>> transactionLinesIterator = newTransactionsLinesIterator(lines);
 
 		return new LazyIterator<BigVaultServerTransaction>() {
 			@Override
@@ -207,14 +245,14 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 				List<String> currentAddUpdateLines = new ArrayList<>();
 				for (String line : transactionLinesIterator.next()) {
 					if (isFirstLineOfOperation(line) && !currentAddUpdateLines.isEmpty()) {
-						addOperationToTransaction(transaction, currentAddUpdateLines);
+						addOperationToTransaction(fileName, transaction, currentAddUpdateLines);
 						currentAddUpdateLines.clear();
 					}
 					currentAddUpdateLines.add(line);
 				}
 
 				if (!currentAddUpdateLines.isEmpty()) {
-					addOperationToTransaction(transaction, currentAddUpdateLines);
+					addOperationToTransaction(fileName, transaction, currentAddUpdateLines);
 				}
 
 				return transaction;
@@ -223,7 +261,8 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		};
 	}
 
-	private void addOperationToTransaction(BigVaultServerTransaction transaction, List<String> currentAddUpdateLines) {
+	private void addOperationToTransaction(String fileName, BigVaultServerTransaction transaction,
+			List<String> currentAddUpdateLines) {
 		String firstLine = currentAddUpdateLines.get(0);
 
 		if (firstLine.startsWith("addUpdate ")) {
@@ -232,14 +271,19 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 			String id = firstLineParts[1];
 			String version = firstLineParts[2];
 			KeyListMap<String, Object> fieldValues = new KeyListMap<>();
-			for (int i = 1; i < currentAddUpdateLines.size(); i++) {
-				String line = currentAddUpdateLines.get(i);
-				int indexOfEqualSign = line.indexOf("=");
-				String field = line.substring(0, indexOfEqualSign);
-				String value = line.substring(indexOfEqualSign + 1);
-				Object convertedValue = convertValueForLogReplay(field, value);
 
-				fieldValues.add(field, convertedValue);
+			for (int i = 1; i < currentAddUpdateLines.size(); i++) {
+				try {
+					String line = currentAddUpdateLines.get(i);
+					int indexOfEqualSign = line.indexOf("=");
+					String field = line.substring(0, indexOfEqualSign);
+					String value = line.substring(indexOfEqualSign + 1);
+					Object convertedValue = convertValueForLogReplay(field, value);
+
+					fieldValues.add(field, convertedValue);
+				} catch (RuntimeException e) {
+					throw new SecondTransactionLogRuntimeException_CannotParseLogCommand(currentAddUpdateLines, fileName, e);
+				}
 			}
 			SolrInputDocument document = buildAddUpdateDocument(id, fieldValues);
 			if (version.equals("-1")) {
@@ -287,34 +331,30 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		return inputDocument;
 	}
 
-	private Iterator<List<String>> newTransactionsLinesIterator(final BufferedReader tLogReader) {
+	private Iterator<List<String>> newTransactionsLinesIterator(final StringTokenizer lines) {
 
 		return new LazyIterator<List<String>>() {
 
 			@Override
 			protected List<String> getNextOrNull() {
 				List<String> currentLines = new ArrayList<>();
-				try {
 
-					while (true) {
-						String line = tLogReader.readLine();
-						if (line != null && line.startsWith("__LINEBREAK__")) {
-							int lastLineIndex = currentLines.size() - 1;
-							String lastLine = currentLines.get(lastLineIndex);
-							currentLines.set(lastLineIndex, lastLine + line);
+				while (lines.hasMoreTokens()) {
+					String line = lines.nextToken();
+					if (line != null && line.startsWith("__LINEBREAK__")) {
+						int lastLineIndex = currentLines.size() - 1;
+						String lastLine = currentLines.get(lastLineIndex);
+						currentLines.set(lastLineIndex, lastLine + line);
 
-						} else if (line != null && (!isFirstLineOfTransaction(line) || currentLines.isEmpty())) {
-							currentLines.add(line);
+					} else if (line != null && (!isFirstLineOfTransaction(line) || currentLines.isEmpty())) {
+						currentLines.add(line);
 
-						} else {
-							break;
-						}
+					} else {
+						break;
 					}
-
-					return currentLines.isEmpty() ? null : currentLines;
-				} catch (IOException e) {
-					throw new RuntimeException(e);
 				}
+
+				return currentLines.isEmpty() ? null : currentLines;
 			}
 		};
 	}
@@ -779,8 +819,11 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 		BigVaultServer server;
 
-		private BigVaultLogAddUpdater(BigVaultServer server) {
+		DataLayerLogger dataLayerLogger;
+
+		private BigVaultLogAddUpdater(BigVaultServer server, DataLayerLogger dataLayerLogger) {
 			this.server = server;
+			this.dataLayerLogger = dataLayerLogger;
 		}
 
 		int merged = 0;
@@ -801,6 +844,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 		private void write(BigVaultServerTransaction transaction) {
 			try {
+				dataLayerLogger.logTransaction(transaction);
 				server.addAll(transaction);
 			} catch (Exception e) {
 				throw new RuntimeException(e);

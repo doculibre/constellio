@@ -31,4 +31,8 @@ public interface SecondTransactionLogManager extends StatefulService {
 	String regroupAndMoveInVault();
 
 	void destroyAndRebuildSolrCollection();
+
+	void moveTLOGToBackup();
+
+	void deleteLastTLOGBackup();
 }

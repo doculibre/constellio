@@ -37,6 +37,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class SystemStateExportParamsAcceptTest extends ConstellioTest {
@@ -63,6 +64,8 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 						.withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withAllTestUsers().withConstellioRMModule()
 		);
+
+		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
 
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -112,6 +115,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 		File contentFolder = new File(unzipFolder, "content");
 		assertThat(contentFolder)
 				.has(transactionLogs())
+				.has(noTransactionLogBackups())
 				.has(contents(document1CurrentContent, document1PreviousContent, document2CurrentContent,
 						document2PreviousContent));
 	}
@@ -136,6 +140,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 		File contentFolder = new File(unzipFolder, "content");
 		assertThat(contentFolder)
 				.has(transactionLogs())
+				.has(noTransactionLogBackups())
 				.has(noContents());
 	}
 
@@ -159,6 +164,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 		File contentFolder = new File(unzipFolder, "content");
 		assertThat(contentFolder)
 				.has(transactionLogs())
+				.has(noTransactionLogBackups())
 				.has(contents(document1CurrentContent, document1PreviousContent));
 	}
 
@@ -240,6 +246,16 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 			public boolean matches(File folder) {
 				assertThat(folder.list()).contains("tlogs");
 				assertThat(new File(folder, "tlogs").list()).isNotEmpty();
+				return true;
+			}
+		};
+	}
+
+	private Condition<? super File> noTransactionLogBackups() {
+		return new Condition<File>() {
+			@Override
+			public boolean matches(File folder) {
+				assertThat(folder.list()).doesNotContain("tlogs_bck");
 				return true;
 			}
 		};

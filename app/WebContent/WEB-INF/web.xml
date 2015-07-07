@@ -9,7 +9,7 @@
     <context-param>
         <description>Vaadin production mode</description>
         <param-name>productionMode</param-name>
-        <param-value>false</param-value>
+        <param-value>true</param-value>
     </context-param>
 
     <servlet>
@@ -221,7 +221,7 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
-    
+
     <servlet>
         <servlet-name>ConfigAgentServlet</servlet-name>
         <servlet-class>com.constellio.app.modules.rm.agent.services.ConfigAgentServlet</servlet-class>
@@ -340,7 +340,7 @@
         <servlet-name>Benchmark Service</servlet-name>
         <url-pattern>/benchmark</url-pattern>
     </servlet-mapping>
-    
+
     <servlet-mapping>
         <servlet-name>AuthenticateAgentServlet</servlet-name>
         <url-pattern>/agent/authenticate</url-pattern>

@@ -26,6 +26,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
@@ -37,6 +39,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 
+	AtomicBoolean systemStarted = new AtomicBoolean(true);
 	TestRunnable nestedCommand;
 	String zeId = "zeId";
 	BackgroundThreadConfiguration configuration;
@@ -45,12 +48,11 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
 		nestedCommand = spy(new TestRunnable());
 
 		configuration = spy(
 				BackgroundThreadConfiguration.repeatingAction(zeId, nestedCommand).executedEvery(Duration.standardSeconds(42)));
-		command = spy(new BackgroundThreadCommand(configuration));
+		command = spy(new BackgroundThreadCommand(configuration, systemStarted));
 	}
 
 	@Test

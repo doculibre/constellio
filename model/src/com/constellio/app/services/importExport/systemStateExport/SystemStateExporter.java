@@ -149,13 +149,14 @@ public class SystemStateExporter {
 	private void copyContentsTo(File tempFolderContentsFolder, final Set<String> exportedHashes) {
 		final File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
 		final File tlogsFolder = new File(contentsFolder, "tlogs");
+		final File tlogsBckFolder = new File(contentsFolder, "tlogs_bck");
 		try {
 			FileUtils.copyDirectory(contentsFolder, tempFolderContentsFolder, new FileFilter() {
 				@Override
 				public boolean accept(File pathname) {
 
 					if (pathname.equals(contentsFolder) || pathname.getAbsolutePath().contains(tlogsFolder.getAbsolutePath())) {
-						return true;
+						return !pathname.getAbsolutePath().contains(tlogsBckFolder.getAbsolutePath());
 					}
 
 					String name = pathname.getName().contains("_") ? pathname.getName().split("_")[0] : pathname.getName();
@@ -181,6 +182,15 @@ public class SystemStateExporter {
 			FileUtils.copyDirectory(contentsFolder, tempFolderContentsFolder);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+
+		File tlogBackup = new File(tempFolderContentsFolder, "tlogs_bck");
+		if (tlogBackup.exists()) {
+			try {
+				FileUtils.deleteDirectory(tlogBackup);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

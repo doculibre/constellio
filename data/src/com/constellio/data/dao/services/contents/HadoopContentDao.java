@@ -122,6 +122,16 @@ public class HadoopContentDao implements StatefulService, ContentDao {
 		throw new UnsupportedOperationException("getContentLength is not yet supported for HadoopContentDao");
 	}
 
+	@Override
+	public void moveFolder(String folderId, String newFolderId) {
+		throw new UnsupportedOperationException("moveFolder is not yet supported for HadoopContentDao");
+	}
+
+	@Override
+	public void deleteFolder(String folderId) {
+		throw new UnsupportedOperationException("deleteFolder is not yet supported for HadoopContentDao");
+	}
+
 	private String formatIDToHadoop(String id) {
 		return id.replace("/", "_");
 	}

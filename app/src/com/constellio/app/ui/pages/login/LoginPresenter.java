@@ -93,11 +93,12 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
-		
+
 		UserCredential userCredential = userServices.getUserCredential(enteredUsername);
 		String username = userCredential != null ? userCredential.getUsername() : enteredUsername;
 		List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
-		if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE && authenticationService.authenticate(username, password)) {
+		if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE && authenticationService
+				.authenticate(username, password)) {
 			if (!collections.isEmpty()) {
 				String lastCollection = null;
 				User userInLastCollection = null;
@@ -106,9 +107,11 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 				for (String collection : collections) {
 					User userInCollection = userServices.getUserInCollection(username, collection);
 					if (userInLastCollection == null) {
-						lastCollection = collection;
-						userInLastCollection = userInCollection;
-						lastLogin = userInCollection.getLastLogin();
+						if (userInCollection != null) {
+							lastCollection = collection;
+							userInLastCollection = userInCollection;
+							lastLogin = userInCollection.getLastLogin();
+						}
 					} else {
 						if (lastLogin == null && userInCollection.getLastLogin() != null) {
 							lastCollection = collection;
@@ -149,19 +152,19 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					}
 				}
 			} else {
-				view.showUserHasNoCollectionMessage(); 
+				view.showUserHasNoCollectionMessage();
 			}
-		} else { 
+		} else {
 			view.showBadLoginMessage();
 		}
 
 	}
-	
+
 	boolean hasUserDocuments(User user, String collection) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-		
+
 		MetadataSchema userDocumentsSchema = types.getSchema(UserDocument.DEFAULT_SCHEMA);
 		Metadata userMetadata = userDocumentsSchema.getMetadata(UserDocument.USER);
 		LogicalSearchQuery query = new LogicalSearchQuery();
