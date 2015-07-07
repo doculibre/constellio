@@ -47,7 +47,7 @@ public class BackgroundThreadCommand implements Runnable {
 
 		while (!systemStarted.get()) {
 			try {
-				Thread.sleep(500);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}

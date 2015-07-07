@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
@@ -56,6 +59,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 
 public class AppLayerFactory extends LayerFactory {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AppLayerFactory.class);
 
 	private FoldersLocator foldersLocator;
 
@@ -121,7 +126,6 @@ public class AppLayerFactory extends LayerFactory {
 		}
 		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager());
 
-		dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
 	}
 
 	private void setDefaultLocale() {
@@ -155,7 +159,7 @@ public class AppLayerFactory extends LayerFactory {
 
 		String warVersion = newApplicationService().getWarVersion();
 		if (warVersion != null && !"5.0.0".equals(warVersion)) {
-			System.out.println("----------- STARTING APPLICATION IN VERSION " + warVersion + " -----------");
+			LOGGER.info("----------- STARTING APPLICATION IN VERSION " + warVersion + " -----------");
 		}
 
 		try {
@@ -169,6 +173,7 @@ public class AppLayerFactory extends LayerFactory {
 			systemGlobalConfigsManager.setMarkedForReindexing(false);
 		}
 
+		dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
 	}
 
 	@Override

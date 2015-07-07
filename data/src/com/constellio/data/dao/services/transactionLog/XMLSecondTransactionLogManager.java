@@ -697,7 +697,11 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 				}
 			}
 		};
-		List<String> transactionFiles = Arrays.asList(getFlushedFolder().list(filenameFilter));
+
+		String transactionFilesArray[] = getFlushedFolder().list(filenameFilter);
+
+		List<String> transactionFiles =
+				transactionFilesArray == null ? new ArrayList<String>() : Arrays.asList(transactionFilesArray);
 		Collections.sort(transactionFiles);
 		return transactionFiles;
 	}
