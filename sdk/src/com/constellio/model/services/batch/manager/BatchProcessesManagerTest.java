@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -143,7 +144,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		doReturn(aBatchProcessWriter).when(manager).newBatchProcessWriter(aBatchProcessDocument);
 		doReturn(anotherBatchProcessReader).when(manager).newBatchProcessReader(anotherBatchProcessDocument);
 		doReturn(anotherBatchProcessWriter).when(manager).newBatchProcessWriter(anotherBatchProcessDocument);
-
+		doNothing().when(manager).deleteFinishedWithoutErrors();
 	}
 
 	@Test
@@ -521,14 +522,20 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 
 		final AtomicInteger markAllStandbyAsPending = new AtomicInteger();
 
-		new BatchProcessesManager(zeComputer, theWantedPartSize, recordServices, searchServices, configManager) {
+		BatchProcessesManager manager = spy(
+				new BatchProcessesManager(zeComputer, theWantedPartSize, recordServices, searchServices,
+						configManager) {
 
-			@Override
-			public void markAllStandbyAsPending() {
-				markAllStandbyAsPending.incrementAndGet();
-			}
+					@Override
+					public void markAllStandbyAsPending() {
+						markAllStandbyAsPending.incrementAndGet();
+					}
 
-		}.initialize();
+				});
+
+		doNothing().when(manager).deleteFinishedWithoutErrors();
+
+		manager.initialize();
 
 		assertThat(markAllStandbyAsPending.get()).isEqualTo(1);
 	}

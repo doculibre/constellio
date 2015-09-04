@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.entities.ComponentState;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -36,10 +36,17 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
@@ -53,25 +60,27 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
-	
+
 	private VerticalLayout mainLayout;
 	private Label borrowedLabel;
 	private RecordVO recordVO;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
 	private ContentVersionVOTable versionTable;
+	private Component tasksComponent;
 	private UpdateContentVersionWindowImpl uploadWindow;
 	private EditButton editDocumentButton;
 	private DeleteButton deleteDocumentButton;
 	private Button copyContentButton;
 	private WindowButton renameContentButton;
 
-	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton, shareDocumentButton;
+	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton, shareDocumentButton, createPDFAButton, alertWhenAvailableButton;
 
 	private DisplayDocumentPresenter presenter;
 
@@ -104,7 +113,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected String getTitle() {
-		return $("DisplayDocumentView.viewTitle") + " " + presenter.getDocumentTitle();
+		//		return $("DisplayDocumentView.viewTitle") + " " + presenter.getDocumentTitle();
+		return null;
 	}
 
 	@Override
@@ -136,10 +146,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				presenter.deleteContentVersionButtonClicked(contentVersionVO);
 			}
 		};
+		tasksComponent = new CustomComponent();
 		versionTable.setSizeFull();
 
 		tabSheet.addTab(recordDisplay, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(versionTable, $("DisplayDocumentView.tabs.versions"));
+		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
 
 		Component disabled = new CustomComponent();
 		tabSheet.addTab(disabled, $("DisplayDocumentView.tabs.logs"));
@@ -147,6 +159,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		mainLayout.addComponents(borrowedLabel, tabSheet);
 		return mainLayout;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new FolderDocumentBreadcrumbTrail(recordVO.getId());
 	}
 
 	@Override
@@ -175,6 +192,23 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public void setTasks(RecordVODataProvider dataProvider) {
+		Table tasksTable = new RecordVOTable(dataProvider);
+		tasksTable.setSizeFull();
+		tasksTable.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				RecordVOItem item = (RecordVOItem) event.getItem();
+				RecordVO recordVO = item.getRecord();
+				presenter.taskClicked(recordVO);
+			}
+		});
+		Component oldTasksComponent = tasksComponent;
+		tasksComponent = tasksTable;
+		tabSheet.replaceComponent(oldTasksComponent, tasksComponent);
+	}
+
+	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
 
@@ -184,7 +218,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				presenter.editDocumentButtonClicked();
 			}
 		};
-
 
 		deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
 			@Override
@@ -208,6 +241,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
+		createPDFAButton = new LinkButton($("DocumentActionsComponent.createPDFA")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.createPDFAButtonClicked();
+			}
+		};
+
 		shareDocumentButton = new LinkButton($("DocumentActionsComponent.shareDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -226,6 +266,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.checkInButtonClicked();
+			}
+		};
+
+		alertWhenAvailableButton = new LinkButton($("RMObject.alertWhenAvailable")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.alertWhenAvailableClicked();
 			}
 		};
 
@@ -296,9 +343,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(deleteDocumentButton);
 		actionMenuButtons.add(linkToDocumentButton);
 		actionMenuButtons.add(addAuthorizationButton);
+		actionMenuButtons.add(createPDFAButton);
 		actionMenuButtons.add(shareDocumentButton);
 		actionMenuButtons.add(uploadButton);
 		actionMenuButtons.add(checkInButton);
+		actionMenuButtons.add(alertWhenAvailableButton);
 		actionMenuButtons.add(checkOutButton);
 		actionMenuButtons.add(finalizeButton);
 
@@ -356,6 +405,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public void setAlertWhenAvailableButtonState(ComponentState state) {
+		alertWhenAvailableButton.setVisible(state.isVisible());
+		alertWhenAvailableButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
 	public void setCheckOutButtonState(ComponentState state) {
 		checkOutButton.setVisible(state.isVisible());
 		checkOutButton.setEnabled(state.isEnabled());
@@ -370,7 +425,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setEditDocumentButtonState(ComponentState state) {
 		editDocumentButton.setVisible(state.isVisible());
 		editDocumentButton.setEnabled(state.isEnabled());
-		if(renameContentButton != null){
+		if (renameContentButton != null) {
 			renameContentButton.setVisible(state.isVisible());
 			renameContentButton.setEnabled(state.isEnabled());
 		}
@@ -379,7 +434,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void setAddDocumentButtonState(ComponentState state) {
 		//nothing to set only from context
-		if(copyContentButton != null){
+		if (copyContentButton != null) {
 			copyContentButton.setVisible(state.isVisible());
 			copyContentButton.setEnabled(state.isEnabled());
 		}
@@ -401,6 +456,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setShareDocumentButtonState(ComponentState state) {
 		shareDocumentButton.setVisible(state.isVisible());
 		shareDocumentButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setCreatePDFAButtonState(ComponentState state) {
+		createPDFAButton.setVisible(state.isVisible());
+		createPDFAButton.setEnabled(state.isEnabled());
 	}
 
 	@Override

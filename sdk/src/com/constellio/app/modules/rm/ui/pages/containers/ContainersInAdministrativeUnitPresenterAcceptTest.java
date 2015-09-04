@@ -29,7 +29,7 @@ import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -65,6 +65,7 @@ public class ContainersInAdministrativeUnitPresenterAcceptTest extends Constelli
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(sessionContext.getCurrentUser()).thenReturn(currentUser);
 		when(currentUser.getUsername()).thenReturn(chuckNorris);
+		when(currentUser.getId()).thenReturn(records.getChuckNorris().getId());
 
 		presenter = new ContainersInAdministrativeUnitPresenter(view);
 	}
@@ -75,12 +76,9 @@ public class ContainersInAdministrativeUnitPresenterAcceptTest extends Constelli
 		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_TRANSFER_NO_STORAGE_SPACE + "/" + records.unitId_10);
 
 		RecordVODataProvider childAdminUnitsProvider = presenter.getChildrenAdminUnitsDataProvider();
-		RecordVODataProvider filingSpacesProvider = presenter.getFilingSpacesDataProvider();
 
 		assertThat(childAdminUnitsProvider.getSchema().getCode()).isEqualTo(AdministrativeUnit.DEFAULT_SCHEMA);
-		assertThat(recordIdsFrom(childAdminUnitsProvider)).containsOnly(records.unitId_11, records.unitId_12);
-		assertThat(filingSpacesProvider.getSchema().getCode()).isEqualTo(FilingSpace.DEFAULT_SCHEMA);
-		assertThat(recordIdsFrom(filingSpacesProvider)).containsOnly(records.filingId_A);
+		assertThat(recordIdsFrom(childAdminUnitsProvider)).containsOnly(records.unitId_11, records.unitId_12, records.unitId_10a);
 	}
 
 	@Test
@@ -102,12 +100,9 @@ public class ContainersInAdministrativeUnitPresenterAcceptTest extends Constelli
 		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_TRANSFER_WITH_STORAGE_SPACE + "/" + records.unitId_10);
 
 		RecordVODataProvider childAdminUnitsProvider = presenter.getChildrenAdminUnitsDataProvider();
-		RecordVODataProvider filingSpacesProvider = presenter.getFilingSpacesDataProvider();
 
 		assertThat(childAdminUnitsProvider.getSchema().getCode()).isEqualTo(AdministrativeUnit.DEFAULT_SCHEMA);
-		assertThat(recordIdsFrom(childAdminUnitsProvider)).containsOnly(records.unitId_11, records.unitId_12);
-		assertThat(filingSpacesProvider.getSchema().getCode()).isEqualTo(FilingSpace.DEFAULT_SCHEMA);
-		assertThat(recordIdsFrom(filingSpacesProvider)).containsOnly(records.filingId_A);
+		assertThat(recordIdsFrom(childAdminUnitsProvider)).containsOnly(records.unitId_11, records.unitId_12, records.unitId_10a);
 	}
 
 	@Test
@@ -116,12 +111,9 @@ public class ContainersInAdministrativeUnitPresenterAcceptTest extends Constelli
 		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_DEPOSIT_NO_STORAGE_SPACE + "/" + records.unitId_10);
 
 		RecordVODataProvider childAdminUnitsProvider = presenter.getChildrenAdminUnitsDataProvider();
-		RecordVODataProvider filingSpacesProvider = presenter.getFilingSpacesDataProvider();
 
 		assertThat(childAdminUnitsProvider.getSchema().getCode()).isEqualTo(AdministrativeUnit.DEFAULT_SCHEMA);
-		assertThat(recordIdsFrom(childAdminUnitsProvider)).containsOnly(records.unitId_11, records.unitId_12);
-		assertThat(filingSpacesProvider.getSchema().getCode()).isEqualTo(FilingSpace.DEFAULT_SCHEMA);
-		assertThat(recordIdsFrom(filingSpacesProvider)).containsOnly(records.filingId_A);
+		assertThat(recordIdsFrom(childAdminUnitsProvider)).containsOnly(records.unitId_11, records.unitId_12, records.unitId_10a);
 	}
 
 	@Test
@@ -130,12 +122,58 @@ public class ContainersInAdministrativeUnitPresenterAcceptTest extends Constelli
 		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_DEPOSIT_WITH_STORAGE_SPACE + "/" + records.unitId_10);
 
 		RecordVODataProvider childAdminUnitsProvider = presenter.getChildrenAdminUnitsDataProvider();
-		RecordVODataProvider filingSpacesProvider = presenter.getFilingSpacesDataProvider();
 
 		assertThat(childAdminUnitsProvider.getSchema().getCode()).isEqualTo(AdministrativeUnit.DEFAULT_SCHEMA);
-		assertThat(recordIdsFrom(childAdminUnitsProvider)).containsOnly(records.unitId_11, records.unitId_12);
-		assertThat(filingSpacesProvider.getSchema().getCode()).isEqualTo(FilingSpace.DEFAULT_SCHEMA);
-		assertThat(recordIdsFrom(filingSpacesProvider)).containsOnly(records.filingId_A);
+		assertThat(recordIdsFrom(childAdminUnitsProvider)).containsOnly(records.unitId_11, records.unitId_12, records.unitId_10a);
+
+	}
+
+	@Test
+	public void givenAdminUnit10AInTransferNoStorageSpaceWhenGettingContainerDataProvidersThenContainsRightData()
+			throws Exception {
+		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_TRANSFER_NO_STORAGE_SPACE + "/" + records.unitId_10a);
+
+		RecordVODataProvider containersProvider = presenter.getContainersDataProvider();
+
+		assertThat(containersProvider.getSchema().getCode()).isEqualTo(ContainerRecord.DEFAULT_SCHEMA);
+		assertThat(recordIdsFrom(containersProvider))
+				.containsOnly(records.containerId_bac10, records.containerId_bac14, records.containerId_bac15);
+	}
+
+	@Test
+	public void givenAdminUnit10InTransferWithStorageSpaceWhenGettingContainerDataProvidersThenContainsRightData()
+			throws Exception {
+		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_TRANSFER_WITH_STORAGE_SPACE + "/" + records.unitId_10a);
+
+		RecordVODataProvider containersProvider = presenter.getContainersDataProvider();
+
+		assertThat(containersProvider.getSchema().getCode()).isEqualTo(ContainerRecord.DEFAULT_SCHEMA);
+		assertThat(recordIdsFrom(containersProvider))
+				.containsOnly(records.containerId_bac11, records.containerId_bac12, records.containerId_bac13);
+	}
+
+	@Test
+	public void givenAdminUnit10InDepositNoStorageSpaceWhenGettingContainerDataProvidersThenContainsRightData()
+			throws Exception {
+		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_DEPOSIT_NO_STORAGE_SPACE + "/" + records.unitId_10a);
+
+		RecordVODataProvider containersProvider = presenter.getContainersDataProvider();
+
+		assertThat(containersProvider.getSchema().getCode()).isEqualTo(ContainerRecord.DEFAULT_SCHEMA);
+		assertThat(recordIdsFrom(containersProvider))
+				.containsOnly(records.containerId_bac16, records.containerId_bac17);
+	}
+
+	@Test
+	public void givenAdminUnit10InDepositWithStorageSpaceWhenGettingContainerDataProvidersThenContainsRightData()
+			throws Exception {
+		presenter.forParams(ContainersByAdministrativeUnitsPresenter.TAB_DEPOSIT_WITH_STORAGE_SPACE + "/" + records.unitId_10a);
+
+		RecordVODataProvider containersProvider = presenter.getContainersDataProvider();
+
+		assertThat(containersProvider.getSchema().getCode()).isEqualTo(ContainerRecord.DEFAULT_SCHEMA);
+		assertThat(recordIdsFrom(containersProvider))
+				.containsOnly(records.containerId_bac04, records.containerId_bac05);
 	}
 
 	private List<String> recordIdsFrom(RecordVODataProvider dataProvider) {

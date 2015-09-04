@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import com.constellio.data.io.streamFactories.StreamFactory;
@@ -55,10 +56,12 @@ public class LogoUtils {
 		try {
 			FileUtils.copyInputStreamToFile(returnStream, file);
 			//TODO Francis file created by resource is not removed from file system
-			returnStream.close();
+			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
 		} catch (IOException e) {
 			LOGGER.warn(e);
 			return null;
+		} finally {
+			IOUtils.closeQuietly(returnStream);
 		}
 		Resource resource = new FileResource(file);
 		return resource;

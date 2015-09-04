@@ -29,7 +29,7 @@ import com.constellio.app.utils.SerializableChecker.ConstellioNotSerializableExc
 public class ConstellioSerializationUtils {
 	
 	public static void validateSerializable(Serializable serializable) {
-		validateSerializable(serializable, (Class<Object>) null);
+//		validateSerializable(serializable, (Class<Object>) null);
 	}
 	
 	public static void validateSerializable(Serializable serializable, Class<?>...ignoredClasses) {

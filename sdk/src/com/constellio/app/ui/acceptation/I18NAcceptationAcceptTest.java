@@ -97,7 +97,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	private void givenEnglishSystem() {
 		givenSystemLanguageIs("en");
 		givenTransactionLogIsEnabled();
-		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withConstellioRMModule().withAllTestUsers();
+		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withConstellioRMModule().withAllTestUsers().withConstellioESModule();
 		i18n.setLocale(Locale.ENGLISH);
 		locale = Locale.ENGLISH;
 	}
@@ -105,7 +105,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	private void givenFrenchSystem() {
 		givenSystemLanguageIs("fr");
 		givenTransactionLogIsEnabled();
-		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test").withConstellioRMModule().withAllTestUsers();
+		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test").withConstellioRMModule().withAllTestUsers().withConstellioESModule();
 		i18n.setLocale(Locale.FRENCH);
 		locale = Locale.FRENCH;
 	}

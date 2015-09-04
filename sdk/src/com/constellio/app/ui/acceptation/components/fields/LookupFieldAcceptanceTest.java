@@ -39,6 +39,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.LookupTreeDataProvider;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
+import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -247,6 +248,11 @@ public class LookupFieldAcceptanceTest extends ConstellioTest {
 			return null;
 		}
 
+		@Override
+		public void setOnlyLinkables(boolean onlyLinkables) {
+
+		}
+
 	}
 
 	private class DummyLookupTreeDataProvider implements LookupTreeDataProvider<DummyBean> {
@@ -261,13 +267,8 @@ public class LookupFieldAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public int getRootObjectsCount() {
-			return rootDummyBeans.size();
-		}
-
-		@Override
-		public List<DummyBean> getRootObjects(int start, int maxSize) {
-			return subList(rootDummyBeans, start, maxSize);
+		public ObjectsResponse<DummyBean> getRootObjects(int start, int maxSize) {
+			return new ObjectsResponse<>(subList(rootDummyBeans, start, maxSize), (long) rootDummyBeans.size());
 		}
 
 		@Override
@@ -276,13 +277,8 @@ public class LookupFieldAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public int getChildrenCount(DummyBean parent) {
-			return parent.children.size();
-		}
-
-		@Override
-		public List<DummyBean> getChildren(DummyBean parent, int start, int maxSize) {
-			return subList(parent.children, start, maxSize);
+		public ObjectsResponse<DummyBean> getChildren(DummyBean parent, int start, int maxSize) {
+			return new ObjectsResponse<>(subList(parent.children, start, maxSize), (long) parent.children.size());
 		}
 
 		@Override
@@ -298,6 +294,11 @@ public class LookupFieldAcceptanceTest extends ConstellioTest {
 		@Override
 		public String getTaxonomyCode() {
 			return null;
+		}
+
+		@Override
+		public String getCaption(DummyBean id) {
+			return id.name;
 		}
 
 		@Override

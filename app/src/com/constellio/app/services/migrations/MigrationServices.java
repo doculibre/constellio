@@ -40,7 +40,6 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
@@ -84,11 +83,24 @@ public class MigrationServices {
 	}
 
 	private List<Migration> getAllMigrationsFor(String collection) {
+		ConstellioModulesManagerImpl modulesManager = getModulesManager();
 		List<Migration> migrations = new ArrayList<>();
 
-		List<Module> modules = getModulesManager().getInstalledModules();
-		for (Module module : modules) {
-			for (MigrationScript script : ((InstallableModule) module).getMigrationScripts()) {
+		List<InstallableModule> modules = new ArrayList<>(modulesManager.getEnabledModules(collection));
+		for (InstallableModule installableModule : modulesManager.getRequiredDependentModulesToInstall(collection)) {
+
+			if (!modulesManager.isInstalled(installableModule)) {
+				modulesManager.markAsInstalled(installableModule,
+						appLayerFactory.getModelLayerFactory().getCollectionsListManager());
+			}
+			if (!modulesManager.isModuleEnabled(collection, installableModule)) {
+				modulesManager.markAsEnabled(installableModule, collection);
+			}
+			modules.add(installableModule);
+		}
+
+		for (InstallableModule module : modules) {
+			for (MigrationScript script : module.getMigrationScripts()) {
 				migrations.add(new Migration(collection, module.getId(), script));
 			}
 		}
@@ -97,19 +109,15 @@ public class MigrationServices {
 			migrations.add(new Migration(collection, null, script));
 		}
 
-		LOGGER.info("All required migrations : " + migrations);
 		Collections.sort(migrations, MigrationScriptsComparator.forModules(modules));
-		LOGGER.info("All required migrations (sorted) : " + migrations);
 		return migrations;
 	}
 
 	public void migrate(String toVersion)
 			throws OptimisticLockingConfiguration {
 
-		LOGGER.info("Migrating collections to current version");
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
 		for (String collection : collections) {
-			LOGGER.info("Migrating collection " + collection + " to current version");
 			migrate(collection, toVersion);
 		}
 	}
@@ -118,10 +126,8 @@ public class MigrationServices {
 			throws OptimisticLockingConfiguration {
 
 		List<Migration> migrations = getAllMigrationsFor(collection);
-		LOGGER.info("Detected migrations : " + migrations);
 
 		List<Migration> filteredMigrations = filterRunnedMigration(collection, migrations);
-		LOGGER.info("Filtered migrations : " + filteredMigrations);
 
 		boolean firstMigration = true;
 
@@ -183,7 +189,11 @@ public class MigrationServices {
 		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(
 				migration.getModuleId() == null ? "core" : migration.getModuleId(), language, migration.getVersion(), null,
 				ioServices);
-		script.migrate(migration.getCollection(), migrationResourcesProvider, appLayerFactory);
+		try {
+			script.migrate(migration.getCollection(), migrationResourcesProvider, appLayerFactory);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 		setCurrentDataVersion(migration.getCollection(), migration.getVersion());
 		markMigrationAsCompleted(migration);
 	}

@@ -41,7 +41,6 @@ public class ContentVersionDisplay extends CustomComponent {
 		this(recordVO, contentVersionVO, contentVersionVO.toString());
 	}
 
-	@SuppressWarnings("unchecked")
 	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption) {
 		// TODO Remove singleton use
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();

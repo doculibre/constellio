@@ -57,10 +57,10 @@ public class MetadataVOLazyContainer extends LazyQueryContainer {
 			this.dataProvider = dataProvider;
 
 			super.addProperty(LABEL, String.class, null, true, true);
-			super.addProperty(TYPE, String.class, null, true, true);
-			super.addProperty(DISPLAY_TYPE, String.class, null, true, true);
-			super.addProperty(REQUIRED, String.class, null, true, true);
-			super.addProperty(ENABLED, String.class, null, true, true);
+			super.addProperty(TYPE, String.class, null, true, false);
+			super.addProperty(DISPLAY_TYPE, String.class, null, true, false);
+			super.addProperty(REQUIRED, String.class, null, true, false);
+			super.addProperty(ENABLED, String.class, null, true, false);
 		}
 	}
 
@@ -74,6 +74,10 @@ public class MetadataVOLazyContainer extends LazyQueryContainer {
 
 		@Override
 		public Query constructQuery(final QueryDefinition queryDefinition) {
+			if (queryDefinition.getSortPropertyIds().length > 0) {
+				dataProvider.sort(queryDefinition.getSortPropertyIds(), queryDefinition.getSortPropertyAscendingStates());
+			}
+
 			return new SerializableQuery() {
 				@Override
 				public int size() {

@@ -45,148 +45,12 @@ import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
 import com.constellio.model.services.users.sync.LDAPFastBind;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LDAPServices {
+	Logger LOGGER = LoggerFactory.getLogger(LDAPServices.class);
 
-	/*public static List<LDAPUser> getAllUsers2(LDAPDirectoryType directoryType, LdapContext ctx , String contextName) {
-		if (contextName == null || contextName.isEmpty()) {
-			String baseCtx;
-			try {
-				baseCtx = getDefaultNamingContext(ctx);
-				return browseUsersFromBaseContext(directoryType, ctx, baseCtx);
-			} catch (NamingException e) {
-				throw new RuntimeException(e);
-			}
-		} else {
-			try {
-				return searchUsersFromContext(directoryType, ctx, contextName);
-			} catch (NamingException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
-	public static List<LDAPUser> getAllUsers(LDAPDirectoryType directoryType, LdapContext ctx, List<String> baseContextList) {
-		List<LDAPUser> returnList;
-		if (baseContextList == null || baseContextList.isEmpty()) {
-			returnList = getAllUsers2(directoryType, ctx, null);
-		} else {
-			returnList = new ArrayList<>();
-			for (String baseContext : baseContextList) {
-				Collection<? extends LDAPUser> currentfetchedUsers = getAllUsers2(directoryType, ctx, baseContext);
-				returnList.addAll(currentfetchedUsers);
-			}
-		}
-		return returnList;
-	}
-	//Util lorsqu'on n'a pas de context name
-	public static List<LDAPUser> browseUsersFromBaseContext(LDAPDirectoryType directoryType, DirContext ctx, String baseContextName)
-			throws NamingException {
-		List<LDAPUser> users = new ArrayList<>();
-		NamingEnumeration<?> contentsEnum = ctx.list(baseContextName);
-		try {
-			LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
-			while (contentsEnum.hasMore()) {
-				NameClassPair ncp = (NameClassPair) contentsEnum.next();
-				String contentName = ncp.getName();
-				String subContentName = contentName + "," + baseContextName;
-				Attributes attr1 = ctx.getAttributes(subContentName,
-						new String[] { "objectcategory" });
-				if (attr1.get("objectcategory").toString().indexOf("CN=Person") == -1) {
-					// subContexts
-					List<LDAPUser> subUsers = browseUsersFromBaseContext(directoryType, ctx, subContentName);
-					users.addAll(subUsers);
-				} else {
-					try {
-						Attributes attrs = ctx.getAttributes(subContentName, userBuilder.getFetchedAttributes());//
-						LDAPUser user = userBuilder.buildUser(subContentName, attrs);
-						users.add(user);
-					} catch (NamingException ne) {
-						ne.printStackTrace();
-					}
-				}
-			}
-		} catch (PartialResultException e) {
-			System.out.println("Return to root :" + e.getMessage());
-			return users;
-		}
-		return users;
-	}
-
-		private static List<LDAPUser> searchUsersFromContext(LDAPDirectoryType directoryType, DirContext ctx, String usersContainer)
-			throws NamingException {
-		List<LDAPUser> users = new ArrayList<>();
-		SearchControls ctls = new SearchControls();
-		LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
-		ctls.setReturningAttributes(userBuilder.getFetchedAttributes());
-		ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-
-		NamingEnumeration<?> answer = ctx.search(usersContainer, "(objectclass=person)", ctls);
-		while (answer.hasMore()) {
-			SearchResult rslt = (SearchResult) answer.next();
-			Attributes attrs = rslt.getAttributes();
-			LDAPUser user = userBuilder.buildUser("", attrs);
-			users.add(user);
-		}
-		return users;
-	}
-
-	private static String getFirstString(Attribute attribute)
-			throws NamingException {
-		if (attribute == null || attribute.size() == 0) {
-			return "";
-		}
-		return (String) attribute.get(0);
-	}
-
-	public static List<LDAPUser> buildUsersOfgroup(LDAPDirectoryType directoryType, LDAPGroup group, LdapContext ctx) {
-		List<LDAPUser> returnUsers = new ArrayList<>();
-		for (String userId : group.getMembers()) {
-			LDAPUser currentUser = getUser(directoryType, userId, ctx);
-			returnUsers.add(currentUser);
-		}
-		return returnUsers;
-	}
-
-	public static String extractDomaine(LDAPUser ldapUser) {
-		return StringUtils.substringAfter(ldapUser.getId(), ",");
-	}
-
-	public static LDAPUser getUserByUserName(LDAPDirectoryType directoryType, String userName,
-			LdapContext ctx) {
-		try {
-
-			SearchControls sc = new SearchControls();
-			sc.setSearchScope(SearchControls.SUBTREE_SCOPE);
-			String filter = "(name=" + userName + ")";
-			String baseCtx = getDefaultNamingContext(ctx);
-
-			NamingEnumeration<SearchResult> results = ctx.search(baseCtx,
-					filter, sc);
-
-			LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
-			if (results.hasMoreElements()) {
-				SearchResult next = results.next();
-				return userBuilder.buildUser(next.getName(), next.getAttributes());
-			}
-		} catch (NamingException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	private static String getDefaultNamingContext(DirContext dirCtxt)
-			throws NamingException {
-		Attributes attributes = dirCtxt.getAttributes(dirCtxt.getNameInNamespace());
-
-		Attribute attribute = attributes.get("defaultNamingContext");
-		NamingEnumeration<String> all = (NamingEnumeration<String>) attribute.getAll();
-		if (all.hasMoreElements()) {
-			return all.next();
-		} else {
-			throw new RuntimeException("No Default Naming Context!");
-		}
-	}
-	*/
 
 	public Set<LDAPGroup> getAllGroups(LdapContext ctx, List<String> baseContextList) {
 		Set<LDAPGroup> returnList = new HashSet<>();
@@ -261,8 +125,7 @@ public class LDAPServices {
 
 			} while (cookie != null);
 		} catch (Exception e) {
-			System.err.println("PagedSearch failed.");
-			e.printStackTrace();
+			LOGGER.warn("PagedSearch failed.", e);
 		}
 		return groups;
 	}
@@ -388,7 +251,7 @@ public class LDAPServices {
 					return ctx;
 				}
 			} catch (RuntimeException e) {
-				e.printStackTrace();
+				LOGGER.warn("Connection to LDAP domain failed", e);
 			}
 		}
 		return null;
@@ -434,11 +297,11 @@ public class LDAPServices {
 	public Set<String> getUsersUsingFilter(LDAPDirectoryType directoryType, LdapContext ctx,
 			List<String> usersWithoutGroupsBaseContextList, final Filter filter) {
 		Set<String> users = new HashSet<>();
-		for (String currentContex : usersWithoutGroupsBaseContextList) {
+		for (String currentContext : usersWithoutGroupsBaseContextList) {
 			try {
-				users.addAll(searchUsersIdsFromContext(directoryType, ctx, currentContex));
+				users.addAll(searchUsersIdsFromContext(directoryType, ctx, currentContext));
 			} catch (NamingException e) {
-				e.printStackTrace();
+				LOGGER.warn("NamingException when fetchingUsers", e);
 			}
 		}
 		CollectionUtils.filter(users, new Predicate() {

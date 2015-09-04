@@ -17,6 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-public interface FolderAdministrativeUnitField extends CustomOptionFolderField {
-	
+public interface FolderAdministrativeUnitField extends CustomFolderField<String> {
+
 }

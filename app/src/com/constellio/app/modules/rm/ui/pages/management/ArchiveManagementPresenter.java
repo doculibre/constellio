@@ -17,13 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.management;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementView> {
 	public ArchiveManagementPresenter(ArchiveManagementView view) {
@@ -45,7 +43,7 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 	public void onViewAssembled() {
 		User user = getCurrentUser();
 		view.setPrintReportsButtonVisible(user.has(RMPermissionsTo.MANAGE_REPORTS).globally());
-		view.setDecommissioningButtonVisible(user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally());
+		view.setDecommissioningButtonVisible(hasAccessToDecommissioningPage());
 		view.setRobotsButtonVisible(user.has(RMPermissionsTo.MANAGE_ROBOTS).globally());
 		view.setContainersButtonVisible(user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally());
 	}
@@ -54,12 +52,16 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		view.navigateTo().reports();
 	}
 
-	
-	
+	private boolean hasAccessToDecommissioningPage() {
+		User user = getCurrentUser();
+		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
+		return new DecommissioningSecurityService(user.getCollection(), modelLayerFactory)
+				.hasAccessToDecommissioningMainPage(user);
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.hasAny(RMPermissionsTo.MANAGE_REPORTS,
-				RMPermissionsTo.MANAGE_DECOMMISSIONING,
+		return hasAccessToDecommissioningPage() || user.hasAny(RMPermissionsTo.MANAGE_REPORTS,
 				RMPermissionsTo.MANAGE_ROBOTS,
 				RMPermissionsTo.MANAGE_CONTAINERS).globally();
 	}

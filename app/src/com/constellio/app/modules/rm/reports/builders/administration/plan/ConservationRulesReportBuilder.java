@@ -31,7 +31,7 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.Conservat
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Copy;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Rule;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -67,7 +67,7 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 
 	@Override
 	public String getFileExtension() {
-		return pdfTableUtils.PDF;
+		return PdfTableUtils.PDF;
 	}
 
 	@Override

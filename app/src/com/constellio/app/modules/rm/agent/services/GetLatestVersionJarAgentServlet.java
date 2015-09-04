@@ -31,7 +31,7 @@ public class GetLatestVersionJarAgentServlet extends SocketAgentServlet<byte[]> 
 		FoldersLocator foldersLocator = new FoldersLocator();
 		File resourcesFolder = foldersLocator.getModuleResourcesFolder("rm");
 		File agentFolder = new File(resourcesFolder, "agent");
-		File agentJarFile = new File(agentFolder, "constellio-agent.jar");
+		File agentJarFile = new File(agentFolder, "constellio-agent.jar.rename");
 		return FileUtils.readFileToByteArray(agentJarFile);
 	}
 

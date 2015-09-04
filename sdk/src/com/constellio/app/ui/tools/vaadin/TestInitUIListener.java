@@ -76,12 +76,12 @@ public class TestInitUIListener implements InitUIListener {
 	}
 
 	private void writePageLoadTime() {
-		new PageLoadTimeWriter().write(new Date());
-		validateSerializable(ConstellioUI.getCurrent());
+//		new PageLoadTimeWriter().write(new Date());
+//		validateSerializable(ConstellioUI.getCurrent());
 	}
 
 	private void validateSerializable(ConstellioUI ui) {
-		TestSerializationUtils.validateSerializable(ui);
+//		TestSerializationUtils.validateSerializable(ui);
 	}
 
 	@Override

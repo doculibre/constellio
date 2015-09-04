@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.model;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -26,6 +27,10 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -62,4 +67,47 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		recordServices.update(document);
 
 	}
+
+	@Test
+	public void whenCreatingADocumentFromAMSGFileThenExtractMetadatas()
+			throws Exception {
+		ContentManager contentManager = rm.getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary datasummary = contentManager.upload(
+				getTestResourceInputStreamFactory("test.msg").create(SDK_STREAM));
+
+		Document document = rm.newDocumentWithId("zeId")
+				.setFolder(records.folder_A05)
+				.setTitle("a dummy title")
+				.setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
+
+		recordServices.add(document);
+
+		Email email = rm.getEmail("zeId");
+		assertThat(email.getSchemaCode()).isEqualTo(Email.SCHEMA);
+		assertThat(email.getTitle()).isEqualTo("broullion2");
+		assertThat(email.getEmailFrom()).isEqualTo("Addin");
+		assertThat(email.getEmailTo()).isEqualTo(asList("ff@doculibre.com", "ll@doculibre.com"));
+		assertThat(email.getEmailBCCTo()).isEqualTo(asList("rccr@doculibre.com", "hcch@doculibre.com"));
+		assertThat(email.getEmailCCTo()).isEqualTo(asList("rr@doculibre.com", "hh@doculibre.com"));
+		assertThat(email.getEmailObject()).isEqualTo("broullion2");
+	}
+
+	@Test
+	public void whenCreatingAUserDocumentFromAMSGFileThenExtractMetadatas()
+			throws Exception {
+		ContentManager contentManager = rm.getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary datasummary = contentManager.upload(
+				getTestResourceInputStreamFactory("test.msg").create(SDK_STREAM));
+
+		UserDocument userDocument = rm.newUserDocumentWithId("zeId")
+				.setContent(contentManager.createMajor(records.getAdmin(), "test.msg", datasummary));
+
+		recordServices.add(userDocument);
+
+		UserDocument email = rm.getUserDocument("zeId");
+		assertThat(email.getSchemaCode()).isEqualTo(UserDocument.DEFAULT_SCHEMA);
+		assertThat(email.getTitle()).isEqualTo("broullion2");
+
+	}
+
 }

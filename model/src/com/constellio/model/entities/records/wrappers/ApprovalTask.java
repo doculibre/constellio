@@ -20,7 +20,7 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
-public class ApprovalTask extends Task {
+public class ApprovalTask extends WorkflowTask {
 
 	public static final String SCHEMA_LOCAL_CODE = "approval";
 	public static final String SCHEMA_CODE = SCHEMA_TYPE + "_" + SCHEMA_LOCAL_CODE;

@@ -45,7 +45,28 @@ public class StreamsTestFeatures {
 
 	List<String> unClosedResources = new ArrayList<>();
 
+	//	List<Long> openedThreadsAtStartup = new ArrayList<>();
+	//
+	//	public StreamsTestFeatures() {
+	//		for (Thread thread : Thread.getAllStackTraces().keySet()) {
+	//			openedThreadsAtStartup.add(thread.getId());
+	//		}
+	//	}
+
 	public void afterTest() {
+
+		//		List<String> openedThreads = new ArrayList<>();
+		//		for (Thread thread : Thread.getAllStackTraces().keySet()) {
+		//			if (openedThreadsAtStartup.contains(thread.getId())) {
+		//				openedThreads.add(thread.getId() + " - " + thread.getName());
+		//			}
+		//		}
+		//		assertThat(openedThreads).isEmpty();
+
+		//		for (Thread thread : Thread.getAllStackTraces().keySet()) {
+		//			openedThreadsAtStartup.add(thread.getId());
+		//		}
+
 		for (Closeable closeable : closeablesToClose) {
 			IOUtils.closeQuietly(closeable);
 		}

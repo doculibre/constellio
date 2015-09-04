@@ -25,7 +25,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.ui.components.RMMetadataFieldFactory;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentFieldImpl;
-import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeFieldImpl;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeFieldLookupImpl;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.vaadin.ui.Field;
@@ -38,7 +38,7 @@ public class DocumentFieldFactory extends RMMetadataFieldFactory {
 		String metadataCode = metadata.getCode();
 		String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 		if (TYPE.equals(metadataCode) || TYPE.equals(metadataCodeWithoutPrefix)) {
-			field = new DocumentTypeFieldImpl();
+			field = new DocumentTypeFieldLookupImpl();
 		} else if (CONTENT.equals(metadataCode) || CONTENT.equals(metadataCodeWithoutPrefix)) {	
 			field = new DocumentContentFieldImpl();
 		} else {

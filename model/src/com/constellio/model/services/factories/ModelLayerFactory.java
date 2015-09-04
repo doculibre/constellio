@@ -27,21 +27,26 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.emails.EmailQueueManager;
+import com.constellio.model.services.emails.EmailServices;
+import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
-import com.constellio.model.services.notifications.NotificationsServices;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
-import com.constellio.model.services.protocols.EmailServices;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesImpl;
+import com.constellio.model.services.records.cache.CachedRecordServices;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.FreeTextSearchServices;
@@ -82,6 +87,7 @@ public class ModelLayerFactory extends LayerFactory {
 	private final TaxonomiesManager taxonomiesManager;
 	private final AuthorizationDetailsManager authorizationDetailsManager;
 	private final RolesManager rolesManager;
+	private final EmailConfigurationsManager emailConfigurationsManager;
 	private final CollectionsListManager collectionsListManager;
 	private final UserCredentialsManager userCredentialsManager;
 	private final GlobalGroupsManager globalGroupsManager;
@@ -93,12 +99,15 @@ public class ModelLayerFactory extends LayerFactory {
 	private final ModelLayerConfiguration modelLayerConfiguration;
 	private final ContentManager contentsManager;
 	private final AuthenticationService authenticationManager;
+	private final EmailTemplatesManager emailTemplatesManager;
 	//private final LDAPUserSyncManager ldapUserSyncManager;
 	private final ModelLayerExtensions modelLayerExtensions;
 	private final LDAPConfigurationManager ldapConfigurationManager;
 	private final LDAPAuthenticationService ldapAuthenticationService;
 	private final LDAPUserSyncManager ldapUserSyncManager;
 	private final PasswordFileAuthenticationService passwordFileAuthenticationService;
+	private final EmailQueueManager emailQueueManager;
+	private final RecordsCaches recordsCaches = new RecordsCaches();
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -120,14 +129,16 @@ public class ModelLayerFactory extends LayerFactory {
 		this.batchProcessesManager = add(new BatchProcessesManager(modelLayerConfiguration.getComputerName(),
 				modelLayerConfiguration.getBatchProcessesPartSize(), newRecordServices(), newSearchServices(), configManager));
 		this.taxonomiesManager = add(
-				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager));
+				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
+						recordsCaches));
 
 		this.schemasManager = add(new MetadataSchemasManager(configManager, dataLayerFactory.newTypesFactory(), taxonomiesManager,
 				collectionsListManager, batchProcessesManager, newSearchServices()));
 
 		this.batchProcessesController = add(new BatchProcessController(batchProcessesManager, newRecordServices(),
 				modelLayerConfiguration.getNumberOfRecordsPerTask(), schemasManager, newSearchServices()));
-		this.userCredentialsManager = add(new UserCredentialsManager(dataLayerFactory, modelLayerConfiguration));
+		this.userCredentialsManager = add(
+				new UserCredentialsManager(dataLayerFactory, collectionsListManager, modelLayerConfiguration));
 		this.globalGroupsManager = add(new GlobalGroupsManager(configManager));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
 		this.rolesManager = add(new RolesManager(configManager, collectionsListManager));
@@ -153,6 +164,10 @@ public class ModelLayerFactory extends LayerFactory {
 				ioServicesFactory.newHashingService());
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
 				passwordFileAuthenticationService);
+		this.emailConfigurationsManager = add(new EmailConfigurationsManager(configManager, collectionsListManager));
+		this.emailTemplatesManager = add(
+				new EmailTemplatesManager(configManager, collectionsListManager, ioServicesFactory.newIOServices()));
+		this.emailQueueManager = add(new EmailQueueManager(this, new EmailServices()));
 	}
 
 	public ModelLayerExtensions getExtensions() {
@@ -160,12 +175,16 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public RecordServices newRecordServices() {
+		return new CachedRecordServices(this, newCachelessRecordServices(), recordsCaches);
+	}
+
+	public RecordServicesImpl newCachelessRecordServices() {
 		RecordDao recordDao = dataLayerFactory.newRecordDao();
 		RecordDao eventsDao = dataLayerFactory.newEventsDao();
 		RecordDao notificationsDao = dataLayerFactory.newNotificationsDao();
 		DataStoreTypesFactory typesFactory = dataLayerFactory.newTypesFactory();
-		return new RecordServices(recordDao, eventsDao, notificationsDao, this, typesFactory,
-				dataLayerFactory.getUniqueIdGenerator());
+		return new RecordServicesImpl(recordDao, eventsDao, notificationsDao, this, typesFactory,
+				dataLayerFactory.getUniqueIdGenerator(), recordsCaches);
 	}
 
 	public SearchServices newSearchServices() {
@@ -259,11 +278,6 @@ public class ModelLayerFactory extends LayerFactory {
 		return new LoggingServices(this);
 	}
 
-	public NotificationsServices newNotificationsServices() {
-		return new NotificationsServices(dataLayerFactory.newNotificationsDao(), dataLayerFactory.getUniqueIdGenerator(),
-				modelLayerConfiguration);
-	}
-
 	public IOServicesFactory getIOServicesFactory() {
 		return ioServicesFactory;
 	}
@@ -291,10 +305,6 @@ public class ModelLayerFactory extends LayerFactory {
 	public TaskServices newTaskServices() {
 		return new TaskServices(newRecordServices(), newSearchServices(), newWorkflowExecutionService(),
 				getMetadataSchemasManager());
-	}
-
-	public EmailServices newEmailServices() {
-		return new EmailServices(modelLayerConfiguration.getSmtpServerConfig());
 	}
 
 	public ModelLayerConfiguration getConfiguration() {
@@ -327,5 +337,21 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public LDAPUserSyncManager getLdapUserSyncManager() {
 		return ldapUserSyncManager;
+	}
+
+	public EmailConfigurationsManager getEmailConfigurationsManager() {
+		return emailConfigurationsManager;
+	}
+
+	public EmailTemplatesManager getEmailTemplatesManager() {
+		return emailTemplatesManager;
+	}
+
+	public EmailQueueManager getEmailQueueManager() {
+		return emailQueueManager;
+	}
+
+	public RecordsCaches getRecordsCaches() {
+		return recordsCaches;
 	}
 }

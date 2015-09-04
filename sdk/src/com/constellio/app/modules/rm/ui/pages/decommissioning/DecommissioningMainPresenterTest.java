@@ -69,4 +69,19 @@ public class DecommissioningMainPresenterTest extends ConstellioTest {
 		presenter.tabSelected(DecommissioningMainPresenter.PROCESSED);
 		verify(view, times(1)).displayReadOnlyTable(dataProvider);
 	}
+
+	@Test
+	public void givenTheSentForValidationTabIsRequestedThenTheSentForValidationListsInReadOnlyTable() {
+		doReturn(dataProvider).when(presenter).getListsPendingValidation();
+		presenter.tabSelected(DecommissioningMainPresenter.PENDING_VALIDATION);
+		verify(view, times(1)).displayReadOnlyTable(dataProvider);
+	}
+
+	@Test
+	public void givenTheToValidateTabIsRequestedThenTheToValidateListsInReadOnlyTable() {
+		doReturn(dataProvider).when(presenter).getListsToValidate();
+		presenter.tabSelected(DecommissioningMainPresenter.TO_VALIDATE);
+		verify(view, times(1)).displayReadOnlyTable(dataProvider);
+	}
+
 }

@@ -23,13 +23,15 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.google.common.base.Strings;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	private int pageNumber;
@@ -41,13 +43,20 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	@Override
 	public SimpleSearchPresenter forRequestParameters(String params) {
-		if (Strings.isNullOrEmpty(params)) {
-			searchExpression = "";
-			pageNumber = 0;
+		if (StringUtils.isNotBlank(params)) {
+			String[] parts = params.split("/", 3);
+			pageNumber = parts.length == 3 ? Integer.parseInt(parts[2]) : 1;
+			if ("s".equals(parts[0])) {
+				SavedSearch search = getSavedSearch(parts[1]);
+				searchExpression = search.getFreeTextSearch();
+				facetSelections.putAll(search.getSelectedFacets());
+				sortCriterion = search.getSortField();
+				sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+			} else {
+				searchExpression = parts[1];
+			}
 		} else {
-			String[] parts = params.split("/", 2);
-			searchExpression = parts[0];
-			pageNumber = parts.length == 2 ? Integer.parseInt(parts[1]) : 1;
+			searchExpression = "";
 		}
 		return this;
 	}
@@ -121,10 +130,16 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		}
 	}
 
+	@Override
+	protected SavedSearch prepareSavedSearch(SavedSearch search) {
+		return search.setSearchType(SimpleSearchView.SEARCH_TYPE).setFreeTextSearch(searchExpression);
+	}
+
 	private List<MetadataSchemaType> allowedSchemaTypes() {
 		List<MetadataSchemaType> result = new ArrayList<>();
 		for (MetadataSchemaType type : types().getSchemaTypes()) {
-			SchemaTypeDisplayConfig config = schemasDisplayManager().getType(view.getCollection(), type.getCode());
+			SchemaTypeDisplayConfig config = schemasDisplayManager()
+					.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
 			if (config.isSimpleSearch()) {
 				result.add(type);
 			}

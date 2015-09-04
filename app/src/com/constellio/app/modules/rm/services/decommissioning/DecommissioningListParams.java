@@ -24,7 +24,6 @@ public class DecommissioningListParams implements Serializable {
 	private String title;
 	private String description;
 	private List<String> selectedFolderIds;
-	private String filingSpace;
 	private String administrativeUnit;
 	private SearchType searchType;
 
@@ -50,14 +49,6 @@ public class DecommissioningListParams implements Serializable {
 
 	public void setSelectedFolderIds(List<String> selectedFolderIds) {
 		this.selectedFolderIds = selectedFolderIds;
-	}
-
-	public String getFilingSpace() {
-		return filingSpace;
-	}
-
-	public void setFilingSpace(String filingSpace) {
-		this.filingSpace = filingSpace;
 	}
 
 	public String getAdministrativeUnit() {

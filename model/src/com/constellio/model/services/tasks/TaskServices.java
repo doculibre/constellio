@@ -24,7 +24,7 @@ import java.util.Map;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ApprovalTask;
-import com.constellio.model.entities.records.wrappers.Task;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -57,12 +57,12 @@ public class TaskServices {
 		this.metadataSchemasManager = metadataSchemasManager;
 	}
 
-	public Task getCurrentWorkflowManualTask(WorkflowExecution execution) {
+	public WorkflowTask getCurrentWorkflowManualTask(WorkflowExecution execution) {
 
 		String collection = execution.getCollection();
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
-		MetadataSchemaType metadataSchemaType = metadataSchemaTypes.getSchemaType(Task.SCHEMA_TYPE);
-		Metadata workflowIdMetadata = metadataSchemaType.getDefaultSchema().getMetadata(Task.WORKFLOW_ID);
+		MetadataSchemaType metadataSchemaType = metadataSchemaTypes.getSchemaType(WorkflowTask.SCHEMA_TYPE);
+		Metadata workflowIdMetadata = metadataSchemaType.getDefaultSchema().getMetadata(WorkflowTask.WORKFLOW_ID);
 		LogicalSearchCondition condition = newCondition(execution, metadataSchemaType, workflowIdMetadata);
 		Record record = searchServices.searchSingleResult(condition);
 		if (record == null) {
@@ -71,7 +71,7 @@ public class TaskServices {
 		return newRelativeTask(record, metadataSchemaTypes);
 	}
 
-	public Task newRelativeTask(Record record, MetadataSchemaTypes metadataSchemaTypes) {
+	public WorkflowTask newRelativeTask(Record record, MetadataSchemaTypes metadataSchemaTypes) {
 		if (record.getSchemaCode().equals(ApprovalTask.SCHEMA_CODE)) {
 			return newAprovalTask(record, metadataSchemaTypes);
 		} else {
@@ -79,9 +79,9 @@ public class TaskServices {
 		}
 	}
 
-	public void finish(Task task, User user) {
-		task.set(Task.FINISHED_BY, user.getId());
-		task.set(Task.FINISHED_ON, TimeProvider.getLocalDateTime());
+	public void finish(WorkflowTask task, User user) {
+		task.set(WorkflowTask.FINISHED_BY, user.getId());
+		task.set(WorkflowTask.FINISHED_ON, TimeProvider.getLocalDateTime());
 		try {
 			recordServices.update(task);
 		} catch (RecordServicesException e) {
@@ -108,8 +108,8 @@ public class TaskServices {
 		return condition;
 	}
 
-	Task newTask(Record record, MetadataSchemaTypes metadataSchemaTypes) {
-		return new Task(record, metadataSchemaTypes);
+	WorkflowTask newTask(Record record, MetadataSchemaTypes metadataSchemaTypes) {
+		return new WorkflowTask(record, metadataSchemaTypes);
 	}
 
 	ApprovalTask newAprovalTask(Record record, MetadataSchemaTypes metadataSchemaTypes) {

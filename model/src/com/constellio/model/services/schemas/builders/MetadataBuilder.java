@@ -557,6 +557,7 @@ public class MetadataBuilder {
 
 		String dataStoreType = null;
 		switch (type) {
+
 		case BOOLEAN:
 			dataStoreType = typesFactory.forBoolean(multivalue);
 			break;

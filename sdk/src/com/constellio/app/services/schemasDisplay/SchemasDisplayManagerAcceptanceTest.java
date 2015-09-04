@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.services.schemasDisplay;
 
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.FIELD;
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.TEXTAREA;
 import static com.constellio.app.services.schemasDisplay.SchemasDisplayManager.REQUIRED_METADATA_IN_FORM_LIST;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.sdk.tests.TestUtils.asMap;
@@ -40,15 +42,19 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
+	MetadataSchemasManager schemasManager;
 	SchemasDisplayManager manager;
 
 	@Before
@@ -58,6 +64,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 				withZeCollection()
 		);
 		manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 	}
 
 	@Test
@@ -215,7 +222,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
-		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.FIELD);
+		assertThat(metadataDisplay.getInputType()).isEqualTo(FIELD);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.HIDDEN)
@@ -232,7 +239,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
-		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.FIELD);
+		assertThat(metadataDisplay.getInputType()).isEqualTo(FIELD);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.HIDDEN)
@@ -243,7 +250,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isTrue();
 
 		metadataDisplay = manager.getMetadata(zeCollection, "user_default_title");
-		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.FIELD);
+		assertThat(metadataDisplay.getInputType()).isEqualTo(FIELD);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.RICHTEXT)
@@ -320,7 +327,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		// MetadataDisplay
 
 		MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, "group_default_title");
-		assertThat(metadataDisplay.getInputType()).isEqualTo(MetadataInputType.FIELD);
+		assertThat(metadataDisplay.getInputType()).isEqualTo(FIELD);
 		assertThat(metadataDisplay.isVisibleInAdvancedSearch()).isFalse();
 
 		manager.saveMetadata(metadataDisplay.withInputType(MetadataInputType.HIDDEN)
@@ -473,12 +480,160 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private ValidationError error(final String code, final Map<String, String> params) {
-		return new ValidationError(SchemasDisplayManager.class.getName() + "_" + code, params);
+	@Test
+	public void givenUnconfiguredSchemaDisplayWhenGetValueThenReturnDefaultValue()
+			throws Exception {
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
+		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
+		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
+		defaultSchema.create("metadata2").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata1").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata2").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
+
+		SchemaDisplayConfig myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		SchemaDisplayConfig myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_createdOn", "myType_default_modifiedBy",
+				"myType_default_modifiedOn", "myType_default_metadata1", "myType_default_metadata2"));
+
+		assertThat(myTypeCustomSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_createdBy", "myType_custom_createdOn", "myType_custom_modifiedBy",
+				"myType_custom_modifiedOn", "myType_custom_metadata1", "myType_custom_metadata2",
+				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
+
+		manager.saveSchema(myTypeDefaultSchema.withDisplayMetadataCodes(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_modifiedBy", "myType_default_metadata2")));
+
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+		assertThat(myTypeDefaultSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_modifiedBy", "myType_default_metadata2"));
+
+		assertThat(myTypeCustomSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_createdBy", "myType_custom_modifiedBy", "myType_custom_metadata2",
+				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
+
+		manager.resetSchema(zeCollection, "myType_default");
+		myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+		myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+
+		assertThat(myTypeDefaultSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_createdOn", "myType_default_modifiedBy",
+				"myType_default_modifiedOn", "myType_default_metadata1", "myType_default_metadata2"));
+
+		assertThat(myTypeCustomSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_createdBy", "myType_custom_createdOn", "myType_custom_modifiedBy",
+				"myType_custom_modifiedOn", "myType_custom_metadata1", "myType_custom_metadata2",
+				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
 	}
 
-	private void assertThatValidationErrors(ValidationRuntimeException e) {
+	@Test
+	public void givenUnconfiguredMetadataDisplayWhenGetValueThenReturnDefaultValue()
+			throws Exception {
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
+		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
+		defaultSchema.create("metadata").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 
+		SchemaTypeDisplayConfig typeConfig = manager.getType(zeCollection, "myType");
+		manager.saveType(typeConfig.withMetadataGroup(asList("Default", "zeGroup", "zeCustomGroup")));
+
+		MetadataDisplayConfig defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
+		MetadataDisplayConfig customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
+		MetadataDisplayConfig customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
+		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(FIELD);
+		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
+		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
+
+		manager.saveMetadata(defaultSchemaMetadata.withMetadataGroup("zeGroup").withInputType(TEXTAREA));
+
+		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
+		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
+		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
+		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
+		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(customSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
+		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
+
+		manager.saveMetadata(customSchemaMetadata.withMetadataGroup("zeCustomGroup").withInputType(FIELD));
+
+		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
+		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
+		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
+		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
+		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
+		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
+
+		manager.saveMetadata(customSchemaCustomMetadata.withMetadataGroup("zeCustomGroup").withInputType(TEXTAREA));
+
+		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
+		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
+		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
+		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
+		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
+		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(TEXTAREA);
+
+		manager.resetSchema(zeCollection, "myType_custom");
+
+		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
+		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
+		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
+		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
+		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(customSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
+		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
+	}
+
+	@Test
+	public void givenUnconfiguredSchemaDisplayInheritingSchemaWithRemovedMetadataFromDisplayWhenGetValueThenReturnDefaultValue()
+			throws Exception {
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
+		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
+		defaultSchema.create("metadata2").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
+
+		SchemaDisplayConfig myTypeDefaultSchema = manager.getSchema(zeCollection, "myType_default");
+
+		manager.saveSchema(myTypeDefaultSchema.withDisplayMetadataCodes(asList(
+				"myType_default_title", "myType_default_createdBy", "myType_default_modifiedBy", "myType_default_metadata2")));
+
+		typesBuilder = schemasManager.modify(zeCollection);
+		typeBuilder = typesBuilder.getOrCreateNewSchemaType("myType");
+		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
+		customSchema.create("customMetadata1").setType(MetadataValueType.STRING);
+		customSchema.create("customMetadata2").setType(MetadataValueType.STRING);
+		schemasManager.saveUpdateSchemaTypes(typesBuilder);
+
+		SchemaDisplayConfig myTypeCustomSchema = manager.getSchema(zeCollection, "myType_custom");
+		assertThat(myTypeCustomSchema.getDisplayMetadataCodes()).isEqualTo(asList(
+				"myType_custom_title", "myType_custom_createdBy", "myType_custom_modifiedBy", "myType_custom_metadata2",
+				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
+	}
+
+	private ValidationError error(final String code, final Map<String, String> params) {
+		return new ValidationError(SchemasDisplayManager.class.getName() + "_" + code, params);
 	}
 
 	@Test

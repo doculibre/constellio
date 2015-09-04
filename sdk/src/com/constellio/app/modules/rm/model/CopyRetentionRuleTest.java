@@ -17,9 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.model;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(rule.isDirty()).isTrue();
 
 		rule = new CopyRetentionRule();
-		rule.setMediumTypeIds(Arrays.asList("firstType", "secondType"));
+		rule.setMediumTypeIds(asList("firstType", "secondType"));
 		assertThat(rule.isDirty()).isTrue();
 
 		rule = new CopyRetentionRule();
@@ -85,7 +85,7 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		CopyRetentionRule rule = new CopyRetentionRule();
 		rule.setCode("zeCode:\n\tline2");
 		rule.setCopyType(CopyType.PRINCIPAL);
-		rule.setMediumTypeIds(Arrays.asList("firstType", "secondType"));
+		rule.setMediumTypeIds(asList("firstType", "secondType"));
 		rule.setContentTypesComment("zeContentTypesComment");
 		rule.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
 		rule.setActiveRetentionComment("zeActive_RétentionComment");
@@ -111,13 +111,13 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		CopyRetentionRule rule = new CopyRetentionRule();
 		rule.setCode("zeCode:\n\tline2");
 		rule.setCopyType(CopyType.PRINCIPAL);
-		rule.setMediumTypeIds(Arrays.asList("firstType", "secondType"));
+		rule.setMediumTypeIds(asList("firstType", "secondType"));
 		rule.setContentTypesComment("zeContentTypesComment");
 		rule.setActiveRetentionPeriod(null);
 		rule.setActiveRetentionComment("zeActive_RétentionComment");
 		rule.setSemiActiveRetentionPeriod(null);
 		rule.setSemiActiveRetentionComment("zeSemi=;ActiveRetention-Comment");
-		rule.setInactiveDisposalType(null);
+		rule.setInactiveDisposalType(DisposalType.DESTRUCTION);
 		rule.setInactiveDisposalComment("zeInactive:Disposable\nComment");
 
 		String stringValue = factory.toString(rule);
@@ -129,7 +129,43 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(builtRule.isDirty()).isFalse();
 		assertThat(builtRule.getActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(builtRule.getSemiActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
-		assertThat(builtRule.getInactiveDisposalType()).isNull();
+		assertThat(builtRule.getInactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
+
+	}
+
+	@Test
+	public void whenConvertingStructureWithoutDisposalTypeThenSetToDestruction()
+			throws Exception {
+		String strValue = "~null~:S:~null~:F1:~null~:F2:~null~:R1:firstType:secondType:thirdType";
+		String strValue2 = "~null~:S:~null~:F1:~null~:F2:~null~:~null~:firstType:secondType:thirdType";
+
+		CopyRetentionRule rule1 = (CopyRetentionRule) factory.build(strValue);
+		CopyRetentionRule rule2 = (CopyRetentionRule) factory.build(strValue2);
+
+		assertThat(rule1.getInactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
+		assertThat(rule1.getInactiveDisposalComment()).isEqualTo("R1");
+
+		assertThat(rule2.getInactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
+		assertThat(rule2.getInactiveDisposalComment()).isNull();
+
+	}
+
+	@Test
+	public void whenConvertingStructureThenCorrectInfos()
+			throws Exception {
+		String strValue = "375:P:~null~:888::888::T:~null~:00000000003:00000000001";
+
+		CopyRetentionRule rule1 = (CopyRetentionRule) factory.build(strValue);
+
+		assertThat(rule1.getCode()).isEqualTo("375");
+		assertThat(rule1.getCopyType()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(rule1.getMediumTypeIds()).isEqualTo(asList("00000000003", "00000000001"));
+		assertThat(rule1.getActiveRetentionPeriod()).isEqualTo(RetentionPeriod.OPEN_888);
+		assertThat(rule1.getSemiActiveRetentionPeriod()).isEqualTo(RetentionPeriod.OPEN_888);
+		assertThat(rule1.getInactiveDisposalType()).isEqualTo(DisposalType.SORT);
+		assertThat(rule1.getActiveRetentionComment()).isNull();
+		assertThat(rule1.getSemiActiveRetentionComment()).isNull();
+		assertThat(rule1.getInactiveDisposalComment()).isNull();
 
 	}
 
@@ -139,12 +175,13 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 
 		CopyRetentionRule rule = new CopyRetentionRule();
 		rule.setCopyType(CopyType.SECONDARY);
-		rule.setMediumTypeIds(Arrays.asList("firstType", "secondType", "thirdType"));
+		rule.setMediumTypeIds(asList("firstType", "secondType", "thirdType"));
 		rule.setActiveRetentionPeriod(RetentionPeriod.fixed(1));
 		rule.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(2));
 		rule.setInactiveDisposalType(DisposalType.SORT);
 
 		String stringValue = factory.toString(rule);
+		System.out.println(stringValue);
 		CopyRetentionRule builtRule = (CopyRetentionRule) factory.build(stringValue);
 		String stringValue2 = factory.toString(builtRule);
 
@@ -157,22 +194,22 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 	public void whenCreateCopyRetentionRuleWithEmptyPeriodsThenSetToNull()
 			throws Exception {
 
-		CopyRetentionRule rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, Arrays.asList("PA", "FI"), "888-0-");
+		CopyRetentionRule rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-");
 		assertThat(rule.getActiveRetentionPeriod()).isEqualTo(RetentionPeriod.OPEN_888);
 		assertThat(rule.getSemiActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getInactiveDisposalType()).isNull();
 
-		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, Arrays.asList("PA", "FI"), "0-2-");
+		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-2-");
 		assertThat(rule.getActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getSemiActiveRetentionPeriod()).isEqualTo(RetentionPeriod.fixed(2));
 		assertThat(rule.getInactiveDisposalType()).isNull();
 
-		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, Arrays.asList("PA", "FI"), "0-0-");
+		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-0-");
 		assertThat(rule.getActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getSemiActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getInactiveDisposalType()).isNull();
 
-		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, Arrays.asList("PA", "FI"), "0-0-T");
+		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-0-T");
 		assertThat(rule.getActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getSemiActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getInactiveDisposalType()).isEqualTo(DisposalType.SORT);
@@ -183,7 +220,7 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 	public void whenEvaluateDecommissioningActionsThenBasedOnTypes()
 			throws Exception {
 
-		List<String> types = Arrays.asList("PA", "FI");
+		List<String> types = asList("PA", "FI");
 
 		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canTransferToSemiActive()).isFalse();
 		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canDeposit()).isFalse();

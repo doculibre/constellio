@@ -19,14 +19,13 @@ package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.vaadin.server.Page;
 
 public class PresenterService {
-
 	private ModelLayerFactory modelLayerFactory;
 
 	public PresenterService(ModelLayerFactory modelLayerFactory) {
@@ -34,13 +33,26 @@ public class PresenterService {
 	}
 
 	public User getCurrentUser(SessionContext sessionContext) {
-		return modelLayerFactory.newUserServices()
-				.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+		User currentUser;
+		UserVO currentUserVO = sessionContext.getCurrentUser();
+		String currentCollection = sessionContext.getCurrentCollection();
+		if (currentUserVO != null) {
+			currentUser = modelLayerFactory.newUserServices().getUserInCollection(currentUserVO.getUsername(), currentCollection);
+		} else {
+			currentUser = null;
+		}
+		return currentUser;
 	}
 
+	@Deprecated
 	public RecordVO getRecordVO(String id, VIEW_MODE viewMode) {
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		return voBuilder.build(getRecord(id), viewMode);
+	}
+
+	public RecordVO getRecordVO(String id, VIEW_MODE viewMode, SessionContext sessionContext) {
+		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+		return voBuilder.build(getRecord(id), viewMode, sessionContext);
 	}
 
 	public Record getRecord(String id) {

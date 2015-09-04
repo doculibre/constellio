@@ -227,24 +227,6 @@ public class UserServicesUnitTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetUserInCollectionThenReturnRecordOfCorrectCollection()
-			throws Exception {
-
-		when(bob.getCollections()).thenReturn(Arrays.asList("collection2", "collection1"));
-		when(userCredentialsManager.getUserCredential("bob")).thenReturn(bob);
-		ArgumentCaptor<LogicalSearchCondition> conditionCaptor = ArgumentCaptor.forClass(LogicalSearchCondition.class);
-		when(searchServices.searchSingleResult(conditionCaptor.capture())).thenReturn(userRecord);
-
-		User returnedUser = userServices.getUserInCollection("bob", "collection1");
-		assertThat(returnedUser.getWrappedRecord()).isSameAs(userRecord);
-
-		LogicalSearchCondition condition = conditionCaptor.getValue();
-		assertThat(condition)
-				.isEqualTo(LogicalSearchQueryOperators.from(collection1UserSchema).where(collection1UsernameMetadata).is("bob"));
-
-	}
-
-	@Test
 	public void whenGetGroupInCollectionThenReturnRecordOfCorrectCollection()
 			throws Exception {
 

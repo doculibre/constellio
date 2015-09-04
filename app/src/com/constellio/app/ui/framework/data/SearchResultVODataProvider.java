@@ -36,14 +36,19 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SPEQueryResponse;
-import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.cache.SerializableSearchCache;
+import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public abstract class SearchResultVODataProvider implements DataProvider {
+
+	private static int DEFAULT_PAGE_SIZE = 50;
+
 	transient LogicalSearchQuery query;
-	transient SearchServices searchServices;
 	transient Integer size = null;
 	transient Map<Integer, SearchResultVO> cache;
+	protected transient ModelLayerFactory modelLayerFactory;
+	SerializableSearchCache queryCache = new SerializableSearchCache();
 	private transient SessionContext sessionContext;
 
 	RecordToVOBuilder voBuilder;
@@ -64,7 +69,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 
 	void init(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
 		this.sessionContext = sessionContext;
-		searchServices = modelLayerFactory.newSearchServices();
+		this.modelLayerFactory = modelLayerFactory;
 		query = getQuery();
 		cache = new HashMap<>();
 	}
@@ -95,7 +100,9 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 			return searchResultVO;
 		}
 		List<SearchResultVO> found = listSearchResultVOs(index, 1);
-		return found.size() > 0 ? found.get(0) : null;
+		SearchResultVO result = found.size() > 0 ? found.get(0) : null;
+
+		return result;
 	}
 
 	public RecordVO getRecordVO(int index) {
@@ -104,8 +111,9 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	}
 
 	public int size() {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
 		if (size == null) {
-			size = new Long(searchServices.getResultsCount(query)).intValue();
+			size = searchServices.search(query, DEFAULT_PAGE_SIZE).size();
 		}
 		return size;
 	}
@@ -120,15 +128,15 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	}
 
 	public List<SearchResultVO> listSearchResultVOs(int startIndex, int numberOfItems) {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
-		SPEQueryResponse response = searchServices.query(query.setStartRow(startIndex).setNumberOfRows(numberOfItems));
+		SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
 		List<Record> records = response.getRecords();
-		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
-		for (int i = 0; i < records.size(); i++) {
-			RecordVO recordVO = voBuilder.build(records.get(i), VIEW_MODE.TABLE, sessionContext);
-			SearchResultVO searchResultVO = new SearchResultVO(recordVO, highlights.get(recordVO.getId()));
+		for (int i = 0; i < Math.min(numberOfItems, records.size()); i++) {
+			RecordVO recordVO = voBuilder.build(records.get(startIndex + i), VIEW_MODE.TABLE, sessionContext);
+			SearchResultVO searchResultVO = new SearchResultVO(recordVO, response.getHighlighting(recordVO.getId()));
 			results.add(searchResultVO);
-			cache.put(startIndex + i, searchResultVO);
+			cache.put(i, searchResultVO);
 		}
 		return results;
 	}

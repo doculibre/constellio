@@ -17,19 +17,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.reports;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationPlanReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportViewImpl;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactoryWithoutRecords;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
 import com.constellio.app.ui.framework.components.ReportPresenter;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class RMReportsPresenter extends BasePresenter<RMReportsView> implements ReportPresenter {
 

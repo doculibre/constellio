@@ -75,6 +75,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenUpdatingFrom5_0_3ThenSetTreeVisibilityCorrectly()
 			throws OptimisticLockingConfiguration {
+		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_3();
 		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
 

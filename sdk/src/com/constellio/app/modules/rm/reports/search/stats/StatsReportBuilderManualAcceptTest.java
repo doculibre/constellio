@@ -44,20 +44,21 @@ public class StatsReportBuilderManualAcceptTest extends ReportBuilderTestFramewo
 
 	@Test
 	public void whenBuildDetailedClassificationPlanReportThenOk() {
-		model = configAdminUnits();
+		model = configStats();
 		build(new StatsReportBuilder(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 
-	private StatsReportModel configAdminUnits() {
+	private StatsReportModel configStats() {
 
 		StatsReportModel model = new StatsReportModel();
 
 		Map<String, Object> stats= new HashMap<>();
-		stats.put("min", 0l);
-		stats.put("max", 10l);
-		stats.put("sum", 5l);
+		stats.put("min", 50l);
+		stats.put("max", 100l);
+		stats.put("sum", 150l);
 		stats.put("missing", 2l);
+		stats.put("count", 3l);
 		model.setStats(stats);
 
 		return model;

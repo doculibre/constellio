@@ -46,6 +46,8 @@ public class PathCalculator implements MetadataValueCalculator<List<String>> {
 			for (String parentPath : parentPathsValue) {
 				calculatedValue.add(parentPath + "/" + id);
 			}
+		} else {
+			calculatedValue.add("/" + id);
 		}
 		return calculatedValue;
 	}

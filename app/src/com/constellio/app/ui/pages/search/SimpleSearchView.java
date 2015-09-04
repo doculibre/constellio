@@ -18,4 +18,5 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.search;
 
 public interface SimpleSearchView extends SearchView {
+	String SEARCH_TYPE = "simpleSearch";
 }

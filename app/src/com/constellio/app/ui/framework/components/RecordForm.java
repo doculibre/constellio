@@ -71,7 +71,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		return getViewObject().getMetadatas();
 	}
 
-	protected Field<?> getField(String metadataCode) {
+	public Field<?> getField(String metadataCode) {
 		MetadataVO metadata = getViewObject().getMetadataOrNull(metadataCode);
 		return metadata != null ? getField(metadata) : null;
 	}
@@ -80,7 +80,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		Field<?> match = null;
 		for (Field<?> field : fields) {
 			Object propertyId = fieldGroup.getPropertyId(field);
-			if (metadata.equals(propertyId)) {
+			if (metadata.isSameLocalCode(propertyId)) {
 				match = field;
 				break;
 			}

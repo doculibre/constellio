@@ -22,7 +22,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.management.authorizations.ListContentAuthorizationsPresenter;
+import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsPresenter;
 import com.constellio.app.ui.pages.management.authorizations.ShareContentPresenter;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
@@ -35,7 +35,7 @@ public class RMModulePageExtension extends PageExtension {
 			User user,
 			Record restrictedRecord) {
 
-		if (presenterClass.equals(ListContentAuthorizationsPresenter.class)) {
+		if (presenterClass.equals(ListContentAccessAuthorizationsPresenter.class)) {
 			return hasAccessToListContentAuthorizationPage(user, restrictedRecord);
 
 		} else if (presenterClass.equals(ShareContentPresenter.class)) {

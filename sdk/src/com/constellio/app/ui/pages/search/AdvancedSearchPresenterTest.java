@@ -20,11 +20,8 @@ package com.constellio.app.ui.pages.search;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,18 +33,22 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
 
 public class AdvancedSearchPresenterTest extends ConstellioTest {
-	public static final String FACET_CODE = "schemaType_default_zeField";
+	public static final String FACET_CODE = "zeField_s";
 
 	@Mock AdvancedSearchView view;
 	@Mock ConstellioNavigator navigator;
 	@Mock SchemasDisplayManager schemasDisplayManager;
 	@Mock LabelTemplateManager labelTemplateManager;
 	@Mock SchemaTypesDisplayConfig typesDisplayConfig;
+	@Mock RecordServices recordServices;
+	@Mock SearchServices searchServices;
 	MockedFactories factories = new MockedFactories();
 
 	AdvancedSearchPresenter presenter;
@@ -63,19 +64,14 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 
 		when(factories.getAppLayerFactory().getMetadataSchemasDisplayManager()).thenReturn(schemasDisplayManager);
 		when(schemasDisplayManager.getTypes(zeCollection)).thenReturn(typesDisplayConfig);
-		when(typesDisplayConfig.getFacetMetadataCodes()).thenReturn(Arrays.asList(FACET_CODE));
 
 		when(factories.getAppLayerFactory().getLabelTemplateManager()).thenReturn(labelTemplateManager);
+		when(factories.getModelLayerFactory().newRecordServices()).thenReturn(recordServices);
+		when(factories.getModelLayerFactory().newSearchServices()).thenReturn(searchServices);
 
 		when(view.getSchemaType()).thenReturn("zeSchemaType");
 
 		presenter = spy(new AdvancedSearchPresenter(view));
-	}
-
-	@Test
-	public void givenEmptyParametersThenItResetsTheFacetSelection() {
-		presenter.forRequestParameters("");
-		verify(presenter, times(1)).resetFacetSelection();
 	}
 
 	@Test

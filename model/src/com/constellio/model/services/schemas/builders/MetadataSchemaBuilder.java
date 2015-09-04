@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -278,20 +280,7 @@ public class MetadataSchemaBuilder {
 
 	public MetadataBuilder create(String metadataLocaleCode) {
 
-		for (MetadataSchemaBuilder schemaBuilder : schemaTypeBuilder.getCustomSchemas()) {
-			if (schemaBuilder != null) {
-				for (MetadataBuilder metadata : schemaBuilder.metadatas) {
-					if (metadata.getLocalCode().equals(metadataLocaleCode)) {
-						throw new MetadataSchemaBuilderRuntimeException
-								.CannotCreateTwoMetadataWithSameNameInDifferentCustomSchemasOfTheSameType(metadataLocaleCode);
-					}
-
-				}
-			}
-		}
-
 		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataLocaleCode);
-
 		validateLocalCode(metadataLocalCode);
 
 		try {
@@ -464,5 +453,9 @@ public class MetadataSchemaBuilder {
 			}
 		}
 		return metadatasWithoutInheritance;
+	}
+
+	public void createUniqueCodeMetadata() {
+		createUndeletable("code").setEssential(true).setDefaultRequirement(true).setType(STRING).setUniqueValue(true);
 	}
 }

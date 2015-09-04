@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -56,7 +57,7 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 	RMEventsSearchServices rmEventsSearchServices;
 	RMSchemasRecordsServices rm;
 	BorrowingServices borrowingServices;
-	LocalDateTime nowDateTime = TimeProvider.getLocalDateTime();
+	LocalDateTime now = TimeProvider.getLocalDateTime();
 	MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
 
 	@Before
@@ -83,7 +84,7 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 
 		presenter = spy(new EventPresenter(view));
 
-		givenTimeIs(nowDateTime);
+		givenTimeIs(now);
 	}
 
 	@Test
@@ -98,12 +99,15 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void givenBorrowedFolderByBobWhenGetDataProviderForCurrentlyBorrowedFoldersByUserThenOk()
 			throws Exception {
-		borrowingServices.borrowFolder("C30", nowDateTime.plusDays(1).toDate(), records.getAdmin(), records.getBob_userInAC());
+		borrowingServices
+				.borrowFolder("C30", now.toLocalDate(), now.plusDays(1).toLocalDate(), records.getAdmin(),
+						records.getBob_userInAC(),
+						BorrowingType.BORROW);
 
 		Map<String, String> params = new HashMap<>();
 		params.put("id", records.getBob_userInAC().getId());
-		params.put("startDate", nowDateTime.toString());
-		params.put("endDate", nowDateTime.plusDays(1).toString());
+		params.put("startDate", now.toString());
+		params.put("endDate", now.plusDays(1).toString());
 		params.put("eventType", EventType.CURRENTLY_BORROWED_FOLDERS);
 		params.put("eventCategory", EventCategory.EVENTS_BY_USER.name());
 		when(view.getParameters()).thenReturn(params);

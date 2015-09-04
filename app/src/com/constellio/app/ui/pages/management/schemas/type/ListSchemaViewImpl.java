@@ -22,12 +22,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.Map;
 
 import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.FormDisplay;
-import com.constellio.app.ui.framework.buttons.FormOrderButton;
-import com.constellio.app.ui.framework.buttons.MetadataButton;
-import com.constellio.app.ui.framework.buttons.SearchDisplayButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SchemaVOLazyContainer;

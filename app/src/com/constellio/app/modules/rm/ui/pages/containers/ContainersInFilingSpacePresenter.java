@@ -56,7 +56,6 @@ public class ContainersInFilingSpacePresenter extends BasePresenter<ContainersIn
 						view.getCollection(), modelLayerFactory);
 				ContainerSearchParameters parameters = new ContainerSearchParameters();
 				parameters.setAdminUnitId(adminUnitId);
-				parameters.setFilingSpaceId(filingSpaceId);
 				if (tabName.startsWith(DEPOSIT_PREFIX)) {
 					parameters.setType(DecommissioningType.DEPOSIT);
 				} else if (tabName.startsWith(TRANSFER_PREFIX)) {

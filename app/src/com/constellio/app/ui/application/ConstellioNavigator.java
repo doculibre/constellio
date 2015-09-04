@@ -24,6 +24,7 @@ import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptPre
 import com.constellio.app.ui.params.ParamUtils;
 import com.google.gwt.dev.util.collect.HashMap;
 import com.vaadin.navigator.Navigator;
+import com.vaadin.ui.JavaScript;
 
 public class ConstellioNavigator {
 	Navigator vaadinNavigator;
@@ -34,6 +35,11 @@ public class ConstellioNavigator {
 
 	public ConstellioNavigator(Navigator vaadinNavigator) {
 		this.vaadinNavigator = vaadinNavigator;
+	}
+	
+	public void previousView() {
+		JavaScript javascript = JavaScript.getCurrent();
+		javascript.execute("window.history.back();");
 	}
 
 	public void home() {
@@ -185,20 +191,24 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_VALUE_DOMAINS);
 	}
 
-	public void simpleSearch() {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH);
-	}
-
 	public void simpleSearch(String queryExpression) {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/" + queryExpression);
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/q/" + queryExpression);
 	}
 
 	public void simpleSearch(String queryExpression, int pageNumber) {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/" + queryExpression + "/" + pageNumber);
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/q/" + queryExpression + "/" + pageNumber);
+	}
+
+	public void simpleSearchReplay(String searchId) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/s/" + searchId);
 	}
 
 	public void advancedSearch() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADVANCED_SEARCH);
+	}
+
+	public void advancedSearchReplay(String searchId) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADVANCED_SEARCH + "/s/" + searchId);
 	}
 
 	public void listGlobalGroups() {
@@ -279,12 +289,16 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.REPORTS);
 	}
 
-	public void listPrincipalAuthorizations(String entityId) {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_PRINCIPAL_AUTHORIZATIONS + "/" + entityId);
+	public void listPrincipalAccessAuthorizations(String entityId) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS + "/" + entityId);
 	}
 
-	public void listObjectAuthorizations(String entityId) {
-		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_OBJECT_AUTHORIZATIONS + "/" + entityId);
+	public void listObjectAccessAuthorizations(String entityId) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_OBJECT_ACCESS_AUTHORIZATIONS + "/" + entityId);
+	}
+
+	public void listObjectRoleAuthorizations(String entityId) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_OBJECT_ROLE_AUTHORIZATIONS + "/" + entityId);
 	}
 
 	public void shareContent(String entityId) {
@@ -323,6 +337,10 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.CONFIG_MANAGEMENT);
 	}
 
+	public void emailServerManagement() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.EMAIL_SERVER_MANAGEMENT);
+	}
+
 	public void ldapConfigManagement() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.LDAP_CONFIG_MANAGEMENT);
 	}
@@ -335,7 +353,7 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_SCHEMA + "/" + params);
 	}
 
-	public void listSchemaType() {
+	public void listSchemaTypes() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_SCHEMA_TYPE);
 	}
 
@@ -365,6 +383,10 @@ public class ConstellioNavigator {
 
 	public void searchDisplayForm(String schemaCode) {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.SEARCH_DISPLAY_FORM + "/" + schemaCode);
+	}
+
+	public void reportDisplayForm(String schemaCode) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.REPORT_DISPLAY_FORM + "/" + schemaCode);
 	}
 
 	public void formDisplayForm(String schemaCode) {
@@ -441,7 +463,7 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.UPDATE_MANAGER);
 	}
 
-	public void importFile() {
+	public void importRecords() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.IMPORT_FILE);
 	}
 
@@ -467,5 +489,86 @@ public class ConstellioNavigator {
 
 	public void editContainer(String params) {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.EDIT_CONTAINER + "/" + params);
+	}
+
+	public void editFacetConfiguration(String params) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.EDIT_FACET_CONFIGURATION + "/" + params);
+	}
+
+	public void addFacetConfiguration() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADD_FACET_CONFIGURATION);
+	}
+
+	public void orderFacetConfiguration() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.ORDER_FACET_CONFIGURATION);
+	}
+
+	public void listFacetConfiguration() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_FACET_CONFIGURATION);
+	}
+
+	public void displayFacetConfiguration(String params) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_FACET_CONFIGURATION + "/" + params);
+	}
+
+	public void listSavedSearches() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_SAVED_SEARCHES);
+	}
+
+	//Module ES
+	public void listConnectorInstances() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_CONNECTOR_INSTANCES);
+	}
+
+	public void displayConnectorInstance(String params) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_CONNECTOR_INSTANCE + "/" + params);
+	}
+
+	public void wizardConnectorInstance() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.WIZARD_CONNECTOR_INSTANCE);
+	}
+
+	public void editConnectorInstances(String params) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.EDIT_CONNECTOR_INSTANCE + "/" + params);
+	}
+
+	//tasks module
+	public void tasksManagement() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.TASKS_MANAGEMENT);
+	}
+
+	public void addTask(String parentTaskId) {
+		Map<String, String> params = new HashMap<>();
+		if (parentTaskId != null) {
+			params.put("parentId", parentTaskId);
+		}
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_TASK, params);
+		vaadinNavigator.navigateTo(viewPath);
+	}
+
+	public void editTask(String taskId, boolean completeTask) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", taskId);
+		if (completeTask) {
+			params.put("competeTask", "" + true);
+		}
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_TASK, params);
+		vaadinNavigator.navigateTo(viewPath);
+	}
+
+	public void editTask(String taskId) {
+		editTask(taskId, false);
+	}
+
+	public void displayTask(String id) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_TASK + "/" + id);
+	}
+
+	public void editSchemasConnectorInstance(String params) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.EDIT_SCHEMAS_CONNECTOR_INSTANCE + "/" + params);
+	}
+
+	public void listTasksLogs() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_TASKS_LOGS);
 	}
 }

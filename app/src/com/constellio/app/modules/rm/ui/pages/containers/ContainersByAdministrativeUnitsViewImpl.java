@@ -70,7 +70,6 @@ public class ContainersByAdministrativeUnitsViewImpl extends BaseViewImpl implem
 				}
 			}
 		});
-
 		presenter = new ContainersByAdministrativeUnitsPresenter(this);
 	}
 
@@ -110,8 +109,9 @@ public class ContainersByAdministrativeUnitsViewImpl extends BaseViewImpl implem
 		RecordVOTable table = new RecordVOTable($("ContainersByAdministrativeUnitsView.tableTitle"), buttonsContainer);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
-		table.setColumnHeader(AdminUnitsWithContainersCountContainer.CONTAINERS_COUNT,$("containersCount"));
-		table.setColumnHeader(AdminUnitsWithContainersCountContainer.FILING_SPACES_COUNT,$("filingSpacesCount"));
+		table.setColumnHeader(AdminUnitsWithContainersCountContainer.CONTAINERS_COUNT, $("containersCount"));
+		table.setColumnHeader(AdminUnitsWithContainersCountContainer.SUB_ADMINISTRATIVE_UNITS_COUNT,
+				$("subAdministrativeUnitsCount"));
 		//		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 		table.setPageLength(table.getItemIds().size());
 

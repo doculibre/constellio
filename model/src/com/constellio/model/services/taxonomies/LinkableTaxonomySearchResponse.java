@@ -17,11 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.taxonomies;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.search.SPEQueryResponse;
 
 public class LinkableTaxonomySearchResponse {
 
@@ -47,18 +43,6 @@ public class LinkableTaxonomySearchResponse {
 
 	public List<TaxonomySearchRecord> getRecords() {
 		return records;
-	}
-
-	public static LinkableTaxonomySearchResponse forLinkableRecords(SPEQueryResponse speQueryResponse) {
-		return forLinkableRecords(speQueryResponse.getRecords(), speQueryResponse.getNumFound());
-	}
-
-	public static LinkableTaxonomySearchResponse forLinkableRecords(List<Record> linkableRecords, long numFound) {
-		List<TaxonomySearchRecord> records = new ArrayList<>();
-		for (Record linkableRecord : linkableRecords) {
-			records.add(new TaxonomySearchRecord(linkableRecord, true));
-		}
-		return new LinkableTaxonomySearchResponse(numFound, records);
 	}
 
 	public LinkableTaxonomySearchResponse withQTime(long qTime) {

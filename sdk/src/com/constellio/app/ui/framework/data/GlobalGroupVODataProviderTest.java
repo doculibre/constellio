@@ -109,7 +109,7 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 		when(voBuilder.build(heroesGroup1)).thenReturn(heroesGroupVO1);
 		when(voBuilder.build(legendsGroup)).thenReturn(legendsGroupVO);
 
-		dataProvider = spy(new GlobalGroupVODataProvider(voBuilder, mockedFactories.getModelLayerFactory()));
+		dataProvider = spy(new GlobalGroupVODataProvider(voBuilder, mockedFactories.getModelLayerFactory(), true));
 	}
 
 	@Test

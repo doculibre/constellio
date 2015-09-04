@@ -19,6 +19,7 @@ package com.constellio.app.ui.tools;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -26,6 +27,7 @@ import org.openqa.selenium.WebElement;
 import com.constellio.app.ui.tools.RecordContainerWebElementRuntimeException.RecordContainerWebElementRuntimeException_NoSuchRowWithValueInColumn;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
 
 public class RecordContainerWebElement {
 
@@ -46,12 +48,13 @@ public class RecordContainerWebElement {
 		loadRows();
 	}
 
-	public int size(){
+	public int size() {
 		return rows.size();
 	}
 
 	private void loadHeaderTitles() {
-		List<WebElement> headerTdTags = nestedElement.findElements(By.xpath(HEADER_TD_TAG_XPATH));//By.className("v-table-header-cell"));//
+		List<WebElement> headerTdTags = nestedElement
+				.findElements(By.xpath(HEADER_TD_TAG_XPATH));//By.className("v-table-header-cell"));//
 		for (WebElement headerTdTag : headerTdTags) {
 			WebElement headerCaptionContainer = headerTdTag.findElement(By.className("v-table-caption-container"));
 			String headerTitle = headerCaptionContainer.getText();
@@ -161,6 +164,12 @@ public class RecordContainerWebElement {
 			clickElement(getButton(className));
 		}
 
+		public String clickButtonAndConfirmAndWaitForWarningMessage(String className) {
+			clickElement(getButton(className));
+			return clickConfirmDialogButtonAndWaitForErrorMessage("confirmdialog-ok-button");
+
+		}
+
 		public void clickButtonAndConfirm(String className) {
 			clickElement(getButton(className));
 			clickConfirmDialogButton("confirmdialog-ok-button");
@@ -187,6 +196,42 @@ public class RecordContainerWebElement {
 				//confirmDialogOKButton.click();
 				clickElement(confirmDialogOKButton);
 			}
+		}
+
+		private String clickConfirmDialogButtonAndWaitForErrorMessage(String id) {
+			WebElement confirmDialogOKButton = getConfirmDialogButton(id);
+			int attempts = 0;
+			while (confirmDialogOKButton == null && attempts < 5) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+				confirmDialogOKButton = getConfirmDialogButton(id);
+				attempts++;
+			}
+			if (confirmDialogOKButton != null) {
+				//confirmDialogOKButton.click();
+				confirmDialogOKButton.click();
+				final AtomicReference<String> warningMessage = new AtomicReference<>();
+				new ConditionWithTimeout() {
+
+					@Override
+					protected boolean evaluate() {
+						ConstellioWebElement message = webDriver.findRequiredElement(By.className("warning"));
+						String result = message == null ? null : message.getText();
+						if (result != null) {
+							warningMessage.set(result);
+							message.click();
+							return true;
+						}
+						return false;
+					}
+				}.waitForTrue(2000);
+				return warningMessage.get();
+			}
+
+			return null;
 		}
 
 		private WebElement getConfirmDialogButton(String id) {

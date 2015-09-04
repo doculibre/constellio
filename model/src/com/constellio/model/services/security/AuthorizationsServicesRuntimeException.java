@@ -17,6 +17,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.security;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.records.RecordUtils;
+
 @SuppressWarnings("serial")
 public class AuthorizationsServicesRuntimeException extends RuntimeException {
 
@@ -42,10 +48,31 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class InvalidPrincipalsAndOrTargetRecordsIds extends AuthorizationsServicesRuntimeException {
+	public static class InvalidTargetRecordsIds extends AuthorizationsServicesRuntimeException {
 
-		public InvalidPrincipalsAndOrTargetRecordsIds() {
-			super("Invalid principals ids and/or target records ids");
+		public InvalidTargetRecordsIds(List<Record> records, List<String> recordIds) {
+			super(buildMessage(records, recordIds));
+		}
+
+		private static String buildMessage(List<Record> records, List<String> recordIds) {
+			List<String> notfoundIds = new ArrayList<>(recordIds);
+			notfoundIds.removeAll(new RecordUtils().toIdList(records));
+
+			return "Invalid target records ids : " + notfoundIds;
+		}
+	}
+
+	public static class InvalidPrincipalsIds extends AuthorizationsServicesRuntimeException {
+
+		public InvalidPrincipalsIds(List<Record> records, List<String> recordIds) {
+			super(buildMessage(records, recordIds));
+		}
+
+		private static String buildMessage(List<Record> records, List<String> recordIds) {
+			List<String> notfoundIds = new ArrayList<>(recordIds);
+			notfoundIds.removeAll(new RecordUtils().toIdList(records));
+
+			return "Invalid principals records ids : " + notfoundIds;
 		}
 	}
 

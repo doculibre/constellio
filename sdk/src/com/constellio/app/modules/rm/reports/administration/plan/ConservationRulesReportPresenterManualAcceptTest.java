@@ -131,8 +131,8 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		assertThat(rule1.getDescription()).isEqualTo("Description Rule 1");
 
 		Map<String, String> principalHolders = rule1.getAdministrativeUnits();
-		assertThat(principalHolders).containsOnly(entry("10", "Administrative unit with room A"),
-				entry("20", "Administrative unit with room D"));
+		assertThat(principalHolders).containsOnly(entry("10", "Unité 10"),
+				entry("20", "Unité 20"));
 
 		List<ConservationRulesReportModel_Copy> principalCopies = rule1.getPrincipalsCopies();
 		assertThat(principalCopies.size()).isEqualTo(1);

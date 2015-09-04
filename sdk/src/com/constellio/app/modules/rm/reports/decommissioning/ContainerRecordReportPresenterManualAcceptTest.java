@@ -59,6 +59,25 @@ public class ContainerRecordReportPresenterManualAcceptTest extends ReportBuilde
 	}
 
 	@Test
+	public void test1() {
+		givenContainerBac01WhenBuildingReportThenGetReportWithSentDate_BoxNumber_filingSpaceAndCode_UserNameAndEmail_SemiActivePeriod_Sort_DM_PA_2_Folders_2000_2002();
+
+	}
+
+	@Test
+	public void test2() {
+		givenContainerBac06WhenBuildingReportThenGetReportWithSentDate_BoxNumber_filingSpaceAndCode_CalendrierConservation_4_SemiActivePeriod_888_Disposition_2007_10_31_Conservation_DM_1_Folders_2000_2002();
+
+	}
+
+	@Test
+	public void test3() {
+		givenContainerBac12WhenBuildingReportThenGetReportWithSentDate_BoxNumber_filingSpaceAndCode_UnitAddress_CalendarConservation_2_SemiActivePeriod_0_Disposition_2005_10_31_Destruction_DM__PA_3_Folders_2000_2002();
+
+	}
+
+	//Windows doesn't open file with too long filename
+	//	@Test
 	public void givenContainerBac01WhenBuildingReportThenGetReportWithSentDate_BoxNumber_filingSpaceAndCode_UserNameAndEmail_SemiActivePeriod_Sort_DM_PA_2_Folders_2000_2002() {
 		DocumentReportModel model = presenter.build(records.getContainerBac01());
 
@@ -69,7 +88,7 @@ public class ContainerRecordReportPresenterManualAcceptTest extends ReportBuilde
 
 	}
 
-	@Test
+	//	@Test
 	public void givenContainerBac06WhenBuildingReportThenGetReportWithSentDate_BoxNumber_filingSpaceAndCode_CalendrierConservation_4_SemiActivePeriod_888_Disposition_2007_10_31_Conservation_DM_1_Folders_2000_2002() {
 		DocumentReportModel model = presenter.build(records.getContainerBac06());
 
@@ -80,7 +99,7 @@ public class ContainerRecordReportPresenterManualAcceptTest extends ReportBuilde
 
 	}
 
-	@Test
+	//	@Test
 	public void givenContainerBac12WhenBuildingReportThenGetReportWithSentDate_BoxNumber_filingSpaceAndCode_UnitAddress_CalendarConservation_2_SemiActivePeriod_0_Disposition_2005_10_31_Destruction_DM__PA_3_Folders_2000_2002() {
 		DocumentReportModel model = presenter.build(records.getContainerBac12());
 
@@ -156,8 +175,6 @@ public class ContainerRecordReportPresenterManualAcceptTest extends ReportBuilde
 		assertThat(identification.getBoxNumber()).isEqualTo("30_C_01");
 		assertThat(identification.getOrganisationName()).isEmpty();
 		assertThat(identification.getPublicOrganisationNumber()).isEmpty();
-		assertThat(identification.getEspaceClassement()).isEqualTo("Room C");
-		assertThat(identification.getCodeEspaceClassement()).isEqualTo("C");
 		assertThat(identification.getAdministrationAddress()).isEmpty();
 		assertThat(identification.getResponsible()).isEqualTo("Bob 'Elvis' Gratton");
 		assertThat(identification.getFunction()).isNotNull();

@@ -48,13 +48,14 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView {
-	private final ConstellioHeader header;
-
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
+	private final ConstellioHeader header;
+
 	public AdvancedSearchViewImpl() {
 		presenter = new AdvancedSearchPresenter(this);
+		presenter.resetFacetAndOrder();
 		header = ConstellioUI.getCurrent().getHeader();
 	}
 
@@ -64,8 +65,18 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	@Override
+	public void setSearchCriteria(List<Criterion> criteria) {
+		header.setAdvancedSearchCriteria(criteria);
+	}
+
+	@Override
 	public String getSchemaType() {
 		return header.getAdvancedSearchSchemaType();
+	}
+
+	@Override
+	public void setSchemaType(String schemaTypeCode) {
+		header.selectAdvancedSearchSchemaType(schemaTypeCode);
 	}
 
 	@Override
@@ -95,7 +106,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		labelsButton.addStyleName(LABELS_BUTTONSTYLE);
 		Label separatorLabel = new Label("|");
 		ReportSelector reportSelector = new ReportSelector(presenter);
-		return results.createSummary(batchProcess, separatorLabel, labelsButton, reportSelector);
+		return results.createSummary(buildSavedSearchButton(), batchProcess, separatorLabel, labelsButton, reportSelector);
 	}
 
 	@Override
@@ -134,7 +145,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				}
 			});
 			process.addStyleName(ValoTheme.BUTTON_PRIMARY);
-			//process.setEnabled(false);
 
 			VerticalLayout layout = new VerticalLayout(buildMetadataComponent(), valueArea, process);
 			layout.setComponentAlignment(process, Alignment.MIDDLE_RIGHT);
@@ -156,7 +166,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			metadata.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
-					//process.setEnabled(false);
 					if (value != null) {
 						valueArea.removeComponent(value);
 					}
@@ -175,13 +184,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			field.setCaption(null);
 			field.setWidthUndefined();
 			field.setPropertyDataSource(new ObjectProperty<>(null, Object.class));
-			//			field.addValueChangeListener(new ValueChangeListener() {
-			//				@Override
-			//				public void valueChange(ValueChangeEvent event) {
-			//					process.setEnabled(field.getValue() != null);
-			//				}
-			//			});
-
 			return field;
 		}
 	}

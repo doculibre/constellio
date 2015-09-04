@@ -20,6 +20,7 @@ package com.constellio.data.dao.services.bigVault.solr;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -120,22 +121,6 @@ public class BigVaultServerTransaction {
 		return this;
 	}
 
-	public boolean canMergeWith(BigVaultServerTransaction otherTransaction) {
-		if (!deletedQueries.isEmpty() || !otherTransaction.deletedQueries.isEmpty()) {
-			return false;
-		}
-
-		List<String> ids = getAddUpdateDeleteRecordIds();
-		List<String> otherTransactionIds = otherTransaction.getAddUpdateDeleteRecordIds();
-		for (String otherTransactionId : otherTransactionIds) {
-			if (ids.contains(otherTransactionId)) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	private List<String> getAddUpdateDeleteRecordIds() {
 		List<String> ids = new ArrayList<>();
 		for (SolrInputDocument doc : newDocuments) {
@@ -149,22 +134,8 @@ public class BigVaultServerTransaction {
 		return ids;
 	}
 
-	public BigVaultServerTransaction newTransactionOfMergeWith(BigVaultServerTransaction newTransaction) {
-		List<SolrInputDocument> mergeNewDocuments = new ArrayList<>();
-		mergeNewDocuments.addAll(newDocuments);
-		mergeNewDocuments.addAll(newTransaction.newDocuments);
-
-		List<SolrInputDocument> mergeUpdatedDocuments = new ArrayList<>();
-		mergeUpdatedDocuments.addAll(updatedDocuments);
-		mergeUpdatedDocuments.addAll(newTransaction.updatedDocuments);
-
-		List<String> mergeDeletedRecords = new ArrayList<>();
-		mergeDeletedRecords.addAll(deletedRecords);
-		mergeDeletedRecords.addAll(newTransaction.deletedRecords);
-
-		List<String> deletedQueries = new ArrayList<>();
-
-		return new BigVaultServerTransaction(transactionId, recordsFlushing, mergeNewDocuments, mergeUpdatedDocuments,
-				mergeDeletedRecords, deletedQueries);
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

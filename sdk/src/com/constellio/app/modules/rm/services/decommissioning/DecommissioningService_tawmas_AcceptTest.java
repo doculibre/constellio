@@ -23,6 +23,7 @@ import java.util.Arrays;
 
 import org.joda.time.LocalDate;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -40,38 +41,40 @@ import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	DecommissioningService service;
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
+	RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
-
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
-
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		service = new DecommissioningService(zeCollection, getModelLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
 	}
 
 	@Test
-	public void givenUnprocessedListAndManagerThenIsEditable() {
-		assertThat(service.isEditable(records.getList01(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList02(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList03(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList04(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList05(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList06(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList07(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList08(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList09(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isEditable(records.getList10(), records.getGandalf_managerInABC())).isTrue();
+	@Ignore        // XXX: Is this correct?
+	public void givenUnprocessedAndApprovedListAndManagerThenIsNotEditable() {
+		assertThat(service.isEditable(records.getList02(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isEditable(records.getList03(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isEditable(records.getList04(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isEditable(records.getList05(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isEditable(records.getList06(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isEditable(records.getList07(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isEditable(records.getList08(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isEditable(records.getList09(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isEditable(records.getList10(), records.getGandalf_managerInABC())).isFalse();
 	}
 
 	@Test
@@ -107,29 +110,44 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUnprocessedListToCloseOrDestroyAndManagerThenIsProcessable() {
-		assertThat(service.isProcessable(records.getList02(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isProcessable(records.getList03(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isProcessable(records.getList07(), records.getGandalf_managerInABC())).isTrue();
+	public void givenUnprocessedListToCloseOrDestroyAndManagerThenIsProcessableIfApproved() {
+		assertThat(service.isProcessable(records.getList02(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList02()), records.getGandalf_managerInABC())).isTrue();
+
+		assertThat(service.isProcessable(records.getList03(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList03()), records.getGandalf_managerInABC())).isTrue();
+
+		assertThat(service.isProcessable(records.getList07(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList07()), records.getGandalf_managerInABC())).isTrue();
 	}
 
 	@Test
-	public void givenUnprocessedListWithAllElectronicAndManagerThenIsProcessable() {
-		assertThat(service.isProcessable(records.getList06(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isProcessable(records.getList09(), records.getGandalf_managerInABC())).isTrue();
+	public void givenUnprocessedListWithAllElectronicAndManagerThenIsProcessableIfApproved() {
+		assertThat(service.isProcessable(records.getList06(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList06()), records.getGandalf_managerInABC())).isTrue();
+
+		assertThat(service.isProcessable(records.getList09(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList09()), records.getGandalf_managerInABC())).isTrue();
 	}
 
 	@Test
-	public void givenUnprocessedListWithNonElectronicAndManagerWhenFoldersAlreadyInContainersThenIsProcessable() {
-		assertThat(service.isProcessable(records.getList08(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isProcessable(records.getList10(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.isProcessable(records.getList16(), records.getGandalf_managerInABC())).isTrue();
+	public void givenUnprocessedListWithNonElectronicAndManagerWhenFoldersAlreadyInContainersThenIsProcessableIfApproved() {
+		assertThat(service.isProcessable(records.getList08(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList08()), records.getGandalf_managerInABC())).isTrue();
+
+		assertThat(service.isProcessable(records.getList10(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList10()), records.getGandalf_managerInABC())).isTrue();
+
+		assertThat(service.isProcessable(records.getList16(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList16()), records.getGandalf_managerInABC())).isTrue();
 	}
 
 	@Test
 	public void givenUnprocessedListWithNonElectronicAndManagerWhenFoldersNotInContainersThenIsNotProcessable() {
 		assertThat(service.isProcessable(records.getList04(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList04()), records.getGandalf_managerInABC())).isFalse();
 		assertThat(service.isProcessable(records.getList05(), records.getGandalf_managerInABC())).isFalse();
+		assertThat(service.isProcessable(approved(records.getList05()), records.getGandalf_managerInABC())).isFalse();
 	}
 
 	@Test
@@ -139,17 +157,6 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		assertThat(service.isProcessable(records.getList13(), records.getGandalf_managerInABC())).isFalse();
 		assertThat(service.isProcessable(records.getList14(), records.getGandalf_managerInABC())).isFalse();
 		assertThat(service.isProcessable(records.getList15(), records.getGandalf_managerInABC())).isFalse();
-	}
-
-	@Test
-	public void givenUnprocessedListWhenNotClosureOrDestroyalThenCanEditContainers() {
-		assertThat(service.canEditContainers(records.getList04(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.canEditContainers(records.getList05(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.canEditContainers(records.getList06(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.canEditContainers(records.getList08(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.canEditContainers(records.getList09(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.canEditContainers(records.getList10(), records.getGandalf_managerInABC())).isTrue();
-		assertThat(service.canEditContainers(records.getList16(), records.getGandalf_managerInABC())).isTrue();
 	}
 
 	@Test
@@ -243,16 +250,14 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		DecommissioningListParams params = new DecommissioningListParams();
 		params.setTitle("Ze title");
 		params.setDescription("Ze description");
-		params.setAdministrativeUnit(records.unitId_10);
-		params.setFilingSpace(records.filingId_A);
+		params.setAdministrativeUnit(records.unitId_10a);
 		params.setSearchType(SearchType.fixedPeriod);
 		params.setSelectedFolderIds(Arrays.asList(records.folder_A01));
 
 		DecommissioningList decommissioningList = service.createDecommissioningList(params, records.getGandalf_managerInABC());
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze title");
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A01));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
@@ -263,16 +268,14 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		DecommissioningListParams params = new DecommissioningListParams();
 		params.setTitle("Ze title");
 		params.setDescription("Ze description");
-		params.setAdministrativeUnit(records.unitId_10);
-		params.setFilingSpace(records.filingId_A);
+		params.setAdministrativeUnit(records.unitId_10a);
 		params.setSearchType(SearchType.code888);
 		params.setSelectedFolderIds(Arrays.asList(records.folder_A04));
 
 		DecommissioningList decommissioningList = service.createDecommissioningList(params, records.getGandalf_managerInABC());
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze title");
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A04));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
@@ -283,16 +286,14 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		DecommissioningListParams params = new DecommissioningListParams();
 		params.setTitle("Ze title");
 		params.setDescription("Ze description");
-		params.setAdministrativeUnit(records.unitId_10);
-		params.setFilingSpace(records.filingId_A);
+		params.setAdministrativeUnit(records.unitId_10a);
 		params.setSearchType(SearchType.code999);
 		params.setSelectedFolderIds(Arrays.asList(records.folder_A07));
 
 		DecommissioningList decommissioningList = service.createDecommissioningList(params, records.getGandalf_managerInABC());
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze title");
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A07));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
@@ -303,16 +304,14 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		DecommissioningListParams params = new DecommissioningListParams();
 		params.setTitle("Ze title");
 		params.setDescription("Ze description");
-		params.setAdministrativeUnit(records.unitId_10);
-		params.setFilingSpace(records.filingId_A);
+		params.setAdministrativeUnit(records.unitId_10a);
 		params.setSearchType(SearchType.transfer);
 		params.setSelectedFolderIds(Arrays.asList(records.folder_A10));
 
 		DecommissioningList decommissioningList = service.createDecommissioningList(params, records.getGandalf_managerInABC());
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze title");
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_TRANSFER);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A10));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
@@ -323,16 +322,14 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		DecommissioningListParams params = new DecommissioningListParams();
 		params.setTitle("Ze title");
 		params.setDescription("Ze description");
-		params.setAdministrativeUnit(records.unitId_10);
-		params.setFilingSpace(records.filingId_A);
+		params.setAdministrativeUnit(records.unitId_10a);
 		params.setSearchType(SearchType.activeToDeposit);
 		params.setSelectedFolderIds(Arrays.asList(records.folder_A10));
 
 		DecommissioningList decommissioningList = service.createDecommissioningList(params, records.getGandalf_managerInABC());
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze title");
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DEPOSIT);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A10));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
@@ -343,16 +340,14 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		DecommissioningListParams params = new DecommissioningListParams();
 		params.setTitle("Ze title");
 		params.setDescription("Ze description");
-		params.setAdministrativeUnit(records.unitId_10);
-		params.setFilingSpace(records.filingId_A);
+		params.setAdministrativeUnit(records.unitId_10a);
 		params.setSearchType(SearchType.activeToDestroy);
 		params.setSelectedFolderIds(Arrays.asList(records.folder_A10));
 
 		DecommissioningList decommissioningList = service.createDecommissioningList(params, records.getGandalf_managerInABC());
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze title");
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DESTROY);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(new DecomListFolderDetail(records.folder_A10));
 		assertThat(decommissioningList.getContainerDetails()).isEmpty();
@@ -363,16 +358,14 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		DecommissioningListParams params = new DecommissioningListParams();
 		params.setTitle("Ze title");
 		params.setDescription("Ze description");
-		params.setAdministrativeUnit(records.unitId_10);
-		params.setFilingSpace(records.filingId_A);
+		params.setAdministrativeUnit(records.unitId_10a);
 		params.setSearchType(SearchType.semiActiveToDeposit);
 		params.setSelectedFolderIds(Arrays.asList(records.folder_A42));
 
 		DecommissioningList decommissioningList = service.createDecommissioningList(params, records.getGandalf_managerInABC());
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze title");
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DEPOSIT);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(
 				new DecomListFolderDetail(records.folder_A42).setContainerRecordId(records.containerId_bac13),
@@ -387,16 +380,14 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		DecommissioningListParams params = new DecommissioningListParams();
 		params.setTitle("Ze title");
 		params.setDescription("Ze description");
-		params.setAdministrativeUnit(records.unitId_10);
-		params.setFilingSpace(records.filingId_A);
+		params.setAdministrativeUnit(records.unitId_10a);
 		params.setSearchType(SearchType.semiActiveToDestroy);
 		params.setSelectedFolderIds(Arrays.asList(records.folder_A42));
 
 		DecommissioningList decommissioningList = service.createDecommissioningList(params, records.getGandalf_managerInABC());
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze title");
 		assertThat(decommissioningList.getDescription()).isEqualTo("Ze description");
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DESTROY);
 		assertThat(decommissioningList.getFolderDetails()).containsOnly(
 				new DecomListFolderDetail(records.folder_A42).setContainerRecordId(records.containerId_bac13),
@@ -412,7 +403,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
 
-		service.decommission(records.getList03(), processingUser);
+		service.decommission(approved(records.getList03()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList03());
 		verifyFoldersClosed(processingUser, processingDate, records.getFolder_A01(), records.getFolder_A02(),
 				records.getFolder_A03());
@@ -424,7 +415,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
 
-		service.decommission(records.getList16(), processingUser);
+		service.decommission(approved(records.getList16()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList16());
 		verifyFoldersTransferred(processingDate, processingUser, records.containerId_bac14,
 				records.getFolder_A22(), records.getFolder_A23(), records.getFolder_A24());
@@ -435,7 +426,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	public void givenListToTransferWhenPurgeMinorVersionOnTransferThenMinorVersionsArePurged() {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 
-		service.decommission(packed(records.getList05(), records.containerId_bac15), records.getGandalf_managerInABC());
+		service.decommission(approved(packed(records.getList05(), records.containerId_bac15)), records.getGandalf_managerInABC());
 		assertThat(records.getDocumentWithContent_A19().getContent().getHistoryVersions()).isEmpty();
 	}
 
@@ -443,7 +434,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 
-		service.decommission(packed(records.getList05(), records.containerId_bac15), records.getGandalf_managerInABC());
+		service.decommission(approved(packed(records.getList05(), records.containerId_bac15)), records.getGandalf_managerInABC());
 		assertThat(records.getDocumentWithContent_A19().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
 	}
@@ -454,7 +445,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
 
-		service.decommission(records.getList17(), processingUser);
+		service.decommission(approved(records.getList17()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList17());
 		verifyFoldersDeposited(processingDate, processingUser, records.containerId_bac11,
 				records.getFolder_A49(), records.getFolder_A50());
@@ -467,7 +458,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	public void givenListToDepositWhenPurgeMinorVersionOnTransferThenMinorVersionsArePurged() {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 
-		service.decommission(packed(records.getList20(), records.containerId_bac16), records.getGandalf_managerInABC());
+		service.decommission(approved(packed(records.getList20(), records.containerId_bac16)), records.getGandalf_managerInABC());
 		assertThat(records.getDocumentWithContent_A19().getContent().getHistoryVersions()).isEmpty();
 	}
 
@@ -475,7 +466,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	public void givenListToDepositWhenPurgeMinorVersionsOnDepositThenMinorVersionsArePurged() {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_DEPOSIT);
 
-		service.decommission(records.getList17(), records.getGandalf_managerInABC());
+		service.decommission(approved(records.getList17()), records.getGandalf_managerInABC());
 		assertThat(records.getDocumentWithContent_A49().getContent().getHistoryVersions()).isEmpty();
 	}
 
@@ -483,7 +474,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 
-		service.decommission(packed(records.getList20(), records.containerId_bac16), records.getGandalf_managerInABC());
+		service.decommission(approved(packed(records.getList20(), records.containerId_bac16)), records.getGandalf_managerInABC());
 		assertThat(records.getDocumentWithContent_A19().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
 	}
@@ -492,7 +483,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
 
-		service.decommission(records.getList17(), records.getGandalf_managerInABC());
+		service.decommission(approved(records.getList17()), records.getGandalf_managerInABC());
 		assertThat(records.getDocumentWithContent_A49().getContent().getCurrentVersion().getMimetype())
 				.isEqualTo("application/pdf");
 	}
@@ -503,7 +494,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
 
-		service.decommission(records.getList02(), processingUser);
+		service.decommission(approved(records.getList02()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList02());
 		verifyFoldersDestroyed(processingDate, processingUser,
 				records.getFolder_A54(), records.getFolder_A55(), records.getFolder_A56());
@@ -512,7 +503,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenListToDestroyThenDocumentsContentsAreDestroyed() {
-		service.decommission(records.getList21(), records.getGandalf_managerInABC());
+		service.decommission(approved(records.getList21()), records.getGandalf_managerInABC());
 		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();
 	}
 
@@ -520,7 +511,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 	public void givenListToDestroyThenDocumentsAndTheirContentsAreDestroyed() {
 		getConfigurationManager().setValue(RMConfigs.DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION, true);
 
-		service.decommission(records.getList21(), records.getGandalf_managerInABC());
+		service.decommission(approved(records.getList21()), records.getGandalf_managerInABC());
 		assertThat(records.getDocumentWithContent_A19().get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).isEqualTo(true);
 		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();
 	}
@@ -531,7 +522,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
 
-		service.decommission(records.getList18(), processingUser);
+		service.decommission(approved(records.getList18()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList18());
 		verifyFoldersDeposited(processingDate, processingUser, records.containerId_bac08, records.getFolder_B30());
 		verifyFoldersDestroyed(processingDate, processingUser, records.getFolder_B33());
@@ -544,7 +535,7 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
 
-		service.decommission(records.getList19(), processingUser);
+		service.decommission(approved(records.getList19()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList19());
 		verifyFoldersDeposited(processingDate, processingUser, records.containerId_bac09, records.getFolder_B33());
 		verifyFoldersDestroyed(processingDate, processingUser, records.getFolder_B30());
@@ -617,6 +608,16 @@ public class DecommissioningService_tawmas_AcceptTest extends ConstellioTest {
 			}
 		}
 		return list.setContainerDetailsFor(container);
+	}
+
+	private DecommissioningList approved(DecommissioningList list) {
+		try {
+			recordServices.update(list.setApprovalDate(new LocalDate()).setApprovalUser(records.getGandalf_managerInABC()));
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+		recordServices.refresh(list);
+		return list;
 	}
 
 	private SystemConfigurationsManager getConfigurationManager() {

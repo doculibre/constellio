@@ -114,4 +114,41 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 
 	}
 
+	@Override
+	public boolean onSomething() {
+		Set<String> allUserPermissions = new HashSet<>();
+		List<String> userTokens = user.getUserTokens();
+		for (String userToken : userTokens) {
+			for (String authorizationRoleCode : userToken.split("_")[1].split(",")) {
+				Role role = roles.getRole(authorizationRoleCode);
+				if (role != null) {
+					allUserPermissions.addAll(role.getOperationPermissions());
+				}
+			}
+		}
+		for (String userRoleCode : user.getAllRoles()) {
+			Role role = roles.getRole(userRoleCode);
+			allUserPermissions.addAll(role.getOperationPermissions());
+		}
+		if (anyRoles) {
+			boolean result = LangUtils.containsAny(asList(permissions), LangUtils.withoutNulls(allUserPermissions));
+
+			if (!result) {
+				LOGGER.info("User '" + user.getUsername() + "' has no permissions in " + StringUtils
+						.join(allUserPermissions, ", ") + " on something");
+			}
+
+			return result;
+		} else {
+
+			for (String permission : permissions) {
+				if (permission != null && !allUserPermissions.contains(permission)) {
+					LOGGER.info("User '" + user.getUsername() + "' doesn't have permission '" + permission + "' on something");
+					return false;
+				}
+
+			}
+			return true;
+		}
+	}
 }

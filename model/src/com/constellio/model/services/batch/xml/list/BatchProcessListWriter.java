@@ -226,4 +226,18 @@ public class BatchProcessListWriter {
 			document.getRootElement().getChild(PENDING_BATCH_PROCESSES).addContent(standbyBatchProcess);
 		}
 	}
+
+	public void deleteBatchProcessesAlteration(List<String> ids) {
+		Element finishedBatchProcessesElement = document.getRootElement().getChild(PREVIOUS_BATCH_PROCESSES);
+		List<Element> elementsToDelete = new ArrayList<>();
+		for (Element batchProcessElement : finishedBatchProcessesElement.getChildren(BATCH_PROCESS)) {
+			String batchProcessId = batchProcessElement.getAttributeValue(ID);
+			if (ids.contains(batchProcessId)) {
+				elementsToDelete.add(batchProcessElement);
+			}
+		}
+		for (Element element : elementsToDelete) {
+			element.detach();
+		}
+	}
 }

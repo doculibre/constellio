@@ -20,6 +20,7 @@ package com.constellio.data.threads;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,12 +30,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 
+	@Mock DataLayerConfiguration dataLayerConfiguration;
 	@Mock Runnable repeatedAction, command;
 	@Mock ScheduledExecutorService scheduledExecutorService;
 	BackgroundThreadsManager backgroundThreadsManager;
@@ -42,7 +45,11 @@ public class BackgroundThreadsManagerUnitTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		backgroundThreadsManager = spy(new BackgroundThreadsManager(4));
+
+		when(dataLayerConfiguration.isBackgroundThreadsEnabled()).thenReturn(true);
+		when(dataLayerConfiguration.getBackgroudThreadsPoolSize()).thenReturn(4);
+
+		backgroundThreadsManager = spy(new BackgroundThreadsManager(dataLayerConfiguration));
 		doReturn(scheduledExecutorService).when(backgroundThreadsManager).newScheduledExecutorService();
 	}
 

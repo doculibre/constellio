@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vaadin.server.Resource;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -40,6 +39,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.vaadin.server.Resource;
 
 public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private final ConstellioHeader header;
@@ -55,16 +55,18 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	public void searchRequested(String expression, String schemaTypeCode) {
 		if (StringUtils.isNotBlank(schemaTypeCode)) {
-			header.hideAdvancedSearchPopup();
-			header.navigateTo().advancedSearch();
+			header.hideAdvancedSearchPopup().navigateTo().advancedSearch();
 		} else if (StringUtils.isNotBlank(expression)) {
-			header.hideAdvancedSearchPopup();
-			header.navigateTo().simpleSearch(expression);
+			header.hideAdvancedSearchPopup().navigateTo().simpleSearch(expression);
 		}
 	}
 
 	public void addCriterionRequested() {
 		header.addEmptyCriterion();
+	}
+
+	public void savedSearchPageRequested() {
+		header.hideAdvancedSearchPopup().navigateTo().listSavedSearches();
 	}
 
 	public void schemaTypeSelected(String schemaTypeCode) {
@@ -112,6 +114,19 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return result;
 	}
 
+	@Override
+	public MetadataVO getMetadataVO(String metadataCode) {
+		if (metadataCode != null) {
+			MetadataToVOBuilder builder = new MetadataToVOBuilder();
+			MetadataSchemaTypes types = types();
+			Metadata metadata = types.getMetadata(metadataCode);
+			return builder.build(metadata);
+		} else {
+			return null;
+		}
+
+	}
+
 	private MetadataSchemaTypes types() {
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		return metadataSchemasManager.getSchemaTypes(header.getCollection());
@@ -136,7 +151,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
 	}
 
-	public Resource getUserLogoResource(){
+	public Resource getUserLogoResource() {
 		return LogoUtils.getUserLogoResource(modelLayerFactory);
 	}
 }

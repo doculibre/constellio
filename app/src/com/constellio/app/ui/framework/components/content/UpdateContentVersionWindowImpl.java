@@ -238,6 +238,11 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		uploadField.setVisible(visible);
 	}
 	
+	@Override
+	public void setUploadFieldVisible(boolean visible) {
+		uploadField.setVisible(visible);
+	}
+
 	private void initMajorVersionFieldOptions() {
 		majorVersionField.removeAllItems();
 		majorVersionField.addItem(true);

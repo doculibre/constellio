@@ -34,6 +34,7 @@ import com.carrotsearch.junitbenchmarks.annotation.BenchmarkHistoryChart;
 import com.carrotsearch.junitbenchmarks.annotation.LabelType;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
@@ -52,6 +53,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -76,7 +78,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	FolderSchema folderSchema = schemas.new FolderSchema();
 	MetadataSchemasManager schemasManager;
 	SearchServices searchServices;
-	RecordServices recordServices;
+	RecordServicesImpl recordServices;
 	TaxonomiesManager taxonomiesManager;
 	CollectionsListManager collectionsListManager;
 	AuthorizationsServices authorizationsServices;
@@ -86,59 +88,77 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	RolesManager roleManager;
 
 	User bob, userWithDeletePermission;
-	Record folder4, folder4_1, folder4_2, folder4_1_doc1, folder4_2_doc1, folder2, category2, category2_1, folder3, folder1, valueListItem;
-	List<Record> recordsInFolder4Hierarchy, recordsInFolder4_2Hierarchy;
+	Record valueListItem, rootUnclassifiedItem, childUnclassifiedItem;
+
 	private ModelLayerCollectionExtensions extensions;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		prepareSystem(
-				withZeCollection().withAllTest(users),
-				withCollection("anotherCollection").withAllTestUsers()
-		);
+		customSystemPreparation(new CustomSystemPreparation() {
+			@Override
+			public void prepare() {
+				givenCollection(zeCollection).withAllTestUsers();
+				givenCollection("anotherCollection").withAllTestUsers();
 
-		recordServices = spy(getModelLayerFactory().newRecordServices());
-		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-		searchServices = getModelLayerFactory().newSearchServices();
-		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
-		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		roleManager = getModelLayerFactory().getRolesManager();
-		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-		recordDeleteServices = spy(recordServices.newRecordDeleteServices());
+				setupServices();
 
-		doReturn(recordDeleteServices).when(recordServices).newRecordDeleteServices();
+				defineSchemasManager().using(schemas.with(unsecuredAndUnclassifiedValueListSchemaAndUnclassifiedSecuredSchema()));
+				taxonomiesManager.addTaxonomy(schemas.getTaxonomy1(), schemasManager);
+				taxonomiesManager.addTaxonomy(schemas.getTaxonomy2(), schemasManager);
+				taxonomiesManager.setPrincipalTaxonomy(schemas.getTaxonomy1(), schemasManager);
+				records = schemas.new Records(recordServices);
+				records.setup();
 
-		defineSchemasManager().using(schemas.with(schemaNotAttachedToTaxonomies()));
-		taxonomiesManager.addTaxonomy(schemas.getTaxonomy1(), schemasManager);
-		taxonomiesManager.addTaxonomy(schemas.getTaxonomy2(), schemasManager);
-		taxonomiesManager.setPrincipalTaxonomy(schemas.getTaxonomy1(), schemasManager);
-		records = schemas.givenRecords(recordServices);
+				userWithDeletePermission = users.chuckNorrisIn(zeCollection);
+				userWithDeletePermission.setCollectionDeleteAccess(true);
+				try {
+					recordServices.update(userWithDeletePermission.getWrappedRecord());
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+			}
 
-		userWithDeletePermission = users.chuckNorrisIn(zeCollection);
-		userWithDeletePermission.setCollectionDeleteAccess(true);
-		recordServices.update(userWithDeletePermission.getWrappedRecord());
+			@Override
+			public void initializeFromCache() {
+				setupServices();
+				schemas.refresh(schemasManager);
+				records = schemas.new Records(recordServices);
+			}
+
+			private void setupServices() {
+				users.setUp(getModelLayerFactory().newUserServices());
+				recordServices = spy(getModelLayerFactory().newCachelessRecordServices());
+				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
+				searchServices = getModelLayerFactory().newSearchServices();
+				authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+				schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+				roleManager = getModelLayerFactory().getRolesManager();
+				collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+				recordDeleteServices = spy(recordServices.newRecordDeleteServices());
+
+				doReturn(recordDeleteServices).when(recordServices).newRecordDeleteServices();
+			}
+		});
 
 		bob = users.bobIn(zeCollection);
 		userWithDeletePermission = users.chuckNorrisIn(zeCollection);
-		folder4 = records.folder4;
-		folder4_1 = records.folder4_1;
-		folder4_2 = records.folder4_2;
-		folder4_1_doc1 = records.folder4_1_doc1;
-		folder4_2_doc1 = records.folder4_2_doc1;
-		folder1 = records.folder1;
-		folder2 = records.folder2;
-		folder3 = records.folder3;
-		category2 = records.taxo1_category2;
-		category2_1 = records.taxo1_category2_1;
-		MetadataSchema valueListItemSchema = schemas.getSchema("valueList_default");
-		valueListItem = recordServices.newRecordWithSchema(valueListItemSchema, "valuelListItem").set(Schemas.TITLE, "Ze item");
-		recordServices.add(valueListItem);
 
-		recordsInFolder4Hierarchy = Arrays.asList(folder4, folder4_1, folder4_2, folder4_1_doc1, folder4_2_doc1);
-		recordsInFolder4_2Hierarchy = Arrays.asList(folder4_2, folder4_2_doc1);
 		extensions = getModelLayerFactory().getExtensions().forCollection(zeCollection);
+
+		MetadataSchema valueListItemSchema = schemas.getSchema("valueList_default");
+		MetadataSchema securedUnclassifiedSchema = schemas.getSchema("securedUnclassified_default");
+
+		valueListItem = recordServices.newRecordWithSchema(valueListItemSchema, "valuelListItem").set(Schemas.TITLE, "Ze item");
+
+		rootUnclassifiedItem = recordServices.newRecordWithSchema(securedUnclassifiedSchema, "rootUnclassifiedItem")
+				.set(Schemas.TITLE, "rootUnclassifiedItem");
+
+		childUnclassifiedItem = recordServices.newRecordWithSchema(securedUnclassifiedSchema, "childUnclassifiedItem")
+				.set(Schemas.TITLE, "childUnclassifiedItem").set(securedUnclassifiedSchema.get("parent"), rootUnclassifiedItem);
+
+		recordServices.execute(new Transaction(valueListItem, rootUnclassifiedItem, childUnclassifiedItem));
 	}
 
 	private void givenValueListSchemaHasSecurity() {
@@ -212,6 +232,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenNotReferencedValueListItemWithoutSecurityThenLogicallyDeletableByAnybody()
 			throws Exception {
 		assertThat(valueListItem).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(bob));
 		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob));
 
 		when(bob).logicallyDelete(valueListItem);
@@ -246,8 +267,11 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		givenValueListSchemaHasSecurity();
 		assertThat(valueListItem).is(notLogicallyDeletableBy(bob));
+		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
 		assertThat(valueListItem).is(logicallyDeletableBy(User.GOD));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(User.GOD));
 		assertThat(valueListItem).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 
 		when(User.GOD).logicallyDelete(valueListItem);
 		assertThat(valueListItem).is(logicallyDeleted());
@@ -272,6 +296,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenNotReferencedValueListItemWithSecurityThenPhysicallyDeletableByGodAndUserWithCollectionDelete()
 			throws Exception {
 		givenValueListSchemaHasSecurity();
+		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(User.GOD));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+
 		given(User.GOD).logicallyDelete(valueListItem);
 		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob));
 		assertThat(valueListItem).is(physicallyDeletableBy(User.GOD));
@@ -285,8 +313,9 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenReferencedValueListItemThenLogicallyDeletable()
 			throws Exception {
-		given(folder3).hasAValueListReferenceTo(valueListItem);
+		given(records.folder3()).hasAValueListReferenceTo(valueListItem);
 		assertThat(valueListItem).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
 
 		when(bob).logicallyDelete(valueListItem);
 		assertThat(valueListItem).is(logicallyDeleted());
@@ -296,7 +325,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenReferencedValueListItemThenRestorable()
 			throws Exception {
-		given(folder3).hasAValueListReferenceTo(valueListItem);
+		given(records.folder3()).hasAValueListReferenceTo(valueListItem);
 		given(userWithDeletePermission).logicallyDelete(valueListItem);
 		assertThat(valueListItem).is(restorableBy(bob));
 
@@ -308,7 +337,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenReferencedValueListItemThenNotPhysicallyDeletable()
 			throws Exception {
-		given(folder3).hasAValueListReferenceTo(valueListItem);
+		given(records.folder3()).hasAValueListReferenceTo(valueListItem);
 		given(bob).logicallyDelete(valueListItem);
 		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob));
 		assertThat(valueListItem).is(notPhysicallyDeletableBy(User.GOD));
@@ -317,46 +346,111 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenUserWithCollectionDeleteAccessWhenDeletingASecuredUnclassifiedRecordThenAllHierarchyDeleted()
+			throws Exception {
+		assertThat(rootUnclassifiedItem).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(rootUnclassifiedItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+
+		when(userWithDeletePermission).logicallyDelete(rootUnclassifiedItem);
+		when(userWithDeletePermission).physicallyDelete(rootUnclassifiedItem);
+
+		assertThat(rootUnclassifiedItem).is(physicallyDeleted());
+		assertThat(childUnclassifiedItem).is(physicallyDeleted());
+
+	}
+
+	@Test
+	public void givenUserDoesntHaveFullDeleteAccessOnASecuredUnclassifiedRecordThenCannotLogicallyDelete()
+			throws Exception {
+		assertThat(rootUnclassifiedItem).is(notLogicallyDeletableBy(bob));
+		assertThat(rootUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(bob));
+
+		assertThat(childUnclassifiedItem).is(notLogicallyDeletableBy(bob));
+		assertThat(childUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(bob));
+
+	}
+
+	@Test
+	public void givenUserDoesntHaveFullDeleteAccessOnASecuredUnclassifiedLogicallyDeletedRecordThenCannotPhysicallyDeleteOrRestoreIt()
+			throws Exception {
+
+		given(userWithDeletePermission).logicallyDelete(rootUnclassifiedItem);
+
+		assertThat(rootUnclassifiedItem).is(notLogicallyDeletableBy(bob));
+		assertThat(rootUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(bob));
+
+		assertThat(childUnclassifiedItem).is(notLogicallyDeletableBy(bob));
+		assertThat(childUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(bob));
+
+	}
+
+	@Test
+	public void givenUserHasFullDeleteAccessOnASecuredUnclassifiedRecordWhichAreReferencedThenCanDeleteLogicallyButNotPhysically()
+			throws Exception {
+		given(records.folder3()).hasAReferenceToUnclassifiedSecuredRecord(childUnclassifiedItem);
+
+		assertThat(rootUnclassifiedItem).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(rootUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+
+		assertThat(childUnclassifiedItem).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+
+	}
+
+	@Test
 	public void givenUserHasDeletePermissionToActiveRecordAndItsHierarchyThenCanDeleteLogicallyButNotPhysically()
 			throws Exception {
-		given(bob).hasDeletePermissionOn(folder4);
-		Thread.sleep(1000);
-		assertThat(folder4).is(logicallyDeletableBy(bob));
-		assertThat(folder4).is(notPhysicallyDeletableBy(bob));
+		given(bob).hasDeletePermissionOn(records.folder4());
+
+		assertThat(records.folder4()).is(logicallyDeletableBy(bob));
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(bob));
 	}
 
 	@Test
 	public void givenGodUserThenCanDeleteLogicallyButNotPhysically()
 			throws Exception {
-		assertThat(folder4).is(logicallyDeletableBy(User.GOD));
-		assertThat(folder4).is(notPhysicallyDeletableBy(User.GOD));
+		assertThat(records.folder4()).is(logicallyDeletableBy(User.GOD));
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(User.GOD));
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(User.GOD));
 	}
 
 	@Test
 	public void givenUserHasDeletePermissionToActiveRecordAndItsHierarchyWhenDeletingLogicallyThenAllHierarchyLogicallyDeleted()
 			throws Exception {
-		given(bob).hasDeletePermissionOn(folder4);
+		given(bob).hasDeletePermissionOn(records.folder4());
 
-		when(bob).logicallyDelete(folder4);
+		when(bob).logicallyDelete(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 	}
 
 	@Test
 	public void givenGodUserWhenDeletingLogicallyThenAllHierarchyLogicallyDeleted()
 			throws Exception {
-		when(User.GOD).logicallyDelete(folder4);
+		when(User.GOD).logicallyDelete(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 	}
 
 	@Test
 	public void givenUserHasDeletePermissionToActiveRecordButNotToAnElementInItsHierarchyThenCannotDeleteItLogically()
 			throws Exception {
-		given(bob).hasDeletePermissionOn(folder4);
-		given(bob).hasRemovedDeletePermissionOn(folder4_2_doc1);
+		given(bob).hasDeletePermissionOn(records.folder4());
+		given(bob).hasRemovedDeletePermissionOn(records.folder4_2_doc1());
 
-		assertThat(records.folder4).is(notLogicallyDeletableBy(bob));
+		assertThat(records.folder4()).is(notLogicallyDeletableBy(bob));
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(bob));
 	}
 
 	@Test
@@ -377,7 +471,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		Record folder = recordServices.newRecordWithSchema(folderSchema.instance());
 		recordServices.add(folder.set(Schemas.TITLE, "title"));
 
-		assertThat(records.folder4).is(notLogicallyDeletableBy(bob));
+		assertThat(records.folder4()).is(notLogicallyDeletableBy(bob));
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(bob));
 
 	}
 
@@ -401,7 +496,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		recordServices.add(folder.set(Schemas.TITLE, "title"));
 		given(userWithDeletePermission).logicallyDelete(folder);
 
-		assertThat(records.folder4).is(notRestorableBy(bob));
+		assertThat(records.folder4()).is(notRestorableBy(bob));
 
 	}
 
@@ -410,6 +505,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		Record folder = recordServices.newRecordWithSchema(folderSchema.instance());
 		recordServices.add(folder.set(Schemas.TITLE, "title"));
+		assertThat(folder).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		given(userWithDeletePermission).logicallyDelete(folder);
 
 		when(userWithDeletePermission).physicallyDelete(folder);
@@ -425,116 +521,120 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		recordServices.add(folder.set(Schemas.TITLE, "title"));
 		given(userWithDeletePermission).logicallyDelete(folder);
 
-		assertThat(records.folder4).is(notPhysicallyDeletableBy(bob));
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(bob));
 
 	}
 
 	@Test
 	public void givenARecordIsReferencedInAnotherRecordWhenAUserDeleteTheRecordThenWholeHierarchyLogicallyDeleted()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4);
+		given(records.folder2()).hasAReferenceTo(records.folder4());
 
-		when(userWithDeletePermission).logicallyDelete(folder4);
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		when(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 
 	}
 
 	@Test
 	public void givenARecordIsReferencedInAnotherRecordWhenGodUserDeleteTheRecordThenWholeHierarchyLogicallyDeleted()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4);
+		given(records.folder2()).hasAReferenceTo(records.folder4());
 
-		when(User.GOD).logicallyDelete(folder4);
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		when(User.GOD).logicallyDelete(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 
 	}
 
 	@Test
 	public void givenARecordIsReferencedInAnotherRecordWhenAUserDeleteTheRecordParentThenWholeHierarchyLogicallyDeleted()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 
-		when(userWithDeletePermission).logicallyDelete(folder4);
+		when(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 	}
 
 	@Test
 	public void givenARecordIsReferencedInAnotherRecordWhenGodUserDeleteTheRecordParentThenWholeHierarchyLogicallyDeleted()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 
-		when(User.GOD).logicallyDelete(folder4);
+		when(User.GOD).logicallyDelete(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordWhenRestoringItThenAllItsHierarchyRestored()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(userWithDeletePermission).restore(folder4);
+		when(userWithDeletePermission).restore(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).areNot(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).areNot(logicallyDeleted());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordWhenRestoringItWithGodUserThenAllItsHierarchyRestored()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(User.GOD).restore(folder4);
+		when(User.GOD).restore(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).areNot(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).areNot(logicallyDeleted());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordThenASubRecordInItsHierarchyIsNotRestorableAlone()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4_2).is(notRestorableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notRestorableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordThenASubRecordInItsHierarchyIsNotRestorableAloneEvenWithGodUser()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4_2).is(notRestorableBy(User.GOD));
+		assertThat(records.folder4_2()).is(notRestorableBy(User.GOD));
 	}
 
 	@Test
 	public void givenARecordIsDeletedLogicallyAndASubRecordRestoredWhenRestoringTheRecordThenAllRestored()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(userWithDeletePermission).restore(folder4);
+		when(userWithDeletePermission).restore(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).areNot(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).areNot(logicallyDeleted());
 
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordAndAUserWithoutSufficientDeletePermissionThenCannotRestoreIt()
 			throws Exception {
-		given(bob).hasDeletePermissionOn(folder4);
-		given(bob).hasRemovedDeletePermissionOn(folder4_2_doc1);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(bob).hasDeletePermissionOn(records.folder4());
+		given(bob).hasRemovedDeletePermissionOn(records.folder4_2_doc1());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4).is(restorableBy(userWithDeletePermission));
-		assertThat(folder4).is(notRestorableBy(bob));
+		assertThat(records.folder4()).is(restorableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(notRestorableBy(bob));
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordWhenAUserWithDeletePermissionPhysicallyDeleteItThenAllDeleted()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		List<Record> recordsInFolder4Hierarchy = records.inFolder4Hierarchy();
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(userWithDeletePermission).physicallyDelete(folder4);
+		when(userWithDeletePermission).physicallyDelete(records.folder4());
 
 		assertThat(recordsInFolder4Hierarchy).are(physicallyDeleted());
 	}
@@ -542,9 +642,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenALogicallyDeletedRecordWhenGodUserWithDeletePermissionPhysicallyDeleteItThenAllDeleted()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		List<Record> recordsInFolder4Hierarchy = records.inFolder4Hierarchy();
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(User.GOD).physicallyDelete(folder4);
+		when(User.GOD).physicallyDelete(records.folder4());
 
 		assertThat(recordsInFolder4Hierarchy).are(physicallyDeleted());
 	}
@@ -552,64 +653,68 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenALogicallyDeletedRecordAndAUserWithDeletePermissionToTheRecordButNotToASubRecordThenCannotPhysicallyDeleteIt()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
-		given(bob).hasDeletePermissionOn(folder4);
-		given(bob).hasRemovedDeletePermissionOn(folder4_2);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+		given(bob).hasDeletePermissionOn(records.folder4());
+		given(bob).hasRemovedDeletePermissionOn(records.folder4_2());
 
-		assertThat(folder4).is(notPhysicallyDeletableBy(bob));
-		assertThat(recordsInFolder4Hierarchy).areNot(physicallyDeleted());
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(bob));
+		assertThat(records.inFolder4Hierarchy()).areNot(physicallyDeleted());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordThenDeletedAndNotReferenceable()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
 
-		assertThat(folder4).is(logicallyDeleted());
-		assertThat(folder4).is(physicallyDeletableBy(userWithDeletePermission));
-		assertThat(folder4).isNot(referencable());
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+
+		assertThat(records.folder4()).is(logicallyDeleted());
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).isNot(referencable());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordWhenUpdatingThenStillDeletedAndNotReferenceable()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		given(bob).modify(folder4);
+		given(bob).modify(records.folder4());
 
-		assertThat(folder4).is(logicallyDeleted());
-		assertThat(folder4).is(physicallyDeletableBy(userWithDeletePermission));
-		assertThat(folder4).isNot(referencable());
+		assertThat(records.folder4()).is(logicallyDeleted());
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).isNot(referencable());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordThenAUserWithoutDeletePermissionCannotPhysicallyDeleteIt()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4).is(logicallyDeleted());
-		assertThat(folder4).is(notPhysicallyDeletableBy(bob));
-		assertThat(recordsInFolder4Hierarchy).areNot(physicallyDeleted());
+		assertThat(records.folder4()).is(logicallyDeleted());
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(bob));
+		assertThat(records.inFolder4Hierarchy()).areNot(physicallyDeleted());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordAndAUserWithoutDeletePermissionThenCannotPhysicallyDeleteIt()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4).is(notPhysicallyDeletableBy(bob));
-		assertThat(recordsInFolder4Hierarchy).areNot(physicallyDeleted());
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(bob));
+		assertThat(records.inFolder4Hierarchy()).areNot(physicallyDeleted());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordOfSchemaWithoutSecurityAndAUserWithoutDeletePermissionThenCanPhysicallyDeleteIt()
 			throws Exception {
 
+		List<Record> recordsInFolder4Hierarchy = records.inFolder4Hierarchy();
 		givenSecurityDisabledInFolderSchemaType();
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4).is(physicallyDeletableBy(bob));
-		when(bob).physicallyDelete(folder4);
+		assertThat(records.folder4()).is(physicallyDeletableBy(bob));
+		when(bob).physicallyDelete(records.folder4());
 
 		assertThat(recordsInFolder4Hierarchy).are(physicallyDeleted());
 	}
@@ -620,139 +725,184 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		givenSecurityDisabledInFolderSchemaType();
 
-		assertThat(folder4).is(logicallyDeletableBy(bob));
-		when(bob).logicallyDelete(folder4);
+		assertThat(records.folder4()).is(logicallyDeletableBy(bob));
+		when(bob).logicallyDelete(records.folder4());
 
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordThenCannotPhysicallyDeleteIt()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		assertThat(records.folder4_2()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4_2).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notPhysicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordInHierarchyIsReferencedByAnotherRecordThenCannotPhysicallyDeleteIt()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndTheReferenceIsRemovedThenCanPhysicallyDeleteIt()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(folder2).hasAReferenceTo();
+		when(records.folder2()).hasAReferenceTo();
 
-		assertThat(folder4).is(physicallyDeletableBy(userWithDeletePermission));
-		assertThat(folder4_2).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(physicallyDeletableBy(userWithDeletePermission));
+	}
+
+	@Test
+	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndTheReferenceIsRemovedAndRecordRestoredThenCanLogicallyThenPhysicallyDeleteIt()
+			throws Exception {
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+
+		when(records.folder2()).hasAReferenceTo();
+		given(userWithDeletePermission).restore(records.folder4());
+
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndTheReferenceIsReplacedThenCanPhysicallyDeleteIt()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(folder2).hasAReferenceTo(folder3);
+		when(records.folder2()).hasAReferenceTo(records.folder3());
 
-		assertThat(folder4).is(physicallyDeletableBy(userWithDeletePermission));
-		assertThat(folder4_2).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(physicallyDeletableBy(userWithDeletePermission));
+	}
+
+	@Test
+	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndTheReferenceIsReplacedAndRecordRestoredThenCanLogicallyThenPhysicallyDeleteIt()
+			throws Exception {
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+
+		when(records.folder2()).hasAReferenceTo(records.folder3());
+		given(userWithDeletePermission).restore(records.folder4());
+
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndANewReferenceIsAddedKeepingThePreviousThenCannotPhysicallyDeleteIt()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(folder2).hasAReferenceTo(folder4_2, folder3);
+		when(records.folder2()).hasAReferenceTo(records.folder4_2(), records.folder3());
 
-		assertThat(folder4).is(notPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(folder4_2).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notPhysicallyDeletableBy(userWithDeletePermission));
+
+		given(userWithDeletePermission).restore(records.folder4());
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndIsMovedInAnOtherFolderThenPreviousParentFolderIsNowPhysicallyDeletable()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(folder4_2).hasNewParent(folder3);
+		when(records.folder4_2()).hasNewParent(records.folder3());
 
-		assertThat(folder4).is(physicallyDeletableBy(userWithDeletePermission));
-		assertThat(folder4_2).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notPhysicallyDeletableBy(userWithDeletePermission));
 
-		when(userWithDeletePermission).logicallyDelete(folder3);
-		assertThat(folder3).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		when(userWithDeletePermission).logicallyDelete(records.folder3());
+		assertThat(records.folder3()).is(notPhysicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenALogicallyDeletedRecordIsReferencedByThreeRecordsWhenAllReferencingRecordsDeletedThenRecordIsPhysicallyDeletable()
 			throws Exception {
-		given(folder1).hasAReferenceTo(folder4);
-		given(folder2).hasAReferenceTo(folder4);
-		given(userWithDeletePermission).logicallyDelete(folder4);
-		assertThat(folder4).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		given(records.folder1()).hasAReferenceTo(records.folder4());
+		given(records.folder2()).hasAReferenceTo(records.folder4());
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(userWithDeletePermission));
 
-		when(userWithDeletePermission).logicallyDelete(folder1);
-		when(userWithDeletePermission).physicallyDelete(folder1);
-		assertThat(folder4).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		when(userWithDeletePermission).logicallyDelete(records.folder1());
+		when(userWithDeletePermission).physicallyDelete(records.folder1());
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(userWithDeletePermission));
 
-		when(userWithDeletePermission).logicallyDelete(folder2);
-		when(userWithDeletePermission).physicallyDelete(folder2);
+		when(userWithDeletePermission).logicallyDelete(records.folder2());
+		when(userWithDeletePermission).physicallyDelete(records.folder2());
 
-		assertThat(folder4).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
+
+		given(userWithDeletePermission).restore(records.folder4());
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenRecordIsReferencedBySiblingRecordThenParentRecordIsPhysicallyDeletable()
 			throws Exception {
-		given(folder4_1).hasAReferenceTo(folder4_2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
-		assertThat(folder4).is(physicallyDeletableBy(userWithDeletePermission));
+		given(records.folder4_1()).hasAReferenceTo(records.folder4_2());
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenRecordIsReferencedBySiblingAndCousinRecordsThenParentRecordIsPhysicallyDeletable()
 			throws Exception {
-		given(folder4_1).hasAReferenceTo(folder4_2);
-		given(folder3).hasAReferenceTo(folder4);
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(category2);
-		assertThat(category2).is(physicallyDeletableBy(userWithDeletePermission));
+		given(records.folder4_1()).hasAReferenceTo(records.folder4_2());
+		given(records.folder3()).hasAReferenceTo(records.folder4());
+		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+		assertThat(records.taxo1_category2()).is(physicallyDeletableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
 			throws Exception {
-		when(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(category2);
+		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		when(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
 
-		assertThat(category2).is(logicallyDeleted());
-		assertThat(category2_1).is(logicallyDeleted());
-		assertThat(folder3).is(logicallyDeleted());
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.taxo1_category2()).is(logicallyDeleted());
+		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
+		assertThat(records.folder3()).is(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 
 	}
 
 	@Test
 	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsByGodThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
 			throws Exception {
-		when(User.GOD).logicallyDeletePrincipalConceptIncludingRecords(category2);
+		when(User.GOD).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
 
-		assertThat(category2).is(logicallyDeleted());
-		assertThat(category2_1).is(logicallyDeleted());
-		assertThat(folder3).is(logicallyDeleted());
-		assertThat(recordsInFolder4Hierarchy).are(logicallyDeleted());
+		assertThat(records.taxo1_category2()).is(logicallyDeleted());
+		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
+		assertThat(records.folder3()).is(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
 
 	}
 
@@ -760,89 +910,104 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenAUserHasNoDeleteAccessOnCategoriesThenCannotLogicallyDeleteIt()
 			throws Exception {
 
-		assertThat(category2).is(notLogicallyDeletableIncludingRecordsBy(bob));
-		assertThat(category2_1).is(notLogicallyDeletableIncludingRecordsBy(bob));
-		assertThat(category2).is(notLogicallyDeletableExcludingRecordsBy(bob));
-		assertThat(category2_1).is(notLogicallyDeletableExcludingRecordsBy(bob));
+		assertThat(records.taxo1_category2()).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2_1()).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2()).is(notLogicallyDeletableIncludingRecordsBy(bob));
+		assertThat(records.taxo1_category2_1()).is(notLogicallyDeletableIncludingRecordsBy(bob));
+		assertThat(records.taxo1_category2()).is(notLogicallyDeletableExcludingRecordsBy(bob));
+		assertThat(records.taxo1_category2_1()).is(notLogicallyDeletableExcludingRecordsBy(bob));
 
 	}
 
 	@Test
 	public void givenAUserHasDeleteAccessOnCategoriesAndSubCategoriesButNotOnRecordsThenCanOnlyDeletePrincipalConceptExcludingRecords()
 			throws Exception {
-		given(bob).hasDeletePermissionOn(category2);
-		given(bob).hasRemovedDeletePermissionOn(folder3);
+		given(bob).hasDeletePermissionOn(records.taxo1_category2());
+		given(bob).hasRemovedDeletePermissionOn(records.folder3());
 
-		assertThat(category2).is(notLogicallyDeletableIncludingRecordsBy(bob));
-		assertThat(category2_1).is(notLogicallyDeletableIncludingRecordsBy(bob));
-		assertThat(category2).is(logicallyDeletableExcludingRecordsBy(bob));
-		assertThat(category2_1).is(logicallyDeletableExcludingRecordsBy(bob));
+		assertThat(records.taxo1_category2()).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2_1()).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2()).is(notLogicallyDeletableIncludingRecordsBy(bob));
+		assertThat(records.taxo1_category2_1()).is(notLogicallyDeletableIncludingRecordsBy(bob));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableExcludingRecordsBy(bob));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableExcludingRecordsBy(bob));
 
 	}
 
 	@Test
 	public void givenLogicallyDeletedPrincipalConceptExcludingRecordsThenEvenGodUserCannotPhysicallyDeleteThePrincipalConcept()
 			throws Exception {
-		given(User.GOD).logicallyDeletePrincipalConceptExcludingRecords(category2);
+		given(User.GOD).logicallyDeletePrincipalConceptExcludingRecords(records.taxo1_category2());
 
-		assertThat(category2).is(notPhysicallyDeletableBy(User.GOD));
-		assertThat(category2_1).is(notPhysicallyDeletableBy(User.GOD));
+		assertThat(records.taxo1_category2()).is(notPhysicallyDeletableBy(User.GOD));
+		assertThat(records.taxo1_category2_1()).is(notPhysicallyDeletableBy(User.GOD));
 
 	}
 
 	@Test
 	public void givenAUserHasDeleteAccessOnCategoriesSubCategoriesAndRecordsThenCanDeletePrincipalConceptIncludingAndExcludingRecords()
 			throws Exception {
-		given(bob).hasDeletePermissionOn(category2);
+		given(bob).hasDeletePermissionOn(records.taxo1_category2());
 
-		assertThat(category2).is(logicallyDeletableIncludingRecordsBy(bob));
-		assertThat(category2_1).is(logicallyDeletableIncludingRecordsBy(bob));
-		assertThat(category2).is(logicallyDeletableExcludingRecordsBy(bob));
-		assertThat(category2_1).is(logicallyDeletableExcludingRecordsBy(bob));
+		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableIncludingRecordsBy(bob));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableIncludingRecordsBy(bob));
+		assertThat(records.taxo1_category2()).is(logicallyDeletableExcludingRecordsBy(bob));
+		assertThat(records.taxo1_category2_1()).is(logicallyDeletableExcludingRecordsBy(bob));
 	}
 
 	@Test
 	public void givenAUserHasDeleteAccessOnACategoryButNotOnASubCategoryThenCannotLogicallyDeleteIt()
 			throws Exception {
-		given(bob).hasDeletePermissionOn(category2);
-		given(bob).hasRemovedDeletePermissionOn(category2_1);
+		given(bob).hasDeletePermissionOn(records.taxo1_category2());
+		given(bob).hasRemovedDeletePermissionOn(records.taxo1_category2_1());
 
-		assertThat(category2).is(notLogicallyDeletableIncludingRecordsBy(bob));
-		assertThat(category2_1).is(notLogicallyDeletableIncludingRecordsBy(bob));
-		assertThat(category2).is(notLogicallyDeletableExcludingRecordsBy(bob));
-		assertThat(category2_1).is(notLogicallyDeletableExcludingRecordsBy(bob));
+		assertThat(records.taxo1_category2()).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2_1()).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(records.taxo1_category2()).is(notLogicallyDeletableIncludingRecordsBy(bob));
+		assertThat(records.taxo1_category2_1()).is(notLogicallyDeletableIncludingRecordsBy(bob));
+		assertThat(records.taxo1_category2()).is(notLogicallyDeletableExcludingRecordsBy(bob));
+		assertThat(records.taxo1_category2_1()).is(notLogicallyDeletableExcludingRecordsBy(bob));
 	}
 
 	@Test
 	public void givenLogicallyDeletedPrincipalConceptAndAllItsHierarchyWhenRestoringThePrincipalConceptThenAllHierarchyRestored()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(category2);
+		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
 
-		when(userWithDeletePermission).restore(category2);
+		when(userWithDeletePermission).restore(records.taxo1_category2());
 
-		assertThat(category2).isNot(logicallyDeleted());
-		assertThat(category2_1).isNot(logicallyDeleted());
-		assertThat(folder3).isNot(logicallyDeleted());
-		assertThat(recordsInFolder4Hierarchy).areNot(logicallyDeleted());
+		assertThat(records.taxo1_category2()).isNot(logicallyDeleted());
+		assertThat(records.taxo1_category2_1()).isNot(logicallyDeleted());
+		assertThat(records.folder3()).isNot(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).areNot(logicallyDeleted());
 	}
 
 	@Test
 	public void givenLogicallyDeletedPrincipalConceptAndAllItsHierarchyThenAPrincipalSubConceptInALogicallyDeleteConceptIsNotRestorable()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(category2);
+		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
 
-		assertThat(category2_1).is(notRestorableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(notRestorableBy(userWithDeletePermission));
 	}
 
 	@Test
 	public void givenLogicallyDeletedPrincipalConceptAndAllItsHierarchyWhenDeletingThePrincipalConceptThenAllHierarchyIsPhysicallyDeleted()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(category2);
+		Record taxo1_category2 = records.taxo1_category2();
+		Record taxo1_category2_1 = records.taxo1_category2_1();
+		Record folder3 = records.folder3();
+		List<Record> recordsInFolder4Hierarchy = records.inFolder4Hierarchy();
 
-		when(userWithDeletePermission).physicallyDelete(category2);
+		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
 
-		assertThat(category2).is(physicallyDeleted());
-		assertThat(category2_1).is(physicallyDeleted());
+		when(userWithDeletePermission).physicallyDelete(records.taxo1_category2());
+
+		assertThat(taxo1_category2).is(physicallyDeleted());
+		assertThat(taxo1_category2_1).is(physicallyDeleted());
 		assertThat(folder3).is(physicallyDeleted());
 		assertThat(recordsInFolder4Hierarchy).are(physicallyDeleted());
 	}
@@ -850,12 +1015,18 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenLogicallyDeletedPrincipalConceptAndAllItsHierarchyWhenDeletingAPrincipalSubConceptThenAllHierarchyIsPhysicallyDeletedExceptPrincipalRootConcept()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(category2);
 
-		when(userWithDeletePermission).physicallyDelete(category2_1);
+		Record taxo1_category2 = records.taxo1_category2();
+		Record taxo1_category2_1 = records.taxo1_category2_1();
+		Record folder3 = records.folder3();
+		List<Record> recordsInFolder4Hierarchy = records.inFolder4Hierarchy();
 
-		assertThat(category2).isNot(physicallyDeleted());
-		assertThat(category2_1).is(physicallyDeleted());
+		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+
+		when(userWithDeletePermission).physicallyDelete(records.taxo1_category2_1());
+
+		assertThat(taxo1_category2).isNot(physicallyDeleted());
+		assertThat(taxo1_category2_1).is(physicallyDeleted());
 		assertThat(folder3).is(physicallyDeleted());
 		assertThat(recordsInFolder4Hierarchy).areNot(physicallyDeleted());
 	}
@@ -863,67 +1034,67 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void whenAPrincipalConceptIsLogicallyDeletedExcludingRecordsThenOnlyConceptsSubConceptsDeleted()
 			throws Exception {
-		when(userWithDeletePermission).logicallyDeletePrincipalConceptExcludingRecords(category2);
+		when(userWithDeletePermission).logicallyDeletePrincipalConceptExcludingRecords(records.taxo1_category2());
 
-		assertThat(category2).is(logicallyDeleted());
-		assertThat(category2_1).is(logicallyDeleted());
-		assertThat(folder3).isNot(logicallyDeleted());
-		assertThat(recordsInFolder4Hierarchy).areNot(logicallyDeleted());
+		assertThat(records.taxo1_category2()).is(logicallyDeleted());
+		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
+		assertThat(records.folder3()).isNot(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).areNot(logicallyDeleted());
 	}
 
 	@Test(expected = RecordServicesRuntimeException.RecordIsNotAPrincipalConcept.class)
 	public void whenLogicallyDeletingASecondaryConceptAsAPrincipalConceptThenException()
 			throws Exception {
-		when(userWithDeletePermission).logicallyDeletePrincipalConceptExcludingRecords(records.taxo2_unit1);
+		when(userWithDeletePermission).logicallyDeletePrincipalConceptExcludingRecords(records.taxo2_unit1());
 	}
 
 	@Test
 	public void givenARecordReferencingALogicallyDeletedRecordWhenAddingASecondReferenceThenSecondReferenceAdded()
 			throws Exception {
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(folder2).hasAReferenceTo(folder4_2, folder3);
+		when(records.folder2()).hasAReferenceTo(records.folder4_2(), records.folder3());
 
-		recordServices.refresh(folder2);
-		assertThat((List) folder2.get(folderSchema.linkToOtherFolders())).hasSize(2);
+		recordServices.refresh(records.folder2());
+		assertThat((List) records.folder2().get(folderSchema.linkToOtherFolders())).hasSize(2);
 	}
 
 	@Test(expected = RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord.class)
 	public void givenARecordWhenAddingAReferenceToALogicallyDeletedRecordThenException()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(folder2).hasAReferenceTo(folder4);
+		when(records.folder2()).hasAReferenceTo(records.folder4());
 
 	}
 
 	@Test(expected = RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord.class)
 	public void givenARecordWhenAddingAReferenceToALogicallyDeletedSubRecordThenException()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		when(folder2).hasAReferenceTo(folder4_2);
+		when(records.folder2()).hasAReferenceTo(records.folder4_2());
 
 	}
 
 	@Test
 	public void givenARecordWhenAddingAReferenceToARestoredLogicallyDeletedRecordThenOK()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
-		given(userWithDeletePermission).restore(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+		given(userWithDeletePermission).restore(records.folder4());
 
-		when(folder2).hasAReferenceTo(folder4);
+		when(records.folder2()).hasAReferenceTo(records.folder4());
 
 	}
 
 	@Test
 	public void givenARecordWhenAddingAReferenceToARestoredLogicallyDeletedSubRecordThenOK()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder4);
-		given(userWithDeletePermission).restore(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+		given(userWithDeletePermission).restore(records.folder4());
 
-		when(folder2).hasAReferenceTo(folder4_2);
+		when(records.folder2()).hasAReferenceTo(records.folder4_2());
 
 	}
 
@@ -931,8 +1102,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenARecordWithoutReferencesWhenGetListOfReferencesThenEmpty()
 			throws Exception {
 
-		assertThat(folder4).is(notReferenced());
-		assertThat(folder4).is(seenByUserToBeReferencedByNoRecords(userWithDeletePermission));
+		assertThat(records.folder4()).is(notReferenced());
+		assertThat(records.folder4()).is(seenByUserToBeReferencedByNoRecords(userWithDeletePermission));
 
 	}
 
@@ -940,12 +1111,13 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenARecordWith2ReferencesWhenGetListOfReferencesThen2Records()
 			throws Exception {
 
-		given(folder3).hasAReferenceTo(folder4);
-		given(folder3).hasAReferenceTo(folder4_2);
-		given(folder2).hasAReferenceTo(folder4_2);
+		given(records.folder3()).hasAReferenceTo(records.folder4());
+		given(records.folder3()).hasAReferenceTo(records.folder4_2());
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 
-		assertThat(folder4).is(referenced());
-		assertThat(folder4).is(seenByUserToBeReferencedByRecords(userWithDeletePermission, folder2, folder3));
+		assertThat(records.folder4()).is(referenced());
+		assertThat(records.folder4())
+				.is(seenByUserToBeReferencedByRecords(userWithDeletePermission, records.folder2(), records.folder3()));
 
 	}
 
@@ -953,13 +1125,13 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenARecordWith2ReferencesWhenGetListOfReferencesWithUserOnlySeeing1RecordThen1Record()
 			throws Exception {
 
-		given(folder3).hasAReferenceTo(folder4);
-		given(folder3).hasAReferenceTo(folder4_2);
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(bob).hasReadPermissionOn(folder3);
+		given(records.folder3()).hasAReferenceTo(records.folder4());
+		given(records.folder3()).hasAReferenceTo(records.folder4_2());
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(bob).hasReadPermissionOn(records.folder3());
 
-		assertThat(folder4).is(referenced());
-		assertThat(folder4).is(seenByUserToBeReferencedByRecords(bob, folder3));
+		assertThat(records.folder4()).is(referenced());
+		assertThat(records.folder4()).is(seenByUserToBeReferencedByRecords(bob, records.folder3()));
 
 	}
 
@@ -967,12 +1139,12 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenARecordWith2ReferencesWhenGetListOfReferencesWithUserSeeingNoRecordThen0RecordButStillConsideredAsReferenced()
 			throws Exception {
 
-		given(folder3).hasAReferenceTo(folder4);
-		given(folder3).hasAReferenceTo(folder4_2);
-		given(folder2).hasAReferenceTo(folder4_2);
+		given(records.folder3()).hasAReferenceTo(records.folder4());
+		given(records.folder3()).hasAReferenceTo(records.folder4_2());
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 
-		assertThat(folder4).is(referenced());
-		assertThat(folder4).is(seenByUserToBeReferencedByNoRecords(bob));
+		assertThat(records.folder4()).is(referenced());
+		assertThat(records.folder4()).is(seenByUserToBeReferencedByNoRecords(bob));
 
 	}
 
@@ -980,10 +1152,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenALogicallyDeletedRecordWithoutReferencesWhenGetListOfReferencesThenEmpty()
 			throws Exception {
 
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4).is(notReferenced());
-		assertThat(folder4).is(seenByUserToBeReferencedByNoRecords(userWithDeletePermission));
+		assertThat(records.folder4()).is(notReferenced());
+		assertThat(records.folder4()).is(seenByUserToBeReferencedByNoRecords(userWithDeletePermission));
 
 	}
 
@@ -991,16 +1163,17 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenALogicallyDeletedRecordWith2ReferencesWhenGetListOfReferencesThen2Records()
 			throws Exception {
 
-		given(folder3).hasAReferenceTo(folder4);
-		given(folder3).hasAReferenceTo(folder4_2);
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(records.folder3()).hasAReferenceTo(records.folder4());
+		given(records.folder3()).hasAReferenceTo(records.folder4_2());
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		recordServices.refresh(folder4);
-		recordServices.isReferencedByOtherRecords(folder4);
+		recordServices.refresh(records.folder4());
+		recordServices.isReferencedByOtherRecords(records.folder4());
 
-		assertThat(folder4).is(referenced());
-		assertThat(folder4).is(seenByUserToBeReferencedByRecords(userWithDeletePermission, folder2, folder3));
+		assertThat(records.folder4()).is(referenced());
+		assertThat(records.folder4())
+				.is(seenByUserToBeReferencedByRecords(userWithDeletePermission, records.folder2(), records.folder3()));
 
 	}
 
@@ -1008,14 +1181,14 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenALogicallyDeletedRecordWith2ReferencesWhenGetListOfReferencesWithUserOnlySeeing1RecordThen1Record()
 			throws Exception {
 
-		given(folder3).hasAReferenceTo(folder4);
-		given(folder3).hasAReferenceTo(folder4_2);
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(bob).hasReadPermissionOn(folder3);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(records.folder3()).hasAReferenceTo(records.folder4());
+		given(records.folder3()).hasAReferenceTo(records.folder4_2());
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(bob).hasReadPermissionOn(records.folder3());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4).is(referenced());
-		assertThat(folder4).is(seenByUserToBeReferencedByRecords(bob, folder3));
+		assertThat(records.folder4()).is(referenced());
+		assertThat(records.folder4()).is(seenByUserToBeReferencedByRecords(bob, records.folder3()));
 
 	}
 
@@ -1024,33 +1197,35 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenALogicallyDeletedRecordWith2ReferencesWhenGetListOfReferencesWithUserSeeingNoRecordThen0RecordButStillConsideredAsReferenced()
 			throws Exception {
 
-		given(folder3).hasAReferenceTo(folder4);
-		given(folder3).hasAReferenceTo(folder4_2);
-		given(folder2).hasAReferenceTo(folder4_2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(records.folder3()).hasAReferenceTo(records.folder4());
+		given(records.folder3()).hasAReferenceTo(records.folder4_2());
+		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
-		assertThat(folder4).is(referenced());
-		assertThat(folder4).is(seenByUserToBeReferencedByRecords(bob));
+		assertThat(records.folder4()).is(referenced());
+		assertThat(records.folder4()).is(seenByUserToBeReferencedByRecords(bob));
 
 	}
 
 	@Test
 	public void givenActiveRestoredAndLogicallyDeletedRecordsWhenSearchingRecordsUsingTheStatusFilterThenObtainCorrectResults()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDelete(folder2);
-		given(userWithDeletePermission).restore(folder2);
-		given(userWithDeletePermission).logicallyDelete(folder4);
+		given(userWithDeletePermission).logicallyDelete(records.folder2());
+		given(userWithDeletePermission).restore(records.folder2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
 		// Search only root folders (Folder1, 2, 3 and 4)
 		LogicalSearchQuery query = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchema.instance())
 				.where(folderSchema.taxonomy1()).isNotNull());
 
-		assertThat(searchServices.searchRecordIds(query)).containsOnly(idsArray(folder1, folder2, folder3, folder4));
+		assertThat(searchServices.searchRecordIds(query))
+				.containsOnly(idsArray(records.folder1(), records.folder2(), records.folder3(), records.folder4()));
 		assertThat(searchServices.searchRecordIds(query.filteredByStatus(StatusFilter.ALL))).containsOnly(
-				idsArray(folder1, folder2, folder3, folder4));
-		assertThat(searchServices.searchRecordIds(query.filteredByStatus(StatusFilter.DELETED))).containsOnly(idsArray(folder4));
+				idsArray(records.folder1(), records.folder2(), records.folder3(), records.folder4()));
+		assertThat(searchServices.searchRecordIds(query.filteredByStatus(StatusFilter.DELETED)))
+				.containsOnly(idsArray(records.folder4()));
 		assertThat(searchServices.searchRecordIds(query.filteredByStatus(StatusFilter.ACTIVES))).containsOnly(
-				idsArray(folder1, folder2, folder3));
+				idsArray(records.folder1(), records.folder2(), records.folder3()));
 	}
 
 	// -------------------------------------------------------------
@@ -1060,6 +1235,42 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			@Override
 			public boolean matches(Record record) {
 				return recordServices.isLogicallyDeletable(record, user);
+			}
+		}.describedAs("logically deletable by " + user);
+	}
+
+	private Condition<? super Record> logicallyThenPhysicallyDeletableBy(final User user) {
+		return new Condition<Record>() {
+			@Override
+			public boolean matches(Record record) {
+				return recordServices.isLogicallyThenPhysicallyDeletable(record, user);
+			}
+		}.describedAs("logically deletable by " + user);
+	}
+
+	private Condition<? super Record> notLogicallyThenPhysicallyDeletableBy(final User user) {
+		return new Condition<Record>() {
+			@Override
+			public boolean matches(Record record) {
+				boolean deletable = recordServices.isLogicallyThenPhysicallyDeletable(record, user);
+				assertThat(deletable).describedAs("isLogicallyThenPhysicallyDeletable").isFalse();
+
+				boolean logicallyDeleted = false;
+				try {
+					recordServices.logicallyDelete(record, user);
+					logicallyDeleted = true;
+					recordServices.physicallyDelete(record, user);
+
+					return false;
+				} catch (Exception e) {
+					//OK
+					if (logicallyDeleted) {
+						recordServices.restore(record, user);
+					}
+
+					return true;
+				}
+
 			}
 		}.describedAs("logically deletable by " + user);
 	}
@@ -1444,17 +1655,35 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			}
 			waitForBatchProcess();
 		}
+
+		public void hasAReferenceToUnclassifiedSecuredRecord(Record referencedRecord)
+				throws InterruptedException {
+			this.record.set(folderSchema.instance().get("securedUnclassified"), referencedRecord);
+			try {
+				recordServices.update(this.record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+			waitForBatchProcess();
+		}
 	}
 
-	private MetadataSchemaTypesConfigurator schemaNotAttachedToTaxonomies() {
+	private MetadataSchemaTypesConfigurator unsecuredAndUnclassifiedValueListSchemaAndUnclassifiedSecuredSchema() {
 		return new MetadataSchemaTypesConfigurator() {
 
 			@Override
 			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 				MetadataSchemaTypeBuilder aValueListType = schemaTypes.createNewSchemaType("valueList");
-				MetadataSchemaTypeBuilder folderType = schemaTypes.getSchemaType("folder");
 				aValueListType.setSecurity(false);
-				folderType.getDefaultSchema().create("valueListRef").defineReferencesTo(aValueListType).setMultivalue(true);
+
+				MetadataSchemaTypeBuilder securedUnclassifiedSchemaType = schemaTypes.createNewSchemaType("securedUnclassified");
+				securedUnclassifiedSchemaType.setSecurity(true);
+				securedUnclassifiedSchemaType.getDefaultSchema().create("parent")
+						.defineChildOfRelationshipToType(securedUnclassifiedSchemaType);
+
+				MetadataSchemaBuilder folderSchema = schemaTypes.getSchemaType("folder").getDefaultSchema();
+				folderSchema.create("valueListRef").defineReferencesTo(aValueListType).setMultivalue(true);
+				folderSchema.create("securedUnclassified").defineReferencesTo(securedUnclassifiedSchemaType);
 			}
 		};
 	}

@@ -11204,6 +11204,104 @@ div.v-layout.v-horizontal.v-widget {
 	border-bottom: 1px solid #888;
 }
 
+.constellio .setupview {
+	background-color: #fafafa;
+	background-image: -webkit-radial-gradient(50% 50%, circle, #f5f5f5, #e1e1e1);
+	background-image: radial-gradient(  circle at 50% 50%, #f5f5f5, #e1e1e1);
+	padding-top: 0 !important;
+	-webkit-animation: valo-animate-in-fade 300ms 10ms backwards;
+	-moz-animation: valo-animate-in-fade 300ms 10ms backwards;
+	animation: valo-animate-in-fade 300ms 10ms backwards;
+}
+
+.constellio .setupview  > .v-loading-indicator {
+	display: none !important;
+}
+
+.constellio .setup-panel {
+	background: white;
+	color: #474747;
+	border-radius: 4px;
+	border: 1px solid #d5d5d5;
+	-webkit-box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
+	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05);
+	padding: 25px 25px;
+	min-width: 208px;
+	max-width: 90%;
+	-webkit-animation: valo-animate-in-slide-up 800ms 10ms backwards, valo-animate-in-fade 600ms 100ms backwards;
+	-moz-animation: valo-animate-in-slide-up 800ms 10ms backwards, valo-animate-in-fade 600ms 100ms backwards;
+	animation: valo-animate-in-slide-up 800ms 10ms backwards, valo-animate-in-fade 600ms 100ms backwards;
+}
+
+.constellio .setup-panel  > .v-spacing {
+	height: 19px;
+}
+
+.constellio .setup-panel .labels {
+	display: block;
+}
+
+.constellio .setup-panel .labels .h4 {
+	margin: 0;
+	vertical-align: baseline;
+}
+
+.constellio .setup-panel .labels .h3 {
+	margin: 0;
+	float: right;
+}
+
+.constellio .setup-panel .fields .v-icon {
+	opacity: 0.3;
+}
+
+.constellio .setup-panel[width-range~="0-518px"] .labels .h3 {
+	float: none;
+	display: block;
+	margin-top: 0.2em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.constellio .setup-panel[width-range~="0-518px"] .fields {
+	display: block;
+}
+
+.constellio .setup-panel[width-range~="0-518px"] .fields .v-slot {
+	display: block;
+}
+
+.constellio .setup-panel[width-range~="0-518px"] .fields .v-slot .v-widget {
+	width: 100%;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .setup-panel {
+	-webkit-animation: animate-in-scale-up 500ms 10ms backwards, valo-animate-in-fade 300ms 100ms backwards;
+	-moz-animation: animate-in-scale-up 500ms 10ms backwards, valo-animate-in-fade 300ms 100ms backwards;
+	animation: animate-in-scale-up 500ms 10ms backwards, valo-animate-in-fade 300ms 100ms backwards;
+}
+
+.constellio .setup-help {
+	margin: 0 9px !important;
+}
+
+.constellio .setup-help.v-Notification-animate-in {
+	-webkit-animation: valo-animate-in-fade 500ms 1500ms backwards;
+	-moz-animation: valo-animate-in-fade 500ms 1500ms backwards;
+	animation: valo-animate-in-fade 500ms 1500ms backwards;
+}
+
+.constellio .setup-help p span {
+	display: block;
+	margin-top: 0.5em;
+}
+
+.constellio .setup-help p span a {
+	color: #fff;
+	text-decoration: none;
+	border-bottom: 1px solid #888;
+}
+
 .constellio .dashboard-view.dashboard-view {
 	padding: 25px;
 	overflow: visible;
@@ -11414,6 +11512,30 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .notifications.v-window .notification-time {
 	font-size: 13px;
 	color: gray;
+}
+
+.constellio .v-table-cell-content-file-icon-box {
+	background-image: url('images/icons/container/box.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-box .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-task {
+	background-image: url('images/icons/task/task.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-task .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
 }
 
 .constellio .v-table-cell-content-file-icon-chm {
@@ -11885,12 +12007,24 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-xls {
-	background-image: url('images/icons/ext/mantis/xlsx.gif');
+	background-image: url('images/icons/ext/mantis/xls.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
 }
 
 .constellio .v-table-cell-content-file-icon-xls .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-xlsx {
+	background-image: url('images/icons/ext/mantis/xlsx.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-xlsx .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
@@ -11932,52 +12066,81 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-dossier {
-	background-image: url('images/commun/dossier/dossier.gif');
+.constellio .v-table-cell-content-file-icon-folder {
+	background-image: url('images/icons/folder/folder.png');
 	background-repeat: no-repeat;
 	background-position: 2px 10px;
 }
 
-.constellio .v-table-cell-content-file-icon-dossier .v-table-cell-wrapper {
+.constellio .v-table-cell-content-file-icon-folder .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-dossier_orange {
-	background-image: url('images/commun/dossier/dossier_orange.gif');
+.constellio .v-table-cell-content-file-icon-folder_orange {
+	background-image: url('images/icons/folder/folder_orange.png');
 	background-repeat: no-repeat;
 	background-position: 2px 10px;
 }
 
-.constellio .v-table-cell-content-file-icon-dossier_orange .v-table-cell-wrapper {
+.constellio .v-table-cell-content-file-icon-folder_orange .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-dossier_gris {
-	background-image: url('images/commun/dossier/dossier_gris.gif');
+.constellio .v-table-cell-content-file-icon-folder_grey {
+	background-image: url('images/icons/folder/folder_grey.png');
 	background-repeat: no-repeat;
 	background-position: 2px 10px;
 }
 
-.constellio .v-table-cell-content-file-icon-dossier_gris .v-table-cell-wrapper {
+.constellio .v-table-cell-content-file-icon-folder_grey .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
 }
 
-.constellio .v-table-cell-content-file-icon-dossier_mauve {
-	background-image: url('images/commun/dossier/dossier_mauve.gif');
+.constellio .v-table-cell-content-file-icon-folder_purple {
+	background-image: url('images/icons/folder/folder_purple.png');
 	background-repeat: no-repeat;
 	background-position: 2px 10px;
 }
 
-.constellio .v-table-cell-content-file-icon-dossier_mauve .v-table-cell-wrapper {
+.constellio .v-table-cell-content-file-icon-folder_purple .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
+}
+
+.constellio .v-table-cell-content-error {
+	color: #FFFFFF;
+	background-color: #F5A9A9;
+	background: #ff3019;
+	background: -moz-linear-gradient(top, #ff3019 0%, #cf0404 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ff3019), color-stop(100%, #cf0404));
+	background: -webkit-linear-gradient(top, #ff3019 0%, #cf0404 100%);
+	background: -o-linear-gradient(top, #ff3019 0%, #cf0404 100%);
+	background: -ms-linear-gradient(top, #ff3019 0%, #cf0404 100%);
+	background: linear, to bottom, #ff3019 0%, #cf0404 100%;
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff3019', endColorstr='#cf0404',GradientType=0 );
+}
+
+.constellio .v-table-cell-content-disabled {
+	background: #eeeeee;
+	background: -moz-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #eeeeee), color-stop(100%, #cccccc));
+	background: -webkit-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
+	background: -o-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
+	background: -ms-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
+	background: linear, to bottom, #eeeeee 0%, #cccccc 100%;
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 );
+}
+
+.constellio .v-slot-disabled-button {
+	opacity: 0.4;
+	filter: alpha(opacity=40);
 }
 
 .constellio body, .constellio div, .constellio p, .constellio h2, .constellio h3, .constellio pre {
@@ -11988,12 +12151,12 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 10px;
 }
 
-.constellio .v-slot-login-panel {
+.constellio .v-slot-login-panel, .constellio .v-slot-setup-panel {
 	background-image: url(images/back-const-1920x1358.jpg);
 	background-repeat: no-repeat;
 }
 
-.constellio .v-slot-login-panel .login-logo {
+.constellio .v-slot-login-panel .login-logo, .constellio .v-slot-setup-panel .login-logo {
 	float: right;
 	vertical-align: bottom;
 }
@@ -12006,11 +12169,11 @@ div.v-layout.v-horizontal.v-widget {
 	width: 300px;
 	word-wrap: break-word;
 	border-bottom: 1px dotted #dfdfdf;
+	font-weight: bold;
 }
 
 .constellio .base-display .display-value, .constellio .base-display .v-caption-display-value {
 	text-align: left;
-	font-weight: bold;
 	font-size: inherit;
 	word-break: break-word;
 	padding-left: 10px;
@@ -12029,6 +12192,14 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .lookup-window-content {
 	padding-top: 10px;
 	padding-left: 10px;
+}
+
+.constellio .lookup-autocomplete-field .v-filterselect-input {
+	padding-right: 0px;
+}
+
+.constellio .lookup-autocomplete-field .v-filterselect-button {
+	display: none;
 }
 
 .constellio .link {
@@ -12066,6 +12237,22 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: orange;
 }
 
+.constellio .xbreadcrumbs {
+	background-color: #FFFFFF;
+}
+
+.constellio .xbreadcrumbs .v-link a span, .constellio .xbreadcrumbs .xbreadcrumbbutton .v-button-caption {
+	font-size: 0.9em;
+}
+
+.constellio .xbreadcrumbs li {
+	height: auto;
+}
+
+.constellio .xbreadcrumbs .xbreadcrumbbutton {
+	height: auto;
+}
+
 .constellio .v-window .popupContent {
 	z-index: 20001;
 }
@@ -12084,6 +12271,11 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-window .popupContent .v-has-caption {
 	padding-left: 10px;
+}
+
+.constellio .window-button-window-content {
+	margin-left: 10px;
+	margin-top: 5px;
 }
 
 .constellio .user-documents-window {
@@ -12353,6 +12545,11 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 5px;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-caption-list-add-remove {
+	padding-left: 0px;
+	font-weight: bold;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .list-add-remove {
 	border: 1px solid lightgray;
 	padding: 2px;
@@ -12362,6 +12559,15 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .copy-retention-rule-table-medium-types-field {
 	border: none;
 	padding: 0;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-caption-display-value-retentionRule_default_copyRetentionRules {
+	padding-left: 0px;
+	font-weight: bold;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .display-value-retentionRule_default_copyRetentionRules {
+	padding-left: 0px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .spell-checker .spell-checker-suggestion {

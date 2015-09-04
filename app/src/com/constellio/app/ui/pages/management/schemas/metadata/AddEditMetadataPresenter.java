@@ -28,10 +28,10 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -50,9 +50,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -216,17 +216,28 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	private void saveSchemaDisplay(MetadataSchemasManager schemasManager, SchemasDisplayManager displayManager, String code) {
-		SchemaDisplayConfig schemaConfig = displayManager.getSchema(collection, getSchemaCode());
-		List<String> displayMetadata = new ArrayList<>(schemaConfig.getDisplayMetadataCodes());
-		List<String> formMetadata = new ArrayList<>(schemaConfig.getFormMetadataCodes());
 
-		displayMetadata.add(code);
-		formMetadata.add(code);
+		SchemaTypesDisplayTransactionBuilder transactionBuilder = displayManager.newTransactionBuilderFor(collection);
 
-		schemaConfig = schemaConfig.withDisplayMetadataCodes(displayMetadata);
-		schemaConfig = schemaConfig.withFormMetadataCodes(formMetadata);
+		SchemaUtils schemaUtils = new SchemaUtils();
 
-		displayManager.saveSchema(schemaConfig);
+		String schemaCode = schemaUtils.getSchemaCode(code);
+		String typeCode = schemaUtils.getSchemaTypeCode(schemaCode);
+		String localCode = schemaUtils.getLocalCode(code, schemaCode);
+
+		List<String> hugeMetadatas = schemasManager.getSchemaTypes(collection).getSchema(schemaCode).getMetadatas()
+				.onlyWithType(MetadataValueType.STRUCTURE, MetadataValueType.TEXT).toLocalCodesList();
+
+		transactionBuilder.in(typeCode)
+				.addToDisplay(localCode)
+				.beforeTheHugeCommentMetadata();
+
+		transactionBuilder.in(typeCode)
+				.addToForm(localCode)
+				.beforeMetadatas(hugeMetadatas);
+
+		displayManager.execute(transactionBuilder.build());
+
 	}
 
 	private void saveFacetDisplay(MetadataSchemasManager schemasManager, SchemasDisplayManager displayManager, String code,

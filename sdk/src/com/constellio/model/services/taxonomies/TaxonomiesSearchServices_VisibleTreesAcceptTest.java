@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.taxonomies;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,15 +48,17 @@ import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioTest {
+
+	String subFolderId;
 
 	User alice;
 	DecommissioningService decommissioningService;
@@ -63,6 +66,8 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	MetadataSchemasManager manager;
+	RecordServices recordServices;
+	String document1InA16, document2InA16, document3InA16;
 
 	@Before
 	public void setUp()
@@ -76,12 +81,40 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		service = getModelLayerFactory().newTaxonomiesSearchService();
 		decommissioningService = new DecommissioningService(zeCollection, getModelLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);
 		userServices.addUserToCollection(userCredential, zeCollection);
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		manager = getModelLayerFactory().getMetadataSchemasManager();
+
+		DecommissioningService service = new DecommissioningService(zeCollection, getModelLayerFactory());
+
+		Folder subfolder = service.newSubFolderIn(records.getFolder_A16());
+		subfolder.setTitle("Sous-dossier");
+		recordServices.add(subfolder);
+		subFolderId = subfolder.getId();
+
+		List<String> documentsInA16 = getFolderDocuments(records.folder_A16);
+		document1InA16 = documentsInA16.get(0);
+		document2InA16 = documentsInA16.get(1);
+		document3InA16 = documentsInA16.get(2);
+
+		for (String documentId : getFolderDocuments(records.folder_A17)) {
+			Record document = recordServices.getDocumentById(documentId);
+			recordServices.logicallyDelete(document, User.GOD);
+		}
+
+		for (String documentId : getFolderDocuments(records.folder_A18)) {
+			Record document = recordServices.getDocumentById(documentId);
+			recordServices.logicallyDelete(document, User.GOD);
+		}
+	}
+
+	private List<String> getFolderDocuments(String id) {
+		return getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery()
+				.sortAsc(Schemas.TITLE).setCondition(from(rm.documentSchemaType()).where(rm.documentFolder()).isEqualTo(id)));
 	}
 
 	//	@Test
@@ -105,46 +138,141 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	public void whenDakotaIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
 
-		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB()).
-				containsOnly(records.categoryId_X, records.categoryId_Z);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
+				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X).
-				containsOnly(records.categoryId_X100);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X)
+				.has(recordsInOrder(records.categoryId_X100))
+				.has(recordsWithChildren(records.categoryId_X100));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100).
-				containsOnly(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
-						records.folder_A18,
-						records.folder_B06);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100)
+				.has(recordsInOrder(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
+						records.folder_A18, records.folder_B06))
+				.has(recordsWithChildren(records.categoryId_X110, records.categoryId_X120, records.folder_A16,
+						records.folder_B06));
 
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
+				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
+				.has(noRecordsWithChildren());
 	}
 
 	@Test
 	public void whenAdminIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
 
-		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin()).
-				containsOnly(records.categoryId_X, records.categoryId_Z);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin())
+				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X).
-				containsOnly(records.categoryId_X100);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X)
+				.has(recordsInOrder(records.categoryId_X100))
+				.has(recordsWithChildren(records.categoryId_X100));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100).
-				containsOnly(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
-						records.folder_A18,
-						records.folder_B06, records.folder_C06);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z).
-				containsOnly(records.categoryId_Z100);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z)
+				.has(recordsInOrder(records.categoryId_Z100))
+				.has(recordsWithChildren(records.categoryId_Z100));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100).
-				containsOnly(records.categoryId_Z110, records.categoryId_Z120);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100)
+				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110).
-				containsOnly(records.categoryId_Z112);
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110)
+				.has(recordsInOrder(records.categoryId_Z112))
+				.has(recordsWithChildren(records.categoryId_Z112));
 
 	}
 
+	@Test
+	public void whenNavigatingByIntervalThenGetGoodResults()
+			throws Exception {
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin())
+				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), 0, 2)
+				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), 0, 1)
+				.has(recordsInOrder(records.categoryId_X))
+				.has(recordsWithChildren(records.categoryId_X));
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), 1, 1)
+				.has(recordsInOrder(records.categoryId_Z))
+				.has(recordsWithChildren(records.categoryId_Z));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 10)
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 7)
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 3)
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16"));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 1, 4)
+				.has(recordsInOrder("categoryId_X120", "A16", "A17", "A18"))
+				.has(recordsWithChildren("categoryId_X120", "A16"));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
+				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
+				.has(noRecordsWithChildren());
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 1)
+				.has(recordsInOrder(document1InA16))
+				.has(noRecordsWithChildren());
+
+	}
 	// -------
+
+	private Condition<? super List<TaxonomySearchRecord>> recordsInOrder(String... ids) {
+		final List<String> idsList = asList(ids);
+		return new Condition<List<TaxonomySearchRecord>>() {
+			@Override
+			public boolean matches(List<TaxonomySearchRecord> values) {
+				List<String> valueIds = new ArrayList<>();
+				for (TaxonomySearchRecord value : values) {
+					valueIds.add(value.getRecord().getId());
+				}
+				assertThat(valueIds).isEqualTo(idsList);
+				return true;
+			}
+		};
+	}
+
+	private Condition<? super List<TaxonomySearchRecord>> noRecordsWithChildren() {
+		return recordsWithChildren();
+	}
+
+	private Condition<? super List<TaxonomySearchRecord>> recordsWithChildren(String... ids) {
+		final List<String> idsList = asList(ids);
+		return new Condition<List<TaxonomySearchRecord>>() {
+			@Override
+			public boolean matches(List<TaxonomySearchRecord> values) {
+				List<String> valueIds = new ArrayList<>();
+				for (TaxonomySearchRecord value : values) {
+					if (value.hasChildren()) {
+						valueIds.add(value.getRecord().getId());
+					}
+				}
+				assertThat(valueIds).isEqualTo(idsList);
+				return true;
+			}
+		};
+	}
 
 	private Condition<? super List<TaxonomySearchRecord>> validOrder() {
 		return new Condition<List<TaxonomySearchRecord>>() {
@@ -277,23 +405,35 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 	private ConditionTemplate withoutFilters = null;
 
-	private ListAssert<String> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
-		SPEQueryResponse response = service.getVisibleRootConceptResponse(
-				user, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions());
-
-		assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		List<String> ids = new RecordUtils().toIdList(response.getRecords());
-		return assertThat(ids);
+	private ListAssert<TaxonomySearchRecord> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user) {
+		return assertThatRootWhenUserNavigateUsingPlanTaxonomy(user, 0, Integer.MAX_VALUE);
 	}
 
-	private ListAssert<String> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user, String category) {
-		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
-		SPEQueryResponse response = service
-				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord, new TaxonomiesSearchOptions());
+	private ListAssert<TaxonomySearchRecord> assertThatRootWhenUserNavigateUsingPlanTaxonomy(User user, int start, int rows) {
+		LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
+				user, zeCollection, CLASSIFICATION_PLAN, new TaxonomiesSearchOptions().setStartRow(start).setRows(rows));
 
-		assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
-		List<String> ids = new RecordUtils().toIdList(response.getRecords());
-		return assertThat(ids);
+		if (rows == Integer.MAX_VALUE) {
+			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+		}
+		return assertThat(response.getRecords());
+	}
+
+	private ListAssert<TaxonomySearchRecord> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user, String category) {
+		return assertThatChildWhenUserNavigateUsingPlanTaxonomy(user, category, 0, Integer.MAX_VALUE);
+	}
+
+	private ListAssert<TaxonomySearchRecord> assertThatChildWhenUserNavigateUsingPlanTaxonomy(User user, String category,
+			int start, int rows) {
+		Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+		LinkableTaxonomySearchResponse response = service
+				.getVisibleChildConceptResponse(user, CLASSIFICATION_PLAN, inRecord,
+						new TaxonomiesSearchOptions().setStartRow(start).setRows(rows));
+
+		if (rows == Integer.MAX_VALUE) {
+			assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
+		}
+		return assertThat(response.getRecords());
 	}
 
 }

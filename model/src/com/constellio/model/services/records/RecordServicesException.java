@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -50,14 +51,18 @@ public class RecordServicesException extends Exception {
 
 		final Long version;
 
-		public OptimisticLocking(RecordDaoException.OptimisticLocking e) {
+		final TransactionDTO transactionDTO;
+
+		public OptimisticLocking(TransactionDTO transactionDTO, RecordDaoException.OptimisticLocking e) {
 			super(getMessage(e.getId(), e.getVersion()), e);
+			this.transactionDTO = transactionDTO;
 			this.id = e.getId();
 			this.version = e.getVersion();
 		}
 
-		public OptimisticLocking(String id, Throwable cause) {
+		public OptimisticLocking(String id, TransactionDTO transactionDTO, Throwable cause) {
 			super(getMessage(id, null), cause);
+			this.transactionDTO = transactionDTO;
 			this.id = id;
 			this.version = null;
 		}
@@ -68,6 +73,10 @@ public class RecordServicesException extends Exception {
 
 		public String getId() {
 			return id;
+		}
+
+		public TransactionDTO getTransactionDTO() {
+			return transactionDTO;
 		}
 
 		public Long getVersion() {

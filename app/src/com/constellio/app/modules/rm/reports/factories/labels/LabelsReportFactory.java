@@ -22,9 +22,9 @@ import java.util.List;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportPresenter;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 

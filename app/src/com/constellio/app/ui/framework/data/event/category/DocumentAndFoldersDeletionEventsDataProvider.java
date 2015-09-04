@@ -79,19 +79,28 @@ public class DocumentAndFoldersDeletionEventsDataProvider implements EventsCateg
 				.newFindDeletedDocumentsByDateRangeQuery(currentUser, startDate, endDate);
 		documentsDeletion.setValue((float) searchServices.getResultsCount(query));
 		events.add(documentsDeletion);
+
+		EventStatistics tasksDeletion = new EventStatistics();
+		tasksDeletion.setLabel($("ListEventsView.deleteTask"));
+		query = rmSchemasRecordsServices
+				.newFindEventByDateRangeQuery(currentUser, EventType.DELETE_TASK, startDate, endDate);
+		tasksDeletion.setValue((float) searchServices.getResultsCount(query));
+		events.add(tasksDeletion);
 	}
 
 	@Override
 	public String getEventType(Integer index) {
 		if(index == 0){
 			return EventType.DELETE_FOLDER;
-		}else{
+		}else if (index == 1){
 			return EventType.DELETE_DOCUMENT;
+		}else{
+			return EventType.DELETE_TASK;
 		}
 	}
 
 	public int size() {
-		return 2;
+		return 3;
 	}
 
 	@Override

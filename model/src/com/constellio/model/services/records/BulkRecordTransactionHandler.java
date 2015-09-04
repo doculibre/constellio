@@ -45,6 +45,10 @@ public class BulkRecordTransactionHandler {
 
 	static final BulkRecordTransactionHandlerTask NO_MORE_TASKS = new BulkRecordTransactionHandlerTask(null, null);
 
+	AtomicInteger createdTasksCounter = new AtomicInteger();
+
+	AtomicInteger completedTasksCounter = new AtomicInteger();
+
 	AtomicInteger availableWorkers = new AtomicInteger();
 
 	AtomicInteger progression = new AtomicInteger();
@@ -111,6 +115,7 @@ public class BulkRecordTransactionHandler {
 
 		if (!currentRecords.isEmpty()) {
 			try {
+				createdTasksCounter.incrementAndGet();
 				tasks.put(new BulkRecordTransactionHandlerTask(currentRecords, currentReferencedRecords));
 			} catch (InterruptedException e) {
 				throw new BulkRecordTransactionHandlerRuntimeException_Interrupted(e);
@@ -159,21 +164,31 @@ public class BulkRecordTransactionHandler {
 			threads.add(new ConstellioThread(threadId) {
 				@Override
 				public void execute() {
-					while (exception == null) {
-						try {
-							BulkRecordTransactionHandlerTask task = tasks.poll(1, TimeUnit.SECONDS);
-							if (task == NO_MORE_TASKS) {
-								return;
-							} else if (task != null) {
-								availableWorkers.decrementAndGet();
-								handle(task);
-								availableWorkers.incrementAndGet();
-							}
+					try {
+						while (exception == null) {
+							try {
 
-						} catch (InterruptedException e) {
-							exception = e;
+								BulkRecordTransactionHandlerTask task = tasks.poll(0, TimeUnit.SECONDS);
+								if (task == NO_MORE_TASKS) {
+									return;
+								} else if (task != null) {
+									availableWorkers.decrementAndGet();
+									handle(task);
+									availableWorkers.incrementAndGet();
+									completedTasksCounter.incrementAndGet();
+
+								}
+
+							} catch (InterruptedException e) {
+								exception = e;
+								e.printStackTrace();
+							}
 						}
+
+					} catch (Throwable t) {
+						t.printStackTrace();
 					}
+					System.out.println("Thread " + Thread.currentThread().getName() + " has ended");
 				}
 
 				private void handle(BulkRecordTransactionHandlerTask task) {
@@ -200,6 +215,7 @@ public class BulkRecordTransactionHandler {
 						}
 					} catch (Exception e) {
 						exception = e;
+						e.printStackTrace();
 
 					}
 					if (task != null) {
@@ -228,13 +244,20 @@ public class BulkRecordTransactionHandler {
 	}
 
 	public void barrier() {
-		while (!(tasks.isEmpty() && availableWorkers.get() == threadList.size())) {
+
+		while (!isQueueEmptyAndWorkersWaiting()) {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
 		}
+
+	}
+
+	private boolean isQueueEmptyAndWorkersWaiting() {
+		return tasks.isEmpty() && availableWorkers.get() == threadList.size()
+				&& createdTasksCounter.get() == completedTasksCounter.get();
 	}
 
 	static class BulkRecordTransactionHandlerTask {

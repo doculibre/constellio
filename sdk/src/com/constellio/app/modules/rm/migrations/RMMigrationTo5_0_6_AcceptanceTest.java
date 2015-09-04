@@ -20,7 +20,6 @@ package com.constellio.app.modules.rm.migrations;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.util.List;
 
 import org.junit.Test;
 
@@ -30,8 +29,6 @@ import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
-import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetailFactory;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.services.search.SearchServices;
@@ -44,6 +41,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 	public void whenUpdatingFrom5_0_5ThenMigrateCopyRetentionRules()
 			throws OptimisticLockingConfiguration {
 
+		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5();
 		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
 
@@ -94,44 +92,17 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 		CopyRetentionRule rule4SecondaryCopy = retentionRule4.getSecondaryCopy();
 		assertThat(rule4SecondaryCopy.getActiveRetentionPeriod()).isEqualTo(RetentionPeriod.OPEN_888);
 		assertThat(rule4SecondaryCopy.getSemiActiveRetentionPeriod()).isEqualTo(RetentionPeriod.fixed(0));
-
-		List<DecomListFolderDetail> decomListFolderDetailList = rmTestRecords.getList01().getFolderDetails();
-		assertThat(decomListFolderDetailList).isNotEmpty();
-		DecomListFolderDetail decomListFolderDetail = decomListFolderDetailList.get(0);
-		assertThat(decomListFolderDetail.getFolderLinearSize()).isNull();
-		double linearSize = 123d;
-		decomListFolderDetail.setFolderLinearSize(linearSize);
-		DecomListFolderDetailFactory decomListFolderDetailFactory = new DecomListFolderDetailFactory();
-		String detailAsString = decomListFolderDetailFactory.toString(decomListFolderDetail);
-		DecomListFolderDetail detailFromString = (DecomListFolderDetail) decomListFolderDetailFactory.build(detailAsString);
-		assertThat(detailFromString.getFolderLinearSize()).isEqualTo(linearSize);
-	}
-
-	@Test
-	public void whenUpdatingFrom5_0_5ThenReindexCalculatedMetadatas()
-			throws OptimisticLockingConfiguration {
-
-		givenSystemAtVersion5_0_5();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
-
-		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getModelLayerFactory());
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-
-		assertThat(rmTestRecords.getFolder_A07().getActiveRetentionCode()).isEqualTo("999");
-		assertThat(rmTestRecords.getFolder_A07().getSemiActiveRetentionCode()).isNull();
-		assertThat(rmTestRecords.getFolder_A22().getActiveRetentionCode()).isNull();
-		assertThat(rmTestRecords.getFolder_A22().getSemiActiveRetentionCode()).isEqualTo("888");
 	}
 
 	@Test
 	public void whenUpdatingFrom5_0_5ThenChangeDefaultValueOfTreeConfig()
 			throws Exception {
 
+		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5();
 		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
 
 		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getModelLayerFactory());
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		assertThat(rmTestRecords.getCategory_X().isLinkable()).isTrue();
 		assertThat(rmTestRecords.getCategory_Z().isLinkable()).isFalse();
@@ -141,6 +112,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 	public void whenUpdatingFrom5_0_5AndRootLinkableThenStillLinkable()
 			throws Exception {
 
+		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5_withRootLinkable();
 		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
 

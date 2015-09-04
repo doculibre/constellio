@@ -25,12 +25,15 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.data.RecordDataTreeNode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -48,10 +51,16 @@ public class FileIconUtils implements Serializable {
 	private static final String DEFAULT_VALUE = "document";
 
 	private static final Map<String, String> ICON_PATH_CACHE = new HashMap<String, String>();
+	
+	private static final String DEFAULT_ICON_PATH = ICONS_DIR + DEFAULT_VALUE + ".gif";
 
 	public static Resource getIcon(String fileName) {
+		String iconPath = getIconPath(fileName);
+		return new ThemeResource(iconPath);
+	}
+	
+	private static String getIconPath(String fileName) {
 		String iconPath;
-		String defaultIconPath = ICONS_DIR + DEFAULT_VALUE + ICON_EXTENSION;
 		if (fileName != null) {
 			String extension = FilenameUtils.getExtension(fileName);
 			if (StringUtils.isBlank(extension)) {
@@ -61,17 +70,18 @@ public class FileIconUtils implements Serializable {
 			if (iconPath == null) {
 				iconPath = ICONS_DIR + extension + ICON_EXTENSION;
 				if (!ThemeUtils.resourceExists(iconPath)) {
-					iconPath = defaultIconPath;
+					iconPath = DEFAULT_ICON_PATH;
 				}
 				ICON_PATH_CACHE.put(extension, iconPath);
 			}
 		} else {
-			iconPath = defaultIconPath;
+			iconPath = DEFAULT_ICON_PATH;
 		}
-		return new ThemeResource(iconPath);
+		return iconPath;
 	}
 
 	public static String getExtension(RecordVO recordVO) {
+		String extension;
 		String fileName = null;
 		for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
 			Object value = metadataValueVO.getValue();
@@ -81,10 +91,16 @@ public class FileIconUtils implements Serializable {
 			}
 		}
 		if (fileName != null) {
-			return FilenameUtils.getExtension(fileName);
+			String iconPath = getIconPath(fileName);
+			if (DEFAULT_ICON_PATH.equals(iconPath)) {
+				extension = DEFAULT_VALUE;
+			} else {
+				extension = FilenameUtils.getExtension(fileName);
+			}
 		} else {
-			return getExtensionForRecordId(recordVO.getId());
+			extension = getExtensionForRecordId(recordVO.getId());
 		}
+		return extension;
 	}
 
 	public static String getExtensionForRecordId(String recordId) {
@@ -111,7 +127,9 @@ public class FileIconUtils implements Serializable {
 		} else if (schemaTypeCode.equals(Folder.SCHEMA_TYPE)) {
 			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			Folder folder = new Folder(record, metadataSchemaTypes);
-			return getFolderExtension(folder);
+			return getFolderExtension(folder, false);
+		} else if (schemaTypeCode.equals(Task.SCHEMA_TYPE)) {
+			return "task";
 		}
 
 		if (fileName != null) {
@@ -137,7 +155,46 @@ public class FileIconUtils implements Serializable {
 		}
 	}
 
+	public static Resource getIconForRecordId(String collection, RecordDataTreeNode node) {
+		String fileName = null;
+
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+		String schemaTypeCode = node.getSchemaType();
+		// FIXME Remove references to RM module
+		if (schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
+			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			//			Document document = new Document(record, metadataSchemaTypes);
+			//			Content content = document.getContent();
+			//			if (content != null && content.getCurrentVersion() != null) {
+			//				fileName = content.getCurrentVersion().getFilename();
+			//			} else {
+			return getIcon((String) null);
+			//			}
+		} else if (schemaTypeCode.equals(Folder.SCHEMA_TYPE)) {
+			//MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			return getDefaultFolderIcon();
+		} else if (schemaTypeCode.equals(ContainerRecord.SCHEMA_TYPE)) {
+			return getDefaultContainerIcon();
+		} else if (schemaTypeCode.equals(Task.SCHEMA_TYPE)) {
+			return getDefaultTaskIcon();
+		}
+
+		if (fileName != null) {
+			return getIcon(fileName);
+		} else {
+			return null;
+		}
+
+	}
+
 	public static Resource getIconForRecordId(String recordId) {
+		return getIconForRecordId(recordId, false);
+	}
+
+	public static Resource getIconForRecordId(String recordId, boolean expanded) {
 		if (StringUtils.isBlank(recordId)) {
 			return null;
 		}
@@ -164,7 +221,15 @@ public class FileIconUtils implements Serializable {
 		} else if (schemaTypeCode.equals(Folder.SCHEMA_TYPE)) {
 			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			Folder folder = new Folder(record, metadataSchemaTypes);
-			return getFolderIcon(folder);
+			return getFolderIcon(folder, expanded);
+		} else if (schemaTypeCode.equals(ContainerRecord.SCHEMA_TYPE)) {
+			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			ContainerRecord container = new ContainerRecord(record, metadataSchemaTypes);
+			return getContainerIcon(container, expanded);
+		} else if (schemaTypeCode.equals(Task.SCHEMA_TYPE)) {
+			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			Task task = new Task(record, metadataSchemaTypes);
+			return getTaskIcon(task, expanded);
 		}
 
 		if (fileName != null) {
@@ -173,25 +238,60 @@ public class FileIconUtils implements Serializable {
 			return null;
 		}
 	}
-	
-	private static String getFolderExtension(Folder folder) {
+
+	private static String getFolderExtension(Folder folder, boolean expanded) {
 		String imgName;
 		FolderStatus archivisticStatus = folder.getArchivisticStatus();
 		if (archivisticStatus.isDestroyed()) {
-			imgName = "dossier_gris";
+			imgName = expanded ? "folder_open_grey" : "folder_grey";
 		} else if (archivisticStatus.isDeposited()) {
-			imgName = "dossier_mauve";
+			imgName = expanded ? "folder_open_purple" : "folder_purple";
 		} else if (archivisticStatus.isSemiActive()) {
-			imgName = "dossier_orange";
+			imgName = expanded ? "folder_open_orange" : "folder_orange";
 		} else {
-			imgName = "dossier";
+			imgName = expanded ? "folder_open" : "folder";
 		}
 		return imgName;
 	}
-	
-	private static Resource getFolderIcon(Folder folder) {
-		String imgName = getFolderExtension(folder);
-		String imgPath = IMAGES_DIR + "/commun/dossier/" + imgName + ".gif";
+
+	private static Resource getFolderIcon(Folder folder, boolean expanded) {
+		String imgName = getFolderExtension(folder, expanded);
+		String imgPath = IMAGES_DIR + "/icons/folder/" + imgName + ".png";
+		return new ThemeResource(imgPath);
+	}
+
+	private static Resource getDefaultFolderIcon() {
+		String imgPath = IMAGES_DIR + "/icons/folder/folder.png";
+		return new ThemeResource(imgPath);
+	}
+
+	private static String getTaskExtension(Task task, boolean expanded) {
+		return "task";
+	}
+
+	private static Resource getTaskIcon(Task task, boolean expanded) {
+		String imgName = getTaskExtension(task, expanded);
+		String imgPath = IMAGES_DIR + "/icons/task/" + imgName + ".png";
+		return new ThemeResource(imgPath);
+	}
+
+	private static Resource getDefaultTaskIcon() {
+		String imgPath = IMAGES_DIR + "/icons/task/task.png";
+		return new ThemeResource(imgPath);
+	}
+
+	private static String getContainerExtension(ContainerRecord container, boolean expanded) {
+		return "box";
+	}
+
+	private static Resource getContainerIcon(ContainerRecord container, boolean expanded) {
+		String imgName = getContainerExtension(container, expanded);
+		String imgPath = IMAGES_DIR + "/icons/container/" + imgName + ".png";
+		return new ThemeResource(imgPath);
+	}
+
+	private static Resource getDefaultContainerIcon() {
+		String imgPath = IMAGES_DIR + "/icons/container/box.png";
 		return new ThemeResource(imgPath);
 	}
 

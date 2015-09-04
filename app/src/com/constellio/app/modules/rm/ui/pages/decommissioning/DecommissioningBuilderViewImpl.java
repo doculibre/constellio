@@ -23,12 +23,13 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderPresenter.SelectItemVO;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
@@ -36,12 +37,10 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
-import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -57,10 +56,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 
 	private AdvancedSearchCriteriaComponent criteria;
 	private Button searchButton;
-	private ComboBox adminUnit;
+	private LookupRecordField adminUnit;
 
 	public DecommissioningBuilderViewImpl() {
 		presenter = new DecommissioningBuilderPresenter(this);
+		presenter.resetFacetAndOrder();
 		criteria = new AdvancedSearchCriteriaComponent(presenter);
 		addStyleName("search-decommissioning");
 	}
@@ -97,22 +97,6 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	}
 
 	@Override
-	public void updateAdministrativeUnits() {
-		adminUnit.removeAllItems();
-		for (SelectItemVO item : presenter.getAdministrativeUnits()) {
-			adminUnit.addItem(item.getId());
-			adminUnit.setItemCaption(item.getId(), item.getLabel());
-		}
-		if (adminUnit.size() == 1) {
-			adminUnit.select(adminUnit.getItemIds().iterator().next());
-			adminUnit.setEnabled(false);
-		} else {
-			adminUnit.setEnabled(true);
-			searchButton.setEnabled(false);
-		}
-	}
-
-	@Override
 	protected Component buildSearchUI() {
 		Button addCriterion = new Button($("DecommissioningBuilderView.addCriterion"));
 		addCriterion.addStyleName(ValoTheme.BUTTON_LINK);
@@ -140,8 +124,10 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			}
 		});
 
-		VerticalLayout searchUI = new VerticalLayout(buildFilingSpaceComponent(), top, criteria, searchButton);
+		VerticalLayout searchUI = new VerticalLayout(top, criteria, searchButton);
 		searchUI.setSpacing(true);
+
+		searchButton.setEnabled(false);
 
 		return searchUI;
 	}
@@ -151,43 +137,18 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		Button createList = new DecommissioningButton($("DecommissioningBuilderView.createDecommissioningList"));
 		createList.addStyleName(ValoTheme.BUTTON_LINK);
 		createList.addStyleName(CREATE_LIST);
-		return results.createSummary(createList);
-	}
-
-	private Component buildFilingSpaceComponent() {
-		Label label = new Label($("DecommissioningBuilderView.filingSpace"));
-		final ComboBox filingSpace = new ComboBox();
-		for (SelectItemVO item : presenter.getUserFilingSpaces()) {
-			filingSpace.addItem(item.getId());
-			filingSpace.setItemCaption(item.getId(), item.getLabel());
-		}
-		filingSpace.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
-		filingSpace.setNullSelectionAllowed(false);
-		filingSpace.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				presenter.filingSpaceSelected((String) filingSpace.getValue());
-			}
-		});
-		filingSpace.addStyleName(FILING_SPACE);
-
-		HorizontalLayout layout = new HorizontalLayout(label, filingSpace);
-		layout.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
-		layout.setSpacing(true);
-		return layout;
+		return results.createSummary(null, createList);
 	}
 
 	private Component buildAdministrativeUnitComponent() {
 		Label label = new Label($("DecommissioningBuilderView.administrativeUnit"));
-		adminUnit = new ComboBox();
-		adminUnit.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
-		adminUnit.setNullSelectionAllowed(false);
-		adminUnit.setEnabled(false);
+		adminUnit = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
+		adminUnit.setRequired(true);
 		adminUnit.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				searchButton.setEnabled(true);
-				presenter.administrativeUnitSelected((String) adminUnit.getValue());
+				presenter.administrativeUnitSelected(adminUnit.getValue());
 			}
 		});
 		adminUnit.addStyleName(ADMIN_UNIT);
@@ -240,9 +201,4 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			};
 		}
 	}
-
-	//	@Override
-	//	public void refreshFacets() {
-	//		// Disable facets
-	//	}
 }

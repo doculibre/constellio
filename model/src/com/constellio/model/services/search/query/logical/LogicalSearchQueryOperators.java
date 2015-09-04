@@ -25,6 +25,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.condition.CollectionFilters;
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
@@ -100,6 +101,10 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchConditionWithDataStoreFields(new CollectionFilters(metadata.getCollection(), false),
 				Arrays.asList(metadata),
 				LogicalOperator.AND);
+	}
+
+	public static LogicalSearchCondition returnAll() {
+		return new DataStoreFieldLogicalSearchCondition(null);
 	}
 
 	public static LogicalSearchCondition allConditions(LogicalSearchCondition... otherOperators) {

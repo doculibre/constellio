@@ -144,31 +144,57 @@ public class RecordDeleteServices {
 
 	}
 
+	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {
+		return isPhysicallyDeletableNoMatterTheStatus(record, user);
+	}
+
 	public boolean isPhysicallyDeletable(Record record, User user) {
 		ensureSameCollection(user, record);
-		boolean correctStatus = Boolean.TRUE == record.get(Schemas.LOGICALLY_DELETED_STATUS);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
+
+		boolean correctStatus = Boolean.TRUE == record.get(Schemas.LOGICALLY_DELETED_STATUS);
+		boolean noActiveRecords = containsNoActiveRecords(record);
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record);
-		boolean noActiveRecords = containsNoActiveRecords(record);
-		boolean notReferenced = !isReferencedByOtherRecords(record);
-
 		if (!correctStatus) {
 			LOGGER.info("Not physically deletable : Record is not logically deleted");
+			return false;
+
+		} else if (!noActiveRecords) {
+			LOGGER.info("Not physically deletable : There is active records in the hierarchy");
+			return false;
+
+		} else if (!hasPermissions) {
+			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
+			return false;
+
+		} else {
+			return isPhysicallyDeletableNoMatterTheStatus(record, user);
 		}
+
+	}
+
+	private boolean isPhysicallyDeletableNoMatterTheStatus(Record record, User user) {
+		ensureSameCollection(user, record);
+
+		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
+
+		boolean hasPermissions =
+				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchyNoMatterTheStatus(user, record);
+		boolean notReferenced = !isReferencedByOtherRecords(record);
+
 		if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
 		}
-		if (!noActiveRecords) {
-			LOGGER.info("Not physically deletable : There is active records in the hierarchy");
-		}
+
 		if (!notReferenced) {
 			LOGGER.info("Not physically deletable : A record in the hierarchy is referenced outside of the hierarchy");
 		}
 
-		boolean physicallyDeletable = correctStatus && hasPermissions && noActiveRecords && notReferenced;
+		boolean physicallyDeletable = hasPermissions && notReferenced;
 
 		if (physicallyDeletable) {
 			RecordPhysicalDeletionValidationEvent event = new RecordPhysicalDeletionValidationEvent(record, user);

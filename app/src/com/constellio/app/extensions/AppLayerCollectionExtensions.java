@@ -24,6 +24,10 @@ import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
@@ -46,6 +50,22 @@ public class AppLayerCollectionExtensions {
 	public List<DownloadContentVersionLinkExtension> downloadContentVersionLinkExtensions = new ArrayList<>();
 
 	//----------------- Callers ---------------
+
+	public List<TaxonomyManagementClassifiedType> getClassifiedTypes(GetTaxonomyManagementClassifiedTypesParams params) {
+		List<TaxonomyManagementClassifiedType> types = new ArrayList<>();
+		for (TaxonomyPageExtension extension : taxonomyAccessExtensions) {
+			types.addAll(extension.getClassifiedTypesFor(params));
+		}
+		return types;
+	}
+
+	public List<TaxonomyExtraField> getTaxonomyExtraFields(GetTaxonomyExtraFieldsParam params) {
+		List<TaxonomyExtraField> fields = new ArrayList<>();
+		for (TaxonomyPageExtension extension : taxonomyAccessExtensions) {
+			fields.addAll(extension.getTaxonomyExtraFieldsFor(params));
+		}
+		return fields;
+	}
 
 	public boolean hasPageAccess(boolean defaultValue, final Class<? extends BasePresenter> presenterClass, final String params,
 			final User user) {

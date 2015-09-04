@@ -1,6 +1,7 @@
 @import "../valo/valo";
 @import "common";
 @import "views/login";
+@import "views/setup";
 @import "views/dashboardview";
 //@import "views/schedule";
 //@import "views/sales";
@@ -29,6 +30,7 @@ $valo-menu-background-color: #414B56;
   @include valo;
   @include dashboard-common;
   @include dashboard-login-view;
+  @include dashboard-setup-view;
   @include dashboard-dashboard-view;
 //  @include dashboard-schedule-view;
 //  @include dashboard-sales-view;

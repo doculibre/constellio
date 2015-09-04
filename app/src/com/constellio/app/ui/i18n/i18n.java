@@ -20,11 +20,14 @@ package com.constellio.app.ui.i18n;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
@@ -131,6 +134,18 @@ public class i18n {
 		}
 
 		return bundles.getBundle(locale);
+	}
+
+	public static List<String> getSupportedLanguages() {
+		List<String> localeCodes = new ArrayList<>();
+		Language[] languages = Language.values();
+		for (Language language : languages) {
+			if (language != Language.UNKNOWN) {
+				String localeCode = language.getCode();
+				localeCodes.add(localeCode);
+			}
+		}
+		return localeCodes;
 	}
 
 }

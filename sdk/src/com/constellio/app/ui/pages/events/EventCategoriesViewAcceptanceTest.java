@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +34,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -97,7 +97,6 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	private Folder createFolder(AdministrativeUnit administrativeUnit) {
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(administrativeUnit.getId());
-		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setTitle("Ze folder");
 		folder.setOpenDate(new LocalDate());
@@ -249,10 +248,11 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		LocalDateTime nowDateTime = TimeProvider.getLocalDateTime();
 		givenTimeIs(nowDateTime);
-		Date previewReturnDate = nowDateTime.plusDays(15).toDate();
+		LocalDate previewReturnDate = nowDateTime.plusDays(15).toLocalDate();
 		BorrowingServices borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
-		borrowingServices.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(),
-				records.getEdouard_managerInB_userInC());
+		borrowingServices
+				.borrowFolder(records.getFolder_C30().getId(), nowDateTime.toLocalDate(), previewReturnDate, records.getAdmin(),
+						records.getEdouard_managerInB_userInC(), BorrowingType.BORROW);
 		recordServices.flush();
 		navigateToEventsList();
 
@@ -277,10 +277,11 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 	public void whenBorrowedFolderThenOk()
 			throws Exception {
 		LocalDateTime nowDateTime = TimeProvider.getLocalDateTime();
-		Date previewReturnDate = nowDateTime.plusDays(15).toDate();
+		LocalDate previewReturnDate = nowDateTime.plusDays(15).toLocalDate();
 		BorrowingServices borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
-		borrowingServices.borrowFolder(records.getFolder_C30().getId(), previewReturnDate, records.getAdmin(),
-				records.getEdouard_managerInB_userInC());
+		borrowingServices
+				.borrowFolder(records.getFolder_C30().getId(), nowDateTime.toLocalDate(), previewReturnDate, records.getAdmin(),
+						records.getEdouard_managerInB_userInC(), BorrowingType.BORROW);
 		recordServices.flush();
 		navigateToEventsList();
 

@@ -18,8 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.services.factories;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +30,10 @@ import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
@@ -46,6 +50,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.pages.base.InitUIListener;
 import com.constellio.app.ui.pages.base.PresenterService;
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
@@ -89,6 +94,10 @@ public class AppLayerFactory extends LayerFactory {
 
 	private final LabelTemplateManager labelTemplateManager;
 
+	private final AppLayerConfiguration appLayerConfiguration;
+
+	private final Map<String, StatefulService> moduleManagers = new HashMap<>();
+
 	public AppLayerFactory(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator) {
 		super(modelLayerFactory, statefullServiceDecorator);
@@ -100,6 +109,7 @@ public class AppLayerFactory extends LayerFactory {
 		this.initUIListeners = new ArrayList<>();
 		this.containerButtonListeners = new ArrayList<>();
 		this.foldersLocator = new FoldersLocator();
+		this.appLayerConfiguration = appLayerConfiguration;
 		this.setDefaultLocale();
 		this.metadataSchemasDisplayManager = add(new SchemasDisplayManager(dataLayerFactory.getConfigManager(),
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager()));
@@ -108,6 +118,8 @@ public class AppLayerFactory extends LayerFactory {
 				dataLayerFactory));
 
 		pluginManager.register(InstallableModule.class, new ConstellioRMModule());
+		pluginManager.register(InstallableModule.class, new ConstellioESModule());
+		pluginManager.register(InstallableModule.class, new TaskModule());
 
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
@@ -115,9 +127,8 @@ public class AppLayerFactory extends LayerFactory {
 		SystemSetupService systemSetupService = new SystemSetupService(this, appLayerConfiguration);
 		this.systemGlobalConfigsManager = add(
 				new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory().getConfigManager(), systemSetupService));
-		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		this.collectionsManager = add(
-				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, mainDataLanguage));
+				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed));
 		migrationServicesDelayed.set(newMigrationServices());
 		try {
 			newMigrationServices().migrate(null);
@@ -140,6 +151,18 @@ public class AppLayerFactory extends LayerFactory {
 		}
 		i18n.setLocale(locale);
 
+	}
+
+	public void registerManager(String collection, String module, String id, StatefulService manager) {
+		String key = collection + "-" + module + "-" + id;
+		add(manager);
+		moduleManagers.put(key, manager);
+		manager.initialize();
+	}
+
+	public <T> T getRegisteredManager(String collection, String module, String id) {
+		String key = collection + "-" + module + "-" + id;
+		return (T) moduleManagers.get(key);
 	}
 
 	public AppLayerExtensions getExtensions() {
@@ -168,12 +191,17 @@ public class AppLayerFactory extends LayerFactory {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
 
+		collectionsManager.initializeCollections();
+
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
 			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
 			systemGlobalConfigsManager.setMarkedForReindexing(false);
 		}
 
-		dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
+		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
+			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
+		}
+
 	}
 
 	@Override

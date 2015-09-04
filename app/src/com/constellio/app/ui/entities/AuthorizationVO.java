@@ -17,12 +17,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.entities;
 
+import static java.util.Arrays.asList;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.joda.time.LocalDate;
+
+import com.constellio.model.entities.security.Role;
 
 public class AuthorizationVO implements Serializable {
 	String authId;
@@ -36,15 +43,21 @@ public class AuthorizationVO implements Serializable {
 	LocalDate endDate;
 	boolean synched;
 
-	public static AuthorizationVO forPrincipal(String id) {
+	public static AuthorizationVO forUsers(String id) {
 		return new AuthorizationVO(
-				Arrays.asList(id), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(),
+				asList(id), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(),
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false);
+	}
+
+	public static AuthorizationVO forGroups(String id) {
+		return new AuthorizationVO(
+				new ArrayList<String>(), asList(id), new ArrayList<String>(), new ArrayList<String>(),
 				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false);
 	}
 
 	public static AuthorizationVO forContent(String id) {
 		return new AuthorizationVO(
-				new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(id), new ArrayList<String>(),
+				new ArrayList<String>(), new ArrayList<String>(), asList(id), new ArrayList<String>(),
 				new ArrayList<String>(), new ArrayList<String>(), null, null, null, false);
 	}
 
@@ -92,7 +105,7 @@ public class AuthorizationVO implements Serializable {
 	}
 
 	public void setRecord(String record) {
-		records = Arrays.asList(record);
+		records = asList(record);
 	}
 
 	public List<String> getAccessRoles() {
@@ -145,6 +158,56 @@ public class AuthorizationVO implements Serializable {
 
 	public boolean isSynched() {
 		return synched;
+	}
+
+	public AuthorizationVO withUsers(String... users) {
+		this.users = asList(users);
+		return this;
+	}
+
+	public AuthorizationVO withGroups(String... groups) {
+		this.groups = asList(groups);
+		return this;
+	}
+
+	public AuthorizationVO on(String... records) {
+		this.records = asList(records);
+		return this;
+	}
+
+	public AuthorizationVO givingReadAccess() {
+		this.accessRoles = asList(Role.READ);
+		return this;
+	}
+
+	public AuthorizationVO givingReadWriteAccess() {
+		this.accessRoles = asList(Role.READ, Role.WRITE);
+		return this;
+	}
+
+	public AuthorizationVO givingReadWriteDeleteAccess() {
+		this.accessRoles = asList(Role.READ, Role.WRITE, Role.DELETE);
+		return this;
+	}
+
+	public AuthorizationVO giving(String... roles) {
+		this.userRoles = asList(roles);
+		return this;
+	}
+
+	@Override
+	public int hashCode() {
+		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return EqualsBuilder.reflectionEquals(this, obj);
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
 	}
 }
 

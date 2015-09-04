@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -140,6 +141,20 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return wrappedRecord.getList(Schemas.TOKENS);
 	}
 
+	public List<String> getManualTokens() {
+		return wrappedRecord.getList(Schemas.MANUAL_TOKENS);
+	}
+
+	public RecordWrapper setManualTokens(String... manualTokens) {
+		wrappedRecord.set(Schemas.MANUAL_TOKENS, Arrays.asList(manualTokens));
+		return this;
+	}
+
+	public RecordWrapper setManualTokens(List<String> manualTokens) {
+		wrappedRecord.set(Schemas.MANUAL_TOKENS, manualTokens);
+		return this;
+	}
+
 	public List<String> getFollowers() {
 		return wrappedRecord.getList(Schemas.FOLLOWERS);
 	}
@@ -150,6 +165,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 
 	public RecordWrapper setTitle(String title) {
 		wrappedRecord.set(Schemas.TITLE, title);
+		return this;
+	}
+
+	public RecordWrapper setLegacyId(String legacyId) {
+		wrappedRecord.set(Schemas.LEGACY_ID, legacyId);
 		return this;
 	}
 

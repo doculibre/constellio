@@ -267,7 +267,7 @@ public class Users {
 		userServices.addUpdateGlobalGroup(group);
 	}
 
-	public void withPasswords(AuthenticationService authenticationService) {
+	public Users withPasswords(AuthenticationService authenticationService) {
 		authenticationService.changePassword(chuckNorrisUsername, "password");
 		authenticationService.changePassword(aliceUsername, "password");
 		authenticationService.changePassword(bobGrattonUsername, "password");
@@ -277,6 +277,8 @@ public class Users {
 		authenticationService.changePassword(gandalfLeblancUsername, "password");
 		authenticationService.changePassword(robinUsername, "password");
 		authenticationService.changePassword(sasquatchUsername, "password");
+
+		return this;
 	}
 
 }

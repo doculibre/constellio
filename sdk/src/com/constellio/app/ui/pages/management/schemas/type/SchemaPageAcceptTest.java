@@ -878,7 +878,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		formDisplaySearchPage.getCancelButton().click();
 
-		//TODO Thiago fix cancel back page
+		//TODO fix cancel back page
 		//		assertThat(driver.getCurrentPage()).isEqualTo(
 		//				NavigatorConfigurationService.FORM_DISPLAY_FORM + "/schemaTypeCode%253Dfolder%253BschemaCode%253Dfolder_default");
 	}

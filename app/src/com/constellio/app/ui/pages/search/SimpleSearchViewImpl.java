@@ -20,12 +20,11 @@ package com.constellio.app.ui.pages.search;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
-import java.util.Map;
-
 public class SimpleSearchViewImpl extends SearchViewImpl<SimpleSearchPresenter> implements SimpleSearchView {
 
 	public SimpleSearchViewImpl() {
 		presenter = new SimpleSearchPresenter(this);
+		presenter.resetFacetAndOrder();
 	}
 
 	@Override

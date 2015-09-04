@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.framework.builders;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Date;
@@ -37,14 +38,35 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ContentVersionToVOBuilder implements Serializable {
 
+	transient ModelLayerFactory modelLayerFactory;
+
+	public ContentVersionToVOBuilder(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		init();
+	}
+
+	private void init() {
+		modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+	}
+
+	@Deprecated
 	public ContentVersionVO build(Content content) {
 		// TODO Separate layers
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		return build(content, sessionContext);
+	}
+
+	public ContentVersionVO build(Content content, SessionContext sessionContext) {
+		// TODO Separate layers
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
 		String username = currentUserVO.getUsername();
-		User currentUser = constellioFactories.getModelLayerFactory().newUserServices().getUserInCollection(username, collection);
+		User currentUser = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
 		ContentVersion contentVersion = content.getCurrentVersionSeenBy(currentUser);
 		return build(content, contentVersion);
 	}
@@ -59,7 +81,7 @@ public class ContentVersionToVOBuilder implements Serializable {
 		LocalDateTime jodaLastModificationDateTime = contentVersion.getLastModificationDateTime();
 		Date lastModificationDateTime = jodaLastModificationDateTime != null ? jodaLastModificationDateTime.toDate() : null;
 		String lastModifiedBy = contentVersion.getModifiedBy();
-		InputStreamProvider inputStreamProvider = new ContentInputStreamProvider(hash);
+		InputStreamProvider inputStreamProvider = new ContentInputStreamProvider(hash, modelLayerFactory);
 		String checkouUserId = content.getCheckoutUserId();
 		LocalDateTime checkoutDateTime = content.getCheckoutDateTime();
 		return new ContentVersionVO(contentId, hash, fileName, mimeType, length, version, lastModificationDateTime,
@@ -69,15 +91,27 @@ public class ContentVersionToVOBuilder implements Serializable {
 	private static class ContentInputStreamProvider implements InputStreamProvider {
 
 		private String id;
+		private transient ModelLayerFactory modelLayerFactory;
 
-		public ContentInputStreamProvider(String id) {
+		public ContentInputStreamProvider(String id, ModelLayerFactory modelLayerFactory) {
 			this.id = id;
+			this.modelLayerFactory = modelLayerFactory;
+		}
+
+		private void readObject(java.io.ObjectInputStream stream)
+				throws IOException, ClassNotFoundException {
+			stream.defaultReadObject();
+			init();
+		}
+
+		private void init() {
+			modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		}
 
 		@Override
 		public InputStream getInputStream(String streamName) {
-			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+			//			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+			//			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 			ContentManager contentManager = modelLayerFactory.getContentManager();
 			return contentManager.getContentInputStream(id, streamName);
 		}
@@ -86,7 +120,5 @@ public class ContentVersionToVOBuilder implements Serializable {
 		public void deleteTemp() {
 			// Nothing to deleteLogically
 		}
-
 	}
-
 }

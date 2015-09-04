@@ -31,17 +31,19 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.cache.SerializableSearchCache;
+import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 @SuppressWarnings("serial")
 public abstract class RecordVODataProvider implements DataProvider {
+	SerializableSearchCache queryCache = new SerializableSearchCache();
 	transient LogicalSearchQuery query;
-	transient SearchServices searchServices;
 	transient Integer size = null;
 	transient Map<Integer, Record> cache;
 	transient MetadataSchemaVO schema;
@@ -55,7 +57,16 @@ public abstract class RecordVODataProvider implements DataProvider {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
+		validateDefaultSchema();
 		init(modelLayerFactory);
+	}
+
+	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
+			SessionContextProvider sessionContextProvider) {
+		this.schema = schema;
+		this.voBuilder = voBuilder;
+		this.sessionContext = sessionContextProvider.getSessionContext();
+		init(sessionContextProvider.getConstellioFactories().getModelLayerFactory());
 	}
 
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
@@ -63,7 +74,15 @@ public abstract class RecordVODataProvider implements DataProvider {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = sessionContext;
+		validateDefaultSchema();
 		init(modelLayerFactory);
+	}
+
+	private void validateDefaultSchema() {
+		if (!schema.getCode().endsWith("_default")) {
+			throw new RuntimeException(
+					"RecordVODataProvider must use default schema. Schema '" + schema.getCode() + "' is forbidden");
+		}
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -74,7 +93,6 @@ public abstract class RecordVODataProvider implements DataProvider {
 
 	void init(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
-		searchServices = modelLayerFactory.newSearchServices();
 
 		query = getQuery();
 		cache = new HashMap<>();
@@ -95,6 +113,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	public void fireDataRefreshEvent() {
 		size = null;
 		cache.clear();
+		queryCache.clear();
 		for (DataRefreshListener dataRefreshListener : dataRefreshListeners) {
 			dataRefreshListener.dataRefresh();
 		}
@@ -107,9 +126,10 @@ public abstract class RecordVODataProvider implements DataProvider {
 	public RecordVO getRecordVO(int index) {
 		Record record = cache.get(index);
 		if (record == null) {
-			List<Record> recordList = searchServices.search(query.setStartRow(index).setNumberOfRows(1));
+			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
+			List<Record> recordList = searchServices.search(query);
 			if (!recordList.isEmpty()) {
-				record = recordList.get(0);
+				record = recordList.get(index);
 				cache.put(index, record);
 			} else {
 				record = null;
@@ -119,27 +139,30 @@ public abstract class RecordVODataProvider implements DataProvider {
 	}
 
 	public int size() {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
 		if (size == null) {
-			size = new Long(searchServices.getResultsCount(query)).intValue();
+			size = searchServices.search(query).size();
 		}
 		return size;
 	}
 
-	public List<Integer> list(int startIndex, int numberOfItems) {
-		List<Integer> indexes = new ArrayList<>();
-		List<Record> recordList = searchServices.search(query.setStartRow(startIndex).setNumberOfRows(numberOfItems));
-		for (int i = startIndex; i < numberOfItems && (startIndex + i) < size(); i++) {
-			indexes.add(i);
-			Record record = recordList.get(i);
-			cache.put(i, record);
-		}
-		return indexes;
-	}
+	//	public List<Integer> list(int startIndex, int numberOfItems) {
+	//		List<Integer> indexes = new ArrayList<>();
+	//		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
+	//		List<Record> recordList = searchServices.search(query);
+	//		for (int i = startIndex; i < numberOfItems && (startIndex + i) < size(); i++) {
+	//			indexes.add(i);
+	//			Record record = recordList.get(i);
+	//			cache.put(i, record);
+	//		}
+	//		return indexes;
+	//	}
 
 	public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
 		List<RecordVO> recordVOs = new ArrayList<>();
-		List<Record> recordList = searchServices.search(query.setStartRow(startIndex).setNumberOfRows(numberOfItems));
-		for (int i = 0; i < numberOfItems && i < recordList.size(); i++) {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
+		List<Record> recordList = searchServices.search(query);
+		for (int i = startIndex; i < numberOfItems && i < recordList.size(); i++) {
 			Record record = recordList.get(i);
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.TABLE, schema, sessionContext);
 			recordVOs.add(recordVO);

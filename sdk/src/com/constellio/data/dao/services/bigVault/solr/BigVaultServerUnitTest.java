@@ -52,10 +52,12 @@ import org.mockito.Mockito;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BigVaultServerUnitTest extends ConstellioTest {
+	@Mock DataLayerSystemExtensions extensions;
 	@Mock SolrClient adminServer;
 	@Mock AtomicFileSystem solrFileSystem;
 	@Mock SolrParams solrParams;
@@ -74,7 +76,8 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 
 	@Before
 	public void setUp() {
-		bigVaultServer = spy(new BigVaultServer("Test", server, solrFileSystem, adminServer, BigVaultLogger.disabled()));
+		bigVaultServer = spy(
+				new BigVaultServer("Test", server, solrFileSystem, adminServer, BigVaultLogger.disabled(), extensions));
 		when(emptyQueryResults.size()).thenReturn(0);
 		when(twoElementsQueryResults.size()).thenReturn(2);
 	}
@@ -108,7 +111,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		inOrder.verify(bigVaultServer).add(t3);
 		inOrder.verify(bigVaultServer).add(t4);
 	}
-	
+
 	@Test(expected = BigVaultException.NonUniqueResult.class)
 	public void givenNonUniqueResultsWhenQuerySingleResultThenThrowNonUniqueResultException()
 			throws Exception {

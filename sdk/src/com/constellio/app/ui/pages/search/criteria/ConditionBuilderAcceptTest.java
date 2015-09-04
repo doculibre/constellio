@@ -49,14 +49,14 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 
 		// A && ( B || C)
 		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
-		builder.addCriterion(Folder.ADMINISTRATIVE_UNIT).isEqualTo(records.unitId_10).booleanOperator(AND);
+		builder.addCriterion(Folder.ADMINISTRATIVE_UNIT).isEqualTo(records.unitId_10a).booleanOperator(AND);
 		builder.addCriterion("title").isContainingText("Écureuil").withLeftParens().booleanOperator(OR);
 		builder.addCriterion("title").isContainingText("ouille").withRightParens();
 		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A45, records.folder_A49);
 
 		// A && ( B || (C & D) || E)
 		builder = newFolderCriteriaBuilderAsAdmin();
-		builder.addCriterion(Folder.ADMINISTRATIVE_UNIT).isEqualTo(records.unitId_10).booleanOperator(AND);
+		builder.addCriterion(Folder.ADMINISTRATIVE_UNIT).isEqualTo(records.unitId_10a).booleanOperator(AND);
 		builder.addCriterion("title").isContainingText("Écureuil").withLeftParens().booleanOperator(OR);
 		builder.addCriterion("title").isContainingText("Chauve").withLeftParens().booleanOperator(AND);
 		builder.addCriterion("title").isContainingText("souris").withRightParens().booleanOperator(OR);

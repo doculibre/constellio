@@ -28,6 +28,7 @@ import org.jdom2.filter.Filters;
 import org.jdom2.util.IteratorIterable;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.model.services.batch.xml.detail.BatchProcessWriterRuntimeException.AlreadyProcessingABatchProcessPart;
 import com.constellio.model.services.batch.xml.detail.BatchProcessWriterRuntimeException.ComputerNotFound;
 
 public class BatchProcessWriter {
@@ -63,12 +64,24 @@ public class BatchProcessWriter {
 		document.setRootElement(batchProcessElement);
 	}
 
+	public List<String> getAlreadyBatchProcessPartTo(String computerName) {
+		List<String> recordsBatchPart = new ArrayList<>();
+		for (Element batchProcessPart : getBatchProcessPartElements()) {
+			if (computerName.equals(batchProcessPart.getAttributeValue(COMPUTER_NAME))) {
+				for (Element recordElement : batchProcessPart.getChild(RECORDS).getChildren(RECORD)) {
+					recordsBatchPart.add(recordElement.getValue());
+				}
+			}
+		}
+		return recordsBatchPart;
+	}
+
 	public List<String> assignBatchProcessPartTo(String computerName, int quantityRecordsToAssign) {
 		List<String> recordsBatchPart = new ArrayList<>();
 		Element batchProcessElement = document.getRootElement();
 		for (Element batchProcessPart : getBatchProcessPartElements()) {
-			if (batchProcessPart.getAttributeValue(COMPUTER_NAME).equals(computerName)) {
-				throw new BatchProcessWriterRuntimeException.AlreadyProcessingABatchProcessPart(computerName);
+			if (computerName.equals(batchProcessPart.getAttributeValue(COMPUTER_NAME))) {
+				throw new AlreadyProcessingABatchProcessPart(computerName);
 			}
 		}
 
@@ -142,5 +155,13 @@ public class BatchProcessWriter {
 		IteratorIterable<Element> batchProcessPartElement = batchProcessElement.getDescendants(filters);
 		List<Element> batchProcessPartElements = IteratorUtils.toList(batchProcessPartElement);
 		return batchProcessPartElements;
+	}
+
+	public void liberatePartOf(String computerName) {
+		for (Element batchProcessPart : getBatchProcessPartElements()) {
+			if (batchProcessPart.getAttributeValue(COMPUTER_NAME).equals(computerName)) {
+				batchProcessPart.removeAttribute(COMPUTER_NAME);
+			}
+		}
 	}
 }

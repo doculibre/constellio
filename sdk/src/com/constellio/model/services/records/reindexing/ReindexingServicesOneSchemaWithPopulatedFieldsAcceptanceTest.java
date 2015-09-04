@@ -64,12 +64,15 @@ public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extend
 	public void setup()
 			throws Exception {
 		givenDisabledAfterTestValidations();
+		prepareSystem(
+				withZeCollection().withAllTest(users)
+		);
+		inCollection(zeCollection).giveWriteAccessTo(dakota);
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 		recordDao = getDataLayerFactory().newRecordDao();
 
-		givenCollection(zeCollection).withAllTestUsers().andUsersWithWriteAccess(dakota);
-		users.setUp(getModelLayerFactory().newUserServices());
 		defineSchemasManager().using(schemas
 				.withAStringMetadata(whichIsSchemaAutocomplete)
 				.withALargeTextMetadata(whichIsSearchable));
@@ -99,10 +102,12 @@ public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extend
 		assertThat(freeTextSearch("serpent")).containsOnly("000042");
 		assertThat(autocompleteSearch("AC6")).containsOnly("000666");
 
+		givenTimeIs(shishOClock.plusHours(1));
 		reindexingServices.reindexCollections(new ReindexationParams(REWRITE).setBatchSize(1));
 		assertThat(freeTextSearch("serpent")).containsOnly("000042");
 		assertThat(autocompleteSearch("AC6")).containsOnly("000666");
 
+		givenTimeIs(shishOClock.plusHours(2));
 		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE).setBatchSize(1));
 		assertThat(freeTextSearch("serpent")).containsOnly("000042");
 		assertThat(autocompleteSearch("AC6")).containsOnly("000666");

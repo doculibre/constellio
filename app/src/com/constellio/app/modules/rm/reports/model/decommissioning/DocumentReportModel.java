@@ -169,10 +169,6 @@ public class DocumentReportModel {
 
 		private String publicOrganisationNumber;
 
-		private String espaceClassement;
-
-		private String codeEspaceClassement;
-
 		private String administrationAddress;
 
 		private String responsible;
@@ -197,14 +193,6 @@ public class DocumentReportModel {
 
 		public String getPublicOrganisationNumber() {
 			return publicOrganisationNumber;
-		}
-
-		public String getEspaceClassement() {
-			return espaceClassement;
-		}
-
-		public String getCodeEspaceClassement() {
-			return codeEspaceClassement;
 		}
 
 		public String getAdministrationAddress() {
@@ -244,16 +232,6 @@ public class DocumentReportModel {
 
 		public DocumentTransfertModel_Identification setPublicOrganisationNumber(String publicOrganisationNumber) {
 			this.publicOrganisationNumber = publicOrganisationNumber;
-			return this;
-		}
-
-		public DocumentTransfertModel_Identification setEspaceClassement(String espaceClassement) {
-			this.espaceClassement = espaceClassement;
-			return this;
-		}
-
-		public DocumentTransfertModel_Identification setCodeEspaceClassement(String codeEspaceClassement) {
-			this.codeEspaceClassement = codeEspaceClassement;
 			return this;
 		}
 

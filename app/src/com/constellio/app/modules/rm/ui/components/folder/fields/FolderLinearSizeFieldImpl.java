@@ -22,7 +22,7 @@ import com.constellio.app.ui.framework.components.fields.number.BaseDoubleField;
 public class FolderLinearSizeFieldImpl extends BaseDoubleField implements FolderLinearSizeField {
 	@Override
 	public String getFieldValue() {
-		return (String) getConvertedValue();
+		return getConvertedValue().toString();
 	}
 
 	@Override

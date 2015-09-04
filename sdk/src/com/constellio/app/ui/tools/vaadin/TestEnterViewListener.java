@@ -59,7 +59,7 @@ public class TestEnterViewListener implements EnterViewListener {
 	
 	private void writePageLoadTime(View view) {
 		new PageLoadTimeWriter().write(new Date());
-		validateSerializable(view);
+//		validateSerializable(view);
 	}
 	
 	private void validateSerializable(View view) {

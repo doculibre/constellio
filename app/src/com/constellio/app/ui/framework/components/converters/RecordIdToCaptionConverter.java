@@ -56,8 +56,8 @@ public class RecordIdToCaptionConverter implements Converter<String, String> {
 		return String.class;
 	}
 
-	public Resource getIcon(String recordId) {
-		return FileIconUtils.getIconForRecordId(recordId);
+	public Resource getIcon(String recordId, boolean expanded) {
+		return FileIconUtils.getIconForRecordId(recordId, expanded);
 	}
 
 }

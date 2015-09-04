@@ -45,8 +45,8 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		// TODO: Maybe create permission to export
-		return user.has(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS).globally();
+		return modelLayerFactory.newUserServices().has(user.getUsername())
+				.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS);
 	}
 
 	public InputStream buildExportFile(boolean includeContents) {

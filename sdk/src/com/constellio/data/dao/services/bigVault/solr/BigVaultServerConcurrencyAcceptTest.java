@@ -45,6 +45,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNot
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
@@ -134,12 +135,16 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 
 	private void setupSolrServers() {
 
+		DataLayerSystemExtensions extensions = new DataLayerSystemExtensions();
 		DataLayerFactory daosFactory = (DataLayerFactory) getDataLayerFactory();
 		BigVaultServer recordsVaultServer = daosFactory.getRecordsVaultServer();
 		SolrClient solrServer = recordsVaultServer.getNestedSolrServer();
-		vaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(), recordsVaultServer.getAdminServer(), BigVaultLogger.disabled());
-		anotherVaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(), recordsVaultServer.getAdminServer(), BigVaultLogger.disabled());
-		aThirdVaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(), recordsVaultServer.getAdminServer(), BigVaultLogger.disabled());
+		vaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(),
+				recordsVaultServer.getAdminServer(), BigVaultLogger.disabled(), extensions);
+		anotherVaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(),
+				recordsVaultServer.getAdminServer(), BigVaultLogger.disabled(), extensions);
+		aThirdVaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(),
+				recordsVaultServer.getAdminServer(), BigVaultLogger.disabled(), extensions);
 	}
 
 	@Test

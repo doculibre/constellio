@@ -51,10 +51,10 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 	String lastSavedFolderId;
 	String classificationFinder;
 	String administrativeUnitFinder;
-	String filingSpaceFinderA;
-	String filingSpaceFinderB;
-	String filingSpaceFinderC;
-	String filingSpaceFinder;
+	//	String filingSpaceFinderA;
+	//	String filingSpaceFinderB;
+	//	String filingSpaceFinderC;
+	//String filingSpaceFinder;
 	String retentionRule;
 	String collection;
 
@@ -82,10 +82,10 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		getConfigurationManager().setValue(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
-		filingSpaceFinderA = "A";
-		filingSpaceFinderB = "B";
-		filingSpaceFinderC = "C";
-		filingSpaceFinder = filingSpaceFinderB;
+		//		filingSpaceFinderA = "A";
+		//		filingSpaceFinderB = "B";
+		//		filingSpaceFinderC = "C";
+		//filingSpaceFinder = filingSpaceFinderB;
 		retentionRule = "1";
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -101,12 +101,11 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		collection = zeCollection;
 		classificationFinder = "X100";
-		administrativeUnitFinder = "12";
+		administrativeUnitFinder = "10A";
 
 		givenUserAddFolderWhenAllFieldsAreCompleteAndClickSaveThenFolderIsCreated();
 		givenUserCanAccessOneFilingSpaceWhenCreateFolderThenCantChooseAnotherFilingSpace();
 		whenCreateFolderThenTitleCategoryFilingSpaceAndAdministrativeUnitAreRequired();
-		givenUserCanAccessSeveralFilingSpaceWhenCreateFolderThenAdministrativeUnitMatchesWithSelectedFilingSpace();
 
 	}
 
@@ -115,12 +114,11 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		collection = "LaCollectionDeRida";
 		classificationFinder = "23 ";
-		administrativeUnitFinder = "Salle B";
+		administrativeUnitFinder = "A";
 
 		givenUserAddFolderWhenAllFieldsAreCompleteAndClickSaveThenFolderIsCreated();
 		givenUserCanAccessOneFilingSpaceWhenCreateFolderThenCantChooseAnotherFilingSpace();
 		whenCreateFolderThenTitleCategoryFilingSpaceAndAdministrativeUnitAreRequired();
-		givenUserCanAccessSeveralFilingSpaceWhenCreateFolderThenAdministrativeUnitMatchesWithSelectedFilingSpace();
 	}
 
 	@Test
@@ -134,19 +132,20 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
 
 		zeForm.getDropDown("folder_default_categoryEntered").typeAndSelectFirst("X13");
+		sleep(1000);
 		assertThat(zeForm.isVisible("folder_default_retentionRuleEntered")).isTrue();
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
 
 		zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText("2");
-		sleep(50);
+		sleep(1000);
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isTrue();
 
 		zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText("1");
-		sleep(50);
+		sleep(1000);
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
 
 		zeForm.getDropDown("folder_default_categoryEntered").expandOptions().select(0).typeAndSelectFirst("X100");
-		sleep(50);
+		sleep(1000);
 		assertThat(zeForm.isVisible("folder_default_retentionRuleEntered")).isFalse();
 		assertThat(zeForm.isVisible("folder_default_copyStatusEntered")).isFalse();
 	}
@@ -157,9 +156,8 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 		collection = zeCollection;
 		classificationFinder = "X13";
-		administrativeUnitFinder = "10";
+		administrativeUnitFinder = "10A";
 		retentionRule = "1";
-		filingSpaceFinder = filingSpaceFinderA;
 
 		getConfigurationManager().setValue(RMConfigs.COPY_RULE_TYPE_ALWAYS_MODIFIABLE, true);
 
@@ -203,9 +201,8 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		collection = zeCollection;
 		navigateToAddFolderFormLoggedAs(admin, collection);
 		retentionRule = "1";
-		filingSpaceFinder = filingSpaceFinderA;
 		classificationFinder = "X13";
-		administrativeUnitFinder = "12";
+		administrativeUnitFinder = "12B";
 
 		completeFormAndSave();
 
@@ -229,9 +226,8 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 		collection = zeCollection;
 		classificationFinder = "X13";
-		administrativeUnitFinder = "10";
+		administrativeUnitFinder = "10A";
 		navigateToAddFolderFormLoggedAs(admin, collection);
-		filingSpaceFinder = filingSpaceFinderA;
 		retentionRule = "3";
 
 		completeFormAndSave();
@@ -260,7 +256,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 		collection = zeCollection;
 		classificationFinder = "X13";
-		administrativeUnitFinder = "12";
+		administrativeUnitFinder = "12B";
 		modifyRule1RemovingPrincipalCopyRule(withAdministrativeUnits);
 
 		navigateToAddFolderFormLoggedAs(admin, collection);
@@ -275,7 +271,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 		collection = zeCollection;
 		classificationFinder = "X13";
-		administrativeUnitFinder = "12";
+		administrativeUnitFinder = "12B";
 
 		getConfigurationManager().setValue(RMConfigs.COPY_RULE_TYPE_ALWAYS_MODIFIABLE, true);
 
@@ -292,7 +288,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		collection = zeCollection;
 		classificationFinder = "X13";
-		administrativeUnitFinder = "12";
+		administrativeUnitFinder = "12B";
 
 		modifyRule1RemovingPrincipalCopyRule(withAllResponsibleAdminUnitFlag);
 
@@ -307,7 +303,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		collection = zeCollection;
 		classificationFinder = "X13";
-		administrativeUnitFinder = "12";
+		administrativeUnitFinder = "12B";
 
 		modifyRule1RemovingPrincipalCopyRule(withAllResponsibleAdminUnitFlag);
 
@@ -414,22 +410,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		navigateToAddFolderFormLoggedAs(charlesFrancoisXavier, collection);
 		completeFormAndSave();
 
-		assertThat(folderFilingSpace()).contains("A");
 		assertThat(folderAdministrativeUnit()).contains("A");
-	}
-
-	public void givenUserCanAccessSeveralFilingSpaceWhenCreateFolderThenAdministrativeUnitMatchesWithSelectedFilingSpace()
-			throws Exception {
-		navigateToAddFolderFormLoggedAs(gandalf, collection);
-
-		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText(filingSpaceFinderA);
-		assertThat(zeForm.getDropDown("folder_default_filingSpaceEntered").getSelectedValue()).contains("A");
-
-		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText(filingSpaceFinderB);
-		assertThat(zeForm.getDropDown("folder_default_filingSpaceEntered").getSelectedValue()).contains("B");
-
-		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText(filingSpaceFinderC);
-		assertThat(zeForm.getDropDown("folder_default_filingSpaceEntered").getSelectedValue()).contains("C");
 	}
 
 	public void whenCreateFolderThenTitleCategoryFilingSpaceAndAdministrativeUnitAreRequired()
@@ -468,8 +449,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 			zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText(retentionRule);
 		}
 		zeForm.getDateField("folder_default_openingDate").setValue(new LocalDate(2015, 2, 21));
-		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText(filingSpaceFinder);
-		zeForm.getDropDown("folder_default_administrativeUnitEntered").selectItemContainingText(administrativeUnitFinder);
+		zeForm.getDropDown("folder_default_administrativeUnitEntered").typeAndSelectFirst(administrativeUnitFinder);
 		if (zeForm.isVisible("folder_default_copyStatusEntered")) {
 			zeForm.getRadioButton("folder_default_copyStatusEntered").toggleContaining("P");
 		}
@@ -486,8 +466,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		}
 		zeForm.getDropDown("folder_default_retentionRuleEntered").selectItemContainingText(ruleCustom.getCode());
 		zeForm.getDateField("folder_default_openingDate").setValue(new LocalDate(2015, 2, 21));
-		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText(filingSpaceFinder);
-		zeForm.getDropDown("folder_default_administrativeUnitEntered").selectItemContainingText(administrativeUnitFinder);
+		zeForm.getDropDown("folder_default_administrativeUnitEntered").typeAndSelectFirst(administrativeUnitFinder);
 	}
 
 	private void completeNoRequiredField() {
@@ -503,10 +482,6 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 	private String folderAdministrativeUnit() {
 		return driver.findElement(By.id("display-value-folder_default_administrativeUnit")).getText();
-	}
-
-	private String folderFilingSpace() {
-		return driver.findElement(By.id("display-value-folder_default_filingSpace")).getText();
 	}
 
 	private SystemConfigurationsManager getConfigurationManager() {

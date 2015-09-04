@@ -23,6 +23,8 @@ import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
@@ -64,6 +66,18 @@ public class ModelLayerCollectionExtensions {
 			if (extension.getDecoratedSchemaType().equals(schemaType)) {
 				extension.prevalidate(params);
 			}
+		}
+	}
+
+	public void callRecordInCreationEvent(RecordInCreationEvent event) {
+		for (RecordExtension extension : recordExtensions) {
+			extension.recordInCreation(event);
+		}
+	}
+
+	public void callRecordInModificationEvent(RecordInModificationEvent event) {
+		for (RecordExtension extension : recordExtensions) {
+			extension.recordInModification(event);
 		}
 	}
 

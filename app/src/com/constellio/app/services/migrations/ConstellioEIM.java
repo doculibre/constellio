@@ -24,6 +24,9 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_5;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_6_6;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_7;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_0;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
@@ -32,7 +35,11 @@ public class ConstellioEIM {
 		return Arrays.asList(
 				new CoreMigrationTo_5_0_1(),
 				new CoreMigrationTo_5_0_4(),
-				new CoreMigrationTo_5_0_5());
+				new CoreMigrationTo_5_0_5(),
+				new CoreMigrationTo_5_0_6_6(),
+				new CoreMigrationTo_5_0_7(),
+				new CoreMigrationTo_5_1_0()
+		);
 	}
 
 	public List<SystemConfiguration> getConfigurations() {

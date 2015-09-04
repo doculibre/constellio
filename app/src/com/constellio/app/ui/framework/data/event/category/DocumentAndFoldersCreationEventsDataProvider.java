@@ -47,7 +47,8 @@ public class DocumentAndFoldersCreationEventsDataProvider implements EventsCateg
 
 	private String currentUserName;
 
-	public DocumentAndFoldersCreationEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection , String currentUserName, LocalDateTime startDate, LocalDateTime endDate) {
+	public DocumentAndFoldersCreationEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection,
+			String currentUserName, LocalDateTime startDate, LocalDateTime endDate) {
 		this.collection = collection;
 		this.currentUserName = currentUserName;
 		this.startDate = startDate;
@@ -78,19 +79,28 @@ public class DocumentAndFoldersCreationEventsDataProvider implements EventsCateg
 				.newFindCreatedDocumentsByDateRangeQuery(currentUser, startDate, endDate);
 		documentsCreation.setValue((float) searchServices.getResultsCount(query));
 		events.add(documentsCreation);
+
+		EventStatistics tasksCreation = new EventStatistics();
+		tasksCreation.setLabel($("ListEventsView.createTask"));
+		query = rmSchemasRecordsServices
+				.newFindEventByDateRangeQuery(currentUser, EventType.CREATE_TASK, startDate, endDate);
+		tasksCreation.setValue((float) searchServices.getResultsCount(query));
+		events.add(tasksCreation);
 	}
 
 	@Override
 	public String getEventType(Integer index) {
-		if(index == 0){
+		if (index == 0) {
 			return EventType.CREATE_FOLDER;
-		}else{
+		} else if (index == 1) {
 			return EventType.CREATE_DOCUMENT;
+		} else {
+			return EventType.CREATE_TASK;
 		}
 	}
 
 	public int size() {
-		return 2;
+		return 3;
 	}
 
 	@Override
@@ -105,7 +115,7 @@ public class DocumentAndFoldersCreationEventsDataProvider implements EventsCateg
 
 	@Override
 	public List<EventStatistics> getEvents() {
-		if (events == null){
+		if (events == null) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 			init(constellioFactories.getModelLayerFactory());
 		}

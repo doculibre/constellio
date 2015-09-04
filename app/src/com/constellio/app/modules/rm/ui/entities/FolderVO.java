@@ -333,7 +333,7 @@ public class FolderVO extends RecordVO {
 		set(BORROW_PREVIEW_RETURN_DATE, previewReturnDate);
 	}
 
-	public LocalDateTime getPreviewReturnDate() {
+	public LocalDate getPreviewReturnDate() {
 		return get(BORROW_PREVIEW_RETURN_DATE);
 	}
 

@@ -1,0 +1,165 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.ui.pages.management.schemas.display.report;
+
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.reports.model.search.ReportTestUtils;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.ReportVO;
+import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.reports.ReportServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
+    RMTestRecords records = new RMTestRecords(zeCollection);
+
+    ReportDisplayConfigPresenter presenter;
+    ReportTestUtils reportTestUtils;
+    @Mock
+    ReportConfigurationView view;
+    @Mock
+    SessionContext session;
+    @Mock
+    UserVO currentUser;
+    @Mock
+    ConstellioNavigator navigator;
+    private String zeReportTitle = "report title";
+    private ReportServices reportServices;
+
+    @Before
+    public void setUp()
+            throws Exception {
+
+        prepareSystem(
+                withZeCollection().withConstellioRMModule().withRMTest(records)
+                        .withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+        );
+
+        when(view.getSessionContext()).thenReturn(session);
+        when(view.getCollection()).thenReturn(zeCollection);
+        when(session.getCurrentCollection()).thenReturn(zeCollection);
+        when(currentUser.getUsername()).thenReturn(admin);
+        when(session.getCurrentUser()).thenReturn(currentUser);
+        when(view.navigateTo()).thenReturn(navigator);
+
+        presenter = new ReportDisplayConfigPresenter(view);
+        Map<String, String> params = new HashMap<>();
+        params.put("schemaTypeCode", Folder.SCHEMA_TYPE);
+        presenter.setParameters(params);
+        reportTestUtils = new ReportTestUtils(getModelLayerFactory(), zeCollection, records);
+        reportServices = new ReportServices(getModelLayerFactory(), zeCollection);
+    }
+
+    @Test
+    public void whenDefaultFolderReportAndChuckReportThenReturnDefaultReports() {
+        reportTestUtils.addDefaultReport(zeReportTitle);
+        reportTestUtils.addUserReport(zeReportTitle, chuckNorris);
+        List<ReportVO> reports = presenter.getReports();
+        assertThat(reports.size()).isEqualTo(1);
+        reportTestUtils.validateDefaultReport(reports.get(0));
+    }
+
+    @Test
+    public void whenNoDefaultFolderReportAndChuckReportThenNoReport() {
+        reportTestUtils.addUserReport(zeReportTitle, chuckNorris);
+        List<ReportVO> reports = presenter.getReports();
+        assertThat(reports).isEmpty();
+    }
+
+    @Test
+    public void whenDefaultFolderAndDefaultDocumentReportThenDefaultFolderReportForFoldersSchemaType() {
+        reportTestUtils.addDefaultReport(zeReportTitle);
+        reportTestUtils.addDocumentDefaultReport(zeReportTitle);
+        List<ReportVO> reports = presenter.getReports();
+        assertThat(reports.size()).isEqualTo(1);
+        reportTestUtils.validateDefaultReport(reports.get(0));
+    }
+
+    @Test
+    public void whenNewReportSavedThenSavedCorrectly() {
+        String newReportTitle = "newReport";
+        when(view.getSelectedReport()).thenReturn(newReportTitle);
+        Metadata folderTitleMetadata = getFolderLinearSizeMetadata();
+        List<MetadataVO> metadataVOList = new ArrayList();
+        MetadataVO firstMD = new MetadataToVOBuilder().build(folderTitleMetadata, session);
+        metadataVOList.add(firstMD);
+        presenter.saveButtonClicked(metadataVOList);
+        Report report = reportServices.getReport(Folder.SCHEMA_TYPE, newReportTitle);
+        assertThat(report).isNotNull();
+        assertThat(report.getReportedMetadata().size()).isEqualTo(1);
+        assertThat(report.getReportedMetadata().get(0).getMetadataCode()).isEqualTo(folderTitleMetadata.getCode());
+    }
+
+    private Metadata getFolderLinearSizeMetadata() {
+        MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+        MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(zeCollection);
+        MetadataSchema folderDefaultSchema = types.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
+        return folderDefaultSchema.getMetadata(Folder.LINEAR_SIZE);
+    }
+
+    @Test
+    public void whenReportUpdatedThenUpdatedCorrectly() {
+        reportTestUtils.addDefaultReport(zeReportTitle);
+        when(view.getSelectedReport()).thenReturn(zeReportTitle);
+        Metadata folderTitleMetadata = getFolderLinearSizeMetadata();
+        List<MetadataVO> metadataVOList = new ArrayList();
+        MetadataVO firstMD = new MetadataToVOBuilder().build(folderTitleMetadata, session);
+        metadataVOList.add(firstMD);
+        presenter.saveButtonClicked(metadataVOList);
+        Report report = reportServices.getReport(Folder.SCHEMA_TYPE, zeReportTitle);
+        assertThat(report).isNotNull();
+        assertThat(report.getReportedMetadata().size()).isEqualTo(1);
+        assertThat(report.getReportedMetadata().get(0).getMetadataCode()).isEqualTo(folderTitleMetadata.getCode());
+    }
+
+    @Test
+    public void whenGetReportMetadataForNewReportThenNoMetadata() {
+        when(view.getSelectedReport()).thenReturn(null);
+        assertThat(presenter.getReportMetadatas()).isEmpty();
+    }
+
+    @Test
+    public void whenGetReportMetadataForExistingReportThenReturnExistingReportMetadata() {
+        reportTestUtils.addDefaultReport(zeReportTitle);
+        when(view.getSelectedReport()).thenReturn(zeReportTitle);
+        List<MetadataVO> reportMetadataList = presenter.getReportMetadatas();
+        reportTestUtils.validateDefaultReport(reportMetadataList);
+    }
+
+
+}

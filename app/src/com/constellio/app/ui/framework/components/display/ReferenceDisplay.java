@@ -28,20 +28,23 @@ import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.RecordVOToCaptionConverter;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.framework.navigation.RecordNavigationHandler;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ReferenceDisplay extends Button {
-	
 	public static final String STYLE_NAME = "reference-display";
-
 	private RecordVO recordVO;
-
 	private String recordId;
-	
 	private RecordContextMenu contextMenu;
 
 	public ReferenceDisplay(RecordVO recordVO) {
@@ -52,7 +55,7 @@ public class ReferenceDisplay extends Button {
 			setIcon(icon);
 		}
 		setCaption(caption);
-		init();
+		init(recordVO.getId());
 	}
 
 	public ReferenceDisplay(String recordId) {
@@ -63,18 +66,39 @@ public class ReferenceDisplay extends Button {
 			setIcon(icon);
 		}
 		setCaption(caption);
-		init();
+		init(recordId);
 	}
 
-	private void init() {
+	private void init(String recordId) {
 		setSizeFull();
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_LINK);
 		setEnabled(false);
 		addClickListener();
-//		addContextMenu();
+		//		addContextMenu();
+
+		if (recordId != null) {
+			ConstellioUI ui = ConstellioUI.getCurrent();
+			String collection = ui.getSessionContext().getCurrentCollection();
+			ModelLayerFactory modelLayerFactory = ui.getConstellioFactories().getModelLayerFactory();
+			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+			String niceTitle = getNiceTitle(recordServices.getDocumentById(recordId), types);
+			addExtension(new NiceTitle(this, niceTitle));
+		}
 	}
-	
+
+	protected String getNiceTitle(Record record, MetadataSchemaTypes types) {
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		String description = null;
+		if (schema.hasMetadataWithCode("description")) {
+			Metadata descriptionMetadata = schema.getMetadata("description");
+			description = record.get(descriptionMetadata);
+		}
+		return description;
+	}
+
 	protected void addClickListener() {
 		ClickListener clickListener = null;
 		List<RecordNavigationHandler> recordNavigationHandlers = ConstellioUI.getCurrent().getRecordNavigationHandlers();
@@ -101,7 +125,7 @@ public class ReferenceDisplay extends Button {
 			addClickListener(clickListener);
 		}
 	}
-	
+
 	protected void addContextMenu() {
 		List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
 		for (final RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {

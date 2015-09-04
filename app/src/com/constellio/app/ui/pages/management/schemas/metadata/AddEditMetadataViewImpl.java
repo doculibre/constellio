@@ -71,8 +71,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox autocomplete;
 	@PropertyId("advancedSearch")
 	private CheckBox advancedSearchField;
-	@PropertyId("facet")
-	private CheckBox facetField;
 	@PropertyId("enabled")
 	private CheckBox enabledField;
 	@PropertyId("metadataGroup")
@@ -172,7 +170,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		refType.setRequired(false);
 		searchableField.setEnabled(false);
 		sortableField.setEnabled(true);
-		facetField.setEnabled(true);
 
 		switch (value) {
 		case BOOLEAN:
@@ -191,15 +188,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			multivalueType.setEnabled(true);
 			sortableField.setEnabled(false);
 			searchableField.setEnabled(!inherited && !editMode);
-			facetField.setEnabled(false);
 			break;
 		case DATE:
 			multivalueType.setEnabled(true);
-			facetField.setEnabled(false);
 			break;
 		case DATE_TIME:
 			multivalueType.setEnabled(true);
-			facetField.setEnabled(false);
 			break;
 		case INTEGER:
 			multivalueType.setEnabled(true);
@@ -221,7 +215,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			break;
 		case STRUCTURE:
 			multivalueType.setEnabled(true);
-			facetField.setEnabled(false);
 			break;
 		}
 	}
@@ -237,16 +230,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		case TEXT:
 			sortableField.setValue(false);
 		case CONTENT:
-			facetField.setValue(false);
 			sortableField.setValue(false);
 		case REFERENCE:
 			sortableField.setValue(false);
 			break;
 		case DATE:
-			facetField.setValue(false);
 			break;
 		case DATE_TIME:
-			facetField.setValue(false);
 			break;
 		case INTEGER:
 			break;
@@ -255,7 +245,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		case NUMBER:
 			break;
 		case STRUCTURE:
-			facetField.setValue(false);
 			break;
 		}
 	}
@@ -383,13 +372,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		advancedSearchField.addStyleName("advancedSearch");
 		advancedSearchField.setEnabled(!inherited);
 
-		facetField = new CheckBox();
-		facetField.setCaption($("AddEditMetadataView.facet"));
-		facetField.setRequired(false);
-		facetField.setId("facet");
-		facetField.addStyleName("facet");
-		facetField.setEnabled(!inherited);
-
 		highlight = new CheckBox();
 		highlight.setCaption($("AddEditMetadataView.highlight"));
 		highlight.setRequired(false);
@@ -435,7 +417,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, titleField, valueType, multivalueType,
 				inputType, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
-				advancedSearchField, facetField, highlight, autocomplete, defaultValueField) {
+				advancedSearchField, highlight, autocomplete, defaultValueField) {
 
 			@Override
 			public void reload() {

@@ -41,6 +41,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.detail.BatchProcessWriter;
+import com.constellio.model.services.batch.xml.detail.BatchProcessWriterRuntimeException.AlreadyProcessingABatchProcessPart;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
 import com.constellio.model.services.records.RecordServices;
@@ -77,6 +78,26 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		}
 		configManager.registerListener(BATCH_PROCESS_LIST_PATH, this);
 		markAllStandbyAsPending();
+
+		deleteFinishedWithoutErrors();
+	}
+
+	void deleteFinishedWithoutErrors() {
+		List<String> batchProcessIds = new ArrayList<>();
+		for (BatchProcess batchProcess : getFinishedBatchProcesses()) {
+			if (batchProcess.getErrors() == 0) {
+				batchProcessIds.add(batchProcess.getId());
+			}
+		}
+		delete(batchProcessIds);
+	}
+
+	private void delete(List<String> batchProcessIds) {
+		configManager.updateXML(BATCH_PROCESS_LIST_PATH, newDeleteBatchProcessesAlteration(batchProcessIds));
+		for (String batchProcessId : batchProcessIds) {
+			configManager.delete("/batchProcesses/" + batchProcessId + ".xml");
+		}
+
 	}
 
 	public BatchProcess add(List<String> records, String collection, BatchProcessAction action) {
@@ -136,10 +157,14 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 			Document batchProcessDocument = xmlConfiguration.getDocument();
 			BatchProcessWriter batchProcessWriter = newBatchProcessWriter(batchProcessDocument);
-			List<String> records = batchProcessWriter.assignBatchProcessPartTo(computerName, partsSize);
-			if (!records.isEmpty()) {
-				updateBatchProcessDocument(batchProcess, xmlConfiguration, batchProcessDocument);
-				nextPart = new BatchProcessPart(batchProcess, records);
+			try {
+				List<String> records = batchProcessWriter.assignBatchProcessPartTo(computerName, partsSize);
+				if (!records.isEmpty()) {
+					updateBatchProcessDocument(batchProcess, xmlConfiguration, batchProcessDocument);
+					nextPart = new BatchProcessPart(batchProcess, records);
+				}
+			} catch (AlreadyProcessingABatchProcessPart e) {
+				nextPart = new BatchProcessPart(batchProcess, batchProcessWriter.getAlreadyBatchProcessPartTo(computerName));
 			}
 		}
 
@@ -260,6 +285,16 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		} else {
 			return getCurrentBatchProcessPart();
 		}
+	}
+
+	DocumentAlteration newDeleteBatchProcessesAlteration(final List<String> ids) {
+		return new DocumentAlteration() {
+
+			@Override
+			public void alter(Document document) {
+				newBatchProcessListWriter(document).deleteBatchProcessesAlteration(ids);
+			}
+		};
 	}
 
 	DocumentAlteration newIncrementProgressionDocumentAlteration(final BatchProcess batchProcess, final int increment,

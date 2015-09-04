@@ -47,7 +47,6 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultival
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
-import static com.thoughtworks.selenium.SeleneseTestBase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
@@ -85,7 +84,6 @@ import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.CannotCreateTwoMetadataWithSameNameInDifferentCustomSchemasOfTheSameType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.testimpl.TestMetadataValidator3;
@@ -130,9 +128,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		prepareSystem(withZeCollection());
+
 		configManager = getDataLayerFactory().getConfigManager();
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		givenCollection("zeCollection");
 		schemas = defaultSchema = new TestsSchemasSetup();
 		zeSchema = defaultSchema.new ZeSchemaMetadatas();
 		zeCustomSchema = defaultSchema.new ZeCustomSchemaMetadatas();
@@ -166,10 +165,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(schemasManager.getAllCollectionsSchemaTypes())
 				.containsOnly(typesCollection1, typesCollection2, zeCollectionTypes);
 		assertThat(typesCollection1.getCollection()).isEqualTo("collection1");
-		assertThat(typesCollection1.getSchemaTypes()).hasSize(7);
+		assertThat(typesCollection1.getSchemaTypes()).hasSize(11);
 		assertThat(typesCollection1.getSchemaType("a")).isNotNull();
 		assertThat(typesCollection2.getCollection()).isEqualTo("collection2");
-		assertThat(typesCollection2.getSchemaTypes()).hasSize(7);
+		assertThat(typesCollection2.getSchemaTypes()).hasSize(11);
 		assertThat(typesCollection2.getSchemaType("b")).isNotNull();
 	}
 
@@ -196,10 +195,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes typesCollection1 = otherManager.getSchemaTypes("collection1");
 		MetadataSchemaTypes typesCollection2 = otherManager.getSchemaTypes("collection2");
 		assertThat(typesCollection1.getCollection()).isEqualTo("collection1");
-		assertThat(typesCollection1.getSchemaTypes()).hasSize(7);
+		assertThat(typesCollection1.getSchemaTypes()).hasSize(11);
 		assertThat(typesCollection1.getSchemaType("a")).isNotNull();
 		assertThat(typesCollection2.getCollection()).isEqualTo("collection2");
-		assertThat(typesCollection2.getSchemaTypes()).hasSize(7);
+		assertThat(typesCollection2.getSchemaTypes()).hasSize(11);
 		assertThat(typesCollection2.getSchemaType("b")).isNotNull();
 	}
 
@@ -226,10 +225,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes typesCollection1 = otherManager.getSchemaTypes("collection1");
 		MetadataSchemaTypes typesCollection2 = otherManager.getSchemaTypes("collection2");
 		assertThat(typesCollection1.getCollection()).isEqualTo("collection1");
-		assertThat(typesCollection1.getSchemaTypes()).hasSize(7);
+		assertThat(typesCollection1.getSchemaTypes()).hasSize(11);
 		assertThat(typesCollection1.getSchemaType("a")).isNotNull();
 		assertThat(typesCollection2.getCollection()).isEqualTo("collection2");
-		assertThat(typesCollection2.getSchemaTypes()).hasSize(7);
+		assertThat(typesCollection2.getSchemaTypes()).hasSize(11);
 		assertThat(typesCollection2.getSchemaType("b")).isNotNull();
 	}
 
@@ -926,22 +925,6 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		typesBuilder.getMetadata("folder_employee_rule").setUndeletable(false);
 		typesBuilder.getSchema("folder_employee").getMetadata("rule").setUndeletable(false);
-	}
-
-	@Test
-	public void whenCreatingASchemaTypeWith2MetadataWithASameNameInTwoCustomSchemasThenException()
-			throws Exception {
-		MetadataSchemaTypes types = createTwoSchemas();
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
-
-		typesBuilder.createNewSchemaType("zeType").createCustomSchema("schema1").create("zeMeta");
-
-		try {
-			typesBuilder.getSchemaType("zeType").createCustomSchema("schema2").create("zeMeta");
-			fail("CannotCreateTwoMetadataWithSameNameInDifferentCustomSchemasOfTheSameType expected");
-		} catch (CannotCreateTwoMetadataWithSameNameInDifferentCustomSchemasOfTheSameType e) {
-			//OK
-		}
 	}
 
 	@Test(expected = MetadataSchemaBuilderRuntimeException.CannotModifyAttributeOfInheritingMetadata.class)

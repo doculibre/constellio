@@ -24,6 +24,7 @@ public class FolderCategoryFieldImpl extends LookupRecordField implements Folder
 
 	public FolderCategoryFieldImpl() {
 		super(Category.SCHEMA_TYPE);
+		setOnlyLinkables(true);
 	}
 
 	@Override
@@ -35,5 +36,4 @@ public class FolderCategoryFieldImpl extends LookupRecordField implements Folder
 	public void setFieldValue(Object value) {
 		setInternalValue((String) value);
 	}
-
 }

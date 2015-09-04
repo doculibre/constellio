@@ -19,26 +19,42 @@ package com.constellio.app.ui.pages.search.criteria;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
-public class Criterion implements Serializable {
+public class Criterion implements Serializable, ModifiableStructure {
+
 	public enum BooleanOperator {AND, OR, AND_NOT}
 
 	public enum SearchOperator {EQUALS, CONTAINS_TEXT, LESSER_THAN, GREATER_THAN, BETWEEN, IS_TRUE, IS_FALSE, IN_HIERARCHY}
 
 	private String schemaType;
-	private MetadataVO metadata;
+	String metadataCode;
+	MetadataValueType metadataType;
+	String enumClassName;
 	private SearchOperator searchOperator;
 	private Object value;
 	private Object endValue;
 	private boolean leftParens;
 	private boolean rightParens;
 	private BooleanOperator booleanOperator;
+	boolean dirty;
+
+	public Criterion() {
+	}
 
 	public Criterion(String schemaType) {
 		setSchemaType(schemaType);
+	}
+
+	@Override
+	public boolean isDirty() {
+		return dirty;
 	}
 
 	public String getSchemaType() {
@@ -46,29 +62,34 @@ public class Criterion implements Serializable {
 	}
 
 	public void setSchemaType(String schemaType) {
+		dirty = true;
 		this.schemaType = schemaType;
-		metadata = null;
+		metadataCode = null;
+		metadataType = null;
 		value = endValue = null;
 		leftParens = rightParens = false;
 		booleanOperator = BooleanOperator.AND;
 	}
 
-	public MetadataVO getMetadata() {
-		return metadata;
+	public String getMetadataCode() {
+		return metadataCode;
 	}
 
-	public void setMetadata(MetadataVO metadata) {
-		if (MetadataVO.getCodeWithoutPrefix(metadata.getCode()).equals(CommonMetadataBuilder.PATH)) {
+	public void setMetadata(String metadataCode, MetadataValueType type, String enumClassName) {
+		if (MetadataVO.getCodeWithoutPrefix(metadataCode).equals(CommonMetadataBuilder.PATH)) {
 			searchOperator = SearchOperator.IN_HIERARCHY;
-		} else if (metadata.getType().isStringOrText()) {
+		} else if (type.isStringOrText()) {
 			searchOperator = SearchOperator.CONTAINS_TEXT;
-		} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
+		} else if (type == MetadataValueType.BOOLEAN) {
 			searchOperator = SearchOperator.IS_TRUE;
 		} else {
 			searchOperator = SearchOperator.EQUALS;
 		}
 		value = endValue = null;
-		this.metadata = metadata;
+		this.metadataCode = metadataCode;
+		this.metadataType = type;
+		this.enumClassName = enumClassName;
+		dirty = true;
 	}
 
 	public SearchOperator getSearchOperator() {
@@ -76,6 +97,7 @@ public class Criterion implements Serializable {
 	}
 
 	public void setSearchOperator(SearchOperator searchOperator) {
+		dirty = true;
 		this.searchOperator = searchOperator;
 	}
 
@@ -84,6 +106,7 @@ public class Criterion implements Serializable {
 	}
 
 	public void setValue(Object value) {
+		dirty = true;
 		this.value = value;
 	}
 
@@ -92,6 +115,7 @@ public class Criterion implements Serializable {
 	}
 
 	public void setEndValue(Object endValue) {
+		dirty = true;
 		this.endValue = endValue;
 	}
 
@@ -100,6 +124,7 @@ public class Criterion implements Serializable {
 	}
 
 	public void setLeftParens(boolean leftParens) {
+		dirty = true;
 		this.leftParens = leftParens;
 	}
 
@@ -108,6 +133,7 @@ public class Criterion implements Serializable {
 	}
 
 	public void setRightParens(boolean rightParens) {
+		dirty = true;
 		this.rightParens = rightParens;
 	}
 
@@ -116,19 +142,51 @@ public class Criterion implements Serializable {
 	}
 
 	public void setBooleanOperator(BooleanOperator booleanOperator) {
+		dirty = true;
 		this.booleanOperator = booleanOperator;
 	}
 
+	public void setMetadataCode(String metadataCode) {
+		dirty = true;
+		this.metadataCode = metadataCode;
+	}
+
+	public MetadataValueType getMetadataType() {
+		return metadataType;
+	}
+
+	public void setMetadataType(MetadataValueType metadataType) {
+		dirty = true;
+		this.metadataType = metadataType;
+	}
+
+	public String getEnumClassName() {
+		return enumClassName;
+	}
+
+	public void setEnumClassName(String enumClassName) {
+		dirty = true;
+		this.enumClassName = enumClassName;
+	}
+
 	public boolean isNotEmpty() {
-		return metadata != null && (value != null || searchOperator == SearchOperator.IS_FALSE
+		return metadataCode != null && (value != null || searchOperator == SearchOperator.IS_FALSE
 				|| searchOperator == SearchOperator.IS_TRUE);
 	}
 
 	public String getSchemaCode() {
-		return metadata.getSchema().getCode();
+		String[] splittedCode = metadataCode.split("_");
+		return splittedCode[0] + "_" + splittedCode[1];
 	}
 
-	public String getMetadataCode() {
-		return metadata.getCode();
-	}
+	//	@Override
+	//	public int hashCode() {
+	//		return HashCodeBuilder.reflectionHashCode(this);
+	//	}
+	//
+	//	@Override
+	//	public boolean equals(Object obj) {
+	//		return EqualsBuilder.reflectionEquals(this, obj);
+	//	}
+
 }

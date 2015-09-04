@@ -21,9 +21,9 @@ import java.io.File;
 import java.util.List;
 
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 
-public interface ImportFileView extends BaseView, AdminModuleViewGroup {
+public interface ImportFileView extends BaseView, AdminViewGroup {
 
 	void setTotal(int newTotal);
 

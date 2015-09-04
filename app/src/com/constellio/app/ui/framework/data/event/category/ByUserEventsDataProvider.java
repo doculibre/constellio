@@ -41,7 +41,7 @@ public class ByUserEventsDataProvider extends DefaultEventsDataProvider implemen
 			LocalDateTime endDate, String id) {
 		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
 		if (eventType.equals(EventType.CURRENTLY_BORROWED_FOLDERS)) {
-			return rmSchemasRecordsServices.newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(currentUser, id);
+			return rmSchemasRecordsServices.newFindCurrentlyBorrowedFoldersByUser(currentUser, id);
 		} else if (eventType.equals(EventType.LATE_BORROWED_FOLDERS)) {
 			return rmSchemasRecordsServices
 					.newFindLateBorrowedFoldersByUserAndDateRangeQuery(currentUser, id);
@@ -66,46 +66,56 @@ public class ByUserEventsDataProvider extends DefaultEventsDataProvider implemen
 		} else if (index == 5) {
 			return EventType.BORROW_FOLDER;
 		} else if (index == 6) {
-			return EventType.CURRENTLY_BORROWED_FOLDERS;
+			return EventType.RETURN_FOLDER;
 		} else if (index == 7) {
-			return EventType.LATE_BORROWED_FOLDERS;
+			return EventType.CONSULTATION_FOLDER;
 		} else if (index == 8) {
-			return EventType.VIEW_DOCUMENT;
+			return EventType.CURRENTLY_BORROWED_FOLDERS;
 		} else if (index == 9) {
-			return EventType.BORROW_DOCUMENT;
+			return EventType.LATE_BORROWED_FOLDERS;
 		} else if (index == 10) {
-			return EventType.CREATE_DOCUMENT;
+			return EventType.VIEW_DOCUMENT;
 		} else if (index == 11) {
-			return EventType.MODIFY_DOCUMENT;
+			return EventType.BORROW_DOCUMENT;
 		} else if (index == 12) {
-			return EventType.DELETE_DOCUMENT;
+			return EventType.CREATE_DOCUMENT;
 		} else if (index == 13) {
-			return EventType.CREATE_USER;
+			return EventType.MODIFY_DOCUMENT;
 		} else if (index == 14) {
-			return EventType.DELETE_USER;
+			return EventType.DELETE_DOCUMENT;
 		} else if (index == 15) {
-			return EventType.CREATE_GROUP;
+			return EventType.CREATE_USER;
 		} else if (index == 16) {
-			return EventType.DELETE_GROUP;
+			return EventType.DELETE_USER;
 		} else if (index == 17) {
-			return EventType.GRANT_PERMISSION_FOLDER;
+			return EventType.CREATE_GROUP;
 		} else if (index == 18) {
-			return EventType.MODIFY_PERMISSION_FOLDER;
+			return EventType.DELETE_GROUP;
 		} else if (index == 19) {
-			return EventType.DELETE_PERMISSION_FOLDER;
+			return EventType.GRANT_PERMISSION_FOLDER;
 		} else if (index == 20) {
-			return EventType.GRANT_PERMISSION_DOCUMENT;
+			return EventType.MODIFY_PERMISSION_FOLDER;
 		} else if (index == 21) {
+			return EventType.DELETE_PERMISSION_FOLDER;
+		} else if (index == 22) {
+			return EventType.GRANT_PERMISSION_DOCUMENT;
+		} else if (index == 23) {
 			return EventType.MODIFY_PERMISSION_DOCUMENT;
-		} else {
+		} else if (index == 24) {
 			return EventType.DELETE_PERMISSION_DOCUMENT;
+		} else if (index == 25) {
+			return EventType.CREATE_TASK;
+		} else if (index == 26) {
+			return EventType.MODIFY_TASK;
+		} else {
+			return EventType.DELETE_TASK;
 		}
 
 	}
 
 	@Override
 	public int specificSize() {
-		return 23;
+		return 28;
 	}
 
 	@Override

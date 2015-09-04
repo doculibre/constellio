@@ -59,7 +59,7 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 	public void authorizationsButtonClicked() {
-		view.navigateTo().listPrincipalAuthorizations(recordId);
+		view.navigateTo().listPrincipalAccessAuthorizations(recordId);
 	}
 
 	public void rolesButtonClicked() {

@@ -17,18 +17,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.constants.RMTaxonomies;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -59,21 +57,16 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	public static final String TAXONOMY_CODE = "taxonomyCode";
 	public static final String CONCEPT_ID = "conceptId";
 	public static final String PARENT_CONCEPT_ID = "parentConceptId";
-	public static final String ADM_UNITS = "admUnits";
-	public static final String PLAN = "plan";
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	TaxonomyVO taxonomy;
 	String conceptId;
 	String parentConceptId;
-	private transient DecommissioningService decommissioningService;
 
 	public TaxonomyManagementPresenter(TaxonomyManagementView view) {
 		super(view);
-		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
 	}
 
 	public TaxonomyManagementPresenter forParams(String parameters) {
-
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
 		String taxonomyCode = params.get(TAXONOMY_CODE);
 		conceptId = params.get(CONCEPT_ID);
@@ -102,40 +95,6 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 			}
 		}
 		return dataProviders;
-	}
-
-	RecordVODataProvider newAdministrativeUnitsFoldersDataProvider() {
-		FolderToVOBuilder voBuilder = new FolderToVOBuilder();
-		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder
-				.build(schema("folder_default"), VIEW_MODE.TABLE, view.getSessionContext());
-		RecordVODataProvider foldersDataProvider = new RecordVODataProvider(foldersSchemaVO, voBuilder, modelLayerFactory,
-				view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery()
-						.setCondition(from(schema("folder_default"))
-								.where(schema("folder_default").getMetadata(Folder.ADMINISTRATIVE_UNIT)).is(conceptId))
-						.sortAsc(Schemas.TITLE);
-			}
-		};
-		return foldersDataProvider;
-	}
-
-	RecordVODataProvider newClassificationPlansFoldersDataProvider() {
-		FolderToVOBuilder voBuilder = new FolderToVOBuilder();
-		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder
-				.build(schema("folder_default"), VIEW_MODE.TABLE, view.getSessionContext());
-		RecordVODataProvider foldersDataProvider = new RecordVODataProvider(foldersSchemaVO, voBuilder, modelLayerFactory,
-				view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery()
-						.setCondition(from(schema("folder_default"))
-								.where(schema("folder_default").getMetadata(Folder.CATEGORY)).is(conceptId))
-						.sortAsc(Schemas.TITLE);
-			}
-		};
-		return foldersDataProvider;
 	}
 
 	private void createDataProviderIfSchemaCanBeChildOfCurrentConcept(List<RecordVODataProvider> dataProviders,
@@ -175,10 +134,6 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		dataProviders.add(createDataProvider(queryFactory));
 	}
 
-	public LogicalSearchQuery getLogicalSearchQueryForSchema(MetadataSchema schema, LogicalSearchQuery query) {
-		return new LogicalSearchQuery(query.getCondition().withFilters(new SchemaFilters(schema)));
-	}
-
 	RecordVODataProvider createDataProvider(final Factory<LogicalSearchQuery> queryFactory) {
 		final String schemaCode = queryFactory.get().getSchemaCondition().getCode();
 
@@ -200,9 +155,13 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return dataProvider;
 	}
 
+	public LogicalSearchQuery getLogicalSearchQueryForSchema(MetadataSchema schema, LogicalSearchQuery query) {
+		return new LogicalSearchQuery(query.getCondition().withFilters(new SchemaFilters(schema)));
+	}
+
 	public RecordVO getCurrentConcept() {
 		if (conceptId != null) {
-			return presenterService().getRecordVO(conceptId, VIEW_MODE.DISPLAY);
+			return presenterService().getRecordVO(conceptId, VIEW_MODE.DISPLAY, view.getSessionContext());
 		} else {
 			return null;
 		}
@@ -226,23 +185,36 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(), view.getSessionContext());
-		utils.delete(utils.toRecord(recordVO), null, false);
-		view.refreshTable();
+		if (isDeletable(recordVO)) {
+			SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(),
+					view.getSessionContext());
+			utils.delete(utils.toRecord(recordVO), null, false);
+			view.refreshTable();
+		} else {
+			view.showErrorMessage($("TaxonomyManagementView.cannotDelete"));
+		}
 	}
 
 	public void addLinkClicked(String taxonomyCode, String schemaCode) {
 		view.navigateTo().addTaxonomyConcept(taxonomyCode, conceptId, schemaCode);
 	}
 
-	public void manageAuthorizationsButtonClicked() {
+	public void manageAccessAuthorizationsButtonClicked() {
 		if (conceptId != null) {
-			view.navigateTo().listObjectAuthorizations(conceptId);
+			view.navigateTo().listObjectAccessAuthorizations(conceptId);
+		}
+	}
+
+	public void manageRoleAuthorizationsButtonClicked() {
+		if (conceptId != null) {
+			view.navigateTo().listObjectRoleAuthorizations(conceptId);
 		}
 	}
 
 	public boolean isPrincipalTaxonomy() {
-		return taxonomy.getCode().equals(RMTaxonomies.ADMINISTRATIVE_UNITS);
+		TaxonomiesManager taxonomiesManager = view.getConstellioFactories().getModelLayerFactory().getTaxonomiesManager();
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(collection);
+		return principalTaxonomy != null && principalTaxonomy.getCode().equals(taxonomy.getCode());
 	}
 
 	public void backButtonClicked() {
@@ -262,42 +234,43 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user);
 	}
 
-	public String getNumberOfFolders() {
-		if (taxonomy.getCode().equals(ADM_UNITS)) {
-			return getNumberOfFoldersForAdministrativeUnit();
-		} else if (taxonomy.getCode().equals(PLAN)) {
-			return getNumberOfFoldersForClassificationPlan();
+	public void tabElementClicked(RecordVO recordVO) {
+		//TODO Refactoring
+		view.navigateTo().displayFolder(recordVO.getId());
+	}
+
+	public List<TaxonomyManagementClassifiedType> getClassifiedTypes() {
+		if (conceptId == null) {
+			return new ArrayList<>();
+
 		} else {
-			return "0";
+			Taxonomy taxonomy = fetchTaxonomy(getTaxonomy().getCode());
+			Record record = modelLayerFactory.newRecordServices().getDocumentById(conceptId);
+			return appCollectionExtentions
+					.getClassifiedTypes(new GetTaxonomyManagementClassifiedTypesParams(taxonomy, record, view));
 		}
-	}
 
-	private String getNumberOfFoldersForAdministrativeUnit() {
-		return String.valueOf(decommissioningService.getFoldersForAdministrativeUnit(conceptId).size());
-	}
-
-	private String getNumberOfFoldersForClassificationPlan() {
-		return String.valueOf(decommissioningService.getFoldersForClassificationPlan(conceptId).size());
-	}
-
-	public void folderClicked(RecordVO folderVO) {
-		view.navigateTo().displayFolder(folderVO.getId());
-	}
-
-	public List<String> getRetentionRules() {
-		List<String> retentionRulesIds = new ArrayList<>();
-		for (RetentionRule retentionRule : decommissioningService.getRetentionRulesForAdministrativeUnit(conceptId)) {
-			retentionRulesIds.add(retentionRule.getId());
-		}
-		Collections.sort(retentionRulesIds);
-		return retentionRulesIds;
 	}
 
 	public void viewAssembled() {
-		if (conceptId != null && taxonomy.getCode().equals(ADM_UNITS)) {
-			view.setFolders(newAdministrativeUnitsFoldersDataProvider());
-		} else if (conceptId != null && taxonomy.getCode().equals(PLAN)) {
-			view.setFolders(newClassificationPlansFoldersDataProvider());
+		if (conceptId != null) {
+			view.setTabs(getClassifiedTypes());
 		}
+	}
+
+	public List<TaxonomyExtraField> getExtraFields() {
+		Taxonomy taxonomy = fetchTaxonomy(getTaxonomy().getCode());
+		Record record = modelLayerFactory.newRecordServices().getDocumentById(conceptId);
+		return appCollectionExtentions.getTaxonomyExtraFields(new GetTaxonomyExtraFieldsParam(taxonomy, record, view));
+	}
+
+	public boolean isDeletable(RecordVO entity) {
+		Record record = presenterService().getRecord(entity.getId());
+		User user = getCurrentUser();
+		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
+	}
+
+	public String getDefaultOrderField() {
+		return Schemas.CODE.getLocalCode();
 	}
 }

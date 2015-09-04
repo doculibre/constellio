@@ -27,7 +27,11 @@ import com.constellio.app.ui.pages.base.SessionContext;
 public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 
 	public RecordAutocompleteField(String schemaTypeCode) {
-		super(new RecordAutocompleteSuggestionsProvider(schemaTypeCode));
+		this(schemaTypeCode, false);
+	}
+
+	public RecordAutocompleteField(String schemaTypeCode, boolean writeAccess) {
+		super(new RecordAutocompleteSuggestionsProvider(schemaTypeCode, writeAccess));
 		init();
 	}
 
@@ -44,10 +48,11 @@ public class RecordAutocompleteField extends BaseAutocompleteField<String> {
 
 		private RecordTextInputDataProvider suggestionsProvider;
 
-		private RecordAutocompleteSuggestionsProvider(String schemaTypeCode) {
+		private RecordAutocompleteSuggestionsProvider(String schemaTypeCode, boolean writeAccess) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-			this.suggestionsProvider = new RecordTextInputDataProvider(constellioFactories, sessionContext, schemaTypeCode);
+			this.suggestionsProvider = new RecordTextInputDataProvider(constellioFactories, sessionContext, schemaTypeCode,
+					writeAccess);
 		}
 
 		@Override

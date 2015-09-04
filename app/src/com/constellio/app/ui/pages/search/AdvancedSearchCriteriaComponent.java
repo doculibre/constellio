@@ -71,7 +71,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		addGeneratedColumn(LEFT_PARENS_FIELD, new ParensFieldGenerator("leftParens", "("));
 		addGeneratedColumn(METADATA_FIELD, new MetadataFieldGenerator(presenter));
-		addGeneratedColumn(VALUE_FIELD, new ValueFieldGenerator());
+		addGeneratedColumn(VALUE_FIELD, new ValueFieldGenerator(presenter));
 		addGeneratedColumn(RIGHT_PARENS_FIELD, new ParensFieldGenerator("rightParens", ")"));
 		addGeneratedColumn(OPERATOR_FIELD, new OperatorFieldGenerator());
 		addGeneratedColumn(DELETE_BUTTON, new DeleteButtonGenerator());
@@ -104,6 +104,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		return result;
 	}
 
+	public void setSearchCriteria(List<Criterion> criteria) {
+		container.removeAllItems();
+		container.addAll(criteria);
+	}
+
 	public static class MetadataFieldGenerator implements ColumnGenerator {
 		private SearchCriteriaPresenter presenter;
 
@@ -130,11 +135,17 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				comboBox.addItem(metadata);
 				comboBox.setItemCaption(metadata, metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));
 			}
-			comboBox.setValue(criterion.getMetadata());
+			MetadataVO metadataVO = presenter.getMetadataVO(criterion.getMetadataCode());
+			comboBox.setValue(metadataVO);
 			comboBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setMetadata((MetadataVO) event.getProperty().getValue());
+					MetadataVO metadataVO = (MetadataVO) event.getProperty().getValue();
+					String enumClassName = null;
+					if (metadataVO.getEnumClass() != null) {
+						enumClassName = metadataVO.getEnumClass().getName();
+					}
+					criterion.setMetadata(metadataVO.getCode(), metadataVO.getType(), enumClassName);
 					source.refreshRowCache();
 				}
 			});
@@ -144,16 +155,22 @@ public class AdvancedSearchCriteriaComponent extends Table {
 	}
 
 	public static class ValueFieldGenerator implements ColumnGenerator {
+		private final SearchCriteriaPresenter presenter;
+
+		public ValueFieldGenerator(SearchCriteriaPresenter presenter) {
+			this.presenter = presenter;
+		}
+
 		@Override
 		public Component generateCell(Table source, Object itemId, Object columnId) {
 			return generateCell((Criterion) itemId);
 		}
 
 		private Component generateCell(Criterion criterion) {
-			if (criterion.getMetadata() == null) {
+			if (criterion.getMetadataCode() == null) {
 				return null;
 			}
-			switch (criterion.getMetadata().getType()) {
+			switch (criterion.getMetadataType()) {
 			case STRING:
 			case TEXT:
 				return criterion.getSearchOperator() == SearchOperator.IN_HIERARCHY ?
@@ -176,8 +193,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildReferenceValueComponent(final Criterion criterion) {
-			MetadataVO metadataVO = criterion.getMetadata();
-			final LookupRecordField value = new LookupRecordField(metadataVO.getSchemaTypeCode());
+			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
+			final LookupRecordField value = new LookupRecordField(metadata.getAllowedReferences().getAllowedSchemaType());
 			value.setWidth("100%");
 			value.setValue((String) criterion.getValue());
 			value.addValueChangeListener(new ValueChangeListener() {
@@ -251,7 +268,12 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildEnumValueComponent(final Criterion criterion) {
-			Class<? extends Enum<?>> enumClass = criterion.getMetadata().getEnumClass();
+			Class<? extends Enum<?>> enumClass = null;
+			try {
+				enumClass = (Class<? extends Enum<?>>) Class.forName(criterion.getEnumClassName());
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
 			final ComboBox value = new EnumWithSmallCodeComboBox((Class) enumClass);
 			value.setWidth("100%");
 			value.setNullSelectionAllowed(false);
@@ -442,5 +464,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		void addCriterionRequested();
 
 		List<MetadataVO> getMetadataAllowedInCriteria();
+
+		MetadataVO getMetadataVO(String metadataCode);
 	}
 }

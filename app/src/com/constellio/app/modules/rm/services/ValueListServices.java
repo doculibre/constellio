@@ -110,7 +110,6 @@ public class ValueListServices {
 		return createTaxonomy(code, title);
 	}
 
-
 	public Taxonomy createTaxonomy(String title, List<String> userIds, List<String> groupIds, boolean isVisibleInHomePage) {
 		String code = generateCode("");
 		MetadataSchemaType type = createTaxonomyType("taxo" + code + "Type", title);
@@ -159,15 +158,18 @@ public class ValueListServices {
 		if (!typeDisplayConfig.getMetadataGroup().contains(groupLabel)) {
 			transaction.add(typeDisplayConfig.withNewMetadataGroup(groupLabel));
 		}
-		String metadataCode = schemaType + "_default_" + localCode;
-		MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager.getMetadata(taxonomy.getCollection(), metadataCode);
-		transaction.add(metadataDisplayConfig
-				.withInputType(MetadataInputType.LOOKUP)
-				.withMetadataGroup(groupLabel)
-				.withVisibleInAdvancedSearchStatus(true));
 
 		for (MetadataSchema schema : schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(schemaType)
 				.getAllSchemas()) {
+
+			String metadataCode = schema.getCode() + "_" + localCode;
+			MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager.getMetadata(taxonomy.getCollection(),
+					metadataCode);
+			transaction.add(metadataDisplayConfig
+					.withInputType(MetadataInputType.LOOKUP)
+					.withMetadataGroup(groupLabel)
+					.withVisibleInAdvancedSearchStatus(true));
+
 			String comments = schema.getCode() + "_" + Folder.COMMENTS;
 			SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(taxonomy.getCollection(), schema.getCode());
 			transaction.add(schemaDisplayConfig

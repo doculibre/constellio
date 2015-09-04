@@ -94,17 +94,32 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	protected abstract Button buildAddButton();
 
 	private Button buildDetachButton() {
-		detach = new ConfirmDialogButton($("ListContentAuthorizationsView.detach")) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("ListContentAuthorizationsView.comfirmDetach");
-			}
+		if (presenter.seeAccessField()) {
+			detach = new ConfirmDialogButton($("ListContentAccessAuthorizationsView.detach")) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					return $("ListContentAccessAuthorizationsView.comfirmDetach");
+				}
 
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.detachRequested();
-			}
-		};
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.detachRequested();
+				}
+			};
+		}
+		if (presenter.seeRolesField()) {
+			detach = new ConfirmDialogButton($("ListContentRoleAuthorizationsView.detach")) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					return $("ListContentRoleAuthorizationsView.comfirmDetach");
+				}
+
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.detachRequested();
+				}
+			};
+		}
 		detach.setVisible(presenter.isDetacheable());
 		detach.setEnabled(presenter.isAttached());
 		return detach;
@@ -154,7 +169,12 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	protected abstract DisplayMode getDisplayMode();
 
 	private void buildOwnAuthorizations(VerticalLayout layout) {
-		Label label = new Label($("ListAuthorizationsView.ownAuthorizations"));
+		Label label = new Label();
+		if (presenter.seeAccessField()) {
+			label.setValue($("ListAccessAuthorizationsView.ownAuthorizations"));
+		} else if (presenter.seeRolesField()) {
+			label.setValue($("ListRoleAuthorizationsView.ownAuthorizations"));
+		}
 		label.addStyleName(ValoTheme.LABEL_H2);
 		authorizations = buildAuthorizationTable(presenter.getOwnAuthorizations(), AuthorizationSource.OWN);
 		layout.addComponents(label, authorizations);
@@ -162,11 +182,13 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	private void buildInheritedAuthorizations(VerticalLayout layout) {
 		List<AuthorizationVO> authorizationVOs = presenter.getInheritedAuthorizations();
-		if (authorizationVOs.isEmpty()) {
-			return;
-		}
 
-		Label label = new Label($("ListAuthorizationsView.inheritedAuthorizations"));
+		Label label = new Label();
+		if (presenter.seeAccessField()) {
+			label.setValue($("ListAccessAuthorizationsView.inheritedAuthorizations"));
+		} else if (presenter.seeRolesField()) {
+			label.setValue($("ListRoleAuthorizationsView.inheritedAuthorizations"));
+		}
 		label.addStyleName(ValoTheme.LABEL_H2);
 		authorizations = buildAuthorizationTable(authorizationVOs, AuthorizationSource.INHERITED);
 		layout.addComponents(label, authorizations);
@@ -174,10 +196,16 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	private Table buildAuthorizationTable(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
 		Container container = buildAuthorizationContainer(authorizationVOs, source);
-		Table table = new Table($("ListAuthorizationsView.authorizations", container.size()), container);
+		String tableCaption = "";
+		if (presenter.seeAccessField()) {
+			tableCaption = $("ListAccessAuthorizationsView.authorizations", container.size());
+		} else if (presenter.seeRolesField()) {
+			tableCaption = $("ListRoleAuthorizationsView.authorizations", container.size());
+		}
+		Table table = new Table(tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
-		new Authorizations(source, getDisplayMode(), presenter.seeRolesField()).attachTo(table);
+		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField()).attachTo(table);
 		return table;
 	}
 
@@ -217,7 +245,13 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	}
 
 	private void updateAuthorizationsTable() {
-		authorizations.setCaption($("ListAuthorizationsView.authorizations", authorizations.size()));
+		String tableCaption = "";
+		if (presenter.seeAccessField()) {
+			tableCaption = $("ListAccessAuthorizationsView.authorizations", authorizations.size());
+		} else if (presenter.seeRolesField()) {
+			tableCaption = $("ListRoleAuthorizationsView.authorizations", authorizations.size());
+		}
+		authorizations.setCaption(tableCaption);
 		authorizations.setPageLength(authorizations.size());
 	}
 
@@ -228,8 +262,15 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		@PropertyId("endDate") protected JodaDateField endDate;
 
 		public AddAuthorizationButton() {
-			super($("ListAuthorizationsView.add"), $("ListAuthorizationsView.add"),
-					WindowConfiguration.modalDialog("40%", "65%"));
+			super("", "", WindowConfiguration.modalDialog("40%", "65%"));
+			String caption = "";
+			if (presenter.seeAccessField()) {
+				caption = $("ListAccessAuthorizationsView.add");
+			} else if (presenter.seeRolesField()) {
+				caption = $("ListRoleAuthorizationsView.add");
+			}
+			super.setCaption(caption);
+			super.setWindowCaption(caption);
 		}
 
 		protected void buildAccessField() {
@@ -238,7 +279,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				accessRoles.addItem(accessCode);
 				accessRoles.setItemCaption(accessCode, $("AuthorizationsView." + accessCode));
 			}
-			accessRoles.setRequired(true);
+			accessRoles.setEnabled(presenter.seeAccessField());
+			accessRoles.setVisible(presenter.seeAccessField());
+			accessRoles.setRequired(presenter.seeAccessField());
 			accessRoles.setMultiSelect(true);
 			accessRoles.setId("accessRoles");
 		}
@@ -247,10 +290,11 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			userRoles = new ListOptionGroup($("AuthorizationsView.userRoles"));
 			for (String roleCode : presenter.getAllowedRoles()) {
 				userRoles.addItem(roleCode);
-				userRoles.setItemCaption(roleCode, roleCode);
+				userRoles.setItemCaption(roleCode, presenter.getRoleTitle(roleCode));
 			}
 			userRoles.setEnabled(presenter.seeRolesField());
 			userRoles.setVisible(presenter.seeRolesField());
+			userRoles.setRequired(presenter.seeRolesField());
 			userRoles.setMultiSelect(true);
 			userRoles.setId("userRoles");
 		}
@@ -323,12 +367,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		private final AuthorizationSource source;
 		private final DisplayMode mode;
 		private boolean seeRolesField;
+		private boolean seeAccessField;
 		private final JodaDateToStringConverter converter;
 
-		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField) {
+		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField, boolean seeAccessField) {
 			this.source = source;
 			this.mode = mode;
 			this.seeRolesField = seeRolesField;
+			this.seeAccessField = seeAccessField;
 			converter = new JodaDateToStringConverter();
 		}
 
@@ -345,8 +391,10 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			}
 			table.setColumnExpandRatio(primary, 1);
 
-			table.addGeneratedColumn(ACCESS, this);
-			table.setColumnHeader(ACCESS, $("AuthorizationsView.access"));
+			if (seeAccessField) {
+				table.addGeneratedColumn(ACCESS, this);
+				table.setColumnHeader(ACCESS, $("AuthorizationsView.access"));
+			}
 
 			if (seeRolesField) {
 				table.addGeneratedColumn(USER_ROLES, this);
@@ -362,16 +410,20 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			if (source == AuthorizationSource.OWN) {
 				table.setColumnHeader(BUTTONS, "");
 				table.setColumnWidth(BUTTONS, 80);
-				if (seeRolesField) {
+				if (seeRolesField && seeAccessField) {
 					table.setVisibleColumns(primary, ACCESS, USER_ROLES, START_DATE, END_DATE, BUTTONS);
-				} else {
+				} else if (!seeRolesField && seeAccessField) {
 					table.setVisibleColumns(primary, ACCESS, START_DATE, END_DATE, BUTTONS);
+				} else if (seeRolesField && !seeAccessField) {
+					table.setVisibleColumns(primary, USER_ROLES, START_DATE, END_DATE, BUTTONS);
 				}
 			} else {
-				if (seeRolesField) {
+				if (seeRolesField && seeAccessField) {
 					table.setVisibleColumns(primary, ACCESS, USER_ROLES, START_DATE, END_DATE);
-				} else {
+				} else if (!seeRolesField && seeAccessField) {
 					table.setVisibleColumns(primary, ACCESS, START_DATE, END_DATE);
+				} else if (seeRolesField && !seeAccessField) {
+					table.setVisibleColumns(primary, USER_ROLES, START_DATE, END_DATE);
 				}
 			}
 

@@ -17,6 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.extensions;
 
+import com.constellio.app.api.extensions.PagesComponentsExtensions;
+
 public class AppLayerSystemExtensions {
+
+	public PagesComponentsExtensions pagesComponentsExtensions = new PagesComponentsExtensions();
 
 }

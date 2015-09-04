@@ -22,66 +22,44 @@ import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.security.roles.Roles;
 
 public class User extends RecordWrapper {
-
 	public static final User GOD = null;
-
 	public static final String SCHEMA_TYPE = "user";
-
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-
 	public static final String USERNAME = "username";
-
 	public static final String FIRSTNAME = "firstname";
-
 	public static final String LASTNAME = "lastname";
-
 	public static final String EMAIL = "email";
-
 	public static final String GROUPS = "groups";
-
 	public static final String ROLES = "userroles";
-
 	public static final String ALL_ROLES = "allroles";
-
 	public static final String GROUPS_AUTHORIZATIONS = "groupsauthorizations";
-
 	public static final String ALL_USER_AUTHORIZATIONS = "alluserauthorizations";
-
 	public static final String USER_TOKENS = "usertokens";
-
 	public static final String COLLECTION_READ_ACCESS = "collectionReadAccess";
-
 	public static final String COLLECTION_WRITE_ACCESS = "collectionWriteAccess";
-
 	public static final String COLLECTION_DELETE_ACCESS = "collectionDeleteAccess";
-
 	public static final String SYSTEM_ADMIN = "systemAdmin";
-
 	public static final String ADMIN = "admin";
-
 	public static final String JOB_TITLE = "jobTitle";
-
 	public static final String PHONE = "phone";
-
 	public static final String LAST_LOGIN = "lastLogin";
 	public static final String LAST_IP_ADDRESS = "lastIPAddress";
-
 	public static final String START_TAB = "startTab";
-
 	public static final String DEFAULT_TAB_IN_FOLDER_DISPLAY = "defaultTabInFolderDisplay";
-
 	public static final String DEFAULT_TAXONOMY = "defaultTaxonomy";
-
 	public static final String STATUS = "status";
 
 	private transient Roles roles;
@@ -282,7 +260,17 @@ public class User extends RecordWrapper {
 	}
 
 	public List<String> getUserTokens() {
-		return get(USER_TOKENS);
+		List<String> recordTokens = getList(USER_TOKENS);
+		List<String> tokens = new ArrayList<String>(recordTokens);
+		tokens.add("r_" + getId());
+		tokens.add("w_" + getId());
+		tokens.add("d_" + getId());
+		for (String groupId : getUserGroups()) {
+			tokens.add("r_" + groupId);
+			tokens.add("w_" + groupId);
+			tokens.add("d_" + groupId);
+		}
+		return tokens;
 	}
 
 	public String getCollection() {
@@ -316,6 +304,20 @@ public class User extends RecordWrapper {
 
 	public UserPermissionsChecker hasDeleteAccess() {
 		return new AccessUserPermissionsChecker(this, false, false, true);
+	}
+
+	public UserPermissionsChecker hasRequiredAccess(String requiredAccess) {
+		if (Role.READ.equals(requiredAccess)) {
+			return hasReadAccess();
+
+		} else if (Role.WRITE.equals(requiredAccess)) {
+			return hasWriteAccess();
+
+		} else if (Role.DELETE.equals(requiredAccess)) {
+			return hasDeleteAccess();
+
+		}
+		throw new ImpossibleRuntimeException("Invalid access :" + requiredAccess);
 	}
 
 	public UserPermissionsChecker hasWriteAndDeleteAccess() {
@@ -394,6 +396,22 @@ public class User extends RecordWrapper {
 			checker.anyRoles = true;
 			return checker;
 		}
+	}
+
+	public boolean hasCollectionAccess(String requiredAccess) {
+		if (Role.READ.equals(requiredAccess)) {
+			return hasCollectionReadWriteOrDeleteAccess();
+
+		} else if (Role.WRITE.equals(requiredAccess)) {
+			return hasCollectionWriteAccess();
+
+		} else if (Role.DELETE.equals(requiredAccess)) {
+			return hasCollectionDeleteAccess();
+
+		} else {
+			return false;
+		}
+
 	}
 
 }

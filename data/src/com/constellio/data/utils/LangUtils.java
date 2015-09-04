@@ -161,6 +161,12 @@ public class LangUtils {
 		return withoutNulls;
 	}
 
+	public static int compareStrings(String value1, String value2) {
+		String normalizedValue1 = AccentApostropheCleaner.removeAccents(value1);
+		String normalizedValue2 = AccentApostropheCleaner.removeAccents(value2);
+		return normalizedValue1.compareTo(normalizedValue2);
+	}
+
 	public static class ListComparisonResults<T> {
 
 		private List<T> newItems;

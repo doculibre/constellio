@@ -92,6 +92,22 @@ public class SchemasDisplayWriter {
 		return getOrCreateElementFromParent(rootElement, elementName, "", "");
 	}
 
+	private void removeElementFromParent(Element rootElement, String elementName, String attributeName,
+			String attributeValue) {
+		List<Element> elements = rootElement.getChildren(elementName);
+		for (Element element : elements) {
+			if (StringUtils.isNotBlank(attributeName)) {
+				if (attributeValue.equals(element.getAttributeValue(attributeName))) {
+					element.detach();
+					return;
+				}
+			} else {
+				element.detach();
+				return;
+			}
+		}
+	}
+
 	private Element getOrCreateElementFromParent(Element rootElement, String elementName, String attributeName,
 			String attributeValue) {
 		Element newElement = null;
@@ -201,4 +217,23 @@ public class SchemasDisplayWriter {
 		metadata.setAttribute(METADATA_GROUP, config.getMetadataGroup());
 	}
 
+	public void resetSchema(String code) {
+		Element rootElement = document.getRootElement();
+		removeElementFromParent(rootElement, SCHEMA_DISPLAY_CONFIGS, SCHEMA_CODE, code);
+		Element metadatas = rootElement.getChild(METADATA_DISPLAY_CONFIGS);
+		if (metadatas != null) {
+			List<Element> elementsToDetach = new ArrayList<>();
+			List<Element> elements = metadatas.getChildren();
+			if (elements != null) {
+				for (Element element : elements) {
+					if (element.getName().startsWith(code)) {
+						elementsToDetach.add(element);
+					}
+				}
+			}
+			for (Element elementToDetach : elementsToDetach) {
+				elementToDetach.detach();
+			}
+		}
+	}
 }

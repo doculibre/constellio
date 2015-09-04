@@ -17,10 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +34,7 @@ import org.junit.Test;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 
@@ -45,14 +46,15 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 	UserCredentialsManager manager;
 	UserCredential chuckUserCredential, edouardUserCredential, bobUserCredential;
-
+	CollectionsListManager collectionsListManager;
 	LocalDateTime endDate = new LocalDateTime().plusMinutes(30);
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		withSpiedServices(ModelLayerConfiguration.class);
+		givenDisabledAfterTestValidations();
+		withSpiedServices(ModelLayerConfiguration.class, CollectionsListManager.class);
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
 			public void alter(ModelLayerConfiguration configuration) {
@@ -61,6 +63,8 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 			}
 		});
 
+		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		doReturn(asList(zeCollection, "collection1")).when(collectionsListManager).getCollections();
 		createUserCredentials();
 
 		manager = getModelLayerFactory().getUserCredentialsManager();
@@ -84,6 +88,15 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenHasInvalidCollectionWhenReadThenHAsOnlyValidCollections() {
+		doReturn(asList(zeCollection)).when(collectionsListManager).getCollections();
+
+		manager.addUpdate(edouardUserCredential);
+
+		assertThat(manager.getUserCredential("Édouard").getCollections()).containsOnly(zeCollection);
+	}
+
+	@Test
 	public void givenUserCredentialInListWhenUpdateUserCredentialThenHeIsUpdated()
 			throws Exception {
 
@@ -91,7 +104,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(edouardUserCredential);
 
 		chuckUserCredential = new UserCredential("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com",
-				Arrays.asList("group11"), Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain");
+				asList("group11"), asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain");
 		manager.addUpdate(chuckUserCredential);
 
 		assertThat(manager.getActiveUserCredentials()).hasSize(3);
@@ -109,8 +122,8 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 		manager.addUpdate(chuckUserCredential);
 
-		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", Arrays.asList("group1"),
-				Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain");
+		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", asList("group1"),
+				asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain");
 
 		manager.addUpdate(chuckUserCredential);
 		assertThat(manager.getActiveUserCredentials()).hasSize(2);
@@ -278,18 +291,18 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 	private void createUserCredentials() {
 		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", null, true,
-				Arrays.asList("group1"), Arrays.asList(zeCollection), new HashMap<String, LocalDateTime>(),
+				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
 				UserCredentialStatus.ACTIVE, "domain");
 
 		bobUserCredential = new UserCredential("bob", "Bob", "Gratton", "bob.gratton@gmail.com", null, true,
-				Arrays.asList("group1"), Arrays.asList(zeCollection), new HashMap<String, LocalDateTime>(),
+				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
 				UserCredentialStatus.ACTIVE, "domain");
 
 		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 		tokens.put("token1", endDate);
 		tokens.put("token2", endDate.plusMinutes(30));
 		edouardUserCredential = new UserCredential("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com", edouardServiceKey,
-				false, Arrays.asList("group2"), Arrays.asList(zeCollection, "collection1"), tokens, UserCredentialStatus.ACTIVE,
+				false, asList("group2"), asList(zeCollection, "collection1"), tokens, UserCredentialStatus.ACTIVE,
 				"domain");
 	}
 

@@ -19,14 +19,10 @@ package com.constellio.app.modules.rm.wrappers.structures;
 
 import java.util.StringTokenizer;
 
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
 
 public class DecomListFolderDetailFactory implements StructureFactory {
-
 	private static final String NULL = "~null~";
 
 	@Override
@@ -35,66 +31,41 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 
 		DecomListFolderDetail decomListFolderDetail = new DecomListFolderDetail();
 		decomListFolderDetail.setFolderId(readString(stringTokenizer));
-		decomListFolderDetail.setFolderIncluded(Boolean.valueOf(readString(stringTokenizer)));
-		decomListFolderDetail.validationUserId = readString(stringTokenizer);
-		decomListFolderDetail.validationUsername = readString(stringTokenizer);
-		decomListFolderDetail.setValidationDate(readLocalDate(stringTokenizer));
+		decomListFolderDetail.folderExcluded = Boolean.valueOf(readString(stringTokenizer));
+		// Skip deprecated fields validationUserId, validationUserName and ValidationDate
+		readString(stringTokenizer);
+		readString(stringTokenizer);
+		readString(stringTokenizer);
 		decomListFolderDetail.setContainerRecordId(readString(stringTokenizer));
 		decomListFolderDetail.setReversedSort(Boolean.valueOf(readString(stringTokenizer)));
-		decomListFolderDetail.setFolderLinearSize(getDouble(stringTokenizer));
+		decomListFolderDetail.setFolderLinearSize(readDouble(stringTokenizer));
 		decomListFolderDetail.dirty = false;
 		return decomListFolderDetail;
 	}
 
-	private Double getDouble(StringTokenizer stringTokenizer) {
-		String doubleAsString = readString(stringTokenizer);
-		if(StringUtils.isBlank(doubleAsString) || doubleAsString.contains(NULL)){
-			return null;
-		}else{
-			return Double.valueOf(doubleAsString);
-		}
-	}
-
 	@Override
 	public String toString(ModifiableStructure structure) {
-
 		DecomListFolderDetail decomListFolderDetail = (DecomListFolderDetail) structure;
 		StringBuilder stringBuilder = new StringBuilder();
-		writeString(stringBuilder, "" + (decomListFolderDetail.getFolderId() == null ?
-				NULL :
-				decomListFolderDetail.getFolderId()));
-		writeString(stringBuilder, "" + decomListFolderDetail.isFolderIncluded() == null ?
-				String.valueOf(false) :
-				String.valueOf(decomListFolderDetail.isFolderIncluded()));
-		writeString(stringBuilder, "" + decomListFolderDetail.getValidationUserId() == null ?
-				NULL :
-				decomListFolderDetail.getValidationUserId());
-		writeString(stringBuilder, "" + decomListFolderDetail.getValidationUsername() == null ?
-				"" :
-				decomListFolderDetail.getValidationUsername());
-		if (decomListFolderDetail.getValidationDate() != null) {
-			writeString(stringBuilder, decomListFolderDetail.getValidationDate().toString("yyyy-MM-dd"));
-		} else {
-			writeString(stringBuilder, NULL);
-		}
-		writeString(stringBuilder, "" + decomListFolderDetail.getContainerRecordId() == null ?
-				NULL :
-				decomListFolderDetail.getContainerRecordId());
-		writeString(stringBuilder, "" + decomListFolderDetail.isReversedSort() == null ?
-				String.valueOf(false) :
-				String.valueOf(decomListFolderDetail.isReversedSort()));
-		Double linearSize = decomListFolderDetail.getFolderLinearSize();
-		if(linearSize == null){
-			writeString(stringBuilder, NULL);
-		} else {
-			writeString(stringBuilder, linearSize.toString());
-		}
-
+		writeString(stringBuilder, decomListFolderDetail.getFolderId());
+		writeString(stringBuilder, String.valueOf(decomListFolderDetail.isFolderExcluded()));
+		// Skip deprecated fields validationUserId, validationUserName and ValidationDate
+		writeString(stringBuilder, null);
+		writeString(stringBuilder, null);
+		writeString(stringBuilder, null);
+		writeString(stringBuilder, decomListFolderDetail.getContainerRecordId());
+		writeString(stringBuilder, String.valueOf(decomListFolderDetail.isReversedSort()));
+		writeDouble(stringBuilder, decomListFolderDetail.getFolderLinearSize());
 		return stringBuilder.toString();
 	}
 
+	private Double readDouble(StringTokenizer stringTokenizer) {
+		String value = readString(stringTokenizer);
+		return value == null ? null : Double.valueOf(value);
+	}
+
 	private String readString(StringTokenizer stringTokenizer) {
-		if(!stringTokenizer.hasMoreElements()){
+		if (!stringTokenizer.hasMoreElements()) {
 			return null;
 		}
 		String value = stringTokenizer.nextToken();
@@ -102,6 +73,17 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 			return null;
 		} else {
 			return value.replace("~~~", ":");
+		}
+	}
+
+	private void writeDouble(StringBuilder stringBuilder, Double value) {
+		if (stringBuilder.length() != 0) {
+			stringBuilder.append(":");
+		}
+		if (value == null) {
+			stringBuilder.append(NULL);
+		} else {
+			stringBuilder.append(String.valueOf(value));
 		}
 	}
 
@@ -115,10 +97,4 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 			stringBuilder.append(value.replace(":", "~~~"));
 		}
 	}
-
-	private LocalDate readLocalDate(StringTokenizer stringTokenizer) {
-		String localDate = readString(stringTokenizer);
-		return localDate == null ? null : LocalDate.parse(localDate);
-	}
-
 }

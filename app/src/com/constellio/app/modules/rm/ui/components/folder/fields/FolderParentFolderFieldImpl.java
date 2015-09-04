@@ -17,13 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-
-public class FolderParentFolderFieldImpl extends LookupRecordField implements FolderParentFolderField {
+public class FolderParentFolderFieldImpl extends LookupFolderField implements FolderParentFolderField {
 
 	public FolderParentFolderFieldImpl(String[] taxonomyCodes) {
-		super(Folder.SCHEMA_TYPE);
+		super();
 	}
 
 	@Override

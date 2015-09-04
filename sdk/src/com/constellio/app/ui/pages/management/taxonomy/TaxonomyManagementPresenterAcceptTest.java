@@ -17,7 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.taxonomy;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -29,10 +32,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
@@ -45,6 +52,9 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	@Mock TaxonomyManagementView view;
 	@Mock SessionContext sessionContext;
+	@Mock RecordVO recordVO;
+	@Mock UserVO userVO;
+	@Mock MetadataSchemaVO metadataSchemaVO;
 	TaxonomyManagementPresenter presenter;
 
 	@Before
@@ -63,6 +73,8 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
+		when(userVO.getUsername()).thenReturn(admin);
+		when(sessionContext.getCurrentUser()).thenReturn(userVO);
 
 		presenter = new TaxonomyManagementPresenter(view);
 	}
@@ -116,27 +128,47 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		String params = ParamUtils.addParams(null, paramsMap);
 		presenter.forParams(params);
 
-		assertThat(presenter.getRetentionRules()).hasSize(3);
-		assertThat(presenter.getRetentionRules()).containsOnly("ruleId_1", "ruleId_2", "ruleId_4");
+		List<TaxonomyExtraField> extraFields = presenter.getExtraFields();
+		assertThat(extraFields).extracting("code").isEqualTo(asList("retentionRules"));
+
+		//		VerticalLayout component = (VerticalLayout) extraFields.get(0).buildComponent();
+		//		assertThat(component.getComponentCount()).isEqualTo(3);
+		//		assertThat(((Label) component.getComponent(0)).getValue()).isEqualTo("e");
+
+		//assertThat().hasSize(3);
+		//assertThat(presenter.getRetentionRules()).containsOnly("ruleId_1", "ruleId_2", "ruleId_4");
 	}
 
 	@Test
-	public void whenGetAdministrativeUnitsFoldersDataProviderAndNumberOfFoldersThenOk()
+	public void givenAdministrativeUnitWhenGetClassifiedTypeThenReturnFolderTab()
 			throws Exception {
 
 		Map<String, String> paramsMap = new HashMap<>();
 		paramsMap.put(TaxonomyManagementPresenter.TAXONOMY_CODE, RMTaxonomies.ADMINISTRATIVE_UNITS);
-		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, "unitId_12");
+		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, records.unitId_12b);
 		String params = ParamUtils.addParams(null, paramsMap);
 		presenter.forParams(params);
 
-		assertThat(presenter.getNumberOfFolders()).isEqualTo("10");
-		assertThat(presenter.newAdministrativeUnitsFoldersDataProvider().size()).isEqualTo(10);
+		List<TaxonomyManagementClassifiedType> classifiedTypes = presenter.getClassifiedTypes();
+		assertThat(classifiedTypes).extracting("countLabel").isEqualTo(asList("Nombre de dossiers"));
+		assertThat(classifiedTypes.get(0).getDataProvider().size()).isEqualTo(10);
+		assertThat(idsOf(classifiedTypes.get(0).getDataProvider())).containsExactly(
+				records.folder_B52, records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08,
+				records.folder_B54, records.folder_B30, records.folder_B32, records.folder_B34, records.folder_B50);
 
 	}
 
+	private List<String> idsOf(RecordVODataProvider recordVODataProvider) {
+		List<String> ids = new ArrayList<>();
+		for (int i = 0; i < recordVODataProvider.size(); i++) {
+			RecordVO recordVO = recordVODataProvider.getRecordVO(i);
+			ids.add(recordVO.getId());
+		}
+		return ids;
+	}
+
 	@Test
-	public void whenGetClassificationPlansFoldersDataProviderAndNumberOfFoldersThenOk()
+	public void givenCategoryWhenGetClassifiedTypeThenReturnFolderTab()
 			throws Exception {
 
 		Map<String, String> paramsMap = new HashMap<>();
@@ -145,9 +177,51 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		String params = ParamUtils.addParams(null, paramsMap);
 		presenter.forParams(params);
 
-		assertThat(presenter.getNumberOfFolders()).isEqualTo("5");
-		assertThat(presenter.newClassificationPlansFoldersDataProvider().size()).isEqualTo(5);
+		List<TaxonomyManagementClassifiedType> classifiedTypes = presenter.getClassifiedTypes();
+		assertThat(classifiedTypes).extracting("countLabel").isEqualTo(asList("Nombre de dossiers"));
+		assertThat(classifiedTypes.get(0).getDataProvider().size()).isEqualTo(5);
+		assertThat(idsOf(classifiedTypes.get(0).getDataProvider())).containsExactly(
+				records.folder_A08, records.folder_A07, records.folder_A09, records.folder_C03, records.folder_B03);
 
+	}
+
+	@Test
+	public void whenDeletingANotDeletableTaxonomyThenShowErrorMessage() {
+		when(recordVO.getId()).thenReturn(records.categoryId_X100);
+
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put(TaxonomyManagementPresenter.TAXONOMY_CODE, RMTaxonomies.CLASSIFICATION_PLAN);
+		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, records.categoryId_X);
+		String params = ParamUtils.addParams(null, paramsMap);
+		presenter.forParams(params);
+
+		presenter.deleteButtonClicked(recordVO);
+
+		verify(view).showErrorMessage($("TaxonomyManagementView.cannotDelete"));
+	}
+
+	@Test
+	public void whenDeletingADeletableTaxonomyThenOk() {
+		when(recordVO.getId()).thenReturn(records.categoryId_X13);
+		when(recordVO.getSchema()).thenReturn(metadataSchemaVO);
+		when(metadataSchemaVO.getCode()).thenReturn(Category.DEFAULT_SCHEMA);
+
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put(TaxonomyManagementPresenter.TAXONOMY_CODE, RMTaxonomies.CLASSIFICATION_PLAN);
+		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, records.categoryId_X);
+		String params = ParamUtils.addParams(null, paramsMap);
+		presenter.forParams(params);
+
+		presenter.deleteButtonClicked(recordVO);
+		presenter.forParams(params);
+
+		List<RecordVODataProvider> dataProviders = presenter.getDataProviders();
+
+		RecordVODataProvider dataProvider = dataProviders.get(0);
+		assertThat(dataProvider.getSchema().getCode()).isEqualTo(Category.DEFAULT_SCHEMA);
+		assertThat(getRecordIdsFromDataProvider(dataProvider)).containsOnly(records.categoryId_X100);
+
+		verify(view).refreshTable();
 	}
 
 	private List<String> getRecordIdsFromDataProvider(RecordVODataProvider dataProvider) {

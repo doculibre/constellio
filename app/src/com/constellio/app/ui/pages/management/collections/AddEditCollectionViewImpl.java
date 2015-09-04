@@ -31,10 +31,10 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 
 public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCollectionView {
-
 	public static final String CODE_FIELD_STYLE = "seleniumCodeFieldStyle";
 	public static final String NAME_FIELD_STYLE = "seleniumNameFieldStyle";
 	public static final String BASE_FORM_STYLE = "seleniumBaseFormStyle";
@@ -43,10 +43,13 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 	private CollectionVO collectionVO;
 
 	@PropertyId("code")
-	private TextField codeField;
-
+	private TextField code;
 	@PropertyId("name")
-	private TextField nameField;
+	private TextField name;
+	@PropertyId("modules")
+	private OptionGroup modules;
+	//@PropertyId("language")
+	//private OptionGroup language;
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
@@ -78,30 +81,47 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		codeField = new TextField();
-		codeField.addStyleName(CODE_FIELD_STYLE);
-		codeField.setCaption($("AddEditCollectionView.Code"));
-		codeField.setRequired(true);
-		codeField.setNullRepresentation("");
-		codeField.setId("code");
-		codeField.addStyleName("code");
-		codeField.addStyleName("code-" + collectionVO.getCode());
-		codeField.setEnabled(!presenter.getActionEdit());
+		code = new TextField($("AddEditCollectionView.code"));
+		code.addStyleName(CODE_FIELD_STYLE);
+		code.setRequired(true);
+		code.setNullRepresentation("");
+		code.setId("code");
+		code.addStyleName("code");
+		code.addStyleName("code-" + collectionVO.getCode());
+		code.setEnabled(!presenter.getActionEdit());
 
-		nameField = new TextField();
-		nameField.addStyleName(NAME_FIELD_STYLE);
-		nameField.setCaption($("AddEditCollectionView.Name"));
-		nameField.setNullRepresentation("");
-		nameField.setId("name");
-		nameField.addStyleName("name");
-		nameField.addStyleName("name-" + collectionVO.getName());
+		name = new TextField($("AddEditCollectionView.name"));
+		name.addStyleName(NAME_FIELD_STYLE);
+		name.setNullRepresentation("");
+		name.setId("name");
+		name.addStyleName("name");
+		name.addStyleName("name-" + collectionVO.getName());
 
-		BaseForm<CollectionVO> baseFormComponent = new BaseForm<CollectionVO>(collectionVO, this, codeField, nameField) {
+		/*language = new OptionGroup($("AddEditCollectionView.language"));
+		language.setRequired(true);
+		for (String languageCode : presenter.getSupportedLanguages()) {
+			language.addItem(languageCode);
+			language.setItemCaption(languageCode, $("Language." + languageCode));
+		}
+		language.setEnabled(!presenter.getActionEdit());*/
 
+		modules = new OptionGroup($("AddEditCollectionView.modules"));
+		modules.setMultiSelect(true);
+		for (String module : presenter.getAvailableModules()) {
+			modules.addItem(module);
+			modules.setItemCaption(module, presenter.getModuleCaption(module));
+		}
+		modules.setEnabled(!presenter.getActionEdit());
+
+		BaseForm<CollectionVO> baseFormComponent = new BaseForm<CollectionVO>(collectionVO, this, code, name, modules) {
 			@Override
 			protected void saveButtonClick(CollectionVO viewObject)
 					throws ValidationException {
-				presenter.saveButtonClicked(collectionVO);
+				try {
+					presenter.saveButtonClicked(collectionVO);
+				} catch (AddEditCollectionPresenterException addEditCollectionPresenterException) {
+					showErrorMessage(addEditCollectionPresenterException.getMessage());
+				}
 			}
 
 			@Override

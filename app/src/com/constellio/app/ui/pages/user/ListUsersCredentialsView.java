@@ -18,9 +18,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.user;
 
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 
-public interface ListUsersCredentialsView extends BaseView, AdminModuleViewGroup {
+public interface ListUsersCredentialsView extends BaseView, AdminViewGroup {
 
 	void refreshTable();
 

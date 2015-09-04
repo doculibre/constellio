@@ -43,7 +43,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends ConstellioTest {
 
-	RecordServices recordServices;
+	RecordServicesImpl recordServices;
 
 	RecordAutomaticMetadataServices services;
 
@@ -75,7 +75,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		services = new RecordAutomaticMetadataServices(getModelLayerFactory().getMetadataSchemasManager(),
 				getModelLayerFactory().getTaxonomiesManager(), getModelLayerFactory().getSystemConfigurationsManager());
 
-		recordServices = spy(getModelLayerFactory().newRecordServices());
+		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
 		recordProvider = recordServices.newRecordProvider(null, new Transaction());
 
 		DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator.invokationCounter.set(0);

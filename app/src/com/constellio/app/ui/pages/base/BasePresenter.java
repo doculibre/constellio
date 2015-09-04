@@ -26,13 +26,19 @@ import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.BaseView.ViewEnterListener;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -55,7 +61,12 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 	protected final String collection;
 	protected transient ModelLayerFactory modelLayerFactory;
 	protected transient AppLayerFactory appLayerFactory;
+
 	private BasePresenterUtils presenterUtils;
+
+	protected transient AppLayerCollectionExtensions appCollectionExtentions;
+	protected transient AppLayerSystemExtensions appSystemExtentions;
+	private NavigationConfig config;
 
 	public BasePresenter(T view) {
 		this(view, view.getConstellioFactories(), view.getSessionContext());
@@ -89,6 +100,8 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 	private void init() {
 		modelLayerFactory = presenterUtils.modelLayerFactory();
 		appLayerFactory = presenterUtils.appLayerFactory();
+		appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);
+		appSystemExtentions = appLayerFactory.getExtensions().getSystemWideExtensions();
 	}
 
 	private boolean isViewVisibleToCurrentUser(String params) {
@@ -129,31 +142,40 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 				return false;
 			}
 		} else {
-
 			return hasPageAccess(params, user, restrictedRecords);
 		}
 	}
 
 	private boolean hasPageAccess(final String params, final User user, List<Record> restrictedRecords) {
-		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
+		boolean result;
+		if (user != null) {
+			AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 
-		boolean pageAccessDefaultValue = hasPageAccess(params, user);
-		boolean pageAccess = extensions.hasPageAccess(pageAccessDefaultValue, getClass(), params, user);
+			boolean pageAccessDefaultValue = hasPageAccess(params, user);
+			boolean pageAccess = extensions.hasPageAccess(pageAccessDefaultValue, getClass(), params, user);
 
-		boolean restrictedRecordsAccess = true;
-		if (!restrictedRecords.isEmpty()) {
-			for (final Record restrictedRecord : restrictedRecords) {
+			boolean restrictedRecordsAccess = true;
+			if (!restrictedRecords.isEmpty()) {
+				for (final Record restrictedRecord : restrictedRecords) {
 
-				boolean restrictedRecordAccessDefaultValue = hasRestrictedRecordAccess(params, user, restrictedRecord);
-				boolean restrictedRecordAccess = extensions.hasRestrictedRecordAccess(restrictedRecordAccessDefaultValue,
-						getClass(), params, user, restrictedRecord);
+					boolean restrictedRecordAccessDefaultValue = hasRestrictedRecordAccess(params, user, restrictedRecord);
+					boolean restrictedRecordAccess = extensions.hasRestrictedRecordAccess(restrictedRecordAccessDefaultValue,
+							getClass(), params, user, restrictedRecord);
 
-				if (!restrictedRecordAccess) {
-					restrictedRecordsAccess = false;
+					if (!restrictedRecordAccess) {
+						restrictedRecordsAccess = false;
+					}
 				}
 			}
+			result = restrictedRecordsAccess && pageAccess;
+		} else {
+			result = false;
 		}
-		return restrictedRecordsAccess && pageAccess;
+		return result;
+	}
+
+	public ComponentState getStateFor(NavigationItem item) {
+		return item.getStateFor(getCurrentUser(), modelLayerFactory);
 	}
 
 	protected abstract boolean hasPageAccess(String params, User user);
@@ -210,10 +232,6 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 		return presenterUtils.schemasDisplayManager();
 	}
 
-	public String getTitlesStringFromIds(List<String> ids) {
-		return presenterUtils.getTitlesStringFromIds(ids);
-	}
-
 	public String buildString(List<String> list) {
 		return presenterUtils.buildString(list);
 	}
@@ -228,5 +246,19 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 
 	public Roles getCollectionRoles() {
 		return presenterUtils.getCollectionRoles();
+	}
+
+	public boolean isDeletable(RecordVO entity) {
+		Record record = presenterService().getRecord(entity.getId());
+		User user = getCurrentUser();
+		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
+	}
+
+	protected NavigationConfig navigationConfig() {
+		if (config == null) {
+			ConstellioModulesManagerImpl manager = (ConstellioModulesManagerImpl) appLayerFactory.getModulesManager();
+			config = manager.getNavigationConfig(view.getCollection());
+		}
+		return config;
 	}
 }

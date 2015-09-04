@@ -23,7 +23,10 @@ import com.itextpdf.text.Rectangle;
 public enum LabelsReportLayout {
 
 	AVERY_5159(2, 7, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((2f / 16f) * 72f), ((4f / 32f) * 72f)),
-	AVERY_5161(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f));
+	AVERY_5161(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
+	AVERY_5163(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f));
+
+//	Top 0.5", Bottom 0.5", Left 0.18", Right 0.18"
 
 	private int numberOfColumns;
 	private int numberOfRows;

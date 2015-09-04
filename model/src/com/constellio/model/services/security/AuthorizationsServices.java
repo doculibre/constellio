@@ -24,7 +24,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords;
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotDetachConcept;
-import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsAndOrTargetRecordsIds;
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.RecordServicesErrorDuringOperation;
 import static java.util.Arrays.asList;
 
@@ -34,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.utils.TimeProvider;
@@ -41,9 +42,11 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
@@ -59,6 +62,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
@@ -66,6 +72,9 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 
 public class AuthorizationsServices {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationsServices.class);
+
 	MetadataSchemasManager schemasManager;
 	private LoggingServices loggingServices;
 	UserServices userServices;
@@ -108,9 +117,133 @@ public class AuthorizationsServices {
 		}
 		List<Record> records = recordServices.getRecordsById(authorization.getDetail().getCollection(), recordIds);
 		if (recordIds.size() != records.size()) {
-			throw new InvalidPrincipalsAndOrTargetRecordsIds();
+			throw new InvalidTargetRecordsIds(records, recordIds);
 		}
 		return records;
+	}
+
+	public List<User> getUsersWithGlobalPermissionInCollection(String permission, String collection) {
+		return getUsersWithGlobalPermissionInCollectionExcludingRoles(permission, collection, new ArrayList<String>());
+	}
+
+	public List<User> getUsersWithGlobalPermissionInCollectionExcludingRoles(String permission, String collection,
+			List<String> excludingRoles) {
+
+		Roles roles = rolesManager.getCollectionRoles(collection);
+		List<String> rolesGivingPermission = toRolesCodes(roles.getRolesGivingPermission(permission));
+		rolesGivingPermission.removeAll(excludingRoles);
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+
+		MetadataSchemaType userSchemaType = types.getSchemaType(User.SCHEMA_TYPE);
+		Metadata userAllRoles = userSchemaType.getDefaultSchema().getMetadata(User.ALL_ROLES);
+
+		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery()
+				.setCondition(from(userSchemaType).where(userAllRoles).isIn(rolesGivingPermission)));
+
+		List<User> users = new ArrayList<>();
+		for (Record record : foundRecords) {
+			users.add(new User(record, types, roles));
+		}
+		return users;
+	}
+
+	public List<User> getUsersWithPermissionOnRecord(String permission, Record concept) {
+		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
+		List<Role> rolesGivingPermission = roles.getRolesGivingPermission(permission);
+		List<String> tokens = concept.get(Schemas.TOKENS);
+		List<String> tokensReceivingPermission = new ArrayList<>();
+		for (String userToken : tokens) {
+			for (String authorizationRoleCode : userToken.split("_")[1].split(",")) {
+				Role role = roles.getRole(authorizationRoleCode);
+				if (role != null && role.getOperationPermissions().contains(permission)) {
+					tokensReceivingPermission.add(userToken);
+				}
+			}
+		}
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+		MetadataSchemaType userSchemaType = types.getSchemaType(User.SCHEMA_TYPE);
+		Metadata userTokens = userSchemaType.getDefaultSchema().getMetadata(User.USER_TOKENS);
+		Metadata userAllRoles = userSchemaType.getDefaultSchema().getMetadata(User.ALL_ROLES);
+
+		List<Record> foundRecords = searchServices.search(new LogicalSearchQuery()
+				.setCondition(from(userSchemaType).where(userTokens).isIn(tokensReceivingPermission)
+						.orWhere(userAllRoles).isIn(toRolesCodes(rolesGivingPermission))));
+
+		List<User> users = new ArrayList<>();
+		for (Record record : foundRecords) {
+			users.add(new User(record, types, roles));
+		}
+		return users;
+	}
+
+	public List<User> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission, Record concept) {
+		Roles roles = rolesManager.getCollectionRoles(concept.getCollection());
+		List<String> authorizationsGivingPermission = new ArrayList<>();
+		List<String> authorizationIds = concept.get(Schemas.AUTHORIZATIONS);
+		for (String authorizationId : authorizationIds) {
+			Authorization authorization = getAuthorization(concept.getCollection(), authorizationId);
+			for (String authorizationRoleCode : authorization.getDetail().getRoles()) {
+				Role role = roles.getRole(authorizationRoleCode);
+				if (role != null && role.getOperationPermissions().contains(permission)) {
+					authorizationsGivingPermission.add(authorizationId);
+					break;
+				}
+			}
+
+		}
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(concept.getCollection());
+		MetadataSchemaType userSchemaType = types.getSchemaType(User.SCHEMA_TYPE);
+		Metadata userAllAuthorizations = userSchemaType.getDefaultSchema().getMetadata(User.ALL_USER_AUTHORIZATIONS);
+
+		List<User> users = new ArrayList<>();
+
+		for (Record record : searchServices.search(new LogicalSearchQuery()
+				.setCondition(from(userSchemaType).where(userAllAuthorizations).isIn(authorizationsGivingPermission)))) {
+
+			users.add(new User(record, types, roles));
+		}
+		return users;
+	}
+
+	private List<String> toRolesCodes(List<Role> rolesGivingPermission) {
+		List<String> roleCodes = new ArrayList<>();
+
+		for (Role role : rolesGivingPermission) {
+			roleCodes.add(role.getCode());
+		}
+
+		return roleCodes;
+	}
+
+	public List<String> getConceptsForWhichUserHasPermission(String permission, User user) {
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(user.getCollection());
+		if (principalTaxonomy == null) {
+			return new ArrayList<>();
+		}
+		List<MetadataSchemaType> conceptTypes = schemasManager.getSchemaTypes(user.getCollection())
+				.getSchemaTypesWithCode(principalTaxonomy.getSchemaTypes());
+
+		if (user.has(permission).globally()) {
+			return searchServices.searchRecordIds(new LogicalSearchQuery(from(conceptTypes).returnAll()));
+		}
+
+		Roles roles = rolesManager.getCollectionRoles(user.getCollection());
+		List<String> userTokens = user.getUserTokens();
+		List<String> tokensGivingPermission = new ArrayList<>();
+		for (String userToken : userTokens) {
+			for (String authorizationRoleCode : userToken.split("_")[1].split(",")) {
+				Role role = roles.getRole(authorizationRoleCode);
+				if (role != null && role.getOperationPermissions().contains(permission)) {
+					tokensGivingPermission.add(userToken);
+				}
+			}
+		}
+
+		return searchServices.searchRecordIds(new LogicalSearchQuery()
+				.setCondition(from(conceptTypes).where(Schemas.TOKENS).isIn(tokensGivingPermission)));
 	}
 
 	public List<User> getUsersWithRoleForRecord(String role, Record record) {
@@ -121,7 +254,7 @@ public class AuthorizationsServices {
 				List<String> principals = auth.getGrantedToPrincipals();
 				List<Record> principalRecords = recordServices.getRecordsById(auth.getDetail().getCollection(), principals);
 				if (principals.size() != principalRecords.size()) {
-					throw new InvalidPrincipalsAndOrTargetRecordsIds();
+					throw new InvalidPrincipalsIds(principalRecords, principals);
 				}
 				MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 				Roles roles = rolesManager.getCollectionRoles(record.getCollection());
@@ -156,7 +289,7 @@ public class AuthorizationsServices {
 		}
 		List<Record> records = recordServices.getRecordsById(authorization.getDetail().getCollection(), principalIds);
 		if (principalIds.size() != records.size()) {
-			throw new InvalidPrincipalsAndOrTargetRecordsIds();
+			throw new InvalidPrincipalsIds(records, principalIds);
 		}
 		return records;
 	}
@@ -186,6 +319,7 @@ public class AuthorizationsServices {
 	}
 
 	public String add(Authorization authorization, CustomizedAuthorizationsBehavior behavior, User user) {
+
 		List<Record> records = getAuthorizationGrantedOnRecords(authorization);
 		List<Record> principals = getAuthorizationGrantedToPrincipals(authorization);
 
@@ -363,23 +497,39 @@ public class AuthorizationsServices {
 	}
 
 	public void delete(AuthorizationDetails authorization, User user, boolean reattachIfNeeded) {
-		List<String> authId = asList(authorization.getId());
-		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(authorization.getCollection())
+		delete(authorization.getId(), authorization.getCollection(), user, reattachIfNeeded);
+	}
+
+	public void delete(String authorizationId, String collection, User user, boolean reattachIfNeeded) {
+
+		List<String> authId = asList(authorizationId);
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection)
 				.where(Schemas.AUTHORIZATIONS).isContaining(authId).orWhere(Schemas.REMOVED_AUTHORIZATIONS).isContaining(authId));
 		List<Record> records = searchServices.search(query);
-		Authorization auth = getAuthorization(authorization.getCollection(), authorization.getId());
+
 		for (Record record : records) {
-			removeAuthorizationOnRecord(authorization.getId(), record, reattachIfNeeded);
-			removeRemovedAuthorizationOnRecord(authorization.getId(), record);
+			removeAuthorizationOnRecord(authorizationId, record, reattachIfNeeded);
+			removeRemovedAuthorizationOnRecord(authorizationId, record);
 		}
-		manager.remove(authorization);
+
 		try {
-			recordServices.execute(new Transaction(records));
+			recordServices.executeHandlingImpactsAsync(new Transaction(records));
 			if (user != null) {
-				loggingServices.deletePermission(auth, user);
+				try {
+					Authorization auth = getAuthorization(collection, authorizationId);
+					loggingServices.deletePermission(auth, user);
+				} catch (NoSuchAuthorizationWithId e) {
+					//No problemo
+				}
 			}
 		} catch (RecordServicesException e) {
 			throw new RecordServicesErrorDuringOperation("delete", e);
+		}
+
+		try {
+			manager.remove(manager.get(collection, authorizationId));
+		} catch (NoSuchAuthorizationWithId e) {
+			//No problemo
 		}
 	}
 
@@ -423,8 +573,12 @@ public class AuthorizationsServices {
 		List<Record> records = recordServices.getRecordsById(authorization.getDetail().getCollection(), recordIds);
 		List<Record> principals = recordServices.getRecordsById(authorization.getDetail().getCollection(), principalIds);
 
-		if (recordIds.size() + principalIds.size() != records.size() + principals.size()) {
-			throw new InvalidPrincipalsAndOrTargetRecordsIds();
+		if (recordIds.size() != records.size()) {
+			throw new InvalidTargetRecordsIds(records, recordIds);
+		}
+
+		if (principalIds.size() != principals.size()) {
+			throw new InvalidPrincipalsIds(principals, principalIds);
 		}
 		// We pass null instead of user to avoid logging add and delete events on modification
 		delete(authorization.getDetail(), null, false);
@@ -440,6 +594,10 @@ public class AuthorizationsServices {
 	public void detach(Record record) {
 		setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.DETACH, record);
 		saveRecordsTargettedByAuthorization(Arrays.asList(record), new ArrayList<Record>());
+	}
+
+	public List<Authorization> getRecordAuthorizations(RecordWrapper recordWrapper) {
+		return getRecordAuthorizations(recordWrapper.getWrappedRecord());
 	}
 
 	public List<Authorization> getRecordAuthorizations(Record record) {
@@ -460,9 +618,13 @@ public class AuthorizationsServices {
 		List<Authorization> authorizations = new ArrayList<>();
 		for (String authId : authIds) {
 			AuthorizationDetails authDetails = manager.get(record.getCollection(), authId);
-			List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
-			List<String> grantedOnRecords = findAllRecordsWithAuthorizations(authDetails, grantedToPrincipals);
-			authorizations.add(new Authorization(authDetails, grantedToPrincipals, grantedOnRecords));
+			if (authDetails != null) {
+				List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
+				List<String> grantedOnRecords = findAllRecordsWithAuthorizations(authDetails, grantedToPrincipals);
+				authorizations.add(new Authorization(authDetails, grantedToPrincipals, grantedOnRecords));
+			} else {
+				LOGGER.error("Missing authorization '" + authId + "'");
+			}
 		}
 		return authorizations;
 	}
@@ -652,7 +814,11 @@ public class AuthorizationsServices {
 		return hasPermissionOnHierarchy(user, record, true);
 	}
 
-	private boolean hasPermissionOnHierarchy(User user, Record record, boolean deleted) {
+	public boolean hasDeletePermissionOnHierarchyNoMatterTheStatus(User user, Record record) {
+		return hasPermissionOnHierarchy(user, record, null);
+	}
+
+	private boolean hasPermissionOnHierarchy(User user, Record record, Boolean deleted) {
 
 		if (user == User.GOD || user.hasCollectionDeleteAccess()) {
 			return true;
@@ -665,7 +831,10 @@ public class AuthorizationsServices {
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		LogicalSearchCondition condition;
-		if (deleted) {
+		if (deleted == null) {
+			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0));
+
+		} else if (deleted) {
 			condition = fromAllSchemasIn(user.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0))
 					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
 		} else {
@@ -687,4 +856,5 @@ public class AuthorizationsServices {
 					principalTaxonomyConcept.getId(), principalTaxonomy.getCode());
 		}
 	}
+
 }

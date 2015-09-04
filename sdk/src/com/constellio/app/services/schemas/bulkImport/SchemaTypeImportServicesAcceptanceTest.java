@@ -17,6 +17,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.services.schemas.bulkImport;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ListIterator;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
@@ -31,16 +42,6 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
@@ -71,14 +72,16 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 	public void whenImportingDDVXMLFileThenImportedCorrectly()
 			throws Exception {
 		File usersFile = getTestResourceFile("valueDomain.xml");
-		importDDVAndValidate(XMLImportSchemaTypesDataProvider.forSingleXMLFile(getModelLayerFactory(), usersFile, usersFile.getName()));
+		importDDVAndValidate(
+				XMLImportSchemaTypesDataProvider.forSingleXMLFile(getModelLayerFactory(), usersFile, usersFile.getName()));
 	}
 
 	@Test
 	public void whenImportingDocumentXMLFileThenImportedCorrectly()
 			throws Exception {
 		File usersFile = getTestResourceFile("documentSchemas.xml");
-		importDocumentAndValidate(XMLImportSchemaTypesDataProvider.forSingleXMLFile(getModelLayerFactory(), usersFile, usersFile.getName()));
+		importDocumentAndValidate(
+				XMLImportSchemaTypesDataProvider.forSingleXMLFile(getModelLayerFactory(), usersFile, usersFile.getName()));
 	}
 
 	@Test
@@ -86,8 +89,9 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		File ddvFile = getTestResourceFile("valueDomain.xml");
 		importDDV(ddvFile);
-		File documentFile = getTestResourceFile("documentSchemasWithreferences.xml");
-		importDocumentWithRefAndValidate(XMLImportSchemaTypesDataProvider.forSingleXMLFile(getModelLayerFactory(), documentFile, documentFile.getName()));
+		File documentFile = getTestResourceFile("documentSchemasWithReferences.xml");
+		importDocumentWithRefAndValidate(
+				XMLImportSchemaTypesDataProvider.forSingleXMLFile(getModelLayerFactory(), documentFile, documentFile.getName()));
 	}
 
 	private void importDocumentWithRefAndValidate(XMLImportDataProvider importDataProvider) {
@@ -129,7 +133,8 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void importDDV(File ddvFile) {
-		XMLImportDataProvider importDataProvider = XMLImportSchemaTypesDataProvider.forSingleXMLFile(getModelLayerFactory(), ddvFile, ddvFile.getName());
+		XMLImportDataProvider importDataProvider = XMLImportSchemaTypesDataProvider
+				.forSingleXMLFile(getModelLayerFactory(), ddvFile, ddvFile.getName());
 		List<String> collections = new ArrayList<>();
 		collections.add(zeCollection);
 		BulkImportResults results = importServices.bulkImport(importDataProvider, null, null, collections);

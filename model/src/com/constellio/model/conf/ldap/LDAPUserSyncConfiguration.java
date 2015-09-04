@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.conf.ldap;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.Duration;
@@ -39,9 +40,17 @@ public class LDAPUserSyncConfiguration {
 
 	private List<String> usersWithoutGroupsBaseContextList;
 
+	private List<String> selectedCollectionsCodes;
+
+	public LDAPUserSyncConfiguration(String user, String password,
+									 RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
+									 List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList) {
+		this(user, password, userFilter, groupFilter, durationBetweenExecution, groupBaseContextList, usersWithoutGroupsBaseContextList, new ArrayList<String>());
+	}
+
 	public LDAPUserSyncConfiguration(String user, String password,
 			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
-			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList) {
+			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList, List<String> selectedCollectionsCodes) {
 		this.user = user;
 		this.password = password;
 		this.userFilter = userFilter;
@@ -49,6 +58,7 @@ public class LDAPUserSyncConfiguration {
 		this.durationBetweenExecution = durationBetweenExecution;
 		this.groupBaseContextList = groupBaseContextList;
 		this.usersWithoutGroupsBaseContextList = usersWithoutGroupsBaseContextList;
+		this.selectedCollectionsCodes = selectedCollectionsCodes;
 	}
 
 	public String getUser() {
@@ -129,5 +139,9 @@ public class LDAPUserSyncConfiguration {
 
 	public RegexFilter getGroupFilter() {
 		return groupFilter;
+	}
+
+	public List<String> getSelectedCollectionsCodes() {
+		return selectedCollectionsCodes;
 	}
 }

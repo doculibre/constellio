@@ -50,6 +50,27 @@ public class CollectionTestHelper {
 		this.ioLayerFactory = dataLayerFactory.getIOServicesFactory();
 	}
 
+	public CollectionTestHelper giveWriteAccessTo(String... users) {
+		for (String collection : collections) {
+			UserServices userServices = modelLayerFactory.newUserServices();
+			RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+			Transaction transaction = new Transaction();
+			for (String userWithReadAccess : users) {
+				User user = userServices.getUserInCollection(userWithReadAccess, collection);
+				user.setCollectionWriteAccess(true);
+				transaction.add(user.getWrappedRecord());
+			}
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return this;
+
+	}
+
 	public CollectionTestHelper giveWriteAndDeleteAccessTo(String... users) {
 		for (String collection : collections) {
 			UserServices userServices = modelLayerFactory.newUserServices();

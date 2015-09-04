@@ -22,6 +22,7 @@ import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_STRI
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.S
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.solr.DateUtils;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.data.utils.TimeProvider;
 
@@ -73,14 +75,16 @@ public class BigVaultServer {
 	private BigVaultLogger bigVaultLogger;
 	private AtomicFileSystem fileSystem;
 	private String name;
+	private DataLayerSystemExtensions extensions;
 
 	public BigVaultServer(String name, SolrClient server, AtomicFileSystem configManager, SolrClient adminServer,
-			BigVaultLogger bigVaultLogger) {
+			BigVaultLogger bigVaultLogger, DataLayerSystemExtensions extensions) {
 		this.server = server;
 		this.bigVaultLogger = bigVaultLogger;
 		this.fileSystem = configManager;
 		this.name = name;
 		this.adminServer = adminServer;
+		this.extensions = extensions;
 	}
 
 	public String getName() {
@@ -89,8 +93,13 @@ public class BigVaultServer {
 
 	public QueryResponse query(SolrParams params)
 			throws BigVaultException.CouldNotExecuteQuery {
+
 		int currentAttempt = 0;
-		return tryQuery(params, currentAttempt);
+		long start = new Date().getTime();
+		QueryResponse response = tryQuery(params, currentAttempt);
+		long end = new Date().getTime();
+		extensions.afterQuery(params, end - start);
+		return response;
 	}
 
 	private QueryResponse tryQuery(SolrParams params, int currentAttempt)
@@ -154,7 +163,11 @@ public class BigVaultServer {
 	public TransactionResponseDTO addAll(BigVaultServerTransaction transaction)
 			throws BigVaultException {
 		int currentAttempt = 0;
-		return tryAddAll(transaction, currentAttempt);
+		long start = new Date().getTime();
+		TransactionResponseDTO response = tryAddAll(transaction, currentAttempt);
+		long end = new Date().getTime();
+		extensions.afterUpdate(transaction, end - start);
+		return response;
 	}
 
 	TransactionResponseDTO tryAddAll(BigVaultServerTransaction transaction, int currentAttempt)
@@ -463,13 +476,13 @@ public class BigVaultServer {
 
 	private void sleepBeforeRetrying(Exception e) {
 
-		if (!e.getMessage().contains("Random injected fault")) {
-			try {
-				Thread.sleep(waitedMillisecondsBetweenAttempts);
-			} catch (InterruptedException e2) {
-				throw new RuntimeException(e2);
-			}
-		}
+		//		if (!e.getMessage().contains("Random injected fault")) {
+		//			try {
+		//				Thread.sleep(waitedMillisecondsBetweenAttempts);
+		//			} catch (InterruptedException e2) {
+		//				throw new RuntimeException(e2);
+		//			}
+		//		}
 	}
 
 	private Map<String, Object> newAtomicSet(Object value) {

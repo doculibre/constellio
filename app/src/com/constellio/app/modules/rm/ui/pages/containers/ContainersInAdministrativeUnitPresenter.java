@@ -21,9 +21,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -58,14 +61,15 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
+				User user = presenterService().getCurrentUser(view.getSessionContext());
 				DecommissioningService service = new DecommissioningService(
 						view.getCollection(), modelLayerFactory);
-				List<String> visibleAdminUnitsId = service.getAllAdminUnitIdsHierarchyOf(adminUnitId);
+				List<String> visibleAdminUnitsId = service.getChildrenAdministrativeUnit(adminUnitId, user);
 				MetadataSchema schema = schema(schemaVO.getCode());
 				LogicalSearchCondition condition;
 				if (!visibleAdminUnitsId.isEmpty()) {
 					condition = LogicalSearchQueryOperators.from(schema)
-							.where(schema.getMetadata(AdministrativeUnit.PARENT)).isIn(visibleAdminUnitsId);
+							.where(schema.getMetadata(AdministrativeUnit.PARENT)).isEqualTo(adminUnitId);
 				} else {
 					condition = LogicalSearchQueryOperators.from(schema).where(Schemas.TOKENS).isContaining(Arrays.asList("A38"));
 				}
@@ -75,26 +79,25 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 		return dataProvider;
 	}
 
-	public RecordVODataProvider getFilingSpacesDataProvider() {
-		final MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
-				.build(schema(FilingSpace.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+	public RecordVODataProvider getContainersDataProvider() {
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
+				.build(schema(ContainerRecord.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				AdministrativeUnit adminUnit = new AdministrativeUnit(
-						modelLayerFactory.newRecordServices().getDocumentById(adminUnitId),
-						modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(view.getCollection()));
-				MetadataSchema schema = schema(schemaVO.getCode());
-				LogicalSearchCondition condition;
-				if (!adminUnit.getFilingSpaces().isEmpty()) {
-					condition = LogicalSearchQueryOperators.from(schema).where(Schemas.IDENTIFIER)
-							.isIn(adminUnit.getFilingSpaces());
-				} else {
-					condition = LogicalSearchQueryOperators.from(schema).where(Schemas.TOKENS).isContaining(Arrays.asList("A38"));
+				DecommissioningSearchConditionFactory conditionFactory = new DecommissioningSearchConditionFactory(
+						view.getCollection(), modelLayerFactory);
+				ContainerSearchParameters parameters = new ContainerSearchParameters();
+				parameters.setAdminUnitId(adminUnitId);
+				if (tabName.startsWith(DEPOSIT_PREFIX)) {
+					parameters.setType(DecommissioningType.DEPOSIT);
+				} else if (tabName.startsWith(TRANSFER_PREFIX)) {
+					parameters.setType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
 				}
-				return new LogicalSearchQuery(condition).filteredWithUser(modelLayerFactory.newUserServices()
-						.getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), view.getCollection()));
+				parameters.setUserId(view.getSessionContext().getCurrentUser().getId());
+				parameters.setWithStorage(tabName.endsWith(WITH_STORAGE_SPACE_SUFFIX));
+				return new LogicalSearchQuery(conditionFactory.getVisibleContainersCondition(parameters));
 			}
 		};
 		return dataProvider;
@@ -122,5 +125,9 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 
 	public void displayFilingSpaceButtonClicked(String tabName, RecordVO filingSpace) {
 		view.navigateTo().displayFilingSpaceWithContainers(tabName, adminUnitId, filingSpace.getId());
+	}
+
+	public void displayContainerButtonClicked(RecordVO container) {
+		view.navigateTo().displayContainer(container.getId());
 	}
 }

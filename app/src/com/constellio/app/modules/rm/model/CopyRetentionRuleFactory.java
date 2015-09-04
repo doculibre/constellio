@@ -34,7 +34,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 
 	@Override
 	public ModifiableStructure build(String string) {
-		StringTokenizer stringTokenizer = new StringTokenizer(string, ":");
+		StringTokenizer stringTokenizer = new StringTokenizer(string.replace("::", ":~null~:"), ":");
 		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
 		copyRetentionRule.setCode(readString(stringTokenizer));
 		copyRetentionRule.setCopyType((CopyType) EnumWithSmallCodeUtils.toEnum(CopyType.class, readString(stringTokenizer)));
@@ -43,8 +43,15 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		copyRetentionRule.setActiveRetentionComment(readString(stringTokenizer));
 		copyRetentionRule.setSemiActiveRetentionPeriod(readRetentionPeriod(stringTokenizer));
 		copyRetentionRule.setSemiActiveRetentionComment(readString(stringTokenizer));
-		copyRetentionRule.setInactiveDisposalType(readDisposalType(stringTokenizer));
-		copyRetentionRule.setInactiveDisposalComment(readString(stringTokenizer));
+
+		String disposalType = readString(stringTokenizer);
+		if (disposalType != null && DisposalType.isValidCode(disposalType)) {
+			copyRetentionRule.setInactiveDisposalType(readDisposalType(disposalType));
+			copyRetentionRule.setInactiveDisposalComment(readString(stringTokenizer));
+		} else {
+			copyRetentionRule.setInactiveDisposalType(DisposalType.DESTRUCTION);
+			copyRetentionRule.setInactiveDisposalComment(disposalType);
+		}
 
 		List<String> contentTypesCodes = new ArrayList<>();
 		while (stringTokenizer.hasMoreTokens()) {
@@ -55,9 +62,8 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		return copyRetentionRule;
 	}
 
-	private DisposalType readDisposalType(StringTokenizer stringTokenizer) {
+	private DisposalType readDisposalType(String value) {
 
-		String value = readString(stringTokenizer);
 		return value == null ? null : (DisposalType) EnumWithSmallCodeUtils.toEnum(DisposalType.class, value);
 	}
 
@@ -111,12 +117,14 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		} else {
 			stringBuilder.append(value.replace(":", "~~~"));
 		}
-
 	}
 
 	private RetentionPeriod readRetentionPeriod(StringTokenizer stringTokenizer) {
 		String value = readString(stringTokenizer);
-		if (value.startsWith("F")) {
+		if (value == null) {
+			return RetentionPeriod.ZERO;
+
+		} else if (value.startsWith("F")) {
 			return RetentionPeriod.fixed(Integer.valueOf(value.substring(1)));
 
 		} else if (value.startsWith("V")) {

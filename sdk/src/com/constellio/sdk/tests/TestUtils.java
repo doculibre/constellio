@@ -28,6 +28,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,6 +42,7 @@ import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -58,6 +60,12 @@ public class TestUtils {
 	public static final String chuckNorris = "Chuck Norris";
 	private static Random random = new Random();
 	private static int gen;
+	public static Comparator<? super DecommissioningList> comparingRecordWrapperIds = new Comparator<DecommissioningList>() {
+		@Override
+		public int compare(DecommissioningList o1, DecommissioningList o2) {
+			return o1.getId().endsWith(o2.getId()) ? 0 : 1;
+		}
+	};
 
 	private TestUtils() {
 	}
@@ -417,10 +425,22 @@ public class TestUtils {
 		}
 
 		public RecordAssert hasMetadataValue(final Metadata metadata, final Object expectedValue) {
+			assertThat(actual).describedAs("record").isNotNull();
 			return (RecordAssert) super.has(new Condition<Record>() {
 				@Override
 				public boolean matches(Record value) {
 					assertThat(actual.get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+					return true;
+				}
+			});
+		}
+
+		public RecordAssert hasNoMetadataValue(final Metadata metadata) {
+			assertThat(actual).describedAs("record").isNotNull();
+			return (RecordAssert) super.has(new Condition<Record>() {
+				@Override
+				public boolean matches(Record value) {
+					assertThat(actual.get(metadata)).as((metadata.getCode())).isNull();
 					return true;
 				}
 			});
@@ -434,6 +454,7 @@ public class TestUtils {
 		}
 
 		public RecordWrapperAssert hasMetadata(final String metadataLocalCode, final Object expectedValue) {
+			assertThat(actual).isNotNull();
 			return (RecordWrapperAssert) super.has(new Condition<RecordWrapper>() {
 				@Override
 				public boolean matches(RecordWrapper value) {

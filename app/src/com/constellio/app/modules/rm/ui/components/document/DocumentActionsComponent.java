@@ -19,10 +19,10 @@ package com.constellio.app.modules.rm.ui.components.document;
 
 import java.io.Serializable;
 
-import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SessionContext;
 
 public interface DocumentActionsComponent extends Serializable {
@@ -49,11 +49,15 @@ public interface DocumentActionsComponent extends Serializable {
 
 	void setAddAuthorizationButtonState(ComponentState state);
 
+	void setCreatePDFAButtonState(ComponentState state);
+
 	void setShareDocumentButtonState(ComponentState state);
 
 	void setUploadButtonState(ComponentState state);
 
 	void setCheckInButtonState(ComponentState state);
+
+	void setAlertWhenAvailableButtonState(ComponentState state);
 
 	void setCheckOutButtonState(ComponentState state);
 

@@ -270,16 +270,6 @@ public class BenchmarkWebService extends HttpServlet {
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions();
 		options.setRows(25);
 
-		List<Record> rootRecords = taxonomiesSearchServices.getVisibleRootConcept(user, COLLECTION, "plan", options);
-
-		if (!rootRecords.isEmpty()) {
-			List<Record> level1Records = taxonomiesSearchServices
-					.getVisibleChildConcept(user, "plan", rootRecords.get(0), options);
-			//			if (!level1Records.isEmpty()) {
-			//				List<Record> level2Records = taxonomiesSearchServices.getVisibleChildConcept(user, level1Records.get(0), options);
-			//			}
-		}
-
 	}
 
 	private User getUserParameter(HttpServletRequest request) {

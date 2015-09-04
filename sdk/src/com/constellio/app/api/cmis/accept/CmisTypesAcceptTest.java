@@ -245,6 +245,10 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(documentDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(documentDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
+		ObjectType emailToSendDefault = iterator.next();
+		assertThat(emailToSendDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(emailToSendDefault.getId()).isEqualTo("emailToSend_default");
+
 		ObjectType eventDefault = iterator.next();
 		assertThat(eventDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
 		assertThat(eventDefault.getId()).isEqualTo("event_default");
@@ -253,6 +257,21 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(eventDefault.getLocalName()).isEqualTo("event_default");
 		assertThat(eventDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(eventDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
+
+		ObjectType facetDefault = iterator.next();
+		assertThat(facetDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(facetDefault.getId()).isEqualTo("facet_default");
+		assertThat(facetDefault.getDescription()).isEqualTo("facet_default");
+
+		ObjectType facetField = iterator.next();
+		assertThat(facetField.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(facetField.getId()).isEqualTo("facet_field");
+		assertThat(facetField.getDescription()).isEqualTo("facet_field");
+
+		ObjectType facetQuery = iterator.next();
+		assertThat(facetQuery.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(facetQuery.getId()).isEqualTo("facet_query");
+		assertThat(facetQuery.getDescription()).isEqualTo("facet_query");
 
 		ObjectType folderDefault = iterator.next();
 		assertThat(folderDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");
@@ -271,6 +290,19 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(groupDefault.getLocalName()).isEqualTo("group_default");
 		assertThat(groupDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(groupDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
+
+		ObjectType report = iterator.next();
+		assertThat(report.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(report.getId()).isEqualTo("report_default");
+		assertThat(report.getDescription()).isEqualTo("report_default");
+		assertThat(report.getDisplayName()).isEqualTo("report_default");
+		assertThat(report.getLocalName()).isEqualTo("report_default");
+		assertThat(report.getPropertyDefinitions().get("parent")).isNull();
+		assertThat(report.getParentTypeId()).isEqualTo(baseFolderType.getId());
+
+		ObjectType savedSearch = iterator.next();
+		assertThat(savedSearch.getBaseTypeId().value()).isEqualTo("cmis:folder");
+		assertThat(savedSearch.getId()).isEqualTo("savedSearch_default");
 
 		ObjectType approvalTask = iterator.next();
 		assertThat(approvalTask.getBaseTypeId().value()).isEqualTo("cmis:folder");

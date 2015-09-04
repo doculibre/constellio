@@ -50,11 +50,6 @@ public class DecommissioningBuilderPage extends PageHelper {
 		return this;
 	}
 
-	public AutocompleteWebElement getFilingSpace() {
-		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningBuilderViewImpl.FILING_SPACE));
-		return new AutocompleteWebElement(element);
-	}
-
 	public AutocompleteWebElement getAdministrativeUnit() {
 		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningBuilderViewImpl.ADMIN_UNIT));
 		return new AutocompleteWebElement(element);

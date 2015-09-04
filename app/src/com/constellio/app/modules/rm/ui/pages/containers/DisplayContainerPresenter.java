@@ -17,6 +17,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.containers;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordDepositReportViewImpl;
@@ -24,7 +32,6 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerR
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -34,6 +41,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
@@ -46,14 +54,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements ReportPresenter {
 
 	private String containerId;
@@ -65,6 +65,10 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
+	}
+
+	public void backButtonClicked() {
+		view.navigateTo().previousView();
 	}
 
 	public RecordVODataProvider getFoldersDataProvider(final String containerId) {
@@ -110,11 +114,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public boolean isPrintReportEnable() {
 		boolean enable1;
-		if (getFoldersDataProvider(containerId).size() > 0) {
-			enable1 = true;
-		} else {
-			enable1 = false;
-		}
+		enable1 = getFoldersDataProvider(containerId).size() > 0;
 		boolean enable2;
 		try {
 			getReport("");
@@ -148,39 +148,40 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return asList(params);
 	}
 
-	public Double getFillRatio(RecordVO container) throws ContainerWithoutCapacityException, RecordInContainerWithoutLinearMeasure {
+	public Double getFillRatio(RecordVO container)
+			throws ContainerWithoutCapacityException, RecordInContainerWithoutLinearMeasure {
 		MetadataVO fillRatioMetadata = container.getMetadata(ContainerRecord.FILL_RATIO_ENTRED);
 		Double fillRatioEntered = container.get(fillRatioMetadata);
-		if(fillRatioEntered != null){
+		if (fillRatioEntered != null) {
 			return fillRatioEntered;
 		}
 		MetadataVO capacityMetadata = container.getMetadata(ContainerRecord.CAPACITY);
 		Double capacity = container.get(capacityMetadata);
-		if(capacity == null || capacity == 0.0){
+		if (capacity == null || capacity == 0.0) {
 			throw new ContainerWithoutCapacityException();
 		}
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		Metadata containerMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(containerMetadata).isEqualTo(container.getId());
 		DataStoreField linearSizeMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
-		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata);
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata.getDataStoreCode());
 		SPEQueryResponse result = modelLayerFactory.newSearchServices().query(query);
-		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata);
-		if(linearSizeStats == null){
-			if(result.getNumFound() > 0){
+		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata.getDataStoreCode());
+		if (linearSizeStats == null) {
+			if (result.getNumFound() > 0) {
 				//no folder with linearSize
 				throw new RecordInContainerWithoutLinearMeasure();
-			}else{
+			} else {
 				//No folder in container
 				return 0d;
 			}
 
 		}
-		if(includesMissing(linearSizeStats)){
+		if (includesMissing(linearSizeStats)) {
 			throw new RecordInContainerWithoutLinearMeasure();
 		}
 		Double sum = getSum(linearSizeStats);
-		return sum*100/capacity;
+		return sum * 100 / capacity;
 	}
 
 	private Double getSum(Map<String, Object> result) {
@@ -190,9 +191,9 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	private boolean includesMissing(Map<String, Object> result) {
 		Object missing = result.get("missing");
-		if(missing != null){
-			return !((Long)missing).equals(0L);
-		}else {
+		if (missing != null) {
+			return !missing.equals(0L);
+		} else {
 			return false;
 		}
 	}

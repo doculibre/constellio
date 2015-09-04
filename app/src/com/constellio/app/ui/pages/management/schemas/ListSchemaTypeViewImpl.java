@@ -17,11 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.schemas;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.ListMetadataGroupButton;
+import com.constellio.app.ui.framework.buttons.ReportDisplayButton;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
@@ -37,6 +36,8 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTypeView, ClickListener {
 
@@ -99,6 +100,27 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 						Integer index = (Integer) itemId;
 						MetadataSchemaTypeVO entity = dataProvider.getSchemaTypeVO(index);
 						presenter.listGroupButtonClicked(entity);
+					}
+				};
+			}
+		});
+
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new ReportDisplayButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						Integer index = (Integer) itemId;
+						MetadataSchemaTypeVO entity = dataProvider.getSchemaTypeVO(index);
+						presenter.reportButtonClicked(entity);
+					}
+
+					@Override
+					public boolean isVisible() {
+						Integer index = (Integer) itemId;
+						MetadataSchemaTypeVO entity = dataProvider.getSchemaTypeVO(index);
+						return super.isVisible() && presenter.isSearchableSchema(entity.getCode());
 					}
 				};
 			}

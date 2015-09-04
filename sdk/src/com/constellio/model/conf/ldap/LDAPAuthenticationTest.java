@@ -21,8 +21,6 @@ import com.constellio.model.services.users.sync.LDAPFastBind;
 
 public class LDAPAuthenticationTest {
 	public static void main(String[] args) {
-		//ldap://192.168.206.223:389 Administrator@test.doculibre.ca Doculibre2012
-		//sp2010.constellio.com	administrator	t3stdocul!bre3
 
 		if (args.length != 3) {
 			System.out.println("Usage : LDAPTest url user@domain password");
@@ -39,7 +37,7 @@ public class LDAPAuthenticationTest {
 		LDAPFastBind ldapFastBind = new LDAPFastBind(url);
 		try {
 			System.out.println("Authentification reussie ? : " + ldapFastBind.authenticate(user, password));
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 
 		} finally {

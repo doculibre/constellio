@@ -43,7 +43,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -90,7 +89,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	public void whenImportingZipOfXMLFilesThenImportedCorrectly()
 			throws Exception {
 
-		File zipFile = buildZipWith("administrativeUnit.xml", "category.xml", "filingSpace.xml", "folder.xml", "document.xml",
+		File zipFile = buildZipWith("administrativeUnit.xml", "category.xml", "folder.xml", "document.xml",
 				"retentionRule.xml", "ddvDocumentType.xml");
 
 		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
@@ -107,13 +106,12 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 		XMLImportDataProvider administrativeUnit = toXMLFile("administrativeUnit.xml");
 		XMLImportDataProvider category = toXMLFile("category.xml");
-		XMLImportDataProvider filingSpace = toXMLFile("filingSpace.xml");
 		XMLImportDataProvider folder = toXMLFile("folder.xml");
 		XMLImportDataProvider document = toXMLFile("document.xml");
 		XMLImportDataProvider retentionRule = toXMLFile("retentionRule.xml");
 		XMLImportDataProvider ddvDocumentType = toXMLFile("ddvDocumentType.xml");
 		XMLImportDataProvider[] files = new XMLImportDataProvider[] {
-				ddvDocumentType, category, filingSpace, administrativeUnit, retentionRule, folder, document, };
+				ddvDocumentType, category, administrativeUnit, retentionRule, folder, document, };
 
 		for (ImportDataProvider importDataProvider : files) {
 			importServices.bulkImport(importDataProvider, progressionListener, admin);
@@ -139,26 +137,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void importAndValidate() {
-
-		FilingSpace filingSpace1 = rm.wrapFilingSpace(expectedRecordWithLegacyId("22"));
-		assertThat(filingSpace1.getCode()).isEqualTo("HOT");
-		assertThat(filingSpace1.getDescription()).isEqualTo("I am a Hot Box.");
-		assertThat(filingSpace1.getUsers()).isEqualTo(asList(records.getAlice().getId(), records.getChuckNorris().getId()));
-		assertThat(filingSpace1.getAdministrators())
-				.isEqualTo(asList(records.getAdmin().getId(), records.getBob_userInAC().getId()));
-
-		FilingSpace filingSpace2 = rm.wrapFilingSpace(expectedRecordWithLegacyId("23"));
-		assertThat(filingSpace2.getCode()).isEqualTo("COLD");
-		assertThat(filingSpace2.getDescription()).isEqualTo("I am a Cold Box.");
-		assertThat(filingSpace2.getUsers()).isEqualTo(
-				asList(records.getAlice().getId(), records.getChuckNorris().getId(), records.getBob_userInAC().getId()));
-		assertThat(filingSpace2.getAdministrators()).isEqualTo(asList(records.getCharles_userInA().getId()));
-
-		FilingSpace filingSpace3 = rm.wrapFilingSpace(expectedRecordWithLegacyId("00"));
-		assertThat(filingSpace3.getCode()).isEqualTo("3RR0R_B0X : S@S");
-		assertThat(filingSpace3.getDescription()).isEqualTo("I am a Sick Box.");
-		assertThat(filingSpace3.getUsers()).isEmpty();
-		assertThat(filingSpace3.getAdministrators()).isNullOrEmpty();
 
 		Category category1 = rm.wrapCategory(expectedRecordWithLegacyId("22200"));
 		assertThat(category1.getCode()).isEqualTo("X2222");
@@ -189,32 +167,29 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(administrativeUnit1.getDescription()).isEqualTo("I am a very wonderful Administrative Unit !");
 		assertThat(administrativeUnit1.getTitle()).isEqualTo("Administrative Unit Wonderful");
 		assertThat(administrativeUnit1.getParent()).isNull();
-		assertThat(administrativeUnit1.getFilingSpaces()).isEqualTo(asList(filingSpace2.getId()));
 
 		AdministrativeUnit administrativeUnit2 = rm.wrapAdministrativeUnit(expectedRecordWithLegacyId("41"));
 		assertThat(administrativeUnit2.getCode()).isEqualTo("2014AKA1");
 		assertThat(administrativeUnit2.getDescription()).isNullOrEmpty();
 		assertThat(administrativeUnit2.getTitle()).isEqualTo("Administrative Unit Badass");
 		assertThat(administrativeUnit2.getParent()).isEqualTo(administrativeUnit1.getId());
-		assertThat(administrativeUnit2.getFilingSpaces()).isEqualTo(asList(filingSpace1.getId(), filingSpace2.getId()));
 
 		AdministrativeUnit administrativeUnit3 = rm.wrapAdministrativeUnit(expectedRecordWithLegacyId("42"));
 		assertThat(administrativeUnit3.getCode()).isEqualTo("2014AKA2");
 		assertThat(administrativeUnit3.getDescription()).isNull();
 		assertThat(administrativeUnit3.getTitle()).isEqualTo("Administrative Unit with magical poney inside");
 		assertThat(administrativeUnit3.getParent()).isEqualTo(administrativeUnit1.getId());
-		assertThat(administrativeUnit3.getFilingSpaces()).isNullOrEmpty();
 
 		folder1 = rm.wrapFolder(expectedRecordWithLegacyId("660"));
 		assertThat(folder1.getAdministrativeUnitEntered()).isEqualTo(administrativeUnit1.getId());
 		assertThat(folder1.getCategoryEntered()).isEqualTo(category3.getId());
 		assertThat(folder1.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder1.getFilingSpaceEntered()).isEqualTo(filingSpace2.getId());
 		assertThat(folder1.getKeywords()).isEqualTo(asList("frozen", "wonderland"));
 		// TODO vprigent: Fix to only test in the XML import
 		//assertThat(folder1.getWrappedRecord().get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+
 		assertThat(folder1.getMediumTypes()).isEqualTo(
-				asList("00000000001", "00000000003"));
+				asList(rm.PA(), rm.DM()));
 		assertThat(folder1.getActualTransferDate()).isEqualTo(new LocalDate(2010, 5, 29));
 		assertThat(folder1.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folder1.getTitle()).isEqualTo("A Wonderful and Cold Folder");
@@ -223,7 +198,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(folder2.getAdministrativeUnitEntered()).isEqualTo(administrativeUnit1.getId());
 		assertThat(folder2.getCategoryEntered()).isEqualTo(category2.getId());
 		assertThat(folder2.getCopyStatusEntered()).isEqualTo(CopyType.SECONDARY);
-		assertThat(folder2.getFilingSpaceEntered()).isEqualTo(filingSpace3.getId());
 		assertThat(folder2.getKeywords()).isNullOrEmpty();
 		assertThat(folder2.getMediumTypes()).isNullOrEmpty();
 		assertThat(folder2.getActualTransferDate()).isEqualTo(new LocalDate(2010, 5, 29));
@@ -280,26 +254,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	private void importAndValidateWithModifications(ImportDataProvider modifiedDatas) {
 		importServices.bulkImport(modifiedDatas, progressionListener, admin);
 
-		FilingSpace filingSpace1 = rm.wrapFilingSpace(expectedRecordWithLegacyId("22"));
-		assertThat(filingSpace1.getCode()).isEqualTo("NOT HOT");
-		assertThat(filingSpace1.getDescription()).isEqualTo("I am not anymore a Hot Box.");
-		assertThat(filingSpace1.getUsers()).isEqualTo(asList(records.getAlice().getId(), records.getChuckNorris().getId()));
-		assertThat(filingSpace1.getAdministrators())
-				.isEqualTo(asList(records.getAdmin().getId(), records.getBob_userInAC().getId()));
-
-		FilingSpace filingSpace2 = rm.wrapFilingSpace(expectedRecordWithLegacyId("23"));
-		assertThat(filingSpace2.getCode()).isEqualTo("COLD");
-		assertThat(filingSpace2.getDescription()).isEqualTo("I am a Cold Box.");
-		assertThat(filingSpace2.getUsers()).isEqualTo(
-				asList(records.getAlice().getId(), records.getChuckNorris().getId(), records.getBob_userInAC().getId()));
-		assertThat(filingSpace2.getAdministrators()).isEqualTo(asList(records.getCharles_userInA().getId()));
-
-		FilingSpace filingSpace3 = rm.wrapFilingSpace(expectedRecordWithLegacyId("00"));
-		assertThat(filingSpace3.getCode()).isEqualTo("3RR0R_B0X : S@S");
-		assertThat(filingSpace3.getDescription()).isEqualTo("I am a Sick Box.");
-		assertThat(filingSpace3.getUsers()).isEmpty();
-		assertThat(filingSpace3.getAdministrators()).isNullOrEmpty();
-
 		Category category1 = rm.wrapCategory(expectedRecordWithLegacyId("22200"));
 		assertThat(category1.getCode()).isEqualTo("X2222");
 		assertThat(category1.getTitle()).isEqualTo("Element Category");
@@ -329,29 +283,25 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(administrativeUnit1.getDescription()).isEqualTo("I am a very wonderful Administrative Unit !");
 		assertThat(administrativeUnit1.getTitle()).isEqualTo("Administrative Unit Wonderful");
 		assertThat(administrativeUnit1.getParent()).isNull();
-		assertThat(administrativeUnit1.getFilingSpaces()).isEqualTo(asList(filingSpace2.getId()));
 
 		AdministrativeUnit administrativeUnit2 = rm.wrapAdministrativeUnit(expectedRecordWithLegacyId("41"));
 		assertThat(administrativeUnit2.getCode()).isEqualTo("2014AKA1");
 		assertThat(administrativeUnit2.getDescription()).isNullOrEmpty();
 		assertThat(administrativeUnit2.getTitle()).isEqualTo("Administrative Unit Badass");
 		assertThat(administrativeUnit2.getParent()).isEqualTo(administrativeUnit1.getId());
-		assertThat(administrativeUnit2.getFilingSpaces()).isEqualTo(asList(filingSpace1.getId(), filingSpace2.getId()));
 
 		AdministrativeUnit administrativeUnit3 = rm.wrapAdministrativeUnit(expectedRecordWithLegacyId("42"));
 		assertThat(administrativeUnit3.getCode()).isEqualTo("2014AKA2");
 		assertThat(administrativeUnit3.getDescription()).isNull();
 		assertThat(administrativeUnit3.getTitle()).isEqualTo("Administrative Unit with magical poney inside");
 		assertThat(administrativeUnit3.getParent()).isEqualTo(administrativeUnit2.getId());
-		assertThat(administrativeUnit3.getFilingSpaces()).isNullOrEmpty();
 
 		Folder folder1 = rm.wrapFolder(expectedRecordWithLegacyId("660"));
 		assertThat(folder1.getAdministrativeUnitEntered()).isEqualTo(administrativeUnit1.getId());
 		assertThat(folder1.getCategoryEntered()).isEqualTo(category3.getId());
 		assertThat(folder1.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder1.getFilingSpaceEntered()).isEqualTo(filingSpace2.getId());
 		assertThat(folder1.getKeywords()).isEqualTo(asList("frozen", "wonderland"));
-		assertThat(folder1.getMediumTypes()).isEqualTo(asList("00000000001", "00000000003"));
+		assertThat(folder1.getMediumTypes()).isEqualTo(asList(rm.PA(), rm.DM()));
 		assertThat(folder1.getActualTransferDate()).isEqualTo(new LocalDate(2010, 6, 30));
 		assertThat(folder1.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folder1.getTitle()).isEqualTo("A Wonderful and Cold Folder");
@@ -360,7 +310,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(folder2.getAdministrativeUnitEntered()).isEqualTo(administrativeUnit1.getId());
 		assertThat(folder2.getCategoryEntered()).isEqualTo(category2.getId());
 		assertThat(folder2.getCopyStatusEntered()).isEqualTo(CopyType.SECONDARY);
-		assertThat(folder2.getFilingSpaceEntered()).isEqualTo(filingSpace3.getId());
 		assertThat(folder2.getKeywords()).isNullOrEmpty();
 		assertThat(folder2.getMediumTypes()).isNullOrEmpty();
 		assertThat(folder2.getActualTransferDate()).isEqualTo(new LocalDate(2010, 5, 29));

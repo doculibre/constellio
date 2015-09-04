@@ -128,7 +128,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		manager.saveSchema(config);
 
 		List<FormMetadataVO> result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(12);
+		assertThat(result).hasSize(13);
 		assertThat(result).containsExactlyElementsOf(formMetadataVOs);
 		assertThat(result.get(0).getCode()).isEqualTo(formMetadataVOs.get(0).getCode());
 		assertThat(result.get(1).getCode()).isEqualTo(formMetadataVOs.get(1).getCode());
@@ -149,7 +149,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		manager.saveSchema(config);
 
 		result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(12);
+		assertThat(result).hasSize(13);
 		assertThat(result).containsExactlyElementsOf(formMetadataVOs);
 		assertThat(result.get(0).getCode()).isEqualTo(formMetadataVOs.get(0).getCode());
 		assertThat(result.get(1).getCode()).isEqualTo(formMetadataVOs.get(1).getCode());
@@ -163,18 +163,6 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.get(9).getCode()).isEqualTo(formMetadataVOs.get(9).getCode());
 		assertThat(result.get(10).getCode()).isEqualTo(formMetadataVOs.get(10).getCode());
 		assertThat(result.get(11).getCode()).isEqualTo(formMetadataVOs.get(11).getCode());
-	}
-
-	@Test
-	public void givenNewSchemaWhenGetMetadataValueThenCorrect()
-			throws Exception {
-		List<Metadata> metadatas = Arrays.asList(zeSchema.booleanMetadata(), zeSchema.dateMetadata(), zeSchema.stringMetadata());
-		List<FormMetadataVO> formMetadataVOs = this.getFormVO(metadatas);
-		presenter.setSchemaCode(zeSchema.code());
-
-		List<FormMetadataVO> result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(12);
-		// test with the full list that is just contains them
 	}
 
 	private List<String> getCodeFromMetadata(List<Metadata> metadatas) {

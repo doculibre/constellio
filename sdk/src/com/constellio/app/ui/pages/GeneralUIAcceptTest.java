@@ -39,7 +39,7 @@ public class GeneralUIAcceptTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(rm)
-						.withFoldersAndContainersOfEveryStatus(),
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent(),
 				withCollection("otherCollection").withConstellioRMModule().withAllTestUsers()
 		);
 

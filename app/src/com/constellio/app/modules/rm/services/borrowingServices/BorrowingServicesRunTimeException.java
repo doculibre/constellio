@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.services.borrowingServices;
 
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 public class BorrowingServicesRunTimeException extends RuntimeException {
@@ -50,6 +51,14 @@ public class BorrowingServicesRunTimeException extends RuntimeException {
 
 		public BorrowingServicesRunTimeException_InvalidPreviewReturnDate(LocalDateTime previewReturnDate) {
 			super("Invalid preview return date :" + previewReturnDate);
+		}
+	}
+
+	public static class BorrowingServicesRunTimeException_InvalidBorrowingDate
+			extends BorrowingServicesRunTimeException {
+
+		public BorrowingServicesRunTimeException_InvalidBorrowingDate(LocalDate date) {
+			super("Borrowing date cannot be in the future :" + date);
 		}
 	}
 

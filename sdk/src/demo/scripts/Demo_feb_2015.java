@@ -47,6 +47,7 @@ public class Demo_feb_2015 implements DemoInitScript {
 
 		new RMTestRecords(zeCollection).setup(modelLayerFactory).withFoldersAndContainersOfEveryStatus().withEvents();
 		new DemoTestRecords(demoCollection).setup(modelLayerFactory).withFoldersAndContainersOfEveryStatus();
+
 	}
 
 	@Override

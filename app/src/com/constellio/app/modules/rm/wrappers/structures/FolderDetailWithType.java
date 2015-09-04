@@ -63,4 +63,12 @@ public class FolderDetailWithType implements Serializable {
 		}
 		return null;
 	}
+
+	public boolean isIncluded() {
+		return detail.isFolderIncluded();
+	}
+
+	public boolean isExcluded() {
+		return detail.isFolderExcluded();
+	}
 }

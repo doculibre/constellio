@@ -35,7 +35,15 @@ public class BatchProcessTestFeature {
 		this.factoriesTestFeatures = factoriesTestFeatures;
 	}
 
+	public void waitForAllBatchProcessesAcceptingErrors(Runnable batchProcessRuntimeAction) {
+		waitForAllBatchProcesses(batchProcessRuntimeAction, true);
+	}
+
 	public void waitForAllBatchProcessesAndEnsureNoErrors(Runnable batchProcessRuntimeAction) {
+		waitForAllBatchProcesses(batchProcessRuntimeAction, false);
+	}
+
+	public void waitForAllBatchProcesses(Runnable batchProcessRuntimeAction, boolean acceptErrors) {
 		BatchProcessesManager batchProcessesManager = factoriesTestFeatures.newModelServicesFactory().getBatchProcessesManager();
 		boolean batchProcessRuntimeActionExecuted = false;
 
@@ -62,9 +70,11 @@ public class BatchProcessTestFeature {
 			}
 		}
 
-		for (BatchProcess batchProcess : batchProcessesManager.getFinishedBatchProcesses()) {
-			assertThat(batchProcess.getErrors()).isZero()
-					.describedAs("Errors during batch process '" + batchProcess.getId() + "'");
+		if (!acceptErrors) {
+			for (BatchProcess batchProcess : batchProcessesManager.getFinishedBatchProcesses()) {
+				assertThat(batchProcess.getErrors()).isZero()
+						.describedAs("Errors during batch process '" + batchProcess.getId() + "'");
+			}
 		}
 
 		factoriesTestFeatures.getConstellioFactories().getModelLayerFactory().newRecordServices().flush();

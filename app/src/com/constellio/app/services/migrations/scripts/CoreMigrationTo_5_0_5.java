@@ -28,7 +28,7 @@ public class CoreMigrationTo_5_0_5 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "5.0.4";
+		return "5.0.5";
 	}
 
 	@Override

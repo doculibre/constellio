@@ -19,15 +19,11 @@ package com.constellio.app.modules.rm.ui.entities;
 
 import java.io.Serializable;
 
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 
 public class FolderDetailVO implements Serializable {
 	private String folderId;
 	private boolean folderIncluded;
-	private String validationUserId;
-	private LocalDate validationDate;
 	private String containerRecordId;
 	private FolderMediaType mediumType;
 	private String retentionRuleId;
@@ -52,22 +48,6 @@ public class FolderDetailVO implements Serializable {
 
 	public void setFolderIncluded(boolean folderIncluded) {
 		this.folderIncluded = folderIncluded;
-	}
-
-	public String getValidationUserId() {
-		return validationUserId;
-	}
-
-	public void setValidationUserId(String validationUserId) {
-		this.validationUserId = validationUserId;
-	}
-
-	public LocalDate getValidationDate() {
-		return validationDate;
-	}
-
-	public void setValidationDate(LocalDate validationDate) {
-		this.validationDate = validationDate;
 	}
 
 	public FolderMediaType getMediumType() {

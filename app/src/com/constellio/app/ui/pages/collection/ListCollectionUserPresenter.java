@@ -66,13 +66,13 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		metadataCodes.add(schemaCode + "_id");
 		metadataCodes.add(schemaCode + "_title");
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
-				schema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+				defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		return new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery()
-						.setCondition(from(schema()).where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+						.setCondition(from(defaultSchema()).where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 						.sortAsc(Schemas.TITLE);
 			}
 		};
@@ -95,8 +95,8 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		view.navigateTo().displayCollectionUser(entity.getId());
 	}
 
-	public void authorizationsButtonClicked(RecordVO entity) {
-		view.navigateTo().listPrincipalAuthorizations(entity.getId());
+	public void accessAuthorizationsButtonClicked(RecordVO entity) {
+		view.navigateTo().listPrincipalAccessAuthorizations(entity.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO entity) {
@@ -144,11 +144,17 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 			public User getCurrentUser() {
 				return ListCollectionUserPresenter.this.getCurrentUser();
 			}
+
+			@Override
+			public void setOnlyLinkables(boolean onlyLinkables) {
+
+			}
 		};
 	}
 
 	public TextInputDataProvider<GlobalGroupVO> getGlobalGroupLookupProvider() {
-		final GlobalGroupVODataProvider provider = new GlobalGroupVODataProvider(new GlobalGroupToVOBuilder(), modelLayerFactory);
+		final GlobalGroupVODataProvider provider = new GlobalGroupVODataProvider(new GlobalGroupToVOBuilder(), modelLayerFactory,
+				false);
 		provider.setGlobalGroupVOs(provider.listBaseGlobalGroupsVOsWithStatus(GlobalGroupStatus.ACTIVE));
 		return new TextInputDataProvider<GlobalGroupVO>() {
 			@Override
@@ -167,6 +173,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 			@Override
 			public User getCurrentUser() {
 				return ListCollectionUserPresenter.this.getCurrentUser();
+			}
+
+			@Override
+			public void setOnlyLinkables(boolean onlyLinkables) {
+
 			}
 		};
 	}
@@ -197,8 +208,8 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		view.navigateTo().displayCollectionGroup(getGroupId(entity.getCode()));
 	}
 
-	public void authorizationsGlobalGroupButtonClicked(GlobalGroupVO entity) {
-		view.navigateTo().listPrincipalAuthorizations(getGroupId(entity.getCode()));
+	public void accessAuthorizationsGlobalGroupButtonClicked(GlobalGroupVO entity) {
+		view.navigateTo().listPrincipalAccessAuthorizations(getGroupId(entity.getCode()));
 	}
 
 	public void deleteGlobalGroupButtonClicked(GlobalGroupVO entity) {
@@ -221,7 +232,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 	}
 
 	GlobalGroupVODataProvider newGlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder) {
-		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory);
+		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory, false);
 	}
 
 	String getCurrentUserId() {
@@ -271,9 +282,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 	void roleUserAdditionRequested(String username, String roleCode) {
 		User user = userServices().getUserInCollection(username, view.getCollection());
 		List<String> roles = new ArrayList<>(user.getUserRoles());
-		roles.add(roleCode);
-		user.setUserRoles(roles);
-		addOrUpdate(user.getWrappedRecord());
+		if (!roles.contains(roleCode)) {
+			roles.add(roleCode);
+			user.setUserRoles(roles);
+			addOrUpdate(user.getWrappedRecord());
+		}
 	}
 
 	void roleGroupAdditionRequested(String groupCode, String roleCode) {

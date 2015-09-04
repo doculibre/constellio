@@ -36,6 +36,7 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 
 public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorator {
 
+	boolean backgroundThreadsEnabled;
 	String systemLanguage;
 	File setupProperties;
 	File importationFolder;
@@ -46,12 +47,17 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
 
+	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled) {
+		this.backgroundThreadsEnabled = backgroundThreadsEnabled;
+	}
+
 	@Override
 	public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
 		DataLayerConfiguration spiedDataLayerConfiguration = spy(dataLayerConfiguration);
 		doReturn(configManagerFolder).when(spiedDataLayerConfiguration).getSettingsFileSystemBaseFolder();
 		doReturn(appTempFolder).when(spiedDataLayerConfiguration).getTempFolder();
 		doReturn(contentFolder).when(spiedDataLayerConfiguration).getContentDaoFileSystemFolder();
+		doReturn(backgroundThreadsEnabled).when(spiedDataLayerConfiguration).isBackgroundThreadsEnabled();
 
 		for (DataLayerConfigurationAlteration alteration : dataLayerConfigurationAlterations) {
 			alteration.alter(spiedDataLayerConfiguration);

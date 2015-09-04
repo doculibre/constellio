@@ -19,10 +19,10 @@ package com.constellio.app.ui.framework.components.converters;
 
 import java.util.Locale;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;

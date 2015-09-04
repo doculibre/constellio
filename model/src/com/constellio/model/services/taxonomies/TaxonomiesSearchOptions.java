@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.taxonomies;
 
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 
@@ -27,6 +28,7 @@ public class TaxonomiesSearchOptions {
 	private int rows = 100;
 	private int startRow = 0;
 	private StatusFilter includeStatus = StatusFilter.ACTIVES;
+	private String requiredAccess = Role.READ;
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -36,7 +38,7 @@ public class TaxonomiesSearchOptions {
 		super();
 		this.rows = rows;
 		this.startRow = startRow;
-		this.includeStatus = includeStatus;
+		setIncludeStatus(includeStatus);
 	}
 
 	public TaxonomiesSearchOptions(TaxonomiesSearchOptions cloned) {
@@ -70,12 +72,25 @@ public class TaxonomiesSearchOptions {
 		return this;
 	}
 
+	public String getRequiredAccess() {
+		return requiredAccess;
+	}
+
+	public TaxonomiesSearchOptions setRequiredAccess(String requiredAccess) {
+		this.requiredAccess = requiredAccess;
+		return this;
+	}
+
 	public StatusFilter getIncludeStatus() {
 		return includeStatus;
 	}
 
 	public void setIncludeStatus(StatusFilter includeStatus) {
-		this.includeStatus = includeStatus;
+		if (includeStatus == null) {
+			this.includeStatus = StatusFilter.ALL;
+		} else {
+			this.includeStatus = includeStatus;
+		}
 	}
 
 	public ReturnedMetadatasFilter getReturnedMetadatasFilter() {
@@ -90,6 +105,10 @@ public class TaxonomiesSearchOptions {
 	public TaxonomiesSearchOptions cloneAddingReturnedField(Metadata metadata) {
 		TaxonomiesSearchOptions clonedOptions = new TaxonomiesSearchOptions(this);
 		clonedOptions.setReturnedMetadatasFilter(returnedMetadatasFilter.withIncludedField(metadata));
+		clonedOptions.setIncludeStatus(includeStatus);
+		clonedOptions.setRequiredAccess(requiredAccess);
+		clonedOptions.setRows(rows);
+		clonedOptions.setStartRow(startRow);
 		return clonedOptions;
 
 	}

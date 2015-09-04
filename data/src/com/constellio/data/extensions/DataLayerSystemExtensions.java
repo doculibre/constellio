@@ -17,10 +17,43 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.data.extensions;
 
+import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
+
+import org.apache.solr.common.params.SolrParams;
+
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
+import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+
 public class DataLayerSystemExtensions {
 
 	//------------ Extension points -----------
+	public VaultBehaviorsList<BigVaultServerExtension> bigVaultServerExtension = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<TransactionLogExtension> transactionLogExtensions = new VaultBehaviorsList<>();
+
+	public void afterQuery(SolrParams params, long qtime) {
+		for (BigVaultServerExtension extension : bigVaultServerExtension) {
+			extension.afterQuery(params, qtime);
+		}
+	}
+
+	public void afterUpdate(BigVaultServerTransaction transaction, long qtime) {
+		for (BigVaultServerExtension extension : bigVaultServerExtension) {
+			extension.afterUpdate(transaction, qtime);
+		}
+	}
 
 	//----------------- Callers ---------------
+
+	public boolean isDocumentFieldLoggedInTransactionLog(final String field, final String schema, final String collection,
+			boolean defaultValue) {
+		return getBooleanValue(transactionLogExtensions, defaultValue, new BooleanCaller<TransactionLogExtension>() {
+			@Override
+			public ExtensionBooleanResult call(TransactionLogExtension extension) {
+				return extension.isDocumentFieldLoggedInTransactionLog(field, schema, collection);
+			}
+		});
+	}
 
 }

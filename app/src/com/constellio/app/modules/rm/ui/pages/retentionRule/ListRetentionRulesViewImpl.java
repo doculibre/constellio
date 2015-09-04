@@ -40,6 +40,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRetentionRulesView {
@@ -47,7 +48,7 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 
 	private final ListRetentionRulesPresenter presenter;
 	private RecordVODataProvider dataProvider;
-	
+
 	private ExportRetentionRulesLink exportRetentionRulesLink;
 
 	public ListRetentionRulesViewImpl() {
@@ -87,7 +88,7 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 				presenter.addButtonClicked();
 			}
 		};
-		
+
 		exportRetentionRulesLink = new ExportRetentionRulesLink($("ListRetentionRulesView.exportRetentionRules"));
 
 		RecordVOTable table = new RecordVOTable($("ListRetentionRulesView.tableTitle", dataProvider.size()), buildContainer());
@@ -95,6 +96,8 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 120);
 		table.setSizeFull();
 		table.setPageLength(table.size());
+		setDefaultOrderBy(presenter.getDefaultOrderField(), dataProvider, table);
+		table.sort();
 
 		VerticalLayout mainLayout = new VerticalLayout(exportRetentionRulesLink, add, table);
 		mainLayout.setComponentAlignment(exportRetentionRulesLink, Alignment.TOP_RIGHT);
@@ -104,6 +107,12 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 		mainLayout.setSizeFull();
 
 		return mainLayout;
+	}
+
+	private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
+		Object[] properties = { dataProvider.getSchema().getMetadata(localCode) };
+		boolean[] ordering = { true };
+		table.sort(properties, ordering);
 	}
 
 	private Container buildContainer() {
@@ -135,13 +144,14 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 		rules.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
-				return new DeleteButton() {
+				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						RecordVO recordVO = rules.getNestedContainer().getRecordVO((int) itemId);
 						presenter.deleteButtonClicked(recordVO);
 					}
 				};
+				return deleteButton;
 			}
 		});
 		return rules;

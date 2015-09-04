@@ -118,9 +118,10 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenUserTriesToRemoveHimselfThenDontRemoveTheUser() {
-		page.getUserWithName(SYSTEM_ADMIN).clickButtonAndConfirm(DeleteButton.BUTTON_STYLE);
+		String message = page.getUserWithName(SYSTEM_ADMIN)
+				.clickButtonAndConfirmAndWaitForWarningMessage(DeleteButton.BUTTON_STYLE);
 
-		assertThat(page.getWarningMessage()).isNotEmpty();
+		assertThat(message).isNotNull();
 		assertThat(page.getUserTable().hasRowWithValueInColumn(SYSTEM_ADMIN, USERNAME_COLUMN)).isTrue();
 	}
 

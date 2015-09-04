@@ -140,12 +140,6 @@ public class BasePresenterUtils implements Serializable {
 		return schemasDisplayManager;
 	}
 
-	public final String getTitlesStringFromIds(List<String> ids) {
-		String collection = sessionContext.getCurrentCollection();
-		List<String> titles = recordServices().getRecordTitles(collection, ids);
-		return buildString(titles);
-	}
-
 	public final String buildString(List<String> list) {
 		StringBuilder stringBuilder = new StringBuilder();
 		for (int i = 0; i < list.size(); i++) {

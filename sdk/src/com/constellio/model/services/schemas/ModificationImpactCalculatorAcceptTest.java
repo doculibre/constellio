@@ -18,11 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.schemas;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
@@ -134,17 +134,16 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		}
 
 		LogicalSearchCondition anotherSchemaCondition = from(anotherSchemaType.type())
-				.whereAny(
-						Arrays.asList(anotherSchemaType.reference1ToZeSchema(), anotherSchemaType.reference2ToZeSchema()))
-				.isIn(Arrays.asList(record)).andWhere(Schemas.IDENTIFIER)
-				.isNotIn(Arrays.asList(record.getId()));
+				.whereAny(asList(anotherSchemaType.reference1ToZeSchema(), anotherSchemaType.reference2ToZeSchema()))
+				.isIn(asList(record)).andWhere(Schemas.IDENTIFIER)
+				.isNotIn(asList(record.getId()));
 		assertThat(anotherSchemaImpact).isEqualTo(
 				new ModificationImpact(anotherSchemaType.metadataUsingZeSchemaDateAndString(), anotherSchemaCondition));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
-				.whereAny(Arrays.asList(thirdSchemaType.referenceToZeSchema())).isIn(Arrays.asList(record))
+				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record))
 				.andWhere(Schemas.IDENTIFIER)
-				.isNotIn(Arrays.asList(record.getId()));
+				.isNotIn(asList(record.getId()));
 
 		assertThat(thirdSchemaImpact).isEqualTo(
 				new ModificationImpact(thirdSchemaType.metadataUsingZeSchemaDateAndString(), thirdSchemaCondition));
@@ -179,14 +178,13 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		}
 
 		LogicalSearchCondition anotherSchemaCondition = from(anotherSchemaType.type())
-				.whereAny(
-						Arrays.asList(anotherSchemaType.reference1ToZeSchema(), anotherSchemaType.reference2ToZeSchema()))
-				.isIn(Arrays.asList(record));
+				.whereAny(asList(anotherSchemaType.reference1ToZeSchema(), anotherSchemaType.reference2ToZeSchema()))
+				.isIn(asList(record));
 		assertThat(anotherSchemaImpact).isEqualTo(
 				new ModificationImpact(anotherSchemaType.metadataUsingZeSchemaDateAndString(), anotherSchemaCondition));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
-				.whereAny(Arrays.asList(thirdSchemaType.referenceToZeSchema())).isIn(Arrays.asList(record));
+				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record));
 
 		assertThat(thirdSchemaImpact).isEqualTo(
 				new ModificationImpact(thirdSchemaType.metadataUsingZeSchemaDateAndString(), thirdSchemaCondition));

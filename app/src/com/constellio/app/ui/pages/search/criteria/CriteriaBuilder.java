@@ -42,7 +42,11 @@ public class CriteriaBuilder {
 	public CriterionBuilder addCriterion(MetadataVO metadata) {
 		Criterion criterion = new Criterion(schemaType.getCode());
 		criteria.add(criterion);
-		criterion.setMetadata(metadata);
+		String enumClassName = null;
+		if (metadata.getEnumClass() != null) {
+			enumClassName = metadata.getEnumClass().getName();
+		}
+		criterion.setMetadata(metadata.getCode(), metadata.getType(), enumClassName);
 		return new CriterionBuilder(criterion);
 	}
 

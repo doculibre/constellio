@@ -19,20 +19,18 @@ package com.constellio.app.ui.pages.profile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupPresenter;
+import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
@@ -43,15 +41,15 @@ import com.constellio.model.services.users.UserPhotosServicesRuntimeException.Us
 import com.constellio.model.services.users.UserServices;
 
 public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
-
-	private static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
-	private static final String SHOW_PICTURE_STREAM = "ConstellioMenuPresenter-ShowPicture";
-	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditGlobalGroupPresenter.class);
+	public static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
+	public static final String SHOW_PICTURE_STREAM = "ConstellioMenuPresenter-ShowPicture";
 	public static final String ADMIN = "admin";
+
 	private transient UserServices userServices;
 	private transient AuthenticationService authenticationService;
 	private transient RecordServices recordServices;
 	private transient UserPhotosServices userPhotosServices;
+
 	private String username;
 	private String parameters;
 
@@ -60,32 +58,21 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		init();
 	}
 
-	private void readObject(java.io.ObjectInputStream stream)
-			throws IOException, ClassNotFoundException {
-		stream.defaultReadObject();
-		init();
-	}
-
-	private void init() {
-		userServices = modelLayerFactory.newUserServices();
-		authenticationService = modelLayerFactory.newAuthenticationService();
-		recordServices = modelLayerFactory.newRecordServices();
-		userPhotosServices = modelLayerFactory.newUserPhotosServices();
-	}
-
-	@Override
-	protected boolean hasPageAccess(String params, User user) {
-		return true;
+	public List<String> getAvailableHomepageTabs() {
+		List<String> result = new ArrayList<>();
+		for (PageItem tab : navigationConfig().getFragments(HomeView.TABS)) {
+			result.add(tab.getCode());
+		}
+		return result;
 	}
 
 	public void saveButtonClicked(ProfileVO entity) {
-
 		User user = userServices.getUserInCollection(entity.getUsername(), view.getCollection());
 		user.setPhone(entity.getPhone());
 		if (entity.getStartTab() == null) {
-			user.setStartTab(StartTab.RECENT_FOLDERS.getCode());
+			user.setStartTab(getDefaultHomepageTab());
 		} else {
-			user.setStartTab(entity.getStartTab().getCode());
+			user.setStartTab(entity.getStartTab());
 		}
 		if (entity.getDefaultTabInFolderDisplay() == null) {
 			user.setDefaultTabInFolderDisplay(DefaultTabInFolderDisplay.METADATA.getCode());
@@ -119,6 +106,11 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 	}
 
+	private String getDefaultHomepageTab() {
+		List<String> tabs = getAvailableHomepageTabs();
+		return tabs.isEmpty() ? null : tabs.get(0);
+	}
+
 	void changePhoto(ContentVersionVO image) {
 		if (image != null) {
 			userPhotosServices.changePhoto(image.getInputStreamProvider().getInputStream(CHANGE_PHOTO_STREAM), username);
@@ -133,17 +125,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 		User user = userServices.getUserInCollection(username, view.getCollection());
 		String phone = user.getPhone();
-		StartTab startTab = null;
-		if (user.getStartTab() != null) {
-			for (StartTab retrievedStartTab : StartTab.values()) {
-				if (user.getStartTab().equals(retrievedStartTab.getCode())) {
-					startTab = retrievedStartTab;
-					break;
-				}
-			}
-		}
+		String startTab = user.getStartTab();
 		if (startTab == null) {
-			startTab = StartTab.RECENT_FOLDERS;
+			startTab = getDefaultHomepageTab();
 		}
 		DefaultTabInFolderDisplay defaultTabInFolderDisplay = null;
 		if (user.getDefaultTabInFolderDisplay() != null) {
@@ -165,18 +149,13 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	}
 
 	ProfileVO newProfilVO(String username, String firstName, String lastName, String email, String phone,
-			StartTab startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy) {
+			String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy) {
 		return new ProfileVO(username, firstName, lastName, email, phone, startTab, defaultTabInFolderDisplay,
 				defaultTaxonomy, null, null, null);
 	}
 
 	public void cancelButtonClicked() {
 		navigateToBackPage();
-	}
-
-	List<String> getEnableTaxonomiesCodes() {
-		TaxonomyVODataProvider provider = newDataProvider();
-		return provider.getTaxonomyVOsCodes();
 	}
 
 	List<TaxonomyVO> getEnableTaxonomies() {
@@ -243,6 +222,22 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public boolean isLDAPAuthentication() {
 		return userServices.isLDAPAuthentication();
 	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return true;
+	}
+
+	private void init() {
+		userServices = modelLayerFactory.newUserServices();
+		authenticationService = modelLayerFactory.newAuthenticationService();
+		recordServices = modelLayerFactory.newRecordServices();
+		userPhotosServices = modelLayerFactory.newUserPhotosServices();
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		init();
+	}
 }
-
-

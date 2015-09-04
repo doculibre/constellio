@@ -20,9 +20,9 @@ package com.constellio.app.modules.rm.reports.builders.administration.plan;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportPresenter;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 

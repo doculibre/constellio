@@ -25,6 +25,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class Schemas {
 
@@ -55,6 +56,7 @@ public class Schemas {
 			new Metadata("detachedauthorizations_s", MetadataValueType.STRING,
 					false));
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", MetadataValueType.STRING, true));
+	public static final Metadata MANUAL_TOKENS = add(new Metadata("manualTokens_ss", MetadataValueType.STRING, true));
 	public static final Metadata COLLECTION = add(new Metadata("collection_s", MetadataValueType.STRING, false));
 	public static final Metadata LOGICALLY_DELETED_STATUS = add(new Metadata("deleted_s", MetadataValueType.BOOLEAN, false));
 
@@ -133,5 +135,16 @@ public class Schemas {
 
 		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
 		return new Metadata(schemaCode, dataStoreCode, MetadataValueType.TEXT, metadata.isMultivalue());
+	}
+
+	public static boolean isGlobalMetadata(String metadata) {
+		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadata);
+		for (Metadata globalMetadata : getAllGlobalMetadatas()) {
+
+			if (globalMetadata.getLocalCode().equals(metadataLocalCode)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

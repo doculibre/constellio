@@ -31,11 +31,11 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public abstract class MetadataSchemasAlterationHelper {
-	MetadataSchemaTypesBuilder typesBuilder;
-	String collection;
-	ModelLayerFactory modelLayerFactory;
-	DataLayerFactory dataLayerFactory;
-	MigrationResourcesProvider migrationResourcesProvider;
+	protected MetadataSchemaTypesBuilder typesBuilder;
+	protected String collection;
+	protected ModelLayerFactory modelLayerFactory;
+	protected DataLayerFactory dataLayerFactory;
+	protected MigrationResourcesProvider migrationResourcesProvider;
 
 	protected MetadataSchemasAlterationHelper(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {

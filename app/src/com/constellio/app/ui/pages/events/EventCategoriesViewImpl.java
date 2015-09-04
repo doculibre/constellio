@@ -19,11 +19,7 @@ package com.constellio.app.ui.pages.events;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
@@ -48,9 +44,9 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String BY_USER_EVENTS_LINK_BUTTON = "byUserEventsLinkButton";
 	public static final String DECOMMISSIONING_EVENTS_LINK_BUTTON = "decommissioningEventsLinkButton";
 	public static final String AGENT_EVENTS_LINK_BUTTON = "agentEventsLinkButton";
-	
+
 	private boolean agentEventsVisible;
-	
+
 	private EventCategoriesPresenter presenter;
 
 	public EventCategoriesViewImpl() {
@@ -130,6 +126,11 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 			mainLayout.addComponent(agentEventsLink);
 		}
 
+		if (presenter.isTaskModuleInstalled()) {
+			Button tasksEventsLink = newTasksEventsLink();
+			tasksEventsLink.addStyleName(AGENT_EVENTS_LINK_BUTTON);
+			mainLayout.addComponent(tasksEventsLink);
+		}
 		return mainLayout;
 	}
 
@@ -186,6 +187,11 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 				"agent_clock");
 	}
 
+	private Button newTasksEventsLink() {
+		return createLink($("ListEventsView.tasksEvents"), EventCategory.TASKS_EVENTS,
+				"task");
+	}
+
 	private Button newRecordsDeletionLink() {
 		return createLink($("ListEventsView.foldersAndDocumentsDeletion"), EventCategory.FOLDERS_AND_DOCUMENTS_DELETION,
 				"folder_document_delete");
@@ -211,7 +217,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	}
 
 	private Button createLink(String caption, final EventCategory eventCategory, String iconName) {
-		Button returnLink = new Button(caption, new ThemeResource("images/icons/experience/logs/" + iconName + ".png"));
+		Button returnLink = new Button(caption, new ThemeResource("images/icons/logs/" + iconName + ".png"));
 		returnLink.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		returnLink.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		returnLink.addStyleName(CATEGORY_BUTTON);
@@ -228,5 +234,5 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public void setAgentEventsVisible(boolean visible) {
 		this.agentEventsVisible = visible;
 	}
-	
+
 }

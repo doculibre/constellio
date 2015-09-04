@@ -23,9 +23,7 @@ import static com.constellio.model.services.search.query.logical.valueCondition.
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,20 +34,18 @@ import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionCo
 import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCaptionConverter;
 import com.constellio.app.ui.framework.components.tree.LazyTree;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
 
@@ -88,8 +84,9 @@ public class PathLookupField extends LookupField<String> {
 
 			@Override
 			public Resource getItemIcon(Object itemId) {
+				boolean expanded = isExpanded(itemId);
 				RecordIdToCaptionConverter itemsConverter = (RecordIdToCaptionConverter) PathLookupField.this.getItemConverter();
-				return itemsConverter.getIcon((String) itemId);
+				return itemsConverter.getIcon((String) itemId, expanded);
 			}
 		};
 	}
@@ -110,7 +107,7 @@ public class PathLookupField extends LookupField<String> {
 		for (Taxonomy taxonomy : taxonomies) {
 			String taxonomyCode = taxonomy.getCode();
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new PathLookupTreeDataProvider(modelLayerFactory, sessionContext, taxonomyCode));
+				dataProviders.add(new PathLookupTreeDataProvider(taxonomyCode));
 			}
 		}
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new PathLookupTreeDataProvider[dataProviders.size()]) : null;
@@ -157,6 +154,11 @@ public class PathLookupField extends LookupField<String> {
 					sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
 		}
 
+		@Override
+		public void setOnlyLinkables(boolean onlyLinkables) {
+			// Ignore
+		}
+
 		private SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 			LogicalSearchCondition condition = fromAllSchemasIn(sessionContext.getCurrentCollection())
 					.where(autocompleteFieldMatching(text)).andWhere(Schemas.PATH).isNotNull();
@@ -182,23 +184,16 @@ public class PathLookupField extends LookupField<String> {
 		}
 	}
 
-	public static class PathLookupTreeDataProvider implements LookupTreeDataProvider<String> {
-		private transient ModelLayerFactory modelLayerFactory;
-		private transient SessionContext sessionContext;
-		private final String taxonomyCode;
-		private final Map<String, Integer> childrenCounts = new HashMap<>();
-		private final Map<String, String> parentCache = new HashMap<>();
-		private int rootObjectsCount = -1;
+	public static class PathLookupTreeDataProvider extends RecordLazyTreeDataProvider implements LookupTreeDataProvider<String> {
 
-		public PathLookupTreeDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext,
-				String taxonomyCode) {
-			this.modelLayerFactory = modelLayerFactory;
-			this.sessionContext = sessionContext;
-			this.taxonomyCode = taxonomyCode;
+		public PathLookupTreeDataProvider(String taxonomyCode) {
+			super(taxonomyCode);
 		}
 
 		@Override
 		public TextInputDataProvider<String> search() {
+			ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
+			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 			return new PathInputDataProvider(modelLayerFactory, sessionContext);
 		}
 
@@ -206,111 +201,99 @@ public class PathLookupField extends LookupField<String> {
 		public boolean isSelectable(String selection) {
 			return true;
 		}
-
-		@Override
-		public int getRootObjectsCount() {
-			if (rootObjectsCount == -1) {
-				SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-				String currentCollection = sessionContext.getCurrentCollection();
-				UserVO currentUserVO = sessionContext.getCurrentUser();
-
-				ConstellioFactories constellioFactories = getInstance();
-				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-				TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-				UserServices userServices = modelLayerFactory.newUserServices();
-
-				User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
-
-				SPEQueryResponse response = taxonomiesSearchServices.getVisibleRootConceptResponse(
-						currentUser, currentCollection, taxonomyCode, new TaxonomiesSearchOptions());
-				rootObjectsCount = new Long(response.getNumFound()).intValue();
-			}
-			return rootObjectsCount;
-		}
-
-		@Override
-		public List<String> getRootObjects(int start, int maxSize) {
-			TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-			TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxSize, start, StatusFilter.ACTIVES);
-			List<Record> matches = taxonomiesSearchServices.getVisibleRootConcept(
-					getCurrentUser(), sessionContext.getCurrentCollection(), taxonomyCode, taxonomiesSearchOptions);
-
-			List<String> recordIds = new ArrayList<>();
-			for (Record match : matches) {
-				String recordId = match.getId();
-				recordIds.add(recordId);
-			}
-			return recordIds;
-		}
-
-		@Override
-		public String getParent(String child) {
-			return parentCache.get(child);
-		}
-
-		@Override
-		public int getChildrenCount(String parent) {
-			Integer childrenCount = childrenCounts.get(parent);
-			if (childrenCount == null) {
-				TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-
-				RecordServices recordServices = modelLayerFactory.newRecordServices();
-				Record record = recordServices.getDocumentById(parent);
-
-				SPEQueryResponse response = taxonomiesSearchServices.getVisibleChildConceptResponse(
-						getCurrentUser(), taxonomyCode, record, new TaxonomiesSearchOptions());
-				childrenCount = new Long(response.getNumFound()).intValue();
-				childrenCounts.put(parent, childrenCount);
-			}
-			return childrenCount;
-		}
-
-		@Override
-		public List<String> getChildren(String parent, int start, int maxSize) {
-			TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			Record record = recordServices.getDocumentById(parent);
-
-			TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxSize, start, StatusFilter.ACTIVES);
-			List<Record> matches = taxonomiesSearchServices.getVisibleChildConcept(
-					getCurrentUser(), taxonomyCode, record, taxonomiesSearchOptions);
-
-			List<String> recordIds = new ArrayList<>();
-			for (Record match : matches) {
-				String recordId = match.getId();
-				recordIds.add(recordId);
-				parentCache.put(recordId, parent);
-			}
-			return recordIds;
-		}
-
-		@Override
-		public boolean hasChildren(String parent) {
-			return getChildrenCount(parent) > 0;
-		}
-
-		@Override
-		public boolean isLeaf(String object) {
-			return !hasChildren(object);
-		}
-
-		@Override
-		public String getTaxonomyCode() {
-			return taxonomyCode;
-		}
-
-		private User getCurrentUser() {
-			UserServices userServices = modelLayerFactory.newUserServices();
-			return userServices.getUserInCollection(
-					sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
-		}
-
-		private void readObject(java.io.ObjectInputStream stream)
-				throws IOException, ClassNotFoundException {
-			stream.defaultReadObject();
-			modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-			sessionContext = ConstellioUI.getCurrentSessionContext();
-		}
 	}
+
+	//	public static class PathLookupTreeDataProvider implements LookupTreeDataProvider<String> {
+	//		private transient ModelLayerFactory modelLayerFactory;
+	//		private transient SessionContext sessionContext;
+	//		private final String taxonomyCode;
+	//		private final Map<String, Integer> childrenCounts = new HashMap<>();
+	//		private final Map<String, String> parentCache = new HashMap<>();
+	//		private int rootObjectsCount = -1;
+	//
+	//		public PathLookupTreeDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext,
+	//				String taxonomyCode) {
+	//			this.modelLayerFactory = modelLayerFactory;
+	//			this.sessionContext = sessionContext;
+	//			this.taxonomyCode = taxonomyCode;
+	//		}
+	//
+	//		@Override
+	//		public TextInputDataProvider<String> search() {
+	//			return new PathInputDataProvider(modelLayerFactory, sessionContext);
+	//		}
+	//
+	//		@Override
+	//		public boolean isSelectable(String selection) {
+	//			return true;
+	//		}
+	//
+	//		@Override
+	//		public ObjectsResponse<String> getRootObjects(int start, int maxSize) {
+	//			TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
+	//			TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxSize, start, StatusFilter.ACTIVES);
+	//			LinkableTaxonomySearchResponse response = taxonomiesSearchServices.getVisibleRootConceptResponse(
+	//					getCurrentUser(), sessionContext.getCurrentCollection(), taxonomyCode, taxonomiesSearchOptions);
+	//
+	//			List<String> recordIds = new ArrayList<>();
+	//			for (TaxonomySearchRecord match : response.getRecords()) {
+	//				String recordId = match.getId();
+	//				recordIds.add(recordId);
+	//			}
+	//			return new ObjectsResponse<String>(recordIds, response.getNumFound());
+	//		}
+	//
+	//		@Override
+	//		public String getParent(String child) {
+	//			return parentCache.get(child);
+	//		}
+	//
+	//		@Override
+	//		public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
+	//			TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
+	//
+	//			RecordServices recordServices = modelLayerFactory.newRecordServices();
+	//			Record record = recordServices.getDocumentById(parent);
+	//
+	//			TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxSize, start, StatusFilter.ACTIVES);
+	//			LinkableTaxonomySearchResponse response = taxonomiesSearchServices.getVisibleChildConceptResponse(
+	//					getCurrentUser(), taxonomyCode, record, taxonomiesSearchOptions);
+	//
+	//			List<String> recordIds = new ArrayList<>();
+	//			for (TaxonomySearchRecord match : response.getRecords()) {
+	//				String recordId = match.getId();
+	//				recordIds.add(recordId);
+	//				parentCache.put(recordId, parent);
+	//			}
+	//			return new ObjectsResponse<>(recordIds, response.getNumFound());
+	//		}
+	//
+	//		@Override
+	//		public boolean hasChildren(String parent) {
+	//			return getChildren(parent, 0, 1).getCount() > 0;
+	//		}
+	//
+	//		@Override
+	//		public boolean isLeaf(String object) {
+	//			return !hasChildren(object);
+	//		}
+	//
+	//		@Override
+	//		public String getTaxonomyCode() {
+	//			return taxonomyCode;
+	//		}
+	//
+	//		private User getCurrentUser() {
+	//			UserServices userServices = modelLayerFactory.newUserServices();
+	//			return userServices.getUserInCollection(
+	//					sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+	//		}
+	//
+	//		private void readObject(java.io.ObjectInputStream stream)
+	//				throws IOException, ClassNotFoundException {
+	//			stream.defaultReadObject();
+	//			modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+	//			sessionContext = ConstellioUI.getCurrentSessionContext();
+	//		}
+	//	}
 }

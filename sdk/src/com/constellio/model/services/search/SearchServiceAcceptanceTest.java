@@ -55,7 +55,6 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.B
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -212,10 +211,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).returnAll();
 		//when
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.computeStatsOnField(statsMetadata);
+		query.computeStatsOnField(statsMetadata.getDataStoreCode());
 		//then
 		SPEQueryResponse response = searchServices.query(query);
-		Map<String, Object> values = response.getStatValues(statsMetadata);
+		Map<String, Object> values = response.getStatValues(statsMetadata.getDataStoreCode());
 		assertThat(values.get("min")).isEqualTo(12.0);
 		assertThat(values.get("max")).isEqualTo(13.5);
 		assertThat(values.get("sum")).isEqualTo(25.5);
@@ -238,10 +237,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).returnAll();
 		//when
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.computeStatsOnField(statsMetadata);
+		query.computeStatsOnField(statsMetadata.getDataStoreCode());
 		//then
 		SPEQueryResponse response = searchServices.query(query);
-		Map<String, Object> values = response.getStatValues(statsMetadata);
+		Map<String, Object> values = response.getStatValues(statsMetadata.getDataStoreCode());
 		assertThat(values.get("missing")).isEqualTo(1L);
 		assertThat(values.get("count")).isEqualTo(2L);
 		assertThat(values.get("min")).isEqualTo(12.0);
@@ -287,10 +286,52 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		LogicalSearchCondition condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isEqualTo("Chuck Norris");
-		LogicalSearchQuery query = new LogicalSearchQuery(condition)
-				.filteredByFacetValues(zeSchema.numberMetadata(), Arrays.asList("1.0"));
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.getFacetFilters().selectedFieldFacetValues(zeSchema.numberMetadata().getDataStoreCode(), Arrays.asList("1.0"));
 
 		assertThat(searchServices.search(query)).containsOnly(record1);
+	}
+
+	@Test
+	public void whenSearchingAndFilteringUsingQueryValueThenFindRecordsWithGivenValue()
+			throws Exception {
+		defineSchemasManager().using(schema.withAStringMetadata().withANumberMetadata().withADateMetadata());
+
+		transaction.addUpdate(record1 = givenARecord("record1")
+				.set(zeSchema.stringMetadata(), "Chuck Norris")
+				.set(zeSchema.numberMetadata(), 1.0)
+				.set(zeSchema.dateMetadata(), new LocalDate(2012, 5, 12)));
+
+		transaction.addUpdate(record2 = givenARecord("record2")
+				.set(zeSchema.stringMetadata(), "Chuck Norris")
+				.set(zeSchema.numberMetadata(), 2.0)
+				.set(zeSchema.dateMetadata(), new LocalDate(2012, 5, 15)));
+
+		transaction.addUpdate(record3 = givenARecord("record3")
+				.set(zeSchema.stringMetadata(), "Chuck Norris")
+				.set(zeSchema.numberMetadata(), 3.0)
+				.set(zeSchema.dateMetadata(), new LocalDate(2012, 5, 18)));
+
+		transaction.addUpdate(record4 = givenARecord("record4")
+				.set(zeSchema.stringMetadata(), "Gandalf le Blanc")
+				.set(zeSchema.numberMetadata(), 1.0));
+
+		transaction.addUpdate(record5 = givenARecord("record5")
+				.set(zeSchema.stringMetadata(), "Gandalf le Blanc")
+				.set(zeSchema.numberMetadata(), 2.0));
+		recordServices.execute(transaction);
+
+		LogicalSearchCondition condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isEqualTo("Chuck Norris");
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.getFacetFilters().selectedQueryFacetValue("numberFacet", "numberMetadata_d:[2.0 TO 3.0]");
+		assertThat(searchServices.search(query)).containsOnly(record2, record3);
+
+		query.getFacetFilters().selectedQueryFacetValue("numberFacet", "numberMetadata_d:[1.0 TO 2.0]");
+		assertThat(searchServices.search(query)).containsOnly(record1, record2, record3);
+
+		query.getFacetFilters()
+				.selectedQueryFacetValue("dateFacet", "dateMetadata_da:[2012-05-14T00:00:00Z TO 2012-05-18T00:00:00Z]");
+		assertThat(searchServices.search(query)).containsOnly(record2, record3);
 	}
 
 	@Test
@@ -311,8 +352,9 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		LogicalSearchCondition condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isEqualTo("Chuck Norris");
-		LogicalSearchQuery query = new LogicalSearchQuery(condition)
-				.filteredByFacetValues(zeSchema.numberMetadata(), Arrays.asList("1.0", "2.0"));
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.getFacetFilters().selectedFieldFacetValues(zeSchema.numberMetadata().getDataStoreCode(),
+				Arrays.asList("1.0", "2.0"));
 
 		assertThat(searchServices.search(query)).containsOnly(record1, record2);
 	}
@@ -345,9 +387,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		LogicalSearchCondition condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isEqualTo("Chuck Norris");
-		LogicalSearchQuery query = new LogicalSearchQuery(condition)
-				.filteredByFacetValues(zeSchema.numberMetadata(), Arrays.asList("1.0", "2.0"))
-				.filteredByFacetValues(zeSchema.anotherStringMetadata(), Arrays.asList("A"));
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.getFacetFilters()
+				.selectedFieldFacetValues(zeSchema.numberMetadata().getDataStoreCode(), Arrays.asList("1.0", "2.0"))
+				.selectedFieldFacetValue(zeSchema.anotherStringMetadata().getDataStoreCode(), "A");
 
 		assertThat(searchServices.search(query)).containsOnly(record1);
 	}
@@ -380,11 +423,11 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(zeSchema.instance()).returnAll())
-				.addFieldFacet(zeSchema.numberMetadata());
+				.addFieldFacet(zeSchema.numberMetadata().getDataStoreCode());
 
-		Map<DataStoreField, List<FacetValue>> facets = searchServices.query(query).getFieldFacetValues();
-		assertThat(facets.keySet()).containsOnly(zeSchema.numberMetadata());
-		assertThat(facets.get(zeSchema.numberMetadata())).hasSize(3);
+		Map<String, List<FacetValue>> facets = searchServices.query(query).getFieldFacetValues();
+		assertThat(facets.keySet()).containsOnly(zeSchema.numberMetadata().getDataStoreCode());
+		assertThat(facets.get(zeSchema.numberMetadata().getDataStoreCode())).hasSize(3);
 	}
 
 	@Test
@@ -415,13 +458,15 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(zeSchema.instance()).returnAll())
-				.addFieldFacet(zeSchema.numberMetadata())
-				.addFieldFacet(zeSchema.anotherStringMetadata());
+				.addFieldFacet(zeSchema.numberMetadata().getDataStoreCode())
+				.addFieldFacet(zeSchema.anotherStringMetadata().getDataStoreCode());
 
-		Map<DataStoreField, List<FacetValue>> facets = searchServices.query(query).getFieldFacetValues();
-		assertThat(facets.keySet()).containsOnly(zeSchema.numberMetadata(), zeSchema.anotherStringMetadata());
-		assertThat(facets.get(zeSchema.numberMetadata())).hasSize(3);
-		assertThat(facets.get(zeSchema.anotherStringMetadata())).hasSize(2);
+		Map<String, List<FacetValue>> facets = searchServices.query(query).getFieldFacetValues();
+		assertThat(facets.keySet()).containsOnly(
+				zeSchema.numberMetadata().getDataStoreCode(),
+				zeSchema.anotherStringMetadata().getDataStoreCode());
+		assertThat(facets.get(zeSchema.numberMetadata().getDataStoreCode())).hasSize(3);
+		assertThat(facets.get(zeSchema.anotherStringMetadata().getDataStoreCode())).hasSize(2);
 	}
 
 	@Test
@@ -2157,7 +2202,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = fromAllSchemasIn(zeCollection).returnAll();
 		List<Record> records = findRecords(condition);
 
-		assertThat(records).hasSize(3); // Counting the Collection record
 		assertThat(records).contains(expectedRecord2, expectedRecord1);
 	}
 
@@ -2182,7 +2226,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		LogicalSearchCondition condition = fromAllSchemasIn(zeCollection).returnAll();
 		List<Record> records = findRecords(condition);
 
-		assertThat(records).containsOnly(zeSchemaRecord1, zeSchemaRecord2, recordServices.getDocumentById(zeCollection));
+		assertThat(records)
+				.contains(zeSchemaRecord1, zeSchemaRecord2, recordServices.getDocumentById(zeCollection));
 	}
 
 	@Test

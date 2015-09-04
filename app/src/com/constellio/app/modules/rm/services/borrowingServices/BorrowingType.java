@@ -21,7 +21,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 
 public enum BorrowingType implements EnumWithSmallCode {
 
-	FOLDER("F"), CONTAINER("C");
+	BORROW("B"), CONSULTATION("C");
 
 	private String code;
 

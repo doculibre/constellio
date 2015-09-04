@@ -29,8 +29,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	private File defaultFileSystemBaseFolder;
 
 	public PropertiesDataLayerConfiguration(Map<String, String> configs, File defaultTempFolder,
-			File defaultFileSystemBaseFolder) {
-		super(configs);
+			File defaultFileSystemBaseFolder, File constellioProperties) {
+		super(configs, constellioProperties);
 		this.defaultTempFolder = defaultTempFolder;
 		this.defaultFileSystemBaseFolder = defaultFileSystemBaseFolder;
 	}
@@ -115,6 +115,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	@Override
 	public int getSecondTransactionLogBackupCount() {
 		return 2;
+	}
+
+	@Override
+	public boolean isBackgroundThreadsEnabled() {
+		return true;
 	}
 
 }

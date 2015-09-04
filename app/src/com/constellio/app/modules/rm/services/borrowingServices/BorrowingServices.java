@@ -17,16 +17,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.services.borrowingServices;
 
-import java.util.Date;
-
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_CannotBorrowActiveFolder;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsNotBorrowed;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_InvalidBorrowingDate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -52,24 +53,38 @@ public class BorrowingServices {
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 	}
 
-	public void borrowFolder(String folderId, Date previewReturnDate, User currentUser, User borrowerEntered)
+	public void borrowFolder(String folderId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
+			User borrowerEntered, BorrowingType borrowingType)
 			throws RecordServicesException {
 
 		Record folder = recordServices.getDocumentById(folderId);
-		validateCanBorrow(currentUser, folder);
-		setBorrowedMetadatasToFolder(folder, previewReturnDate, currentUser.getId(), borrowerEntered.getId());
+		validateCanBorrow(currentUser, folder, borrowingDate);
+		setBorrowedMetadatasToFolder(folder, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
+				previewReturnDate,
+				currentUser.getId(), borrowerEntered.getId(),
+				borrowingType);
 		recordServices.update(folder);
-		loggingServices.borrowRecord(folder, borrowerEntered);
+		if (borrowingType == BorrowingType.BORROW) {
+			loggingServices.borrowRecord(folder, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+		} else {
+			loggingServices.consultingRecord(folder, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+		}
+
 	}
 
-	public void returnFolder(String folderId, User currentUser)
+	public void returnFolder(String folderId, User currentUser, LocalDate returnDate)
 			throws RecordServicesException {
 
-		Record folder = recordServices.getDocumentById(folderId);
-		validateCanReturnFolder(currentUser, folder);
-		folder = setReturnedMetadatasToFolder(folder);
-		recordServices.update(folder);
-		loggingServices.returnRecord(folder, currentUser);
+		Record folderRecord = recordServices.getDocumentById(folderId);
+		Folder folder = rm.wrapFolder(folderRecord);
+		validateCanReturnFolder(currentUser, folderRecord);
+		User borrower = rm.getUser(folder.getBorrowUserEntered());
+		BorrowingType borrowingType = rm.wrapFolder(folderRecord).getBorrowType();
+		folderRecord = setReturnedMetadatasToFolder(folderRecord);
+		recordServices.update(folderRecord);
+		if (borrowingType == BorrowingType.BORROW) {
+			loggingServices.returnRecord(folderRecord, borrower, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+		}
 	}
 
 	public void validateCanReturnFolder(User currentUser, Record folder) {
@@ -86,28 +101,35 @@ public class BorrowingServices {
 
 	}
 
-	public void validateCanBorrow(User currentUser, Record folder) {
+	public void validateCanBorrow(User currentUser, Record folder, LocalDate borrowingDate) {
 
 		if (currentUser.hasReadAccess().on(folder)) {
 			if (ACTIVE.equals(folder.get(rm.folderArchivisticStatus()).toString())) {
 				throw new BorrowingServicesRunTimeException_CannotBorrowActiveFolder(folder.getId());
 			} else if (folder.get(rm.folderBorrowed()) != null) {
 				throw new BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed(folder.getId());
+			} else if (borrowingDate != null && borrowingDate.isAfter(TimeProvider.getLocalDate())) {
+				throw new BorrowingServicesRunTimeException_InvalidBorrowingDate(borrowingDate);
 			}
 		} else {
 			throw new BorrowingServicesRunTimeException_UserWithoutReadAccessToFolder(currentUser.getUsername(), folder.getId());
 		}
 	}
 
-	//
-
-	private void setBorrowedMetadatasToFolder(Record folder, Date previewReturnDate, String userId, String borrowerEnteredId) {
-		LocalDate newPreviewReturnDate = LocalDate.fromDateFields(previewReturnDate);
+	private void setBorrowedMetadatasToFolder(Record folder, LocalDateTime borrowingDate, LocalDate previewReturnDate,
+			String userId,
+			String borrowerEnteredId,
+			BorrowingType borrowingType) {
 		folder.set(rm.folderBorrowed(), true);
-		folder.set(rm.folderBorrowDate(), TimeProvider.getLocalDateTime());
-		folder.set(rm.folderBorrowPreviewReturnDate(), newPreviewReturnDate);
+		if (borrowingDate != null) {
+			folder.set(rm.folderBorrowDate(), borrowingDate);
+		} else {
+			folder.set(rm.folderBorrowDate(), TimeProvider.getLocalDateTime());
+		}
+		folder.set(rm.folderBorrowPreviewReturnDate(), previewReturnDate);
 		folder.set(rm.folderBorrowedUser(), userId);
 		folder.set(rm.folderBorrowedUserEntered(), borrowerEnteredId);
+		folder.set(rm.folderBorrowingType(), borrowingType);
 	}
 
 	private Record setReturnedMetadatasToFolder(Record folder) {
@@ -117,6 +139,7 @@ public class BorrowingServices {
 		folder.set(rm.folderBorrowPreviewReturnDate(), null);
 		folder.set(rm.folderBorrowedUser(), null);
 		folder.set(rm.folderBorrowedUserEntered(), null);
+		folder.set(rm.folderBorrowingType(), null);
 		return folder;
 	}
 }

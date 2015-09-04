@@ -47,6 +47,8 @@ public class DataLayerLogger {
 
 	private int verySlowQueryDuration = 2000;
 
+	private boolean logAllTransactions = false;
+
 	public void logQueryResponse(SolrParams params, QueryResponse response) {
 
 		String prefix = null;
@@ -70,13 +72,13 @@ public class DataLayerLogger {
 		StringBuilder logBuilder = new StringBuilder();
 
 		for (RecordDTO recordDTO : transaction.getNewRecords()) {
-			if (monitoredIds.contains(recordDTO.getId())) {
+			if (logAllTransactions || monitoredIds.contains(recordDTO.getId())) {
 				logBuilder.append("\n\t" + toString(recordDTO));
 			}
 		}
 
 		for (RecordDeltaDTO recordDeltaDTO : transaction.getModifiedRecords()) {
-			if (monitoredIds.contains(recordDeltaDTO.getId())) {
+			if (logAllTransactions || monitoredIds.contains(recordDeltaDTO.getId())) {
 				logBuilder.append("\n\t" + toString(recordDeltaDTO));
 			}
 		}
@@ -92,14 +94,14 @@ public class DataLayerLogger {
 
 		for (SolrInputDocument recordDTO : transaction.getNewDocuments()) {
 			String id = (String) recordDTO.getFieldValue("id");
-			if (monitoredIds.contains(id)) {
+			if (logAllTransactions || monitoredIds.contains(id)) {
 				logBuilder.append("\n\t" + toString(recordDTO));
 			}
 		}
 
 		for (SolrInputDocument recordDTO : transaction.getUpdatedDocuments()) {
 			String id = (String) recordDTO.getFieldValue("id");
-			if (monitoredIds.contains(id)) {
+			if (logAllTransactions || monitoredIds.contains(id)) {
 				logBuilder.append("\n\t" + toString(recordDTO));
 			}
 		}
@@ -181,6 +183,10 @@ public class DataLayerLogger {
 
 	public void setPrintAllQueriesLongerThanMS(int printAllQueriesLongerThanMS) {
 		this.printAllQueriesLongerThanMS = printAllQueriesLongerThanMS;
+	}
+
+	public void logAllTransactions() {
+		this.logAllTransactions = true;
 	}
 
 	public void setSlowQueryDuration(int slowQueryDuration) {

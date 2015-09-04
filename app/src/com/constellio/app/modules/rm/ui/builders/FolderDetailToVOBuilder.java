@@ -38,8 +38,6 @@ public class FolderDetailToVOBuilder {
 		FolderDetailVO folderDetailVO = new FolderDetailVO();
 		folderDetailVO.setFolderId(detail.getFolderId());
 		folderDetailVO.setFolderIncluded(detail.isFolderIncluded());
-		folderDetailVO.setValidationUserId(detail.getValidationUserId());
-		folderDetailVO.setValidationDate(detail.getValidationDate());
 		folderDetailVO.setContainerRecordId(detail.getContainerRecordId());
 		folderDetailVO.setMediumType(detailWithType.getType());
 		folderDetailVO.setRetentionRuleId(folder.getRetentionRule());

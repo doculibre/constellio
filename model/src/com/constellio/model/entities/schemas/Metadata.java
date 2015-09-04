@@ -272,12 +272,12 @@ public class Metadata implements DataStoreField {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "dataEntry");
+		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "dataEntry", "recordMetadataValidators");
+		return EqualsBuilder.reflectionEquals(this, obj, "dataEntry", "recordMetadataValidators", "structureFactory");
 	}
 
 	@Override
@@ -314,9 +314,26 @@ public class Metadata implements DataStoreField {
 		return new Metadata(schemaCode, localCode, type, multivalue);
 	}
 
+	public static Metadata newGlobalMetadata(String dataStoreCode, MetadataValueType type, boolean multivalue) {
+		return new Metadata("global_default", dataStoreCode, type, multivalue);
+	}
+
 	public Metadata getSearchableMetadataWithLanguage(String language) {
 		String schemaCode = code.replace("_" + localCode, "");
 		return new Metadata(schemaCode, getDataStoreCode().replace("_s", "_t") + "_" + language, type, isMultivalue());
 	}
 
+	public boolean isSameLocalCode(Metadata metadata) {
+		return localCode.equals(metadata.getLocalCode());
+	}
+
+	public boolean isSameLocalCodeThanAny(Metadata... metadatas) {
+		for (Metadata metadata : metadatas) {
+			if (localCode.equals(metadata.getLocalCode())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

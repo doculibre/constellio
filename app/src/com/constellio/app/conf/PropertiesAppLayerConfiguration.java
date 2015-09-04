@@ -31,8 +31,8 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 	private final ModelLayerConfiguration modelLayerConfiguration;
 
 	public PropertiesAppLayerConfiguration(Map<String, String> configs, ModelLayerConfiguration modelLayerConfiguration,
-			FoldersLocator foldersLocator) {
-		super(configs);
+			FoldersLocator foldersLocator, File constellioProperties) {
+		super(configs, constellioProperties);
 		this.modelLayerConfiguration = modelLayerConfiguration;
 		this.foldersLocator = foldersLocator;
 	}

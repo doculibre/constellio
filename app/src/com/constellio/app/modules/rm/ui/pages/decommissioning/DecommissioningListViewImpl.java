@@ -24,17 +24,21 @@ import java.util.List;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
-import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
+import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
+import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator;
+import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -44,29 +48,42 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.Table.Align;
-import com.vaadin.ui.Table.ColumnGenerator;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DecommissioningListViewImpl extends BaseViewImpl implements DecommissioningListView {
 	public static final String PROCESS = "process";
+	public static final String APPROVAL_BUTTON = "approval";
+	public static final String APPROVAL_REQUEST_BUTTON = "approvalRequest";
+	public static final String VALIDATION_BUTTON = "validation";
+	public static final String VALIDATION_REQUEST_BUTTON = "sendValidationRequest";
 
 	private final DecommissioningListPresenter presenter;
+
 	private RecordVO decommissioningList;
 	private BeanItemContainer<ContainerVO> containerVOs;
+
+	private Component validationComponent;
+	private Table validations;
+	private Component foldersToValidateComponent;
+	private Table foldersToValidate;
 	private Component packageableFolderComponent;
 	private Table packageableFolders;
 	private Component processableFolderComponent;
 	private Table processableFolders;
+	private Component excludedFolderComponent;
+	private Table excludedFolders;
+
 	private Button process;
+	private Button validationRequest;
+	private Button validation;
+	private Button approval;
+	private Button approvalRequest;
 
 	public DecommissioningListViewImpl() {
 		presenter = new DecommissioningListPresenter(this);
@@ -98,20 +115,54 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		containerVOs = new BeanItemContainer<>(ContainerVO.class, presenter.getContainers());
 
-		List<FolderDetailVO> packageableFolders = presenter.getPackageableFolders();
-		packageableFolderComponent = buildPackageableFolderComponent(packageableFolders);
-		packageableFolderComponent.setVisible(!packageableFolders.isEmpty());
+		List<DecomListValidation> validations = presenter.getValidations();
+		validationComponent = buildValidatorsComponent(validations);
+		validationComponent.setVisible(!validations.isEmpty());
 
-		List<FolderDetailVO> processableFolders = presenter.getProcessableFolders();
-		processableFolderComponent = buildProcessableFolderComponent(processableFolders);
-		processableFolderComponent.setVisible(!processableFolders.isEmpty());
+		if (presenter.isValidationRequestedForCurrentUser()) {
+			List<FolderDetailVO> foldersToValidate = presenter.getFoldersToValidate();
+			foldersToValidateComponent = buildFoldersToValidateComponent(foldersToValidate);
+			foldersToValidateComponent.setVisible(!foldersToValidate.isEmpty());
+
+			packageableFolders = new Table();
+			packageableFolderComponent = new VerticalLayout(packageableFolders);
+			packageableFolderComponent.setVisible(false);
+
+			processableFolders = new Table();
+			processableFolderComponent = new VerticalLayout(processableFolders);
+			processableFolderComponent.setVisible(false);
+		} else {
+			List<FolderDetailVO> packageableFolders = presenter.getPackageableFolders();
+			packageableFolderComponent = buildPackageableFolderComponent(packageableFolders);
+			packageableFolderComponent.setVisible(!packageableFolders.isEmpty());
+
+			List<FolderDetailVO> processableFolders = presenter.getProcessableFolders();
+			processableFolderComponent = buildProcessableFolderComponent(processableFolders);
+			processableFolderComponent.setVisible(!processableFolders.isEmpty());
+
+			foldersToValidate = new Table();
+			foldersToValidateComponent = new VerticalLayout(foldersToValidate);
+			foldersToValidateComponent.setVisible(false);
+		}
+
+		List<FolderDetailVO> excludedFolders = presenter.getExcludedFolders();
+		excludedFolderComponent = buildExcludedFolderComponent(excludedFolders);
+		excludedFolderComponent.setVisible(!excludedFolders.isEmpty());
 
 		List<DecomListContainerDetail> containerDetails = presenter.getContainerDetails();
 		Component containerComponent = buildContainerComponent(containerDetails);
 		containerComponent.setVisible(!containerDetails.isEmpty());
 
-		VerticalLayout layout = new VerticalLayout(
-				display, packageableFolderComponent, processableFolderComponent, containerComponent);
+		RecordCommentsEditorImpl comments = new RecordCommentsEditorImpl(decommissioningList, DecommissioningList.COMMENTS);
+		comments.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				presenter.refreshList();
+			}
+		});
+
+		VerticalLayout layout = new VerticalLayout(display, validationComponent, packageableFolderComponent,
+				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments);
 		layout.setSpacing(true);
 		layout.setWidth("100%");
 
@@ -123,7 +174,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		List<Button> buttons = super.buildActionMenuButtons(event);
 		buttons.add(buildEditButton());
 		buttons.add(buildDeleteButton());
+		buttons.add(buildValidationRequestButton());
+		buttons.add(buildValidationButton());
 		buttons.add(buildProcessButton());
+		buttons.add(buildApprovalRequestButton());
+		buttons.add(buildApprovalButton());
 		return buttons;
 	}
 
@@ -134,20 +189,16 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	@Override
 	public void setProcessable(FolderDetailVO folderVO) {
+		removeFolderFromComponent(folderVO, excludedFolders, excludedFolderComponent);
 		removeFolderFromComponent(folderVO, packageableFolders, packageableFolderComponent);
 		addFolderToComponent(folderVO, processableFolders, processableFolderComponent);
 	}
 
 	@Override
 	public void setPackageable(FolderDetailVO folderVO) {
+		removeFolderFromComponent(folderVO, excludedFolders, excludedFolderComponent);
 		removeFolderFromComponent(folderVO, processableFolders, processableFolderComponent);
 		addFolderToComponent(folderVO, packageableFolders, packageableFolderComponent);
-	}
-
-	@Override
-	public void removeFolder(FolderDetailVO folder) {
-		removeFolderFromComponent(folder, packageableFolders, packageableFolderComponent);
-		removeFolderFromComponent(folder, processableFolders, processableFolderComponent);
 	}
 
 	private void removeFolderFromComponent(FolderDetailVO folder, Table table, Component component) {
@@ -192,6 +243,30 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return button;
 	}
 
+	private Button buildValidationRequestButton() {
+		validationRequest = new DecomValidationRequestWindowButton(presenter);
+		validationRequest.setEnabled(presenter.canSendValidationRequest());
+		validationRequest.addStyleName(VALIDATION_REQUEST_BUTTON);
+		return validationRequest;
+	}
+
+	private Button buildValidationButton() {
+		validation = new ConfirmDialogButton(null, $("DecommissioningListView.validate"), false) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DecommissioningListView.confirmValidation");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.validateButtonClicked();
+			}
+		};
+		validation.setEnabled(presenter.canValidate());
+		validation.addStyleName(VALIDATION_BUTTON);
+		return validation;
+	}
+
 	private Button buildProcessButton() {
 		process = new ConfirmDialogButton(null, $("DecommissioningListView.process"), false) {
 			@Override
@@ -207,6 +282,62 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		process.setEnabled(presenter.isProcessable());
 		process.addStyleName(PROCESS);
 		return process;
+	}
+
+	private Button buildApprovalRequestButton() {
+		approvalRequest = new ConfirmDialogButton(null, $("DecommissioningListView.approvalRequest"), false) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DecommissioningListView.confirmApprovalRequest");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.approvalRequestButtonClicked();
+			}
+		};
+		approvalRequest.setEnabled(presenter.canSendApprovalRequest());
+		approvalRequest.addStyleName(APPROVAL_REQUEST_BUTTON);
+		return approvalRequest;
+	}
+
+	private Button buildApprovalButton() {
+		approval = new ConfirmDialogButton(null, $("DecommissioningListView.approve"), false) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DecommissioningListView.confirmApproval");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.approvalButtonClicked();
+			}
+		};
+		approval.setEnabled(presenter.canApprove());
+		approval.addStyleName(APPROVAL_BUTTON);
+		return approval;
+	}
+
+	private Component buildValidatorsComponent(List<DecomListValidation> requests) {
+		Label header = new Label($("DecommissioningListView.validators"));
+		header.addStyleName(ValoTheme.LABEL_H2);
+
+		validations = buildValidationTable(requests);
+
+		VerticalLayout layout = new VerticalLayout(header, validations);
+		layout.setSpacing(true);
+
+		return layout;
+	}
+
+	private Table buildValidationTable(List<DecomListValidation> requests) {
+		BeanItemContainer<DecomListValidation> container = new BeanItemContainer<>(DecomListValidation.class, requests);
+
+		Table table = new Table($("DecommissioningListView.validations", container.size()), container);
+		table.setPageLength(container.size());
+		table.setWidth("100%");
+
+		return new ValidationsGenerator(presenter).attachTo(table);
 	}
 
 	private Component buildPackageableFolderComponent(List<FolderDetailVO> folders) {
@@ -270,15 +401,39 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return layout;
 	}
 
+	private Component buildFoldersToValidateComponent(List<FolderDetailVO> folders) {
+		Label header = new Label($("DecommissioningListView.foldersToValidate"));
+		header.addStyleName(ValoTheme.LABEL_H2);
+
+		foldersToValidate = buildFolderTable(folders, false);
+
+		VerticalLayout layout = new VerticalLayout(header, foldersToValidate);
+		layout.setSpacing(true);
+
+		return layout;
+	}
+
 	private Component buildProcessableFolderComponent(List<FolderDetailVO> folders) {
 		Label header = new Label(presenter.isProcessed() ?
 				$("DecommissioningListView.processedFolders") :
 				$("DecommissioningListView.processableFolders"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
-		processableFolders = buildFolderTable(folders, false);
+		processableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
 		VerticalLayout layout = new VerticalLayout(header, processableFolders);
+		layout.setSpacing(true);
+
+		return layout;
+	}
+
+	private Component buildExcludedFolderComponent(List<FolderDetailVO> folders) {
+		Label header = new Label($("DecommissioningListView.excludedFolders"));
+		header.addStyleName(ValoTheme.LABEL_H2);
+
+		excludedFolders = buildFolderTable(folders, false);
+
+		VerticalLayout layout = new VerticalLayout(header, excludedFolders);
 		layout.setSpacing(true);
 
 		return layout;
@@ -290,13 +445,12 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 
-		FolderDetailTableGenerator generator = new FolderDetailTableGenerator(containerizable)
+		return new FolderDetailTableGenerator(presenter, this, containerizable)
 				.displayingRetentionRule(presenter.shouldDisplayRetentionRuleInDetails())
 				.displayingCategory(presenter.shouldDisplayCategoryInDetails())
-				.displayingSort(presenter.shouldDisplaySort());
-		generator.attachTo(table);
-
-		return table;
+				.displayingSort(presenter.shouldDisplaySort())
+				.displayingValidation(presenter.shouldDisplayValidation())
+				.attachTo(table);
 	}
 
 	private Component buildContainerComponent(List<DecomListContainerDetail> containerDetails) {
@@ -319,293 +473,14 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 
-		ContainerDetailTableGenerator generator = new ContainerDetailTableGenerator();
-		generator.attachTo(table);
-		return table;
+		return new ContainerDetailTableGenerator(presenter).attachTo(table);
 	}
 
-	private ComboBox buildContainerSelector() {
+	public ComboBox buildContainerSelector() {
 		ComboBox container = new ComboBox();
 		container.setContainerDataSource(containerVOs);
 		container.setItemCaptionPropertyId("caption");
 		container.setNullSelectionAllowed(false);
 		return container;
 	}
-
-	public class FolderDetailTableGenerator implements ColumnGenerator {
-		public static final String CHECKBOX = "checkbox";
-		public static final String FOLDER_ID = "id";
-		public static final String FOLDER = "folder";
-		public static final String RETENTION_RULE = "rule";
-		public static final String CATEGORY_CODE = "categoryCode";
-		public static final String SORT = "SORT";
-		public static final String MEDIUM = "medium";
-		public static final String CONTAINER = "container";
-		public static final String LINEAR_SIZE = "linearSize";
-		public static final String REMOVE = "remove";
-
-		private final boolean packageable;
-		private boolean displayRetentionRule;
-		private boolean displayCategory;
-		private boolean displaySort;
-
-		public FolderDetailTableGenerator(boolean packageable) {
-			this.packageable = packageable;
-			displayRetentionRule = false;
-			displayCategory = true;
-			displaySort = false;
-		}
-
-		public FolderDetailTableGenerator displayingRetentionRule(boolean displayRetentionRule) {
-			this.displayRetentionRule = displayRetentionRule;
-			return this;
-		}
-
-		public FolderDetailTableGenerator displayingCategory(boolean displayCategory) {
-			this.displayCategory = displayCategory;
-			return this;
-		}
-
-		public FolderDetailTableGenerator displayingSort(boolean displaySort) {
-			this.displaySort = displaySort;
-			return this;
-		}
-
-		public void attachTo(Table table) {
-			List<String> visibleColumns = new ArrayList<>();
-
-			if (packageable) {
-				table.addGeneratedColumn(CHECKBOX, this);
-				table.setColumnHeader(CHECKBOX, "");
-				table.setColumnAlignment(CHECKBOX, Align.CENTER);
-				visibleColumns.add(CHECKBOX);
-			}
-
-			table.addGeneratedColumn(FOLDER_ID, this);
-			table.setColumnHeader(FOLDER_ID, $("DecommissioningListView.folderDetails.id"));
-			visibleColumns.add(FOLDER_ID);
-
-			table.addGeneratedColumn(FOLDER, this);
-			table.setColumnHeader(FOLDER, $("DecommissioningListView.folderDetails.folder"));
-			table.setColumnExpandRatio(FOLDER, 1);
-			visibleColumns.add(FOLDER);
-
-			if (displaySort) {
-				table.addGeneratedColumn(SORT, this);
-				table.setColumnHeader(SORT, $("DecommissioningListView.sort." + presenter.getSortAction()));
-				table.setColumnAlignment(SORT, Align.CENTER);
-				visibleColumns.add(SORT);
-			}
-
-			if (displayRetentionRule) {
-				table.addGeneratedColumn(RETENTION_RULE, this);
-				table.setColumnHeader(RETENTION_RULE, $("DecommissioningListView.folderDetails.retentionRule"));
-				visibleColumns.add(RETENTION_RULE);
-			}
-
-			if (displayCategory) {
-				table.addGeneratedColumn(CATEGORY_CODE, this);
-				table.setColumnHeader(CATEGORY_CODE, $("DecommissioningListView.folderDetails.categoryCode"));
-				visibleColumns.add(CATEGORY_CODE);
-				table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
-			}
-
-			table.addGeneratedColumn(LINEAR_SIZE, this);
-			table.setColumnHeader(LINEAR_SIZE, $("folderLinearSize"));
-			visibleColumns.add(LINEAR_SIZE);
-
-			table.addGeneratedColumn(MEDIUM, this);
-			table.setColumnHeader(MEDIUM, $("DecommissioningListView.folderDetails.medium"));
-			visibleColumns.add(MEDIUM);
-
-			table.addGeneratedColumn(CONTAINER, this);
-			table.setColumnHeader(CONTAINER, $("DecommissioningListView.folderDetails.container"));
-			visibleColumns.add(CONTAINER);
-
-			if (presenter.isEditable()) {
-				table.addGeneratedColumn(REMOVE, this);
-				table.setColumnHeader(REMOVE, "");
-				visibleColumns.add(REMOVE);
-			}
-
-			table.setVisibleColumns(visibleColumns.toArray());
-		}
-
-		@Override
-		public Object generateCell(Table source, Object itemId, Object columnId) {
-			FolderDetailVO detail = (FolderDetailVO) itemId;
-
-			switch ((String) columnId) {
-			case CHECKBOX:
-				return buildCheckBox(detail);
-			case FOLDER_ID:
-				return new Label(detail.getFolderId());
-			case FOLDER:
-				return new ReferenceDisplay(detail.getFolderId());
-			case SORT:
-				return buildSort(detail);
-			case RETENTION_RULE:
-				return new ReferenceDisplay(detail.getRetentionRuleId());
-			case CATEGORY_CODE:
-				return new Label(detail.getCategoryCode());
-			case MEDIUM:
-				return new EnumWithSmallCodeDisplay<>(detail.getMediumType());
-			case CONTAINER:
-				return buildContainer(detail);
-			case LINEAR_SIZE:
-				return buildLinearSize(detail);
-			case REMOVE:
-				return buildRemove(detail);
-			}
-
-			return null;
-		}
-
-		private Component buildCheckBox(final FolderDetailVO detail) {
-			final CheckBox checkBox = new CheckBox();
-			checkBox.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					detail.setSelected(checkBox.getValue());
-				}
-			});
-			return checkBox;
-		}
-
-		private Component buildSort(FolderDetailVO detail) {
-			if (detail.isSortable()) {
-				return presenter.isEditable() ? buildSortCheckBox(detail) : buildSortDisplay(detail);
-			}
-			return null;
-		}
-
-		private Component buildSortCheckBox(final FolderDetailVO detail) {
-			final CheckBox checkBox = new CheckBox();
-			checkBox.setValue(detail.isReversedSort());
-			checkBox.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					presenter.folderSorted(detail, checkBox.getValue());
-				}
-			});
-			return checkBox;
-		}
-
-		private Component buildSortDisplay(FolderDetailVO detail) {
-			return new Label($(detail.isReversedSort() ? "yes" : "no"));
-		}
-
-		private Component buildLinearSize(final FolderDetailVO detail) {
-			if (detail.getMediumType() == FolderMediaType.ELECTRONIC || detail.getMediumType() == FolderMediaType.UNKNOWN) {
-				return null;
-			}
-
-			if (!(presenter.shouldAllowContainerEditing() && detail.isPackageable())) {
-				Double linearSize = presenter.getLinearSize(detail);
-				if (linearSize == null) {
-					return null;
-				}
-				return new Label(linearSize.toString());
-			}
-
-			final TextField linearSizeTextField = new TextField();
-			Double linearSize = detail.getLinearSize();
-			if (linearSize != null) {
-				linearSizeTextField.setValue(linearSize.toString());
-			}
-			linearSizeTextField.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					presenter.setFolderLinearSize(detail, linearSizeTextField.getValue());
-				}
-			});
-			return linearSizeTextField;
-		}
-
-		private Component buildContainer(final FolderDetailVO detail) {
-			if (detail.getMediumType() == FolderMediaType.ELECTRONIC) {
-				return null;
-			}
-
-			if (!(presenter.shouldAllowContainerEditing() && detail.isPackageable())) {
-				return new ReferenceDisplay(detail.getContainerRecordId());
-			}
-
-			final ComboBox container = buildContainerSelector();
-			String containerId = detail.getContainerRecordId();
-			if (containerId != null) {
-				for (Object containerVO : container.getItemIds()) {
-					if (((ContainerVO) containerVO).getId().equals(containerId)) {
-						container.setValue(containerVO);
-						break;
-					}
-				}
-			}
-			container.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					presenter.folderPlacedInContainer(detail, (ContainerVO) container.getValue());
-				}
-			});
-
-			return container;
-		}
-
-		private Component buildRemove(final FolderDetailVO detail) {
-			return new DeleteButton() {
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.folderRemoved(detail);
-				}
-			};
-		}
-	}
-
-	public class ContainerDetailTableGenerator implements ColumnGenerator {
-		public static final String IDENTIFIER = "identifier";
-		public static final String FULL = "full";
-
-		public void attachTo(Table table) {
-			table.addGeneratedColumn(IDENTIFIER, this);
-			table.setColumnHeader(IDENTIFIER, $("DecommissioningListView.containerDetails.id"));
-			table.setColumnExpandRatio(IDENTIFIER, 1);
-
-			table.addGeneratedColumn(FULL, this);
-			table.setColumnHeader(FULL, $("DecommissioningListView.containerDetails.full"));
-			table.setColumnAlignment(FULL, Align.CENTER);
-
-			table.setVisibleColumns(IDENTIFIER, FULL);
-		}
-
-		@Override
-		public Object generateCell(Table source, Object itemId, Object columnId) {
-			DecomListContainerDetail detail = (DecomListContainerDetail) itemId;
-
-			switch ((String) columnId) {
-			case IDENTIFIER:
-				return new ReferenceDisplay(detail.getContainerRecordId());
-			case FULL:
-				return presenter.isEditable() ? buildFullCheckBox(detail) : buildFullDisplay(detail);
-			}
-
-			return null;
-		}
-
-		private Component buildFullDisplay(DecomListContainerDetail detail) {
-			return new Label($(detail.isFull() ? "yes" : "no"));
-		}
-
-		private Component buildFullCheckBox(final DecomListContainerDetail detail) {
-			final CheckBox checkBox = new CheckBox();
-			checkBox.setValue(detail.isFull());
-			checkBox.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					presenter.containerStatusChanged(detail, checkBox.getValue());
-				}
-			});
-			return checkBox;
-		}
-	}
-
 }

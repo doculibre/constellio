@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.framework.buttons;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -34,7 +37,10 @@ public abstract class IconButton extends BaseButton {
 
 		if (iconOnly) {
 			addStyleName(ValoTheme.BUTTON_ICON_ONLY);
-			setIconAlternateText(caption);
+			if (StringUtils.isNotBlank(caption)) {
+				setIconAlternateText(caption);
+				addExtension(new NiceTitle(this, caption));
+			}
 		}
 	}
 

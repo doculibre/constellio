@@ -37,8 +37,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import sun.security.krb5.Config;
-
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
@@ -101,8 +99,8 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		services = new RecordValidationServices(configProvider, getModelLayerFactory().getMetadataSchemasManager(),
 				getModelLayerFactory().newSearchServices(), getModelLayerFactory().newAuthorizationsServices());
 
-		recordServices = getModelLayerFactory().newRecordServices();
-		recordProvider = getModelLayerFactory().newRecordServices().newRecordProvider(null, new Transaction());
+		recordServices = getModelLayerFactory().newCachelessRecordServices();
+		recordProvider = getModelLayerFactory().newCachelessRecordServices().newRecordProvider(null, new Transaction());
 
 	}
 

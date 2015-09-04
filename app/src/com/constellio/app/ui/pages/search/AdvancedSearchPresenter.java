@@ -25,13 +25,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportBuilderFactory;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_EmptyCondition;
@@ -39,6 +43,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -46,12 +51,13 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.google.common.base.Strings;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> {
 	String searchExpression;
 	String schemaTypeCode;
+
 	private transient LogicalSearchCondition condition;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
@@ -65,9 +71,23 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public AdvancedSearchPresenter forRequestParameters(String params) {
-		searchExpression = view.getSearchExpression();
-		schemaTypeCode = view.getSchemaType();
-		resetFacetSelection();
+		if (StringUtils.isNotBlank(params)) {
+			String[] parts = params.split("/", 2);
+			SavedSearch search = getSavedSearch(parts[1]);
+			searchExpression = search.getFreeTextSearch();
+			facetSelections.putAll(search.getSelectedFacets());
+			sortCriterion = search.getSortField();
+			sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+			schemaTypeCode = search.getSchemaFilter();
+
+			view.setSchemaType(schemaTypeCode);
+			view.setSearchExpression(searchExpression);
+			view.setSearchCriteria(search.getAdvancedSearch());
+		} else {
+			searchExpression = StringUtils.stripToNull(view.getSearchExpression());
+			resetFacetSelection();
+			schemaTypeCode = view.getSchemaType();
+		}
 		return this;
 	}
 
@@ -78,7 +98,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public boolean mustDisplayResults() {
-		if (Strings.isNullOrEmpty(schemaTypeCode)) {
+		if (StringUtils.isBlank(schemaTypeCode)) {
 			return false;
 		}
 		try {
@@ -127,7 +147,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas()) {
+		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas().sortAscTitle()) {
 			if (isBatchEditable(metadata)) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
@@ -178,9 +198,35 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public Boolean computeStatistics() {
-		if(schemaTypeCode != null && schemaTypeCode.equals(Folder.SCHEMA_TYPE)){
-			return true;
+		return schemaTypeCode != null && schemaTypeCode.equals(Folder.SCHEMA_TYPE);
+	}
+
+	@Override
+	public List<String> getSupportedReports() {
+		List<String> supportedReports = super.getSupportedReports();
+		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
+		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), view.getSchemaType());
+		supportedReports.addAll(userReports);
+		return supportedReports;
+	}
+
+	@Override
+	public ReportBuilderFactory getReport(String reportTitle) {
+		try {
+			return super.getReport(reportTitle);
+		} catch (UnknownReportRuntimeException e) {
+			/**/
+			return new SearchResultReportBuilderFactory(modelLayerFactory, view.getSelectedRecordIds(), view.getSchemaType(),
+					collection,
+					reportTitle, getCurrentUser(), getSearchQuery());
 		}
-		return false;
+	}
+
+	@Override
+	protected SavedSearch prepareSavedSearch(SavedSearch search) {
+		return search.setSearchType(AdvancedSearchView.SEARCH_TYPE)
+				.setSchemaFilter(schemaTypeCode)
+				.setFreeTextSearch(searchExpression)
+				.setAdvancedSearch(view.getSearchCriteria());
 	}
 }

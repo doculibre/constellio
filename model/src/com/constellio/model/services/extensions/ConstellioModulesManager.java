@@ -23,14 +23,13 @@ import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.collections.CollectionsListManager;
 
 public interface ConstellioModulesManager {
-
 	Module getInstalledModule(String module);
 
 	boolean isModuleEnabled(String collection, Module module);
 
-	List<Module> getInstalledModules();
+	List<? extends Module> getInstalledModules();
 
-	void enableModule(String code, Module module);
+	void enableModule(String collection, Module module);
 
 	List<String> getPermissionGroups(String collection);
 
@@ -40,5 +39,7 @@ public interface ConstellioModulesManager {
 
 	void installModule(Module module, CollectionsListManager collectionsListManager);
 
-	List<Module> getEnabledModules(String collection);
+	List<? extends Module> getEnabledModules(String collection);
+
+	public List<? extends Module> getAllModules();
 }

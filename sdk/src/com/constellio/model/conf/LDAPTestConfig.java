@@ -17,13 +17,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.conf;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.conf.ldap.*;
+import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.conf.ldap.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.RegexFilter;
+import com.constellio.sdk.SDKPasswords;
 import org.joda.time.Duration;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class LDAPTestConfig {
 
@@ -48,7 +50,7 @@ public class LDAPTestConfig {
 	}
 
 	public static String getPassword() {
-		return "t3stdocul!bre3";
+		return SDKPasswords.testLDAPServer();
 	}
 
 	public static String getUser() {
@@ -73,6 +75,11 @@ public class LDAPTestConfig {
 
 	public static LDAPServerConfiguration getLDAPServerConfigurationInactive() {
 		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false);
+	}
+
+	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(List<String> selectedCollectionsCodes){
+		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), null, getGroupBaseContextList(),
+				getUsersWithoutGroupsBaseContextList(), selectedCollectionsCodes);
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(){

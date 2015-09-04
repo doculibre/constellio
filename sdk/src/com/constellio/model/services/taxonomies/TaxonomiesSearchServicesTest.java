@@ -112,27 +112,6 @@ public class TaxonomiesSearchServicesTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetChildrenRecordThenDoLogicalSearchAndReturnResults()
-			throws Exception {
-
-		List<String> paths = asList("/collections/a/b", "/collections/c/b");
-
-		ArgumentCaptor<LogicalSearchQuery> query = ArgumentCaptor.forClass(LogicalSearchQuery.class);
-		SPEQueryResponse zeResponse = responseWith(theSearchResults);
-
-		when(searchServices.query(query.capture())).thenReturn(zeResponse);
-		when(zeTaxonomySchemaType1Record.get(Schemas.PATH)).thenReturn(paths);
-
-		List<Record> returnedRecords = services.getChildConcept(zeTaxonomySchemaType1Record, taxonomiesSearchOptions);
-		LogicalSearchCondition condition = query.getValue().getCondition();
-
-		assertThat(returnedRecords).isSameAs(theSearchResults);
-
-		assertThat(condition).isEqualTo(fromAllSchemasIn(condition.getCollection())
-				.where(Schemas.PARENT_PATH).isIn(paths).andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull());
-	}
-
-	@Test
 	public void whenCheckingIfHasNonTaxonomyRecordsInStructureThenUseCorrectSearchQuery()
 			throws Exception {
 

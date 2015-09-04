@@ -69,7 +69,7 @@ public class RecordToVOBuilder implements Serializable {
 			schemaVO = new MetadataSchemaToVOBuilder().build(schema, viewMode, sessionContext);
 		}
 
-		ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder();
+		ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 
 		List<MetadataValueVO> metadataValueVOs = new ArrayList<MetadataValueVO>();
 		for (MetadataVO metadataVO : schemaVO.getMetadatas()) {
@@ -78,7 +78,7 @@ public class RecordToVOBuilder implements Serializable {
 
 			Object recordVOValue = getValue(record, metadata);
 			if (recordVOValue instanceof Content) {
-				recordVOValue = contentVersionVOBuilder.build((Content) recordVOValue);
+				recordVOValue = contentVersionVOBuilder.build((Content) recordVOValue, sessionContext);
 			} else if (recordVOValue instanceof List) {
 				List<Object> listRecordVOValue = new ArrayList<Object>();
 				List<Object> listRecordValue = (List<Object>) recordVOValue;

@@ -30,6 +30,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.sdk.tests.ConstellioTest;
 
+//TODO remove this class
 public class BorrowingTest extends ConstellioTest {
 
 	@Mock User bob;
@@ -53,7 +54,7 @@ public class BorrowingTest extends ConstellioTest {
 		assertThat(borrowing.isDirty()).isFalse();
 
 		borrowing = new Borrowing();
-		borrowing.setBorrowingType(BorrowingType.FOLDER);
+		borrowing.setBorrowingType(BorrowingType.BORROW);
 		assertThat(borrowing.isDirty()).isTrue();
 
 		borrowing = new Borrowing();
@@ -78,7 +79,7 @@ public class BorrowingTest extends ConstellioTest {
 			throws Exception {
 
 		Borrowing borrowing = new Borrowing();
-		borrowing.setBorrowingType(BorrowingType.FOLDER);
+		borrowing.setBorrowingType(BorrowingType.BORROW);
 		borrowing.setBorrower(bob);
 		borrowing.setBorrowDateTime(nowDateTime);
 		borrowing.setReturnDateTime(nowDateTime.plusDays(1));

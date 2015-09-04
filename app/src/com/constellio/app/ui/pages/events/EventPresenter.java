@@ -48,6 +48,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -109,8 +110,8 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			voBuilder = new RecordToVOBuilder();
 		}
 		if (metadataCodes == null) {
-			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(schema(), getEventType());
-			schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, metadataCodes);
+			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
+			schemaVO = new MetadataSchemaToVOBuilder().build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes);
 		}
 		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
@@ -151,7 +152,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 							id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
 		case EVENTS_BY_USER:
 			if (eventType.equals(EventType.CURRENTLY_BORROWED_FOLDERS)) {
-				return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(currentUser, id);
+				return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersByUser(currentUser, id);
 			} else if (eventType.equals(EventType.LATE_BORROWED_FOLDERS)) {
 				return rmSchemasEventsServices().newFindLateBorrowedFoldersByUserAndDateRangeQuery(currentUser, id);
 			} else {
@@ -233,12 +234,19 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public void recordLinkClicked(MetadataValueVO metadataValue) {
 		String recordId = metadataValue.getValue().toString();
-		if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
-			view.navigateTo().displayDecommissioningList(recordId);
-		} else if (getEventType().contains("folder")) {
-			view.navigateTo().displayFolder(recordId);
-		} else {
-			view.navigateTo().displayDocument(recordId);
+		try {
+			recordServices().getDocumentById(recordId);
+			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
+				view.navigateTo().displayDecommissioningList(recordId);
+			} else if (getEventType().contains("folder")) {
+				view.navigateTo().displayFolder(recordId);
+			} else if (getEventType().contains("document")) {
+				view.navigateTo().displayDocument(recordId);
+			} else {
+				view.navigateTo().displayTask(recordId);
+			}
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			return;
 		}
 	}
 

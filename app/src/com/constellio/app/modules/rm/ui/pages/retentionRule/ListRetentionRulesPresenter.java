@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -31,6 +32,8 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -40,14 +43,14 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 
 	public ListRetentionRulesPresenter(ListRetentionRulesView view) {
 		super(view, RetentionRule.DEFAULT_SCHEMA);
-		schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE, view.getSessionContext());
+		schemaVO = new MetadataSchemaToVOBuilder().build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
 	public void viewAssembled() {
 		view.setDataProvider(new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				MetadataSchema schema = schema();
+				MetadataSchema schema = defaultSchema();
 				return new LogicalSearchQuery(from(schema).returnAll())
 						.filteredByStatus(StatusFilter.ACTIVES)
 						.sortAsc(schema.getMetadata(RetentionRule.CODE));
@@ -72,13 +75,29 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		Record record = getRecord(recordVO.getId());
-		delete(record, false);
-		view.navigateTo().listRetentionRules();
+		if (isDeletable(recordVO)) {
+			Record record = getRecord(recordVO.getId());
+			delete(record, false);
+			view.navigateTo().listRetentionRules();
+		} else {
+			view.showErrorMessage($("ListRetentionRulesView.cannotDelete"));
+		}
 	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+	}
+
+	@Override
+	public boolean isDeletable(RecordVO entity) {
+		RecordServices recordService = modelLayerFactory.newRecordServices();
+		Record record = getRecord(entity.getId());
+		User user = getCurrentUser();
+		return recordService.isLogicallyDeletable(record, user);
+	}
+
+	public String getDefaultOrderField() {
+		return Schemas.CODE.getLocalCode();
 	}
 }

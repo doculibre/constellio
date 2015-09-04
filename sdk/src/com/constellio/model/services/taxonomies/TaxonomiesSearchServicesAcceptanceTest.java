@@ -279,7 +279,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem1, options)).isEmpty();
 
-		List<Record> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
+		List<TaxonomySearchRecord> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
 				options);
 		assertThat(visibleChildConcept).hasSize(1);
 		assertThat(visibleChildConcept.get(0).getId()).isEqualTo(records.taxo1_firstTypeItem2_secondTypeItem2.getId());
@@ -298,10 +298,10 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem1, options)).isEmpty();
 
-		assertThat(services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2, options))
-				.containsOnly(records.taxo2_defaultSchemaItem2_customSchemaItem1,
-						records.taxo2_defaultSchemaItem2_customSchemaItem2,
-						records.taxo2_defaultSchemaItem2_defaultSchemaItem2);
+		assertThat(services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2, options)).containsOnly(
+				new TaxonomySearchRecord(records.taxo2_defaultSchemaItem2_customSchemaItem1, false, true),
+				new TaxonomySearchRecord(records.taxo2_defaultSchemaItem2_customSchemaItem2, false, true),
+				new TaxonomySearchRecord(records.taxo2_defaultSchemaItem2_defaultSchemaItem2, false, true));
 
 		visibleChildConcept = services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2_customSchemaItem1,
 				options);
@@ -315,10 +315,9 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 				services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2_defaultSchemaItem1,
 						options)).isEmpty();
 
-		assertThat(
-				services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2_defaultSchemaItem2,
-						options)).containsOnly(
-				records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2);
+		assertThat(services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2_defaultSchemaItem2,
+				options)).containsOnly(
+				new TaxonomySearchRecord(records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem2, false, true));
 
 		assertThat(
 				services.getVisibleChildConcept(bob, TAXO2, records.taxo2_defaultSchemaItem2_defaultSchemaItem2_customSchemaItem1,
@@ -342,7 +341,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem1, options)).isEmpty();
 
-		List<Record> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
+		List<TaxonomySearchRecord> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
 				options);
 		assertThat(visibleChildConcept).hasSize(1);
 		assertThat(visibleChildConcept.get(0).getId()).isEqualTo(records.taxo1_firstTypeItem2_secondTypeItem2.getId());
@@ -360,7 +359,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		bob = wrapUser(bob.getWrappedRecord());
 
-		List<Record> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
+		List<TaxonomySearchRecord> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
 				options);
 		assertThat(visibleChildConcept).hasSize(1);
 		assertThat(visibleChildConcept.get(0).getId()).isEqualTo(records.taxo1_firstTypeItem2_secondTypeItem2.getId());
@@ -429,9 +428,9 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		bob = wrapUser(bob.getWrappedRecord());
 
-		List<Record> taxonomy1RootRecords = services
+		List<TaxonomySearchRecord> taxonomy1RootRecords = services
 				.getVisibleRootConcept(bob, bob.getCollection(), "taxo1", options);
-		List<Record> taxonomy2RootRecords = services
+		List<TaxonomySearchRecord> taxonomy2RootRecords = services
 				.getVisibleRootConcept(bob, bob.getCollection(), "taxo2", options);
 
 		assertThat(taxonomy1RootRecords).hasSize(1);
@@ -453,7 +452,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		bob = wrapUser(bob.getWrappedRecord());
 
-		List<Record> taxonomy1RootRecords = services
+		List<TaxonomySearchRecord> taxonomy1RootRecords = services
 				.getVisibleRootConcept(bob, bob.getCollection(), "taxo1", options);
 
 		assertThat(taxonomy1RootRecords).hasSize(1);
@@ -468,9 +467,9 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		bob = wrapUser(bob.getWrappedRecord());
 
-		List<Record> taxonomy1RootRecords = services
+		List<TaxonomySearchRecord> taxonomy1RootRecords = services
 				.getVisibleRootConcept(bob, bob.getCollection(), "taxo1", options);
-		List<Record> taxonomy2RootRecords = services
+		List<TaxonomySearchRecord> taxonomy2RootRecords = services
 				.getVisibleRootConcept(bob, bob.getCollection(), "taxo2", options);
 
 		assertThat(taxonomy1RootRecords).hasSize(0);
@@ -508,7 +507,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem2);
+		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2);
 
 	}
 
@@ -526,7 +525,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem1);
+		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1);
 
 	}
 
@@ -544,7 +543,8 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem1, records.taxo1_firstTypeItem2);
+		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1,
+				records.taxo1_firstTypeItem2);
 
 	}
 
@@ -556,7 +556,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem2);
+		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2);
 
 	}
 
@@ -568,7 +568,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);
 
-		assertThat(taxonomy1RootRecords).containsOnly(records.taxo1_firstTypeItem1);
+		assertThat(taxonomy1RootRecords).usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem1);
 
 	}
 
@@ -585,8 +585,9 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
 				options);
 
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
-				records.taxo1_firstTypeItem2_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem2);
+		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
+				.containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
+						records.taxo1_firstTypeItem2_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem2);
 	}
 
 	@Test
@@ -603,8 +604,10 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
 				options);
 
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
-				recordToDelete, records.taxo1_firstTypeItem2_firstTypeItem2, records.taxo1_firstTypeItem2_secondTypeItem2);
+		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
+				.containsOnly(records.taxo1_firstTypeItem2_firstTypeItem1,
+						recordToDelete, records.taxo1_firstTypeItem2_firstTypeItem2,
+						records.taxo1_firstTypeItem2_secondTypeItem2);
 	}
 
 	@Test
@@ -621,7 +624,8 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		List<Record> taxonomy1FirstTypeItem2RecordChildren = services.getChildConcept(records.taxo1_firstTypeItem2,
 				options);
 
-		assertThat(taxonomy1FirstTypeItem2RecordChildren).containsOnly(recordToDelete);
+		assertThat(taxonomy1FirstTypeItem2RecordChildren).usingElementComparatorOnFields("id")
+				.usingElementComparatorOnFields("id").containsOnly(recordToDelete);
 	}
 
 	@Test
@@ -640,8 +644,9 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(taxonomy1FirstTypeItem2RecordChildren).hasSize(4);
 		assertThat(taxonomy1FirstTypeItem2RecordChildren)
-				.containsOnly(records.taxo1_firstTypeItem2_firstTypeItem2, records.taxo1_firstTypeItem2_firstTypeItem1,
-						records.taxo1_firstTypeItem2_secondTypeItem1, recordToDelete);
+				.usingElementComparatorOnFields("id").containsOnly(records.taxo1_firstTypeItem2_firstTypeItem2,
+				records.taxo1_firstTypeItem2_firstTypeItem1,
+				records.taxo1_firstTypeItem2_secondTypeItem1, recordToDelete);
 	}
 
 	@Test
@@ -659,6 +664,20 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 				options);
 
 		assertThat(taxonomy1FirstTypeItem2RecordChildren).hasSize(2);
+	}
+
+	@Test
+	public void givenDeletedRecordWhenCheckingIfHasNonTaxonomyRecordsWithDefaultRecordsSearchOptionsThenFalse()
+			throws Exception {
+		givenFoldersAndDocuments();
+
+		Record recordToDelete = records.taxo1_firstTypeItem2_secondTypeItem2;
+		givenAuthorizationsToChuck(recordToDelete);
+		recordServices.logicallyDelete(recordToDelete, chuck);
+		assertThat(recordToDelete.get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
+
+		options = new TaxonomiesSearchOptions();
+		assertThat(services.getVisibleChildConcept(chuck, TAXO1, records.taxo1_firstTypeItem2, options)).isEmpty();
 	}
 
 	@Test
@@ -755,7 +774,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		bob = wrapUser(bob.getWrappedRecord());
 
-		List<Record> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
+		List<TaxonomySearchRecord> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
 				options);
 		assertThat(visibleChildConcept).hasSize(0);
 	}
@@ -778,7 +797,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		options.setIncludeStatus(StatusFilter.ALL);
 
-		List<Record> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
+		List<TaxonomySearchRecord> visibleChildConcept = services.getVisibleChildConcept(bob, TAXO1, records.taxo1_firstTypeItem2,
 				options);
 		assertThat(visibleChildConcept).hasSize(1);
 		assertThat(visibleChildConcept.get(0).getId()).isEqualTo(records.taxo1_firstTypeItem2_secondTypeItem2.getId());
@@ -801,7 +820,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		bob = wrapUser(bob.getWrappedRecord());
 
-		List<Record> taxonomy1RootRecords = services
+		List<TaxonomySearchRecord> taxonomy1RootRecords = services
 				.getVisibleRootConcept(bob, bob.getCollection(), "taxo1", options);
 
 		assertThat(taxonomy1RootRecords).hasSize(0);
@@ -825,7 +844,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		bob = wrapUser(bob.getWrappedRecord());
 
 		options.setIncludeStatus(StatusFilter.ALL);
-		List<Record> taxonomy1RootRecords = services
+		List<TaxonomySearchRecord> taxonomy1RootRecords = services
 				.getVisibleRootConcept(bob, bob.getCollection(), "taxo1", options);
 
 		assertThat(taxonomy1RootRecords).hasSize(1);

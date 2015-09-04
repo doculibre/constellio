@@ -90,4 +90,8 @@ public class ReturnedMetadatasFilter {
 			return new ReturnedMetadatasFilter(acceptedFields);
 		}
 	}
+
+	public boolean isFullyLoaded() {
+		return acceptedFields == null && includeLargeText;
+	}
 }

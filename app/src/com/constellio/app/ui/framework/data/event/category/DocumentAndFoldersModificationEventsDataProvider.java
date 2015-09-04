@@ -79,10 +79,17 @@ public class DocumentAndFoldersModificationEventsDataProvider implements EventsC
 				.newFindModifiedDocumentsByDateRangeQuery(currentUser, startDate, endDate);
 		documentsModification.setValue((float) searchServices.getResultsCount(query));
 		events.add(documentsModification);
+
+		EventStatistics tasksModification = new EventStatistics();
+		tasksModification.setLabel($("ListEventsView.modifyTask"));
+		query = rmSchemasRecordsServices
+				.newFindEventByDateRangeQuery(currentUser, EventType.MODIFY_TASK, startDate, endDate);
+		tasksModification.setValue((float) searchServices.getResultsCount(query));
+		events.add(tasksModification);
 	}
 
 	public int size() {
-		return 2;
+		return 3;
 	}
 
 	@Override
@@ -97,16 +104,18 @@ public class DocumentAndFoldersModificationEventsDataProvider implements EventsC
 
 	@Override
 	public String getEventType(Integer index) {
-		if(index == 0){
+		if (index == 0) {
 			return EventType.MODIFY_FOLDER;
-		}else{
+		} else if (index == 1) {
 			return EventType.MODIFY_DOCUMENT;
+		} else {
+			return EventType.MODIFY_TASK;
 		}
 	}
 
 	@Override
 	public List<EventStatistics> getEvents() {
-		if (events == null){
+		if (events == null) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 			init(constellioFactories.getModelLayerFactory());
 		}

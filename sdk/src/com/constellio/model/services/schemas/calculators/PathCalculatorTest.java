@@ -18,10 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.schemas.calculators;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -57,7 +57,7 @@ public class PathCalculatorTest extends ConstellioTest {
 	@Test
 	public void givenPathsWhenCalculatingValueThenRightValueReturned()
 			throws Exception {
-		when(parameters.get(parentPathDependency)).thenReturn(Arrays.asList(path1, path2));
+		when(parameters.get(parentPathDependency)).thenReturn(asList(path1, path2));
 
 		List<String> calculatedValue = calculator.calculate(parameters);
 
@@ -65,11 +65,11 @@ public class PathCalculatorTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenNoPathsWhenCalculatingValueThenEmptyListReturned()
+	public void givenNoPathsWhenCalculatingValueThenPAthWithIdIsReturned()
 			throws Exception {
 		List<String> calculatedValue = calculator.calculate(parameters);
 
-		assertThat(calculatedValue).isEmpty();
+		assertThat(calculatedValue).isEqualTo(asList("/theId"));
 	}
 
 	@Test

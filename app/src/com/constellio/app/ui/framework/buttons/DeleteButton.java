@@ -24,7 +24,7 @@ import com.vaadin.server.ThemeResource;
 
 @SuppressWarnings("serial")
 public abstract class DeleteButton extends ConfirmDialogButton {
-	public static final Resource ICON_RESOURCE = new ThemeResource("images/commun/supprimer.gif");
+	public static final Resource ICON_RESOURCE = new ThemeResource("images/icons/actions/delete.png");
 	public static final String BUTTON_STYLE = "deleteLogically-button";
 	public static final String CAPTION = "delete";
 

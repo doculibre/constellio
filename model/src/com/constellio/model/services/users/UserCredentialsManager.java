@@ -41,6 +41,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.collections.CollectionsListManager;
 
 public class UserCredentialsManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -56,8 +57,12 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 
 	private List<String> usersWithServiceKey = new ArrayList<>();
 
-	public UserCredentialsManager(DataLayerFactory dataLayerFactory, ModelLayerConfiguration configuration) {
+	private CollectionsListManager collectionsListManager;
+
+	public UserCredentialsManager(DataLayerFactory dataLayerFactory, CollectionsListManager collectionsListManager,
+			ModelLayerConfiguration configuration) {
 		this.configManager = dataLayerFactory.getConfigManager();
+		this.collectionsListManager = collectionsListManager;
 		this.configuration = configuration;
 		this.backgroundThreadsManager = dataLayerFactory.getBackgroundThreadsManager();
 	}
@@ -68,7 +73,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 
 		Document document = configManager.getXML(USER_CREDENTIALS_CONFIG).getDocument();
 		UserCredentialsReader reader = newUserCredencialsReader(document);
-		cache = Collections.unmodifiableMap(reader.readAll());
+		cache = Collections.unmodifiableMap(reader.readAll(collectionsListManager.getCollections()));
 
 		Runnable removedTimedOutTokens = new Runnable() {
 			@Override
@@ -171,7 +176,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	public void onConfigUpdated(String configPath) {
 		Document document = configManager.getXML(USER_CREDENTIALS_CONFIG).getDocument();
 		UserCredentialsReader reader = newUserCredencialsReader(document);
-		cache = Collections.unmodifiableMap(reader.readAll());
+		cache = Collections.unmodifiableMap(reader.readAll(collectionsListManager.getCollections()));
 	}
 
 	DocumentAlteration newAddUpdateUserCredentialsDocumentAlteration(final UserCredential userCredential) {

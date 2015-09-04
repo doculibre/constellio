@@ -31,7 +31,6 @@ import com.constellio.app.ui.framework.containers.CollectionVOLazyContainer;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
-import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -41,8 +40,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
-public class CollectionManagementViewImpl extends BaseViewImpl implements CollectionManagementView,
-																		  CollectionsListManagerListener {
+public class CollectionManagementViewImpl extends BaseViewImpl
+		implements CollectionManagementView, CollectionsListManagerListener {
 	public static final String TABLE_STYLE_CODE = "seleniumTableStyle";
 	public static final String EDIT_BUTTON_STYLE = "seleniumEditButtonStyle";
 	public static final String DELETE_BUTTON_STYLE = "seleniumDeleteButtonStyle";
@@ -63,8 +62,6 @@ public class CollectionManagementViewImpl extends BaseViewImpl implements Collec
 		this.layout = new VerticalLayout();
 		layout.setSizeFull();
 		layout.setSpacing(true);
-		table = buildTable();
-		layout.addComponent(table);
 		Component addButton = new AddButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -74,16 +71,15 @@ public class CollectionManagementViewImpl extends BaseViewImpl implements Collec
 		addButton.addStyleName(ADD_BUTTON_STYLE);
 		layout.addComponent(addButton);
 		layout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
-
+		table = buildTable();
+		layout.addComponent(table);
 		return layout;
 	}
 
 	private Table buildTable() {
-		final CollectionVODataProvider dataProvider = presenter.getDataProvider();
-		Container container = new CollectionVOLazyContainer(dataProvider);
-		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
-		addButtons(dataProvider, buttonsContainer);
-		container = buttonsContainer;
+		CollectionVODataProvider dataProvider = presenter.getDataProvider();
+		ButtonsContainer container = new ButtonsContainer<>(new CollectionVOLazyContainer(dataProvider), PROPERTY_BUTTONS);
+		addButtons(dataProvider, container);
 
 		RecordVOTable table = new RecordVOTable($(""), container);
 		table.setColumnHeader(CollectionVOLazyContainer.CODE, $("code"));

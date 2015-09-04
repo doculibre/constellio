@@ -24,32 +24,35 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
 
 public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> {
 
+	private String collection;
+
 	private String taxonomyCode;
 
-	private int rootObjectsCount = -1;
+	private Map<String, String> parentCache = new HashMap<>();
 
-	private Map<String, Integer> childrenCounts = new HashMap<String, Integer>();
-
-	private Map<String, String> parentCache = new HashMap<String, String>();
+	private Map<String, RecordDataTreeNode> nodesCache = new HashMap<>();
 
 	public RecordLazyTreeDataProvider(String taxonomyCode) {
 		super();
 		this.taxonomyCode = taxonomyCode;
+
 	}
 
 	public final String getTaxonomyCode() {
@@ -57,49 +60,27 @@ public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> 
 	}
 
 	@Override
-	public int getRootObjectsCount() {
-		if (rootObjectsCount == -1) {
-			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-			String currentCollection = sessionContext.getCurrentCollection();
-			UserVO currentUserVO = sessionContext.getCurrentUser();
-
-			ConstellioFactories constellioFactories = getInstance();
-			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-
-			TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-			UserServices userServices = modelLayerFactory.newUserServices();
-
-			User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
-
-			SPEQueryResponse response = taxonomiesSearchServices
-					.getVisibleRootConceptResponse(currentUser, currentCollection, taxonomyCode, new TaxonomiesSearchOptions());
-			rootObjectsCount = new Long(response.getNumFound()).intValue();
-		}
-		return rootObjectsCount;
+	public String getCaption(String id) {
+		return getNode(id).getCaption();
 	}
 
 	@Override
-	public List<String> getRootObjects(int start, int maxSize) {
-		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-		String currentCollection = sessionContext.getCurrentCollection();
-		UserVO currentUserVO = sessionContext.getCurrentUser();
+	public ObjectsResponse<String> getRootObjects(int start, int maxSize) {
 
-		ConstellioFactories constellioFactories = getInstance();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-		UserServices userServices = modelLayerFactory.newUserServices();
+		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
+		User currentUser = getCurrentUser(modelLayerFactory);
 
-		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
+		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxSize, start, StatusFilter.ACTIVES);
+		LinkableTaxonomySearchResponse response = modelLayerFactory.newTaxonomiesSearchService().getVisibleRootConceptResponse(
+				currentUser, currentUser.getCollection(), taxonomyCode, taxonomiesSearchOptions);
 
-		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxSize, start, null);
-		List<Record> matches = taxonomiesSearchServices.getVisibleRootConcept(currentUser, currentCollection,
-				taxonomyCode, taxonomiesSearchOptions);
-		List<String> recordIds = new ArrayList<String>();
-		for (Record match : matches) {
-			String recordId = match.getId();
-			recordIds.add(recordId);
+		List<String> recordIds = new ArrayList<>();
+		for (TaxonomySearchRecord searchRecord : response.getRecords()) {
+			RecordDataTreeNode node = toTreeNode(searchRecord);
+			nodesCache.put(searchRecord.getId(), node);
+			recordIds.add(searchRecord.getId());
 		}
-		return recordIds;
+		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 
 	@Override
@@ -108,66 +89,62 @@ public class RecordLazyTreeDataProvider implements LazyTreeDataProvider<String> 
 	}
 
 	@Override
-	public int getChildrenCount(String parent) {
-		Integer childrenCount = childrenCounts.get(parent);
-		if (childrenCounts.get(parent) == null) {
-			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-			String currentCollection = sessionContext.getCurrentCollection();
-			UserVO currentUserVO = sessionContext.getCurrentUser();
+	public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
 
-			ConstellioFactories constellioFactories = getInstance();
-			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-			TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-			UserServices userServices = modelLayerFactory.newUserServices();
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
+		ModelLayerFactory modelLayerFactory = getInstance().getModelLayerFactory();
+		User currentUser = getCurrentUser(modelLayerFactory);
+		Record record = getRecord(modelLayerFactory, parent);
 
-			User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
-			Record record = recordServices.getDocumentById(parent);
+		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxSize, start, StatusFilter.ACTIVES);
+		LinkableTaxonomySearchResponse response = modelLayerFactory.newTaxonomiesSearchService()
+				.getVisibleChildConceptResponse(currentUser, taxonomyCode, record, taxonomiesSearchOptions);
 
-			SPEQueryResponse response = taxonomiesSearchServices.getVisibleChildConceptResponse(currentUser, taxonomyCode,
-					record, new TaxonomiesSearchOptions());
-			childrenCount = new Long(response.getNumFound()).intValue();
-			childrenCounts.put(parent, childrenCount);
+		List<String> recordIds = new ArrayList<>();
+		for (TaxonomySearchRecord searchRecord : response.getRecords()) {
+			RecordDataTreeNode node = toTreeNode(searchRecord);
+			nodesCache.put(searchRecord.getId(), node);
+			recordIds.add(searchRecord.getId());
+			parentCache.put(searchRecord.getId(), parent);
 		}
-		return childrenCount;
+		return new ObjectsResponse<>(recordIds, response.getNumFound());
 	}
 
-	@Override
-	public List<String> getChildren(String parent, int start, int maxSize) {
+	private User getCurrentUser(ModelLayerFactory modelLayerFactory) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String currentCollection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
-
-		ConstellioFactories constellioFactories = getInstance();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		TaxonomiesSearchServices taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		UserServices userServices = modelLayerFactory.newUserServices();
+
+		return userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
+	}
+
+	private Record getRecord(ModelLayerFactory modelLayerFactory, String id) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), currentCollection);
-		Record record = recordServices.getDocumentById(parent);
+		return recordServices.getDocumentById(id);
+	}
 
-		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxSize, start, null);
-		List<Record> matches = taxonomiesSearchServices
-				.getVisibleChildConcept(currentUser, taxonomyCode, record, taxonomiesSearchOptions);
+	private RecordDataTreeNode toTreeNode(TaxonomySearchRecord searchRecord) {
+		Record record = searchRecord.getRecord();
+		String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		String caption = SchemaCaptionUtils.getCaptionForRecord(searchRecord.getRecord());
 
-		List<String> recordIds = new ArrayList<String>();
-		for (Record match : matches) {
-			String recordId = match.getId();
-			recordIds.add(recordId);
-			parentCache.put(recordId, parent);
-		}
-		return recordIds;
+		return new RecordDataTreeNode(searchRecord.getId(), caption, schemaType, searchRecord.hasChildren());
 	}
 
 	@Override
-	public boolean hasChildren(String parent) {
-		return getChildrenCount(parent) > 0;
+	public boolean hasChildren(String parentId) {
+		RecordDataTreeNode parent = nodesCache.get(parentId);
+		return parent.hasChildren();
 	}
 
 	@Override
-	public boolean isLeaf(String object) {
-		return !hasChildren(object);
+	public boolean isLeaf(String parentId) {
+		RecordDataTreeNode parent = nodesCache.get(parentId);
+		return !parent.hasChildren();
 	}
 
+	public RecordDataTreeNode getNode(String id) {
+		return nodesCache.get(id);
+	}
 }

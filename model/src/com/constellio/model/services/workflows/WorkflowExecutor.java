@@ -24,7 +24,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Task;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -34,7 +34,6 @@ import com.constellio.model.entities.workflows.definitions.WorkflowDefinition;
 import com.constellio.model.entities.workflows.definitions.WorkflowRouting;
 import com.constellio.model.entities.workflows.definitions.WorkflowRoutingDestination;
 import com.constellio.model.entities.workflows.definitions.WorkflowServiceTask;
-import com.constellio.model.entities.workflows.definitions.WorkflowTask;
 import com.constellio.model.entities.workflows.definitions.WorkflowUserTask;
 import com.constellio.model.entities.workflows.execution.WorkflowExecution;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -82,7 +81,7 @@ public class WorkflowExecutor {
 	public void handleWaitingWorkflow(WorkflowExecution workflowExecution, WorkflowDefinition workflowDefinition) {
 
 		String currentTaskId = workflowExecution.getCurrentTaskId();
-		WorkflowTask task = workflowDefinition.getTask(currentTaskId);
+		com.constellio.model.entities.workflows.definitions.WorkflowTask task = workflowDefinition.getTask(currentTaskId);
 		if (WorkflowRoutingDestination.DESTINATION_END.equals(currentTaskId)) {
 			workflowExecutionService.remove(workflowExecution);
 
@@ -125,7 +124,7 @@ public class WorkflowExecutor {
 		MetadataSchema schema = types.getSchema(userTask.getTaskSchema());
 
 		Record newTaskRecord = recordServices.newRecordWithSchema(schema);
-		Task task = taskServices.newRelativeTask(newTaskRecord, types);
+		WorkflowTask task = taskServices.newRelativeTask(newTaskRecord, types);
 		fillTaskMetadatas(task, userTask, schema, workflowExecution);
 
 		Transaction transaction = new Transaction(newTaskRecord).setSkippingRequiredValuesValidation(true);
@@ -137,7 +136,7 @@ public class WorkflowExecutor {
 
 	}
 
-	public void fillTaskMetadatas(Task newTask, WorkflowUserTask userTask, MetadataSchema schema,
+	public void fillTaskMetadatas(WorkflowTask newTask, WorkflowUserTask userTask, MetadataSchema schema,
 			WorkflowExecution workflowExecution) {
 
 		setAssignCandidates(newTask, userTask.getUserSelector(), workflowExecution);
@@ -150,17 +149,17 @@ public class WorkflowExecutor {
 
 	}
 
-	public void setAssignCandidates(Task newTask, AllUsersSelector userSelector, WorkflowExecution execution) {
+	public void setAssignCandidates(WorkflowTask newTask, AllUsersSelector userSelector, WorkflowExecution execution) {
 		List<String> userIds = new RecordUtils()
 				.toWrappedRecordIdsList(userSelector.getCandidateUsers(execution, modelLayerFactory));
 		newTask.setAssignCandidates(userIds);
 	}
 
-	public void setDueDate(Task newTask, int dueDateInDays) {
+	public void setDueDate(WorkflowTask newTask, int dueDateInDays) {
 		newTask.setDueDate(new LocalDateTime().plusDays(dueDateInDays));
 	}
 
-	public void setMetadataBasedOnBPMNFields(Task newTask, BPMNProperty bpmnField, MetadataSchema schema,
+	public void setMetadataBasedOnBPMNFields(WorkflowTask newTask, BPMNProperty bpmnField, MetadataSchema schema,
 			WorkflowExecution workflowExecution) {
 		Metadata propertyMetadata = schema.getMetadata(bpmnField.getFieldId());
 		if (bpmnField.getExpressionValue() != null) {

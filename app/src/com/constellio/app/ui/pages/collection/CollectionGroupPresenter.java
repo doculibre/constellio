@@ -60,7 +60,7 @@ public class CollectionGroupPresenter extends SingleSchemaBasePresenter<Collecti
 	}
 
 	public void authorizationsButtonClicked() {
-		view.navigateTo().listPrincipalAuthorizations(recordId);
+		view.navigateTo().listPrincipalAccessAuthorizations(recordId);
 	}
 
 	public void rolesButtonClicked() {

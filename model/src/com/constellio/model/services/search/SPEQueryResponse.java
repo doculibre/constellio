@@ -17,16 +17,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.search;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.DataStoreField;
 
 public class SPEQueryResponse {
 
-	private final Map<DataStoreField, List<FacetValue>> fieldFacetValues;
-	private final Map<DataStoreField, Map<String, Object>> statisticsValues;
+	private final Map<String, List<FacetValue>> fieldFacetValues;
+	private final Map<String, Map<String, Object>> statisticsValues;
 
 	private final Map<String, Integer> queryFacetsValues;
 
@@ -54,7 +57,8 @@ public class SPEQueryResponse {
 	}
 
 	public SPEQueryResponse(
-			Map<DataStoreField, List<FacetValue>> fieldFacetValues, Map<DataStoreField, Map<String, Object>> statisticsValues, Map<String, Integer> queryFacetsValues, long qtime,
+			Map<String, List<FacetValue>> fieldFacetValues, Map<String, Map<String, Object>> statisticsValues,
+			Map<String, Integer> queryFacetsValues, long qtime,
 			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
 			List<String> spellcheckerSuggestions) {
 		this.fieldFacetValues = fieldFacetValues;
@@ -68,11 +72,15 @@ public class SPEQueryResponse {
 		this.spellcheckerSuggestions = spellcheckerSuggestions;
 	}
 
-	public List<FacetValue> getFieldFacetValues(DataStoreField metadata) {
-		return getFieldFacetValues(metadata);
+	public List<FacetValue> getFieldFacetValues(String metadata) {
+		if (fieldFacetValues.containsKey(metadata)) {
+			return fieldFacetValues.get(metadata);
+		} else {
+			return Collections.emptyList();
+		}
 	}
 
-	public Map<String, Object> getStatValues(DataStoreField metadata) {
+	public Map<String, Object> getStatValues(String metadata) {
 		return this.statisticsValues.get(metadata);
 	}
 
@@ -80,7 +88,7 @@ public class SPEQueryResponse {
 		return queryFacetsValues.get(query);
 	}
 
-	public List<String> getFieldFacetValuesWithResults(DataStoreField field) {
+	public List<String> getFieldFacetValuesWithResults(String field) {
 		List<String> values = new ArrayList<>();
 
 		for (FacetValue facetValue : getFieldFacetValues(field)) {
@@ -104,7 +112,23 @@ public class SPEQueryResponse {
 		return numFound;
 	}
 
-	public Map<DataStoreField, List<FacetValue>> getFieldFacetValues() {
+	public FacetValue getQueryFacetValue(String value) {
+		int count = !queryFacetsValues.containsKey(value) ? 0 : queryFacetsValues.get(value);
+		return new FacetValue(value, count);
+	}
+
+	public FacetValue getFieldFacetValue(String datastoreCode, String value) {
+		if (fieldFacetValues.containsKey(datastoreCode)) {
+			for (FacetValue facetValue : getFieldFacetValues(datastoreCode)) {
+				if (facetValue.getValue().equals(value)) {
+					return facetValue;
+				}
+			}
+		}
+		return null;
+	}
+
+	public Map<String, List<FacetValue>> getFieldFacetValues() {
 		return fieldFacetValues;
 	}
 
@@ -113,12 +137,14 @@ public class SPEQueryResponse {
 	}
 
 	public SPEQueryResponse withModifiedRecordList(List<Record> records) {
-		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelt,
+		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null,
+				correctlySpelt,
 				spellcheckerSuggestions);
 	}
 
 	public SPEQueryResponse withNumFound(int numFound) {
-		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null, correctlySpelt,
+		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null,
+				correctlySpelt,
 				spellcheckerSuggestions);
 	}
 
@@ -134,4 +160,11 @@ public class SPEQueryResponse {
 		return spellcheckerSuggestions;
 	}
 
+	public Map<String, List<String>> getHighlighting(String recordId) {
+		if (highlights == null) {
+			return Collections.emptyMap();
+		} else {
+			return highlights.get(recordId);
+		}
+	}
 }

@@ -19,6 +19,7 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.naming.ldap.LdapContext;
@@ -118,4 +119,7 @@ public class LDAPConfigManagementPresenter extends
 		return userServices().has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP);
 	}
 
+	public List<String> getAllCollections() {
+		return appLayerFactory.getCollectionsManager().getCollectionCodes();
+	}
 }

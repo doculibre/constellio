@@ -97,7 +97,6 @@ public class FilingSpaceWithContainersCountContainer extends ContainerAdapter {
 						collection, modelLayerFactory);
 				ContainerSearchParameters parameters = new ContainerSearchParameters();
 				parameters.setAdminUnitId(adminUnitId);
-				parameters.setFilingSpaceId(recordVO.getId());
 				if (tabName.startsWith(DEPOSIT_PREFIX)) {
 					parameters.setType(DecommissioningType.DEPOSIT);
 				} else if (tabName.startsWith(TRANSFER_PREFIX)) {

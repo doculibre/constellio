@@ -24,6 +24,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class SchemaFilters extends CollectionFilters implements DataStoreFilters {
 
@@ -40,7 +41,6 @@ public class SchemaFilters extends CollectionFilters implements DataStoreFilters
 	public SchemaFilters(MetadataSchema schema) {
 		super(schema.getCollection(), false);
 		this.schema = schema;
-		this.schemaType = null;
 	}
 
 	@Override
@@ -54,8 +54,13 @@ public class SchemaFilters extends CollectionFilters implements DataStoreFilters
 		return filters;
 	}
 
+	@Deprecated
 	public MetadataSchema getSchema() {
 		return schema;
+	}
+
+	public String getSchemaType() {
+		return new SchemaUtils().getSchemaTypeCode(schema.getCode());
 	}
 
 	@Override

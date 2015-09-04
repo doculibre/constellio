@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.security.roles;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.model.entities.records.wrappers.User;
@@ -71,4 +72,13 @@ public class Roles {
 		return null;
 	}
 
+	public List<Role> getRolesGivingPermission(String permission) {
+		List<Role> returnedRoles = new ArrayList<>();
+		for (Role role : roles) {
+			if (role.getOperationPermissions().contains(permission)) {
+				returnedRoles.add(role);
+			}
+		}
+		return returnedRoles;
+	}
 }

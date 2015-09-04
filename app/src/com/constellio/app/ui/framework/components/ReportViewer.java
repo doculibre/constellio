@@ -24,8 +24,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;

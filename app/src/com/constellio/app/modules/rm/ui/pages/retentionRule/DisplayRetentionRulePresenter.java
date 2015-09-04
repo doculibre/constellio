@@ -24,10 +24,12 @@ import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServices;
 
 public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<DisplayRetentionRuleView> {
 	private RetentionRuleVO retentionRuleVO;
@@ -70,5 +72,13 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	public String getFoldersNumber() {
 		return String.valueOf(decommissioningService.getFoldersForRetentionRule(retentionRuleVO.getId()).size());
+	}
+
+	@Override
+	public boolean isDeletable(RecordVO entity) {
+		RecordServices recordService = modelLayerFactory.newRecordServices();
+		Record record = getRecord(entity.getId());
+		User user = getCurrentUser();
+		return recordService.isLogicallyDeletable(record, user);
 	}
 }

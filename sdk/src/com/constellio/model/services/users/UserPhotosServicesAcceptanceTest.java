@@ -105,19 +105,22 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 		services.addLogFile("zeUser", secondLogInputStream());
 		services.addLogFile("anotherUser", thirdLogInputStream());
 
-		assertThat(services.getUserLogs("zeUser")).containsOnly(shishOClock.toString(), hearthstoneOClock.toString());
-		assertThat(services.getUserLogs("anotherUser")).containsOnly(hearthstoneOClock.toString());
-		assertThat(services.newUserLogInputStream("zeUser", shishOClock.toString(), SDK_STREAM))
+		assertThat(services.getUserLogs("zeUser")).containsOnly(shishOClock.toString(UserPhotosServices.DATE_PATTERN),
+				hearthstoneOClock.toString(UserPhotosServices.DATE_PATTERN));
+		assertThat(services.getUserLogs("anotherUser")).containsOnly(hearthstoneOClock.toString(UserPhotosServices.DATE_PATTERN));
+		assertThat(services.newUserLogInputStream("zeUser", shishOClock.toString(UserPhotosServices.DATE_PATTERN), SDK_STREAM))
 				.hasContentEqualTo(firstLogInputStream());
-		assertThat(services.newUserLogInputStream("zeUser", hearthstoneOClock.toString(), SDK_STREAM))
+		assertThat(
+				services.newUserLogInputStream("zeUser", hearthstoneOClock.toString(UserPhotosServices.DATE_PATTERN), SDK_STREAM))
 				.hasContentEqualTo(secondLogInputStream());
-		assertThat(services.newUserLogInputStream("anotherUser", hearthstoneOClock.toString(), SDK_STREAM))
+		assertThat(services.newUserLogInputStream("anotherUser", hearthstoneOClock.toString(UserPhotosServices.DATE_PATTERN),
+				SDK_STREAM))
 				.hasContentEqualTo(thirdLogInputStream());
 
-		services.deleteUserLog("zeUser", hearthstoneOClock.toString());
+		services.deleteUserLog("zeUser", hearthstoneOClock.toString(UserPhotosServices.DATE_PATTERN));
 
-		assertThat(services.getUserLogs("zeUser")).containsOnly(shishOClock.toString());
-		assertThat(services.getUserLogs("anotherUser")).containsOnly(hearthstoneOClock.toString());
+		assertThat(services.getUserLogs("zeUser")).containsOnly(shishOClock.toString(UserPhotosServices.DATE_PATTERN));
+		assertThat(services.getUserLogs("anotherUser")).containsOnly(hearthstoneOClock.toString(UserPhotosServices.DATE_PATTERN));
 
 	}
 
@@ -152,9 +155,12 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 		zipService.unzip(zipFile, tempUnzipFolder);
 
 		assertThat(tempUnzipFolder.list()).containsOnly(
-				shishOClock.toString() + ".zip", hearthstoneOClock.toString() + ".zip");
-		assertThat(new File(tempUnzipFolder, shishOClock.toString() + ".zip")).hasContentEqualTo(firstLogFile());
-		assertThat(new File(tempUnzipFolder, hearthstoneOClock.toString() + ".zip")).hasContentEqualTo(secondLogFile());
+				shishOClock.toString(UserPhotosServices.DATE_PATTERN) + ".zip",
+				hearthstoneOClock.toString(UserPhotosServices.DATE_PATTERN) + ".zip");
+		assertThat(new File(tempUnzipFolder, shishOClock.toString(UserPhotosServices.DATE_PATTERN) + ".zip"))
+				.hasContentEqualTo(firstLogFile());
+		assertThat(new File(tempUnzipFolder, hearthstoneOClock.toString(UserPhotosServices.DATE_PATTERN) + ".zip"))
+				.hasContentEqualTo(secondLogFile());
 
 	}
 

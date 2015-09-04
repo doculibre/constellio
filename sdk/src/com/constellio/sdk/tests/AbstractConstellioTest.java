@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptionsSystemProperties;
 import com.constellio.app.client.services.AdminServicesSession;
+import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -121,6 +122,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Map<String, String> sdkProperties = new HashMap<String, String>();
 
 	protected String zeCollection = "zeCollection";
+	protected String businessCollection = "LaCollectionDeRida";
 	protected String admin = "admin";
 	protected String aliceWonderland = "alice";
 	protected String bobGratton = "bob";
@@ -159,6 +161,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		if (System.getProperty(BenchmarkOptionsSystemProperties.CHARTS_DIR_PROPERTY) == null) {
 			System.setProperty(BenchmarkOptionsSystemProperties.CHARTS_DIR_PROPERTY, "benckmarks/charts");
 		}
+	}
+
+	protected void givenBackgroundThreadsEnabled() {
+		getCurrentTestSession().getFactoriesTestFeatures().givenBackgroundThreadsEnabled();
 	}
 
 	protected void givenSystemLanguageIs(String languageCode) {
@@ -699,6 +705,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());
 	}
 
+	protected void waitForBatchProcessAcceptingErrors()
+			throws InterruptedException {
+		ensureNotUnitTest();
+		getCurrentTestSession().getBatchProcessTestFeature().waitForAllBatchProcessesAcceptingErrors(null);
+	}
+
 	protected void waitForBatchProcess()
 			throws InterruptedException {
 		ensureNotUnitTest();
@@ -981,6 +993,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				if (preparator.modules.contains(ConstellioRMModule.ID)) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioRMModule();
 				}
+				if (preparator.modules.contains(ConstellioESModule.ID)) {
+					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioESModule();
+				}
 
 				ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 				if (preparator.allTestUsers) {
@@ -1025,6 +1040,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 					throw new RuntimeException(e);
 				}
 
+				//Reindexing doesn't improve test performance, but maybe one day it will
+				//getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
+
 				SystemStateExportParams params = new SystemStateExportParams().setExportAllContent();
 				new SystemStateExporter(getModelLayerFactory()).exportSystemToFile(stateFile, params);
 			}
@@ -1055,6 +1073,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		public CollectionPreparator withConstellioRMModule() {
 			modules.add(ConstellioRMModule.ID);
+			Collections.sort(modules);
+			return this;
+		}
+
+		public CollectionPreparator withConstellioESModule() {
+			modules.add(ConstellioESModule.ID);
 			Collections.sort(modules);
 			return this;
 		}

@@ -33,6 +33,7 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -48,8 +49,6 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String ANALOGICAL_MEDIUM = "analogicalMedium";
 	public static final String ELECTRONIC_MEDIUM = "electronicMedium";
-	public static final String VALIDATION_DATE = "validationDate";
-	public static final String VALIDATION_USER = "validationUser";
 	public static final String APPROVAL_REQUEST_DATE = "approvalRequestDate";
 	public static final String APPROVAL_REQUEST = "approvalRequest";
 	public static final String APPROVAL_DATE = "approvalDate";
@@ -68,8 +67,13 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String UNIFORM_RULE = "uniformRule";
 	public static final String UNIFORM = "uniform";
 	public static final String ORIGIN_ARCHIVISTIC_STATUS = "originArchivisticStatus";
-
+	public static final String VALIDATIONS = "validations";
+	public static final String PENDING_VALIDATIONS = "pendingValidations";
 	public static final String COMMENTS = "comments";
+
+	// Disabled fields
+	public static final String VALIDATION_DATE = "validationDate";    // never used, disabled in 5.1.0
+	public static final String VALIDATION_USER = "validationUser";    // never used, disabled in 5.1.0
 
 	public DecommissioningList(Record record,
 			MetadataSchemaTypes types) {
@@ -141,49 +145,44 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
-	//ValidationDate
-	public LocalDate getValidationDate() {
-		return get(VALIDATION_DATE);
+	//Validations
+	public List<DecomListValidation> getValidations() {
+		return getList(VALIDATIONS);
 	}
 
-	public DecommissioningList setValidationDate(String validationDate) {
-		set(VALIDATION_DATE, validationDate);
+	public DecommissioningList setValidations(List<DecomListValidation> validations) {
+		set(VALIDATIONS, validations);
 		return this;
 	}
 
-	public DecommissioningList setValidationDate(LocalDate validationDate) {
-		set(VALIDATION_DATE, validationDate);
-		return this;
+	public DecommissioningList addValidationRequest(String userId, LocalDate requestDate) {
+		List<DecomListValidation> validations = new ArrayList<>(getValidations());
+		validations.add(new DecomListValidation(userId, requestDate));
+		return setValidations(validations);
 	}
 
-	//validationUser
-	public String getValidationUser() {
-		return get(VALIDATION_USER);
+	public DecommissioningList addValidationRequest(User user, LocalDate requestDate) {
+		return addValidationRequest(user.getId(), requestDate);
 	}
 
-	public DecommissioningList setValidationUser(String validationUser) {
-		set(VALIDATION_USER, validationUser);
-		return this;
+	public DecomListValidation getValidationFor(String userId) {
+		for (DecomListValidation validation : getValidations()) {
+			if (validation.getUserId().equals(userId)) {
+				return validation;
+			}
+		}
+		return null;
 	}
 
-	public DecommissioningList setValidationUser(Record validationUser) {
-		set(VALIDATION_USER, validationUser);
-		return this;
-	}
-
-	public DecommissioningList setValidationUser(User validationUser) {
-		set(VALIDATION_USER, validationUser);
-		return this;
+	public DecommissioningList removeValidationRequest(DecomListValidation validation) {
+		List<DecomListValidation> validations = new ArrayList<>(getValidations());
+		validations.remove(validation);
+		return setValidations(validations);
 	}
 
 	//ApprovalRequestDate
 	public LocalDate getApprovalRequestDate() {
 		return get(APPROVAL_REQUEST_DATE);
-	}
-
-	public DecommissioningList setApprovalRequestDate(String approvalRequestDate) {
-		set(APPROVAL_REQUEST_DATE, approvalRequestDate);
-		return this;
 	}
 
 	public DecommissioningList setApprovalRequestDate(LocalDate approvalRequestDate) {
@@ -216,11 +215,6 @@ public class DecommissioningList extends RecordWrapper {
 		return get(APPROVAL_DATE);
 	}
 
-	public DecommissioningList setApprovalDate(String approvalDate) {
-		set(APPROVAL_DATE, approvalDate);
-		return this;
-	}
-
 	public DecommissioningList setApprovalDate(LocalDate approvalDate) {
 		set(APPROVAL_DATE, approvalDate);
 		return this;
@@ -249,11 +243,6 @@ public class DecommissioningList extends RecordWrapper {
 	//ProcessingDate
 	public LocalDate getProcessingDate() {
 		return get(PROCESSING_DATE);
-	}
-
-	public DecommissioningList setProcessingDate(String processingDate) {
-		set(PROCESSING_DATE, processingDate);
-		return this;
 	}
 
 	public DecommissioningList setProcessingDate(LocalDate approvalDate) {
@@ -322,8 +311,7 @@ public class DecommissioningList extends RecordWrapper {
 		for (String folder : folders) {
 			details.add(new DecomListFolderDetail(folder));
 		}
-		setFolderDetails(details);
-		return this;
+		return setFolderDetails(details);
 	}
 
 	public DecommissioningList removeFolderDetail(String folderId) {
@@ -333,8 +321,7 @@ public class DecommissioningList extends RecordWrapper {
 				details.add(detail);
 			}
 		}
-		setFolderDetails(details);
-		return this;
+		return setFolderDetails(details);
 	}
 
 	public DecommissioningList setFolderDetailsFrom(List<Folder> folders) {
@@ -364,8 +351,7 @@ public class DecommissioningList extends RecordWrapper {
 		for (String container : containers) {
 			details.add(new DecomListContainerDetail(container));
 		}
-		setContainerDetails(details);
-		return this;
+		return setContainerDetails(details);
 	}
 
 	public DecommissioningList setContainerDetailsFrom(List<ContainerRecord> containers) {
@@ -373,8 +359,7 @@ public class DecommissioningList extends RecordWrapper {
 		for (ContainerRecord container : containers) {
 			details.add(new DecomListContainerDetail(container.getId()).setFull(container.isFull()));
 		}
-		setContainerDetails(details);
-		return this;
+		return setContainerDetails(details);
 	}
 
 	public DecommissioningList addContainerDetailsFrom(List<ContainerRecord> containers) {
@@ -462,6 +447,23 @@ public class DecommissioningList extends RecordWrapper {
 
 	public boolean isProcessed() {
 		return getStatus() == DecomListStatus.PROCESSED;
+	}
+
+	public boolean isApproved() {
+		return getApprovalDate() != null;
+	}
+
+	public boolean isValidated() {
+		List<DecomListValidation> validations = getValidations();
+		if (validations.isEmpty()) {
+			return false;
+		}
+		for (DecomListValidation validation : validations) {
+			if (!validation.isValidated()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public boolean isFromActive() {

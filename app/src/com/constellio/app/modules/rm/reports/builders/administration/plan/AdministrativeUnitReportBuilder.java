@@ -21,15 +21,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 
 import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_AdministrativeUnit;
-import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_FilingSpace;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_User;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -66,7 +64,7 @@ public class AdministrativeUnitReportBuilder implements ReportBuilder {
 	}
 
 	public String getFileExtension() {
-		return pdfTableUtils.PDF;
+		return PdfTableUtils.PDF;
 	}
 
 	public void build(OutputStream output)
@@ -78,7 +76,7 @@ public class AdministrativeUnitReportBuilder implements ReportBuilder {
 			configPageEvents(writer);
 
 			document.open();
-			document.add(createReport(writer));
+			document.add(createReport());
 			document.close();
 		} catch (DocumentException e) {
 			throw new RuntimeException(e);
@@ -89,8 +87,12 @@ public class AdministrativeUnitReportBuilder implements ReportBuilder {
 			throws BadElementException, IOException {
 		PageEvent pageEvent = new PageEvent(foldersLocator);
 
-		String title = $("AdministrativeUnitReport.Title");
-		//String titleWithUser = "Hiérarchie des postes de classements avec utilisateurs";
+		String title;
+		if (model.isDetailed()) {
+			title = $("AdministrativeUnitReport.TitleWithUsers");
+		} else {
+			title = $("AdministrativeUnitReport.Title");
+		}
 
 		pageEvent.setTitle(title);
 		pageEvent.setLogo("constellio-logo.png");
@@ -99,7 +101,7 @@ public class AdministrativeUnitReportBuilder implements ReportBuilder {
 		writer.setPageEvent(pageEvent);
 	}
 
-	private PdfPTable createReport(PdfWriter writer) {
+	private PdfPTable createReport() {
 
 		PdfPTable table = new PdfPTable(1);
 
@@ -110,7 +112,7 @@ public class AdministrativeUnitReportBuilder implements ReportBuilder {
 		for (AdministrativeUnitReportModel_AdministrativeUnit adminUnit : model.getAdministrativeUnits()) {
 			int level = INITIAL_LEVEL;
 			int fontSize = INITIAL_FONT_SIZE;
-			float rowHeight = pdfTableUtils.ROW_HEIGHT;
+			float rowHeight = PdfTableUtils.ROW_HEIGHT;
 
 			createSubTable(table, adminUnit, level, fontSize, rowHeight);
 		}
@@ -126,7 +128,7 @@ public class AdministrativeUnitReportBuilder implements ReportBuilder {
 		printAdminUnitLabel(table, adminUnit, level, fontSize, rowHeight);
 
 		level = increaseLevel(level);
-		printFillingSpace(table, adminUnit, level, fontSize, rowHeight);
+		printUsers(table, adminUnit, level, fontSize, rowHeight);
 
 		for (AdministrativeUnitReportModel_AdministrativeUnit childAdminUnit : adminUnit.getChildAdministrativeUnits()) {
 			createSubTable(table, childAdminUnit, level, fontSize, rowHeight);
@@ -140,44 +142,23 @@ public class AdministrativeUnitReportBuilder implements ReportBuilder {
 		table.addCell(line);
 	}
 
-	private void printFillingSpace(PdfPTable table, AdministrativeUnitReportModel_AdministrativeUnit adminUnit, int level,
+	private void printUsers(PdfPTable table, AdministrativeUnitReportModel_AdministrativeUnit adminUnit, int level,
 			int fontSize, float rowHeight) {
 
-		for (AdministrativeUnitReportModel_FilingSpace fillingSpace : adminUnit.getFilingSpaces()) {
-			addFillingSpace(table, fillingSpace, level, fontSize, rowHeight);
+		for (AdministrativeUnitReportModel_User user : adminUnit.getUsers()) {
+			addUser(table, user, level, fontSize, rowHeight);
 		}
+
 	}
 
-	private PdfPTable addFillingSpace(PdfPTable subtable, AdministrativeUnitReportModel_FilingSpace fillingSpace, int level,
+	private PdfPTable addUser(PdfPTable subtable, AdministrativeUnitReportModel_User user, int level,
 			int fontSize, float rowHeight) {
 
-		String fillingSpaceLabel = fillingSpace.getCode() + " - " + fillingSpace.getLabel();
-		PdfPTable fillingSpaceLine = getLine(fillingSpaceLabel, level, fontSize, rowHeight);
-		subtable.addCell(fillingSpaceLine);
-
-		ArrayList<AdministrativeUnitReportModel_User> allUsers = getUsers(fillingSpace);
-
-		String userLabel;
-		PdfPTable userLine;
-
-		for (AdministrativeUnitReportModel_User user : allUsers) {
-			userLabel = user.getFirstName() + " " + user.getLastName() + "(" + user.getUserName() + ")";
-			userLine = getLine(userLabel, increaseLevel(level), fontSize, rowHeight);
-			subtable.addCell(userLine);
-		}
+		String userLabel = user.getFirstName() + " " + user.getLastName() + "(" + user.getUserName() + ")";
+		PdfPTable userLine = getLine(userLabel, level, fontSize, rowHeight);
+		subtable.addCell(userLine);
 
 		return subtable;
-	}
-
-	private ArrayList<AdministrativeUnitReportModel_User> getUsers(AdministrativeUnitReportModel_FilingSpace fillingSpace) {
-
-		ArrayList<AdministrativeUnitReportModel_User> allUsers = new ArrayList<AdministrativeUnitReportModel_User>();
-
-		allUsers.addAll(fillingSpace.getAdministrators());
-		allUsers.addAll(fillingSpace.getUsers());
-
-		//TODO : sort by last name (or at least firstname)
-		return allUsers;
 	}
 
 	private PdfPTable getLine(String line, int level, int fontSize, float rowHeight) {

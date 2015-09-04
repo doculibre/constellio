@@ -28,4 +28,6 @@ public interface Module extends ConstellioPlugin {
 	List<SystemConfiguration> getConfigurations();
 
 	Map<String, List<String>> getPermissions();
+
+	List<String> getRolesForCreator();
 }

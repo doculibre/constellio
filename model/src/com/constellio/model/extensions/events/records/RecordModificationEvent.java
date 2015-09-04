@@ -19,6 +19,7 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordModificationEvent implements RecordEvent {
 
@@ -48,4 +49,11 @@ public class RecordModificationEvent implements RecordEvent {
 		return false;
 	}
 
+	public boolean isSchemaType(String schemaType) {
+		return schemaType.equals(getSchemaTypeCode());
+	}
+
+	public String getSchemaTypeCode() {
+		return new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+	}
 }

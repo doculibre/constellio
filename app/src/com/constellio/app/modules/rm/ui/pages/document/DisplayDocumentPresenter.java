@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,22 +30,36 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
-	
-	protected DocumentToVOBuilder voBuilder = new DocumentToVOBuilder();
-	protected ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder();
-	private DocumentActionsPresenterUtils<DisplayDocumentView> presenterUtils;
+
+	protected DocumentToVOBuilder voBuilder;
+	protected ContentVersionToVOBuilder contentVersionVOBuilder;
+	protected DocumentActionsPresenterUtils<DisplayDocumentView> presenterUtils;
+	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
+	private RecordVODataProvider tasksDataProvider;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view) {
 		super(view);
@@ -55,6 +71,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				updateContentVersions();
 			}
 		};
+		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
+		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
+
 	}
 
 	@Override
@@ -64,12 +83,32 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void forParams(String params) {
 		Record record = getRecord(params);
-		DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY);
+		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setRecordVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
+
+		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		tasksDataProvider = new RecordVODataProvider(
+				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
+				Metadata taskDocumentMetadata = tasks.userTask.schema().getMetadata(RMTask.LINKED_DOCUMENTS);
+				LogicalSearchQuery query = new LogicalSearchQuery();
+				query.setCondition(from(tasks.userTask.schemaType()).where(taskDocumentMetadata).is(documentVO.getId()));
+				query.filteredByStatus(StatusFilter.ACTIVES);
+				query.filteredWithUser(getCurrentUser());
+				query.sortDesc(Schemas.MODIFIED_ON);
+				return query;
+			}
+		};
+	}
+
+	public int getTaskCount() {
+		return tasksDataProvider.size();
 	}
 
 	public void backgroundViewMonitor() {
@@ -82,12 +121,13 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			Record currentRecord = getRecord(documentVO.getId());
 			Document currentDocument = new Document(currentRecord, types());
 			Content currentContent = currentDocument.getContent();
-			ContentVersion currentContentVersion = currentContent != null ? currentContent.getCurrentVersionSeenBy(getCurrentUser()) : null;
+			ContentVersion currentContentVersion =
+					currentContent != null ? currentContent.getCurrentVersionSeenBy(getCurrentUser()) : null;
 			String currentContentVersionNumber = currentContentVersion != null ? currentContentVersion.getVersion() : null;
 			String currentCheckoutUserId = currentContent != null ? currentContent.getCheckoutUserId() : null;
 			Long currentLength = currentContentVersion != null ? currentContentVersion.getLength() : null;
-			if (ObjectUtils.notEqual(contentVersionNumber, currentContentVersionNumber) 
-					|| ObjectUtils.notEqual(checkoutUserId, currentCheckoutUserId) 
+			if (ObjectUtils.notEqual(contentVersionNumber, currentContentVersionNumber)
+					|| ObjectUtils.notEqual(checkoutUserId, currentCheckoutUserId)
 					|| ObjectUtils.notEqual(length, currentLength)) {
 				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY);
 				view.setRecordVO(documentVO);
@@ -104,6 +144,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return user.hasReadAccess().on(restrictedRecord);
 	}
 
+	private MetadataSchema getTasksSchema() {
+		return schema(Task.DEFAULT_SCHEMA);
+	}
+
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
@@ -112,6 +156,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void viewAssembled() {
 		presenterUtils.updateActionsComponent();
+
+		view.setTasks(tasksDataProvider);
 	}
 
 	private void updateContentVersions() {
@@ -136,13 +182,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void backButtonClicked() {
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
-		String parentId = documentVO.get(Document.FOLDER);
-		if (parentId != null) {
-			view.navigateTo().displayFolder(parentId);
-		} else {
-			view.navigateTo().recordsManagement();
-		}
+		view.navigateTo().previousView();
 	}
 
 	public boolean isDeleteContentVersionPossible() {
@@ -177,12 +217,21 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		presenterUtils.shareDocumentButtonClicked();
 	}
 
+	public void createPDFAButtonClicked() {
+		presenterUtils.createPDFA();
+
+	}
+
 	public void uploadButtonClicked() {
 		presenterUtils.uploadButtonClicked();
 	}
 
 	public void checkInButtonClicked() {
 		presenterUtils.checkInButtonClicked();
+	}
+
+	public void alertWhenAvailableClicked() {
+		presenterUtils.alertWhenAvailable();
 	}
 
 	public void checkOutButtonClicked() {
@@ -212,7 +261,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void renameContentButtonClicked(String newContentTitle) {
 		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
-		if(document != null){
+		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
 			view.navigateTo().displayDocument(document.getId());
 		}
@@ -220,5 +269,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public boolean hasContent() {
 		return presenterUtils.hasContent();
+	}
+
+	public void taskClicked(RecordVO taskVO) {
+		view.navigateTo().displayTask(taskVO.getId());
 	}
 }

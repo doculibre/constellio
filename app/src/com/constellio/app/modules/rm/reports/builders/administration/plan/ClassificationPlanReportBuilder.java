@@ -26,13 +26,12 @@ import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -54,17 +53,17 @@ public class ClassificationPlanReportBuilder implements ReportBuilder {
 	private ClassificationPlanReportModel model;
 	private PdfTableUtils pdfTableUtils;
 	private FoldersLocator foldersLocator;
-	
+
 	public ClassificationPlanReportBuilder(
 			ClassificationPlanReportModel model, FoldersLocator foldersLocator) {
 		this.model = model;
 		this.pdfTableUtils = new PdfTableUtils();
-		
+
 		this.foldersLocator = foldersLocator;
 	}
 
 	public String getFileExtension() {
-		return pdfTableUtils.PDF;
+		return PdfTableUtils.PDF;
 	}
 
 	public void build(OutputStream output)
@@ -85,7 +84,7 @@ public class ClassificationPlanReportBuilder implements ReportBuilder {
 	private void configPageEvents(PdfWriter writer)
 			throws BadElementException, IOException {
 		PageEvent pageEvent = new PageEvent(foldersLocator);
-		
+
 		pageEvent.setTitle($("ClassificationPlanReport.Title"));
 		pageEvent.setLogo("constellio-logo.png");
 		pageEvent.setFooter(TimeProvider.getLocalDateTime().toString("yyyy-MM-dd HH:mm"));
@@ -104,7 +103,7 @@ public class ClassificationPlanReportBuilder implements ReportBuilder {
 		for (ClassificationPlanReportModel_Category category : model.getRootCategories()) {
 			int level = INITIAL_LEVEL;
 			int fontSize = INITIAL_FONT_SIZE;
-			float rowHeight = pdfTableUtils.ROW_HEIGHT;
+			float rowHeight = PdfTableUtils.ROW_HEIGHT;
 			createSubTable(table, category, level, fontSize, rowHeight);
 		}
 		return table;

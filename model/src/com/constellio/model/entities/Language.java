@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.entities;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 public enum Language {
@@ -89,5 +92,17 @@ public enum Language {
 			}
 		}
 		return French;
+	}
+
+	public static List<Language> getAvailableLanguages() {
+		return Arrays.asList(values());
+	}
+
+	public static List<String> getAvailableLanguageCodes() {
+		List<String> languageCodes = new ArrayList<>();
+		for (Language language : values()) {
+			languageCodes.add(language.getCode());
+		}
+		return languageCodes;
 	}
 }

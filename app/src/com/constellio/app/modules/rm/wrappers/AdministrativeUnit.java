@@ -39,6 +39,7 @@ public class AdministrativeUnit extends RecordWrapper {
 	public static final String FILING_SPACES_ADMINISTRATORS = "filingSpacesAdmins";
 	public static final String COMMENTS = "comments";
 	public static final String DECOMMISSIONING_MONTH = "decommissioningMonth";
+	public static final String ANCESTORS = "unitAncestors";
 
 	public AdministrativeUnit(Record record,
 			MetadataSchemaTypes types) {
@@ -87,6 +88,11 @@ public class AdministrativeUnit extends RecordWrapper {
 	}
 
 	public AdministrativeUnit setParent(AdministrativeUnit parent) {
+		set(PARENT, parent);
+		return this;
+	}
+
+	public AdministrativeUnit setParent(Record parent) {
 		set(PARENT, parent);
 		return this;
 	}

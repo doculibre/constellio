@@ -17,50 +17,71 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.services.schemas.bulkImport;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LoggerBulkImportProgressionListener implements BulkImportProgressionListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoggerBulkImportProgressionListener.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LoggerBulkImportProgressionListener.class);
 
-    int totalProgression;
+	int totalProgression;
 
-    int currentTotal;
+	int currentTotal;
 
-    int currentStepTotal;
+	int currentStepTotal;
 
-    String currentStepName;
+	String currentStepName;
 
-    @Override
-    public void updateTotal(int newTotal) {
-        this.currentTotal = newTotal;
-    }
+	int stepProgression;
 
-    @Override
-    public void updateProgression(int stepProgression, int totalProgression) {
-        this.totalProgression = totalProgression;
-        LOGGER.info("Import progression : " + getPercentage() + "% [" + currentStepName + " " + stepProgression + "/"
-                + currentStepTotal + "]");
-    }
+	@Override
+	public void updateTotal(int newTotal) {
+		this.currentTotal = newTotal;
+	}
 
-    @Override
-    public void updateCurrentStepTotal(int newTotal) {
-        this.currentStepTotal = newTotal;
-    }
+	@Override
+	public void updateProgression(int stepProgression, int totalProgression) {
+		this.totalProgression = totalProgression;
+		this.stepProgression = stepProgression;
+		//		LOGGER.info("Import progression : " + getPercentage() + "% [" + currentStepName + " " + stepProgression + "/"
+		//				+ currentStepTotal + "]");
+	}
 
-    @Override
-    public void updateCurrentStepName(String stepName) {
-        this.currentStepName = stepName;
-        LOGGER.info("Import progression : " + getPercentage() + "% [" + currentStepName + "]");
-    }
+	@Override
+	public void updateCurrentStepTotal(int newTotal) {
+		this.currentStepTotal = newTotal;
+	}
 
-    private double getPercentage() {
-        if (currentTotal == 0) {
-            return 0;
-        }
-        int pct10 = 1000 * totalProgression / currentTotal;
-        return pct10 / 10.0;
-    }
+	@Override
+	public void updateCurrentStepName(String stepName) {
+		if (this.currentStepName != null) {
+			LOGGER.info(currentStepName + " finished.\n\n");
+
+		}
+		this.currentStepName = stepName;
+
+		if (stepName != null) {
+			LOGGER.info(currentStepName + " started.");
+		}
+	}
+
+	@Override
+	public void onRecordImport(int addUpdateCount, String legacyId, String title) {
+		String progression = currentStepName + " [" + (addUpdateCount + 1) + "/" + currentStepTotal + "] - ";
+
+		LOGGER.info(progression + "Importating '" + legacyId + "-" + title + "'");
+	}
+
+	@Override
+	public void onRecordImportPostponed(String legacyId) {
+		LOGGER.info("Importation of record '" + legacyId + "' is postponed because of missing dependencies");
+	}
+
+	private double getPercentage() {
+		if (currentTotal == 0) {
+			return 0;
+		}
+		int pct10 = 1000 * totalProgression / currentTotal;
+		return pct10 / 10.0;
+	}
 }

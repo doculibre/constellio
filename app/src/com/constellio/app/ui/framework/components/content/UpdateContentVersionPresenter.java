@@ -78,6 +78,8 @@ public class UpdateContentVersionPresenter implements Serializable {
 			} else {
 				window.addMajorMinorOptions();
 			}
+			boolean uploadFieldVisible = !checkingIn;
+			window.setUploadFieldVisible(uploadFieldVisible);
 		}
 	}
 

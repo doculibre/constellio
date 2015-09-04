@@ -45,6 +45,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLo
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Metadata;
@@ -55,6 +56,10 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class CollectionsManager implements StatefulService {
 
@@ -70,17 +75,14 @@ public class CollectionsManager implements StatefulService {
 
 	private final DataLayerFactory dataLayerFactory;
 
-	private final String mainDataLanguage;
-
 	private Map<String, List<String>> collectionLanguagesCache = new HashMap<>();
 
 	public CollectionsManager(ModelLayerFactory modelLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
-			Delayed<MigrationServices> migrationServicesDelayed, String mainDataLanguage) {
+			Delayed<MigrationServices> migrationServicesDelayed) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.constellioModulesManager = constellioModulesManager;
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
-		this.mainDataLanguage = mainDataLanguage;
 		this.migrationServicesDelayed = migrationServicesDelayed;
 	}
 
@@ -240,8 +242,10 @@ public class CollectionsManager implements StatefulService {
 			throw new CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists(code);
 		}
 
+		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		if (!languages.contains(mainDataLanguage)) {
-			throw new CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage(mainDataLanguage);
+			throw new CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage(
+					mainDataLanguage);
 		}
 
 		for (String language : languages) {
@@ -255,11 +259,11 @@ public class CollectionsManager implements StatefulService {
 		try {
 			migrationServicesDelayed.get().migrate(code, version);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
-			throw new CollectionsManagerRuntimeException_CannotMigrateCollection(
-					code, version, optimisticLockingConfiguration);
+			throw new CollectionsManagerRuntimeException_CannotMigrateCollection(code, version, optimisticLockingConfiguration);
 		}
 		Record collectionRecord = createCollectionRecordWithCode(code, languages);
 		addGlobalGroupsInCollection(code);
+		initializeCollection(code);
 		return collectionRecord;
 	}
 
@@ -267,6 +271,30 @@ public class CollectionsManager implements StatefulService {
 		String pattern = "([a-zA-Z0-9])+";
 		if (code == null || !code.matches(pattern)) {
 			throw new CollectionsManagerRuntimeException_InvalidCode(code);
+		}
+	}
+
+	public void initializeCollections() {
+
+		for (String collection : getCollectionCodes()) {
+			constellioModulesManager.startModules(collection);
+			initializeCollection(collection);
+		}
+	}
+
+	void initializeCollection(String collection) {
+		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
+		SchemasRecordsServices core = new SchemasRecordsServices(collection, modelLayerFactory);
+		cache.configureCache(CacheConfig.permanentCache(core.userSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(core.groupSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(core.collectionSchemaType()));
+
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		for (Taxonomy taxonomy : taxonomiesManager.getEnabledTaxonomies(collection)) {
+			for (String schemaType : taxonomy.getSchemaTypes()) {
+				cache.configureCache(CacheConfig.permanentCache(types.getSchemaType(schemaType)));
+			}
 		}
 	}
 }

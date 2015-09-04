@@ -26,12 +26,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;

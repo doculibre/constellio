@@ -64,6 +64,19 @@ public class DateFieldWebElement {
 		if (value == null) {
 			setEmpty();
 		} else {
+			textField.clear();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+			//			new ConditionWithTimeout() {
+			//
+			//				@Override
+			//				protected boolean evaluate() {
+			//					return StringUtils.isBlank(textField.getValue());
+			//				}
+			//			}.waitForTrue(1000);
 			textField.setValue(value.toString(format));
 		}
 	}

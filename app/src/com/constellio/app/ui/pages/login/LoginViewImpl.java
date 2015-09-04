@@ -23,7 +23,9 @@ import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.LogoUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ExternalResource;
@@ -103,7 +105,8 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 
 		String linkTarget = presenter.getLogoTarget();
 		Link logo = new Link(null, new ExternalResource(linkTarget));
-		logo.setIcon(presenter.getLogoResource());
+		ModelLayerFactory modelLayerFactory = getConstellioFactories().getModelLayerFactory();
+		logo.setIcon(LogoUtils.getLogoResource(modelLayerFactory));
 		logo.addStyleName("login-logo");
 		logo.setSizeUndefined();
 		hLayout.addComponent(logo);

@@ -33,12 +33,12 @@ public class ListAuthorizationsPage extends PageHelper {
 	}
 
 	public ListAuthorizationsPage navigateToPrincipalPage(RecordWrapper principal) {
-		driver.navigateTo().url(NavigatorConfigurationService.LIST_PRINCIPAL_AUTHORIZATIONS + "/" + principal.getId());
+		driver.navigateTo().url(NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS + "/" + principal.getId());
 		return this;
 	}
 
 	public ListAuthorizationsPage navigateToObjectPage(RecordWrapper object) {
-		driver.navigateTo().url(NavigatorConfigurationService.LIST_OBJECT_AUTHORIZATIONS + "/" + object.getId());
+		driver.navigateTo().url(NavigatorConfigurationService.LIST_OBJECT_ACCESS_AUTHORIZATIONS + "/" + object.getId());
 		return this;
 	}
 

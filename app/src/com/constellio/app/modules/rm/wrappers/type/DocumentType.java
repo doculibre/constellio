@@ -17,18 +17,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.wrappers.type;
 
-import com.constellio.app.modules.rm.wrappers.ValueListItem;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class DocumentType extends ValueListItem implements SchemaLinkingType {
-
 	public static final String SCHEMA_TYPE = "ddvDocumentType";
-
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-
 	public static final String LINKED_SCHEMA = "linkedSchema";
-
 	public static final String EMAIL_DOCUMENT_TYPE = "emailDocumentType";
 
 	public DocumentType(Record record,

@@ -107,6 +107,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenBackgroundThreadsEnabled();
 		withSpiedServices(SecondTransactionLogManager.class);
 		logBaseFolder = newTempFolder();
 
@@ -309,6 +310,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 			for (String line : IOUtils.readLines(logStream)) {
 				stringBuilder.append(line + "\n");
 			}
+			getIOLayerFactory().newIOServices().closeQuietly(logStream);
 		}
 		return stringBuilder.toString();
 	}
@@ -327,6 +329,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 				for (String line : IOUtils.readLines(logStream)) {
 					stringBuilder.append(line + "\n");
 				}
+				getIOLayerFactory().newIOServices().closeQuietly(logStream);
 			}
 		}
 		return stringBuilder.toString();

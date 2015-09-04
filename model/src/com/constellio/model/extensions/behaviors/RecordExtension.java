@@ -19,6 +19,8 @@ package com.constellio.model.extensions.behaviors;
 
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
@@ -34,6 +36,12 @@ public class RecordExtension {
 
 	public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent event) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public void recordInCreation(RecordInCreationEvent event) {
+	}
+
+	public void recordInModification(RecordInModificationEvent event) {
 	}
 
 	public void recordCreated(RecordCreationEvent event) {

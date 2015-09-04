@@ -1,0 +1,179 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.modules.rm.reports.model.search;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+
+public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	SearchResultReportPresenter presenter;
+	final String reportTitle = "zReportTitle";
+	final List<String> foldersA01AndA02 = new ArrayList<>();
+	final String folderSchemaType = Folder.SCHEMA_TYPE;
+	private RecordServices recordServices;
+	private ReportTestUtils reportTestUtils;
+	private LogicalSearchQuery searchQuery;
+
+	@Before
+	public void setUp()
+			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
+		);
+
+		recordServices = getModelLayerFactory().newRecordServices();
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		userServices.addUserToCollection(userServices.getUserCredential(chuckNorris), zeCollection);
+
+		reportTestUtils = new ReportTestUtils(getModelLayerFactory(), zeCollection, records);
+
+		updateFolderA01Metadata();
+		updateFolderA02Metadata();
+		updateFolderA03Metadata();
+
+		foldersA01AndA02.clear();
+		foldersA01AndA02.add(records.folder_A01);
+		foldersA01AndA02.add(records.folder_A02);
+
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+
+		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
+				.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))).sortAsc(Schemas.TITLE);
+	}
+
+	private void updateFolderA01Metadata() {
+		try {
+			recordServices.update(records.getFolder_A01()
+					.setTitle(reportTestUtils.getExpectedFolderTitle_A01())
+					.setDescription(reportTestUtils.getExpectedFolderDescription_A01())
+					.setCreatedBy(reportTestUtils.getExpectedFolderCreator_A01()));
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void updateFolderA02Metadata() {
+		try {
+			recordServices.update(records.getFolder_A02()
+					.setTitle(reportTestUtils.getExpectedFolderTitle_A02())
+					.setDescription(reportTestUtils.getExpectedFolderDescription_A02())
+					.setCreatedBy(reportTestUtils.getExpectedFolderCreator_A02()));
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void updateFolderA03Metadata() {
+		try {
+			recordServices.update(records.getFolder_A03()
+					.setTitle(reportTestUtils.getExpectedFolderTitle_A03())
+					.setDescription(reportTestUtils.getExpectedFolderDescription_A03())
+					.setCreatedBy(reportTestUtils.getExpectedFolderCreator_A02()));
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Test(expected = NoSuchReportRuntimeException.class)
+	public void whenInvalidReportThenThrowsNoSuchReportRuntimeException() {
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
+				chuckNorris, reportTitle, searchQuery);
+		presenter.buildModel(getModelLayerFactory());
+	}
+
+	@Test
+	public void givenValidReportWhenNoFolderChosenThenGenerateReportWithAllQueryRecords() {
+		SearchResultReportPresenter.LIMIT = 1000;
+		SearchResultReportPresenter.BATCH_SIZE = 100;
+		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), new ArrayList<String>(), folderSchemaType,
+				zeCollection, chuckNorris, reportTitle, searchQuery);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateUserReportWithAllQueryFolders(model);
+	}
+
+	@Test
+	public void givenValidReportAndQueryWithResultCountGreaterThanLimitWhenNoFolderChosenThenGenerateFirstQueryRecords() {
+		SearchResultReportPresenter.LIMIT = 2;
+		SearchResultReportPresenter.BATCH_SIZE = 1;
+		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), new ArrayList<String>(), folderSchemaType,
+				zeCollection, chuckNorris, reportTitle, searchQuery);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateUserReportWithSelectedFolders(model);
+	}
+
+	@Test
+	public void givenValidReportWhenTwoFoldersThenGenerateValidReportWithValidData() {
+		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
+				chuckNorris, reportTitle, searchQuery);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateUserReportWithSelectedFolders(model);
+	}
+
+	@Test
+	public void whenReportWithDisabledMetadataThenGenerateReportWithoutDisabledMetadata() {
+		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
+		reportTestUtils.disableAUserReportMetadata();
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
+				chuckNorris, reportTitle, searchQuery);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateUserReportWithDisabledMetadata(model);
+	}
+
+	@Test
+	public void givenChuckNorrisReportAndDefaultReportThenGenerateChuckNorrisReportForChuckNorris() {
+		reportTestUtils.addUserReport(reportTitle, chuckNorris);
+		reportTestUtils.addDefaultReport(reportTitle);
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
+				chuckNorris, reportTitle, searchQuery);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateUserReportWithSelectedFolders(model);
+	}
+
+	@Test
+	public void givenChuckNorrisReportAndDefaultReportThenGenerateDefaultReportForBob() {
+		reportTestUtils.addUserReport(reportTitle, chuckNorris);
+		reportTestUtils.addDefaultReport(reportTitle);
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
+				bobGratton, reportTitle, searchQuery);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateDefaultReport(model);
+	}
+}

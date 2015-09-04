@@ -18,9 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.data.conf;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
 
 import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_ConfigNotDefined;
@@ -28,10 +30,13 @@ import com.constellio.data.conf.PropertiesConfigurationRuntimeException.Properti
 
 public abstract class PropertiesConfiguration {
 
+	private File propertyFile;
+
 	private Map<String, String> configs;
 
-	protected PropertiesConfiguration(Map<String, String> configs) {
+	protected PropertiesConfiguration(Map<String, String> configs, File propertyFile) {
 		this.configs = configs;
+		this.propertyFile = propertyFile;
 	}
 
 	protected Object getEnum(String key, Enum<?> defaultValue) {
@@ -54,6 +59,27 @@ public abstract class PropertiesConfiguration {
 	protected String getString(String key, String defaultValue) {
 		String value = (String) configs.get(key);
 		return value == null ? defaultValue : value;
+	}
+
+	protected void setString(String key, String value) {
+		try {
+			List<String> properties = FileUtils.readLines(propertyFile);
+			String languageProperty = null;
+			for (String property : properties) {
+				if (property.startsWith(key)) {
+					languageProperty = property;
+				}
+			}
+			if (languageProperty != null) {
+				properties.remove(languageProperty);
+				properties.add(key + "=" + value);
+				propertyFile.delete();
+				FileUtils.writeLines(propertyFile, properties);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		configs.put(key, value);
 	}
 
 	protected Boolean getBoolean(String key, boolean defaultValue) {

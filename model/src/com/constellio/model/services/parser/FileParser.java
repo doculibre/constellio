@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.fork.ForkParser;
+import org.apache.tika.metadata.Message;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.Property;
 import org.apache.tika.metadata.TikaCoreProperties;
@@ -85,9 +86,6 @@ public class FileParser {
 
 	Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType) {
 		HashMap<String, Object> properties = new HashMap<String, Object>();
-		for (String metadataName : metadata.names()) {
-			System.out.println(metadataName.toString() + " : " + metadata.get(metadataName).toString());
-		}
 
 		addKeywordsTo(properties, metadata, "Keywords", TikaCoreProperties.KEYWORDS);
 		addPropertyTo(properties, metadata, "Title", TikaCoreProperties.TITLE);
@@ -96,6 +94,10 @@ public class FileParser {
 		addPropertyTo(properties, metadata, "Subject", "subject");
 		addPropertyTo(properties, metadata, "Category", "Category");
 		addPropertyTo(properties, metadata, "Manager", "Manager");
+		addPropertyTo(properties, metadata, "BCC", Message.MESSAGE_BCC);
+		addPropertyTo(properties, metadata, "CC", Message.MESSAGE_CC);
+		addPropertyTo(properties, metadata, "From", Message.MESSAGE_FROM);
+		addPropertyTo(properties, metadata, "To", Message.MESSAGE_TO);
 
 		if (mimeType.contains("xml")) {
 			addCommentsTo(properties, metadata, "Comments", TikaCoreProperties.DESCRIPTION, "_x000d_");
@@ -132,7 +134,6 @@ public class FileParser {
 					finalKeywordsList.add(zeKeyword.trim());
 				}
 			}
-			System.out.println(finalKeywordsList);
 			properties.put("List:" + key, finalKeywordsList);
 		}
 	}

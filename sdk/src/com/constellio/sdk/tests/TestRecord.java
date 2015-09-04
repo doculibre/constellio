@@ -22,6 +22,7 @@ import java.util.UUID;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
@@ -53,6 +54,11 @@ public class TestRecord extends RecordImpl {
 
 	public void markAsModified(Metadata metadata) {
 		modifiedValues.put(metadata.getDataStoreCode(), get(metadata));
+	}
+
+	public TestRecord withTitle(String title) {
+		set(Schemas.TITLE, title);
+		return this;
 	}
 
 }

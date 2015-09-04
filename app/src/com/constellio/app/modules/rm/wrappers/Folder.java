@@ -20,6 +20,7 @@ package com.constellio.app.modules.rm.wrappers;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -29,7 +30,8 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.wrappers.structures.PendingAlert;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -39,6 +41,7 @@ public class Folder extends RMObject {
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 	public static final String ADMINISTRATIVE_UNIT_ENTERED = "administrativeUnitEntered";
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
+	public static final String ADMINISTRATIVE_UNIT_ANCESTORS = "administrativeUnitAncestors";
 	public static final String ARCHIVISTIC_STATUS = "archivisticStatus";
 	public static final String UNIFORM_SUBDIVISION = "uniformSubdivision";
 	public static final String UNIFORM_SUBDIVISION_ENTERED = "uniformSubdivisionEntered";
@@ -88,7 +91,11 @@ public class Folder extends RMObject {
 	public static final String RETURN_BORROW_USER_ENTERED = "returnBorrowUserEntered";
 	public static final String BORROW_USER = "borrowUser";
 	public static final String BORROW_USER_ENTERED = "borrowUserEntered";
+	public static final String BORROWING_TYPE = "borrowingType";
 	public static final String LINEAR_SIZE = "linearSize";
+	public static final String ALERT_USERS_WHEN_AVAILABLE = "alertUsersWhenAvailable";
+	public static final String PENDING_ALERTS = "pendingAlerts";
+	public static final String NEXT_ALERT_ON = "nextAlertOn";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -435,6 +442,10 @@ public class Folder extends RMObject {
 		return get(COPY_STATUS_ENTERED);
 	}
 
+	public List<String> getAdministrativeUnitAncestors() {
+		return getList(ADMINISTRATIVE_UNIT_ANCESTORS);
+	}
+
 	public FolderStatus getArchivisticStatus() {
 		return get(ARCHIVISTIC_STATUS);
 	}
@@ -486,7 +497,7 @@ public class Folder extends RMObject {
 		return this;
 	}
 
-	public LocalDateTime getBorrowPreviewReturnDate() {
+	public LocalDate getBorrowPreviewReturnDate() {
 		return get(BORROW_PREVIEW_RETURN_DATE);
 	}
 
@@ -522,6 +533,15 @@ public class Folder extends RMObject {
 		return this;
 	}
 
+	public BorrowingType getBorrowType() {
+		return get(BORROWING_TYPE);
+	}
+
+	public Folder setBorrowType(String borrowType) {
+		set(BORROWING_TYPE, borrowType);
+		return this;
+	}
+
 	public boolean hasAnalogicalMedium() {
 		FolderMediaType mediaType = getMediaType();
 		return mediaType != null && mediaType.potentiallyHasAnalogMedium();
@@ -532,5 +552,31 @@ public class Folder extends RMObject {
 		return mediaType != null && mediaType.potentiallyHasElectronicMedium();
 	}
 
+	public List<String> getAlertUsersWhenAvailable() {
+		return getList(ALERT_USERS_WHEN_AVAILABLE);
+	}
+
+	public Folder setAlertUsersWhenAvailable(List<String> users) {
+		set(ALERT_USERS_WHEN_AVAILABLE, users);
+		return this;
+	}
+
+	public List<String> getPendingAlerts() {
+		return getList(PENDING_ALERTS);
+	}
+
+	public Folder setPendingAlerts(List<PendingAlert> pendingAlerts) {
+		set(PENDING_ALERTS, pendingAlerts);
+		return this;
+	}
+
+	public LocalDateTime getNextAlertOn() {
+		return get(NEXT_ALERT_ON);
+	}
+
+	public Folder setNextAlertOn(LocalDateTime nextAlertOn) {
+		set(PENDING_ALERTS, nextAlertOn);
+		return this;
+	}
 }
 

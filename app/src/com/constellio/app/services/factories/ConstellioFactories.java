@@ -90,7 +90,7 @@ public class ConstellioFactories {
 
 		factories.decorator = decorator;
 		factories.foldersLocator = decorator.decorateFoldersLocator(new FoldersLocator());
-		factories.buildConfiguration(configs);
+		factories.buildConfiguration(propertyFile, configs);
 		factories.buildLayers();
 		return factories;
 	}
@@ -114,19 +114,19 @@ public class ConstellioFactories {
 
 	}
 
-	private void buildConfiguration(Map<String, String> configs) {
+	private void buildConfiguration(File propertyFile, Map<String, String> configs) {
 		File defaultTempFolder = foldersLocator.getDefaultTempFolder();
 		File defaultFileSystemBaseFolder = new File(foldersLocator.getConfFolder(), "settings");
 
 		this.dataLayerConfiguration = decorator
 				.decorateDataLayerConfiguration(new PropertiesDataLayerConfiguration(configs, defaultTempFolder,
-						defaultFileSystemBaseFolder));
+						defaultFileSystemBaseFolder, propertyFile));
 		this.modelLayerConfiguration = decorator
 				.decorateModelLayerConfiguration(
-						new PropertiesModelLayerConfiguration(configs, dataLayerConfiguration, foldersLocator));
+						new PropertiesModelLayerConfiguration(configs, dataLayerConfiguration, foldersLocator, propertyFile));
 		this.appLayerConfiguration = decorator
 				.decorateAppLayerConfiguration(
-						new PropertiesAppLayerConfiguration(configs, modelLayerConfiguration, foldersLocator));
+						new PropertiesAppLayerConfiguration(configs, modelLayerConfiguration, foldersLocator, propertyFile));
 	}
 
 	public IOServicesFactory getIoServicesFactory() {

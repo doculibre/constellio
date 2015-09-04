@@ -24,6 +24,9 @@ import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +45,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -51,7 +55,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	LocalDate november4 = new LocalDate(2009, 11, 4);
 	LocalDate december12 = new LocalDate(2009, 12, 12);
-	LocalDate january12_2010 = new LocalDate(2010, 1, 12);
 
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -64,7 +67,6 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
@@ -78,7 +80,6 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 
 		decommissioningList = rm.newDecommissioningList();
 		containerRecord = getContainerRecord();
-
 	}
 
 	@Test
@@ -98,14 +99,18 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		ContainerRecord aContainer = newContainerRecord("A");
 		ContainerRecord anotherContainer = newContainerRecord("B");
 
+		List<DecomListValidation> validations = new ArrayList<>();
+		validations.add(new DecomListValidation(records.getDakota_managerInA_userInB().getId(), november4));
+		validations.add(new DecomListValidation(records.getBob_userInAC().getId(), november4));
+		validations.add(new DecomListValidation(records.getCharles_userInA().getId(), november4));
+
 		decommissioningList = rm.newDecommissioningList();
 		decommissioningList.setTitle("Ze list");
-		decommissioningList.setAdministrativeUnit(records.unitId_10);
+		decommissioningList.setAdministrativeUnit(records.unitId_10a);
 		decommissioningList.setApprovalDate(november4);
 		decommissioningList.setDescription("zeDescription");
 		decommissioningList.setApprovalRequest(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		decommissioningList.setApprovalUser(records.getUsers().dakotaLIndienIn(zeCollection));
-		decommissioningList.setFilingSpace(records.filingId_A);
 		decommissioningList.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_CLOSE);
 		decommissioningList.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE);
 
@@ -114,18 +119,17 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 
 		decommissioningList.setProcessingDate(december12);
 		decommissioningList.setProcessingUser(records.getUsers().dakotaLIndienIn(zeCollection).getId());
-		decommissioningList.setValidationDate(january12_2010);
-		decommissioningList.setValidationUser(records.getUsers().dakotaLIndienIn(zeCollection).getId());
+
+		decommissioningList.setValidations(validations);
 
 		decommissioningList = saveAndLoad(decommissioningList);
 
-		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10);
+		assertThat(decommissioningList.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(decommissioningList.getApprovalDate()).isEqualTo(november4);
 		assertThat(decommissioningList.getDescription()).isEqualTo("zeDescription");
 		assertThat(decommissioningList.getTitle()).isEqualTo("Ze list");
 		assertThat(decommissioningList.getApprovalRequest()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		assertThat(decommissioningList.getApprovalUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
-		assertThat(decommissioningList.getFilingSpace()).isEqualTo(records.filingId_A);
 		assertThat(decommissioningList.getFolders()).isEqualTo(asList(aFolder.getId(), anotherFolder.getId()));
 		assertThat(decommissioningList.getFolderDetails())
 				.isEqualTo(asList(new DecomListFolderDetail(aFolder.getId()), new DecomListFolderDetail(anotherFolder.getId())));
@@ -135,11 +139,10 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 				new DecomListContainerDetail(anotherContainer.getId())));
 		assertThat(decommissioningList.getProcessingDate()).isEqualTo(december12);
 		assertThat(decommissioningList.getProcessingUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
-		assertThat(decommissioningList.getValidationDate()).isEqualTo(january12_2010);
-		assertThat(decommissioningList.getValidationUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
 		assertThat(decommissioningList.getOriginArchivisticStatus()).isEqualTo(OriginStatus.SEMI_ACTIVE);
 
+		assertThat(decommissioningList.getValidations()).isEqualTo(validations);
 	}
 
 	@Test
@@ -196,8 +199,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	private DecommissioningList newFilingSpaceAList() {
 		DecommissioningList decommissioningList = rm.newDecommissioningList();
 		decommissioningList.setTitle("Ze list");
-		decommissioningList.setAdministrativeUnit(records.unitId_10);
-		decommissioningList.setFilingSpace(records.filingId_A);
+		decommissioningList.setAdministrativeUnit(records.unitId_10a);
 		return decommissioningList;
 	}
 
@@ -219,8 +221,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 
 	private Folder newFolder() {
 		Folder folder = rm.newFolder();
-		folder.setAdministrativeUnitEntered(records.unitId_11);
-		folder.setFilingSpaceEntered(records.filingId_A);
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setRetentionRuleEntered(records.ruleId_2);
 		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
@@ -248,9 +249,8 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		ContainerRecord containerRecord = rm.newContainerRecord();
 		containerRecord.setType(type);
 		containerRecord.setTitle("zeContainerRecord Title " + token);
-		containerRecord.setAdministrativeUnit(records.getUnit10());
+		containerRecord.setAdministrativeUnit(records.unitId_10a);
 		containerRecord.setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
-		containerRecord.setFilingSpace(records.filingId_A);
 		containerRecord.setFull(true);
 		containerRecord.setStorageSpace(newStorageSpace());
 		containerRecord.setTemporaryIdentifier("zeContainerRecord " + token);
@@ -288,5 +288,4 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 			throw new RuntimeException(e);
 		}
 	}
-
 }

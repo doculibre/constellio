@@ -139,7 +139,7 @@ public class AddEditGlobalGroupPresenterTest extends ConstellioTest {
 			throws Exception {
 
 		when(presenter.getCode()).thenReturn(HEROES);
-		when(presenter.getActionEdit()).thenReturn(true);
+		when(presenter.isEditMode()).thenReturn(true);
 		doReturn(heroesGlobalGroup).when(presenter).toGlobalGroup(heroesGlobalGroupVO);
 
 		presenter.saveButtonClicked(heroesGlobalGroupVO);
@@ -155,7 +155,7 @@ public class AddEditGlobalGroupPresenterTest extends ConstellioTest {
 			throws Exception {
 
 		when(userCredentialsManager.getUserCredential(DAKOTA_INDIEN)).thenReturn(dakotaCredential);
-		when(presenter.getActionEdit()).thenReturn(true);
+		when(presenter.isEditMode()).thenReturn(true);
 		when(presenter.getCode()).thenReturn(LEGENDS);
 		doReturn(heroesGlobalGroup).when(presenter).toGlobalGroup(heroesGlobalGroupVO);
 
@@ -171,7 +171,7 @@ public class AddEditGlobalGroupPresenterTest extends ConstellioTest {
 			throws Exception {
 
 		doThrow(Exception.class).when(userServices).getGroup(HEROES);
-		when(presenter.getActionEdit()).thenReturn(false);
+		when(presenter.isEditMode()).thenReturn(false);
 		doReturn(heroesGlobalGroup).when(presenter).toGlobalGroup(heroesGlobalGroupVO);
 
 		presenter.saveButtonClicked(heroesGlobalGroupVO);

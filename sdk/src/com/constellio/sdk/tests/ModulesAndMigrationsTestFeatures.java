@@ -23,7 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.FailedToInstall;
 import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.FailedToStart;
 import com.constellio.app.services.extensions.ConstellioPluginManager;
@@ -82,8 +84,17 @@ public class ModulesAndMigrationsTestFeatures {
 		return this;
 	}
 
+	public ModulesAndMigrationsTestFeatures withConstellioESModule() {
+		return withModule(ConstellioESModule.class);
+	}
+
 	public ModulesAndMigrationsTestFeatures withConstellioRMModule() {
+		withTaskModule();
 		return withModule(ConstellioRMModule.class);
+	}
+
+	public ModulesAndMigrationsTestFeatures withTaskModule() {
+		return withModule(TaskModule.class);
 	}
 
 	public ModulesAndMigrationsTestFeatures withAdmin() {

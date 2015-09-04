@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -29,8 +30,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -38,7 +42,6 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
@@ -47,10 +50,12 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -60,7 +65,9 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
 public class DecommissioningService {
 	private final ModelLayerFactory modelLayerFactory;
@@ -71,6 +78,7 @@ public class DecommissioningService {
 	private final SearchServices searchServices;
 	private final String collection;
 	private final RMConfigs configs;
+	private final DecommissioningEmailService emailService;
 
 	public DecommissioningService(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
@@ -81,13 +89,13 @@ public class DecommissioningService {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		this.emailService = new DecommissioningEmailService(collection, modelLayerFactory);
 	}
 
 	public DecommissioningList createDecommissioningList(DecommissioningListParams params, User user) {
 		DecommissioningList decommissioningList = rm.newDecommissioningList()
 				.setTitle(params.getTitle())
 				.setDescription(params.getDescription())
-				.setFilingSpace(params.getFilingSpace())
 				.setAdministrativeUnit(params.getAdministrativeUnit())
 				.setDecommissioningListType(params.getSearchType().toDecomListType())
 				.setOriginArchivisticStatus(
@@ -125,16 +133,45 @@ public class DecommissioningService {
 
 	public boolean isEditable(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.isUnprocessed() && user.has(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST).on(decommissioningList);
+
 	}
 
 	public boolean isDeletable(DecommissioningList decommissioningList, User user) {
-		return decommissioningList.isUnprocessed() && user.has(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST).on(decommissioningList);
+		return decommissioningList.isUnprocessed() && securityService().canDelete(decommissioningList, user);
 	}
 
 	public boolean isProcessable(DecommissioningList decommissioningList, User user) {
 		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList) &&
 				decommissioningList.isUnprocessed() &&
-				areAllFoldersProcessable(decommissioningList);
+				areAllFoldersProcessable(decommissioningList) &&
+				decommissioningList.getStatus() == DecomListStatus.APPROVED &&
+				securityService().canProcess(decommissioningList, user);
+	}
+
+	public boolean isApprovalRequestPossible(DecommissioningList decommissioningList, User user) {
+		return decommissioningList.getStatus() != DecomListStatus.IN_VALIDATION &&
+				decommissioningList.getStatus() != DecomListStatus.APPROVED &&
+				decommissioningList.getStatus() != DecomListStatus.PROCESSED &&
+				decommissioningList.getStatus() != DecomListStatus.IN_APPROVAL &&
+				securityService().canAskApproval(decommissioningList, user);
+	}
+
+	public boolean isApprovalPossible(DecommissioningList decommissioningList, User user) {
+		return decommissioningList.getStatus() != DecomListStatus.IN_VALIDATION &&
+				decommissioningList.getStatus() == DecomListStatus.IN_APPROVAL &&
+				!decommissioningList.getApprovalRequest().equals(user.getId()) &&
+				securityService().canApprove(decommissioningList, user);
+	}
+
+	public boolean isValidationPossible(DecommissioningList decommissioningList, User user) {
+		return decommissioningList.getStatus() == DecomListStatus.IN_VALIDATION &&
+				securityService().canValidate(decommissioningList, user);
+	}
+
+	public boolean isValidationRequestPossible(DecommissioningList decommissioningList, User user) {
+		return decommissioningList.getStatus() != DecomListStatus.APPROVED &&
+				decommissioningList.getStatus() != DecomListStatus.PROCESSED &&
+				securityService().canAskValidation(decommissioningList, user);
 	}
 
 	public boolean isSortable(DecommissioningList decommissioningList) {
@@ -150,9 +187,97 @@ public class DecommissioningService {
 				(isFolderProcessable(folder) && !isFolderRepackable(decommissioningList, folder));
 	}
 
+	public boolean isApproved(DecommissioningList decommissioningList) {
+		return decommissioningList.isApproved();
+	}
+
+	public boolean isValidationRequestedFor(DecommissioningList decommissioningList, User user) {
+		return securityService().canValidate(decommissioningList, user);
+	}
+
+	public void approveList(DecommissioningList decommissioningList, User user) {
+		decommissioningList.setApprovalDate(TimeProvider.getLocalDate()).setApprovalUser(user);
+		try {
+			recordServices.add(decommissioningList, user);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void approvalRequest(DecommissioningList decommissioningList, User approvalUser)
+			throws DecommissioningEmailServiceException, RecordServicesException {
+		List<String> parameters = new ArrayList<>();
+		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + decommissioningList.getTitle());
+		sendEmailForList(decommissioningList, approvalUser, RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID, parameters);
+		try {
+			decommissioningList.setApprovalRequest(approvalUser);
+			decommissioningList.setApprovalRequestDate(new LocalDate());
+
+			Transaction transaction = new Transaction().setUser(approvalUser);
+			transaction.add(decommissioningList);
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void sendEmailForList(DecommissioningList list, User user, String templateID, List<String> parameters) {
+		EmailToSend emailToSend = rm.newEmailToSend();
+		try {
+			List<EmailAddress> toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
+			emailToSend.setSubject($("DecommissionningServices.approvalRequest"))
+					.setSendOn(TimeProvider.getLocalDateTime())
+					.setParameters(parameters)
+					.setTemplate(templateID)
+							//.setFrom(new EmailAddress(user.getTitle(), user.getEmail()))
+					.setTo(toAddresses)
+					.setTryingCount(0d);
+
+			Transaction transaction = new Transaction().setUser(user);
+			transaction.add(emailToSend);
+			recordServices.execute(transaction);
+		} catch (DecommissioningEmailServiceException e) {
+			//TODO Display error cant find manager email
+		} catch (RecordServicesException e) {
+			//TODO Display error about email
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void sendValidationRequest(DecommissioningList list, User sender, List<String> users, String comments) {
+		List<String> parameters = new ArrayList<>();
+		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
+		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + comments);
+
+		sendEmailForList(list, null, RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID, parameters);
+		for (String user : users) {
+			list.addValidationRequest(user, TimeProvider.getLocalDate());
+		}
+		try {
+			recordServices.update(list, sender);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private List<EmailAddress> getEmailReceivers(List<User> managersList) {
+		List<EmailAddress> returnAddresses = new ArrayList<>();
+		if (managersList == null) {
+			return returnAddresses;
+		}
+		for (User currentManager : managersList) {
+			returnAddresses.add(new EmailAddress(currentManager.getTitle(), currentManager.getEmail()));
+		}
+		return returnAddresses;
+	}
+
 	public void decommission(DecommissioningList decommissioningList, User user) {
-		Decommissioner.forList(decommissioningList, this)
+		decommissioner(decommissioningList)
 				.process(decommissioningList, user, TimeProvider.getLocalDate());
+	}
+
+	Decommissioner decommissioner(DecommissioningList decommissioningList) {
+		return Decommissioner.forList(decommissioningList, this);
 	}
 
 	public List<Folder> getFoldersForAdministrativeUnit(String administrativeUnitId) {
@@ -182,13 +307,16 @@ public class DecommissioningService {
 	public List<RetentionRule> getRetentionRulesForAdministrativeUnit(String administrativeUnitId) {
 		Set<RetentionRule> retentionRules = new HashSet<>();
 		for (Folder folder : getFoldersForAdministrativeUnit(administrativeUnitId)) {
-			Record retentionRuleRecord = rm.getRetentionRule(folder.getRetentionRule()).getWrappedRecord();
-			boolean deleted = retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS) == null ?
-					false :
-					(Boolean) retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
-			if (!deleted) {
-				RetentionRule retentionRule = rm.wrapRetentionRule(retentionRuleRecord);
-				retentionRules.add(retentionRule);
+			String retentionRuleId = folder.getRetentionRule();
+			if (retentionRuleId != null) {
+				Record retentionRuleRecord = rm.getRetentionRule(retentionRuleId).getWrappedRecord();
+				boolean deleted = retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS) == null ?
+						false :
+						(Boolean) retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
+				if (!deleted) {
+					RetentionRule retentionRule = rm.wrapRetentionRule(retentionRuleRecord);
+					retentionRules.add(retentionRule);
+				}
 			}
 		}
 		return new ArrayList<>(retentionRules);
@@ -215,7 +343,7 @@ public class DecommissioningService {
 
 	private boolean areAllFoldersProcessable(DecommissioningList decommissioningList) {
 		for (FolderDetailWithType folder : decommissioningList.getFolderDetailsWithType()) {
-			if (!folder.getDecommissioningType().isClosureOrDestroyal() && !isFolderProcessable(folder)) {
+			if (folder.isIncluded() && !folder.getDecommissioningType().isClosureOrDestroyal() && !isFolderProcessable(folder)) {
 				return false;
 			}
 		}
@@ -227,8 +355,7 @@ public class DecommissioningService {
 	}
 
 	private boolean isFolderProcessable(FolderDetailWithType folder) {
-		return !(folder.getType().potentiallyHasAnalogMedium() &&
-				StringUtils.isBlank(folder.getDetail().getContainerRecordId()));
+		return !(folder.getType().potentiallyHasAnalogMedium() && StringUtils.isBlank(folder.getDetail().getContainerRecordId()));
 	}
 
 	private boolean hasFoldersToSort(DecommissioningList decommissioningList) {
@@ -248,31 +375,23 @@ public class DecommissioningService {
 		return taxonomiesSearchServices.getAllConceptIdsHierarchyOf(adminUnitsTaxonomy(), record);
 	}
 
+	public List<String> getChildrenAdministrativeUnit(String administrativeUnitId, User user) {
+		Record record = rm.getAdministrativeUnit(administrativeUnitId).getWrappedRecord();
+
+		return toIdList(taxonomiesSearchServices.getVisibleChildConcept(user, RMTaxonomies.ADMINISTRATIVE_UNITS,
+				record, new TaxonomiesSearchOptions()));
+	}
+
+	private List<String> toIdList(List<TaxonomySearchRecord> visibleChildConcept) {
+		List<String> ids = new ArrayList<>();
+		for (TaxonomySearchRecord record : visibleChildConcept) {
+			ids.add(record.getId());
+		}
+		return ids;
+	}
+
 	public List<String> getAdministrativeUnitsForUser(User user) {
 		return taxonomiesSearchServices.getAllPrincipalConceptIdsAvailableTo(adminUnitsTaxonomy(), user, StatusFilter.ACTIVES);
-	}
-
-	public List<String> getAdministrativeUnitsWithFilingSpaceForUser(FilingSpace filingSpace, User user,
-			StatusFilter statusFilter) {
-		LogicalSearchCondition condition = taxonomiesSearchServices
-				.getAllConceptHierarchyOfCondition(adminUnitsTaxonomy(), null)
-				.andWhere(rm.administrativeUnitFilingSpaces()).isEqualTo(filingSpace);
-
-		return searchServices.searchRecordIds(new LogicalSearchQuery(condition)
-				.filteredWithUser(user).filteredByStatus(statusFilter));
-	}
-
-	public List<String> getAdministrativeUnitsWithFilingSpaceForUser(FilingSpace filingSpace, User user) {
-		return getAdministrativeUnitsWithFilingSpaceForUser(filingSpace, user, StatusFilter.ALL);
-	}
-
-	public List<String> getUserFilingSpaces(User user) {
-		return getUserFilingSpaces(user, StatusFilter.ALL);
-	}
-
-	public List<String> getUserFilingSpaces(User user, StatusFilter statusFilter) {
-		return searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.filingSpaceSchemaType())
-				.whereAny(rm.filingSpaceAdministrators(), rm.filingSpaceUsers()).isEqualTo(user)).filteredByStatus(statusFilter));
 	}
 
 	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId) {
@@ -510,5 +629,9 @@ public class DecommissioningService {
 			}
 		}
 		return minimumDate;
+	}
+
+	private DecommissioningSecurityService securityService() {
+		return new DecommissioningSecurityService(collection, modelLayerFactory);
 	}
 }

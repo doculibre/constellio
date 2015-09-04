@@ -18,9 +18,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.globalGroup;
 
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 
-public interface DisplayGlobalGroupView extends BaseView, AdminModuleViewGroup {
+public interface DisplayGlobalGroupView extends BaseView, AdminViewGroup {
 
 	void refreshTable();
 }

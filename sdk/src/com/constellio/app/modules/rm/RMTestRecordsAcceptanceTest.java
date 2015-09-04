@@ -33,7 +33,9 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -48,9 +50,11 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
+	Users users = new Users();
 	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Before
@@ -64,7 +68,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
@@ -78,7 +82,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		assertThat(records.getAdmin().has(CorePermissions.DELETE_CONTENT_VERSION).globally()).isTrue();
@@ -92,29 +96,44 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenTestRecordsWithFoldersThenUsersAuthorizationsAndRolesOnFolder()
+			throws Exception {
+
+		assertThat("_M_3cd468d8-ddc4-46ae-b7ab-9bdf5d9d5a7a".split("_").length).isEqualTo(3);
+
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+
+		Folder banane = rm.getFolder(records.folder_B02);
+		User edouard = users.edouardIn(zeCollection);
+		assertThat(edouard.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(banane)).isTrue();
+	}
+
+	@Test
 	public void givenTestRecordsWithFoldersThenUsersHaveAuthorizationToTheirFilingSpacesFolders()
 			throws Exception {
 
-		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		long unit10FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_10));
+				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_10a));
 
 		long unit11FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_11));
+				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_11b));
 
 		long unit12FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_12));
+				.where(rm.folderAdministrativeUnit()).isIn(asList(records.unitId_12b, records.unitId_12c)));
 
 		long unit20FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_20));
+				.where(rm.folderAdministrativeUnit()).isEqualTo(asList(records.unitId_20d, records.unitId_20e)));
 
 		long unit30FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_30));
+				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_30c));
 
 		assertThatCountOfFoldersVisibleBy(records.getBob_userInAC())
 				.isEqualTo(unit10FolderCount + unit11FolderCount + unit12FolderCount + unit30FolderCount);
@@ -145,7 +164,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
 
@@ -177,7 +196,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
 
@@ -187,8 +206,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(list01.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DESTROY);
 		assertThat(list01.getFoldersMediaTypes()).containsExactly(ANALOG, HYBRID, UNKNOWN, ELECTRONIC, ANALOG, UNKNOWN);
 		assertThat(list01.getStatus()).isEqualTo(DecomListStatus.GENERATED);
-		assertThat(list01.getFilingSpace()).isEqualTo(records.filingId_A);
-		assertThat(list01.getAdministrativeUnit()).isEqualTo(records.unitId_10);
+		assertThat(list01.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(list01.getFolders()).containsOnlyOnce(records.folder_A(42, 47));
 		assertThat(list01.getContainers()).containsOnlyOnce(records.containerId_bac18, records.containerId_bac19);
 
@@ -211,8 +229,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(list15.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DEPOSIT);
 		assertThat(list15.getFoldersMediaTypes()).containsExactly(ELECTRONIC, ELECTRONIC, ELECTRONIC);
 		assertThat(list15.getStatus()).isEqualTo(DecomListStatus.PROCESSED);
-		assertThat(list15.getFilingSpace()).isEqualTo(records.filingId_A);
-		assertThat(list15.getAdministrativeUnit()).isEqualTo(records.unitId_10);
+		assertThat(list15.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(list15.getFolders()).containsOnlyOnce(records.folder_A(94, 96));
 		assertThat(list15.getContainers()).containsOnlyOnce(records.containerId_bac04);
 	}
@@ -222,15 +239,14 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		assertThat(records.getContainerBac01().getId()).isEqualTo("bac01");
 		assertThat(records.getContainerBac01().getTemporaryIdentifier()).isEqualTo("30_C_01");
 		assertThat(records.getContainerBac01().getStorageSpace()).isEqualTo("S02-02");
-		assertThat(records.getContainerBac01().getAdministrativeUnit()).isEqualTo("unitId_30");
-		assertThat(records.getContainerBac01().getFilingSpace()).isEqualTo("filingId_C");
+		assertThat(records.getContainerBac01().getAdministrativeUnit()).isEqualTo(records.unitId_30c);
 		assertThat(records.getContainerBac01().getRealTransferDate()).isEqualTo(localDate(2007, 10, 31));
 		assertThat(records.getContainerBac01().getRealDepositDate()).isEqualTo(localDate(2011, 2, 13));
 		assertThat(records.getContainerBac01().getDecommissioningType()).isEqualTo(DecommissioningType.DEPOSIT);
@@ -239,8 +255,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac02().getId()).isEqualTo("bac02");
 		assertThat(records.getContainerBac02().getTemporaryIdentifier()).isEqualTo("12_B_01");
 		assertThat(records.getContainerBac02().getStorageSpace()).isNull();
-		assertThat(records.getContainerBac02().getAdministrativeUnit()).isEqualTo("unitId_12");
-		assertThat(records.getContainerBac02().getFilingSpace()).isEqualTo("filingId_B");
+		assertThat(records.getContainerBac02().getAdministrativeUnit()).isEqualTo(records.unitId_12b);
 		assertThat(records.getContainerBac02().getRealTransferDate()).isEqualTo(localDate(2007, 10, 31));
 		assertThat(records.getContainerBac02().getRealDepositDate()).isEqualTo(localDate(2011, 2, 13));
 		assertThat(records.getContainerBac02().getDecommissioningType()).isEqualTo(DecommissioningType.DEPOSIT);
@@ -249,8 +264,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac03().getId()).isEqualTo("bac03");
 		assertThat(records.getContainerBac03().getTemporaryIdentifier()).isEqualTo("11_B_01");
 		assertThat(records.getContainerBac03().getStorageSpace()).isEqualTo("S02-02");
-		assertThat(records.getContainerBac03().getAdministrativeUnit()).isEqualTo("unitId_11");
-		assertThat(records.getContainerBac03().getFilingSpace()).isEqualTo("filingId_B");
+		assertThat(records.getContainerBac03().getAdministrativeUnit()).isEqualTo(records.unitId_11b);
 		assertThat(records.getContainerBac03().getRealTransferDate()).isEqualTo(localDate(2006, 10, 31));
 		assertThat(records.getContainerBac03().getRealDepositDate()).isEqualTo(localDate(2009, 8, 17));
 		assertThat(records.getContainerBac03().getDecommissioningType()).isEqualTo(DecommissioningType.DEPOSIT);
@@ -259,8 +273,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac04().getId()).isEqualTo("bac04");
 		assertThat(records.getContainerBac04().getTemporaryIdentifier()).isEqualTo("10_A_01");
 		assertThat(records.getContainerBac04().getStorageSpace()).isEqualTo("S01-02");
-		assertThat(records.getContainerBac04().getAdministrativeUnit()).isEqualTo("unitId_10");
-		assertThat(records.getContainerBac04().getFilingSpace()).isEqualTo("filingId_A");
+		assertThat(records.getContainerBac04().getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(records.getContainerBac04().getRealTransferDate()).isEqualTo(localDate(2007, 10, 31));
 		assertThat(records.getContainerBac04().getRealDepositDate()).isEqualTo(localDate(2010, 8, 17));
 		assertThat(records.getContainerBac04().getDecommissioningType()).isEqualTo(DecommissioningType.DEPOSIT);
@@ -269,8 +282,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac05().getId()).isEqualTo("bac05");
 		assertThat(records.getContainerBac05().getTemporaryIdentifier()).isEqualTo("10_A_02");
 		assertThat(records.getContainerBac05().getStorageSpace()).isEqualTo("S01-02");
-		assertThat(records.getContainerBac05().getAdministrativeUnit()).isEqualTo("unitId_10");
-		assertThat(records.getContainerBac05().getFilingSpace()).isEqualTo("filingId_A");
+		assertThat(records.getContainerBac05().getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(records.getContainerBac05().getRealTransferDate()).isEqualTo(localDate(2008, 10, 31));
 		assertThat(records.getContainerBac05().getRealDepositDate()).isEqualTo(localDate(2012, 5, 15));
 		assertThat(records.getContainerBac05().getDecommissioningType()).isEqualTo(DecommissioningType.DEPOSIT);
@@ -279,8 +291,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac06().getId()).isEqualTo("bac06");
 		assertThat(records.getContainerBac06().getTemporaryIdentifier()).isEqualTo("30_C_02");
 		assertThat(records.getContainerBac06().getStorageSpace()).isNull();
-		assertThat(records.getContainerBac06().getAdministrativeUnit()).isEqualTo("unitId_30");
-		assertThat(records.getContainerBac06().getFilingSpace()).isEqualTo("filingId_C");
+		assertThat(records.getContainerBac06().getAdministrativeUnit()).isEqualTo(records.unitId_30c);
 		assertThat(records.getContainerBac06().getRealTransferDate()).isEqualTo(localDate(2006, 10, 31));
 		assertThat(records.getContainerBac06().getRealDepositDate()).isNull();
 		assertThat(records.getContainerBac06().getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
@@ -289,8 +300,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac07().getId()).isEqualTo("bac07");
 		assertThat(records.getContainerBac07().getTemporaryIdentifier()).isEqualTo("30_C_03");
 		assertThat(records.getContainerBac07().getStorageSpace()).isEqualTo("S02-01");
-		assertThat(records.getContainerBac07().getAdministrativeUnit()).isEqualTo("unitId_30");
-		assertThat(records.getContainerBac07().getFilingSpace()).isEqualTo("filingId_C");
+		assertThat(records.getContainerBac07().getAdministrativeUnit()).isEqualTo(records.unitId_30c);
 		assertThat(records.getContainerBac07().getRealTransferDate()).isEqualTo(localDate(2007, 10, 31));
 		assertThat(records.getContainerBac07().getRealDepositDate()).isNull();
 		assertThat(records.getContainerBac07().getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
@@ -299,8 +309,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac08().getId()).isEqualTo("bac08");
 		assertThat(records.getContainerBac08().getTemporaryIdentifier()).isEqualTo("12_B_02");
 		assertThat(records.getContainerBac08().getStorageSpace()).isEqualTo("S02-01");
-		assertThat(records.getContainerBac08().getAdministrativeUnit()).isEqualTo("unitId_12");
-		assertThat(records.getContainerBac08().getFilingSpace()).isEqualTo("filingId_B");
+		assertThat(records.getContainerBac08().getAdministrativeUnit()).isEqualTo(records.unitId_12b);
 		assertThat(records.getContainerBac08().getRealTransferDate()).isEqualTo(localDate(2007, 10, 31));
 		assertThat(records.getContainerBac08().getRealDepositDate()).isNull();
 		assertThat(records.getContainerBac08().getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
@@ -309,8 +318,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac09().getId()).isEqualTo("bac09");
 		assertThat(records.getContainerBac09().getTemporaryIdentifier()).isEqualTo("11_B_02");
 		assertThat(records.getContainerBac09().getStorageSpace()).isEqualTo("S02-01");
-		assertThat(records.getContainerBac09().getAdministrativeUnit()).isEqualTo("unitId_11");
-		assertThat(records.getContainerBac09().getFilingSpace()).isEqualTo("filingId_B");
+		assertThat(records.getContainerBac09().getAdministrativeUnit()).isEqualTo(records.unitId_11b);
 		assertThat(records.getContainerBac09().getRealTransferDate()).isEqualTo(localDate(2006, 10, 31));
 		assertThat(records.getContainerBac09().getRealDepositDate()).isNull();
 		assertThat(records.getContainerBac09().getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
@@ -319,8 +327,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac10().getId()).isEqualTo("bac10");
 		assertThat(records.getContainerBac10().getTemporaryIdentifier()).isEqualTo("10_A_03");
 		assertThat(records.getContainerBac10().getStorageSpace()).isNull();
-		assertThat(records.getContainerBac10().getAdministrativeUnit()).isEqualTo("unitId_10");
-		assertThat(records.getContainerBac10().getFilingSpace()).isEqualTo("filingId_A");
+		assertThat(records.getContainerBac10().getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(records.getContainerBac10().getRealTransferDate()).isEqualTo(localDate(2007, 10, 31));
 		assertThat(records.getContainerBac10().getRealDepositDate()).isNull();
 		assertThat(records.getContainerBac10().getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
@@ -329,8 +336,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac11().getId()).isEqualTo("bac11");
 		assertThat(records.getContainerBac11().getTemporaryIdentifier()).isEqualTo("10_A_04");
 		assertThat(records.getContainerBac11().getStorageSpace()).isEqualTo("S01-01");
-		assertThat(records.getContainerBac11().getAdministrativeUnit()).isEqualTo("unitId_10");
-		assertThat(records.getContainerBac11().getFilingSpace()).isEqualTo("filingId_A");
+		assertThat(records.getContainerBac11().getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(records.getContainerBac11().getRealTransferDate()).isEqualTo(localDate(2005, 10, 31));
 		assertThat(records.getContainerBac11().getRealDepositDate()).isNull();
 		assertThat(records.getContainerBac11().getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
@@ -339,8 +345,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac12().getId()).isEqualTo("bac12");
 		assertThat(records.getContainerBac12().getTemporaryIdentifier()).isEqualTo("10_A_05");
 		assertThat(records.getContainerBac12().getStorageSpace()).isEqualTo("S01-01");
-		assertThat(records.getContainerBac12().getAdministrativeUnit()).isEqualTo("unitId_10");
-		assertThat(records.getContainerBac12().getFilingSpace()).isEqualTo("filingId_A");
+		assertThat(records.getContainerBac12().getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(records.getContainerBac12().getRealTransferDate()).isEqualTo(localDate(2006, 10, 31));
 		assertThat(records.getContainerBac12().getRealDepositDate()).isNull();
 		assertThat(records.getContainerBac12().getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
@@ -349,8 +354,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getContainerBac13().getId()).isEqualTo("bac13");
 		assertThat(records.getContainerBac13().getTemporaryIdentifier()).isEqualTo("10_A_06");
 		assertThat(records.getContainerBac13().getStorageSpace()).isEqualTo("S01-01");
-		assertThat(records.getContainerBac13().getAdministrativeUnit()).isEqualTo("unitId_10");
-		assertThat(records.getContainerBac13().getFilingSpace()).isEqualTo("filingId_A");
+		assertThat(records.getContainerBac13().getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(records.getContainerBac13().getRealTransferDate()).isEqualTo(localDate(2008, 10, 31));
 		assertThat(records.getContainerBac13().getRealDepositDate()).isNull();
 		assertThat(records.getContainerBac13().getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
@@ -362,7 +366,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 	public void givenTestRecordsWithRetentionRulesThenTheyHaveCorrectInfos()
 			throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
 		assertThat(records.getRule1().getCopyRulesComment())
@@ -378,7 +382,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 	public void givenTestRecordsWithFoldersThenFoldersHaveCorrectInfos()
 			throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -896,6 +900,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_B06())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
+				.has(copyType(CopyType.SECONDARY))
 				.has(planifiedTransferDate(2002, 10, 31))
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2002, 10, 31));
@@ -1207,6 +1212,16 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		};
 	}
 
+	private Condition<? super Folder> copyType(final CopyType type) {
+		return new Condition<Folder>() {
+			@Override
+			public boolean matches(Folder value) {
+				assertThat(value.getCopyStatus()).isEqualTo(type);
+				return true;
+			}
+		};
+	}
+
 	private LocalDate localDate(int year, int month, int day) {
 		return new LocalDate(year, month, day);
 	}
@@ -1258,6 +1273,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			@Override
 			public boolean matches(Folder value) {
 				assertThat(value.getActualTransferDate()).isNull();
+				assertThat(value.getExpectedTransferDate()).isNull();
 				return true;
 			}
 		};
@@ -1268,6 +1284,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			@Override
 			public boolean matches(Folder value) {
 				assertThat(value.getActualDestructionDate()).isNull();
+				assertThat(value.getExpectedDestructionDate()).isNull();
 				return true;
 			}
 		};
@@ -1278,6 +1295,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			@Override
 			public boolean matches(Folder value) {
 				assertThat(value.getActualDepositDate()).isNull();
+				assertThat(value.getExpectedDepositDate()).isNull();
 				return true;
 			}
 		};
@@ -1321,8 +1339,8 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		return new Condition<Folder>() {
 			@Override
 			public boolean matches(Folder value) {
-				assertThat(value.getActualTransferDate()).isNull();
-				assertThat(value.getExpectedTransferDate()).isEqualTo(date);
+				assertThat(value.getActualTransferDate()).describedAs("actualTransferDate").isNull();
+				assertThat(value.getExpectedTransferDate()).describedAs("planifiedTransferDate").isEqualTo(date);
 				return true;
 			}
 		};
@@ -1333,8 +1351,8 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		return new Condition<Folder>() {
 			@Override
 			public boolean matches(Folder value) {
-				assertThat(value.getActualDestructionDate()).isNull();
-				assertThat(value.getExpectedDestructionDate()).isEqualTo(date);
+				assertThat(value.getActualDestructionDate()).describedAs("actualDestructionDate").isNull();
+				assertThat(value.getExpectedDestructionDate()).describedAs("planifiedDestructionDate").isEqualTo(date);
 				return true;
 			}
 		};
@@ -1345,8 +1363,8 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		return new Condition<Folder>() {
 			@Override
 			public boolean matches(Folder value) {
-				assertThat(value.getActualDepositDate()).isNull();
-				assertThat(value.getExpectedDepositDate()).isEqualTo(date);
+				assertThat(value.getActualDepositDate()).describedAs("actualDepositDate").isNull();
+				assertThat(value.getExpectedDepositDate()).describedAs("planifiedDepositDate").isEqualTo(date);
 				return true;
 			}
 		};

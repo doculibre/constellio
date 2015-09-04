@@ -22,10 +22,12 @@ import static com.constellio.sdk.tests.TestUtils.asMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -82,7 +84,9 @@ import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
+import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UserCannotReadDocument;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
 import com.constellio.model.services.search.SearchServices;
@@ -114,6 +118,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock RecordDao recordDao;
 	@Mock RecordDao eventsDao;
 	@Mock RecordDao notificationsDao;
+	@Mock RecordsCaches recordsCaches;
 	@Mock RecordValidationServices validationServices;
 	@Mock RecordAutomaticMetadataServices automaticMetadataServices;
 	@Mock ContentManager contentManager;
@@ -130,7 +135,7 @@ public class RecordServicesTest extends ConstellioTest {
 	String anotherSavedDocumentId = aString();
 	TestsSchemasSetup schemas;
 	ZeSchemaMetadatas zeSchema;
-	RecordServices recordServices;
+	RecordServicesImpl recordServices;
 	String theTitle = aString();
 	String theStringMetadata = aString();
 	String anotherTitle = aString();
@@ -213,8 +218,10 @@ public class RecordServicesTest extends ConstellioTest {
 			}
 		};
 
-		recordServices = spy(new RecordServices(recordDao, eventsDao, notificationsDao, modelFactory, typesFactory,
-				uniqueIdGenerator));
+		recordServices = spy(
+				(RecordServicesImpl) new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory, typesFactory,
+						uniqueIdGenerator, recordsCaches));
+		doNothing().when(recordServices).sleep(anyLong());
 
 		when(newFirstRecordVersion.getId()).thenReturn(firstRecordId);
 		when(newSecondRecordVersion.getId()).thenReturn(secondRecordId);
@@ -554,7 +561,7 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.setRecordFlushing(recordsFlushing);
 		doReturn(transactionDTO).when(recordServices).createTransactionDTO(eq(transaction), anyList());
 		doReturn(transactionResponseDTO).when(recordDao).execute(transactionDTO);
-		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class));
 
 		recordServices.execute(transaction);
@@ -579,16 +586,18 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.setRecordFlushing(recordsFlushing);
 		doReturn(transactionDTO).when(recordServices)
 				.createTransactionDTO(eq(transaction), anyList());
-		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class));
-		doNothing().when(recordServices).handleOptimisticLocking(any(Transaction.class),
-				any(RecordModificationImpactHandler.class), any(OptimisticLocking.class));
+		doNothing().when(recordServices).handleOptimisticLocking(any(TransactionDTO.class), any(Transaction.class),
+				any(RecordModificationImpactHandler.class), any(OptimisticLocking.class), anyInt());
 		RecordDaoException.OptimisticLocking exception = mock(RecordDaoException.OptimisticLocking.class);
 		doThrow(exception).when(recordDao).execute(transactionDTO);
 
 		recordServices.execute(transaction);
 
-		verify(recordServices).handleOptimisticLocking(transaction, null, exception);
+		verify(recordServices)
+				.handleOptimisticLocking(any(TransactionDTO.class), eq(transaction),
+						isNull(RecordModificationImpactHandler.class), eq(exception), anyInt());
 
 	}
 
@@ -600,12 +609,16 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
 		try {
-			recordServices.handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+			recordServices
+					.handleOptimisticLocking(mock(TransactionDTO.class), transaction, recordModificationImpactHandler,
+							optimisticLockingException, 0);
 			fail("Exception expected");
 		} catch (RecordServicesException.OptimisticLocking e) {
 			// OK
 		}
-		verify(recordServices).handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+		verify(recordServices)
+				.handleOptimisticLocking(any(TransactionDTO.class), eq(transaction), eq(recordModificationImpactHandler),
+						eq(optimisticLockingException), anyInt());
 		verifyZeroInteractions(recordDao);
 	}
 
@@ -616,9 +629,12 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.KEEP_OLDER);
 
-		recordServices.handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+		recordServices.handleOptimisticLocking(mock(TransactionDTO.class), transaction, recordModificationImpactHandler,
+				optimisticLockingException, 0);
 
-		verify(recordServices).handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+		verify(recordServices)
+				.handleOptimisticLocking(any(TransactionDTO.class), eq(transaction), eq(recordModificationImpactHandler),
+						eq(optimisticLockingException), anyInt());
 		verifyZeroInteractions(recordDao);
 	}
 
@@ -633,11 +649,12 @@ public class RecordServicesTest extends ConstellioTest {
 		doNothing().when(recordServices).executeWithImpactHandler(any(Transaction.class),
 				any(RecordModificationImpactHandler.class));
 
-		recordServices.handleOptimisticLocking(transaction, recordModificationImpactHandler, optimisticLockingException);
+		recordServices.handleOptimisticLocking(mock(TransactionDTO.class), transaction, recordModificationImpactHandler,
+				optimisticLockingException, 3);
 
 		InOrder inOrder = inOrder(recordServices);
 		inOrder.verify(recordServices).mergeRecords(transaction);
-		inOrder.verify(recordServices).executeWithImpactHandler(transaction, recordModificationImpactHandler);
+		inOrder.verify(recordServices).executeWithImpactHandler(transaction, recordModificationImpactHandler, 4);
 	}
 
 	@Test
@@ -650,11 +667,12 @@ public class RecordServicesTest extends ConstellioTest {
 		doNothing().when(recordServices).mergeRecords(transaction);
 		doNothing().when(recordServices).execute(any(Transaction.class));
 
-		recordServices.handleOptimisticLocking(transaction, null, optimisticLockingException);
+		recordServices
+				.handleOptimisticLocking(mock(TransactionDTO.class), transaction, null, optimisticLockingException, 2);
 
 		InOrder inOrder = inOrder(recordServices);
 		inOrder.verify(recordServices).mergeRecords(transaction);
-		inOrder.verify(recordServices).execute(transaction);
+		inOrder.verify(recordServices).execute(transaction, 3);
 	}
 
 	@Test
@@ -726,7 +744,7 @@ public class RecordServicesTest extends ConstellioTest {
 
 		List<Record> records = asList((Record) firstUpdatedRecord, firstAddedRecord, secondAddedRecord, secondUpdatedRecord);
 
-		recordServices.refreshRecords(records, transactionResponseDTO, metadataSchemaTypes);
+		recordServices.refreshRecordsAndCaches(zeCollection, records, transactionResponseDTO, metadataSchemaTypes);
 
 		verify(firstAddedRecord).markAsSaved(firstAddedRecordVersion, zeSchema.instance());
 		verify(secondAddedRecord).markAsSaved(secondAddedRecordVersion, zeSchema.instance());
@@ -764,7 +782,7 @@ public class RecordServicesTest extends ConstellioTest {
 		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
-		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class));
 		Transaction transaction = new Transaction();
 		transaction.update(zeRecord);
@@ -794,7 +812,7 @@ public class RecordServicesTest extends ConstellioTest {
 		transaction.update(zeRecord);
 		transaction.setRecordFlushing(recordsFlushing);
 
-		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class));
 		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).calculateImpactOfModification(
 				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
@@ -836,20 +854,22 @@ public class RecordServicesTest extends ConstellioTest {
 
 		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).getModificationImpacts(transaction,
 				false);
-		doNothing().when(recordServices).refreshRecords(anyList(), any(TransactionResponseDTO.class),
+		doNothing().when(recordServices).refreshRecordsAndCaches(eq(zeCollection), anyList(), any(TransactionResponseDTO.class),
 				any(MetadataSchemaTypes.class));
 		doNothing().when(recordServices).prepareRecords(any(Transaction.class));
 		doNothing().when(recordServices).saveContentsAndRecords(any(Transaction.class),
-				any(RecordModificationImpactHandler.class));
+				any(RecordModificationImpactHandler.class), anyInt());
 		recordServices.execute(transaction);
 
 		InOrder inOrder = inOrder(recordServices, transaction);
 		inOrder.verify(recordServices).execute(transaction);
 		inOrder.verify(transaction).sortRecords(schemaManager.getSchemaTypes(zeCollection));
 		inOrder.verify(recordServices).execute(nestedTransaction.capture());
-		inOrder.verify(recordServices).saveContentsAndRecords(nestedTransaction.getValue(), null);
+		inOrder.verify(recordServices).saveContentsAndRecords(eq(nestedTransaction.getValue()),
+				isNull(RecordModificationImpactHandler.class), anyInt());
 
-		verify(recordServices, never()).saveContentsAndRecords(transaction, null);
+		verify(recordServices, never()).saveContentsAndRecords(eq(transaction),
+				isNull(RecordModificationImpactHandler.class), anyInt());
 		assertThat(nestedTransaction.getValue().getRecords()).containsExactly(firstRecordConditionRecord1,
 				firstRecordConditionRecord2, secondRecordConditionRecord1, secondRecordConditionRecord2, zeRecord);
 
@@ -905,9 +925,48 @@ public class RecordServicesTest extends ConstellioTest {
 		doReturn(impactCalculator).when(recordServices).newModificationImpactCalculator(taxonomiesManager, metadataSchemaTypes,
 				searchServices);
 
-		assertThat(
-				recordServices.calculateImpactOfModification(transaction, taxonomiesManager, searchServices, metadataSchemaTypes,
-						true)).isEqualTo(zeModifications);
+		assertThat(recordServices.calculateImpactOfModification(
+				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true)).isEqualTo(zeModifications);
+
+	}
+
+	@Test
+	public void givenUnresolvableOptimistickLockingWhenExecutingATransactionThenNoInfiniteLoop()
+			throws Exception {
+
+		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
+		when(zeRecord.getId()).thenReturn("anId");
+		when(zeRecord.isDirty()).thenReturn(true);
+		Transaction transaction = new Transaction(zeRecord);
+
+		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
+
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (UnresolvableOptimsiticLockingCausingInfiniteLoops e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	@Test
+	public void givenUnresolvableOptimistickLockingWhenExecutingATransactionHandlingImpactsAsyncThenNoInfiniteLoop()
+			throws Exception {
+
+		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
+		when(zeRecord.getId()).thenReturn("anId");
+		when(zeRecord.isDirty()).thenReturn(true);
+		Transaction transaction = new Transaction(zeRecord);
+
+		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
+
+		try {
+			recordServices.executeHandlingImpactsAsync(transaction);
+			fail("Exception expected");
+		} catch (UnresolvableOptimsiticLockingCausingInfiniteLoops e) {
+			e.printStackTrace();
+		}
 
 	}
 
@@ -923,10 +982,11 @@ public class RecordServicesTest extends ConstellioTest {
 		when(transaction.getCollection()).thenReturn(zeCollection);
 		doReturn(new ContentModifications(new ArrayList<String>(), newContents)).when(recordServices)
 				.findContentsModificationsIn(metadataSchemaTypes, transaction);
-		doThrow(zeException).when(recordServices).saveTransactionDTO(transaction, recordModificationImpactHandler);
+		doThrow(zeException).when(recordServices).saveTransactionDTO(eq(transaction),
+				eq(recordModificationImpactHandler), anyInt());
 
 		try {
-			recordServices.saveContentsAndRecords(transaction, recordModificationImpactHandler);
+			recordServices.saveContentsAndRecords(transaction, recordModificationImpactHandler, 0);
 			fail("Exception expected");
 		} catch (Exception e) {
 			assertThat(e).isEqualTo(zeException);
@@ -947,10 +1007,11 @@ public class RecordServicesTest extends ConstellioTest {
 		when(transaction.getCollection()).thenReturn(zeCollection);
 		doReturn(new ContentModifications(new ArrayList<String>(), newContents)).when(recordServices)
 				.findContentsModificationsIn(metadataSchemaTypes, transaction);
-		doThrow(zeException).when(recordServices).saveTransactionDTO(transaction, recordModificationImpactHandler);
+		doThrow(zeException).when(recordServices).saveTransactionDTO(eq(transaction),
+				eq(recordModificationImpactHandler), anyInt());
 
 		try {
-			recordServices.saveContentsAndRecords(transaction, recordModificationImpactHandler);
+			recordServices.saveContentsAndRecords(transaction, recordModificationImpactHandler, 0);
 			fail("Exception expected");
 		} catch (Exception e) {
 			assertThat(e).isEqualTo(zeException);

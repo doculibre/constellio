@@ -26,7 +26,6 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.AdminUnitsWithContainersCountContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
-import com.constellio.app.ui.framework.containers.FilingSpaceWithContainersCountContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -52,41 +51,9 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 
 		layout.addComponent(buildChildrenAdminUnitsTable());
 
-		layout.addComponent(buildFilingSpacesTable());
+		layout.addComponent(buildContainersTable());
 
 		return layout;
-	}
-
-	private Component buildFilingSpacesTable() {
-		RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(presenter.getFilingSpacesDataProvider());
-
-		FilingSpaceWithContainersCountContainer adaptedContainer = new FilingSpaceWithContainersCountContainer(
-				recordVOLazyContainer, getCollection(), getSessionContext().getCurrentUser().getId(), presenter.tabName,
-				presenter.adminUnitId);
-
-		ButtonsContainer buttonsContainer = new ButtonsContainer(adaptedContainer, "buttons");
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new DisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						RecordVO entity = presenter.getFilingSpacesDataProvider().getRecordVO(index);
-						presenter.displayFilingSpaceButtonClicked(presenter.tabName, entity);
-					}
-				};
-			}
-		});
-
-		RecordVOTable table = new RecordVOTable($("ContainersInAdministrativeUnitView.filingSpacesTableTitle"), buttonsContainer);
-		table.setWidth("100%");
-		table.setColumnHeader("buttons", "");
-		table.setColumnHeader(AdminUnitsWithContainersCountContainer.CONTAINERS_COUNT,$("containersCount"));
-		//		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
-		table.setPageLength(table.getItemIds().size());
-
-		return table;
 	}
 
 	private Component buildChildrenAdminUnitsTable() {
@@ -114,10 +81,38 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 				buttonsContainer);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
-		table.setColumnHeader(AdminUnitsWithContainersCountContainer.CONTAINERS_COUNT,$("containersCount"));
-		table.setColumnHeader(AdminUnitsWithContainersCountContainer.FILING_SPACES_COUNT,$("filingSpacesCount"));
+		table.setColumnHeader(AdminUnitsWithContainersCountContainer.CONTAINERS_COUNT, $("containersCount"));
+		table.setColumnHeader(AdminUnitsWithContainersCountContainer.SUB_ADMINISTRATIVE_UNITS_COUNT,
+				$("subAdministrativeUnitsCount"));
 		//		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 		table.setPageLength(table.getItemIds().size());
+
+		return table;
+	}
+
+	private Component buildContainersTable() {
+		RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(presenter.getContainersDataProvider());
+		ButtonsContainer buttonsContainer = new ButtonsContainer(recordVOLazyContainer, "buttons");
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new DisplayButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						Integer index = (Integer) itemId;
+						RecordVO entity = presenter.getContainersDataProvider().getRecordVO(index);
+						presenter.displayContainerButtonClicked(entity);
+					}
+				};
+			}
+		});
+
+		RecordVOTable table = new RecordVOTable($("ContainersInFilingSpaceView.containersTableTitle"), buttonsContainer);
+		table.setWidth("100%");
+		table.setColumnHeader("buttons", "");
+		//		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
+		table.setPageLength(table.getItemIds().size());
+		table.setVisible(table.getItemIds().size() > 0);
 
 		return table;
 	}

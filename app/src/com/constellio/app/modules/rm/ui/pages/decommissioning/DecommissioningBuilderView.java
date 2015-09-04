@@ -30,5 +30,4 @@ public interface DecommissioningBuilderView extends SearchView, ArchivesManageme
 
 	List<Criterion> getSearchCriteria();
 
-	void updateAdministrativeUnits();
 }

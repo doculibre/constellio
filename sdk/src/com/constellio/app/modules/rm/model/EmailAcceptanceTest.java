@@ -28,6 +28,8 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -65,5 +67,29 @@ public class EmailAcceptanceTest extends ConstellioTest {
 		email.setDescription(null).setTitle("Z");
 		recordServices.update(email);
 		assertThat(email.getEmailTo()).containsOnly("dest1", "dest2");
+	}
+
+	@Test
+	public void givenEmailThenInheritFolderMetadatas()
+			throws Exception {
+
+		Email email = rm.newEmail();
+		email.setTitle("My email").setDescription("test").setFolder(records.folder_A03);
+		email.setEmailTo(Arrays.asList("dest1", "dest2"));
+		recordServices.add(email);
+
+		assertThat(email.getFolderAdministrativeUnit()).isEqualTo(records.unitId_10a);
+		assertThat(email.getFolderCategory()).isEqualTo(records.categoryId_X110);
+
+		Folder folder = records.getFolder_A03()
+				.setCategoryEntered(records.categoryId_X13)
+				.setAdministrativeUnitEntered(records.unitId_11b);
+
+		recordServices.execute(new Transaction(folder.getWrappedRecord()));
+		waitForBatchProcess();
+		recordServices.refresh(email);
+		assertThat(email.getFolderAdministrativeUnit()).isEqualTo(records.unitId_11b);
+		assertThat(email.getFolderCategory()).isEqualTo(records.categoryId_X13);
+
 	}
 }

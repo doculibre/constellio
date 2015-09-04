@@ -28,6 +28,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.model.entities.records.Record;
@@ -49,6 +52,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchValueCond
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class ReindexingServices {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ReindexingServices.class);
 
 	private static final String REINDEX_TYPES = "reindexTypes";
 
@@ -99,6 +104,7 @@ public class ReindexingServices {
 		}
 		transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
 		reindexCollection(collection, params, transactionOptions);
+		SecondTransactionLogManager log = modelLayerFactory.getDataLayerFactory().getSecondTransactionLogManager();
 
 	}
 
@@ -131,6 +137,7 @@ public class ReindexingServices {
 			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
 			for (String typeCode : types.getSchemaTypesSortedByDependency()) {
+				LOGGER.info("Indexing '" + typeCode + "'");
 				reindexCollectionType(bulkTransactionHandler, types, typeCode);
 			}
 		} finally {
@@ -159,17 +166,20 @@ public class ReindexingServices {
 		Set<String> ids = new HashSet<>();
 
 		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
-
+		long current = 0;
 		while (true) {
 			Set<String> idsInCurrentBatch = new HashSet<>();
 			Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(from(type).returnAll()));
 			while (records.hasNext()) {
 				Record record = records.next();
-				if (metadatas.isEmpty() || !ids.contains(record.getId())) {
+				if (metadatas.isEmpty() || (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId()))) {
 					if (metadatas.isEmpty()) {
+						current++;
+						LOGGER.info("Indexing '" + typeCode + "' : " + current + "/" + counter);
 						bulkTransactionHandler.append(record);
 					} else {
 						String parentId = getParentIdOfSameType(metadatas, record);
+
 						if (parentId == null || ids.contains(parentId)) {
 							bulkTransactionHandler.append(record);
 							idsInCurrentBatch.add(record.getId());

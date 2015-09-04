@@ -20,16 +20,19 @@ package com.constellio.app.ui.pages.management.taxonomy;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
-import com.constellio.app.modules.rm.constants.RMTaxonomies;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -39,7 +42,8 @@ import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.taxonomy.TaxonomyBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -70,7 +74,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	private TaxonomyManagementPresenter presenter;
 	public static final String STYLE_NAME = "display-taxonomy";
 	private TabSheet tabSheet;
-	private Component foldersCompoment;
+	private Map<String, Component> tabComponents;
 	private VerticalLayout mainLayout;
 
 	public TaxonomyManagementViewImpl() {
@@ -79,13 +83,12 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 	@Override
 	protected String getTitle() {
-		TaxonomyVO taxonomy = presenter.getTaxonomy();
-		for (String rmTaxoCode : RMTaxonomies.ALL_RM_TAXONOMIES) {
-			if (rmTaxoCode.equals(taxonomy.getCode())) {
-				return taxonomy.getTitle();
-			}
+		String conceptId = presenter.conceptId;
+		if (conceptId != null) {
+			return null;
+		} else {
+			return presenter.getTaxonomy().getTitle();
 		}
-		return taxonomy.getTitle();
 	}
 
 	@Override
@@ -105,17 +108,20 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 		tabSheet = new TabSheet();
-		foldersCompoment = new CustomComponent();
+		tabComponents = new HashMap<>();
+
+		List<TaxonomyManagementClassifiedType> classifiedTypes = presenter.getClassifiedTypes();
+
+		for (TaxonomyManagementClassifiedType classifiedType : classifiedTypes) {
+			tabComponents.put(classifiedType.getSchemaType().getCode(), new CustomComponent());
+		}
 
 		VerticalLayout taxonomyDisplayLayout = new VerticalLayout(buildRootConceptsTables());
 		taxonomyDisplayLayout.setSizeFull();
 		taxonomyDisplayLayout.setSpacing(true);
 
-		boolean enableTabSheet = false;
 		if (presenter.conceptId != null) {
-			if (presenter.getTaxonomy().getCode().equals("admUnits") || presenter.getTaxonomy()
-					.getCode().equals("plan")) {
-				enableTabSheet = true;
+			if (!classifiedTypes.isEmpty()) {
 				Component additionalInfo = buildAdditionalInformation();
 				if (additionalInfo != null) {
 					taxonomyDisplayLayout.addComponentAsFirst(additionalInfo);
@@ -125,12 +131,16 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			taxonomyDisplayLayout.addComponent(buildConceptRecordDisplay(true));
 		}
 
-		if (enableTabSheet) {
+		if (!classifiedTypes.isEmpty()) {
 			tabSheet.addStyleName(STYLE_NAME);
 			tabSheet.addTab(taxonomyDisplayLayout, $("TaxonomyManagementView.tabs.metadata")).setStyleName("metadata");
-			foldersCompoment.addStyleName("foldersTable");
-			tabSheet.addTab(foldersCompoment, $("TaxonomyManagementView.tabs.folders")).setStyleName("folders");
-			mainLayout.addComponent(tabSheet);
+			for (TaxonomyManagementClassifiedType classifiedType : classifiedTypes) {
+				MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
+				Component component = tabComponents.get(schemaType.getCode());
+				component.addStyleName(schemaType.getCode() + "Table");
+				tabSheet.addTab(component, classifiedType.getTabLabel()).setStyleName(schemaType.getCode() + "Tab");
+				mainLayout.addComponent(tabSheet);
+			}
 		} else {
 			mainLayout.addComponent(taxonomyDisplayLayout);
 		}
@@ -139,27 +149,30 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	private Component buildAdditionalInformation() {
-		Label numberOfFoldersCaptionLabel = new Label($("TaxonomyManagementView.numberOfFolders"));
-		numberOfFoldersCaptionLabel.setId("numberOfFolders");
-		numberOfFoldersCaptionLabel.addStyleName("numberOfFolders");
-		Label numberOfFoldersDisplayComponent = new Label(presenter.getNumberOfFolders());
-		numberOfFoldersDisplayComponent.addStyleName("display-value-numberOfFolders");
-
-		Label retentionRulesCaptionLabel = null;
-		Component retentionRulesDisplayComponent = null;
-		String taxonomyCode = presenter.getTaxonomy().getCode();
-		if (taxonomyCode.equals("admUnits")) {
-			retentionRulesCaptionLabel = new Label($("TaxonomyManagementView.retentionRules"));
-			retentionRulesCaptionLabel.setId("retentionRules");
-			retentionRulesCaptionLabel.addStyleName("retentionRules");
-			retentionRulesDisplayComponent = buildDisplayList(presenter.getRetentionRules());
-		}
 
 		List<BaseDisplay.CaptionAndComponent> captionsAndComponents = new ArrayList<>();
-		captionsAndComponents.add(new CaptionAndComponent(numberOfFoldersCaptionLabel, numberOfFoldersDisplayComponent));
-		if (retentionRulesDisplayComponent != null) {
-			captionsAndComponents.add(new CaptionAndComponent(retentionRulesCaptionLabel, retentionRulesDisplayComponent));
+
+		for (TaxonomyManagementClassifiedType classifiedType : presenter.getClassifiedTypes()) {
+			MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
+			Label label = new Label(classifiedType.getCountLabel());
+			label.setId("count-" + schemaType.getCode());
+			label.addStyleName("count-" + schemaType.getCode());
+
+			Label count = new Label("" + classifiedType.getDataProvider().size());
+			count.addStyleName("display-value-count-" + schemaType.getCode());
+			captionsAndComponents.add(new CaptionAndComponent(label, count));
 		}
+
+		for (TaxonomyExtraField extraField : presenter.getExtraFields()) {
+			Label label = new Label(extraField.getLabel());
+			label.setId(extraField.getCode());
+			label.addStyleName(extraField.getCode());
+			Component component = extraField.buildComponent();
+			if (component != null) {
+				captionsAndComponents.add(new CaptionAndComponent(label, component));
+			}
+		}
+
 		BaseDisplay additionalInformationDisplay = new BaseDisplay(captionsAndComponents);
 		return additionalInformationDisplay;
 
@@ -170,7 +183,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	private Component buildRootConceptsTables() {
-		VerticalLayout layout = new VerticalLayout();
+		layout = new VerticalLayout();
 		for (final RecordVODataProvider dataProvider : presenter.getDataProviders()) {
 			Container recordsContainer = new RecordVOLazyContainer(dataProvider);
 			TaxonomyConceptsWithChildrenCountContainer adaptedContainer = new TaxonomyConceptsWithChildrenCountContainer(
@@ -215,7 +228,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
 				protected Button newButtonInstance(final Object itemId) {
-					return new DeleteButton() {
+					DeleteButton deleteButton = new DeleteButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
 							Integer index = (Integer) itemId;
@@ -223,6 +236,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 							presenter.deleteButtonClicked(entity);
 						}
 					};
+					return deleteButton;
 				}
 			});
 			// TODO Implement deleteLogically for taxonomy concepts
@@ -236,11 +250,19 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 			table.setColumnWidth("buttons", 120);
 			table.setPageLength(table.getItemIds().size());
+			setDefaultOrderBy(presenter.getDefaultOrderField(), dataProvider, table);
+			table.sort();
 
 			layout.addComponents(addButton, table);
 			layout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		}
 		return layout;
+	}
+
+	private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
+		Object[] properties = { dataProvider.getSchema().getMetadata(localCode) };
+		boolean[] ordering = { true };
+		table.sort(properties, ordering);
 	}
 
 	@Override
@@ -250,7 +272,13 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			actionMenuButtons.add(new LinkButton($("TaxonomyManagementView.manageAuthorizations")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					presenter.manageAuthorizationsButtonClicked();
+					presenter.manageAccessAuthorizationsButtonClicked();
+				}
+			});
+			actionMenuButtons.add(new LinkButton($("TaxonomyManagementView.manageRoles")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.manageRoleAuthorizationsButtonClicked();
 				}
 			});
 		}
@@ -274,28 +302,36 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	@Override
-	public void setFolders(RecordVODataProvider dataProvider) {
-		Table foldersTable = new RecordVOTable(dataProvider);
-		foldersTable.setSizeFull();
-		//		foldersTable.addStyleName("foldersTable");
-		foldersTable.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				RecordVOItem item = (RecordVOItem) event.getItem();
-				RecordVO recordVO = item.getRecord();
-				presenter.folderClicked(recordVO);
-			}
-		});
-		Component oldFoldersComponent = foldersCompoment;
-		foldersCompoment = foldersTable;
-		foldersCompoment.addStyleName("foldersTable");
-		tabSheet.replaceComponent(oldFoldersComponent, foldersCompoment);
+	public void setTabs(List<TaxonomyManagementClassifiedType> classifiedTypes) {
+		for (TaxonomyManagementClassifiedType classifiedType : classifiedTypes) {
+			MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
+			Table table = new RecordVOTable(classifiedType.getDataProvider());
+			table.setSizeFull();
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					RecordVO recordVO = item.getRecord();
+					presenter.tabElementClicked(recordVO);
+				}
+			});
 
+			table.addStyleName(classifiedType.getSchemaType().getCode() + "Table");
+
+			Component oldComponent = tabComponents.get(schemaType.getCode());
+			tabComponents.put(schemaType.getCode(), table);
+			tabSheet.replaceComponent(oldComponent, table);
+		}
 	}
 
 	@Override
-	public void selectFoldersTab() {
-		tabSheet.setSelectedTab(foldersCompoment);
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		String conceptId = presenter.conceptId;
+		if (conceptId != null) {
+			return new TaxonomyBreadcrumbTrail(presenter.getTaxonomy().getCode(), conceptId);
+		} else {
+			return null;
+		}
 	}
 
 	public static class SplitCommentsMetadataDisplayFactory extends MetadataDisplayFactory {
@@ -318,22 +354,4 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 	}
 
-	private Component buildDisplayList(List<String> list) {
-		Component retentionRulesDisplayComponent;
-		MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
-		List<Component> elementDisplayComponents = new ArrayList<Component>();
-		for (String elementDisplayValue : list) {
-			Component elementDisplayComponent = new ReferenceDisplay(elementDisplayValue);
-			if (elementDisplayComponent != null) {
-				elementDisplayComponent.setSizeFull();
-				elementDisplayComponents.add(elementDisplayComponent);
-			}
-		}
-		if (!elementDisplayComponents.isEmpty()) {
-			retentionRulesDisplayComponent = metadataDisplayFactory.newCollectionValueDisplayComponent(elementDisplayComponents);
-		} else {
-			retentionRulesDisplayComponent = null;
-		}
-		return retentionRulesDisplayComponent;
-	}
 }

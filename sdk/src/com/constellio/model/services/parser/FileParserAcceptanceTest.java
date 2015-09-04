@@ -22,6 +22,7 @@ import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStream;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -250,6 +251,28 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 		assertThatAllLessCommunPropertiesAreCatchIn(parsedContent);
+	}
+
+	@Test
+	public void givenMessageWithAttachedDOCAndAttachedTextWhenParsingThenValidParsedContentReturned()
+			throws Exception {
+		inputStream = getTestResourceInputStream("testMessage.msg");
+		long length = getLengthOf("testFile.docx");
+
+		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+
+		assertThat(parsedContent.getParsedContent()).contains("contenu");
+		assertThat(parsedContent.getParsedContent()).contains("Microsoft word document");
+		assertThat(parsedContent.getParsedContent()).contains("text document");
+		assertThat(parsedContent.getProperties().get("Subject")).isEqualTo("objet");
+		assertThat(parsedContent.getProperties().get("To"))
+				.isEqualTo("a1@doculibre.com; a2@doculibre.com");
+		assertThat(parsedContent.getProperties().get("CC"))
+				.isEqualTo("c1@doculibre.com; c2@doculibre.com");
+		assertThat(parsedContent.getProperties().get("BCC")).isEqualTo("b1@doculibre.com; b2@doculibre.com");
+		assertThat(parsedContent.getMimeType())
+				.isEqualTo("application/vnd.ms-outlook");
+		assertThat(parsedContent.getLength()).isEqualTo(13771L);
 	}
 
 	private void assertThatAllCommunPropertiesAreCatchIn(ParsedContent parsedContent) {

@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.builders;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -26,6 +27,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.ParsedContent;
@@ -39,9 +41,30 @@ public class DocumentToVOBuilder extends RecordToVOBuilder {
 	transient boolean parsedContentFetched;
 	transient ParsedContent parsedContent;
 
+	transient ModelLayerFactory modelLayerFactory;
+
+	public DocumentToVOBuilder(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		init();
+	}
+
+	private void init() {
+		modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+	}
+
 	@Override
 	public DocumentVO build(Record record, VIEW_MODE viewMode) {
 		return (DocumentVO) super.build(record, viewMode);
+	}
+
+	@Override
+	public DocumentVO build(Record record, VIEW_MODE viewMode, SessionContext sessionContext) {
+		return (DocumentVO) super.build(record, viewMode, sessionContext);
 	}
 
 	@Override

@@ -107,7 +107,7 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		zeCategory = records.categoryId_ZE42;
-		aPrincipalAdminUnit = records.unitId_10;
+		aPrincipalAdminUnit = records.unitId_10a;
 		anotherPrincipalAdminUnit = records.unitId_20;
 		aSecondaryAdminUnit = records.unitId_30;
 		PA = records.PA;
@@ -294,7 +294,6 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(aPrincipalAdminUnit);
-		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(rule);

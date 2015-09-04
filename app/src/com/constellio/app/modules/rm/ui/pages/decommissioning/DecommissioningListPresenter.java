@@ -20,31 +20,38 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServicesException;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView> {
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient DecommissioningService decommissioningService;
 	private transient DecommissioningList decommissioningList;
 	private transient FolderDetailToVOBuilder folderDetailToVOBuilder;
+
 	String recordId;
 
 	public DecommissioningListPresenter(DecommissioningListView view) {
@@ -58,11 +65,22 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
+		return true;
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		return Arrays.asList(params);
+	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		DecommissioningList decommissioningList = rmRecordsServices().wrapDecommissioningList(restrictedRecord);
+		return securityService().hasAccessToDecommissioningListPage(decommissioningList, user);
 	}
 
 	public RecordVO getDecommissioningList() {
-		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY);
+		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public boolean isEditable() {
@@ -93,8 +111,37 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		view.navigateTo().displayDecommissioningList(recordId);
 	}
 
+	public void validateButtonClicked() {
+		decommissioningList().getValidationFor(getCurrentUser().getId()).setValidationDate(TimeProvider.getLocalDate());
+		addOrUpdate(decommissioningList().getWrappedRecord());
+		view.navigateTo().decommissioning();
+	}
+
+	public void approvalButtonClicked() {
+		decommissioningService().approveList(decommissioningList(), getCurrentUser());
+		// TODO: Do not hard-refresh the whole page
+		view.showMessage($("DecommissioningListView.approvalClicked"));
+		refreshView();
+	}
+
+	public void approvalRequestButtonClicked() {
+		try {
+			decommissioningService().approvalRequest(decommissioningList(), getCurrentUser());
+			view.showMessage($("DecommissioningListView.approvalRequestSent"));
+			refreshView();
+		} catch (DecommissioningEmailServiceException e) {
+			view.showErrorMessage($("DecommissioningListView.noManagerEmail"));
+		} catch (RecordServicesException e) {
+			view.showErrorMessage($("DecommissioningListView.approvalRequestNotSentCorrectly"));
+		}
+	}
+
 	public boolean isProcessed() {
 		return decommissioningList().isProcessed();
+	}
+
+	public boolean isApproved() {
+		return decommissioningList().isApproved();
 	}
 
 	public void containerCreationRequested() {
@@ -130,8 +177,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		view.updateProcessButtonState(isProcessable());
 	}
 
-	public void setFolderLinearSize(FolderDetailVO folder, String linearSizeAsString) {
-		Double linearSize = Double.valueOf(linearSizeAsString);
+	public void linearSizeUpdated(FolderDetailVO folder, Double linearSize) {
 		folder.setLinearSize(linearSize);
 		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderLinearSize(linearSize);
 		addOrUpdate(decommissioningList().getWrappedRecord());
@@ -141,11 +187,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningList().getFolderDetail(folder.getFolderId()).getFolderLinearSize();
 	}
 
-	public void folderRemoved(FolderDetailVO folder) {
-		decommissioningList().removeFolderDetail(folder.getFolderId());
-		addOrUpdate(decommissioningList().getWrappedRecord());
-		view.removeFolder(folder);
-		view.updateProcessButtonState(isProcessable());
+	public void validationRemoved(DecomListValidation validation) {
+		addOrUpdate(decommissioningList().removeValidationRequest(validation).getWrappedRecord());
+		// TODO: Do not hard-refresh the whole page
+		view.showMessage($("DecommissioningListView.validatorRemoved"));
+		view.navigateTo().displayDecommissioningList(recordId);
 	}
 
 	public void containerStatusChanged(DecomListContainerDetail detail, boolean full) {
@@ -153,11 +199,26 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		addOrUpdate(decommissioningList().getWrappedRecord());
 	}
 
+	public List<DecomListValidation> getValidations() {
+		return decommissioningList().getValidations();
+	}
+
+	public List<FolderDetailVO> getFoldersToValidate() {
+		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
+		List<FolderDetailVO> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isIncluded()) {
+				result.add(builder.build(folder));
+			}
+		}
+		return result;
+	}
+
 	public List<FolderDetailVO> getPackageableFolders() {
 		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (!decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
 				result.add(builder.build(folder));
 			}
 		}
@@ -168,7 +229,18 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
-			if (decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+			if (folder.isIncluded() && decommissioningService().isFolderProcessable(decommissioningList(), folder)) {
+				result.add(builder.build(folder));
+			}
+		}
+		return result;
+	}
+
+	public List<FolderDetailVO> getExcludedFolders() {
+		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
+		List<FolderDetailVO> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isExcluded()) {
 				result.add(builder.build(folder));
 			}
 		}
@@ -217,6 +289,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningService().isSortable(decommissioningList());
 	}
 
+	public boolean shouldDisplayValidation() {
+		return !(decommissioningList().isApproved() || decommissioningList().isProcessed());
+	}
+
 	private boolean mayContainAnalogicalMedia() {
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.getType().potentiallyHasAnalogMedium()) {
@@ -252,5 +328,70 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			decommissioningList = rmRecordsServices().getDecommissioningList(recordId);
 		}
 		return decommissioningList;
+	}
+
+	public void setValidationStatus(FolderDetailVO folder, Boolean valid) {
+		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderIncluded(valid);
+		addOrUpdate(decommissioningList().getWrappedRecord());
+		// TODO: Do not hard-refresh the whole page
+		refreshView();
+	}
+
+	public boolean validationRequested(List<String> users, String comments) {
+		if (users.contains(getCurrentUser().getId())) {
+			view.showErrorMessage($("DecommissioningListView.cannotSendValidationToItself"));
+			return false;
+		}
+		// TODO: Restore this functionality
+		//		List<String> existingValidators = intersection(decommissioningList().getValidationRequests(), users);
+		//		if (!existingValidators.isEmpty()) {
+		//			view.showErrorMessage($("DecommissioningListView.validationAlreadySentToUsers") + " " +
+		//					join(getUsersNames(existingValidators), ", "));
+		//			return false;
+		//		}
+		decommissioningService().sendValidationRequest(decommissioningList(), getCurrentUser(), users, comments);
+		view.showMessage($("DecommissioningListView.validationMessageSent"));
+		refreshView();
+		return true;
+	}
+
+	private DecommissioningSecurityService securityService() {
+		return new DecommissioningSecurityService(collection, modelLayerFactory);
+	}
+
+	public boolean canValidate() {
+		return decommissioningService().isValidationPossible(decommissioningList(), getCurrentUser());
+	}
+
+	public boolean canSendValidationRequest() {
+		return decommissioningService().isValidationRequestPossible(decommissioningList(), getCurrentUser());
+	}
+
+	public boolean canApprove() {
+		return decommissioningService().isApprovalPossible(decommissioningList(), getCurrentUser());
+	}
+
+	public boolean canSendApprovalRequest() {
+		return decommissioningService().isApprovalRequestPossible(decommissioningList(), getCurrentUser());
+	}
+
+	public void refreshView() {
+		view.navigateTo().displayDecommissioningList(recordId);
+	}
+
+	public boolean canRemoveValidationRequest() {
+		return securityService().canAskValidation(decommissioningList(), getCurrentUser());
+	}
+
+	public void refreshList() {
+		decommissioningList = null;
+	}
+
+	public boolean isInValidation() {
+		return decommissioningList().getStatus() == DecomListStatus.IN_VALIDATION;
+	}
+
+	public boolean isValidationRequestedForCurrentUser() {
+		return decommissioningService().isValidationRequestedFor(decommissioningList(), getCurrentUser());
 	}
 }

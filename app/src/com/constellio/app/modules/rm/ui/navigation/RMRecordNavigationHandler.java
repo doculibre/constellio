@@ -52,11 +52,8 @@ public class RMRecordNavigationHandler extends AbstractRecordNavigationHandler {
 			viewForSchemaTypeCode = true;
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			viewForSchemaTypeCode = true;
-		} else if (RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			viewForSchemaTypeCode = true;
-		} else {
-			viewForSchemaTypeCode = false;
-		}
+		} else
+			viewForSchemaTypeCode = RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode);
 		return viewForSchemaTypeCode;
 	}
 
@@ -74,5 +71,4 @@ public class RMRecordNavigationHandler extends AbstractRecordNavigationHandler {
 			throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
 		}
 	}
-
 }

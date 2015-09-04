@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.Document;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +37,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.notifications.NotificationsServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -59,7 +59,6 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 
 	RecordServices recordServices;
 	DecommissioningLoggingService loggingServices;
-	NotificationsServices notificationsServices;
 
 	RMSchemasRecordsServices rm;
 	private RMTestRecords records = new RMTestRecords(zeCollection);
@@ -79,7 +78,6 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		loggingServices = new DecommissioningLoggingService(getModelLayerFactory());
-		notificationsServices = getModelLayerFactory().newNotificationsServices();
 
 		defineSchemasManager().using(zeCollectionSetup);
 		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
@@ -115,6 +113,29 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 			throws Exception {
 		whenDecommissioningEventThenAdequateEventCreated(DecommissioningListType.FOLDERS_TO_TRANSFER,
 				EventType.FOLDER_RELOCATION);
+	}
+
+	@Test
+	public void whenDocumentTransferToPdfAThenEventCreated()
+			throws Exception {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		User bob = users.bobIn(zeCollection);
+		LogicalSearchQuery findDocument = new LogicalSearchQuery(new LogicalSearchQuery(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+				.returnAll()).setNumberOfRows(1));
+		Document document = rm.wrapDocument(searchServices.search(findDocument).get(0));
+		loggingServices.logPdfAGeneration(document, bob);
+		recordServices.flush();
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(
+				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
+						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.PDF_A_GENERATION));
+
+		List<Record> events = searchServices.search(query);
+
+		assertThat(events).hasSize(1);
+		Event event = rm.wrapEvent(events.get(0));
+		event.getUsername().contains(bob.getUsername());
+		event.getRecordId().contains(document.getId());
 	}
 
 	private void whenDecommissioningEventThenAdequateEventCreated(DecommissioningListType decommissioningListType,

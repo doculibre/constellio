@@ -78,15 +78,20 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setup()
 			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withAllTest(users)
+		);
+		inCollection(zeCollection).giveWriteAccessTo(dakota);
+
 		givenDisabledAfterTestValidations();
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 		recordDao = getDataLayerFactory().newRecordDao();
 
-		givenCollection(zeCollection).withAllTestUsers().andUsersWithWriteAccess(dakota);
 		defineSchemasManager().using(schemas.with(copiedAndCalculatedMetadatas()));
 
-		dakotaId = users.setUp(getModelLayerFactory().newUserServices()).dakotaLIndienIn(zeCollection).getId();
+		dakotaId = users.dakotaLIndienIn(zeCollection).getId();
 	}
 
 	@Test

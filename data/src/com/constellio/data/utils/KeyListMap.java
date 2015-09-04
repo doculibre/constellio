@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.data.utils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +25,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class KeyListMap<K, V> {
-
+public class KeyListMap<K, V> implements Serializable {
 	Map<K, List<V>> map = new HashMap<>();
+
+	public void addAll(K key, List<V> values) {
+		for (V value : values) {
+			add(key, value);
+		}
+	}
 
 	public void add(K key, V value) {
 		List<V> values = map.get(key);
@@ -35,6 +41,10 @@ public class KeyListMap<K, V> {
 			map.put(key, values);
 		}
 		values.add(value);
+	}
+
+	public void remove(V key) {
+		map.remove(key);
 	}
 
 	public List<V> get(K key) {
@@ -61,22 +71,7 @@ public class KeyListMap<K, V> {
 		return map.containsKey(key);
 	}
 
-	//	public class KeyListMapEntry<K, V> {
-	//		public K key;
-	//		public List<V> value;
-	//
-	//		public KeyListMapEntry(K key, List<V> value) {
-	//			this.key = key;
-	//			this.value = value;
-	//		}
-	//
-	//		public K getKey() {
-	//			return key;
-	//		}
-	//
-	//		public List<V> getValue() {
-	//			return value;
-	//		}
-	//	}
-
+	public void clear() {
+		map.clear();
+	}
 }

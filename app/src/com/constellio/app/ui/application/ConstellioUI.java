@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.application;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
 import com.constellio.app.modules.rm.ui.navigation.RMRecordNavigationHandler;
+import com.constellio.app.modules.tasks.ui.navigation.TasksRecordNavigationHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
@@ -36,8 +38,10 @@ import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.pages.base.InitUIListener;
 import com.constellio.app.ui.pages.base.MainLayoutImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
+import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
 import com.constellio.app.utils.ConstellioSerializationUtils;
 import com.vaadin.annotations.Theme;
 import com.vaadin.navigator.Navigator;
@@ -54,7 +58,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
-public class ConstellioUI extends UI {
+public class ConstellioUI extends UI implements SessionContextProvider {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(ConstellioUI.class);
 
@@ -67,14 +71,17 @@ public class ConstellioUI extends UI {
 
 	@Override
 	protected void init(VaadinRequest request) {
+		Page.getCurrent().setTitle($("ConstellioUI.pageTitle"));
+		
 		// Important to allow update of components in current UI from another Thread
 		UI.getCurrent().setPollInterval(1000);
-		
+
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
 		// TODO instantiate in the RM layer
 		addRecordNavigationHandler(new RMRecordNavigationHandler(constellioFactories));
+		addRecordNavigationHandler(new TasksRecordNavigationHandler(constellioFactories));
 		addRecordContextMenuHandler(new RMRecordContextMenuHandler(constellioFactories));
 
 		List<InitUIListener> initUIListeners = appLayerFactory.getInitUIListeners();
@@ -110,55 +117,68 @@ public class ConstellioUI extends UI {
 	}
 
 	public void updateContent() {
-		UserVO currentUser = sessionContext.getCurrentUser();
-		if (currentUser != null) {
-			// Authenticated user
-			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-
-			mainLayout = new MainLayoutImpl(appLayerFactory);
-
-			setContent(mainLayout);
-
-			Navigator navigator = getNavigator();
-			navigator.addViewChangeListener(new ViewChangeListener() {
-				@Override
-				public boolean beforeViewChange(ViewChangeEvent event) {
-					return true;
-				}
-
-				@Override
-				public void afterViewChange(ViewChangeEvent event) {
-					View newView = event.getNewView();
-					ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-					AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-					List<EnterViewListener> enterViewListeners = appLayerFactory.getEnterViewListeners();
-					for (EnterViewListener enterViewListener : enterViewListeners) {
-						enterViewListener.enterView(newView);
-					}
-
-					if (enterViewListeners.isEmpty() && !isProductionMode()) {
-						try {
-							ConstellioSerializationUtils.validateSerializable(event.getOldView());
-						} catch (Exception e) {
-							LOGGER.warn(e.getMessage(), e);
-						}
-						try {
-							ConstellioSerializationUtils.validateSerializable(event.getNewView());
-						} catch (Exception e) {
-							LOGGER.warn(e.getMessage(), e);
-						}
-					}
-				}
-			});
-
-			removeStyleName("loginview");
-			navigator.navigateTo(navigator.getState());
+		if (isSetupRequired()) {
+			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl();
+			setContent(setupView);
+			addStyleName("setupview");
 		} else {
-			LoginViewImpl loginView = new LoginViewImpl();
-			setContent(loginView);
-			addStyleName("loginview");
+			UserVO currentUser = sessionContext.getCurrentUser();
+			if (currentUser != null) {
+				// Authenticated user
+				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+				AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+
+				mainLayout = new MainLayoutImpl(appLayerFactory);
+
+				setContent(mainLayout);
+
+				Navigator navigator = getNavigator();
+				navigator.addViewChangeListener(new ViewChangeListener() {
+					@Override
+					public boolean beforeViewChange(ViewChangeEvent event) {
+						return true;
+					}
+
+					@Override
+					public void afterViewChange(ViewChangeEvent event) {
+						View newView = event.getNewView();
+						ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+						AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+						List<EnterViewListener> enterViewListeners = appLayerFactory.getEnterViewListeners();
+						for (EnterViewListener enterViewListener : enterViewListeners) {
+							enterViewListener.enterView(newView);
+						}
+
+						if (enterViewListeners.isEmpty() && !isProductionMode()) {
+							try {
+								ConstellioSerializationUtils.validateSerializable(event.getOldView());
+							} catch (Exception e) {
+								LOGGER.warn(e.getMessage(), e);
+							}
+							try {
+								ConstellioSerializationUtils.validateSerializable(event.getNewView());
+							} catch (Exception e) {
+								LOGGER.warn(e.getMessage(), e);
+							}
+						}
+					}
+				});
+
+				removeStyleName("setupview");
+				removeStyleName("loginview");
+				navigator.navigateTo(navigator.getState());
+			} else {
+				removeStyleName("setupview");
+				LoginViewImpl loginView = new LoginViewImpl();
+				setContent(loginView);
+				addStyleName("loginview");
+			}
 		}
+	}
+
+	private boolean isSetupRequired() {
+		ConstellioFactories constellioFactories = getConstellioFactories();
+		return constellioFactories.getAppLayerFactory().getCollectionsManager().getCollectionCodes().isEmpty();
 	}
 
 	public ConstellioHeader getHeader() {
@@ -172,11 +192,16 @@ public class ConstellioUI extends UI {
 	public void setSessionContext(SessionContext sessionContext) {
 		this.sessionContext = sessionContext;
 	}
+	
+	@Override
+	public ConstellioFactories getConstellioFactories() {
+		return ConstellioFactories.getInstance();
+	}
 
 	public static SessionContext getCurrentSessionContext() {
 		return getCurrent().getSessionContext();
 	}
-
+	
 	public boolean isProductionMode() {
 		VaadinService service = VaadinService.getCurrent();
 		return service.getDeploymentConfiguration().isProductionMode();

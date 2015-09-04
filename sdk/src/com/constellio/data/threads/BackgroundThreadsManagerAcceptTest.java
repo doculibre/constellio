@@ -47,6 +47,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenBackgroundThreadsEnabled();
 		backgroundThreadsManager = getDataLayerFactory().getBackgroundThreadsManager();
 		backgroundThreadsManager.initialize();
 	}

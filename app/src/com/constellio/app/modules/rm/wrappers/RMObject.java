@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.wrappers;
 
+import java.util.List;
+
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -32,4 +34,9 @@ public abstract class RMObject extends RecordWrapper {
 	public abstract FolderStatus getArchivisticStatus();
 
 	public abstract Boolean getBorrowed();
+
+	public abstract List<String> getAlertUsersWhenAvailable();
+
+	public abstract RMObject setAlertUsersWhenAvailable(List<String> users);
+
 }

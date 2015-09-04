@@ -52,6 +52,7 @@ public class Document extends RMObject {
 	public static final String AUTHOR = "author";
 	public static final String COMPANY = "company";
 	public static final String SUBJECT = "subject";
+	public static final String ALERT_USERS_WHEN_AVAILABLE = "alertUsersWhenAvailable";
 
 	public Document(Record record,
 			MetadataSchemaTypes types) {
@@ -84,6 +85,14 @@ public class Document extends RMObject {
 	public Document setDescription(String description) {
 		set(DESCRIPTION, description);
 		return this;
+	}
+
+	public String getFolderAdministrativeUnit() {
+		return get(FOLDER_ADMINISTRATIVE_UNIT);
+	}
+
+	public String getFolderCategory() {
+		return get(FOLDER_CATEGORY);
 	}
 
 	public List<String> getKeywords() {
@@ -165,6 +174,15 @@ public class Document extends RMObject {
 
 	public Document setAuthor(String author) {
 		set(AUTHOR, author);
+		return this;
+	}
+
+	public List<String> getAlertUsersWhenAvailable() {
+		return getList(ALERT_USERS_WHEN_AVAILABLE);
+	}
+
+	public Document setAlertUsersWhenAvailable(List<String> users) {
+		set(ALERT_USERS_WHEN_AVAILABLE, users);
 		return this;
 	}
 

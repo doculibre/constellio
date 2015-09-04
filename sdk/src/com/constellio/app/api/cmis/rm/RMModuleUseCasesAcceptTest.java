@@ -77,10 +77,9 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 			folderProperties.put("folder_default_title", "My folder");
 			folderProperties.put("folder_default_category", records.categoryId_X100);
 			folderProperties.put("folder_default_retentionRuleEntered", records.ruleId_1);
-			folderProperties.put("folder_default_administrativeUnitEntered", records.unitId_10);
-			folderProperties.put("folder_default_filingSpaceEntered", records.filingId_A);
+			folderProperties.put("folder_default_administrativeUnitEntered", records.unitId_10a);
 			folderProperties.put("folder_default_openingDate", new GregorianCalendar(2013, MARCH, 27));
-			cmisSession.createFolder(folderProperties, new ObjectIdImpl(records.unitId_10));
+			cmisSession.createFolder(folderProperties, new ObjectIdImpl(records.unitId_10a));
 			fail("Exception expected");
 		} catch (Exception e) {
 			assertThat(e).hasMessage("Metadata 'folder_default_category' is readonly.");
@@ -100,10 +99,9 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		folderProperties.put("folder_default_title", "My folder");
 		folderProperties.put("folder_default_categoryEntered", records.categoryId_X100);
 		folderProperties.put("folder_default_retentionRuleEntered", records.ruleId_1);
-		folderProperties.put("folder_default_administrativeUnitEntered", records.unitId_10);
-		folderProperties.put("folder_default_filingSpaceEntered", records.filingId_A);
+		folderProperties.put("folder_default_administrativeUnitEntered", records.unitId_10a);
 		folderProperties.put("folder_default_openingDate", new GregorianCalendar(2013, MARCH, 27));
-		ObjectId newFolderId = cmisSession.createFolder(folderProperties, new ObjectIdImpl(records.unitId_10));
+		ObjectId newFolderId = cmisSession.createFolder(folderProperties, new ObjectIdImpl(records.unitId_10a));
 
 		//
 		//-- Create a document
@@ -133,8 +131,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		assertThat(folder.getPropertyValue("folder_default_retentionRuleEntered")).isEqualTo(records.ruleId_1);
 		assertThat(folder.getPropertyValue("folder_default_copyStatusEntered")).isNull();
 		assertThat(folder.getPropertyValue("folder_default_copyStatus")).isEqualTo("P");
-		assertThat(folder.getPropertyValue("folder_default_administrativeUnitEntered")).isEqualTo(records.unitId_10);
-		assertThat(folder.getPropertyValue("folder_default_filingSpaceEntered")).isEqualTo(records.filingId_A);
+		assertThat(folder.getPropertyValue("folder_default_administrativeUnitEntered")).isEqualTo(records.unitId_10a);
 		assertThat(folder.getPropertyValue("folder_default_openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
 
 		//
@@ -144,8 +141,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		assertThat(document.getPropertyValue("document_default_folder")).isEqualTo(newFolderId.getId());
 		assertThat(document.getPropertyValue("document_default_category")).isEqualTo(records.categoryId_X100);
 		assertThat(document.getPropertyValue("document_default_retentionRule")).isEqualTo(records.ruleId_1);
-		assertThat(document.getPropertyValue("document_default_administrativeUnit")).isEqualTo(records.unitId_10);
-		assertThat(document.getPropertyValue("document_default_filingSpace")).isEqualTo(records.filingId_A);
+		assertThat(document.getPropertyValue("document_default_administrativeUnit")).isEqualTo(records.unitId_10a);
 
 		//
 		//-- Validate document's content
@@ -173,8 +169,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		assertThat(folder.getPropertyValue("folder_default_retentionRuleEntered")).isEqualTo(records.ruleId_2);
 		assertThat(folder.getPropertyValue("folder_default_copyStatusEntered")).isEqualTo("P");
 		assertThat(folder.getPropertyValue("folder_default_copyStatus")).isEqualTo("P");
-		assertThat(folder.getPropertyValue("folder_default_administrativeUnitEntered")).isEqualTo(records.unitId_10);
-		assertThat(folder.getPropertyValue("folder_default_filingSpaceEntered")).isEqualTo(records.filingId_A);
+		assertThat(folder.getPropertyValue("folder_default_administrativeUnitEntered")).isEqualTo(records.unitId_10a);
 		assertThat(folder.getPropertyValue("folder_default_openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
 
 		//
@@ -184,8 +179,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		assertThat(document.getPropertyValue("document_default_folder")).isEqualTo(newFolderId.getId());
 		assertThat(document.getPropertyValue("document_default_category")).isEqualTo(records.categoryId_X110);
 		assertThat(document.getPropertyValue("document_default_retentionRule")).isEqualTo(records.ruleId_2);
-		assertThat(document.getPropertyValue("document_default_administrativeUnit")).isEqualTo(records.unitId_10);
-		assertThat(document.getPropertyValue("document_default_filingSpace")).isEqualTo(records.filingId_A);
+		assertThat(document.getPropertyValue("document_default_administrativeUnit")).isEqualTo(records.unitId_10a);
 
 	}
 

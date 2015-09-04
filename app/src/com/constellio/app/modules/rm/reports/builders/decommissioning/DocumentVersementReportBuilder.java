@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,7 +37,7 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentRepor
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Document;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Identification;
 import com.constellio.app.modules.rm.reports.model.decommissioning.ReportBooleanField;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -173,7 +172,7 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 	}
 
 	private PdfPTable createReport(PdfWriter writer, Document document)
-			throws BadElementException, MalformedURLException, IOException {
+			throws BadElementException, IOException {
 
 		PdfPTable table = new PdfPTable(2);
 		table.setWidthPercentage(99);
@@ -274,16 +273,6 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 		addDataCell(table, title, value, alignment);
 
 		table.completeRow();
-
-		title = $("DocumentTransfertReport.IdentificationClassificationSpace");
-		value = modelId.getEspaceClassement();
-		addDataCell(table, title, value, alignment);
-
-		title = $("DocumentTransfertReport.IdentificationClassificationSpaceCode");
-		value = modelId.getCodeEspaceClassement();
-		addDataCell(table, title, value, alignment);
-
-		table.completeRow();
 	}
 
 	/*private void printIdentificationTableBottom(PdfPTable table, DocumentTransfertModel_Identification modelId) {
@@ -303,6 +292,10 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		String title = $("DocumentTransfertReport.IdentificationDocumentResponsibleName");
 		String value = modelId.getResponsible();
+		addDataCell(table, title, value, alignment);
+
+		title = $("DocumentTransfertReport.IdentificationDocumentResponsibleFunction");
+		value = modelId.getFunction();
 		addDataCell(table, title, value, alignment);
 
 		table.completeRow();
@@ -383,7 +376,7 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 	}
 
 	private PdfPTable createCalendarTable()
-			throws BadElementException, MalformedURLException, IOException {
+			throws BadElementException, IOException {
 
 		DocumentTransfertModel_Calendar modelCalendar = model.getCalendarModel();
 		PdfPTable calendarTable = new PdfPTable(4);
@@ -396,7 +389,7 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		return calendarTable;
 	}
-	
+
 	/*private void printCalendarTableHeader(PdfPTable table) {
 		PdfPCell titleCell = newTitleCell("APPLICATION DU CALENDRIER DE CONSERVATION");
 		titleCell.setColspan(4);
@@ -410,7 +403,7 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 		table.addCell(titleCell);
 		table.completeRow();
 	}
-	
+
 	/*private void printCalendarTableFirstRow(PdfPTable table, DocumentTransfertModel_Calendar modelCalendar) {
 		int alignment = Element.ALIGN_CENTER;
 
@@ -441,14 +434,14 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		table.completeRow();
 	}
-	
+
 	/*private void printCalendarTableSecondRow(PdfPTable table, DocumentTransfertModel_Calendar modelCalendar) {
 		int alignment = Element.ALIGN_LEFT;
 
 		PdfPCell dispoMode = getCalendarDispoMode(modelCalendar.getConservationDisposition());
 		dispoMode.setColspan(2);
 		table.addCell(dispoMode);
-		
+
 		table.addCell(newDataCell("Quantit� de dossiers", modelCalendar.getQuantity(), alignment));
 		table.addCell(newDataCell("Date extr�mes", modelCalendar.getExtremeDate(), alignment));
 
@@ -485,40 +478,32 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 	private void addCalendarTableFourthRow(PdfPTable table, DocumentTransfertModel_Calendar modelCalendar) {
 
-		boolean DM = modelCalendar.getSupports().get(0).getValue();
-		boolean PA = modelCalendar.getSupports().get(1).getValue();
+		int i = 0;
+		for (ReportBooleanField reportBooleanField : modelCalendar.getSupports()) {
 
-		PdfPCell DM_Cell = getCheckCell($("DocumentTransfertReport.ConservationCalendarInformationSupportDM"), DM);
-		PdfPCell PA_Cell = getCheckCell($("DocumentTransfertReport.ConservationCalendarInformationSupportPA"), PA);
+			boolean value = reportBooleanField.getValue();
+			String label = reportBooleanField.getLabel();
 
-		float[] columnWidths = new float[] { 0.20f, 0.80f };
+			PdfPCell checkCell = getCheckCell(label, value);
+			checkCell.setBorder(Rectangle.BOX);
+			table.addCell(checkCell);
 
-		PdfPTable tableDMCheck = new PdfPTable(2);
-		PdfPTable tablePACheck = new PdfPTable(2);
-
-		try {
-			tableDMCheck.setWidths(columnWidths);
-			tablePACheck.setWidths(columnWidths);
-		} catch (DocumentException e) {
-			throw new RuntimeException(e);
+			i++;
+			if (i == 4) {
+				i = 0;
+			}
 		}
 
-		tableDMCheck.addCell(DM_Cell);
-		tableDMCheck.addCell(invisibleCell());
+		if (i != 4) {
+			completeRow(table, 4 - i);
+		}
+	}
 
-		tablePACheck.addCell(PA_Cell);
-		tablePACheck.addCell(invisibleCell());
-
-		PdfPCell dmCell = new PdfPCell(tableDMCheck);
-		PdfPCell paCell = new PdfPCell(tablePACheck);
-
-		dmCell.setColspan(2);
-		paCell.setColspan(2);
-
-		table.addCell(dmCell);
-		table.addCell(paCell);
-
-		table.completeRow();
+	private void completeRow(PdfPTable support, int cells) {
+		PdfPCell empty = new PdfPCell();
+		empty.setColspan(cells);
+		support.addCell(empty);
+		support.completeRow();
 	}
 
 	private PdfPTable createDocumentTable() {
@@ -824,7 +809,7 @@ public class DocumentVersementReportBuilder implements ReportBuilder {
 
 		return sentDateStr;
 	}
-	
+
 	/*class DashedBorder implements PdfPCellEvent {
 		public void cellLayout(PdfPCell cell, Rectangle rect, PdfContentByte[] canvas) {
 			PdfContentByte cb = canvas[PdfPTable.LINECANVAS];

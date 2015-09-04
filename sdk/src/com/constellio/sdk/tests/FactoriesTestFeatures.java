@@ -56,6 +56,9 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.extensions.TransactionLogExtension;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.conf.FoldersLocator;
@@ -64,6 +67,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class FactoriesTestFeatures {
 
+	private boolean instanciated = false;
+	private boolean backgroundThreadsEnabled = false;
 	private List<String> loggingOfRecords = new ArrayList<>();
 	private boolean dummyPasswords;
 
@@ -88,8 +93,8 @@ public class FactoriesTestFeatures {
 
 	public void afterTest() {
 
-		if (factoriesInstance != null) {
-
+		if (instanciated) {
+			factoriesInstance = getConstellioFactories();
 			DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
 
 			for (BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
@@ -149,7 +154,7 @@ public class FactoriesTestFeatures {
 			SolrClient adminServer) {
 
 		BigVaultServer vaultServer = new BigVaultServer(serverName, solrServer, configManager, adminServer,
-				BigVaultLogger.disabled());
+				BigVaultLogger.disabled(), new DataLayerSystemExtensions());
 
 		ModifiableSolrParams allRecordsSolrParams = new ModifiableSolrParams();
 		allRecordsSolrParams.set("q", "*:*");
@@ -172,7 +177,7 @@ public class FactoriesTestFeatures {
 	}
 
 	public synchronized ConstellioFactories getConstellioFactories() {
-
+		instanciated = true;
 		if (decorator == null) {
 
 			StringBuilder setupPropertiesContent = new StringBuilder();
@@ -180,7 +185,7 @@ public class FactoriesTestFeatures {
 			setupPropertiesContent.append("admin.password=password\n");
 			File setupProperties = fileSystemTestFeatures.newTempFileWithContent(setupPropertiesContent.toString());
 
-			decorator = new TestConstellioFactoriesDecorator() {
+			decorator = new TestConstellioFactoriesDecorator(backgroundThreadsEnabled) {
 
 				@Override
 				public DataLayerFactory decorateDataLayerFactory(DataLayerFactory dataLayerFactory) {
@@ -277,13 +282,15 @@ public class FactoriesTestFeatures {
 			decorator.setSystemLanguage(systemLanguage);
 
 			if (initialState != null) {
-				File tempFolder = fileSystemTestFeatures.newTempFolder();
-				try {
-					SaveStateFeature.loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder, dummyPasswords);
-				} catch (Exception e) {
-					throw new RuntimeException(e);
+				if (!ConstellioTest.isCurrentPreservingState()) {
+					File tempFolder = fileSystemTestFeatures.newTempFolder();
+					try {
+						SaveStateFeature
+								.loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder, dummyPasswords);
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
 				}
-
 			}
 		}
 
@@ -307,7 +314,18 @@ public class FactoriesTestFeatures {
 			propertyFile = tempPropertyFile;
 		}
 
-		return factoriesInstance = ConstellioFactories.getInstance(propertyFile, decorator);
+		factoriesInstance = ConstellioFactories.getInstance(propertyFile, decorator);
+
+		factoriesInstance.getDataLayerFactory().getExtensions().getSystemWideExtensions().transactionLogExtensions
+				.add(new TransactionLogExtension() {
+					@Override
+					public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(String field, String schema,
+							String collection) {
+						return ExtensionBooleanResult.FORCE_TRUE;
+					}
+				});
+
+		return factoriesInstance;
 	}
 
 	public void configure(DataLayerConfigurationAlteration dataLayerConfigurationAlteration) {
@@ -376,5 +394,9 @@ public class FactoriesTestFeatures {
 
 	public boolean isInitialized() {
 		return factoriesInstance != null;
+	}
+
+	public void givenBackgroundThreadsEnabled() {
+		backgroundThreadsEnabled = true;
 	}
 }

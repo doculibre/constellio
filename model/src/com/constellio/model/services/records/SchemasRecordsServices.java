@@ -24,35 +24,43 @@ import java.util.List;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
 
 public class SchemasRecordsServices {
 
-	String collection;
+	protected String collection;
 
-	ModelLayerFactory modelLayerFactory;
+	protected ModelLayerFactory modelLayerFactory;
 
 	public SchemasRecordsServices(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
+	public String getCollection() {
+		return collection;
+	}
+
 	//
 
 	//Generic
 
-	protected ModelLayerFactory getModelLayerFactory() {
+	public ModelLayerFactory getModelLayerFactory() {
 		return modelLayerFactory;
 	}
 
@@ -76,6 +84,11 @@ public class SchemasRecordsServices {
 		return modelLayerFactory.newRecordServices().getDocumentById(id);
 	}
 
+	public Record getByLegacyId(MetadataSchemaType schemaType, String id) {
+		LogicalSearchCondition condition = from(schemaType).where(Schemas.LEGACY_ID).isEqualTo(id);
+		return modelLayerFactory.newSearchServices().searchSingleResult(condition);
+	}
+
 	public Record getByLegacyId(String schemaTypeCode, String id) {
 		LogicalSearchCondition condition = from(schemaType(schemaTypeCode)).where(Schemas.LEGACY_ID).isEqualTo(id);
 		return modelLayerFactory.newSearchServices().searchSingleResult(condition);
@@ -94,12 +107,12 @@ public class SchemasRecordsServices {
 	}
 
 	public Record getByCode(MetadataSchemaType schemaType, String code) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		Metadata metadata = schemaType.getDefaultSchema().getMetadata(Schemas.CODE.getLocalCode());
+		return modelLayerFactory.newRecordServices().getRecordByMetadata(metadata, code);
+	}
 
-		Metadata codeMetadata = schemaType.getDefaultSchema().getMetadata("code");
-		LogicalSearchCondition condition = from(schemaType).where(codeMetadata).isEqualTo(code);
-
-		return searchServices.searchSingleResult(condition);
+	public MetadataSchemaType collectionSchemaType() {
+		return getTypes().getSchemaType(Collection.SCHEMA_TYPE);
 	}
 
 	//
@@ -147,7 +160,19 @@ public class SchemasRecordsServices {
 		return new Event(new RecordImpl(Event.DEFAULT_SCHEMA, collection, id), getTypes());
 	}
 
-	//
+	//EmailToSend
+	public MetadataSchema emailToSend() {
+		return getTypes().getSchema(EmailToSend.DEFAULT_SCHEMA);
+	}
+
+	public EmailToSend wrapEmailToSend(Record record) {
+		return new EmailToSend(record, getTypes());
+	}
+
+	public EmailToSend newEmailToSend() {
+		String id = UUIDV1Generator.newRandomId();
+		return new EmailToSend(new RecordImpl(EmailToSend.DEFAULT_SCHEMA, collection, id), getTypes());
+	}
 
 	//Groups
 
@@ -185,6 +210,55 @@ public class SchemasRecordsServices {
 
 	//
 
+	//Facet
+	public MetadataSchema facetFieldSchema() {
+		return getTypes().getSchema(Facet.FIELD_SCHEMA);
+	}
+
+	public MetadataSchemaType facetSchemaType() {
+		return getTypes().getSchemaType(Facet.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema defaultFacet() {
+		return getTypes().getSchema(Facet.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchema facetQuerySchema() {
+		return getTypes().getSchema(Facet.QUERY_SCHEMA);
+	}
+
+	public Facet newFacetField(String id) {
+		return new Facet(create(facetFieldSchema(), id), getTypes()).setFacetType(FacetType.FIELD);
+	}
+
+	public Facet newFacetField() {
+		return new Facet(create(facetFieldSchema()), getTypes()).setFacetType(FacetType.FIELD);
+	}
+
+	public Facet newFacetQuery(String id) {
+		return new Facet(create(facetQuerySchema(), id), getTypes()).setFacetType(FacetType.QUERY);
+	}
+
+	public Facet newFacetQuery() {
+		return new Facet(create(facetQuerySchema()), getTypes()).setFacetType(FacetType.QUERY);
+	}
+
+	public Facet getFacet(String id) {
+		return new Facet(get(id), getTypes());
+	}
+
+	public Facet wrapFacet(Record record) {
+		return record == null ? null : new Facet(record, getTypes());
+	}
+
+	public List<Facet> wrapFacets(List<Record> records) {
+		List<Facet> wrappers = new ArrayList<>();
+		for (Record record : records) {
+			wrappers.add(new Facet(record, getTypes()));
+		}
+		return wrappers;
+	}
+
 	//Users
 
 	public MetadataSchema userSchema() {
@@ -195,6 +269,10 @@ public class SchemasRecordsServices {
 		return getTypes().getSchemaType(User.SCHEMA_TYPE);
 	}
 
+	public Metadata userUsername() {
+		return userSchema().getMetadata(User.USERNAME);
+	}
+
 	public User wrapUser(Record record) {
 		return new User(record, getTypes(), getRoles());
 	}
@@ -203,6 +281,14 @@ public class SchemasRecordsServices {
 		List<User> users = new ArrayList<>();
 		for (Record record : records) {
 			users.add(new User(record, getTypes(), getRoles()));
+		}
+		return users;
+	}
+
+	public List<User> getUsers(List<String> ids) {
+		List<User> users = new ArrayList<>();
+		for (String id : ids) {
+			users.add(new User(get(id), getTypes(), getRoles()));
 		}
 		return users;
 	}
@@ -222,4 +308,57 @@ public class SchemasRecordsServices {
 	private Roles getRoles() {
 		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
 	}
+
+	public abstract class SchemaTypeShortcuts {
+
+		String schemaTypeCode;
+		String schemaCode;
+
+		protected SchemaTypeShortcuts(String schemaCode) {
+			this.schemaCode = schemaCode;
+			this.schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		}
+
+		public MetadataSchemaType schemaType() {
+			return types().getSchemaType(schemaTypeCode);
+		}
+
+		public MetadataSchema schema() {
+			return types().getSchema(schemaCode);
+		}
+
+		public Metadata title() {
+			return metadata(Schemas.TITLE.getLocalCode());
+		}
+
+		public Metadata createdOn() {
+			return metadata(Schemas.CREATED_ON.getLocalCode());
+		}
+
+		public Metadata createdBy() {
+			return metadata(Schemas.CREATED_BY.getLocalCode());
+		}
+
+		public Metadata modifiedOn() {
+			return metadata(Schemas.MODIFIED_ON.getLocalCode());
+		}
+
+		public Metadata modifiedBy() {
+			return metadata(Schemas.MODIFIED_BY.getLocalCode());
+		}
+
+		public Metadata legacyId() {
+			return metadata(Schemas.LEGACY_ID.getLocalCode());
+		}
+
+		protected Metadata metadata(String code) {
+			return schema().getMetadata(schemaCode + "_" + code);
+		}
+
+		MetadataSchemaTypes types() {
+			return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		}
+
+	}
+
 }

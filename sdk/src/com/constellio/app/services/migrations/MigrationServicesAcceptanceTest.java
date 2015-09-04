@@ -45,7 +45,6 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.Delayed;
-import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -128,15 +127,15 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
+	//@Test
+	// This behaviour is no longer required anywhere
 	public void givenMultipleCollectionsThenMigratedIndependently()
 			throws Exception {
-		when(moduleManager.getInstalledModules()).thenReturn(Arrays.asList((Module) aModule));
+		when(moduleManager.getEnabledModules(zeCollection)).thenReturn(Arrays.asList(aModule));
 
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		CollectionsManager collectionsManager = spy(
-				new CollectionsManager(getModelLayerFactory(), moduleManager, new Delayed<>(migrationServices),
-						"fr"));
+				new CollectionsManager(getModelLayerFactory(), moduleManager, new Delayed<>(migrationServices)));
 		collectionsManager.createCollectionConfigs("collection1");
 		collectionsListManager.addCollection("collection1", Arrays.asList("fr"));
 		try {
@@ -186,9 +185,9 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenMigrateToVersionThenMigrationDone()
-			throws OptimisticLockingConfiguration {
+			throws Exception {
 		givenCollection(zeCollection);
-		when(moduleManager.getInstalledModules()).thenReturn(Arrays.asList((Module) aModule));
+		when(moduleManager.getEnabledModules(zeCollection)).thenReturn(Arrays.asList(aModule));
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
 
@@ -211,9 +210,9 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenModuleWithDependencyThenDepencyAlwaysMigratedBefore()
-			throws OptimisticLockingConfiguration {
+			throws Exception {
 		givenCollection(zeCollection);
-		when(moduleManager.getInstalledModules()).thenReturn(Arrays.asList((Module) aModuleWithDependency, aModule));
+		when(moduleManager.getEnabledModules(zeCollection)).thenReturn(Arrays.asList(aModuleWithDependency, aModule));
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
 
@@ -243,7 +242,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenModuleWithADependencyToAnotherModuleWithADependencyThenDepencyAlwaysMigratedBefore()
-			throws OptimisticLockingConfiguration {
+			throws Exception {
 		givenCollection(zeCollection);
 
 		when(constellioEIM.getMigrationScripts()).thenReturn(Arrays.asList(coreMigrationTo100, coreMigrationTo103));
@@ -263,8 +262,8 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		when(moduleE.getDependencies()).thenReturn(asList("f"));
 		when(moduleF.getDependencies()).thenReturn(asList("d"));
 		when(moduleD.getDependencies()).thenReturn(asList("c"));
-		when(moduleManager.getInstalledModules())
-				.thenReturn(Arrays.asList((Module) moduleA, moduleB, moduleC, moduleD, moduleE, moduleF));
+		when(moduleManager.getEnabledModules(zeCollection))
+				.thenReturn(Arrays.asList(moduleA, moduleB, moduleC, moduleD, moduleE, moduleF));
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
 		migrationServices.migrate(zeCollection, "1.1.0");

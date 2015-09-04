@@ -35,7 +35,8 @@ public enum MetadataInputType {
 	CUSTOM,
 	CONTENT,
 	CONTENT_CHECK_IN_CHECK_OUT,
-	URL;
+	URL,
+	PASSWORD;
 
 	public static List<MetadataInputType> getAvailableMetadataInputTypesFor(MetadataValueType type, boolean multivalue) {
 		List<MetadataInputType> inputTypes = new ArrayList<>();
@@ -80,6 +81,7 @@ public enum MetadataInputType {
 		case STRING:
 			inputTypes.add(FIELD);
 			inputTypes.add(URL);
+			inputTypes.add(PASSWORD);
 			break;
 		case NUMBER:
 			break;
@@ -127,6 +129,9 @@ public enum MetadataInputType {
 			break;
 		case URL:
 			caption = "MetadataInputType.url";
+			break;
+		case PASSWORD:
+			caption = "MetadataInputType.password";
 			break;
 		}
 

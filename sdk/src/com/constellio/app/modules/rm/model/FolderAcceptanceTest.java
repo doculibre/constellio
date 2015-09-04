@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -43,7 +44,6 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -117,7 +117,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		zeCategory = records.categoryId_ZE42;
-		aPrincipalAdminUnit = records.unitId_10;
+		aPrincipalAdminUnit = records.unitId_10a;
 		anotherPrincipalAdminUnit = records.unitId_20;
 		aSecondaryAdminUnit = records.unitId_30;
 		PA = records.PA;
@@ -134,9 +134,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 				new LocalDateTime().minusWeeks(1));
 
 		Folder folder = rm.newFolder();
-		folder.setAdministrativeUnitEntered(records.unitId_11);
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
 		folder.setDescription("Ze description");
-		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setRetentionRuleEntered(records.ruleId_2);
 		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
@@ -149,10 +148,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		folder = saveAndLoad(folder);
 
-		assertThat(folder.getAdministrativeUnitEntered()).isEqualTo(records.unitId_11);
+		assertThat(folder.getAdministrativeUnitEntered()).isEqualTo(records.unitId_11b);
 		assertThat(folder.getDescription()).isEqualTo("Ze description");
-		assertThat(folder.getFilingSpaceEntered()).isEqualTo(records.filingId_A);
-		assertThat(folder.getFilingSpaceCode()).isEqualTo(records.getFilingA().getCode());
 		assertThat(folder.getUniformSubdivisionEntered()).isEqualTo(records.subdivId_2);
 		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X110);
 		assertThat(folder.getCategoryCode()).isEqualTo(records.getCategory_X110().getCode());
@@ -529,8 +526,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleHasNoPrincipalCopyType(records.ruleId_1);
 
 		Folder folder = rm.newFolder();
-		folder.setAdministrativeUnitEntered(records.unitId_10);
-		folder.setFilingSpaceEntered(records.filingId_A);
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
 		folder.setCategoryEntered(records.categoryId_X13);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(records.ruleId_1);
@@ -550,8 +546,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleHasNoPrincipalCopyType(records.ruleId_2);
 
 		Folder folder = rm.newFolder();
-		folder.setAdministrativeUnitEntered(records.unitId_10);
-		folder.setFilingSpaceEntered(records.filingId_A);
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
 		folder.setCategoryEntered(records.categoryId_X13);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(records.ruleId_2);
@@ -599,7 +594,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(aPrincipalAdminUnit);
-		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(zeRule);
@@ -620,7 +614,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(aPrincipalAdminUnit);
-		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(zeRule);
@@ -641,7 +634,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(aPrincipalAdminUnit);
-		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(zeRule);

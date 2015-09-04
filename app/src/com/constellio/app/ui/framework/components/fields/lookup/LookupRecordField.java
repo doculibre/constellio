@@ -50,12 +50,16 @@ public class LookupRecordField extends LookupField<String> {
 	private TaxonomyCodeToCaptionConverter captionConverter = new TaxonomyCodeToCaptionConverter();
 
 	public LookupRecordField(String schemaTypeCode) {
-		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode),
-				getTreeDataProvider(schemaTypeCode));
+		this(schemaTypeCode, false);
+	}
+
+	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
+		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, writeAccess),
+				getTreeDataProvider(schemaTypeCode, writeAccess));
 		setItemConverter(new RecordIdToCaptionConverter());
 	}
 
-	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode) {
+	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, boolean writeAccess) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -69,11 +73,11 @@ public class LookupRecordField extends LookupField<String> {
 		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
 		List<Taxonomy> taxonomies = taxonomiesManager
 				.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
-		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<RecordLookupTreeDataProvider>();
+		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<>();
 		for (Taxonomy taxonomy : taxonomies) {
 			String taxonomyCode = taxonomy.getCode();
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode));
+				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess));
 			}
 		}
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
@@ -103,4 +107,5 @@ public class LookupRecordField extends LookupField<String> {
 	SessionContext getSessionContext() {
 		return ConstellioUI.getCurrentSessionContext();
 	}
+
 }

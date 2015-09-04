@@ -66,6 +66,11 @@ public class RecordServicesOptimisticLockingWithAuthorizationsAcceptanceTest ext
 	public void setUp()
 			throws Exception {
 
+		prepareSystem(
+				withCollection(zeCollection).withAllTest(users),
+				withCollection(anotherCollection).withAllTestUsers()
+		);
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		searchServices = getModelLayerFactory().newSearchServices();
@@ -74,10 +79,6 @@ public class RecordServicesOptimisticLockingWithAuthorizationsAcceptanceTest ext
 		roleManager = getModelLayerFactory().getRolesManager();
 		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		userServices = getModelLayerFactory().newUserServices();
-		users.setUp(userServices);
-
-		givenCollection(zeCollection).withAllTestUsers();
-		givenCollection(anotherCollection).withAllTestUsers();
 
 		defineSchemasManager().using(setup);
 		taxonomiesManager.addTaxonomy(setup.getTaxonomy1(), schemasManager);
@@ -94,43 +95,37 @@ public class RecordServicesOptimisticLockingWithAuthorizationsAcceptanceTest ext
 	}
 
 	@Test
-	public void abc()
-			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().monitor("folder2");
-
-		addAuthorizationWithoutDetaching("ZeFirst", asList(Role.READ), asList(users.legendsIn(zeCollection).getId()),
-				asList(records.taxo1_category2.getId()));
-		addAuthorizationWithoutDetaching("ZeSecond", asList(Role.READ), asList(users.aliceIn(zeCollection).getId()),
-				asList(records.folder1.getId()));
-		waitForBatchProcess();
-
-		assertThat(users.aliceIn(zeCollection).getUserTokens()).containsOnly("r__ZeFirst", "r__ZeSecond");
-
-		userServices.addUpdateUserCredential(userServices.getUserCredential("alice").withRemovedGlobalGroup("legends"));
-
-		User alice = users.aliceIn(zeCollection);
-		assertThat(alice.getUserTokens()).containsOnly("r__ZeSecond");
-	}
-
-	@Test
 	public void whenAddingAuthorizationToAUserAndToOneOfItsGroupAtTheSameMomentThenNoProblem()
 			throws Exception {
 
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String legendsId = users.legendsIn(zeCollection).getId();
+
 		getDataLayerFactory().getDataLayerLogger().monitor("folder2");
 
 		addAuthorizationWithoutDetaching("ZeFirst", asList(Role.READ), asList(users.legendsIn(zeCollection).getId()),
-				asList(records.taxo1_category2.getId()));
+				asList(records.taxo1_category2().getId()));
 		addAuthorizationWithoutDetaching("ZeSecond", asList(Role.READ), asList(users.aliceIn(zeCollection).getId()),
-				asList(records.folder1.getId()));
+				asList(records.folder1().getId()));
 		waitForBatchProcess();
 
-		assertThat(users.aliceIn(zeCollection).getUserTokens()).containsOnly("r__ZeFirst", "r__ZeSecond");
-
+		assertThat(users.aliceIn(zeCollection).getUserTokens()).containsOnly(
+				"r__ZeFirst",
+				"r__ZeSecond",
+				"r_" + aliceId,
+				"w_" + aliceId,
+				"d_" + aliceId,
+				"r_" + legendsId,
+				"w_" + legendsId,
+				"d_" + legendsId);
 		userServices.addUpdateUserCredential(userServices.getUserCredential("alice").withRemovedGlobalGroup("legends"));
 
 		User alice = users.aliceIn(zeCollection);
-		assertThat(alice.getUserTokens()).containsOnly("r__ZeSecond");
+		assertThat(users.aliceIn(zeCollection).getUserTokens()).containsOnly(
+				"r__ZeSecond",
+				"r_" + aliceId,
+				"w_" + aliceId,
+				"d_" + aliceId);
 	}
 
 	@Test

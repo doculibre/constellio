@@ -168,7 +168,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 		manager.enableAllMetadatasInAdvancedSearch(collection, Folder.SCHEMA_TYPE);
 		manager.enableAllMetadatasInAdvancedSearch(collection, Document.SCHEMA_TYPE);

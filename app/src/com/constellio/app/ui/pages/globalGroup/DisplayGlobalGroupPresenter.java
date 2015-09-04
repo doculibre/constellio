@@ -202,7 +202,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	}
 
 	GlobalGroupVODataProvider newGlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder) {
-		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory);
+		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory, true);
 	}
 
 	GlobalGroupToVOBuilder newGlobalGroupVOBuilder() {

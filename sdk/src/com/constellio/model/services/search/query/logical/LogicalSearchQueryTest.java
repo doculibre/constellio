@@ -23,12 +23,12 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.model.entities.schemas.DataStoreField;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -54,7 +54,7 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 
 		query.filteredWithUser(user);
 
-		assertThat(query.filterUser).isEqualTo("tokens_ss:A38 OR tokens_ss:rtokenA OR tokens_ss:rtokenB");
+		assertThat(query.filterUser).isEqualTo("tokens_ss:A38 OR tokens_ss:rtokenA OR tokens_ss:rtokenB OR tokens_ss:__public__");
 	}
 
 	@Test
@@ -63,7 +63,8 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 		when(user.hasCollectionReadAccess()).thenReturn(true);
 		query.filteredWithUser(user);
 
-		assertThat(query.filterUser).isEqualTo("tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:rtokenA OR tokens_ss:rtokenB");
+		assertThat(query.filterUser).isEqualTo(
+				"tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:rtokenA OR tokens_ss:rtokenB OR tokens_ss:__public__");
 	}
 
 	@Test
@@ -72,7 +73,9 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 		when(user.hasCollectionWriteAccess()).thenReturn(true);
 		query.filteredWithUser(user);
 
-		assertThat(query.filterUser).isEqualTo("tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:rtokenA OR tokens_ss:rtokenB");
+		assertThat(query.filterUser)
+				.isEqualTo(
+						"tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:rtokenA OR tokens_ss:rtokenB OR tokens_ss:__public__");
 	}
 
 	@Test
@@ -82,7 +85,9 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 		when(user.hasCollectionDeleteAccess()).thenReturn(true);
 		query.filteredWithUser(user);
 
-		assertThat(query.filterUser).isEqualTo("tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:rtokenA OR tokens_ss:rtokenB");
+		assertThat(query.filterUser)
+				.isEqualTo(
+						"tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:rtokenA OR tokens_ss:rtokenB OR tokens_ss:__public__");
 	}
 
 	@Test
@@ -100,7 +105,8 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 		when(user.hasCollectionWriteAccess()).thenReturn(true);
 		query.filteredWithUserWrite(user);
 
-		assertThat(query.filterUser).isEqualTo("tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:wtokenC OR tokens_ss:wtokenD");
+		assertThat(query.filterUser)
+				.isEqualTo("tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:wtokenC OR tokens_ss:wtokenD");
 	}
 
 	@Test
@@ -136,7 +142,8 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 		when(user.hasCollectionDeleteAccess()).thenReturn(true);
 		query.filteredWithUserDelete(user);
 
-		assertThat(query.filterUser).isEqualTo("tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:dtokenE OR tokens_ss:dtokenF");
+		assertThat(query.filterUser)
+				.isEqualTo("tokens_ss:A38 OR collection_s:ZeCollection OR tokens_ss:dtokenE OR tokens_ss:dtokenF");
 	}
 
 	@Test
@@ -169,7 +176,7 @@ public class LogicalSearchQueryTest extends ConstellioTest {
 	@Test
 	public void whenAddStatsOnFieldThenFilterAdded()
 			throws Exception {
-		query.computeStatsOnField(metadata);
-		assertThat(query.getStatisticFields()).contains(metadata);
+		query.computeStatsOnField(metadata.getDataStoreCode());
+		assertThat(query.getStatisticFields()).contains(metadata.getDataStoreCode());
 	}
 }

@@ -55,4 +55,24 @@ public class DecommissioningListPage extends PageHelper {
 		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningListViewImpl.PROCESS));
 		return new ButtonWebElement(element);
 	}
+
+	public ButtonWebElement getApprovalRequestButton() {
+		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningListViewImpl.APPROVAL_REQUEST_BUTTON));
+		return new ButtonWebElement(element);
+	}
+
+	public ButtonWebElement getApprovalButton() {
+		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningListViewImpl.APPROVAL_BUTTON));
+		return new ButtonWebElement(element);
+	}
+
+	public ButtonWebElement getValidationButton() {
+		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningListViewImpl.VALIDATION_BUTTON));
+		return new ButtonWebElement(element);
+	}
+
+	public ButtonWebElement getValidationRequestButton() {
+		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningListViewImpl.VALIDATION_REQUEST_BUTTON));
+		return new ButtonWebElement(element);
+	}
 }

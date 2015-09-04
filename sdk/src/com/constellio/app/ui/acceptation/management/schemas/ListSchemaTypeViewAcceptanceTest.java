@@ -55,7 +55,7 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenBaseConfigurationThenDisplayCorrectInformation() {
 		RecordContainerWebElement typeTable = page.getTypeTable();
-		assertThat(typeTable.countRows()).isEqualTo(15);
+		assertThat(typeTable.countRows()).isEqualTo(18);
 		assertThat(typeTable.hasRowWithValueInColumn("Rubrique du plan", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Contenant", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Types de contenants", 0)).isTrue();
@@ -71,5 +71,8 @@ public class ListSchemaTypeViewAcceptanceTest extends ConstellioTest {
 		assertThat(typeTable.hasRowWithValueInColumn("Règle de conservation", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Subdivision uniforme", 0)).isTrue();
 		assertThat(typeTable.hasRowWithValueInColumn("Délais variables", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Tâche", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Type de tâche", 0)).isTrue();
+		assertThat(typeTable.hasRowWithValueInColumn("Statut d'une tâche", 0)).isTrue();
 	}
 }

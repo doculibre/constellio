@@ -17,20 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.smokeTests;
 
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.CONFIG_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.FILING_SPACES_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.IMPORT_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.LDAP_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_COLLECTIONS_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_GROUPS_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_ROLES_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_USERS_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.MANAGE_USER_CREDENTIAL_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.METADATA_SCHEMAS_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.RETENTION_CALENDAR_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.TAXONOMIES_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.UNIFORM_SUBDIVISIONS_BUTTON;
-import static com.constellio.app.modules.rm.ui.pages.management.AdminRMModuleViewImpl.VALUE_DOMAIN_BUTTON;
 import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BORROWED_DOCUMENTS_LINK_BUTTON;
 import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BY_FOLDER_EVENTS_LINK_BUTTON;
 import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BY_USER_EVENTS_LINK_BUTTON;
@@ -49,7 +35,9 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.DemoTestRecords;
+import com.constellio.app.modules.rm.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -58,7 +46,6 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 
 @UiTest
 public class NavigatePageAcceptanceTest extends ConstellioTest {
-
 	NavigatePage page;
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
@@ -210,7 +197,8 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		clickOnFolderMenuAndWaitForReload(5);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.LIST_OBJECT_AUTHORIZATIONS + "/" + folderId);//LIST_OBJECT_AUTHORIZATIONS
+				.isEqualTo(NavigatorConfigurationService.LIST_OBJECT_ACCESS_AUTHORIZATIONS + "/"
+						+ folderId);//LIST_OBJECT_ACCESS_AUTHORIZATIONS
 
 		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
@@ -318,28 +306,25 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 	public void givenUserInAdminModuleWhenClickAdminModuleIconsAndGoBackThenUserInAdminModule()
 			throws Exception {
 
-		clickOnCurrentPageIconAndWaitForReload(TAXONOMIES_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.TAXONOMIES);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(UNIFORM_SUBDIVISIONS_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(RMNavigationConfiguration.UNIFORM_SUBDIVISIONS);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(RETENTION_CALENDAR_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(RMNavigationConfiguration.RETENTION_CALENDAR);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(VALUE_DOMAIN_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.VALUE_DOMAINS);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(METADATA_SCHEMAS_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.METADATA_SCHEMAS);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(FILING_SPACES_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.SECURITY);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(MANAGE_USERS_BUTTON);
-		clickOnBackButtonAndGoBackToAdminModule();
-
-		clickOnCurrentPageIconAndWaitForReload(MANAGE_ROLES_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.ROLES);
 		clickOnBackButtonAndGoBackToAdminModule();
 
 		/* Not implemented yet
@@ -355,26 +340,26 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 		clickOnCurrentPageIconAndWaitForReload(TRASH_BIN_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();*/
 
-		clickOnCurrentPageIconAndWaitForReload(CONFIG_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.CONFIG);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(LDAP_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.LDAP_CONFIG);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(MANAGE_GROUPS_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.GROUPS);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(MANAGE_USER_CREDENTIAL_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.USERS);
 		clickOnBackButtonAndGoBackToAdminModule();
 
-		clickOnCurrentPageIconAndWaitForReload(MANAGE_COLLECTIONS_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.COLLECTIONS);
 		clickOnBackButtonAndGoBackToAdminModule();
 
 		/* Not implemented yet
 		clickOnCurrentPageIconAndWaitForReload(MODULES_BUTTON);
 		clickOnBackButtonAndGoBackToAdminModule();*/
 
-		clickOnCurrentPageIconAndWaitForReload(IMPORT_BUTTON);
+		clickOnCurrentPageIconAndWaitForReload(CoreNavigationConfiguration.IMPORT_RECORDS);
 		clickOnBackButtonAndGoBackToAdminModule();
 
 		/* Not implemented yet

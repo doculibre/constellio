@@ -41,8 +41,8 @@ import org.mockito.Mock;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Task;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -60,7 +60,7 @@ import com.constellio.model.entities.workflows.execution.WorkflowExecution;
 import com.constellio.model.entities.workflows.trigger.Trigger;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.workflows.config.WorkflowsConfigManager;
@@ -73,7 +73,8 @@ public class WorkflowExecutorUnitTest extends ConstellioTest {
 	@Mock AllUsersSelector allUsersSelector;
 
 	@Mock Record newTaskRecord;
-	@Mock Task newTask;
+	@Mock
+	WorkflowTask newTask;
 	@Mock MetadataSchemasManager metadataSchemasManager;
 	@Mock MetadataSchemaTypes metadataSchemaTypes;
 	@Mock MetadataSchemaType metadataSchemaType;
@@ -94,7 +95,7 @@ public class WorkflowExecutorUnitTest extends ConstellioTest {
 	@Mock WorkflowExecutionService workflowExecutionService;
 	@Mock WorkflowsConfigManager workflowsConfigManager;
 	@Mock TaskServices taskServices;
-	@Mock RecordServices recordServices;
+	@Mock RecordServicesImpl recordServices;
 	WorkflowExecutor workflowExecutor;
 
 	@Before
@@ -217,7 +218,7 @@ public class WorkflowExecutorUnitTest extends ConstellioTest {
 
 		ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
 
-		doNothing().when(workflowExecutor).fillTaskMetadatas(any(Task.class), any(WorkflowUserTask.class),
+		doNothing().when(workflowExecutor).fillTaskMetadatas(any(WorkflowTask.class), any(WorkflowUserTask.class),
 				any(MetadataSchema.class), any(WorkflowExecution.class));
 		when(recordServices.newRecordWithSchema(metadataCustomSchema)).thenReturn(newTaskRecord);
 		when(taskServices.newRelativeTask(newTaskRecord, metadataSchemaTypes)).thenReturn(newTask);
@@ -241,10 +242,10 @@ public class WorkflowExecutorUnitTest extends ConstellioTest {
 	@Test
 	public void whenFillingTaskMetadatasThenSetRecordIdUserCandidatesDueDateAndOtherMetadatasBasedOnBPMNFields() {
 
-		doNothing().when(workflowExecutor).setAssignCandidates(any(Task.class), any(AllUsersSelector.class),
+		doNothing().when(workflowExecutor).setAssignCandidates(any(WorkflowTask.class), any(AllUsersSelector.class),
 				any(WorkflowExecution.class));
-		doNothing().when(workflowExecutor).setDueDate(any(Task.class), anyInt());
-		doNothing().when(workflowExecutor).setMetadataBasedOnBPMNFields(any(Task.class), any(BPMNProperty.class),
+		doNothing().when(workflowExecutor).setDueDate(any(WorkflowTask.class), anyInt());
+		doNothing().when(workflowExecutor).setMetadataBasedOnBPMNFields(any(WorkflowTask.class), any(BPMNProperty.class),
 				any(MetadataSchema.class), any(WorkflowExecution.class));
 
 		when(workflowExecution.getId()).thenReturn("theWorkflowId");

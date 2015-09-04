@@ -20,37 +20,24 @@ package com.constellio.app.ui.pages.profile;
 import java.io.Serializable;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.ui.entities.ContentVersionVO;
 
 public class ProfileVO implements Serializable {
-
 	ContentVersionVO image;
-
 	String username;
-
 	String firstName;
-
 	String lastName;
-
 	String email;
-
 	String phone;
-
 	String password;
-
 	String confirmPassword;
-
 	String oldPassword;
-
-	StartTab startTab;
-
+	String startTab;
 	DefaultTabInFolderDisplay defaultTabInFolderDisplay;
-
 	String defaultTaxonomy;
 
 	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email,
-			String phone, StartTab startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
+			String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
 			String password, String confirmPassword, String oldPassword) {
 		this.image = image;
 		this.username = username;
@@ -66,7 +53,7 @@ public class ProfileVO implements Serializable {
 		this.oldPassword = oldPassword;
 	}
 
-	public ProfileVO(String username, String firstName, String lastName, String email, String phone, StartTab startTab,
+	public ProfileVO(String username, String firstName, String lastName, String email, String phone, String startTab,
 			DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
 			String oldPassword) {
 		this.username = username;
@@ -122,11 +109,11 @@ public class ProfileVO implements Serializable {
 		this.phone = phone;
 	}
 
-	public StartTab getStartTab() {
+	public String getStartTab() {
 		return startTab;
 	}
 
-	public void setStartTab(StartTab startTab) {
+	public void setStartTab(String startTab) {
 		this.startTab = startTab;
 	}
 

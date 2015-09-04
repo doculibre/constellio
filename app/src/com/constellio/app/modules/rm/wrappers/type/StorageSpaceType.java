@@ -17,7 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.wrappers.type;
 
-import com.constellio.app.modules.rm.wrappers.ValueListItem;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 

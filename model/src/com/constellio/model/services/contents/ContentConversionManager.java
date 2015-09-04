@@ -25,6 +25,7 @@ import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ContentConversionManager implements AutoCloseable {
@@ -39,11 +40,20 @@ public class ContentConversionManager implements AutoCloseable {
 		ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 	}
 
-	public Content convertToPDF(Content content) {
+	public Content replaceContentByPDFA(Content content) {
 		ContentVersion current = content.getCurrentVersion();
 		ContentVersionDataSummary summary = convertAndUpload(current);
 		ContentVersion pdfVersion = createVersion(current, summary);
 		return ContentImpl.create(content.getId(), pdfVersion, content.getHistoryVersions());
+	}
+
+	public void convertContentToPDFA(User user, Content content) {
+		String pdfFilename = changeExtension(content.getCurrentVersion().getFilename());
+
+		ContentVersion current = content.getCurrentVersion();
+		ContentVersionDataSummary summary = convertAndUpload(current);
+
+		content.updateContentWithName(user, summary, true, pdfFilename);
 	}
 
 	@Override

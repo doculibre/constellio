@@ -90,9 +90,9 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 				recordServices.executeWithImpactHandler(transaction, handler);
 
 			} catch (OptimisticLocking e) {
-				System.out.println("Optimistic locking, retrying.");
-				e.printStackTrace();
-				LOGGER.info("Optimistic locking, retrying.", e);
+				//e.printStackTrace();
+				LOGGER.info("Optimistic locking, retrying transaction ...");
+				//LOGGER.info("Optimistic locking, retrying transaction ...\n" + LoggerUtils.toString(e.getTransactionDTO()));
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e1) {

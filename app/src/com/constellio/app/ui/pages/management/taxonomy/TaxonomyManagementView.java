@@ -17,14 +17,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import java.util.List;
+
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 
-public interface TaxonomyManagementView extends BaseView, AdminModuleViewGroup {
+public interface TaxonomyManagementView extends BaseView, AdminViewGroup {
 
-	void setFolders(RecordVODataProvider dataProvider);
+	void setTabs(List<TaxonomyManagementClassifiedType> types);
 
-	void selectFoldersTab();
 	void refreshTable();
 }

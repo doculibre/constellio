@@ -51,13 +51,13 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 
 public class RecordVOTable extends Table {
-	
+
 	public static final String STYLE_NAME = "record-table";
 	public static final String CLICKABLE_ROW_STYLE_NAME = "clickable-row";
 	private RecordContextMenu contextMenu;
 	private MetadataSchemaVO schemaVO;
 	private MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
-	
+
 	private boolean contextMenuPossible = true;
 
 	public RecordVOTable() {
@@ -119,7 +119,7 @@ public class RecordVOTable extends Table {
 			}
 		});
 	}
-	
+
 	protected RecordVO getRecordVOForTitleColumn(RecordVO rowRecordVO) {
 		return rowRecordVO;
 	}
@@ -170,7 +170,7 @@ public class RecordVOTable extends Table {
 					titleLabel.setValue(prefix + " " + titleLabel.getValue());
 				}
 			}
-			containerProperty = new ObjectProperty<Component>(metadataDisplay, Component.class);
+			containerProperty = new ObjectProperty<>(metadataDisplay, Component.class);
 		} else {
 			containerProperty = super.getContainerProperty(itemId, propertyId);
 		}

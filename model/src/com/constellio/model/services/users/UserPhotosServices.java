@@ -45,6 +45,8 @@ import com.constellio.model.services.users.UserPhotosServicesRuntimeException.Us
 //AFTER : Rename UserFilesServices
 public class UserPhotosServices {
 
+	public static final String DATE_PATTERN = "yyyy-MM-dd'T'HH_mm_ss.SSS";
+
 	private final String ZIP_LOG_FILE_RESOURCENAME = "UserFilesServices-zipLogFile";
 	private final String ZIP_LOG_TEMP_FOLDER_RESOURCENAME = "UserFilesServices-zipLogTempFolder";
 	private final String WRITE_LOG_FILE_TO_TEMP_FOLDER_RESOURCENAME = "UserFilesServices-writeLogFileToTempFolderOutputStream";
@@ -111,9 +113,9 @@ public class UserPhotosServices {
 	}
 
 	public void addLogFile(String username, InputStream inputStream) {
-		String logName = TimeProvider.getLocalDateTime().toString();
+		String logName = TimeProvider.getLocalDateTime().toString(DATE_PATTERN);
 		addLogFile(username, logName, inputStream);
-	}	
+	}
 
 	public void addLogFile(String username, String logName, InputStream inputStream) {
 		String path = getLogId(username, logName);

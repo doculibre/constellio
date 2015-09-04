@@ -1,0 +1,231 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.modules.tasks.model.managers;
+
+import com.constellio.app.modules.tasks.TasksEmailTemplates;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
+	private LocalDate now = LocalDate.now();
+	Users users = new Users();
+	Task zeTask;
+	private TasksSchemasRecordsServices schemas;
+	private TaskReminderEmailManager manager;
+	private SearchServices searchServices;
+	private UserServices userServices;
+	private List<EmailAddress> allAssigneesAddresses;
+	private List<EmailAddress> allAssigneeGroupsAddresses;
+	private List<EmailAddress> allAssigneeUsersAddresses;
+	private TaskReminder reminderAfterNow;
+	private TaskReminder reminderBeforeNow;
+	private RecordServices recordServices;
+
+	@Before
+	public void setUp()
+			throws Exception {
+		givenTimeIs(now);
+		givenCollection(zeCollection).withTaskModule().withAllTestUsers();
+		users.setUp(getModelLayerFactory().newUserServices());
+
+		schemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		manager = schemas.getTaskReminderEmailManager();
+		searchServices = getModelLayerFactory().newSearchServices();
+		userServices = getModelLayerFactory().newUserServices();
+		recordServices = getModelLayerFactory().newRecordServices();
+		setupTestData();
+
+	}
+
+	private void setupTestData()
+			throws RecordServicesException {
+		String aliceAndBobGroupId = users.heroesIn(zeCollection).getId();
+		users.aliceIn(zeCollection);
+
+		userServices.addUpdateUserCredential(users.alice().withCollections(asList(zeCollection))
+				.withGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
+		userServices.addUpdateUserCredential(users.bob().withCollections(asList(zeCollection))
+				.withGlobalGroups(asList(users.heroesIn(zeCollection).getCode())));
+		userServices.addUpdateUserCredential(users.chuckNorris().withGlobalGroups(new ArrayList<String>()));
+
+		userServices.setGlobalGroupUsers(users.heroes().getCode(), asList(users.alice(), users.bob()));
+		EmailAddress aliceEmailAddress = new EmailAddress(users.alice().getTitle(), users.alice().getEmail());
+		EmailAddress bobEmailAddress = new EmailAddress(users.bob().getTitle(), users.bob().getEmail());
+		EmailAddress chuckEmailAddress = new EmailAddress(users.chuckNorris().getTitle(), users.chuckNorris().getEmail());
+
+		reminderBeforeNow = new TaskReminder().setFixedDate(now.minusDays(1));
+		reminderAfterNow = new TaskReminder().setFixedDate(now.plusDays(1));
+
+		allAssigneeUsersAddresses = asList(aliceEmailAddress, chuckEmailAddress);
+		allAssigneeGroupsAddresses = asList(aliceEmailAddress, bobEmailAddress);
+		allAssigneesAddresses = asList(aliceEmailAddress, chuckEmailAddress, bobEmailAddress);
+		zeTask = schemas.newTask()
+				.setReminders(asList(reminderBeforeNow, reminderAfterNow))
+				.setAssigneeGroupsCandidates(asList(aliceAndBobGroupId))
+				.setAssigneeUsersCandidates(
+						asList(users.aliceIn(zeCollection).getId(), users.chuckNorrisIn(zeCollection).getId()));
+		zeTask.setTitle("zeTitle");
+		zeTask = saveAndReload(zeTask);
+		assertThat(zeTask.getNextReminderOn()).isEqualTo(now.minusDays(1));
+	}
+
+	private Task saveAndReload(Task task)
+			throws RecordServicesException {
+		recordServices.add(task.getWrappedRecord());
+		return schemas.getTask(task.getId());
+	}
+
+	@Test
+	public void givenTaskWithoutNextReminderOnWhenManagerCalledThenNoReminderEmailGenerated()
+			throws Exception {
+		zeTask.setReminders(null);
+		recordServices.add(zeTask);
+		zeTask = schemas.getTask(zeTask.getId());
+		assertThat(zeTask.getNextReminderOn()).isNull();
+		manager.generateReminderEmails();
+		assertNoEmailToSendCreated();
+	}
+
+	@Test
+	public void givenTaskWithAliceAssigneeAndAliceWithBlankEmailWhenManagerCalledThenNoReminderEmailGenerated()
+			throws Exception {
+		userServices.addUpdateUserCredential(users.alice().withGlobalGroups(new ArrayList<String>()).withEmail(null));
+		zeTask = saveAndReload(zeTask.setAssignee(users.aliceIn(zeCollection).getId())
+				.setAssignationDate(now)
+				.setAssigner(users.adminIn(zeCollection).getId())
+				.setAssigneeGroupsCandidates(new ArrayList<String>())
+				.setAssigneeUsersCandidates(new ArrayList<String>()));
+		manager.generateReminderEmails();
+		assertNoEmailToSendCreated();
+	}
+
+	@Test
+	public void givenTaskWithoutAssigneesWhenManagerCalledThenNoReminderEmailGenerated()
+			throws Exception {
+		zeTask = saveAndReload(
+				zeTask.setAssigneeGroupsCandidates(new ArrayList<String>()).setAssigneeUsersCandidates(new ArrayList<String>()));
+		assertThat(zeTask.getAssigneeGroupsCandidates()).isEqualTo(new ArrayList<String>());
+		assertThat(zeTask.getAssigneeUsersCandidates()).isEqualTo(new ArrayList<String>());
+		manager.generateReminderEmails();
+		assertNoEmailToSendCreated();
+	}
+
+	@Test
+	public void givenTaskWithNextReminderOnBeforeNowAndValidAssignedToWhenManagerCalledThenReminderEmailGenerated()
+			throws Exception {
+		manager.generateReminderEmails();
+		assertValidEmailToSendCreated(allAssigneesAddresses);
+	}
+
+	@Test
+	public void givenTaskWithNextReminderOnAfterNowWhenManagerCalledThenNoReminderNoEmailGenerated()
+			throws Exception {
+		zeTask = saveAndReload(zeTask.setReminders(asList(reminderAfterNow)));
+		assertThat(zeTask.getNextReminderOn()).isEqualTo(reminderAfterNow.getFixedDate());
+		manager.generateReminderEmails();
+		assertNoEmailToSendCreated();
+
+	}
+
+	@Test
+	public void givenTaskWithValidNextReminderOnAndAssignedToGroupWhenManagerCalledThenReminderEmailGeneratedToBeSentToAllGroupUsers()
+			throws Exception {
+		zeTask = saveAndReload(zeTask.setAssigneeUsersCandidates(new ArrayList<String>()));
+		assertThat(zeTask.getAssigneeUsersCandidates()).isEqualTo(new ArrayList<String>());
+		manager.generateReminderEmails();
+		assertValidEmailToSendCreated(allAssigneeGroupsAddresses);
+	}
+
+	@Test
+	public void givenTaskWithReminderBeforeNowAndReminderAfterNowWhenManagerCalledThenReminderBeforeNowSetToProcessed()
+			throws Exception {
+		manager.generateReminderEmails();
+		zeTask = schemas.getTask(zeTask.getId());
+		List<TaskReminder> reminders = zeTask.getReminders();
+		assertThat(reminders.size()).isEqualTo(2);
+		reminderBeforeNow = reminders.get(0);
+		assertThat(reminderBeforeNow.isProcessed()).isTrue();
+		reminderAfterNow = reminders.get(1);
+		assertThat(reminderAfterNow.isProcessed()).isFalse();
+		assertThat(zeTask.getNextReminderOn()).isEqualTo(now.plusDays(1));
+	}
+
+	@Test
+	public void givenTaskWithValidNextReminderOnAndAssignedToUsersWhenManagerCalledThenReminderEmailGeneratedToBeSentToAllUsers()
+			throws Exception {
+		zeTask = saveAndReload(zeTask.setAssigneeGroupsCandidates(new ArrayList<String>()));
+		manager.generateReminderEmails();
+		assertValidEmailToSendCreated(allAssigneeUsersAddresses);
+	}
+
+	@Test
+	public void testPagination()
+			throws Exception {
+		TaskReminderEmailManager.RECORDS_BATCH = 1;
+		givenTowValidTasksThenTowEmailsCreated();
+	}
+
+	private void givenTowValidTasksThenTowEmailsCreated()
+			throws RecordServicesException {
+		Task task2 = schemas.newTask()
+				.setAssignee(users.aliceIn(zeCollection).getId())
+				.setAssignationDate(now)
+				.setAssigner(users.adminIn(zeCollection).getId())
+				.setReminders(asList(reminderBeforeNow))
+				.setTitle("task2");
+		recordServices.add(task2);
+		manager.generateReminderEmails();
+		assertThat(searchServices.getResultsCount(from(schemas.emailToSend()).returnAll())).isEqualTo(2);
+	}
+
+	private void assertNoEmailToSendCreated() {
+		assertThat(searchServices.getResultsCount(from(schemas.emailToSend()).returnAll()))
+				.isEqualTo(0);
+	}
+
+	private void assertValidEmailToSendCreated(List<EmailAddress> expectedToEmails) {
+		EmailToSend emailToSend = schemas
+				.wrapEmailToSend(searchServices.searchSingleResult(from(schemas.emailToSend()).returnAll()));
+		assertThat(emailToSend.getTo().size()).isEqualTo(expectedToEmails.size());
+		assertThat(emailToSend.getTo()).containsAll(expectedToEmails);
+		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_REMINDER);
+		assertThat(emailToSend.getFrom()).isNull();
+		assertThat(emailToSend.getSendOn().toLocalDate()).isEqualTo(now);
+	}
+
+}

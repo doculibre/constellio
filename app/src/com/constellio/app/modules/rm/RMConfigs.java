@@ -47,7 +47,8 @@ public class RMConfigs {
 			MINOR_VERSIONS_PURGED_ON,
 			ALSO_PURGE_CURRENT_VERSION_IF_MINOR,
 			PDFA_CREATED_ON,
-			DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION;
+			DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION,
+			BORROWING_DURATION_IN_DAYS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -153,6 +154,10 @@ public class RMConfigs {
 		add(AGENT_EDIT_USER_DOCUMENTS = agent.createBooleanTrueByDefault("editUserDocuments"));
 
 		add(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS = agent.createInteger("backupRetentionPeriodInDays").withDefaultValue(30));
+
+		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
+		add(BORROWING_DURATION_IN_DAYS = others.createInteger("borrowingDurationDays").withDefaultValue(7));
+
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -211,6 +216,10 @@ public class RMConfigs {
 
 	public int getAgentBackupRetentionPeriodInDays() {
 		return manager.getValue(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS);
+	}
+
+	public int getBorrowingDurationDays() {
+		return manager.getValue(BORROWING_DURATION_IN_DAYS);
 	}
 
 }

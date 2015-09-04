@@ -168,6 +168,10 @@ public class SchemasDisplayManager
 		return getCacheForCollection(collection).getSchema(schemaCode, metadataSchemasManager);
 	}
 
+	public MetadataDisplayConfig getMetadata(String collection, String schemaCode, String metadataLocalCode) {
+		return getMetadata(collection, schemaCode + "_" + metadataLocalCode);
+	}
+
 	public MetadataDisplayConfig getMetadata(String collection, String metadataCode) {
 		if (metadataCode.split("_").length != 3) {
 			throw new RuntimeException("Invalid code : " + metadataCode);
@@ -304,5 +308,26 @@ public class SchemasDisplayManager
 	public SchemaTypesDisplayTransactionBuilder newTransactionBuilderFor(String collection) {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 		return new SchemaTypesDisplayTransactionBuilder(types, this);
+	}
+
+	public void resetSchema(String collection, final String code) {
+		oneXMLConfigPerCollectionManager.updateXML(collection, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				SchemasDisplayWriter writer = newSchemasDisplayWriter(document);
+				writer.resetSchema(code);
+			}
+		});
+	}
+
+	public List<MetadataSchemaType> getAllowedSchemaTypesForSimpleSearch(String collection) {
+		List<MetadataSchemaType> result = new ArrayList<>();
+		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+			SchemaTypeDisplayConfig config = getType(collection, type.getCode());
+			if (config.isSimpleSearch()) {
+				result.add(type);
+			}
+		}
+		return result;
 	}
 }

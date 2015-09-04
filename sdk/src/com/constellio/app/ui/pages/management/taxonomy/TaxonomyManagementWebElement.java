@@ -72,12 +72,12 @@ public class TaxonomyManagementWebElement {
 	}
 
 	public void waitUntilFoldersTableExist() {
-		driver.waitUntilElementExist(By.className("foldersTable"));
+		driver.waitUntilElementExist(By.className("folderTable"));
 	}
 
 	public List<ConstellioWebElement> getRowsFoldersFromFoldersTable() {
 
-		ConstellioWebElement tableElement = driver.findElement(By.className("foldersTable"));
+		ConstellioWebElement tableElement = driver.findElement(By.className("folderTable"));
 		List<ConstellioWebElement> rows = tableElement.findAdaptElements(By.tagName("tr"));
 		return rows;
 	}

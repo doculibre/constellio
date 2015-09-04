@@ -35,6 +35,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichNullValues
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.reset;
@@ -89,12 +90,12 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	LocalDateTime now = new LocalDateTime();
 	LocalDateTime shishOClock = new LocalDateTime();
 	LocalDateTime tockOClock = new LocalDateTime();
-	private RecordServices recordServices;
+	private RecordServicesImpl recordServices;
 
 	@Before
 	public void setup()
 			throws Exception {
-		recordServices = spy(getModelLayerFactory().newRecordServices());
+		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 		schemas = new RecordServicesTestSchemaSetup();
 		zeSchema = schemas.new ZeSchemaMetadatas();
@@ -490,7 +491,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(zeSchemaRecord);
 
 		verify(recordServices, times(1)).saveContentsAndRecords(any(Transaction.class),
-				any(RecordModificationImpactHandler.class));
+				any(RecordModificationImpactHandler.class), anyInt());
 
 		assertThat(anotherSchemaRecord.get(anotherSchema.metadataWithCopiedEntry())).isEqualTo("a");
 		assertThat(thirdSchemaRecord.get(thirdSchema.metadataWithCopiedEntry())).isEqualTo("a");
@@ -583,7 +584,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		assertThat(anotherThirdSchemaRecord.get(thirdSchema.metadataWithCopiedEntry())).isEqualTo("b");
 
 		verify(recordServices, times(1)).saveContentsAndRecords(savedTransaction.capture(),
-				(RecordModificationImpactHandler) isNull());
+				(RecordModificationImpactHandler) isNull(), anyInt());
 	}
 
 	@Test
@@ -777,7 +778,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		doNothing().when(recordServices)
-				.saveContentsAndRecords(any(Transaction.class), any(RecordModificationImpactHandler.class));
+				.saveContentsAndRecords(any(Transaction.class), any(RecordModificationImpactHandler.class), anyInt());
 
 		recordServices.execute(
 				newTransactionWithNRecords(1000).setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE));

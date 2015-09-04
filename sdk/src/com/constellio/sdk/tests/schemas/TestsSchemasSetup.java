@@ -294,6 +294,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+	protected boolean security = true;
 	protected MetadataSchemaTypeBuilder zeSchemaTypeBuilder;
 	protected MetadataSchemaBuilder zeDefaultSchemaBuilder;
 	protected MetadataSchemaBuilder zeCustomSchemaBuilder;
@@ -336,6 +337,11 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	private static MetadataBuilder getCustomMetadata(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
 		return schemaTypes.getMetadata(builder.getCode().replace("_default_", "_custom_"));
+	}
+
+	public TestsSchemasSetup withSecurityFlag(boolean flag) {
+		this.security = flag;
+		return this;
 	}
 
 	public TestsSchemasSetup withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(boolean multivalue,
@@ -589,9 +595,9 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	@Override
 	public void setUp() {
-		zeSchemaTypeBuilder = typesBuilder.createNewSchemaType(ZE_SCHEMA_TYPE_CODE);
-		anOtherSchemaTypeBuilder = typesBuilder.createNewSchemaType(ANOTHER_SCHEMA_TYPE_CODE);
-		aThirdSchemaTypeBuilder = typesBuilder.createNewSchemaType(A_THIRD_SCHEMA_TYPE_CODE);
+		zeSchemaTypeBuilder = typesBuilder.createNewSchemaType(ZE_SCHEMA_TYPE_CODE).setSecurity(security);
+		anOtherSchemaTypeBuilder = typesBuilder.createNewSchemaType(ANOTHER_SCHEMA_TYPE_CODE).setSecurity(security);
+		aThirdSchemaTypeBuilder = typesBuilder.createNewSchemaType(A_THIRD_SCHEMA_TYPE_CODE).setSecurity(security);
 		zeDefaultSchemaBuilder = zeSchemaTypeBuilder.getDefaultSchema();
 		anOtherDefaultSchemaBuilder = anOtherSchemaTypeBuilder.getDefaultSchema();
 		athirdDefaultSchemaBuilder = aThirdSchemaTypeBuilder.getDefaultSchema();
@@ -846,6 +852,10 @@ public class TestsSchemasSetup extends SchemasSetup {
 		public String typeCode() {
 			return "zeSchemaType";
 		}
+
+		public MetadataSchemaType type() {
+			return get(code().split("_")[0]);
+		}
 	}
 
 	public class ZeCustomSchemaMetadatas extends ZeSchemaMetadatas {
@@ -878,7 +888,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 		public String collection() {
-			return "zeCollection";
+			return collection;
 		}
 
 		public Metadata stringMetadata() {
@@ -917,7 +927,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 		public String collection() {
-			return "zeCollection";
+			return collection;
 		}
 
 		public MetadataSchema instance() {

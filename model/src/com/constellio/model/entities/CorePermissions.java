@@ -35,6 +35,7 @@ public class CorePermissions {
 	// Collection management
 	public static final String COLLECTION_MANAGEMENT = "management.collection";
 
+	public static final String MANAGE_FACETS = permission(COLLECTION_MANAGEMENT, "manageFacets");
 	public static final String MANAGE_TAXONOMIES = permission(COLLECTION_MANAGEMENT, "manageTaxonomies");
 	public static final String MANAGE_VALUELIST = permission(COLLECTION_MANAGEMENT, "manageValueList");
 	public static final String MANAGE_METADATASCHEMAS = permission(COLLECTION_MANAGEMENT, "manageMetadataSchemas");
@@ -43,6 +44,8 @@ public class CorePermissions {
 	public static final String MANAGE_CONNECTORS = permission(COLLECTION_MANAGEMENT, "manageConnectors");
 	public static final String MANAGE_SEARCHENGINE = permission(COLLECTION_MANAGEMENT, "manageSearchEngine");
 	public static final String MANAGE_TRASH = permission(COLLECTION_MANAGEMENT, "manageTrash");
+	public static final String MANAGE_SEARCH_REPORTS = permission(COLLECTION_MANAGEMENT, "manageSearchReports");
+	public static final String MANAGE_EMAIL_SERVER = permission(COLLECTION_MANAGEMENT, "manageEmailServer");
 
 	public static final List<String> COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(COLLECTION_MANAGEMENT);
 

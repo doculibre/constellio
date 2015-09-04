@@ -138,6 +138,9 @@ public abstract class Decommissioner {
 			conversionManager = new ContentConversionManager(modelLayerFactory);
 
 			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+				if (detail.isFolderExcluded()) {
+					continue;
+				}
 				Folder folder = rm.getFolder(detail.getFolderId());
 				preprocessFolder(folder, detail);
 				processFolder(folder, detail);
@@ -198,6 +201,7 @@ public abstract class Decommissioner {
 			}
 			if (createPDFa && content != null) {
 				content = createPDFa(content);
+				loggingServices.logPdfAGeneration(document, user);
 			}
 			add(document.setContent(content));
 		}
@@ -247,7 +251,7 @@ public abstract class Decommissioner {
 	}
 
 	private Content createPDFa(Content content) {
-		return conversionManager.convertToPDF(content);
+		return conversionManager.replaceContentByPDFA(content);
 	}
 
 	private void destroyContent(Content content) {

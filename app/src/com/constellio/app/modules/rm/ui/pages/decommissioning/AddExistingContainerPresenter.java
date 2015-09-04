@@ -114,6 +114,16 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	@Override
+	public MetadataVO getMetadataVO(String metadataCode) {
+		return super.getMetadataVO(metadataCode);
+	}
+
+	@Override
+	protected boolean saveSearch(String title, boolean publicAccess) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public List<MetadataVO> getMetadataAllowedInSort() {
 		return getMetadataAllowedInSort(ContainerRecord.SCHEMA_TYPE);
 	}

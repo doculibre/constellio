@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -30,7 +31,9 @@ import org.mockito.Mock;
 
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class UserTokensCalculatorTest extends ConstellioTest {
@@ -42,14 +45,15 @@ public class UserTokensCalculatorTest extends ConstellioTest {
 
 	List<String> auths;
 
-	UserTokensCalculator calculator;
+	UserTokensCalculator2 calculator;
 
-	LocalDependency<List<String>> allAuthorizationsParam = LocalDependency.toARequiredStringList(User.ALL_USER_AUTHORIZATIONS);
+	LocalDependency<List<String>> allAuthorizationsParam = LocalDependency.toAStringList(User.ALL_USER_AUTHORIZATIONS);
+	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(CommonMetadataBuilder.MANUAL_TOKENS);
 
 	@Before
 	public void setUp()
 			throws Exception {
-		calculator = new UserTokensCalculator();
+		calculator = new UserTokensCalculator2();
 
 		auths = new ArrayList<>();
 
@@ -58,6 +62,7 @@ public class UserTokensCalculatorTest extends ConstellioTest {
 		auths.add(auth3);
 
 		when(parameters.get(allAuthorizationsParam)).thenReturn(auths);
+		when(parameters.get(manualTokensParam)).thenReturn(Arrays.asList(Record.PUBLIC_TOKEN));
 	}
 
 	@Test
@@ -67,7 +72,7 @@ public class UserTokensCalculatorTest extends ConstellioTest {
 
 		assertThat(calculatedAuths)
 				.containsOnly("r_zeRole_auth1", "r__auth2", "w__auth2", "r_role1,role2_auth3", "w_role1,role2_auth3",
-						"d_role1,role2_auth3");
+						"d_role1,role2_auth3", Record.PUBLIC_TOKEN);
 	}
 
 	@Test
@@ -80,7 +85,7 @@ public class UserTokensCalculatorTest extends ConstellioTest {
 	public void whenGettingDependenciesThenRightValueReturned()
 			throws Exception {
 		assertThat((List) calculator.getDependencies())
-				.containsOnly(allAuthorizationsParam);
+				.containsOnly(allAuthorizationsParam, manualTokensParam);
 	}
 
 	@Test

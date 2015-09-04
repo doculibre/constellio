@@ -17,19 +17,21 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.security.authentification;
 
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+
+import org.junit.Test;
+
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Test;
-
-import java.util.ArrayList;
-
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 
@@ -41,14 +43,15 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		saveValidLDAPConfig();
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
-		boolean authenticated = authenticationService.authenticate("administrator", "t3stdocul!bre3");
+		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPServer());
 		assertThat(authenticated).isTrue();
 	}
 
 	private void saveValidLDAPConfig() {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
-		getModelLayerFactory().getLdapConfigurationManager().saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+		getModelLayerFactory().getLdapConfigurationManager()
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
 	@Test

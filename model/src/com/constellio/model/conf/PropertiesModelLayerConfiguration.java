@@ -19,21 +19,11 @@ package com.constellio.model.conf;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Properties;
 
 import org.joda.time.Duration;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesConfiguration;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidEmail;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidHost;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidPassword;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidPort;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidUser;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_NotABooleanValue;
-import com.constellio.model.services.notifications.EventEmailBuilder;
-import com.constellio.model.services.notifications.HtmlEventEmailBuilder;
-import com.constellio.model.services.notifications.SmtpServerConfig;
 
 public class PropertiesModelLayerConfiguration extends PropertiesConfiguration implements ModelLayerConfiguration {
 
@@ -41,8 +31,8 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	private final FoldersLocator foldersLocator;
 
 	public PropertiesModelLayerConfiguration(Map<String, String> configs, DataLayerConfiguration dataLayerConfiguration,
-			FoldersLocator foldersLocator) {
-		super(configs);
+			FoldersLocator foldersLocator, File constellioProperties) {
+		super(configs, constellioProperties);
 		this.dataLayerConfiguration = dataLayerConfiguration;
 		this.foldersLocator = foldersLocator;
 	}
@@ -89,31 +79,6 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	}
 
 	@Override
-	public EventEmailBuilder getEventEmailBuilder() {
-		return new HtmlEventEmailBuilder(foldersLocator);
-	}
-
-	@Override
-	public SmtpServerConfig getSmtpServerConfig() {
-		String user = getRequiredString("smtpServer.mail.smtp.account.user");
-		String email = getRequiredString("smtpServer.mail.smtp.account.email");
-		String password = getRequiredString("smtpServer.mail.smtp.account.password");
-		Properties properties = new Properties();
-		String smtpAuth = getRequiredString("smtpServer.mail.smtp.auth");
-		String starttlsEnable = getRequiredString("smtpServer.mail.smtp.starttls.enable");
-		String smtpHost = getRequiredString("smtpServer.mail.smtp.host");
-		String smtpPort = getRequiredString("smtpServer.mail.smtp.port");
-		properties.put("mail.smtp.auth", smtpAuth);
-		properties.put("mail.smtp.starttls.enable", starttlsEnable);
-		properties.put("mail.smtp.host", smtpHost);
-		properties.put("mail.smtp.port", smtpPort);
-
-		validateConfigs(email, user, password, properties);
-
-		return new SmtpServerConfig(email, user, password, properties);
-	}
-
-	@Override
 	public Duration getDelayBeforeDeletingUnreferencedContents() {
 		return Duration.standardMinutes(10);
 	}
@@ -142,34 +107,10 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		return getString("mainDataLanguage", "fr");
 	}
 
-	private void validateConfigs(String email, String user, String password, Properties properties) {
-		String emailPattern = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
-		if (email == null || !email.matches(emailPattern)) {
-			throw new PropertiesModelLayerConfigurationRuntimeException_InvalidEmail(email);
-		}
-		if (user == null || user.isEmpty()) {
-			throw new PropertiesModelLayerConfigurationRuntimeException_InvalidUser(user);
-		}
-		if (password == null || password.isEmpty()) {
-			throw new PropertiesModelLayerConfigurationRuntimeException_InvalidPassword(password);
-		}
-		if (!properties.getProperty("mail.smtp.auth").toLowerCase().matches("true|false")) {
-			throw new PropertiesModelLayerConfigurationRuntimeException_NotABooleanValue("mail.smtp.auth",
-					properties.getProperty("mail.smtp.auth").toString());
-		}
-		if (!properties.getProperty("mail.smtp.starttls.enable").toLowerCase().matches("true|false")) {
-			throw new PropertiesModelLayerConfigurationRuntimeException_NotABooleanValue("mail.smtp.starttls.enable",
-					properties.getProperty("mail.smtp.starttls.enable").toString());
-		}
-		if (properties.getProperty("mail.smtp.host") == null || properties.getProperty("mail.smtp.host").isEmpty()) {
-			throw new PropertiesModelLayerConfigurationRuntimeException_InvalidHost(
-					properties.getProperty("mail.smtp.host").toString());
-		}
-		try {
-			Integer.parseInt(properties.getProperty("mail.smtp.port"));
-		} catch (NumberFormatException e) {
-			throw new PropertiesModelLayerConfigurationRuntimeException_InvalidPort(properties.getProperty("mail.smtp.port"));
-		}
+	@Override
+	public void setMainDataLanguage(String language) {
+		setString("mainDataLanguage", language);
+
 	}
 
 }

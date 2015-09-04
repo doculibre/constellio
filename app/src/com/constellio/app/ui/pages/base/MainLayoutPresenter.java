@@ -19,20 +19,20 @@ package com.constellio.app.ui.pages.base;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.api.extensions.PagesComponentsExtensions;
+import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
-import com.constellio.model.entities.CorePermissions;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.UserServices;
 
 public class MainLayoutPresenter implements Serializable {
 
@@ -46,75 +46,21 @@ public class MainLayoutPresenter implements Serializable {
 
 	}
 
-	public void adminModuleButtonClicked() {
-		mainLayout.navigateTo().adminModule();
+	public ComponentState getStateFor(NavigationItem item) {
+		return item.getStateFor(getUser(), mainLayout.getHeader().getConstellioFactories().getModelLayerFactory());
 	}
 
-	public void auditButtonClicked() {
-		mainLayout.navigateTo().listEvents();
-	}
+	public List<NavigationItem> getNavigationIems() {
+		List<NavigationItem> items = new ArrayList<>();
+		ConstellioModulesManagerImpl manager = (ConstellioModulesManagerImpl) mainLayout.getHeader().getConstellioFactories()
+				.getAppLayerFactory().getModulesManager();
+		NavigationConfig config = manager.getNavigationConfig(mainLayout.getHeader().getCollection());
+		items.addAll(config.getNavigation(MainLayout.MAIN_LAYOUT_NAVIGATION1));
+		items.addAll(config.getNavigation(MainLayout.MAIN_LAYOUT_NAVIGATION2));
 
-	public void dashboardButtonClicked() {
-	}
+		Collections.sort(items);
 
-	public void recordsManagementButtonClicked() {
-		mainLayout.navigateTo().home();
-	}
-
-	public void archivesManagementButtonClicked() {
-		mainLayout.navigateTo().archivesManagement();
-	}
-
-	public void enterpriseSearchButtonClicked() {
-	}
-
-	public void digitalAssetManagementButtonClicked() {
-	}
-
-	public void caseManagementButtonClicked() {
-	}
-
-	public void userDocumentsButtonClicked() {
-		mainLayout.navigateTo().listUserDocuments();
-	}
-
-	public void agentButtonClicked() {
-		mainLayout.navigateTo().agentSetup();
-	}
-
-	public boolean isRecordsManagementViewVisible() {
-		return true;
-	}
-
-	public boolean isAgentViewVisible() {
-		ModelLayerFactory modelLayerFactory = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory();
-		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-		return rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported();
-	}
-
-	public boolean isArchivesManagementViewVisible() {
-		return getUser()
-				.hasAny(RMPermissionsTo.MANAGE_REPORTS, RMPermissionsTo.MANAGE_DECOMMISSIONING, RMPermissionsTo.MANAGE_CONTAINERS,
-						RMPermissionsTo.MANAGE_ROBOTS).globally();
-	}
-
-	public boolean isLogsViewVisible() {
-		return getUser().has(CorePermissions.VIEW_EVENTS).globally();
-	}
-
-	public boolean isAdminModuleViewVisible() {
-		User currentUser = getUser();
-		List<String> permissions = new ArrayList<>();
-		permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
-		permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);
-
-		boolean canManageCollection = currentUser.hasAny(permissions).globally();
-
-		UserServices userServices = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory().newUserServices();
-		boolean canManageSystem = userServices.has(currentUser.getUsername())
-				.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
-		return canManageCollection || canManageSystem;
+		return items;
 	}
 
 	private User getUser() {
@@ -137,9 +83,9 @@ public class MainLayoutPresenter implements Serializable {
 		}
 
 		if (version != null) {
-			return toPrintableVersion(version) + (isBeta() ? " beta" : "");
+			return toPrintableVersion(version);
 		} else {
-			return isBeta() ? "beta" : "";
+			return "";
 		}
 
 	}
@@ -154,9 +100,12 @@ public class MainLayoutPresenter implements Serializable {
 		return version;
 	}
 
-	public boolean isBeta() {
-		return false;
-		//return "t".equals(System.getProperty("b"));
+	public boolean t() {
+		return "t".equals(System.getProperty("b"));
 	}
 
+	public PagesComponentsExtensions getPagesComponentsExtensions() {
+		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
+		return appLayerFactory.getExtensions().getSystemWideExtensions().pagesComponentsExtensions;
+	}
 }

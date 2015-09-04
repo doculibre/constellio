@@ -21,11 +21,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -33,28 +35,33 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
-	
+
 	protected SchemaPresenterUtils presenterUtils;
-	protected DocumentToVOBuilder voBuilder = new DocumentToVOBuilder();
-	protected ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder();
+
+	protected ContentVersionToVOBuilder contentVersionVOBuilder;
 	protected DocumentVO documentVO;
 	protected T actionsComponent;
 
+	protected transient DocumentToVOBuilder voBuilder;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+	private transient DecommissioningLoggingService decommissioningLoggingService;
 
 	public DocumentActionsPresenterUtils(T actionsComponent) {
 		this.actionsComponent = actionsComponent;
@@ -62,6 +69,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		ConstellioFactories constellioFactories = actionsComponent.getConstellioFactories();
 		SessionContext sessionContext = actionsComponent.getSessionContext();
 		presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, constellioFactories, sessionContext);
+		contentVersionVOBuilder = new ContentVersionToVOBuilder(presenterUtils.modelLayerFactory());
 
 		initTransientObjects();
 	}
@@ -75,6 +83,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	protected void initTransientObjects() {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(presenterUtils.getCollection(),
 				presenterUtils.modelLayerFactory());
+		voBuilder = new DocumentToVOBuilder(presenterUtils.modelLayerFactory());
+		decommissioningLoggingService = new DecommissioningLoggingService(presenterUtils.modelLayerFactory());
 	}
 
 	public DocumentVO getDocumentVO() {
@@ -203,6 +213,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return getCurrentUser().has(RMPermissionsTo.SHARE_DOCUMENT).on(currentDocument());
 	}
 
+	public ComponentState getCreatePDFAState() {
+		if (getAuthorizationServices().canWrite(getCurrentUser(), currentDocument())) {
+			if (getContent() != null) {
+				return ComponentState.ENABLED;
+			}
+		}
+		return ComponentState.INVISIBLE;
+	}
+
 	private ComponentState getShareDocumentState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isShareDocumentPossible()) {
@@ -221,7 +240,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
-			actionsComponent.navigateTo().listObjectAuthorizations(documentVO.getId());
+			actionsComponent.navigateTo().listObjectAccessAuthorizations(documentVO.getId());
 		}
 	}
 
@@ -268,6 +287,29 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
+	public synchronized void createPDFA() {
+		DocumentVO documentVO = getDocumentVO();
+		Record record = presenterUtils.getRecord(documentVO.getId());
+		Document document = new Document(record, presenterUtils.types());
+		Content content = document.getContent();
+		ContentConversionManager conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
+		if (content != null) {
+			try {
+				conversionManager = new ContentConversionManager(presenterUtils.modelLayerFactory());
+				conversionManager.convertContentToPDFA(getCurrentUser(), content);
+				presenterUtils.addOrUpdate(document.getWrappedRecord());
+
+				decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
+
+				actionsComponent.navigateTo().displayDocument(document.getId());
+			} catch (Exception e) {
+				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
+			} finally {
+				conversionManager.close();
+			}
+		}
+	}
+
 	public void checkInButtonClicked() {
 		if (isCheckInPossible()) {
 			actionsComponent.openUploadWindow(true);
@@ -289,7 +331,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
-
 	}
 
 	public void finalizeButtonClicked() {
@@ -319,7 +360,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Document document = new Document(record, presenterUtils.types());
 			Content content = document.getContent();
 			content.checkOut(presenterUtils.getCurrentUser());
-			getModelLayerFactory().newLoggingServices().borrowRecord(record, getCurrentUser());
+			getModelLayerFactory().newLoggingServices().borrowRecord(record, getCurrentUser(), TimeProvider.getLocalDateTime());
 			try {
 				presenterUtils.recordServices().update(record);
 				updateActionsComponent();
@@ -421,6 +462,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return ComponentState.INVISIBLE;
 	}
 
+	public ComponentState getAlertWhenAvailableButtonState() {
+		if (!isEmail() && getContent() != null && isContentCheckedOut() && !isCurrentUserBorrower()) {
+			return ComponentState.ENABLED;
+		} else {
+			return ComponentState.INVISIBLE;
+		}
+	}
+
 	protected boolean isCancelCheckOutPossible() {
 		boolean email = isEmail();
 		return !email && (getContent() != null && isContentCheckedOut());
@@ -440,10 +489,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.setAddDocumentButtonState(getAddAuthorizationState());
 		actionsComponent.setDeleteDocumentButtonState(getDeleteButtonState());
 		actionsComponent.setAddAuthorizationButtonState(getAddAuthorizationState());
+		actionsComponent.setCreatePDFAButtonState(getCreatePDFAState());
 		actionsComponent.setShareDocumentButtonState(getShareDocumentState());
 		actionsComponent.setUploadButtonState(getUploadButtonState());
 		actionsComponent.setCheckInButtonState(getCheckInState());
 		actionsComponent.setCheckOutButtonState(getCheckOutState());
+		actionsComponent.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState());
 		actionsComponent.setFinalizeButtonVisible(isFinalizePossible());
 	}
 
@@ -486,5 +537,21 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public boolean hasContent() {
 		return getContent() != null;
+	}
+
+	public void alertWhenAvailable() {
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(presenterUtils.getCollection(),
+				presenterUtils.modelLayerFactory());
+		Document document = schemas.wrapDocument(presenterUtils.toRecord(documentVO));
+		List<String> usersToAlert = document.getAlertUsersWhenAvailable();
+		String currentUserId = getCurrentUser().getId();
+		List<String> newUsersToAlert = new ArrayList<>();
+		newUsersToAlert.addAll(usersToAlert);
+		if (!newUsersToAlert.contains(currentUserId)) {
+			newUsersToAlert.add(currentUserId);
+			document.setAlertUsersWhenAvailable(newUsersToAlert);
+			presenterUtils.addOrUpdate(document.getWrappedRecord());
+		}
+		actionsComponent.showMessage($("RMObject.createAlert"));
 	}
 }

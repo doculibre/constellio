@@ -29,8 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.app.modules.rm.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -38,7 +38,7 @@ import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -46,11 +46,10 @@ import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
 
 public class ModifyProfilePresenterTest extends ConstellioTest {
-
 	@Mock ConstellioNavigator navigator;
 	@Mock ModifyProfileView view;
 	@Mock UserServices userServices;
-	@Mock RecordServices recordServices;
+	@Mock RecordServicesImpl recordServices;
 	@Mock UserCredential userCredential, userCredentialWithFirstName, userCredentialWithLastName, userCredentialWithEmail;
 	@Mock User bob;
 	@Mock TaxonomyVODataProvider taxonomyVODataProvider;
@@ -74,7 +73,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 
 		profileVO = new ProfileVO(contentVersionVO, "bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333",
-				StartTab.RECENT_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null);
+				RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null);
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
 		when(mockedFactories.getModelLayerFactory().newRecordServices()).thenReturn(recordServices);
@@ -89,7 +88,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		when(userCredentialWithLastName.withEmail("bob@constellio.com")).thenReturn(userCredentialWithEmail);
 		when(userServices.getUserInCollection("bob.gratton", zeCollection)).thenReturn(bob);
 		when(bob.getPhone()).thenReturn("3333333");
-		when(bob.getStartTab()).thenReturn("F");
+		when(bob.getStartTab()).thenReturn(RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
 		when(bob.getDefaultTaxonomy()).thenReturn("taxo1");
 		when(bob.getWrappedRecord()).thenReturn(bobRecord);
 		doNothing().when(recordServices).update(bobRecord);
@@ -110,7 +109,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 
 		verify(userServices).addUpdateUserCredential(userCredentialWithEmail);
 		verify(bob).setPhone("3333333");
-		verify(bob).setStartTab("F");
+		verify(bob).setStartTab(RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
 		verify(bob).setDefaultTaxonomy("taxo1");
 		verify(recordServices).update(bobRecord);
 		verify(view.navigateTo()).url(presenter.getParameters());
@@ -124,9 +123,8 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		presenter.getProfilVO("bob.gratton");
 
 		verify(presenter)
-				.newProfilVO("bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333", StartTab.RECENT_FOLDERS,
-						DefaultTabInFolderDisplay.METADATA,
-						"taxo1");
+				.newProfilVO("bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333",
+						RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1");
 	}
 
 	@Test

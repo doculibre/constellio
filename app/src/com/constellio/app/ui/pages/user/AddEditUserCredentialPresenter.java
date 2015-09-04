@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -40,6 +41,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
 
@@ -49,10 +51,12 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	private transient UserServices userServices;
 	private transient AuthenticationService authenticationService;
 	private transient CollectionsListManager collectionsListManager;
+	private transient LoggingServices loggingServices;
 	private boolean editMode = false;
 	private Map<String, String> paramsMap;
 	private String username;
 	private String breadCrumb;
+	private Set<String> collections;
 
 	public AddEditUserCredentialPresenter(AddEditUserCredentialView view) {
 		super(view);
@@ -69,6 +73,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		userServices = modelLayerFactory.newUserServices();
 		collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		authenticationService = modelLayerFactory.newAuthenticationService();
+		loggingServices = modelLayerFactory.newLoggingServices();
 	}
 
 	public UserCredentialVO getUserCredentialVO(String username) {
@@ -79,7 +84,9 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 			userCredential = userServices.getUserCredential(username);
 		}
 		UserCredentialToVOBuilder voBuilder = new UserCredentialToVOBuilder();
-		return userCredential != null ? voBuilder.build(userCredential) : new UserCredentialVO();
+		UserCredentialVO userCredentialVO = userCredential != null ? voBuilder.build(userCredential) : new UserCredentialVO();
+		collections = userCredentialVO.getCollections();
+		return userCredentialVO;
 	}
 
 	public void saveButtonClicked(UserCredentialVO entity) {
@@ -93,7 +100,23 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 			if (!isLDAPAuthentication() && !isEditMode() || entity.getPassword() != null && !entity.getPassword().isEmpty()) {
 				authenticationService.changePassword(entity.getUsername(), entity.getPassword());
 			}
+
 			userServices.addUpdateUserCredential(userCredential);
+
+			if (!editMode) {
+				for (String collection : userCredential.getCollections()) {
+					User userInCollection = userServices.getUserInCollection(entity.getUsername(), collection);
+					loggingServices.addUserOrGroup(userInCollection.getWrappedRecord(), getCurrentUser(), collection);
+				}
+			} else {
+				for (String collection : userCredential.getCollections()) {
+					User userInCollection = userServices.getUserInCollection(entity.getUsername(), collection);
+					if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
+						loggingServices.addUserOrGroup(userInCollection.getWrappedRecord(), getCurrentUser(), collection);
+					}
+				}
+			}
+
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 			return;
@@ -233,7 +256,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	public boolean isLDAPAuthentication() {
 		return userServices.isLDAPAuthentication();
 	}
-	
+
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_USERS).globally();

@@ -32,7 +32,7 @@ import org.junit.Test;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ApprovalTask;
-import com.constellio.model.entities.records.wrappers.Task;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
@@ -343,10 +343,10 @@ public class WorkflowExecutorAcceptTest extends ConstellioTest {
 		assertThat(isWorkflowExecutionWithIdExisting(execution.getId())).isFalse();
 	}
 
-	private Condition<? super Task> notAssigned() {
-		return new Condition<Task>() {
+	private Condition<? super WorkflowTask> notAssigned() {
+		return new Condition<WorkflowTask>() {
 			@Override
-			public boolean matches(Task task) {
+			public boolean matches(WorkflowTask task) {
 				return task.getAssignedOn() == null && task.getAssignedTo() == null;
 			}
 		};

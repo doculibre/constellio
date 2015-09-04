@@ -23,22 +23,22 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_AdministrativeUnit;
-import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_FilingSpace;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_User;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.security.AuthorizationsServices;
 
 public class UserReportPresenter {
 	private String collection;
@@ -46,8 +46,8 @@ public class UserReportPresenter {
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
 	private SearchServices searchServices;
 	private RecordServices recordServices;
-	private DecommissioningService decommissioningService;
-	private List<FilingSpace> userFilingSpacesToPreserveOrderingWithAdminUnits;
+	private AuthorizationsServices authorizationsServices;
+	private List<AdministrativeUnit> administrativeUnits;
 
 	public UserReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
 
@@ -71,7 +71,8 @@ public class UserReportPresenter {
 		searchServices = modelLayerFactory.newSearchServices();
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		recordServices = modelLayerFactory.newRecordServices();
-		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		administrativeUnits = getAdministrativeUnits();
 	}
 
 	private List<UserReportModel_User> getModelUsers() {
@@ -99,9 +100,7 @@ public class UserReportPresenter {
 					String status = StringUtils.defaultString(isActive(user));
 					modelUser.setStatus(status);
 
-					modelUser.setFilingSpaces(getFilingSpacesFor(user));
-
-					modelUser.setAdministrativeUnits(getAdministrativeUnitsAssumingGetFilingSpaceWasCalledBefore(user));
+					modelUser.setAdministrativeUnits(getAdministrativeUnitsModel(user));
 
 					modelUsers.add(modelUser);
 				}
@@ -133,96 +132,37 @@ public class UserReportPresenter {
 		return isDisabled ? "Inactif" : "Actif";
 	}
 
-	private List<UserReportModel_FilingSpace> getFilingSpacesFor(User user) {
-		List<UserReportModel_FilingSpace> modelFilingSpaces = new ArrayList<>();
-
-		if (user != null) {
-			userFilingSpacesToPreserveOrderingWithAdminUnits = getUserFilingSpaces(user);
-			if (userFilingSpacesToPreserveOrderingWithAdminUnits != null) {
-				for (FilingSpace filingSpace : userFilingSpacesToPreserveOrderingWithAdminUnits) {
-					if (filingSpace != null) {
-						UserReportModel_FilingSpace modelFilingSpace = new UserReportModel_FilingSpace();
-
-						String code = StringUtils.defaultString(filingSpace.getCode());
-						modelFilingSpace.setCode(code);
-
-						String title = StringUtils.defaultString(filingSpace.getTitle());
-						modelFilingSpace.setLabel(title);
-
-						String description = StringUtils.defaultString(filingSpace.getDescription());
-						modelFilingSpace.setDescription(description);
-
-						modelFilingSpaces.add(modelFilingSpace);
-					}
-				}
-			}
-		}
-
-		return modelFilingSpaces;
-	}
-
-	private List<FilingSpace> getUserFilingSpaces(User user) {
-		List<FilingSpace> filingSpaces = new ArrayList<>();
-
-		List<String> filingSpaceIds = decommissioningService.getUserFilingSpaces(user);
-		if (filingSpaceIds != null) {
-			for (String filingSpaceId : filingSpaceIds) {
-				if (filingSpaceId != null && !filingSpaceId.isEmpty()) {
-					Record record = recordServices.getDocumentById(filingSpaceId);
-					if (record != null) {
-						FilingSpace filingSpace = rmSchemasRecordsServices.wrapFilingSpace(record);
-						if (filingSpace != null) {
-							filingSpaces.add(filingSpace);
-						}
-					}
-				}
-			}
-		}
-
-		return filingSpaces;
-	}
-
-	private List<UserReportModel_AdministrativeUnit> getAdministrativeUnitsAssumingGetFilingSpaceWasCalledBefore(
-			User user) {
+	List<UserReportModel_AdministrativeUnit> getAdministrativeUnitsModel(User user) {
 		List<UserReportModel_AdministrativeUnit> modelAdministrativeUnits = new ArrayList<>();
 
-		if (user != null) {
-			if (userFilingSpacesToPreserveOrderingWithAdminUnits != null) {
-				for (FilingSpace filingSpace : userFilingSpacesToPreserveOrderingWithAdminUnits) {
-					if (filingSpace != null) {
-						List<String> unitIds = decommissioningService.getAdministrativeUnitsWithFilingSpaceForUser(
-								filingSpace, user);
-						if (unitIds != null) {
-							for (String unitId : unitIds) {
-								if (unitId != null && !unitId.isEmpty()) {
-									Record record = recordServices.getDocumentById(unitId);
-									if (record != null) {
-										AdministrativeUnit administrativeUnit = rmSchemasRecordsServices
-												.wrapAdministrativeUnit(record);
-										if (administrativeUnit != null) {
-											UserReportModel_AdministrativeUnit modelAdministrativeUnit = new UserReportModel_AdministrativeUnit();
+		for (AdministrativeUnit administrativeUnit : administrativeUnits) {
+			List<User> users = authorizationsServices.getUsersWithRoleForRecord(Role.WRITE,
+					rmSchemasRecordsServices.getAdministrativeUnit(administrativeUnit.getId()).getWrappedRecord());
+			if (users.contains(user)) {
+				UserReportModel_AdministrativeUnit modelAdministrativeUnit = new UserReportModel_AdministrativeUnit();
 
-											String code = StringUtils.defaultString(administrativeUnit.getCode());
-											String description = StringUtils.defaultString(administrativeUnit
-													.getDescription());
-											String title = StringUtils.defaultString(administrativeUnit.getTitle());
+				String code = StringUtils.defaultString(administrativeUnit.getCode());
+				String description = StringUtils.defaultString(administrativeUnit
+						.getDescription());
+				String title = StringUtils.defaultString(administrativeUnit.getTitle());
 
-											modelAdministrativeUnit.setCode(code);
-											modelAdministrativeUnit.setDescription(description);
-											modelAdministrativeUnit.setLabel(title);
+				modelAdministrativeUnit.setCode(code);
+				modelAdministrativeUnit.setDescription(description);
+				modelAdministrativeUnit.setLabel(title);
 
-											modelAdministrativeUnits.add(modelAdministrativeUnit);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+				modelAdministrativeUnits.add(modelAdministrativeUnit);
 			}
 		}
 
 		return modelAdministrativeUnits;
+	}
+
+	List<AdministrativeUnit> getAdministrativeUnits() {
+		LogicalSearchQuery allAdminUnitsQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(
+				rmSchemasRecordsServices.administrativeUnitSchemaType()).returnAll()).filteredByStatus(StatusFilter.ACTIVES)
+				.sortAsc(Schemas.CODE).setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(Schemas.CODE));
+		return rmSchemasRecordsServices.wrapAdministrativeUnits(searchServices.search(allAdminUnitsQuery));
+
 	}
 
 	public FoldersLocator getFoldersLocator() {

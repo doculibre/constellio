@@ -38,8 +38,8 @@ import org.openqa.selenium.By;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
@@ -206,6 +206,7 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 		assertThatAllAreDisabled();
 
 		navigateToAFolderInUA12();
+		waitUntilICloseTheBrowsers();
 		assertThatAllAreEnabled();
 
 		navigateToSemiActiveFolderInUA10();

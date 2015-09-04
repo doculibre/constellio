@@ -21,25 +21,25 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.constellio.app.entities.modules.InstallableModule;
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.services.collections.CollectionsManager;
-import com.constellio.app.services.migrations.MigrationServices;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CannotSelectBothRMandES;
+import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_MustSelectAtLeastOneModule;
+import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_TasksCannotBeTheOnlySelectedModule;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -47,18 +47,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 
 public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionView> {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditCollectionPresenter.class);
 	transient UserServices userServices;
 	private boolean actionEdit = false;
 	private Map<String, String> paramsMap;
 	private String code;
-	private transient Record collectionRecord;
 
 	private transient CollectionsListManager collectionsListManager;
 	private transient ConstellioModulesManager modulesManager;
-	private transient MigrationServices migrationServices;
 	private transient CollectionsManager collectionsManager;
+	private transient Collection collectionRecord;
 
 	public AddEditCollectionPresenter(AddEditCollectionView view, String code) {
 		super(view);
@@ -76,39 +73,55 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		userServices = modelLayerFactory.newUserServices();
 		collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		modulesManager = appLayerFactory.getModulesManager();
-		migrationServices = appLayerFactory.newMigrationServices();
 		collectionsManager = appLayerFactory.getCollectionsManager();
 		if (StringUtils.isNotBlank(code)) {
 			actionEdit = true;
-			this.collectionRecord = recordServices().getDocumentById(code);
+			collectionRecord = collectionsManager.getCollection(code);
 		}
 	}
 
 	public CollectionVO getCollectionVO() {
 		if (actionEdit) {
-			return new CollectionVO(code, (String) collectionRecord.get(Schemas.TITLE));
+			return new CollectionVO(
+					code, collectionRecord.getTitle(), collectionRecord.getLanguages().get(0), getInstalledModules());
 		} else {
 			return new CollectionVO();
 		}
 	}
 
-	public void saveButtonClicked(CollectionVO entity) {
+	private List<String> getInstalledModules() {
+		List<String> modules = new ArrayList<>();
+		for (Module module : modulesManager.getEnabledModules(code)) {
+			modules.add(module.getId());
+		}
+		return modules;
+	}
+
+	public List<String> getAvailableModules() {
+		List<String> modules = new ArrayList<>();
+		for (Module module : modulesManager.getAllModules()) {
+			modules.add(module.getId());
+		}
+		return modules;
+	}
+
+	public void saveButtonClicked(CollectionVO entity)
+			throws AddEditCollectionPresenterException {
 		String code = entity.getCode();
 		if (!getActionEdit()) {
 			if (collectionsListManager.getCollections().contains(code)) {
 				view.showErrorMessage($("AddEditCollectionView.codeNonAvailable"));
 				return;
 			} else {
-				this.collectionRecord = createCollection(code);
+				createCollection(code, entity.getModules());
 			}
 		} else {
 			if (!getCode().equals(code)) {
 				view.showErrorMessage($("AddEditCollectionView.codeChangeForbidden"));
 				return;
 			}
+			updateCollection(entity);
 		}
-		updateCollection(entity);
-
 		view.showMessage($("AddEditCollectionPresenter.addConfirmation"));
 		navigateToBackPage();
 	}
@@ -116,29 +129,39 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	private void updateCollection(CollectionVO entity) {
 		String collectionTitle = entity.getName();
 		try {
-			recordServices().update(collectionRecord.set(Schemas.TITLE, collectionTitle));
+			recordServices().update(collectionRecord.setTitle(collectionTitle));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private Record createCollection(String code) {
-		Record newCollectionRecord = collectionsManager.createCollectionInCurrentVersion(code, Arrays.asList("fr"));
-
-		InstallableModule module = new ConstellioRMModule();
-
-		try {
-			modulesManager.enableModule(code, module);
-			migrationServices.migrate(null);
-		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
-			throw new RuntimeException(optimisticLockingConfiguration);
+	private Record createCollection(String code, Set<String> modules)
+			throws AddEditCollectionPresenterException {
+		if (modules.contains("rm") && modules.contains("es")) {
+			throw new AddEditCollectionPresenterException_CannotSelectBothRMandES();
+		} else if (modules.isEmpty()) {
+			throw new AddEditCollectionPresenterException_MustSelectAtLeastOneModule();
+		} else if (modules.size() == 1 && modules.contains("tasks")) {
+			throw new AddEditCollectionPresenterException_TasksCannotBeTheOnlySelectedModule();
 		}
+		String language = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		Record newCollectionRecord = collectionsManager.createCollectionInCurrentVersion(code, Arrays.asList(language));
+		List<String> roles = new ArrayList<>();
+		for (String moduleCode : modules) {
+			Module module = modulesManager.getInstalledModule(moduleCode);
+			if (!modulesManager.isInstalled(module)) {
+				modulesManager.installModule(module, collectionsListManager);
+			}
+			modulesManager.enableModule(code, module);
+			roles.addAll(module.getRolesForCreator());
+		}
+
 		UserServices userServices = modelLayerFactory.newUserServices();
 		UserCredential currentUser = userServices.getUser(getCurrentUser().getUsername());
 		userServices.addUserToCollection(currentUser, newCollectionRecord.getId());
 		User user = userServices.getUserInCollection(currentUser.getUsername(), code);
 		try {
-			recordServices().update(user.setUserRoles(Arrays.asList(RMRoles.RGD)).setCollectionAllAccess(true));
+			recordServices().update(user.setUserRoles(roles).setCollectionAllAccess(true));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -179,4 +202,21 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		return user.has(CorePermissions.MANAGE_SYSTEM_COLLECTIONS).globally();
 	}
 
+	public String getModuleCaption(String moduleId) {
+		StringBuilder moduleCaption = new StringBuilder($("ConstellioModule." + moduleId));
+		List<String> dependencies = getModuleDependencies(moduleId);
+		if (!dependencies.isEmpty()) {
+			moduleCaption.append(" (");
+			for (int i = 0; i < dependencies.size() - 1; i++) {
+				String moduleDependency = dependencies.get(i);
+				moduleCaption.append($("ConstellioModule." + moduleDependency) + ", ");
+			}
+			moduleCaption.append($("ConstellioModule." + dependencies.get(dependencies.size() - 1)) + ")");
+		}
+		return moduleCaption.toString();
+	}
+
+	private List<String> getModuleDependencies(String moduleId) {
+		return modulesManager.getInstalledModule(moduleId).getDependencies();
+	}
 }

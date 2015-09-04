@@ -76,7 +76,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(3);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -109,11 +109,6 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportField referenceTitleField = getReferenceField("Abeille");
 		assertThat(titleField).isEqualToComparingOnlyGivenFields(referenceTitleField, labelReportFieldsToCheck);
 
-		LabelsReportField filingSpaceCodeField = fields.get(3);
-		LabelsReportField referenceFilingSpaceCodeField = getReferenceField("A");
-		assertThat(filingSpaceCodeField).isEqualToComparingOnlyGivenFields(referenceFilingSpaceCodeField,
-				labelReportFieldsToCheck);
-
 		LabelsReportField copyStatusCodeField = fields.get(4);
 		LabelsReportField referenceCopyStatusCodeField = getReferenceField("P");
 		assertThat(copyStatusCodeField).isEqualToComparingOnlyGivenFields(referenceCopyStatusCodeField,
@@ -138,7 +133,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(1);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(0);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
@@ -170,11 +165,6 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportField titleField = fields.get(2);
 		LabelsReportField referenceTitleField = getReferenceField("Abeille");
 		assertThat(titleField).isEqualToComparingOnlyGivenFields(referenceTitleField, labelReportFieldsToCheck);
-
-		LabelsReportField filingSpaceCodeField = fields.get(3);
-		LabelsReportField referenceFilingSpaceCodeField = getReferenceField("A");
-		assertThat(filingSpaceCodeField).isEqualToComparingOnlyGivenFields(referenceFilingSpaceCodeField,
-				labelReportFieldsToCheck);
 
 		LabelsReportField copyStatusCodeField = fields.get(4);
 		LabelsReportField referenceCopyStatusCodeField = getReferenceField("P");
@@ -424,9 +414,9 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 	}
 
 	@Test
-	public void givenVilleStLaurentTemplateThenOk()
+	public void givenSpecialTemplateThenOk()
 			throws Exception {
-		givenVilleStLaurentTemplate();
+		givenSpecialTemplate();
 		List<String> folderIds = new ArrayList<>();
 		folderIds.addAll(Arrays.asList("C30"));
 		String title =
@@ -444,18 +434,18 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateManager.getLabelTemplate("villeStLaurent.xml");
+		LabelTemplate labelTemplate = labelTemplateManager.getLabelTemplate("special.xml");
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
 		build(new LabelsReportBuilder(model));
 	}
 
-	private void givenVilleStLaurentTemplate()
+	private void givenSpecialTemplate()
 			throws Exception {
 		ConfigManager configManager = getDataLayerFactory().getConfigManager();
 
-		String filename = "villeStLaurent.xml";
+		String filename = "special.xml";
 		String path = LABELS_TEMPLATES_FOLDER + "/" + filename;
 		SAXBuilder saxBuilder = new SAXBuilder();
 		Document document = saxBuilder.build(getTestResourceFile(filename));

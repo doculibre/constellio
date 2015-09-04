@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.search.query;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -89,6 +90,10 @@ public class FilterUtils {
 				stringBuilder.append(token);
 			}
 		}
+		stringBuilder.append(" OR ");
+		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+		stringBuilder.append(":");
+		stringBuilder.append(Record.PUBLIC_TOKEN);
 		return stringBuilder.toString();
 	}
 

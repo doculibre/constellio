@@ -39,5 +39,7 @@ public interface UpdateContentVersionWindow extends Serializable {
 	void addMajorMinorSameOptions();
 
 	void addMajorMinorOptions();
+
+	void setUploadFieldVisible(boolean visible);
 	
 }

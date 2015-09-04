@@ -33,11 +33,15 @@ public interface ConstellioHeader extends Serializable {
 
 	List<Criterion> getAdvancedSearchCriteria();
 
+	void setAdvancedSearchCriteria(List<Criterion> criteria);
+
 	String getAdvancedSearchSchemaType();
 
 	void setAdvancedSearchSchemaType(String schemaTypeCode);
 
-	void hideAdvancedSearchPopup();
+	void selectAdvancedSearchSchemaType(String schemaTypeCode);
+
+	ConstellioHeader hideAdvancedSearchPopup();
 
 	ConstellioNavigator navigateTo();
 

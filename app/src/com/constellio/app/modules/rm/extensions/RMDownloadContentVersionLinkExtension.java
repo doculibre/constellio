@@ -18,25 +18,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
+import com.constellio.app.modules.rm.ui.components.content.DownloadDocumentContentVersionLinkImpl;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.content.ConstellioAgentLink;
-import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Link;
 
 public class RMDownloadContentVersionLinkExtension implements DownloadContentVersionLinkExtension {
 
 	@Override
 	public Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption) {
-		Link downloadLink;
-		// FIXME Remove reference to RM
+		Component downloadLink;
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
 			downloadLink = new ConstellioAgentLink(agentURL, contentVersionVO, caption);
 		} else {
-			downloadLink = new DownloadContentVersionLink(contentVersionVO, caption);
+			downloadLink = new DownloadDocumentContentVersionLinkImpl(recordVO, contentVersionVO, caption);
 		}
 		return downloadLink;
 	}

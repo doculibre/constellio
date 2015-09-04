@@ -47,7 +47,7 @@ public class ListGlobalGroupsPresenter extends BasePresenter<ListGlobalGroupsVie
 
 	public GlobalGroupVODataProvider getDataProvider() {
 		GlobalGroupToVOBuilder voBuilder = new GlobalGroupToVOBuilder();
-		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory);
+		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory, true);
 	}
 
 	public void addButtonClicked() {

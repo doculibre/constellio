@@ -30,7 +30,6 @@ import com.constellio.app.ui.framework.containers.MetadataVOLazyContainer;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
-import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -96,8 +95,8 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 	private Component buildTables() {
 		final MetadataVODataProvider dataProvider = presenter.getDataProvider();
 
-		Container recordsContainer = new MetadataVOLazyContainer(dataProvider, batchSize);
-		ButtonsContainer buttonsContainer = new ButtonsContainer(recordsContainer, "buttons");
+		MetadataVOLazyContainer recordsContainer = new MetadataVOLazyContainer(dataProvider, batchSize);
+		ButtonsContainer<MetadataVOLazyContainer> buttonsContainer = new ButtonsContainer<>(recordsContainer, "buttons");
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
@@ -111,9 +110,8 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 				};
 			}
 		});
-		recordsContainer = buttonsContainer;
 
-		Table table = new Table($("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), recordsContainer);
+		Table table = new Table($("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), buttonsContainer);
 		table.setSizeFull();
 		table.setPageLength(table.size());
 		table.setColumnHeader("caption", $("AddEditSchemaMetadataView.caption"));

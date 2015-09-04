@@ -218,7 +218,6 @@ public class ContentManager implements StatefulService {
 			try {
 				parsedContent = getParsedContent(hash);
 			} catch (ContentManagerRuntimeException_NoSuchContent e) {
-				LOGGER.info("Indexing new content '" + hash + "'");
 				parsedContent = tryToParse(inputStreamFactory);
 				saveParsedContent(hash, parsedContent);
 

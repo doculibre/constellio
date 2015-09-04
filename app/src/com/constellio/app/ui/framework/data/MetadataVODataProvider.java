@@ -20,6 +20,8 @@ package com.constellio.app.ui.framework.data;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -33,15 +35,10 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 @SuppressWarnings("serial")
 public class MetadataVODataProvider implements Serializable {
-
 	transient MetadataSchemasManager schemasManager;
-
-	transient List<MetadataVO> metadataVOs;
-
-	MetadataToVOBuilder voBuilder;
-
+	protected MetadataToVOBuilder voBuilder;
+	List<MetadataVO> metadataVOs;
 	String schemaCode;
-
 	String collection;
 
 	public MetadataVODataProvider(MetadataToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String collection,
@@ -50,6 +47,7 @@ public class MetadataVODataProvider implements Serializable {
 		this.collection = collection;
 		this.schemaCode = code;
 		init(modelLayerFactory);
+		metadataVOs = buildList();
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -60,7 +58,6 @@ public class MetadataVODataProvider implements Serializable {
 
 	void init(ModelLayerFactory modelLayerFactory) {
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		metadataVOs = listMetadataVO();
 	}
 
 	public MetadataVO getMetadataVO(String code) {
@@ -85,37 +82,44 @@ public class MetadataVODataProvider implements Serializable {
 		for (int i = 0; i < metadataVOs.size(); i++) {
 			listInt.add(i);
 		}
-
 		return listInt;
 	}
 
 	public List<MetadataVO> listMetadataVO() {
-		List<MetadataVO> schemaVOs = new ArrayList<>();
+		return metadataVOs;
+	}
+
+	public List<MetadataVO> listMetadataVO(int startIndex, int count) {
+		if (startIndex > metadataVOs.size()) {
+			return new ArrayList<>();
+		}
+		int toIndex = startIndex + count;
+		if (toIndex > metadataVOs.size()) {
+			toIndex = metadataVOs.size();
+		}
+		return metadataVOs.subList(startIndex, toIndex);
+	}
+
+	public void sort(Object[] propertyId, final boolean[] ascending) {
+		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
+			@Override
+			public int compare(MetadataVO o1, MetadataVO o2) {
+				return (ascending[0] ? 1 : -1) * o1.getLabel().compareTo(o2.getLabel());
+			}
+		});
+	}
+
+	protected List<MetadataVO> buildList() {
+		List<MetadataVO> result = new ArrayList<>();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 		if (types != null) {
 			MetadataSchema schema = types.getSchema(schemaCode);
 			for (Metadata meta : schema.getMetadatas()) {
 				if (!meta.isSystemReserved()) {
-					schemaVOs.add(voBuilder.build(meta));
+					result.add(voBuilder.build(meta));
 				}
 			}
 		}
-
-		return schemaVOs;
-	}
-
-	public List<MetadataVO> listMetadataVO(int startIndex, int count) {
-		List<MetadataVO> schemaVOs = listMetadataVO();
-		int toIndex = startIndex + count;
-		List subList = new ArrayList();
-		if (startIndex > schemaVOs.size()) {
-			return subList;
-		} else if (toIndex > schemaVOs.size()) {
-			toIndex = schemaVOs.size();
-		}
-		return schemaVOs.subList(startIndex, toIndex);
-	}
-
-	public void sort(String[] propertyId, boolean[] ascending) {
+		return result;
 	}
 }

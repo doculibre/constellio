@@ -96,6 +96,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenBackgroundThreadsEnabled();
 		withSpiedServices(ModelLayerConfiguration.class);
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override

@@ -27,8 +27,6 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -136,8 +134,31 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 		String groupLabel = migrationResourcesProvider.getDefaultLanguageString("defaultGroupLabel");
 		String classifiedInLabel = migrationResourcesProvider.getDefaultLanguageString("classifiedInGroupLabel");
 
+		List<MetadataSchemaType> rmTypes = new ArrayList<>();
+		rmTypes.add(types.getSchemaType("collection"));
+		rmTypes.add(types.getSchemaType("event"));
+		rmTypes.add(types.getSchemaType("user"));
+		rmTypes.add(types.getSchemaType("folder"));
+		rmTypes.add(types.getSchemaType("ddvFolderType"));
+		rmTypes.add(types.getSchemaType("containerRecord"));
+		rmTypes.add(types.getSchemaType("filingSpace"));
+		rmTypes.add(types.getSchemaType("userDocument"));
+		rmTypes.add(types.getSchemaType("decommissioningList"));
+		rmTypes.add(types.getSchemaType("ddvMediumType"));
+		rmTypes.add(types.getSchemaType("ddvStorageSpaceType"));
+		rmTypes.add(types.getSchemaType("task"));
+		rmTypes.add(types.getSchemaType("document"));
+		rmTypes.add(types.getSchemaType("ddvDocumentType"));
+		rmTypes.add(types.getSchemaType("retentionRule"));
+		rmTypes.add(types.getSchemaType("storageSpace"));
+		rmTypes.add(types.getSchemaType("uniformSubdivision"));
+		rmTypes.add(types.getSchemaType("group"));
+		rmTypes.add(types.getSchemaType("category"));
+		rmTypes.add(types.getSchemaType("administrativeUnit"));
+		rmTypes.add(types.getSchemaType("ddvContainerRecordType"));
+
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
-		for (MetadataSchemaType schemaType : types.getSchemaTypes()) {
+		for (MetadataSchemaType schemaType : rmTypes) {
 			SchemaTypeDisplayConfig typeConfig = schemasDisplayManager.getType(types.getCollection(), schemaType.getCode());
 
 			List<String> groups = new ArrayList<>();
@@ -174,15 +195,37 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 				}
 			}
 
-			for (MetadataSchemaTypeBuilder schemaTypeBuilder : typesBuilder.getTypes()) {
-
-				String code = schemaTypeBuilder.getCode();
-				schemaTypeBuilder.setSecurity(
-						code.equals(Folder.SCHEMA_TYPE)
-								|| code.equals(Document.SCHEMA_TYPE)
-								|| code.equals(AdministrativeUnit.SCHEMA_TYPE)
-								|| code.equals(ContainerRecord.SCHEMA_TYPE));
-			}
+			typesBuilder.getSchemaType("collection").setSecurity(false);
+			typesBuilder.getSchemaType("event").setSecurity(false);
+			typesBuilder.getSchemaType("user").setSecurity(false);
+			typesBuilder.getSchemaType("folder").setSecurity(true);
+			typesBuilder.getSchemaType("ddvFolderType").setSecurity(false);
+			typesBuilder.getSchemaType("containerRecord").setSecurity(true);
+			typesBuilder.getSchemaType("filingSpace").setSecurity(false);
+			typesBuilder.getSchemaType("userDocument").setSecurity(false);
+			typesBuilder.getSchemaType("decommissioningList").setSecurity(false);
+			typesBuilder.getSchemaType("ddvMediumType").setSecurity(false);
+			typesBuilder.getSchemaType("ddvStorageSpaceType").setSecurity(false);
+			typesBuilder.getSchemaType("task").setSecurity(false);
+			typesBuilder.getSchemaType("document").setSecurity(true);
+			typesBuilder.getSchemaType("ddvDocumentType").setSecurity(false);
+			typesBuilder.getSchemaType("retentionRule").setSecurity(false);
+			typesBuilder.getSchemaType("storageSpace").setSecurity(false);
+			typesBuilder.getSchemaType("uniformSubdivision").setSecurity(false);
+			typesBuilder.getSchemaType("group").setSecurity(false);
+			typesBuilder.getSchemaType("category").setSecurity(false);
+			typesBuilder.getSchemaType("administrativeUnit").setSecurity(true);
+			typesBuilder.getSchemaType("ddvContainerRecordType").setSecurity(false);
+			//
+			//			for (MetadataSchemaTypeBuilder schemaTypeBuilder : typesBuilder.getTypes()) {
+			//
+			//				String code = schemaTypeBuilder.getCode();
+			//				schemaTypeBuilder.setSecurity(
+			//						code.equals(Folder.SCHEMA_TYPE)
+			//								|| code.equals(Document.SCHEMA_TYPE)
+			//								|| code.equals(AdministrativeUnit.SCHEMA_TYPE)
+			//								|| code.equals(ContainerRecord.SCHEMA_TYPE));
+			//			}
 		}
 
 	}

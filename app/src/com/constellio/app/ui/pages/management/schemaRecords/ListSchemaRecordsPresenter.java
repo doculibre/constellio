@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.schemaRecords;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -45,13 +46,14 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 	}
 
 	public RecordVODataProvider getDataProvider() {
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema(), VIEW_MODE.TABLE, view.getSessionContext());
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
+				.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		RecordVODataProvider dataProvider = new RecordVODataProvider(
 				schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(schema()).returnAll())
+				return new LogicalSearchQuery(from(defaultSchema()).returnAll())
 						.filteredByStatus(StatusFilter.ACTIVES).sortAsc(Schemas.TITLE);
 			}
 		};
@@ -73,17 +75,22 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		Record record = getRecord(recordVO.getId());
-		try {
-			delete(record);
-		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord error) {
+		if (isDeletable(recordVO)) {
+			Record record = getRecord(recordVO.getId());
+			try {
+				delete(record);
+			} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord error) {
 			/*
 				This catch happens to avoid presenting a message in the UI
 				which wrongly tells the user that the deletion completely failed
 				while it really succeeded, but only logically.
 			 */
+			}
+			view.refreshTable();
+		} else {
+			view.showErrorMessage($("ListSchemaRecordsView.cannotDelete"));
 		}
-		view.refreshTable();
+
 	}
 
 	@Override

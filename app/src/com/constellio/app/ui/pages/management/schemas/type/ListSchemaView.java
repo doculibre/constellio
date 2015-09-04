@@ -18,7 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.management.schemas.type;
 
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 
-public interface ListSchemaView extends BaseView, AdminModuleViewGroup {
+public interface ListSchemaView extends BaseView, AdminViewGroup {
 }

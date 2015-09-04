@@ -29,6 +29,8 @@ public class EventType {
 
 	public static final String BORROW = "borrow";
 
+	public static final String CONSULTATION = "consultation";
+
 	public static final String RETURN = "return";
 
 	public static final String OPEN_SESSION = "open_session";
@@ -46,6 +48,8 @@ public class EventType {
 	public static final String DELETE_FOLDER = "delete_folder";
 
 	public static final String BORROW_FOLDER = "borrow_folder";
+
+	public static final String CONSULTATION_FOLDER = "consultation_folder";
 
 	public static final String RETURN_FOLDER = "return_folder";
 
@@ -111,5 +115,12 @@ public class EventType {
 	public static final String RECEIVE_FOLDER = "receive_folder_" + DECOMMISSIONING_LIST;
 
 	public static final String RECEIVE_CONTAINER = "receive_containerRecord" + DECOMMISSIONING_LIST;
+
+	//tasks
+	public static final String CREATE_TASK = "create_userTask";
+
+	public static final String MODIFY_TASK = "modify_userTask";
+
+	public static final String DELETE_TASK = "delete_userTask";
 
 }

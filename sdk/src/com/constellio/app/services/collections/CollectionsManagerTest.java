@@ -118,7 +118,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 
 		collectionsManager = spy(new com.constellio.app.services.collections.CollectionsManager(
-				modelLayerFactory, modulesManager, new Delayed<>(migrationServices), "fr"));
+				modelLayerFactory, modulesManager, new Delayed<>(migrationServices)));
 	}
 
 	@Test
@@ -128,6 +128,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		doNothing().when(collectionsManager).createCollectionConfigs("zeCollection");
 		doReturn(aNewCollection).when(collectionsManager)
 				.createCollectionRecordWithCode("zeCollection", Arrays.asList("fr"));
+		doNothing().when(collectionsManager).initializeCollection(anyString());
 
 		collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr"));
 
@@ -135,6 +136,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		verify(collectionsListManager).addCollection("zeCollection", Arrays.asList("fr"));
 		verify(migrationServices).migrate("zeCollection", null);
 		verify(userServices).addGlobalGroupsInCollection("zeCollection");
+		verify(collectionsManager).initializeCollection("zeCollection");
 	}
 
 	public void whenAddingCollectionWithNonUniqueCodeThenException()

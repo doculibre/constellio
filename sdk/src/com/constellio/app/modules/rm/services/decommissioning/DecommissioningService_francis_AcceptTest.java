@@ -61,71 +61,30 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(service.getAdministrativeUnitsForUser(records.getBob_userInAC()))
-				.hasSize(4).containsOnly(records.unitId_10, records.unitId_11, records.unitId_12, records.unitId_30);
+				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
+						records.unitId_12b, records.unitId_12c, records.unitId_30, records.unitId_30c);
 
 		assertThat(service.getAdministrativeUnitsForUser(records.getCharles_userInA()))
-				.hasSize(3).containsOnly(records.unitId_10, records.unitId_11, records.unitId_12);
+				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
+						records.unitId_12b, records.unitId_12c);
 
 		assertThat(service.getAdministrativeUnitsForUser(records.getDakota_managerInA_userInB()))
-				.hasSize(3).containsOnly(records.unitId_10, records.unitId_11, records.unitId_12);
+				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
+						records.unitId_12b, records.unitId_12c);
 
 		assertThat(service.getAdministrativeUnitsForUser(records.getEdouard_managerInB_userInC()))
-				.hasSize(3).containsOnly(records.unitId_30, records.unitId_11, records.unitId_12);
+				.containsOnly(records.unitId_30, records.unitId_30c, records.unitId_11, records.unitId_11b, records.unitId_12,
+						records.unitId_12b,
+						records.unitId_12c);
 
 		assertThat(service.getAdministrativeUnitsForUser(records.getGandalf_managerInABC()))
-				.hasSize(4).containsOnly(records.unitId_10, records.unitId_11, records.unitId_12, records.unitId_30);
+				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
+						records.unitId_12b, records.unitId_12c, records.unitId_30, records.unitId_30c);
 
 		assertThat(service.getAdministrativeUnitsForUser(records.getChuckNorris()))
-				.hasSize(5)
-				.containsOnly(records.unitId_10, records.unitId_11, records.unitId_12, records.unitId_20, records.unitId_30);
-	}
-
-	@Test
-	public void whenGetUserAdministrativeUnitsWithFilingSpaceThenValidValues()
-			throws Exception {
-
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingA(), records.getBob_userInAC()))
-				.containsExactly(records.unitId_10);
-
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingB(), records.getBob_userInAC()))
-				.hasSize(2).containsOnly(records.unitId_11, records.unitId_12);
-
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingC(), records.getBob_userInAC()))
-				.hasSize(2).containsOnly(records.unitId_12, records.unitId_30);
-
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingA(), records.getGandalf_managerInABC()))
-				.containsExactly(records.unitId_10);
-
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingB(), records.getGandalf_managerInABC()))
-				.hasSize(2).containsOnly(records.unitId_11, records.unitId_12);
-
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingC(), records.getGandalf_managerInABC()))
-				.hasSize(2).containsOnly(records.unitId_12, records.unitId_30);
-
-		assertThat(service.getAdministrativeUnitsWithFilingSpaceForUser(records.getFilingA(), records.getCharles_userInA()))
-				.containsExactly(records.unitId_10);
-
-	}
-
-	@Test
-	public void whenGetUserFilingSpacesThenValidValues()
-			throws Exception {
-
-		assertThat(service.getUserFilingSpaces(records.getBob_userInAC()))
-				.hasSize(2).containsOnly(records.filingId_A, records.filingId_C);
-
-		assertThat(service.getUserFilingSpaces(records.getCharles_userInA()))
-				.containsExactly(records.filingId_A);
-
-		assertThat(service.getUserFilingSpaces(records.getDakota_managerInA_userInB()))
-				.hasSize(2).containsOnly(records.filingId_A, records.filingId_B);
-
-		assertThat(service.getUserFilingSpaces(records.getEdouard_managerInB_userInC()))
-				.hasSize(2).containsOnly(records.filingId_B, records.filingId_C);
-
-		assertThat(service.getUserFilingSpaces(records.getGandalf_managerInABC()))
-				.hasSize(3).containsOnly(records.filingId_A, records.filingId_B, records.filingId_C);
-
+				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
+						records.unitId_12b, records.unitId_12c,
+						records.unitId_20, records.unitId_20d, records.unitId_20e, records.unitId_30, records.unitId_30c);
 	}
 
 	@Test

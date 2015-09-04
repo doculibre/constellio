@@ -81,11 +81,4 @@ public class MetadataSchemaBuilderRuntimeException extends RuntimeException {
 		}
 	}
 
-	public static class CannotCreateTwoMetadataWithSameNameInDifferentCustomSchemasOfTheSameType
-			extends MetadataSchemaBuilderRuntimeException {
-		public CannotCreateTwoMetadataWithSameNameInDifferentCustomSchemasOfTheSameType(String metadataName) {
-			super("Cannot create metadata '" + metadataName
-					+ "', since a metadata with this name already exist in an other schema");
-		}
-	}
 }

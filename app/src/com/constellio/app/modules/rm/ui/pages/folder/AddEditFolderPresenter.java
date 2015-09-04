@@ -17,13 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -40,14 +40,12 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministr
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderFilingSpaceField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -59,6 +57,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.search.StatusFilter;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
@@ -107,7 +106,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			record = new DecommissioningService(collection, modelLayerFactory).newSubFolderIn(folder).getWrappedRecord();
 			addView = true;
 		}
-		folderVO = voBuilder.build(record, VIEW_MODE.FORM);
+		folderVO = voBuilder.build(record, VIEW_MODE.FORM, view.getSessionContext());
 		folderHadAParent = folderVO.getParentFolder() != null;
 		this.currentSchemaCode = folderVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
@@ -208,7 +207,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		boolean reload;
 		if (addView) {
 			String currentSchemaCode = getSchemaCode();
-			String folderTypeRecordId = (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
+			String folderTypeRecordId = getTypeFieldValue();
 			if (StringUtils.isNotBlank(folderTypeRecordId)) {
 				String schemaCodeForFolderTypeRecordId = rmSchemasRecordsServices
 						.getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
@@ -229,7 +228,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	void reloadFormAfterFolderTypeChange() {
-		String folderTypeId = (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
+		String folderTypeId = getTypeFieldValue();
 
 		Folder folder;
 		if (folderTypeId != null) {
@@ -245,25 +244,39 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		List<String> ignoredMetadataCodes = Arrays.asList(Folder.TYPE);
 		// Populate new record with previous record's metadata values
 
-		view.getForm().commit();
+		commitForm();
 		for (MetadataVO metadataVO : folderVO.getMetadatas()) {
 			String metadataCode = metadataVO.getCode();
 			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 			if (!ignoredMetadataCodes.contains(metadataCodeWithoutPrefix)) {
 				try {
 					Metadata matchingMetadata = folderSchema.getMetadata(metadataCodeWithoutPrefix);
-					Object metadataValue = folderVO.get(metadataVO);
-					folder.getWrappedRecord().set(matchingMetadata, metadataValue);
+					if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+						Object metadataValue = folderVO.get(metadataVO);
+						folder.getWrappedRecord().set(matchingMetadata, metadataValue);
+					}
 				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 					// Ignore
 				}
 			}
 		}
 
-		folderVO = voBuilder.build(folder.getWrappedRecord(), VIEW_MODE.FORM);
+		folderVO = voBuilder.build(folder.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 
 		view.setRecord(folderVO);
+		reloadForm();
+	}
+
+	void reloadForm() {
 		view.getForm().reload();
+	}
+
+	void commitForm() {
+		view.getForm().commit();
+	}
+
+	String getTypeFieldValue() {
+		return (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
 	}
 
 	private boolean isFieldRequired(String metadataCode) {
@@ -284,21 +297,19 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		boolean reload = isReloadRequiredAfterFolderTypeChange();
 		if (reload) {
 			reloadFormAfterFolderTypeChange();
-		} else {
-			adjustParentFolderField();
-			adjustAdministrativeUnitField();
-			adjustFilingSpaceField();
-			adjustCategoryField();
-			adjustUniformSubdivisionField();
-			adjustRetentionRuleField();
-			adjustStatusCopyEnteredField();
-			adjustLinearSizeField();
-			adjustActualTransferDateField();
-			adjustActualDepositDateField();
-			adjustActualDestructionDateField();
-			adjustContainerField();
-			adjustPreviewReturnDateField();
 		}
+		adjustParentFolderField();
+		adjustAdministrativeUnitField();
+		adjustCategoryField();
+		adjustUniformSubdivisionField();
+		adjustRetentionRuleField();
+		adjustStatusCopyEnteredField();
+		adjustLinearSizeField();
+		adjustActualTransferDateField();
+		adjustActualDepositDateField();
+		adjustActualDestructionDateField();
+		adjustContainerField();
+		adjustPreviewReturnDateField();
 	}
 
 	void adjustTypeField() {
@@ -314,129 +325,123 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		return decommissioningService().getAdministrativeUnitsForUser(getCurrentUser());
 	}
 
-	List<String> getAdministrativeUnitsForFilingSpace(String recordId) {
-		FilingSpace filingSpace = rmSchemas().getFilingSpace(recordId);
-		return decommissioningService().getAdministrativeUnitsWithFilingSpaceForUser(filingSpace, getCurrentUser());
-	}
-
 	@SuppressWarnings("unchecked")
 	void adjustAdministrativeUnitField() {
 		FolderAdministrativeUnitField administrativeUnitField = (FolderAdministrativeUnitField) view.getForm().getCustomField(
 				Folder.ADMINISTRATIVE_UNIT_ENTERED);
-		FolderFilingSpaceField filingSpaceField = (FolderFilingSpaceField) view.getForm().getCustomField(
-				Folder.FILING_SPACE_ENTERED);
+
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (administrativeUnitField != null) {
 			String currentValue = administrativeUnitField.getFieldValue();
 
 			String parentId = parentFolderField.getFieldValue();
-			if (parentId == null) {
-
-				List<String> availableOptions = new ArrayList<String>();
-				List<String> currentUserAdministrativeUnits = getCurrentUserAdministrativeUnits();
-				availableOptions.addAll(currentUserAdministrativeUnits);
-				if (currentValue != null && !availableOptions.contains(currentValue)) {
-					availableOptions.add(0, currentValue);
-				}
-
-				// Discover what options are available
-				if (filingSpaceField != null && filingSpaceField.getFieldValue() != null) {
-					String currentFilingSpaceValue = filingSpaceField.getFieldValue();
-					List<String> administrativeUnitsForFilingSpace = getAdministrativeUnitsForFilingSpace(
-							currentFilingSpaceValue);
-					availableOptions = (List<String>) ListUtils.retainAll(availableOptions, administrativeUnitsForFilingSpace);
-				}
-
-				// Set the options if they changed
-				if (!administrativeUnitField.getOptions().equals(availableOptions)) {
-					administrativeUnitField.setOptions(availableOptions);
-				}
-
-				// Set the value if necessary
-				if (availableOptions.size() > 1) {
-					if (currentValue != null && !availableOptions.contains(currentValue)) {
-						folderVO.setAdministrativeUnit((String) null);
-						administrativeUnitField.setFieldValue(null);
-					}
-					if (!administrativeUnitField.isVisible()) {
-						setFieldVisible(administrativeUnitField, true, Folder.ADMINISTRATIVE_UNIT_ENTERED);
-					}
-				} else if (availableOptions.size() == 1) {
-					if (!availableOptions.get(0).equals(currentValue)) {
-						String onlyAvailableOption = availableOptions.get(0);
-						folderVO.setAdministrativeUnit(onlyAvailableOption);
-						administrativeUnitField.setFieldValue(onlyAvailableOption);
-
-					}
-				} else {
-					if (currentValue != null) {
-						folderVO.setAdministrativeUnit((String) null);
-						administrativeUnitField.setFieldValue(null);
-					}
-				}
-			} else {
-				setFieldVisible(administrativeUnitField, false, Folder.ADMINISTRATIVE_UNIT_ENTERED);
-			}
+			setFieldVisible(administrativeUnitField, parentId == null, Folder.ADMINISTRATIVE_UNIT_ENTERED);
+			//			if (parentId == null) {
+			//
+			//				List<String> availableOptions = new ArrayList<String>();
+			//				List<String> currentUserAdministrativeUnits = getCurrentUserAdministrativeUnits();
+			//				availableOptions.addAll(currentUserAdministrativeUnits);
+			//				if (currentValue != null && !availableOptions.contains(currentValue)) {
+			//					availableOptions.add(0, currentValue);
+			//				}
+			//
+			////				// Set the options if they changed
+			////				if (!administrativeUnitField.getOptions().equals(availableOptions)) {
+			////					administrativeUnitField.setOptions(availableOptions);
+			////				}
+			//
+			//				// Set the value if necessary
+			//				if (availableOptions.size() > 1) {
+			//					if (currentValue != null && !availableOptions.contains(currentValue)) {
+			//						folderVO.setAdministrativeUnit((String) null);
+			//						administrativeUnitField.setFieldValue(null);
+			//					}
+			//					if (!administrativeUnitField.isVisible()) {
+			//						setFieldVisible(administrativeUnitField, true, Folder.ADMINISTRATIVE_UNIT_ENTERED);
+			//					}
+			//				} else if (availableOptions.size() == 1) {
+			//					if (!availableOptions.get(0).equals(currentValue)) {
+			//						String onlyAvailableOption = availableOptions.get(0);
+			//						folderVO.setAdministrativeUnit(onlyAvailableOption);
+			//						administrativeUnitField.setFieldValue(onlyAvailableOption);
+			//
+			//					}
+			//				} else {
+			//					if (currentValue != null) {
+			//						folderVO.setAdministrativeUnit((String) null);
+			//						administrativeUnitField.setFieldValue(null);
+			//					}
+			//				}
+			//			} else {
+			//				setFieldVisible(administrativeUnitField, false, Folder.ADMINISTRATIVE_UNIT_ENTERED);
+			//			}
 		}
 	}
-
-	List<String> getCurrentUserFilingSpaces() {
-		return decommissioningService().getUserFilingSpaces(getCurrentUser(), StatusFilter.ACTIVES);
-	}
-
-	void adjustFilingSpaceField() {
-		FolderFilingSpaceField filingSpaceField = (FolderFilingSpaceField) view.getForm().getCustomField(
-				Folder.FILING_SPACE_ENTERED);
-		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
-		if (filingSpaceField != null) {
-			String currentValue = filingSpaceField.getFieldValue();
-
-			String parentId = parentFolderField.getFieldValue();
-			if (parentId == null) {
-
-				List<String> availableOptions = new ArrayList<String>();
-				List<String> currentUserFilingSpaces = getCurrentUserFilingSpaces();
-				availableOptions.addAll(currentUserFilingSpaces);
-				if (currentValue != null && !availableOptions.contains(currentValue)) {
-					availableOptions.add(0, currentValue);
-				}
-
-				// Set the options if they changed
-				if (!filingSpaceField.getOptions().equals(availableOptions)) {
-					filingSpaceField.setOptions(availableOptions);
-				}
-
-				// Set the value if necessary
-				if (availableOptions.size() > 1) {
-					if (currentValue != null && !availableOptions.contains(currentValue)) {
-						folderVO.setFilingSpace((String) null);
-						filingSpaceField.setFieldValue(null);
-					}
-					if (!filingSpaceField.isVisible()) {
-						setFieldVisible(filingSpaceField, true, Folder.FILING_SPACE_ENTERED);
-					}
-				} else if (availableOptions.size() == 1) {
-					if (!availableOptions.get(0).equals(currentValue)) {
-						String onlyAvailableOption = availableOptions.get(0);
-						folderVO.setFilingSpace(onlyAvailableOption);
-						filingSpaceField.setFieldValue(onlyAvailableOption);
-					}
-				} else {
-					if (currentValue != null) {
-						folderVO.setFilingSpace((String) null);
-						filingSpaceField.setFieldValue(null);
-					}
-				}
-			} else {
-				setFieldVisible(filingSpaceField, false, Folder.FILING_SPACE_ENTERED);
-			}
-		}
-	}
+	//
+	//	void adjustFilingSpaceField() {
+	//		FolderFilingSpaceField filingSpaceField = (FolderFilingSpaceField) view.getForm().getCustomField(
+	//				Folder.FILING_SPACE_ENTERED);
+	//		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
+	//		if (filingSpaceField != null) {
+	//			String currentValue = filingSpaceField.getFieldValue();
+	//
+	//			String parentId = parentFolderField.getFieldValue();
+	//			if (parentId == null) {
+	//
+	//				List<String> availableOptions = new ArrayList<String>();
+	//				List<String> currentUserFilingSpaces = getCurrentUserFilingSpaces();
+	//				availableOptions.addAll(currentUserFilingSpaces);
+	//				if (currentValue != null && !availableOptions.contains(currentValue)) {
+	//					availableOptions.add(0, currentValue);
+	//				}
+	//
+	//				// Set the options if they changed
+	//				if (!filingSpaceField.getOptions().equals(availableOptions)) {
+	//					filingSpaceField.setOptions(availableOptions);
+	//				}
+	//
+	//				// Set the value if necessary
+	//				if (availableOptions.size() > 1) {
+	//					if (currentValue != null && !availableOptions.contains(currentValue)) {
+	//						folderVO.setFilingSpace((String) null);
+	//						filingSpaceField.setFieldValue(null);
+	//					}
+	//					if (!filingSpaceField.isVisible()) {
+	//						setFieldVisible(filingSpaceField, true, Folder.FILING_SPACE_ENTERED);
+	//					}
+	//				} else if (availableOptions.size() == 1) {
+	//					if (!availableOptions.get(0).equals(currentValue)) {
+	//						String onlyAvailableOption = availableOptions.get(0);
+	//						folderVO.setFilingSpace(onlyAvailableOption);
+	//						filingSpaceField.setFieldValue(onlyAvailableOption);
+	//					}
+	//				} else {
+	//					if (currentValue != null) {
+	//						folderVO.setFilingSpace((String) null);
+	//						filingSpaceField.setFieldValue(null);
+	//					}
+	//				}
+	//			} else {
+	//				setFieldVisible(filingSpaceField, false, Folder.FILING_SPACE_ENTERED);
+	//			}
+	//		}
+	//	}
 
 	void adjustCategoryField() {
 		FolderCategoryField categoryField = (FolderCategoryField) view.getForm().getCustomField(Folder.CATEGORY_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (categoryField != null && parentFolderField != null) {
+			String categoryId = categoryField.getFieldValue();
+			if (categoryId != null) {
+				// Discover what options are available
+				List<String> availableOptions = decommissioningService().getRetentionRulesForCategory(
+						categoryId, null, StatusFilter.ACTIVES);
+				if (availableOptions.isEmpty()) {
+					view.showErrorMessage($("AddEditFolderView.noRetentionRulesForCategory"));
+				}
+			}
+			
+			
 			String parentFolderId = parentFolderField.getFieldValue();
 			if (parentFolderId != null) {
 				Record parentFolder = getRecord(parentFolderId);
@@ -674,6 +679,30 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			setFieldVisible(previewReturnDateField, false, Folder.BORROW_PREVIEW_RETURN_DATE);
 		}
 	}
+
+	//	void adjustBorrowingTypeField() {
+	//		FolderBorrowingTypeField borrowingTypeField = (FolderBorrowingTypeField) view.getForm()
+	//				.getCustomField(Folder.BORROWING_TYPE);
+	//		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+	//		if (borrowingTypeField != null && folder.hasAnalogicalMedium() && folder.getBorrowed() != null
+	//				&& folder.getBorrowed() != false) {
+	//			setFieldVisible(borrowingTypeField, true, Folder.BORROWING_TYPE);
+	//		} else {
+	//			setFieldVisible(borrowingTypeField, false, Folder.BORROWING_TYPE);
+	//		}
+	//	}
+
+	//	void adjustReturnDateField() {
+	//		FolderReturnDateField returnDateField = (FolderReturnDateField) view.getForm()
+	//				.getCustomField(Folder.BORROW_RETURN_DATE);
+	//		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+	//		if (returnDateField != null && folder.hasAnalogicalMedium() && folder.getBorrowed() != null
+	//				&& folder.getBorrowed() != false) {
+	//			setFieldVisible(returnDateField, true, Folder.BORROW_RETURN_DATE);
+	//		} else {
+	//			setFieldVisible(returnDateField, false, Folder.BORROW_RETURN_DATE);
+	//		}
+	//	}
 
 	private DecommissioningService decommissioningService() {
 		return new DecommissioningService(collection, modelLayerFactory);

@@ -19,9 +19,9 @@ package com.constellio.app.modules.rm.services;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.modules.rm.wrappers.HierarchicalValueListItem;
-import com.constellio.app.modules.rm.wrappers.ValueListItem;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;

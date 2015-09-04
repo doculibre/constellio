@@ -17,30 +17,38 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.reports.builders.search.stats;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
+
 import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.search.stats.StatsReportModel;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
-import com.itextpdf.text.*;
+import com.itextpdf.text.BadElementException;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public class StatsReportBuilder implements ReportBuilder {
 
-	private static final int COLUMN_NUMBER = 20;
 	public static final int TABLE_WIDTH_PERCENTAGE = 90;
-	public static final int INITIAL_FONT_SIZE = 14;
-	public static final int INITIAL_LEVEL = 0;
-	private static final float MAX_LEVEL = 4;
 
 	public static final float MARGIN_LEFT = 0f;
 	public static final float MARGIN_RIGHT = 0f;
@@ -51,18 +59,16 @@ public class StatsReportBuilder implements ReportBuilder {
 
 	private StatsReportModel model;
 
-	private PdfTableUtils pdfTableUtils;
 	private FoldersLocator foldersLocator;
 
 	public StatsReportBuilder(StatsReportModel model, FoldersLocator foldersLocator) {
 		this.model = model;
-		this.pdfTableUtils = new PdfTableUtils();
 
 		this.foldersLocator = foldersLocator;
 	}
 
 	public String getFileExtension() {
-		return pdfTableUtils.PDF;
+		return PdfTableUtils.PDF;
 	}
 
 	public void build(OutputStream output)
@@ -110,6 +116,9 @@ public class StatsReportBuilder implements ReportBuilder {
 				String caption = keyCaption.getCaption();
 				Object value = stats.get(keyCaption.getKey());
 				if(value != null){
+					if(keyCaption.getKey().equals("sum")){
+						value = Double.valueOf(value.toString()) /100;
+					}
 					cell = addLine(writer, caption, value.toString());
 					table.addCell(cell);
 					table.completeRow();

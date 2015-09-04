@@ -220,7 +220,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 		verify(presenter).newUserCredentialVODataProvider(HEROES, presenter.newUserCredentialVOBuilder());
 	}
 
-	//TODO Thiago
+	//TODO fix test
 	@Test
 	@Ignore
 	public void whenAddSubGroupClickedThenOk()

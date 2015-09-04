@@ -19,17 +19,22 @@ package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.modules.rm.ui.pages.home.RecordsManagementViewImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BackButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.pages.home.HomeViewImpl;
+import com.vaadin.event.UIEvents.PollEvent;
+import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
@@ -40,15 +45,18 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView {
+public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView, PollListener {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseViewImpl.class);
 
 	public static final String BACK_BUTTON_CODE = "seleniumBackButtonCode";
+	
+	private BaseBreadcrumbTrail breadcrumbTrail;
 
 	private Label titleLabel;
 
@@ -75,7 +83,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 			LOGGER.error(e.getMessage(), e);
 			// TODO Obtain home without hard-coding the class
-			if (!(this instanceof RecordsManagementViewImpl)) {
+			if (!(this instanceof HomeViewImpl)) {
 				navigateTo().home();
 			}
 			return;
@@ -90,6 +98,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		setSizeFull();
 
 		removeAllComponents();
+		
+		breadcrumbTrail = buildBreadcrumbTrail();
 
 		titleBackButtonLayout = new HorizontalLayout();
 		titleBackButtonLayout.setWidth("100%");
@@ -120,9 +130,13 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				actionMenu.addStyleName("action-menu");
 			}
 		}
-
+		
 		if (titleLabel != null || backButton.isVisible()) {
 			addComponent(titleBackButtonLayout);
+		}
+
+		if (breadcrumbTrail != null) {
+			addComponent(breadcrumbTrail);
 		}
 
 		addComponent(mainComponent);
@@ -141,47 +155,48 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		if (titleLabel != null) {
 			titleBackButtonLayout.setExpandRatio(titleLabel, 1);
 		}
-		
+
 		if (isBackgroundViewMonitor()) {
 			addBackgroundViewMonitor();
 		}
 
 		afterViewAssembled(event);
 	}
+	
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return null;
+	}
 
 	protected boolean isBackgroundViewMonitor() {
 		return false;
 	}
-	
+
 	protected void onBackgroundViewMonitor() {
 	}
-	
+
 	protected void addBackgroundViewMonitor() {
-		new Thread(BaseViewImpl.class.getName() + "-addBackgroundViewMonitor-" + BaseViewImpl.this.toString()) {
-			@Override
-			public void run() {
-				while (true) {
-					try {
-						Thread.sleep(1000);
-						onBackgroundViewMonitor();
-					} catch (Throwable t) {
-//						UI ui = UI.getCurrent();
-//						VaadinSession session = ui.getSession();
-//						if (session != null) {
-////							LOGGER.warn("Exception while monitoring view in the background " + Thread.currentThread().getName(), t);
-//							UI.getCurrent().access(new Runnable() {
-//								@Override
-//								public void run() {
-//									// No need to update components in current UI from another Thread anymore
-//									UI.getCurrent().setPollInterval(-1);
-//								}
-//							});
-//						}
-						break;
-					}
-				} 
-			}
-		}.start();	
+		UI.getCurrent().addPollListener(this);
+	}
+
+	@Override
+	public void poll(PollEvent event) {
+		onBackgroundViewMonitor();
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		if (isBackgroundViewMonitor()) {
+			UI.getCurrent().addPollListener(this);
+		}
+	}
+
+	private void writeObject(ObjectOutputStream out)
+			throws IOException {
+		if (isBackgroundViewMonitor()) {
+			UI.getCurrent().removePollListener(this);
+		}
+		out.defaultWriteObject();
 	}
 
 	@Override

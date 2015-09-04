@@ -1,0 +1,160 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.model.entities.records.wrappers;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.pages.search.criteria.FacetSelections;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+public class SavedSearch extends RecordWrapper {
+	public static final String SCHEMA_TYPE = "savedSearch";
+
+	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+
+	public static final String USER = "user";
+	public static final String PUBLIC = "public";
+	public static final String SORT_FIELD = "sortField";
+	public static final String FACET_SELECTIONS = "facetSelections";
+	public static final String FREE_TEXT_SEARCH = "freeTextSearch";
+	public static final String ADVANCED_SEARCH = "advancedSearch";
+	public static final String SCHEMA_FILTER = "schemaFilter";
+	public static final String SEARCH_TYPE = "searchType";
+	public static final String SORT_ORDER = "sortOrder";
+
+	public SavedSearch(Record record,
+			MetadataSchemaTypes types) {
+		super(record, types, SCHEMA_TYPE);
+	}
+
+	public SavedSearch setTitle(String title) {
+		super.setTitle(title);
+		return this;
+	}
+
+	public String getUser() {
+		return get(USER);
+	}
+
+	public SavedSearch setUser(String user) {
+		set(USER, user);
+		return this;
+	}
+
+	public boolean isPublic() {
+		return get(PUBLIC);
+	}
+
+	public SavedSearch setPublic(boolean publicSearch) {
+		set(PUBLIC, publicSearch);
+		return this;
+	}
+
+	public String getSortField() {
+		return get(SORT_FIELD);
+	}
+
+	public SavedSearch setSortField(String sortField) {
+		set(SORT_FIELD, sortField);
+		return this;
+	}
+
+	public Map<String, Set<String>> getSelectedFacets() {
+		List<FacetSelections> selections = getList(FACET_SELECTIONS);
+		Map<String, Set<String>> result = new HashMap<>();
+		for (FacetSelections each : selections) {
+			result.put(each.getFacetField(), each.getSelectedValues());
+		}
+		return result;
+	}
+
+	public SavedSearch setSelectedFacets(Map<String, Set<String>> facetSelections) {
+		List<FacetSelections> selections = new ArrayList<>();
+		for (Map.Entry<String, Set<String>> each : facetSelections.entrySet()) {
+			selections.add(new FacetSelections(each.getKey(), each.getValue()));
+		}
+		set(FACET_SELECTIONS, selections);
+		return this;
+	}
+
+	public String getFreeTextSearch() {
+		return get(FREE_TEXT_SEARCH);
+	}
+
+	public SavedSearch setFreeTextSearch(String freeTextSearch) {
+		set(FREE_TEXT_SEARCH, freeTextSearch);
+		return this;
+	}
+
+	public List<Criterion> getAdvancedSearch() {
+		return getList(ADVANCED_SEARCH);
+	}
+
+	public SavedSearch setAdvancedSearch(List<Criterion> advancedSearch) {
+		set(ADVANCED_SEARCH, advancedSearch);
+		return this;
+	}
+
+	public SortOrder getSortOrder() {
+		return get(SORT_ORDER);
+	}
+
+	public SavedSearch setSortOrder(SortOrder sortOrder) {
+		set(SORT_ORDER, sortOrder);
+		return this;
+	}
+
+	public String getSchemaFilter() {
+		return get(SCHEMA_FILTER);
+	}
+
+	public SavedSearch setSchemaFilter(String schemaFilter) {
+		set(SCHEMA_FILTER, schemaFilter);
+		return this;
+	}
+
+	public String getSearchType() {
+		return get(SEARCH_TYPE);
+	}
+
+	public SavedSearch setSearchType(String searchType) {
+		set(SEARCH_TYPE, searchType);
+		return this;
+	}
+
+	public enum SortOrder implements EnumWithSmallCode {
+		ASCENDING("a"), DESCENDING("d");
+
+		private String code;
+
+		SortOrder(String code) {
+			this.code = code;
+		}
+
+		public String getCode() {
+			return code;
+		}
+	}
+}

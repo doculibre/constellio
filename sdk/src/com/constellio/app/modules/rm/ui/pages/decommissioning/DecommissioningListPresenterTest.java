@@ -242,6 +242,14 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenApprovedButtonClickedThenApproveTheListAndRefreshWithMessage() {
+		presenter.approvalButtonClicked();
+		verify(service, times(1)).approveList(list, user);
+		verify(view, times(1)).showMessage(anyString());
+		verify(navigator).displayDecommissioningList(ZE_LIST);
+	}
+
+	@Test
 	public void whenShouldAllowContainerEditingThenAskTheDecommissioningService() {
 		when(service.canEditContainers(list, user)).thenReturn(true);
 		assertThat(presenter.shouldAllowContainerEditing()).isTrue();
@@ -260,6 +268,11 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		FolderDetailWithType detail2 = mock(FolderDetailWithType.class);
 		FolderDetailWithType detail3 = mock(FolderDetailWithType.class);
 		FolderDetailWithType detail4 = mock(FolderDetailWithType.class);
+
+		when(detail1.isIncluded()).thenReturn(true);
+		when(detail2.isIncluded()).thenReturn(true);
+		when(detail3.isIncluded()).thenReturn(true);
+		when(detail4.isIncluded()).thenReturn(true);
 
 		when(service.isFolderProcessable(list, detail1)).thenReturn(true);
 		when(service.isFolderProcessable(list, detail2)).thenReturn(false);

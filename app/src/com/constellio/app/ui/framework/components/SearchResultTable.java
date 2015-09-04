@@ -101,9 +101,19 @@ public class SearchResultTable extends PagedTable {
 		listeners.add(listener);
 	}
 
-	public VerticalLayout createSummary(final Component... extra) {
-		Label count = new Label($("SearchResultTable.count", container.size()));
-		count.addStyleName(ValoTheme.LABEL_BOLD);
+	public VerticalLayout createSummary(final Component savedSearch, final Component... extra) {
+		Label totalCount = new Label($("SearchResultTable.count", container.size()));
+		totalCount.addStyleName(ValoTheme.LABEL_BOLD);
+
+		HorizontalLayout count = new HorizontalLayout(totalCount);
+		count.setComponentAlignment(totalCount, Alignment.MIDDLE_LEFT);
+		count.setSizeUndefined();
+		count.setSpacing(true);
+
+		if (savedSearch != null) {
+			count.addComponent(savedSearch);
+			count.setComponentAlignment(savedSearch, Alignment.MIDDLE_LEFT);
+		}
 
 		final Label selectedCount = new Label($("SearchResultTable.selection", selected.size()));
 		selectedCount.setSizeUndefined();
@@ -113,7 +123,7 @@ public class SearchResultTable extends PagedTable {
 		selection.setSizeUndefined();
 		selection.setSpacing(true);
 		for (Component component : extra) {
-			if(!(component instanceof ReportSelector)){
+			if (!(component instanceof ReportSelector)) {
 				component.setEnabled(selected.size() > 0);
 			}
 			selection.addComponent(component);
@@ -128,7 +138,7 @@ public class SearchResultTable extends PagedTable {
 			public void selectionChanged(SelectionChangeEvent event) {
 				selectedCount.setValue($("SearchResultTable.selection", event.getSelectionSize()));
 				for (Component component : extra) {
-					if(!(component instanceof ReportSelector)){
+					if (!(component instanceof ReportSelector)) {
 						component.setEnabled(event.getSelectionSize() > 0);
 					}
 				}

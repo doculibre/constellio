@@ -19,7 +19,6 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,9 +30,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningLis
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
@@ -46,18 +43,15 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class DecommissioningBuilderPresenter extends SearchPresenter<DecommissioningBuilderView>
 		implements SearchCriteriaPresenter {
 	private transient LogicalSearchCondition condition;
 	private transient RMSchemasRecordsServices rmRecordServices;
+	private transient DecommissioningService decommissioningService;
 	SearchType searchType;
-	String filingSpaceId;
 	String adminUnitId;
 
 	public DecommissioningBuilderPresenter(DecommissioningBuilderView view) {
@@ -115,7 +109,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	public void decommissioningListCreationRequested(DecommissioningListParams params) {
 		DecommissioningService decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
-		params.setFilingSpace(filingSpaceId);
 		params.setAdministrativeUnit(adminUnitId);
 		params.setSearchType(searchType);
 		try {
@@ -126,28 +119,12 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 	}
 
-	public List<SelectItemVO> getUserFilingSpaces() {
-		List<String> filingSpacesId = new DecommissioningService(collection, modelLayerFactory)
-				.getUserFilingSpaces(getCurrentUser());
-		List<FilingSpace> filingSpaces = new RMSchemasRecordsServices(collection, modelLayerFactory).getFilingSpaces(
-				filingSpacesId);
-
-		List<SelectItemVO> results = new ArrayList<>();
-		for (FilingSpace filingSpace : filingSpaces) {
-			results.add(new SelectItemVO(filingSpace.getId(), filingSpace.getTitle()));
-		}
-		return results;
-	}
-
 	public List<SelectItemVO> getAdministrativeUnits() {
-		MetadataSchema schema = rmRecordServices().administrativeUnitSchema();
-		Metadata filingSpaces = schema.getMetadata(AdministrativeUnit.FILING_SPACES);
-
-		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(schema).where(filingSpaces).isEqualTo(filingSpaceId));
-
+		User currentUser = presenterService().getCurrentUser(view.getSessionContext());
 		List<SelectItemVO> results = new ArrayList<>();
-		for (Record record : searchServices().search(query)) {
+		List<String> conceptIds = decommissioningService().getAdministrativeUnitsForUser(currentUser);
+		List<Record> concepts = recordServices().getRecordsById(currentUser.getCollection(), conceptIds);
+		for (Record record : concepts) {
 			results.add(new SelectItemVO(record.getId(), (String) record.get(Schemas.TITLE)));
 		}
 		return results;
@@ -158,11 +135,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		view.addEmptyCriterion();
 	}
 
-	public void filingSpaceSelected(String filingSpaceId) {
-		this.filingSpaceId = filingSpaceId;
-		view.updateAdministrativeUnits();
-	}
-
 	public void administrativeUnitSelected(String adminUnitId) {
 		this.adminUnitId = adminUnitId;
 	}
@@ -170,6 +142,16 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		return getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+	}
+
+	@Override
+	public MetadataVO getMetadataVO(String metadataCode) {
+		return super.getMetadataVO(metadataCode);
+	}
+
+	@Override
+	protected boolean saveSearch(String title, boolean publicAccess) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -201,12 +183,19 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	private LogicalSearchCondition selectByDecommissioningStatus() {
 		return new DecommissioningSearchConditionFactory(view.getCollection(), modelLayerFactory)
-				.bySearchType(searchType, filingSpaceId, adminUnitId);
+				.bySearchType(searchType, adminUnitId);
 	}
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
 		return new ConditionBuilder(rmRecordServices().folderSchemaType()).build(criteria);
+	}
+
+	private DecommissioningService decommissioningService() {
+		if (decommissioningService == null) {
+			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+		}
+		return decommissioningService;
 	}
 
 	private RMSchemasRecordsServices rmRecordServices() {

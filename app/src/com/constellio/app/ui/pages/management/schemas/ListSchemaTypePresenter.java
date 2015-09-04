@@ -17,9 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.management.schemas;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
@@ -28,6 +26,9 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchemaTypeView> {
 
@@ -60,5 +61,20 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 
 	public void backButtonClicked() {
 		view.navigateTo().adminModule();
+	}
+
+	public void reportButtonClicked(MetadataSchemaTypeVO schemaVO) {
+		Map<String, String> paramsMap = new HashMap<>();
+		paramsMap.put("schemaTypeCode", schemaVO.getCode());
+		String params = ParamUtils.addParams(NavigatorConfigurationService.REPORT_DISPLAY_FORM, paramsMap);
+		view.navigateTo().reportDisplayForm(params);
+	}
+
+	public boolean isSearchableSchema(String schemaCode) {
+		SchemaTypeDisplayConfig config = schemasDisplayManager().getType(collection, schemaCode);
+		if (config.isAdvancedSearch()) {
+			return true;
+		}
+		return false;
 	}
 }

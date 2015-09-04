@@ -29,6 +29,7 @@ dependencies {
     compile project(":data")
     compile project(":model")
 
+
     compile "com.cybozu.labs:langdetect:1.1-20120112"
     compile "org.glassfish:javax.json:1.0.4"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:2.13"
@@ -67,11 +68,15 @@ dependencies {
     compile "org.vaadin.addons:dom:0.1.0"
     compile "org.vaadin.addons:listbuilder:0.7.3.v7"
     compile "org.vaadin.addons:contextmenu:4.5"
+    compile "com.google.code.gson:gson:1.7.2"
+    compile files("libs/jcifs_gcm_322.jar")
+    compile files("libs/vaadin-breadcrumb-1.7.3.jar")
+
 }
 
 war {
     baseName = "constellio-app"
-    version = "5.0.6.1"
+    version = "5.1.0.0"
 
     webInf {
         from 'WebContent/'
@@ -99,5 +104,5 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '5.0.6.1'
+    version = '5.1.0.0'
 }

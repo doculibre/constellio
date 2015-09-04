@@ -17,19 +17,19 @@ dao.contents.type=filesystem
 dao.settings.type=filesystem
 
 # === RUN/SKIP TESTS CONFIGURATION ===
-skip.realTests=false
-skip.slowtests=false
-skip.drivertests=false
-skip.uitests=false
+skip.slowtests=true
+skip.uitests=true
+skip.drivertests=true
 skip.loadtests=true
-skip.alltests=false
 skip.indevelopment=true
+skip.importtests=true
 run.performancetests=false
 
 #tests.whitelist=com.constellio.app*
+#tests.blacklist=com.constellio.app.modules.rm.services.decommissioning.DecommissioningService_tawmas_AcceptTest
 
-validateTransactionLog=true
-validateDataIntegrity=true
+validateTransactionLog=false
+validateDataIntegrity=false
 bruteForceRMSecurityTest=false
 
 # === MASSIVE BIGVAULT LOGGER (empty bigVaultLogger_loggedFields => all fields)

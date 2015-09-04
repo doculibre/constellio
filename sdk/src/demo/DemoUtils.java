@@ -51,7 +51,7 @@ public class DemoUtils {
 
 		File configFile = new FoldersLocator().getConstellioProperties();
 		Map<String, String> configs = PropertyFileUtils.loadKeyValues(configFile);
-		String solrUrl = new PropertiesDataLayerConfiguration(configs, null, null).getRecordsDaoHttpSolrServerUrl();
+		String solrUrl = new PropertiesDataLayerConfiguration(configs, null, null, null).getRecordsDaoHttpSolrServerUrl();
 
 		clearDataIn(solrUrl + "records");
 		clearDataIn(solrUrl + "events");
@@ -102,7 +102,7 @@ public class DemoUtils {
 		FileUtils.write(setupProperties, setupPropertiesContent);
 
 		File appData = getAppData();
-		TestConstellioFactoriesDecorator decorator = new TestConstellioFactoriesDecorator();
+		TestConstellioFactoriesDecorator decorator = new TestConstellioFactoriesDecorator(true);
 		decorator.setSetupProperties(setupProperties);
 		decorator.setImportationFolder(new File(appData, "importation"));
 		decorator.setConfigManagerFolder(new File(appData, "settings"));

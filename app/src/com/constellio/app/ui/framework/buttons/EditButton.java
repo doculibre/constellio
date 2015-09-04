@@ -25,7 +25,7 @@ import com.vaadin.server.ThemeResource;
 @SuppressWarnings("serial")
 public abstract class EditButton extends IconButton {
 
-	public static final Resource ICON_RESOURCE = new ThemeResource("images/commun/modifier.gif");
+	public static final Resource ICON_RESOURCE = new ThemeResource("images/icons/actions/notebook_edit.png");
 	
 	public static final String BUTTON_STYLE = "edit-button";
 	

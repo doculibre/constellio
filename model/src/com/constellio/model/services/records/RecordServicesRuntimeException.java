@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.utils.LoggerUtils;
+
 @SuppressWarnings("serial")
 public class RecordServicesRuntimeException extends RuntimeException {
 
@@ -53,10 +56,25 @@ public class RecordServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class NoSuchRecordWithMetadataValue extends RecordServicesRuntimeException {
+
+		public NoSuchRecordWithMetadataValue(String metadataCode, String metadataValue) {
+			super("No such record with value '" + metadataValue + "' for metadata '" + metadataCode + "'");
+		}
+	}
+
 	public static class UserCannotReadDocument extends RecordServicesRuntimeException {
 
 		public UserCannotReadDocument(String id, String username) {
 			super("User " + username + " is not authorized to read document " + id + ".");
+		}
+	}
+
+	public static class UnresolvableOptimsiticLockingCausingInfiniteLoops extends RecordServicesRuntimeException {
+
+		public UnresolvableOptimsiticLockingCausingInfiniteLoops(TransactionDTO transaction) {
+			super("Transaction is causing unresolvable optimistic locking (causing an infinite loop) : " +
+					LoggerUtils.toString(transaction));
 		}
 	}
 
@@ -83,6 +101,15 @@ public class RecordServicesRuntimeException extends RuntimeException {
 		public RecordServicesRuntimeException_CannotLogicallyDeleteRecord(String recordId) {
 			this(recordId, null);
 		}
+	}
+
+	public static class RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache
+			extends RecordServicesRuntimeException {
+
+		public RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache(String type, String recordId) {
+			super("Cannot delay the flushing of a record of type '" + type + "' that may be in a cache : '" + recordId + "'");
+		}
+
 	}
 
 	public static class RecordServicesRuntimeException_CannotPhysicallyDeleteRecord extends RecordServicesRuntimeException {

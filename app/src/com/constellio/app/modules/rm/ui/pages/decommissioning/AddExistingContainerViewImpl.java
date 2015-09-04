@@ -39,6 +39,7 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 
 	public AddExistingContainerViewImpl() {
 		presenter = new AddExistingContainerPresenter(this);
+		presenter.resetFacetAndOrder();
 		criteria = new AdvancedSearchCriteriaComponent(presenter);
 	}
 
@@ -113,7 +114,7 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 			}
 		});
 
-		return results.createSummary(addContainers);
+		return results.createSummary(null, addContainers);
 	}
 
 	@Override

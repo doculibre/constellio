@@ -31,6 +31,8 @@ public class LayerFactory {
 
 	private List<StatefulService> statefulServices = new ArrayList<>();
 
+	private boolean initializing;
+
 	public LayerFactory(StatefullServiceDecorator statefullServiceDecorator) {
 		this.statefullServiceDecorator = statefullServiceDecorator;
 	}
@@ -41,18 +43,25 @@ public class LayerFactory {
 	}
 
 	public <T extends StatefulService> T add(T statefullService) {
+		if (initializing) {
+			throw new IllegalStateException("Cannot add stateful service during initialization");
+		}
 		T decoratedService = statefullServiceDecorator.decorate(statefullService);
 		statefulServices.add(decoratedService);
 		return decoratedService;
 	}
 
 	public void initialize() {
+
+		initializing = true;
 		if (bottomLayerFactory != null) {
 			bottomLayerFactory.initialize();
 		}
-		for (StatefulService statefulService : statefulServices) {
+		List<StatefulService> statefulServiceListCopy = new ArrayList<>(statefulServices);
+		for (StatefulService statefulService : statefulServiceListCopy) {
 			statefulService.initialize();
 		}
+		initializing = false;
 	}
 
 	public void close() {

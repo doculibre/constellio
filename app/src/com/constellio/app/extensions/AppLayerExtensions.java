@@ -27,7 +27,7 @@ public class AppLayerExtensions {
 	Map<String, AppLayerCollectionExtensions> collectionExtensions = new HashMap<>();
 
 	AppLayerSystemExtensions systemWideExtensions = new AppLayerSystemExtensions();
-	
+
 	public AppLayerCollectionExtensions forCollection(String collection) {
 		if (!collectionExtensions.containsKey(collection)) {
 			collectionExtensions.put(collection, new AppLayerCollectionExtensions());
@@ -37,6 +37,10 @@ public class AppLayerExtensions {
 
 	public AppLayerCollectionExtensions forCollectionOf(CollectionObject collectionObject) {
 		return forCollection(collectionObject.getCollection());
+	}
+
+	public AppLayerSystemExtensions getSystemWideExtensions() {
+		return systemWideExtensions;
 	}
 
 }

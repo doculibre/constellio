@@ -53,19 +53,19 @@ public class UserCredentialsReader {
 		this.document = document;
 	}
 
-	public Map<String, UserCredential> readAll() {
+	public Map<String, UserCredential> readAll(List<String> collections) {
 		UserCredential userCredential;
 		Map<String, UserCredential> usersCredentials = new HashMap<>();
 		Element usersCredentialsElements = document.getRootElement();
 		for (Element userCredentialElement : usersCredentialsElements.getChildren()) {
-			userCredential = createUserCredentialObject(userCredentialElement);
+			userCredential = createUserCredentialObject(userCredentialElement, collections);
 
 			usersCredentials.put(toCacheKey(userCredential.getUsername()), userCredential);
 		}
 		return usersCredentials;
 	}
 
-	private UserCredential createUserCredentialObject(Element userCredentialElement) {
+	private UserCredential createUserCredentialObject(Element userCredentialElement, List<String> allCollections) {
 		UserCredential userCredential;
 		String username = userCredentialElement.getAttributeValue(USERNAME);
 		String firstName = userCredentialElement.getChildText(FIRST_NAME);
@@ -92,7 +92,9 @@ public class UserCredentialsReader {
 		Element collectionsElements = userCredentialElement.getChild(COLLECTIONS);
 		List<String> collections = new ArrayList<>();
 		for (Element collectionElement : collectionsElements.getChildren()) {
-			collections.add(collectionElement.getText());
+			if (allCollections.contains(collectionElement.getText())) {
+				collections.add(collectionElement.getText());
+			}
 		}
 		UserCredentialStatus status;
 		String statusStr = userCredentialElement.getChildText(STATUS);

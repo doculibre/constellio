@@ -20,11 +20,15 @@ package com.constellio.sdk.tests;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesImpl;
 
 public class MockedFactories {
 
@@ -32,8 +36,11 @@ public class MockedFactories {
 	AppLayerFactory appLayerFactory;
 	ModelLayerFactory modelLayerFactory;
 	DataLayerFactory dataLayerFactory;
+	AppLayerExtensions appExtensions;
+	AppLayerCollectionExtensions appCollectionExtensions;
+	AppLayerSystemExtensions appSystemExtensions;
 
-	RecordServices recordServices;
+	RecordServicesImpl recordServices;
 
 	public MockedFactories() {
 		constellioFactories = mock(ConstellioFactories.class, "constellioFactories");
@@ -41,9 +48,20 @@ public class MockedFactories {
 		modelLayerFactory = mock(ModelLayerFactory.class, "modelLayerFactory");
 		dataLayerFactory = mock(DataLayerFactory.class, "dataLayerFactory");
 
+		appExtensions = mock(AppLayerExtensions.class, "appExtensions");
+		appCollectionExtensions = mock(AppLayerCollectionExtensions.class, "appCollectionExtensions");
+		appSystemExtensions = mock(AppLayerSystemExtensions.class, "appSystemExtensions");
+
 		when(constellioFactories.getAppLayerFactory()).thenReturn(appLayerFactory);
 		when(constellioFactories.getModelLayerFactory()).thenReturn(modelLayerFactory);
 		when(constellioFactories.getDataLayerFactory()).thenReturn(dataLayerFactory);
+
+		when(appLayerFactory.getModelLayerFactory()).thenReturn(modelLayerFactory);
+		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
+
+		when(appLayerFactory.getExtensions()).thenReturn(appExtensions);
+		when(appExtensions.getSystemWideExtensions()).thenReturn(appSystemExtensions);
+		when(appExtensions.forCollection("zeCollection")).thenReturn(appCollectionExtensions);
 	}
 
 	public ConstellioFactories getConstellioFactories() {
@@ -65,7 +83,7 @@ public class MockedFactories {
 	public RecordServices getRecordServices() {
 
 		if (recordServices == null) {
-			recordServices = mock(RecordServices.class, "recordServices");
+			recordServices = mock(RecordServicesImpl.class, "recordServices");
 			when(modelLayerFactory.newRecordServices()).thenReturn(recordServices);
 		}
 

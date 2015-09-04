@@ -1,0 +1,323 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.sdk.dev.tools;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.model.connectors.ConnectorType;
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.MainTest;
+
+@MainTest
+public class GenerateHelperClassAcceptTest extends ConstellioTest {
+
+	@Test
+	public void generateEnterpriseSearchSchemas()
+			throws Exception {
+		givenCollection(zeCollection).withConstellioESModule();
+
+		Map<String, Class<? extends RecordWrapper>> wrappers = new HashMap<>();
+
+		// Commons
+		wrappers.put(ConnectorType.DEFAULT_SCHEMA, ConnectorType.class);
+		wrappers.put(ConnectorInstance.DEFAULT_SCHEMA, ConnectorInstance.class);
+
+		// HTTP
+		wrappers.put(ConnectorHttpInstance.SCHEMA_CODE, ConnectorHttpInstance.class);
+		wrappers.put(ConnectorHttpDocument.DEFAULT_SCHEMA, ConnectorHttpDocument.class);
+
+		// SMB
+		wrappers.put(ConnectorSmbInstance.SCHEMA_CODE, ConnectorSmbInstance.class);
+		wrappers.put(ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.class);
+		wrappers.put(ConnectorSmbFolder.DEFAULT_SCHEMA, ConnectorSmbFolder.class);
+
+		System.out.println(header());
+
+		printGeneratedSchemas(wrappers);
+
+		System.out.println(footer());
+	}
+
+	@Test
+	public void generateTasksSchemas()
+			throws Exception {
+		givenCollection(zeCollection).withTaskModule();
+
+		Map<String, Class<? extends RecordWrapper>> wrappers = new HashMap<>();
+
+		// Task
+		wrappers.put(Task.DEFAULT_SCHEMA, Task.class);
+		wrappers.put(TaskStatus.DEFAULT_SCHEMA, TaskStatus.class);
+
+		System.out.println(header());
+
+		printGeneratedSchemas(wrappers);
+
+		System.out.println(footer());
+	}
+
+	private void printGeneratedSchemas(Map<String, Class<? extends RecordWrapper>> wrappers)
+			throws Exception {
+
+		StringBuilder stringBuilder = new StringBuilder();
+
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+
+			MetadataSchema defaultSchema = type.getDefaultSchema();
+
+			Class<? extends RecordWrapper> defaultSchemaWrapperClass = wrappers.get(defaultSchema.getCode());
+			if (defaultSchemaWrapperClass != null) {
+				stringBuilder.append(generateSchemaHelperMethods(defaultSchema, defaultSchemaWrapperClass.getSimpleName()));
+				stringBuilder.append(metadatasHelperMethod(type, defaultSchema, defaultSchemaWrapperClass));
+			}
+
+			for (MetadataSchema schema : type.getCustomSchemas()) {
+
+				Class<? extends RecordWrapper> wrapperClass = wrappers.get(schema.getCode());
+
+				if (wrapperClass != null) {
+					stringBuilder.append(generateSchemaHelperMethods(schema, wrapperClass.getSimpleName()));
+					stringBuilder.append(metadatasHelperMethod(type, schema, wrapperClass));
+				}
+
+			}
+		}
+		System.out.println(stringBuilder.toString());
+	}
+
+	private String generateSchemaHelperMethods(MetadataSchema schema, String wrapperName) {
+		StringBuilder stringBuilder = new StringBuilder();
+
+		appendWrapElementHelperMethod(schema, wrapperName, stringBuilder);
+		appendWrapElementsHelperMethod(schema, wrapperName, stringBuilder);
+		appendSearchByQueryElementsHelperMethod(schema, wrapperName, stringBuilder);
+		appendSearchByConditionElementsHelperMethod(schema, wrapperName, stringBuilder);
+		appendGetByIdHelperMethod(schema, wrapperName, stringBuilder);
+		appendGetByIdsHelperMethod(schema, wrapperName, stringBuilder);
+
+		if (schema.hasMetadataWithCode("code")) {
+			appendGetByCodeHelperMethod(schema, wrapperName, stringBuilder);
+		}
+
+		appendGetByLegacyIdHelperMethod(schema, wrapperName, stringBuilder);
+		appendNewHelperMethod(schema, wrapperName, stringBuilder);
+		appendNewWithIdHelperMethod(schema, wrapperName, stringBuilder);
+		return stringBuilder.toString();
+	}
+
+	private void appendGetByCodeHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+
+		String schemaTypeCall = schemaTypeCallerFor(schema);
+
+		stringBuilder.append("\n\tpublic " + wrapperName + " get" + wrapperName + "WithCode(String code) {");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "(getByCode(" + schemaTypeCall + ", code));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendNewHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+
+		String schemaCall = schemaCallerFor(schema);
+
+		stringBuilder.append("\n\tpublic " + wrapperName + " new" + wrapperName + "() {");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "(create(" + schemaCall + "));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private String schemaCallerFor(MetadataSchema schema) {
+		if (schema.getLocalCode().equals("default")) {
+			return new SchemaUtils().getSchemaTypeCode(schema.getCode()) + ".schema()";
+		} else {
+			return schema.getCode() + ".schema()";
+		}
+	}
+
+	private String schemaTypeCallerFor(MetadataSchema schema) {
+		return new SchemaUtils().getSchemaTypeCode(schema.getCode()) + ".schemaType()";
+	}
+
+	private void appendNewWithIdHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+
+		String schemaCall = schemaCallerFor(schema);
+
+		stringBuilder.append("\n\tpublic " + wrapperName + " new" + wrapperName + "WithId(String id) {");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "(create(" + schemaCall + ", id));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendGetByLegacyIdHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+
+		String schemaTypeCall = schemaTypeCallerFor(schema);
+
+		stringBuilder.append("\n\tpublic " + wrapperName + " get" + wrapperName + "WithLegacyId(String legacyId) {");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "(getByLegacyId(" + schemaTypeCall + ",  legacyId));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendGetByIdHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+
+		stringBuilder.append("\n\tpublic " + wrapperName + " get" + wrapperName + "(String id) {");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "(get(id));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendGetByIdsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+
+		stringBuilder.append("\n\tpublic List<" + wrapperName + "> get" + wrapperName + "s(List<String> ids) {");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "s(get(ids));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendWrapElementHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+
+		stringBuilder.append("\n\tpublic " + wrapperName + " wrap" + wrapperName + "(Record record) {");
+		stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes());");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendWrapElementsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+		stringBuilder.append("\n\tpublic List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records) {");
+		stringBuilder.append("\n\t\tList<" + wrapperName + "> wrapped = new ArrayList<>();");
+		stringBuilder.append("\n\t\tfor (Record record : records) {");
+		stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes()));");
+		stringBuilder.append("\n\t\t}\n");
+
+		stringBuilder.append("\n\t\treturn wrapped;");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendSearchByQueryElementsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+		stringBuilder.append("\n\tpublic List<" + wrapperName + "> search" + wrapperName + "s(LogicalSearchQuery query) {");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName
+				+ "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendSearchByConditionElementsHelperMethod(MetadataSchema schema, String wrapperName,
+			StringBuilder stringBuilder) {
+		stringBuilder
+				.append("\n\tpublic List<" + wrapperName + "> search" + wrapperName + "s(LogicalSearchCondition condition) {");
+
+		stringBuilder.append("\n\t\tMetadataSchemaType type = " + schemaTypeCallerFor(schema) + ";");
+		stringBuilder
+				.append("\n\t\tLogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));");
+		stringBuilder.append("\n\t\treturn wrap" + wrapperName
+				+ "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private String metadatasHelperMethod(MetadataSchemaType type, MetadataSchema schema,
+			Class<? extends RecordWrapper> recordWrapperClass)
+			throws Exception {
+
+		StringBuilder stringBuilder = new StringBuilder();
+		Map<String, String> wrapperDeclaredFields = getDeclaredFields(recordWrapperClass);
+
+		String shortcutClass, shortcutExtendsClass, variableName;
+		boolean customSchema;
+		if (schema.getLocalCode().equals("default")) {
+			shortcutClass = "SchemaTypeShortcuts_" + schema.getCode();
+			shortcutExtendsClass = "SchemaTypeShortcuts";
+			variableName = type.getCode();
+			customSchema = false;
+		} else {
+			shortcutClass = "SchemaTypeShortcuts_" + schema.getCode();
+			shortcutExtendsClass = "SchemaTypeShortcuts_" + type.getCode() + "_default";
+			variableName = schema.getCode();
+			customSchema = true;
+		}
+
+		stringBuilder.append("\n\tpublic final " + shortcutClass + " " + variableName + "\n\t\t = new " + shortcutClass + "(\""
+				+ schema.getCode() + "\");");
+		stringBuilder.append("\n\tpublic class " + shortcutClass + " extends " + shortcutExtendsClass + " {");
+
+		stringBuilder.append("\n\t\tprotected " + shortcutClass + "(String schemaCode) {");
+		stringBuilder.append("\n\t\t\tsuper(schemaCode);");
+		stringBuilder.append("\n\t}");
+
+		for (Metadata metadata : schema.getMetadatas()) {
+			if (metadata.getInheritance() == null && (customSchema || wrapperDeclaredFields
+					.containsKey(metadata.getLocalCode()))) {
+				stringBuilder.append("\n");
+				stringBuilder.append("\n\t\tpublic Metadata " + metadata.getLocalCode() + "() {");
+				stringBuilder.append("\n\t\t\treturn metadata(\"" + metadata.getLocalCode() + "\");");
+				stringBuilder.append("\n\t\t}");
+			}
+		}
+
+		stringBuilder.append("\n\t}");
+
+		return stringBuilder.toString();
+
+	}
+
+	private Map<String, String> getDeclaredFields(Class<? extends RecordWrapper> recordWrapperClass)
+			throws Exception {
+
+		Map<String, String> declaredFields = new HashMap<>();
+		for (Field field : recordWrapperClass.getDeclaredFields()) {
+			if (Modifier.isPublic(field.getModifiers()) && Modifier.isStatic(field.getModifiers()) && String.class
+					.equals(field.getType())) {
+
+				String value = (String) field.get(null);
+				declaredFields.put(value, field.getName());
+
+			}
+		}
+
+		return declaredFields;
+	}
+
+	private String header() {
+		String line = "/** " + StringUtils.repeat("** ", 25) + "**/";
+		return line + "\n\t\t// Auto-generated methods by GenerateHelperClassAcceptTest -- start\n" + line + "\n\n";
+	}
+
+	private String footer() {
+		String line = "/** " + StringUtils.repeat("** ", 25) + "**/";
+		return line + "\n\t\t// Auto-generated methods by GenerateHelperClassAcceptTest -- end\n" + line + "\n\n";
+	}
+
+	private static interface SchemasFilter {
+
+		public boolean isGenerated(Metadata metadata);
+
+	}
+
+}

@@ -174,7 +174,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 
 		File zipFile = new File(newTempFolder(), "file.zip");
 		SystemStateExportParams params = new SystemStateExportParams();
-		params.setOnlyExportContentOfRecords(asList(document1Id, rmTestRecords.filingId_A));
+		params.setOnlyExportContentOfRecords(asList(document1Id, rmTestRecords.ruleId_1));
 		new SystemStateExporter(getModelLayerFactory()).exportSystemToFile(zipFile, params);
 	}
 

@@ -57,6 +57,11 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
 	protected String getTitle() {
 		return $("DecommissioningMainView.viewTitle");
 	}
@@ -181,27 +186,30 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 
 	@Override
 	public void displayReadOnlyTable(final RecordVODataProvider dataProvider) {
-		ButtonsContainer container = buildContainer(dataProvider);
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new DisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						RecordVO entity = dataProvider.getRecordVO((int) itemId);
-						presenter.displayButtonClicked(entity);
-					}
-				};
-			}
-		});
+		if (dataProvider.size() != 0) {
+			ButtonsContainer container = buildContainer(dataProvider);
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId) {
+					return new DisplayButton() {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							RecordVO entity = dataProvider.getRecordVO((int) itemId);
+							presenter.displayButtonClicked(entity);
+						}
+					};
+				}
+			});
 
-		VerticalLayout layout = getEmptiedSelectedTab();
-		layout.addComponent(buildTable(container));
+			VerticalLayout layout = getEmptiedSelectedTab();
+			layout.addComponent(buildTable(container));
+		}
 	}
 
 	private VerticalLayout buildEmptyTab(String tabId) {
 		VerticalLayout tab = new VerticalLayout();
 		tab.setCaption($("DecommissioningMainView.tab." + tabId));
+		tab.addStyleName(tabId);
 		tab.setId(tabId);
 		tab.setSpacing(true);
 		return tab;

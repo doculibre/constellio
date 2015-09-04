@@ -208,6 +208,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 			String tabCaption;
 			if (StringUtils.isBlank(groupLabel)) {
 				tabCaption = $("BaseForm.defaultTab");
+			} else if (!groupLabel.matches("\\w.*")) {
+				tabCaption = groupLabel;
 			} else {
 				tabCaption = $("BaseForm.defaultTabIcon") + " " + groupLabel;
 			}
@@ -246,6 +248,15 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	public List<Field<?>> getFields() {
 		return fields;
+	}
+
+	public Field<?> getField(String id) {
+		for (Field<?> field : fields) {
+			if (id.equals(field.getId())) {
+				return field;
+			}
+		}
+		return null;
 	}
 
 	protected T getViewObject() {
@@ -363,7 +374,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	}
 
-	private static interface FieldBinder extends Serializable {
+	private interface FieldBinder extends Serializable {
 
 		void bind(FieldGroup fieldGroup);
 

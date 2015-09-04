@@ -65,18 +65,23 @@ public class ConstellioAgentUtils {
 			Page page = Page.getCurrent();
 			URI location = page.getLocation();
 			String contextPath = VaadinServlet.getCurrent().getServletContext().getContextPath();
-			
-			String schemeSpecificPart = location.getSchemeSpecificPart();
+
+			String schemeSpecificPart = location.getSchemeSpecificPart().substring(2);
 			String schemeSpecificPartBeforeContextPath;
 			if (StringUtils.isNotBlank(contextPath)) {
-				schemeSpecificPartBeforeContextPath = StringUtils.substringBeforeLast(schemeSpecificPart, contextPath);
+				if (schemeSpecificPart.indexOf(contextPath) != -1) {
+					schemeSpecificPartBeforeContextPath = StringUtils.substringBeforeLast(schemeSpecificPart, contextPath);
+				} else {
+					contextPath = null;
+					schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
+				}
 			} else {
 				schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
 			}
 
 			StringBuffer sb = new StringBuffer();
 			sb.append(location.getScheme());
-			sb.append(":");
+			sb.append("://");
 			sb.append(schemeSpecificPartBeforeContextPath);
 			if (StringUtils.isNotBlank(contextPath)) {
 				sb.append(contextPath);
@@ -217,6 +222,33 @@ public class ConstellioAgentUtils {
 			throw new RuntimeException(e);
 		}
 		return version;
+	}
+	
+	public static void main(String[] args) throws Exception {
+		URI location = new URI("http://constellio.doculibre.com/#!agentSetup");
+		String contextPath = "/constellio";
+		String schemeSpecificPart = location.getSchemeSpecificPart().substring(2);
+		String schemeSpecificPartBeforeContextPath;
+		if (StringUtils.isNotBlank(contextPath)) {
+			if (schemeSpecificPart.indexOf(contextPath) != -1) {
+				schemeSpecificPartBeforeContextPath = StringUtils.substringBeforeLast(schemeSpecificPart, contextPath);
+			} else {
+				contextPath = null;
+				schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
+			}
+		} else {
+			schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
+		}
+
+		StringBuffer sb = new StringBuffer();
+		sb.append(location.getScheme());
+		sb.append("://");
+		sb.append(schemeSpecificPartBeforeContextPath);
+		if (StringUtils.isNotBlank(contextPath)) {
+			sb.append(contextPath);
+		}
+		sb.append("/agentPath");
+		System.out.println(sb);
 	}
 
 }

@@ -51,6 +51,7 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
@@ -66,10 +67,14 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		this.schemaCode = schemaCode;
 	}
 
+	@Deprecated
+	//Keep the schema code outside of this class
 	public final String getSchemaCode() {
 		return schemaCode;
 	}
 
+	@Deprecated
+	//Keep the schema code outside of this class
 	public final void setSchemaCode(String schemaCode) {
 		this.schemaCode = schemaCode;
 	}
@@ -281,8 +286,15 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		return content;
 	}
 
+	@Deprecated
+	//Use schema(code) instead
 	public final MetadataSchema schema() {
 		return schema(schemaCode);
+	}
+
+	public final MetadataSchema defaultSchema() {
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		return schemaType(schemaTypeCode).getDefaultSchema();
 	}
 
 }

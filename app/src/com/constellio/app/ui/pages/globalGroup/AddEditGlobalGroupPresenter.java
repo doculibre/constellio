@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,9 +33,11 @@ import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 
@@ -43,10 +46,12 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 	private static final Logger LOGGER = LoggerFactory.getLogger(AddEditGlobalGroupPresenter.class);
 	transient UserServices userServices;
 	private transient CollectionsListManager collectionsListManager;
-	private boolean actionEdit = false;
+	private transient LoggingServices loggingServices;
+	private boolean editMode = false;
 	private Map<String, String> paramsMap;
 	private String code;
 	private String breadCrumb;
+	private Set<String> collections;
 
 	public AddEditGlobalGroupPresenter(AddEditGlobalGroupView view) {
 		super(view);
@@ -62,23 +67,26 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 	private void init() {
 		userServices = modelLayerFactory.newUserServices();
 		collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		loggingServices = modelLayerFactory.newLoggingServices();
 	}
 
 	public GlobalGroupVO getGlobalGroupVO(String code) {
 		GlobalGroup globalGroup = null;
 		if (StringUtils.isNotBlank(code)) {
-			actionEdit = true;
+			editMode = true;
 			this.code = code;
 			globalGroup = userServices.getGroup(code);
 		}
 		GlobalGroupToVOBuilder voBuilder = new GlobalGroupToVOBuilder();
-		return globalGroup != null ? voBuilder.build(globalGroup) : new GlobalGroupVO();
+		GlobalGroupVO globalGroupVO = globalGroup != null ? voBuilder.build(globalGroup) : new GlobalGroupVO();
+		collections = globalGroupVO.getCollections();
+		return globalGroupVO;
 	}
 
 	public void saveButtonClicked(GlobalGroupVO entity) {
 		String code = entity.getCode();
 
-		if (getActionEdit()) {
+		if (isEditMode()) {
 			if (!getCode().equals(code)) {
 				view.showErrorMessage("Cannot change code");
 				return;
@@ -95,6 +103,20 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		}
 		GlobalGroup globalGroup = toGlobalGroup(entity);
 		userServices.addUpdateGlobalGroup(globalGroup);
+
+		if (!isEditMode()) {
+			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
+				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
+				loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
+			}
+		} else {
+			for (String collection : globalGroup.getUsersAutomaticallyAddedToCollections()) {
+				Group group = userServices.getGroupInCollection(entity.getCode(), collection);
+				if (entity.getCollections().contains(collection) && !collections.contains(collection)) {
+					loggingServices.addUserOrGroup(group.getWrappedRecord(), getCurrentUser(), collection);
+				}
+			}
+		}
 
 		navigateToBackPage();
 	}
@@ -113,8 +135,8 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		navigateToBackPage();
 	}
 
-	public boolean getActionEdit() {
-		return actionEdit;
+	public boolean isEditMode() {
+		return editMode;
 	}
 
 	public String getCode() {

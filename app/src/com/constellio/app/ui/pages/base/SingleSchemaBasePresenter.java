@@ -116,7 +116,17 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 		return schemaPresenterUtils.toContent(contentVersionVO, newMinorEmpty);
 	}
 
+	@Deprecated
+	//Use schema(schemaCode) instead
 	protected MetadataSchema schema() {
 		return schemaPresenterUtils.schema();
+	}
+
+	protected MetadataSchema schema(String schemaCode) {
+		return schemaPresenterUtils.schema(schemaCode);
+	}
+
+	protected MetadataSchema defaultSchema() {
+		return schemaPresenterUtils.defaultSchema();
 	}
 }

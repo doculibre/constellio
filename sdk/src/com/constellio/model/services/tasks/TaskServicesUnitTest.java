@@ -37,7 +37,7 @@ import org.mockito.Mockito;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ApprovalTask;
-import com.constellio.model.entities.records.wrappers.Task;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -65,7 +65,8 @@ public class TaskServicesUnitTest extends ConstellioTest {
 	@Mock Metadata workflowIdMetadata;
 	@Mock LogicalSearchCondition condition;
 	@Mock Record record;
-	@Mock Task task;
+	@Mock
+	WorkflowTask task;
 	@Mock ApprovalTask approvalTask;
 	@Mock User user;
 	@Mock WorkflowExecution execution;
@@ -79,9 +80,9 @@ public class TaskServicesUnitTest extends ConstellioTest {
 		when(execution.getCollection()).thenReturn(zeCollection);
 		when(execution.getVariables()).thenReturn(new HashMap<String, String>());
 		when(metadataSchemasManager.getSchemaTypes(zeCollection)).thenReturn(metadataSchemaTypes);
-		when(metadataSchemaTypes.getSchemaType(Task.SCHEMA_TYPE)).thenReturn(metadataSchemaType);
+		when(metadataSchemaTypes.getSchemaType(WorkflowTask.SCHEMA_TYPE)).thenReturn(metadataSchemaType);
 		when(metadataSchemaType.getDefaultSchema()).thenReturn(defaultSchema);
-		when(defaultSchema.getMetadata(Task.WORKFLOW_ID)).thenReturn(workflowIdMetadata);
+		when(defaultSchema.getMetadata(WorkflowTask.WORKFLOW_ID)).thenReturn(workflowIdMetadata);
 
 		taskServices = spy(new TaskServices(recordServices, searchServices, workflowExecutionService, metadataSchemasManager));
 
@@ -94,7 +95,7 @@ public class TaskServicesUnitTest extends ConstellioTest {
 	@Test
 	public void whenNewTaskThenReturnIt()
 			throws Exception {
-		when(record.getSchemaCode()).thenReturn(Task.SCHEMA_TYPE);
+		when(record.getSchemaCode()).thenReturn(WorkflowTask.SCHEMA_TYPE);
 
 		taskServices.newRelativeTask(record, metadataSchemaTypes);
 
@@ -125,9 +126,9 @@ public class TaskServicesUnitTest extends ConstellioTest {
 
 		inOrder.verify(execution).getCollection();
 		inOrder.verify(metadataSchemasManager).getSchemaTypes(zeCollection);
-		inOrder.verify(metadataSchemaTypes).getSchemaType(Task.SCHEMA_TYPE);
+		inOrder.verify(metadataSchemaTypes).getSchemaType(WorkflowTask.SCHEMA_TYPE);
 		inOrder.verify(metadataSchemaType).getDefaultSchema();
-		inOrder.verify(defaultSchema).getMetadata(Task.WORKFLOW_ID);
+		inOrder.verify(defaultSchema).getMetadata(WorkflowTask.WORKFLOW_ID);
 		inOrder.verify(searchServices).searchSingleResult(condition);
 		inOrder.verify(taskServices).newRelativeTask(record, metadataSchemaTypes);
 	}
@@ -137,7 +138,7 @@ public class TaskServicesUnitTest extends ConstellioTest {
 			throws Exception {
 		when(searchServices.searchSingleResult(condition)).thenReturn(null);
 
-		Task retrievedTask = taskServices.getCurrentWorkflowManualTask(execution);
+		WorkflowTask retrievedTask = taskServices.getCurrentWorkflowManualTask(execution);
 
 		assertThat(retrievedTask).isNull();
 	}
@@ -171,8 +172,8 @@ public class TaskServicesUnitTest extends ConstellioTest {
 		taskServices.finish(task, user);
 
 		InOrder inOrder = Mockito.inOrder(task, taskSchema, recordServices, workflowExecutionService);
-		inOrder.verify(task).set(Task.FINISHED_BY, user.getId());
-		inOrder.verify(task).set(eq(Task.FINISHED_ON), any(LocalDateTime.class));
+		inOrder.verify(task).set(WorkflowTask.FINISHED_BY, user.getId());
+		inOrder.verify(task).set(eq(WorkflowTask.FINISHED_ON), any(LocalDateTime.class));
 		inOrder.verify(recordServices).update(task);
 		inOrder.verify(task).getWorkflowId();
 		return inOrder;

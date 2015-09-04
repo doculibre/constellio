@@ -290,4 +290,13 @@ public class Transaction {
 	public Record getReferencedRecord(String id) {
 		return referencedRecords.get(id);
 	}
+
+	public static Transaction wrappers(List<? extends RecordWrapper> recordWrappers) {
+		List<Record> records = new ArrayList<>();
+		for (RecordWrapper recordWrapper : recordWrappers) {
+			records.add(recordWrapper.getWrappedRecord());
+		}
+
+		return new Transaction(records);
+	}
 }

@@ -171,7 +171,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
-		table.setColumnWidth("buttons", 160);
+		table.setColumnWidth("buttons", 158);
 		int tableSize = batchSize;
 		if (tableSize > table.size()) {
 			tableSize = table.size();
@@ -231,7 +231,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		table.setColumnHeader("code", $("ListCollectionUserView.groupCodeColumn"));
 		table.setColumnHeader("name", $("ListCollectionUserView.groupNameColumn"));
 		table.setColumnWidth("", 120);
-		table.setColumnWidth("buttons", 160);
+		table.setColumnWidth("buttons", 158);
 		int tableSize = batchSize;
 		if (tableSize > table.getItemIds().size()) {
 			tableSize = table.getItemIds().size();
@@ -266,7 +266,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
 						RecordVO entity = dataProvider.getRecordVO(index);
-						presenter.authorizationsButtonClicked(entity);
+						presenter.accessAuthorizationsButtonClicked(entity);
 					}
 				};
 			}
@@ -325,7 +325,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
 						GlobalGroupVO entity = dataProvider.getGlobalGroupVO(index);
-						presenter.authorizationsGlobalGroupButtonClicked(entity);
+						presenter.accessAuthorizationsGlobalGroupButtonClicked(entity);
 					}
 				};
 			}

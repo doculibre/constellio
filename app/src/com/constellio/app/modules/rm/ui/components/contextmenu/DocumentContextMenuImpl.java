@@ -22,7 +22,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import com.constellio.app.modules.rm.ui.entities.ComponentState;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -31,6 +30,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
@@ -54,8 +54,10 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean deleteDocumentButtonVisible;
 	private boolean addAuthorizationButtonVisible;
 	private boolean shareDocumentButtonVisible;
+	private boolean createPDFAButtonVisible;
 	private boolean uploadButtonVisible;
 	private boolean checkInButtonVisible;
+	private boolean alertWhenAvailableButtonVisible;
 	private boolean checkOutButtonVisible;
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
@@ -168,6 +170,16 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			});
 		}
 
+		if (createPDFAButtonVisible) {
+			ContextMenuItem createPDFA = addItem($("DocumentActionsComponent.createPDFA"));
+			createPDFA.addItemClickListener(new BaseContextMenuItemClickListener() {
+				@Override
+				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
+					presenter.createPDFA();
+				}
+			});
+		}
+
 		if (shareDocumentButtonVisible) {
 			ContextMenuItem shareDocument = addItem($("DocumentActionsComponent.shareDocument"));
 			shareDocument.addItemClickListener(new BaseContextMenuItemClickListener() {
@@ -194,6 +206,16 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 					presenter.checkInButtonClicked();
+				}
+			});
+		}
+
+		if (alertWhenAvailableButtonVisible) {
+			ContextMenuItem alertWhenAvailableButton = addItem($("RMObject.alertWhenAvailable"));
+			alertWhenAvailableButton.addItemClickListener(new BaseContextMenuItemClickListener() {
+				@Override
+				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
+					presenter.alertWhenAvailable();
 				}
 			});
 		}
@@ -293,6 +315,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public void setCreatePDFAButtonState(ComponentState state) {
+		createPDFAButtonVisible = state.isEnabled();
+	}
+
+	@Override
 	public void setShareDocumentButtonState(ComponentState state) {
 		shareDocumentButtonVisible = state.isEnabled();
 	}
@@ -305,6 +332,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	@Override
 	public void setCheckInButtonState(ComponentState state) {
 		checkInButtonVisible = state.isEnabled();
+	}
+
+	@Override
+	public void setAlertWhenAvailableButtonState(ComponentState state) {
+		alertWhenAvailableButtonVisible = state.isEnabled();
 	}
 
 	@Override

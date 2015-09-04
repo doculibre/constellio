@@ -110,7 +110,7 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
-				return new DeleteButton() {
+				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						Integer index = (Integer) itemId;
@@ -118,6 +118,7 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 						presenter.deleteButtonClicked(entity);
 					}
 				};
+				return deleteButton;
 			}
 		});
 		recordsContainer = buttonsContainer;

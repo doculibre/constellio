@@ -34,6 +34,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -161,7 +162,7 @@ public class ListAddRemoveFieldAcceptanceTest extends ConstellioTest {
 		RMTestRecords records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
 
 		DummyProperty<String> dummyReferenceProperty = new DummyProperty<>(new ArrayList<String>());
-		ListAddRemoveRecordComboBox addRemoveLookupField = new ListAddRemoveRecordComboBox(FilingSpace.DEFAULT_SCHEMA);
+		ListAddRemoveRecordComboBox addRemoveLookupField = new ListAddRemoveRecordComboBox(RetentionRule.DEFAULT_SCHEMA);
 		addRemoveLookupField.setPropertyDataSource(dummyReferenceProperty);
 		addRemoveLookupField.setStyleName("zeDisplay");
 		addRemoveLookupField.setCaption("ListAddRemoveLookupField");
@@ -235,33 +236,33 @@ public class ListAddRemoveFieldAcceptanceTest extends ConstellioTest {
 	private void validateCanAddRemoveRecordsUsingDropDownValuesIn(String style, RMTestRecords records) {
 		ListAddRemoveDropDownWebElement addRemoveField = new ListAddRemoveDropDownWebElement(driver.find(style));
 
-		addRemoveField.add(records.getFilingA().getTitle());
-		assertThat(addRemoveField.getValues()).containsOnlyOnce(records.getFilingA().getTitle());
+		addRemoveField.add(records.getRule1().getTitle());
+		assertThat(addRemoveField.getValues()).containsOnlyOnce(records.getRule1().getTitle());
 
-		addRemoveField.add(records.getFilingB().getTitle());
-		assertThat(addRemoveField.getValues()).containsExactly(records.getFilingA().getTitle(), records.getFilingB().getTitle());
+		addRemoveField.add(records.getRule2().getTitle());
+		assertThat(addRemoveField.getValues()).containsExactly(records.getRule1().getTitle(), records.getRule2().getTitle());
 
-		addRemoveField.modify(0, records.getFilingC().getTitle());
-		assertThat(addRemoveField.getValues()).containsExactly(records.getFilingC().getTitle(), records.getFilingB().getTitle());
+		addRemoveField.modify(0, records.getRule3().getTitle());
+		assertThat(addRemoveField.getValues()).containsExactly(records.getRule3().getTitle(), records.getRule2().getTitle());
 
 		addRemoveField.remove(1);
-		assertThat(addRemoveField.getValues()).containsOnlyOnce(records.getFilingC().getTitle());
+		assertThat(addRemoveField.getValues()).containsOnlyOnce(records.getRule3().getTitle());
 	}
 
 	private void validateCanAddRemoveRecordsUsingLookupValuesIn(String style, RMTestRecords records) {
 		ListAddRemoveLookupWebElement addRemoveField = new ListAddRemoveLookupWebElement(driver.find(style));
 
-		addRemoveField.addElementByChoosingFirstChoice(records.getFilingA().getTitle());
-		assertThat(addRemoveField.getValues()).containsOnlyOnce(records.getFilingA().getTitle());
+		addRemoveField.addElementByChoosingFirstChoice(records.getRule1().getTitle());
+		assertThat(addRemoveField.getValues()).containsOnlyOnce(records.getRule1().getTitle());
 
-		addRemoveField.addElementByChoosingFirstChoice(records.getFilingB().getTitle());
-		assertThat(addRemoveField.getValues()).containsExactly(records.getFilingA().getTitle(), records.getFilingB().getTitle());
+		addRemoveField.addElementByChoosingFirstChoice(records.getRule2().getTitle());
+		assertThat(addRemoveField.getValues()).containsExactly(records.getRule1().getTitle(), records.getRule2().getTitle());
 
-		addRemoveField.modifyElementByChoosingFirstChoice(0, records.getFilingC().getTitle());
-		assertThat(addRemoveField.getValues()).containsExactly(records.getFilingC().getTitle(), records.getFilingB().getTitle());
+		addRemoveField.modifyElementByChoosingFirstChoice(0, records.getRule3().getTitle());
+		assertThat(addRemoveField.getValues()).containsExactly(records.getRule3().getTitle(), records.getRule2().getTitle());
 
 		addRemoveField.remove(1);
-		assertThat(addRemoveField.getValues()).containsOnlyOnce(records.getFilingC().getTitle());
+		assertThat(addRemoveField.getValues()).containsOnlyOnce(records.getRule3().getTitle());
 	}
 
 	private class DummyProperty<T extends Serializable> implements Property<List<T>> {

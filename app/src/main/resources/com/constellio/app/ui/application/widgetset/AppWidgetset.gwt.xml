@@ -3,6 +3,7 @@
 <!-- WS Compiler: manually edited -->
 <module>
         <inherits name="com.vaadin.DefaultWidgetSet" />
+        <inherits name="com.lexaden.breadcrumb.gwt.BreadcrumbWidgetset" />
         <inherits name="org.vaadin.actionbuttontextfield.widgetset.ActionButtonTextFieldWidgetset" />
         <inherits name="org.vaadin.easyuploads.Widgetset" />
         <inherits name="org.vaadin.jouni.animator.AnimatorWidgetset" />

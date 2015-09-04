@@ -25,8 +25,10 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestPagesComponentsExtensions;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -46,6 +48,8 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		//givenBackgroundThreadsEnabled();
+
 		givenTransactionLogIsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
@@ -57,6 +61,9 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
+		AppLayerFactory appLayerFactory = getAppLayerFactory();
+		appLayerFactory.getExtensions().getSystemWideExtensions().pagesComponentsExtensions
+				= new TestPagesComponentsExtensions(appLayerFactory);
 
 	}
 

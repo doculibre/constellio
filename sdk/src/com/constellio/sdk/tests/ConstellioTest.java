@@ -20,7 +20,11 @@ package com.constellio.sdk.tests;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
+import com.constellio.sdk.tests.annotations.PreserveState;
+
 public class ConstellioTest extends AbstractConstellioTest {
+
+	private static boolean isCurrentPreservingState;
 
 	private static boolean IS_FIRST_EXECUTED_TEST = true;
 
@@ -41,17 +45,45 @@ public class ConstellioTest extends AbstractConstellioTest {
 		MockitoAnnotations.initMocks(this);
 
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass());
-		if (testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
+		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 			testSession.getFactoriesTestFeatures().getConstellioFactories();
 			testSession.close(true, false);
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass());
 			IS_FIRST_EXECUTED_TEST = false;
 		}
+		if (isPreservingState()) {
+			PreserveState preserveStateAnnotation = getClass().getAnnotation(PreserveState.class);
+			if (preserveStateAnnotation.enabled()) {
+				testSession.getFileSystemTestFeatures()
+						.setPreservedState(getClass().getName() + "-" + preserveStateAnnotation.state());
+			}
+		}
 	}
 
 	protected void clearTestSession() {
-		testSession.close(false, false);
-		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass());
+		if (!isPreservingState()) {
+			testSession.close(false, false);
+			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass());
+		}
 	}
 
+	private boolean isKeepingPreviousState() {
+		PreserveState preserveStateAnnotation = getClass().getAnnotation(PreserveState.class);
+		if (preserveStateAnnotation == null) {
+			return isCurrentPreservingState = false;
+		} else {
+			String lastPreservedState = testSession.getFileSystemTestFeatures().getLastPreservedState();
+			String currentState = getClass().getName() + "-" + preserveStateAnnotation.state();
+			return isCurrentPreservingState = (preserveStateAnnotation.enabled() && currentState.equals(lastPreservedState));
+		}
+	}
+
+	private boolean isPreservingState() {
+		PreserveState preserveStateAnnotation = getClass().getAnnotation(PreserveState.class);
+		return preserveStateAnnotation != null && preserveStateAnnotation.enabled();
+	}
+
+	public static boolean isCurrentPreservingState() {
+		return isCurrentPreservingState;
+	}
 }

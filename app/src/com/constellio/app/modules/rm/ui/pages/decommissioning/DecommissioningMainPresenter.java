@@ -17,14 +17,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecomissioningListQueryFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -39,11 +37,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<DecommissioningMainView> {
 	public static final String CREATE = "create";
 	public static final String GENERATED = "generated";
+	public static final String PENDING_VALIDATION = "pendingValidation";
+	public static final String TO_VALIDATE = "toValidate";
+	public static final String PENDING_APPROVAL = "pendingApproval";
 	public static final String PROCESSED = "processed";
 
 	private transient RMSchemasRecordsServices rmRecordServices;
@@ -54,13 +54,11 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
+		return securityService().hasAccessToDecommissioningMainPage(user);
 	}
 
 	public List<String> getTabs() {
-		// TODO: There are more
-		// TODO: Only display applicable tabs
-		return Arrays.asList(CREATE, GENERATED, PROCESSED);
+		return securityService().getVisibleTabsInDecommissioningMainPage(getCurrentUser());
 	}
 
 	public void tabSelected(String tabId) {
@@ -70,6 +68,15 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 			break;
 		case GENERATED:
 			view.displayEditableTable(getGeneratedLists());
+			break;
+		case PENDING_VALIDATION:
+			view.displayReadOnlyTable(getListsPendingValidation());
+			break;
+		case TO_VALIDATE:
+			view.displayReadOnlyTable(getListsToValidate());
+			break;
+		case PENDING_APPROVAL:
+			view.displayReadOnlyTable(getListsPendingApproval());
 			break;
 		case PROCESSED:
 			view.displayReadOnlyTable(getProcessedLists());
@@ -109,23 +116,43 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 		return buildDataProvider(new Factory<LogicalSearchQuery>() {
 			@Override
 			public LogicalSearchQuery get() {
-				MetadataSchema schema = rmRecordServices().defaultDecommissioningListSchema();
-				LogicalSearchCondition condition = from(schema)
-						.where(schema.getMetadata(DecommissioningList.PROCESSING_DATE)).isNull();
-				return new LogicalSearchQuery(condition);
+				return queryFactory().getGeneratedListsQuery(getCurrentUser());
+			}
+		});
+	}
+
+	RecordVODataProvider getListsPendingValidation() {
+		return buildDataProvider(new Factory<LogicalSearchQuery>() {
+			@Override
+			public LogicalSearchQuery get() {
+				return queryFactory().getListsPendingValidationQuery(getCurrentUser());
+			}
+		});
+	}
+
+	RecordVODataProvider getListsToValidate() {
+		return buildDataProvider(new Factory<LogicalSearchQuery>() {
+			@Override
+			public LogicalSearchQuery get() {
+				return queryFactory().getListsToValidateQuery(getCurrentUser());
+			}
+		});
+	}
+
+	RecordVODataProvider getListsPendingApproval() {
+		return buildDataProvider(new Factory<LogicalSearchQuery>() {
+			@Override
+			public LogicalSearchQuery get() {
+				return queryFactory().getListsPendingApprovalQuery(getCurrentUser());
 			}
 		});
 	}
 
 	RecordVODataProvider getProcessedLists() {
-		// TODO: Quite not this...
 		return buildDataProvider(new Factory<LogicalSearchQuery>() {
 			@Override
 			public LogicalSearchQuery get() {
-				MetadataSchema schema = rmRecordServices().defaultDecommissioningListSchema();
-				LogicalSearchCondition condition = from(schema)
-						.where(schema.getMetadata(DecommissioningList.PROCESSING_DATE)).isNotNull();
-				return new LogicalSearchQuery(condition);
+				return queryFactory().getProcessedListsQuery(getCurrentUser());
 			}
 		});
 	}
@@ -137,10 +164,18 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 		return rmRecordServices;
 	}
 
+	private DecomissioningListQueryFactory queryFactory() {
+		return new DecomissioningListQueryFactory(collection, modelLayerFactory);
+	}
+
+	private DecommissioningSecurityService securityService() {
+		return new DecommissioningSecurityService(collection, modelLayerFactory);
+	}
+
 	private RecordVODataProvider buildDataProvider(final Factory<LogicalSearchQuery> factory) {
 		MetadataSchema schema = rmRecordServices().defaultDecommissioningListSchema();
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE);
-		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory) {
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return factory.get();

@@ -40,47 +40,54 @@ public class ByAdministrativeUnitEventsDataProvider extends DefaultEventsDataPro
 			LocalDateTime startDate,
 			LocalDateTime endDate, String id) {
 		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
-		return rmSchemasRecordsServices.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate, endDate, id);
+		return rmSchemasRecordsServices
+				.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate, endDate, id);
 	}
 
 	@Override
 	public String getEventType(Integer index) {
-		if (index == 0){
+		if (index == 0) {
 			return EventType.CREATE_FOLDER;
-		}else if (index == 1){
+		} else if (index == 1) {
 			return EventType.MODIFY_FOLDER;
-		}else if (index == 2){
+		} else if (index == 2) {
 			return EventType.DELETE_FOLDER;
-		}else if (index == 3){
+		} else if (index == 3) {
 			return EventType.CREATE_DOCUMENT;
-		}else if (index == 4){
+		} else if (index == 4) {
 			return EventType.MODIFY_DOCUMENT;
-		}else if (index == 5){
+		} else if (index == 5) {
 			return EventType.DELETE_DOCUMENT;
-		}else if (index == 6){
+		} else if (index == 6) {
 			return EventType.CREATE_USER;
-		}else if (index == 7){
+		} else if (index == 7) {
 			return EventType.MODIFY_USER;
-		}else if (index == 8){
+		} else if (index == 8) {
 			return EventType.DELETE_USER;
-		}else if (index == 9){
+		} else if (index == 9) {
 			return EventType.GRANT_PERMISSION_FOLDER;
-		}else if (index == 10){
+		} else if (index == 10) {
 			return EventType.MODIFY_PERMISSION_FOLDER;
-		}else if (index == 11){
+		} else if (index == 11) {
 			return EventType.DELETE_PERMISSION_FOLDER;
-		}else if (index == 12){
+		} else if (index == 12) {
 			return EventType.GRANT_PERMISSION_DOCUMENT;
-		}else if (index == 13){
+		} else if (index == 13) {
 			return EventType.MODIFY_PERMISSION_DOCUMENT;
-		}else{
+		} else if (index == 14) {
 			return EventType.DELETE_PERMISSION_DOCUMENT;
+		} else if (index == 15) {
+			return EventType.CREATE_TASK;
+		} else if (index == 16) {
+			return EventType.MODIFY_TASK;
+		} else {
+			return EventType.DELETE_TASK;
 		}
 	}
 
 	@Override
 	public int specificSize() {
-		return 15;
+		return 18;
 	}
 
 	@Override

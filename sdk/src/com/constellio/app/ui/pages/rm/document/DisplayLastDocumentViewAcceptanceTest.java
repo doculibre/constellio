@@ -26,9 +26,9 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -38,8 +38,9 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
-import com.constellio.app.modules.rm.ui.entities.ComponentState;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.data.utils.TimeProvider;
@@ -84,7 +85,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	/** Admin is a RGD 
+	/** Admin is a RGD
 	 */
 	public void givenAdminThenDisplayDocumentContextMenuIsOk() {
 		logAsInZeCollectionAndSetupLastViewedDocuments(admin);
@@ -103,7 +104,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 
 	@Test
 	/** Alice is a USER
-	 *  Alice can READ  
+	 *  Alice can READ
 	 */
 	public void givenAliceThenDisplayDocumentContextMenuIsOk() {
 		logAsInZeCollectionAndSetupLastViewedDocuments(aliceWonderland);
@@ -121,7 +122,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	/** Bob is a USER 
+	/** Bob is a USER
 	 *  Bob can READ/WRITE in UA 30
 	 */
 	public void givenBobThenDisplayDocumentMenuIsOk() {
@@ -232,8 +233,11 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 	private void givenBorrowedFolderC32ByChuck(String folderId)
 			throws RecordServicesException {
 		BorrowingServices borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
-		Date previewReturnDate = TimeProvider.getLocalDateTime().plusDays(15).toDate();
-		borrowingServices.borrowFolder(folderId, previewReturnDate, records.getChuckNorris(), records.getChuckNorris());
+		LocalDate nowDate = TimeProvider.getLocalDate();
+		LocalDate previewReturnDate = nowDate.plusDays(15);
+		borrowingServices
+				.borrowFolder(folderId, nowDate, previewReturnDate, records.getChuckNorris(), records.getChuckNorris(),
+						BorrowingType.BORROW);
 	}
 
 	private void givenRemovedPermissionToModifyBorrowedFolder() {

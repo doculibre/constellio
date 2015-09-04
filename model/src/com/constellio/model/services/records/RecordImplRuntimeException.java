@@ -59,6 +59,27 @@ public class RecordImplRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class RecordImplException_CannotChangeSchemaOfSavedRecord extends RecordImplRuntimeException {
+
+		public RecordImplException_CannotChangeSchemaOfSavedRecord(String recordId) {
+			super("Cannot change schema of saved record : " + recordId);
+		}
+	}
+
+	public static class RecordImplException_CannotChangeTypeOfRecord extends RecordImplRuntimeException {
+
+		public RecordImplException_CannotChangeTypeOfRecord(String recordId) {
+			super("Cannot change type of record : " + recordId);
+		}
+	}
+
+	public static class RecordImplException_CannotBuildStructureValue extends RecordImplRuntimeException {
+
+		public RecordImplException_CannotBuildStructureValue(String recordId, String structureValue, Throwable t) {
+			super("Cannot build structure value '" + structureValue + "' in record '" + recordId + "'", t);
+		}
+	}
+
 	public static class RecordImplException_PopulatorReturnedNullValue extends RecordImplRuntimeException {
 
 		public RecordImplException_PopulatorReturnedNullValue(FieldsPopulator populator, String field) {

@@ -219,13 +219,13 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 	}
 
 	private void whenCanReadCanWriteCanDeleteThenOk() {
-		assertThat(securityManagementDriver.canRead(alice.getUsername(), records.folder1.getId())).isFalse();
-		assertThat(securityManagementDriver.canWrite(alice.getUsername(), records.folder1.getId())).isFalse();
-		assertThat(securityManagementDriver.canDelete(alice.getUsername(), records.folder1.getId())).isFalse();
+		assertThat(securityManagementDriver.canRead(alice.getUsername(), records.folder1().getId())).isFalse();
+		assertThat(securityManagementDriver.canWrite(alice.getUsername(), records.folder1().getId())).isFalse();
+		assertThat(securityManagementDriver.canDelete(alice.getUsername(), records.folder1().getId())).isFalse();
 
-		assertThat(securityManagementDriver.canRead(alice.getUsername(), records.folder2.getId())).isTrue();
-		assertThat(securityManagementDriver.canWrite(alice.getUsername(), records.folder2.getId())).isTrue();
-		assertThat(securityManagementDriver.canDelete(alice.getUsername(), records.folder2.getId())).isTrue();
+		assertThat(securityManagementDriver.canRead(alice.getUsername(), records.folder2().getId())).isTrue();
+		assertThat(securityManagementDriver.canWrite(alice.getUsername(), records.folder2().getId())).isTrue();
+		assertThat(securityManagementDriver.canDelete(alice.getUsername(), records.folder2().getId())).isTrue();
 	}
 
 	private void whenChangeOldPasswordThenOk() {
@@ -256,32 +256,32 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	private void whenResetThenOk()
 			throws InterruptedException {
-		assertThat(securityManagementDriver.getRecordAuthorizationCodes(records.taxo1_fond1.getId())).isNotEmpty();
+		assertThat(securityManagementDriver.getRecordAuthorizationCodes(records.taxo1_fond1().getId())).isNotEmpty();
 
-		securityManagementDriver.reset(records.taxo1_fond1.getId());
+		securityManagementDriver.reset(records.taxo1_fond1().getId());
 		waitForBatchProcess();
-		recordServices.refresh(usersRecords.aliceIn(zeCollection).getWrappedRecord(), records.taxo1_fond1);
+		recordServices.refresh(usersRecords.aliceIn(zeCollection).getWrappedRecord(), records.taxo1_fond1());
 
-		assertThat(securityManagementDriver.getRecordAuthorizationCodes(records.taxo1_fond1.getId())).isEmpty();
+		assertThat(securityManagementDriver.getRecordAuthorizationCodes(records.taxo1_fond1().getId())).isEmpty();
 	}
 
 	private void givenDeleteRecordWhenHasRestaurationPermissionOnHierarchyThenOk()
 			throws InterruptedException {
 
-		recordServices.logicallyDelete(records.folder2, alice);
+		recordServices.logicallyDelete(records.folder2(), alice);
 		waitForBatchProcess();
-		recordServices.refresh(usersRecords.aliceIn(zeCollection).getWrappedRecord(), records.taxo1_fond1);
+		recordServices.refresh(usersRecords.aliceIn(zeCollection).getWrappedRecord(), records.taxo1_fond1());
 
-		assertThat(securityManagementDriver.hasRestaurationPermissionOnHierarchy(alice.getUsername(), records.folder1.getId()))
+		assertThat(securityManagementDriver.hasRestaurationPermissionOnHierarchy(alice.getUsername(), records.folder1().getId()))
 				.isFalse();
-		assertThat(securityManagementDriver.hasRestaurationPermissionOnHierarchy(alice.getUsername(), records.folder2.getId()))
+		assertThat(securityManagementDriver.hasRestaurationPermissionOnHierarchy(alice.getUsername(), records.folder2().getId()))
 				.isTrue();
 	}
 
 	private void whenHasDeletePermissionOnHierarchyThenOk() {
-		assertThat(securityManagementDriver.hasDeletePermissionOnHierarchy(alice.getUsername(), records.folder1.getId()))
+		assertThat(securityManagementDriver.hasDeletePermissionOnHierarchy(alice.getUsername(), records.folder1().getId()))
 				.isFalse();
-		assertThat(securityManagementDriver.hasDeletePermissionOnHierarchy(alice.getUsername(), records.folder2.getId()))
+		assertThat(securityManagementDriver.hasDeletePermissionOnHierarchy(alice.getUsername(), records.folder2().getId()))
 				.isTrue();
 	}
 
@@ -289,85 +289,85 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 			throws InterruptedException {
 		AuthorizationResource authorizationResource = new AuthorizationResource();
 		authorizationResource.setPrincipalIds(Arrays.asList(alice.getId()));
-		authorizationResource.setRecordIds(Arrays.asList(records.taxo1_fond1.getId()));
+		authorizationResource.setRecordIds(Arrays.asList(records.taxo1_fond1().getId()));
 		authorizationResource.setRoleIds(Arrays.asList(Role.WRITE, Role.DELETE));
 		authorizationResource.setStartDate(calendarStartDate.getTime());
 		authorizationResource.setEndDate(calendarEndDate.getTime());
 		securityManagementDriver.addAuthorization(authorizationResource, true);
 		waitForBatchProcess();
-		recordServices.refresh(usersRecords.aliceIn(zeCollection).getWrappedRecord(), records.taxo1_fond1);
+		recordServices.refresh(usersRecords.aliceIn(zeCollection).getWrappedRecord(), records.taxo1_fond1());
 
 		assertThat(
 				securityManagementDriver.hasDeletePermissionOnPrincipalConceptHierarchyAndIncludedRecords(bob.getUsername(),
-						records.taxo1_fond1.getId())).isFalse();
+						records.taxo1_fond1().getId())).isFalse();
 		assertThat(
 				securityManagementDriver.hasDeletePermissionOnPrincipalConceptHierarchyAndIncludedRecords(alice.getUsername(),
-						records.taxo1_fond1.getId())).isTrue();
+						records.taxo1_fond1().getId())).isTrue();
 	}
 
 	private void givenAuthorizationToAliceInFolder2WhenHasPermissionThenOk() {
 		// Bob folder1
 		assertThat(
 				securityManagementDriver
-						.hasPermission(bob.getUsername(), records.folder1.getId(), ContentPermissions.WRITE.getCode()))
+						.hasPermission(bob.getUsername(), records.folder1().getId(), ContentPermissions.WRITE.getCode()))
 				.isFalse();
 		assertThat(
 				securityManagementDriver
-						.hasPermission(bob.getUsername(), records.folder1.getId(), ContentPermissions.DELETE.getCode()))
+						.hasPermission(bob.getUsername(), records.folder1().getId(), ContentPermissions.DELETE.getCode()))
 				.isFalse();
 		assertThat(securityManagementDriver
-				.hasPermission(bob.getUsername(), records.folder1.getId(), ContentPermissions.READ.getCode()))
+				.hasPermission(bob.getUsername(), records.folder1().getId(), ContentPermissions.READ.getCode()))
 				.isFalse();
 		// Bob folder2
 		assertThat(
 				securityManagementDriver
-						.hasPermission(bob.getUsername(), records.folder2.getId(), ContentPermissions.WRITE.getCode()))
+						.hasPermission(bob.getUsername(), records.folder2().getId(), ContentPermissions.WRITE.getCode()))
 				.isFalse();
 		assertThat(
 				securityManagementDriver
-						.hasPermission(bob.getUsername(), records.folder2.getId(), ContentPermissions.DELETE.getCode()))
+						.hasPermission(bob.getUsername(), records.folder2().getId(), ContentPermissions.DELETE.getCode()))
 				.isFalse();
 		assertThat(securityManagementDriver
-				.hasPermission(bob.getUsername(), records.folder2.getId(), ContentPermissions.READ.getCode()))
+				.hasPermission(bob.getUsername(), records.folder2().getId(), ContentPermissions.READ.getCode()))
 				.isFalse();
 		// Alice folder1
 		assertThat(
 				securityManagementDriver
-						.hasPermission(alice.getUsername(), records.folder1.getId(), ContentPermissions.WRITE.getCode()))
+						.hasPermission(alice.getUsername(), records.folder1().getId(), ContentPermissions.WRITE.getCode()))
 				.isFalse();
 		assertThat(
 				securityManagementDriver
-						.hasPermission(alice.getUsername(), records.folder1.getId(), ContentPermissions.DELETE.getCode()))
+						.hasPermission(alice.getUsername(), records.folder1().getId(), ContentPermissions.DELETE.getCode()))
 				.isFalse();
 		assertThat(
 				securityManagementDriver
-						.hasPermission(alice.getUsername(), records.folder1.getId(), ContentPermissions.READ.getCode()))
+						.hasPermission(alice.getUsername(), records.folder1().getId(), ContentPermissions.READ.getCode()))
 				.isFalse();
 		// Alice folder2
 		assertThat(
 				securityManagementDriver
-						.hasPermission(alice.getUsername(), records.folder2.getId(), ContentPermissions.WRITE.getCode()))
+						.hasPermission(alice.getUsername(), records.folder2().getId(), ContentPermissions.WRITE.getCode()))
 				.isTrue();
 		assertThat(
 				securityManagementDriver
-						.hasPermission(alice.getUsername(), records.folder2.getId(), ContentPermissions.DELETE.getCode()))
+						.hasPermission(alice.getUsername(), records.folder2().getId(), ContentPermissions.DELETE.getCode()))
 				.isTrue();
 		assertThat(
 				securityManagementDriver
-						.hasPermission(alice.getUsername(), records.folder2.getId(), ContentPermissions.READ.getCode()))
+						.hasPermission(alice.getUsername(), records.folder2().getId(), ContentPermissions.READ.getCode()))
 				.isTrue();
 	}
 
 	private void whenModifyAuthorizationThenItIsModified() {
 		AuthorizationResource authorizationResource = new AuthorizationResource();
 		authorizationResource.setPrincipalIds(Arrays.asList(alice.getId()));
-		authorizationResource.setRecordIds(Arrays.asList(records.folder2.getId()));
+		authorizationResource.setRecordIds(Arrays.asList(records.folder2().getId()));
 		authorizationResource.setRoleIds(Arrays.asList(Role.WRITE, Role.DELETE));
 		securityManagementDriver.modify(authId, authorizationResource, true);
 
 		AuthorizationResource retrievedAuthorizationResource = securityManagementDriver.getAuthorization(authId);
 		assertThat(retrievedAuthorizationResource.getPrincipalIds().get(0)).isEqualTo(alice.getId());
-		assertThat(retrievedAuthorizationResource.getRecordIds().get(0)).isEqualTo(records.folder2.getId());
+		assertThat(retrievedAuthorizationResource.getRecordIds().get(0)).isEqualTo(records.folder2().getId());
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {
@@ -378,10 +378,10 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 	private void whenRemoveAuthorizationOnRecordThenItIsRemoved()
 			throws InterruptedException, RolesManagerRuntimeException {
 
-		securityManagementDriver.removeAuthorizationOnRecord(authId, records.folder1.getId(), true);
+		securityManagementDriver.removeAuthorizationOnRecord(authId, records.folder1().getId(), true);
 		Thread.sleep(1000);
 		waitForBatchProcess();
-		recordServices.refresh(usersRecords.bobIn(zeCollection).getWrappedRecord(), records.folder1);
+		recordServices.refresh(usersRecords.bobIn(zeCollection).getWrappedRecord(), records.folder1());
 
 		AuthorizationResource retrievedAuthorizationResource = securityManagementDriver.getAuthorization(authId);
 		assertThat(retrievedAuthorizationResource.getPrincipalIds().get(0)).isEqualTo(bob.getId());
@@ -394,28 +394,28 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 	private void whenAddAuthorizationThenCanGetIt()
 			throws InterruptedException, RolesManagerRuntimeException {
 
-		assertThat(authorizationsServices.canWrite(bob, records.folder1)).isFalse();
-		assertThat(authorizationsServices.canRead(bob, records.folder1)).isFalse();
-		assertThat(authorizationsServices.canDelete(bob, records.folder1)).isFalse();
+		assertThat(authorizationsServices.canWrite(bob, records.folder1())).isFalse();
+		assertThat(authorizationsServices.canRead(bob, records.folder1())).isFalse();
+		assertThat(authorizationsServices.canDelete(bob, records.folder1())).isFalse();
 
-		assertThat(authorizationsServices.canRead(bob, records.folder1)).isFalse();
-		assertThat(authorizationsServices.canWrite(bob, records.folder1)).isFalse();
-		assertThat(authorizationsServices.canDelete(bob, records.folder1)).isFalse();
+		assertThat(authorizationsServices.canRead(bob, records.folder1())).isFalse();
+		assertThat(authorizationsServices.canWrite(bob, records.folder1())).isFalse();
+		assertThat(authorizationsServices.canDelete(bob, records.folder1())).isFalse();
 
 		AuthorizationResource authorizationResource = new AuthorizationResource();
 		authorizationResource.setPrincipalIds(Arrays.asList(bob.getId()));
-		authorizationResource.setRecordIds(Arrays.asList(records.folder1.getId()));
+		authorizationResource.setRecordIds(Arrays.asList(records.folder1().getId()));
 		authorizationResource.setRoleIds(Arrays.asList(Role.WRITE, Role.DELETE));
 		authorizationResource.setStartDate(calendarStartDate.getTime());
 		authorizationResource.setEndDate(calendarEndDate.getTime());
 		authId = securityManagementDriver.addAuthorization(authorizationResource, true);
 		Thread.sleep(1000);
 		waitForBatchProcess();
-		recordServices.refresh(usersRecords.bobIn(zeCollection).getWrappedRecord(), records.folder1);
+		recordServices.refresh(usersRecords.bobIn(zeCollection).getWrappedRecord(), records.folder1());
 
 		AuthorizationResource retrievedAuthorizationResource = securityManagementDriver.getAuthorization(authId);
 		assertThat(retrievedAuthorizationResource.getPrincipalIds().get(0)).isEqualTo(bob.getId());
-		assertThat(retrievedAuthorizationResource.getRecordIds().get(0)).isEqualTo(records.folder1.getId());
+		assertThat(retrievedAuthorizationResource.getRecordIds().get(0)).isEqualTo(records.folder1().getId());
 		assertThat(retrievedAuthorizationResource.getStartDate().toString()).isEqualTo(calendarStartDate.getTime().toString());
 		assertThat(retrievedAuthorizationResource.getEndDate().toString()).isEqualTo(calendarEndDate.getTime().toString());
 		assertThat(retrievedAuthorizationResource.getRoleIds()).containsOnly("WRITE", "DELETE");

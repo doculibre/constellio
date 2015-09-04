@@ -125,11 +125,7 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 	}
 
 	public Records givenRecords(RecordServices recordServices) {
-		try {
-			return new Records(recordServices);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
+		return new Records(recordServices).setup();
 	}
 	//
 	//	public Users givenUsers(RecordServices recordServices) {
@@ -466,80 +462,273 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 
 	public class Records {
 
-		public final Record taxo1_fond1;
-		public final Record taxo1_fond1_1;
-		public final Record taxo1_category1;
-		public final Record taxo1_category2;
-		public final Record taxo1_category2_1;
+		private Record getRecord(String id) {
+			String prefix = collection.equals("zeCollection") ? "" : "anotherCollection_";
+			return recordServices.getDocumentById(prefix + id);
+		}
 
-		public final Record taxo2_unit1;
-		public final Record taxo2_unit1_1;
-		public final Record taxo2_station1;
-		public final Record taxo2_station2;
-		public final Record taxo2_station2_1;
+		public final Record taxo1_fond1() {
+			return getRecord("taxo1_fond1");
+		}
 
-		public final Record folder1;
-		public final Record folder2;
-		public final Record folder2_1;
-		public final Record folder2_2;
-		public final Record folder3;
-		public final Record folder4;
-		public final Record folder4_1;
-		public final Record folder4_2;
-		public final Record folder5;
+		public final Record taxo1_fond1_1() {
+			return getRecord("taxo1_fond1_1");
+		}
 
-		public final Record folder1_doc1;
-		public final Record folder2_2_doc1;
-		public final Record folder2_2_doc2;
-		public final Record folder3_doc1;
-		public final Record folder4_1_doc1;
-		public final Record folder4_2_doc1;
-		public final Record folder5_doc1;
+		public final Record taxo1_category1() {
+			return getRecord("taxo1_category1");
+		}
+
+		public final Record taxo1_category2() {
+			return getRecord("taxo1_category2");
+		}
+
+		public final Record taxo1_category2_1() {
+			return getRecord("taxo1_category2_1");
+		}
+
+		public final Record taxo2_unit1() {
+			return getRecord("taxo2_unit1");
+		}
+
+		public final Record taxo2_unit1_1() {
+			return getRecord("taxo2_unit1_1");
+		}
+
+		public final Record taxo2_station1() {
+			return getRecord("taxo2_station1");
+		}
+
+		public final Record taxo2_station2() {
+			return getRecord("taxo2_station2");
+		}
+
+		public final Record taxo2_station2_1() {
+			return getRecord("taxo2_station2_1");
+		}
+
+		public final Record folder1() {
+			return getRecord("folder1");
+		}
+
+		public final Record folder2() {
+			return getRecord("folder2");
+		}
+
+		public final Record folder2_1() {
+			return getRecord("folder2_1");
+		}
+
+		public final Record folder2_2() {
+			return getRecord("folder2_2");
+		}
+
+		public final Record folder3() {
+			return getRecord("folder3");
+		}
+
+		public final Record folder4() {
+			return getRecord("folder4");
+		}
+
+		public final Record folder4_1() {
+			return getRecord("folder4_1");
+		}
+
+		public final Record folder4_2() {
+			return getRecord("folder4_2");
+		}
+
+		public final Record folder5() {
+			return getRecord("folder5");
+		}
+
+		public final Record folder1_doc1() {
+			return getRecord("folder1_doc1");
+		}
+
+		public final Record folder2_2_doc1() {
+			return getRecord("folder2_2_doc1");
+		}
+
+		public final Record folder2_2_doc2() {
+			return getRecord("folder2_2_doc2");
+		}
+
+		public final Record folder3_doc1() {
+			return getRecord("folder3_doc1");
+		}
+
+		public final Record folder4_1_doc1() {
+			return getRecord("folder4_1_doc1");
+		}
+
+		public final Record folder4_2_doc1() {
+			return getRecord("folder4_2_doc1");
+		}
+
+		public final Record folder5_doc1() {
+			return getRecord("folder5_doc1");
+		}
 
 		List<Record> records = new ArrayList<>();
 
 		private RecordServices recordServices;
 
-		private Records(RecordServices recordServices)
-				throws RecordServicesException {
+		public Records(RecordServices recordServices) {
+			this.recordServices = recordServices;
+		}
+
+		public Records setup() {
 
 			this.recordServices = recordServices;
 
 			Transaction transaction = new Transaction();
 
 			String prefix = collection.equals("zeCollection") ? "" : "anotherCollection_";
+			Record taxo1_fond1, taxo1_fond1_1, taxo1_category1, taxo1_category2, taxo1_category2_1, taxo2_unit1, taxo2_unit1_1,
+					taxo2_station1, taxo2_station2, taxo2_station2_1, folder1, folder2, folder2_1, folder2_2, folder3, folder4, folder4_1, folder4_2, folder5;
+			records.add(taxo1_fond1 =
 
-			records.add(taxo1_fond1 = addFondRecord(transaction, prefix + "taxo1_fond1", null));
-			records.add(taxo1_fond1_1 = addFondRecord(transaction, prefix + "taxo1_fond1_1", taxo1_fond1));
-			records.add(taxo1_category1 = addCategoryRecord(transaction, prefix + "taxo1_category1", taxo1_fond1_1, null));
-			records.add(taxo1_category2 = addCategoryRecord(transaction, prefix + "taxo1_category2", taxo1_fond1, null));
-			records.add(taxo1_category2_1 = addCategoryRecord(transaction, prefix + "taxo1_category2_1", null, taxo1_category2));
+							addFondRecord(transaction, prefix + "taxo1_fond1", null)
 
-			records.add(taxo2_unit1 = addUnitRecord(transaction, prefix + "taxo2_unit1", null));
-			records.add(taxo2_unit1_1 = addUnitRecord(transaction, prefix + "taxo2_unit1_1", taxo2_unit1));
-			records.add(taxo2_station1 = addStationRecord(transaction, prefix + "taxo2_station1", taxo2_unit1_1));
-			records.add(taxo2_station2 = addStationRecord(transaction, prefix + "taxo2_station2", taxo2_unit1));
-			records.add(taxo2_station2_1 = addStationRecord(transaction, prefix + "taxo2_station2_1", taxo2_station2));
+			);
+			records.add(taxo1_fond1_1 =
 
-			records.add(folder1 = addFolderRecord(transaction, prefix + "folder1", null, taxo1_category1, taxo2_station2));
-			records.add(folder2 = addFolderRecord(transaction, prefix + "folder2", null, taxo1_category1, taxo2_station2_1));
-			records.add(folder2_1 = addFolderRecord(transaction, prefix + "folder2_1", folder2, null, null));
-			records.add(folder2_2 = addFolderRecord(transaction, prefix + "folder2_2", folder2, null, null));
-			records.add(folder3 = addFolderRecord(transaction, prefix + "folder3", null, taxo1_category2_1, null));
-			records.add(folder4 = addFolderRecord(transaction, prefix + "folder4", null, taxo1_category2, null));
-			records.add(folder4_1 = addFolderRecord(transaction, prefix + "folder4_1", folder4, null, null));
-			records.add(folder4_2 = addFolderRecord(transaction, prefix + "folder4_2", folder4, null, null));
-			records.add(folder5 = addFolderRecord(transaction, prefix + "folder5", null, null, taxo2_station1));
+							addFondRecord(transaction, prefix + "taxo1_fond1_1", taxo1_fond1)
 
-			records.add(folder1_doc1 = addDocumentRecord(transaction, prefix + "folder1_doc1", folder1));
-			records.add(folder2_2_doc1 = addDocumentRecord(transaction, prefix + "folder2_2_doc1", folder2_2));
-			records.add(folder2_2_doc2 = addDocumentRecord(transaction, prefix + "folder2_2_doc2", folder2_2));
-			records.add(folder3_doc1 = addDocumentRecord(transaction, prefix + "folder3_doc1", folder3));
-			records.add(folder4_1_doc1 = addDocumentRecord(transaction, prefix + "folder4_1_doc1", folder4_1));
-			records.add(folder4_2_doc1 = addDocumentRecord(transaction, prefix + "folder4_2_doc1", folder4_2));
-			records.add(folder5_doc1 = addDocumentRecord(transaction, prefix + "folder5_doc1", folder5));
+			);
+			records.add(taxo1_category1 =
 
-			recordServices.execute(transaction);
+							addCategoryRecord(transaction, prefix + "taxo1_category1", taxo1_fond1_1, null)
+
+			);
+			records.add(taxo1_category2 =
+
+							addCategoryRecord(transaction, prefix + "taxo1_category2", taxo1_fond1, null)
+
+			);
+			records.add(taxo1_category2_1 =
+
+							addCategoryRecord(transaction, prefix + "taxo1_category2_1", null, taxo1_category2)
+
+			);
+
+			records.add(taxo2_unit1 =
+
+							addUnitRecord(transaction, prefix + "taxo2_unit1", null)
+
+			);
+			records.add(taxo2_unit1_1 =
+
+							addUnitRecord(transaction, prefix + "taxo2_unit1_1", taxo2_unit1)
+
+			);
+			records.add(taxo2_station1 =
+
+							addStationRecord(transaction, prefix + "taxo2_station1", taxo2_unit1_1)
+
+			);
+			records.add(taxo2_station2 =
+
+							addStationRecord(transaction, prefix + "taxo2_station2", taxo2_unit1)
+
+			);
+			records.add(taxo2_station2_1 =
+
+							addStationRecord(transaction, prefix + "taxo2_station2_1", taxo2_station2)
+
+			);
+
+			records.add(folder1 =
+
+							addFolderRecord(transaction, prefix + "folder1", null, taxo1_category1, taxo2_station2)
+
+			);
+			records.add(folder2 =
+
+							addFolderRecord(transaction, prefix + "folder2", null, taxo1_category1, taxo2_station2_1)
+
+			);
+			records.add(folder2_1 =
+
+							addFolderRecord(transaction, prefix + "folder2_1", folder2, null, null)
+
+			);
+			records.add(folder2_2 =
+
+							addFolderRecord(transaction, prefix + "folder2_2", folder2, null, null)
+
+			);
+			records.add(folder3 =
+
+							addFolderRecord(transaction, prefix + "folder3", null, taxo1_category2_1, null)
+
+			);
+			records.add(folder4 =
+
+							addFolderRecord(transaction, prefix + "folder4", null, taxo1_category2, null)
+
+			);
+			records.add(folder4_1 =
+
+							addFolderRecord(transaction, prefix + "folder4_1", folder4, null, null)
+
+			);
+			records.add(folder4_2 =
+
+							addFolderRecord(transaction, prefix + "folder4_2", folder4, null, null)
+
+			);
+			records.add(folder5 =
+
+							addFolderRecord(transaction, prefix + "folder5", null, null, taxo2_station1)
+
+			);
+
+			records.add(
+
+					addDocumentRecord(transaction, prefix + "folder1_doc1", folder1)
+
+			);
+			records.add(
+
+					addDocumentRecord(transaction, prefix + "folder2_2_doc1", folder2_2)
+
+			);
+			records.add(
+
+					addDocumentRecord(transaction, prefix + "folder2_2_doc2", folder2_2)
+
+			);
+			records.add(
+
+					addDocumentRecord(transaction, prefix + "folder3_doc1", folder3)
+
+			);
+			records.add(
+
+					addDocumentRecord(transaction, prefix + "folder4_1_doc1", folder4_1)
+
+			);
+			records.add(
+
+					addDocumentRecord(transaction, prefix + "folder4_2_doc1", folder4_2)
+
+			);
+			records.add(
+
+					addDocumentRecord(transaction, prefix + "folder5_doc1", folder5)
+
+			);
+
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+
+			return this;
 		}
 
 		public List<Record> allRecords() {
@@ -635,6 +824,16 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return record;
 		}
 
+		public List<Record> inFolder4Hierarchy() {
+
+			return Arrays.asList(folder4(), folder4_1(), folder4_2(), folder4_1_doc1(),
+					folder4_2_doc1());
+		}
+
+		public List<Record> inFolder4_2Hierarchy() {
+
+			return Arrays.asList(folder4_2(), folder4_2_doc1());
+		}
 	}
 /*
 	public class Users {

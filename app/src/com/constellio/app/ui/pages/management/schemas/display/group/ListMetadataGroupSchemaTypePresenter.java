@@ -75,6 +75,6 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listSchemaType();
+		view.navigateTo().listSchemaTypes();
 	}
 }

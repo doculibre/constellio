@@ -19,8 +19,10 @@ package com.constellio.app.services.extensions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -28,8 +30,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.extensions.ConstellioPluginManagerRuntimeException.ConstellioPluginManagerRuntimeException_NoSuchModule;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.services.migrations.MigrationServices;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -37,7 +41,6 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.modules.Module;
@@ -46,23 +49,13 @@ import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ConstellioModulesManagerImpl implements ConstellioModulesManager, StatefulService {
-
 	@SuppressWarnings("unused") private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioModulesManagerImpl.class);
-
 	private static final String FALSE = "false";
-
 	private static final String MODULES_CONFIG_PATH = "/modules.xml";
-
 	private final ConfigManager configManager;
-
 	private final AppLayerFactory appLayerFactory;
-
-	private final DataLayerFactory dataLayerFactory;
-
 	private final Delayed<MigrationServices> migrationServicesDelayed;
-
 	private final ModelLayerFactory modelLayerFactory;
-
 	private final ConstellioPluginManager constellioPluginManager;
 
 	public ConstellioModulesManagerImpl(AppLayerFactory appLayerFactory,
@@ -79,7 +72,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		this.configManager = configManager;
 		this.migrationServicesDelayed = migrationServicesDelayed;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.constellioPluginManager = constellioPluginManager;
 
 	}
@@ -87,16 +79,17 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	@Override
 	public void initialize() {
 		createModulesConfigFileIfNotExist();
+	}
 
+	public void startModules() {
 		CollectionsListManager collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		for (String collection : collectionsListManager.getCollections()) {
 			startModules(collection);
 		}
-
 	}
 
-	public List<Module> getInstalledModules() {
-		List<Module> installedModules = new ArrayList<>();
+	public List<InstallableModule> getInstalledModules() {
+		List<InstallableModule> installedModules = new ArrayList<>();
 		XMLConfiguration xmlConfig;
 		xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
@@ -109,8 +102,8 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return installedModules;
 	}
 
-	public List<Module> getEnabledModules(String collection) {
-		List<Module> enabledModules = new ArrayList<>();
+	public List<InstallableModule> getEnabledModules(String collection) {
+		List<InstallableModule> enabledModules = new ArrayList<>();
 		XMLConfiguration xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 		for (InstallableModule module : getAllModules()) {
@@ -121,6 +114,29 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			}
 		}
 		return enabledModules;
+	}
+
+	public List<InstallableModule> getRequiredDependentModulesToInstall(String collection) {
+		Set<String> dependentModuleIds = new HashSet<>();
+
+		for (InstallableModule module : getEnabledModules(collection)) {
+			dependentModuleIds.addAll(module.getDependencies());
+		}
+
+		for (InstallableModule module : getEnabledModules(collection)) {
+			dependentModuleIds.remove(module.getId());
+		}
+
+		List<InstallableModule> dependentModules = new ArrayList<>();
+		for (String dependentModuleId : dependentModuleIds) {
+			for (InstallableModule module : getAllModules()) {
+				if (module.getId().equals(dependentModuleId)) {
+					dependentModules.add(module);
+				}
+			}
+		}
+
+		return dependentModules;
 	}
 
 	private boolean isEnabled(Element moduleElement, String collection) {
@@ -166,11 +182,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return availableModules;
 	}
 
+	@Override
 	public List<InstallableModule> getAllModules() {
 		return constellioPluginManager.getPlugins(InstallableModule.class);
 	}
 
-	public void installModule(final Module module, CollectionsListManager collectionsListManager) {
+	public void markAsInstalled(final Module module, CollectionsListManager collectionsListManager) {
 		for (String dependentModuleId : module.getDependencies()) {
 			InstallableModule dependentModule = getInstalledModule(dependentModuleId);
 			if (!isInstalled(dependentModule)) {
@@ -178,6 +195,10 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			}
 		}
 		addModuleInConfigFile(module);
+	}
+
+	public void installModule(final Module module, CollectionsListManager collectionsListManager) {
+		markAsInstalled(module, collectionsListManager);
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 		for (String collection : collectionsListManager.getCollections()) {
 			try {
@@ -206,22 +227,30 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public boolean isModuleEnabled(String collection, Module module) {
-		return getEnabledModules(collection).contains(module);
+		for (InstallableModule enabledModule : getEnabledModules(collection)) {
+			if (enabledModule.getId().equals(module.getId())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void enableModule(String collection, Module module) {
+		markAsEnabled(module, collection);
+		applyModuleMigrations(collection);
 		startModule(collection, module);
-		enableModuleInConfigFile(collection, module);
 	}
 
-	private void enableModuleInConfigFile(final String collection, final Module module) {
-		configManager.updateXML(MODULES_CONFIG_PATH, new DocumentAlteration() {
-			@Override
-			public void alter(Document document) {
-				Map<String, Element> moduleElements = parseModulesDocument(document);
-				moduleElements.get(module.getId()).setAttribute("enabled_in_collection_" + collection, "true");
-			}
-		});
+	private void applyModuleMigrations(String collection) {
+
+		MigrationServices migrationServices = migrationServicesDelayed.get();
+
+		try {
+			migrationServices.migrate(collection, null);
+		} catch (OptimisticLockingConfiguration e) {
+			// TODO: Handle this
+		}
 	}
 
 	public void disableModule(String collection, final Module module) {
@@ -307,24 +336,38 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		throw new ConstellioPluginManagerRuntimeException_NoSuchModule(id);
 	}
 
+	public NavigationConfig getNavigationConfig(String collection) {
+		NavigationConfig config = new NavigationConfig();
+		new CoreNavigationConfiguration().configureNavigation(config);
+		for (InstallableModule module : getEnabledModules(collection)) {
+			module.configureNavigation(config);
+		}
+		return config;
+	}
+
 	public List<String> getPermissionGroups(String collection) {
 		return new ArrayList<>(getCollectionPermissions(collection).keySet());
 	}
 
 	public List<String> getPermissionsInGroup(String collection, String permissionGroupCode) {
 		return new ArrayList<>(getCollectionPermissions(collection).get(permissionGroupCode));
-
 	}
 
 	private Map<String, List<String>> getCollectionPermissions(String collection) {
-		Map<String, List<String>> permissions = new HashMap<>();
-
-		permissions.putAll(CorePermissions.PERMISSIONS.getGrouped());
-
+		Map<String, List<String>> permissions = new HashMap<>(CorePermissions.PERMISSIONS.getGrouped());
 		for (Module module : getEnabledModules(collection)) {
 			permissions.putAll(module.getPermissions());
 		}
-
 		return permissions;
+	}
+
+	public void markAsEnabled(final Module module, final String collection) {
+		configManager.updateXML(MODULES_CONFIG_PATH, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				Map<String, Element> moduleElements = parseModulesDocument(document);
+				moduleElements.get(module.getId()).setAttribute("enabled_in_collection_" + collection, "true");
+			}
+		});
 	}
 }

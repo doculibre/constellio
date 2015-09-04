@@ -32,7 +32,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.AuthorizationsServices;
 
 public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuthorizationsView> {
@@ -49,6 +48,10 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return this;
 	}
 
+	public String getRoleTitle(String roleCode) {
+		return modelLayerFactory.getRolesManager().getRole(view.getCollection(), roleCode).getTitle();
+	}
+
 	public abstract void backButtonClicked(String schemaCode);
 
 	public abstract boolean isDetacheable();
@@ -63,8 +66,9 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
 
 		List<AuthorizationVO> results = new ArrayList<>();
-		for (Authorization authorization : getAuthorizations()) {
-			if (!(isOwnAuthorization(authorization) || authorization.getGrantedToPrincipals().isEmpty())) {
+		for (Authorization authorization : getAllAuthorizations()) {
+			if (!(isOwnAuthorization(authorization) || authorization.getGrantedToPrincipals().isEmpty()) && isSameRoleType(
+					authorization)) {
 				results.add(builder.build(authorization));
 			}
 		}
@@ -75,8 +79,9 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		AuthorizationToVOBuilder builder = newAuthorizationToVOBuilder();
 
 		List<AuthorizationVO> results = new ArrayList<>();
-		for (Authorization authorization : getAuthorizations()) {
-			if (isOwnAuthorization(authorization) && !authorization.getGrantedToPrincipals().isEmpty()) {
+		for (Authorization authorization : getAllAuthorizations()) {
+			if (isOwnAuthorization(authorization) && !authorization.getGrantedToPrincipals().isEmpty() && isSameRoleType(
+					authorization)) {
 				results.add(builder.build(authorization));
 			}
 		}
@@ -163,7 +168,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return authorizationsServices;
 	}
 
-	protected List<Authorization> getAuthorizations() {
+	protected List<Authorization> getAllAuthorizations() {
 		if (authorizations == null) {
 			Record record = presenterService().getRecord(recordId);
 			authorizations = authorizationsServices().getRecordAuthorizations(record);
@@ -171,12 +176,38 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return authorizations;
 	}
 
+	private boolean isSameRoleType(Authorization authorization) {
+		return (seeAccessField() && isAccessAuthorization(authorization)) || (seeRolesField() && isRoleAuthorization(
+				authorization));
+	}
+
+	protected boolean isAccessAuthorization(Authorization auth) {
+		for (String role : auth.getDetail().getRoles()) {
+			if (isAccessRole(role)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected boolean isRoleAuthorization(Authorization auth) {
+		for (String role : auth.getDetail().getRoles()) {
+			if (!isAccessRole(role)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isAccessRole(String role) {
+		return role.equals(Role.READ) || role.equals(Role.WRITE) || role.equals(Role.DELETE);
+	}
+
 	AuthorizationToVOBuilder newAuthorizationToVOBuilder() {
 		return new AuthorizationToVOBuilder(modelLayerFactory);
 	}
 
-	public boolean seeRolesField() {
-		return new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager(), collection)
-				.seeUserRolesInAuthorizations();
-	}
+	public abstract boolean seeRolesField();
+
+	public abstract boolean seeAccessField();
 }

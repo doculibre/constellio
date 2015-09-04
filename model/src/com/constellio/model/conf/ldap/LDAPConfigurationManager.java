@@ -90,6 +90,7 @@ public class LDAPConfigurationManager implements StatefulService {
                 properties.put("ldap.syncConfiguration.user.password", ldapUserSyncConfiguration.getPassword());
                 properties.put("ldap.syncConfiguration.groupsBaseContextList.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getGroupBaseContextList()));
                 properties.put("ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList()));
+                properties.put("ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getSelectedCollectionsCodes()));
 
                 if (ldapUserSyncConfiguration.getUsersFilterAcceptanceRegex() != null) {
                     properties.put("ldap.syncConfiguration.userFilter.acceptedRegex", ldapUserSyncConfiguration.getUsersFilterAcceptanceRegex());
@@ -187,7 +188,9 @@ public class LDAPConfigurationManager implements StatefulService {
         RegexFilter groupFilter = newRegexFilter(configs, "ldap.syncConfiguration.groupFilter.acceptedRegex", "ldap.syncConfiguration.groupFilter.rejectedRegex");
         Duration durationBetweenExecution = newDuration(configs, "ldap.syncConfiguration.durationBetweenExecution");
 
-        return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution, groupBaseContextList, usersWithoutGroupsBaseContextList);
+        List<String> selectedCollections = getSharpSeparatedValuesWithoutBlanks(configs,
+                "ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", new ArrayList<String>());
+        return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution, groupBaseContextList, usersWithoutGroupsBaseContextList, selectedCollections);
     }
 
     public boolean isLDAPAuthentication() {

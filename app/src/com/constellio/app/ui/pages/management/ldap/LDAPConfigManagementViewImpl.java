@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.management.ldap;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
 import com.constellio.app.ui.framework.components.DurationPanel;
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -29,7 +30,6 @@ import com.constellio.model.conf.ldap.RegexFilter;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.hadoop.util.StringUtils;
 import org.joda.time.Duration;
 
 import java.util.List;
@@ -55,6 +55,7 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
     private Field groupsAcceptanceRegexField;
     private Field groupsRejectionRegexField;
     private TextArea testAuthentication;
+    private CollectionsSelectionPanel collectionsComponent;
 
 
     public LDAPConfigManagementViewImpl() {
@@ -70,11 +71,11 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
 
         buildLdapServerConfigComponent(layout);
         buildLdapUserSyncConfigComponent(layout);
-        builSaveAndTestButtonsPanel(layout);
+        buildSaveAndTestButtonsPanel(layout);
         return layout;
     }
 
-    private void builSaveAndTestButtonsPanel(final VerticalLayout layout) {
+    private void buildSaveAndTestButtonsPanel(final VerticalLayout layout) {
         Panel buttonsPanel = new Panel();
         buttonsPanel.setSizeUndefined();
         buttonsPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
@@ -99,7 +100,7 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
                 LDAPServerConfiguration ldapServerConfigurationVO = new LDAPServerConfiguration(urlsField.getValues(), domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue());
                 LDAPUserSyncConfiguration ldapUserSyncConfigurationVO = new LDAPUserSyncConfiguration(userField.getValue().toString(), passwordField.getValue().toString(),
                         getUserFilter(), getGroupsFilter(),
-                        durationField.getDuration(), groupsField.getValues(), usersField.getValues());
+                        durationField.getDuration(), groupsField.getValues(), usersField.getValues(), collectionsComponent.getSelectedCollections());
                 presenter.saveConfigurations(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
             }
         };
@@ -149,6 +150,9 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
     }
 
     private void buildLdapUserSyncConfigComponent(VerticalLayout layout) {
+        String title = $("ImportUsersFileViewImpl.collection");
+        collectionsComponent = new CollectionsSelectionPanel(title, presenter.getAllCollections());
+        layout.addComponent(collectionsComponent);
         LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
         Duration duration = ldapUserSyncConfiguration.getDurationBetweenExecution();
         durationField = new DurationPanel();

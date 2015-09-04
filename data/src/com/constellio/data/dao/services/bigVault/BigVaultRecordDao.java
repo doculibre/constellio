@@ -81,7 +81,6 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManag
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.data.utils.LoggerUtils;
 import com.google.common.base.Joiner;
 
 public class BigVaultRecordDao implements RecordDao {
@@ -310,7 +309,6 @@ public class BigVaultRecordDao implements RecordDao {
 		for (RecordDTO index : indexes) {
 			references.add(index.getId().substring(REF_COUNT_PREFIX.length()));
 		}
-		LOGGER.info("get reference query : '" + LoggerUtils.toParamsString(params) + "'");
 		return references;
 	}
 
@@ -809,7 +807,8 @@ public class BigVaultRecordDao implements RecordDao {
 			spellcheckerSuggestions = spellcheckerSuggestions(spellCheckResponse);
 		}
 
-		return new QueryResponseDTO(documents, response.getQTime(), response.getResults().getNumFound(), fieldFacetValues, fieldsStatistics,
+		return new QueryResponseDTO(documents, response.getQTime(), response.getResults().getNumFound(), fieldFacetValues,
+				fieldsStatistics,
 				facetQueries, highlights, correctlySpelt, spellcheckerSuggestions);
 	}
 

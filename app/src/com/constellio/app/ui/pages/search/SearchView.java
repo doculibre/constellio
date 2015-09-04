@@ -18,7 +18,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.search;
 
 import java.util.List;
-import java.util.Map;
 
 import com.constellio.app.ui.pages.base.BaseView;
 

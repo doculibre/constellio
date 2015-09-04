@@ -27,34 +27,17 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public class TokensCalculator implements MetadataValueCalculator<List<String>> {
 
-	LocalDependency<List<String>> allAuthorizationsParam = LocalDependency.toARequiredStringList("allauthorizations");
-
-	public static List<String> getTokensForAuthorizationIds(List<String> authorizationIds) {
-		List<String> calculatedTokens = new ArrayList<>();
-		for (String auth : authorizationIds) {
-			if (!auth.startsWith("-")) {
-				String[] authSplitted = auth.split("_");
-				String accessCode = authSplitted[0];
-				String roles = authSplitted[1];
-				String authId = authSplitted[2];
-				if (accessCode.length() == 1) {
-					calculatedTokens.add(accessCode + "_" + roles + "_" + authId);
-				} else {
-					for (int i = 0; i < accessCode.length(); i++) {
-						calculatedTokens.add(accessCode.charAt(i) + "_" + roles + "_" + authId);
-					}
-				}
-			}
-		}
-		return calculatedTokens;
-	}
+	LocalDependency<List<String>> allAuthorizationsParam = LocalDependency
+			.toAStringList(CommonMetadataBuilder.ALL_AUTHORIZATIONS);
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		return getTokensForAuthorizationIds(parameters.get(allAuthorizationsParam));
+		//Use newer version instead
+		return new ArrayList<>();
 	}
 
 	@Override

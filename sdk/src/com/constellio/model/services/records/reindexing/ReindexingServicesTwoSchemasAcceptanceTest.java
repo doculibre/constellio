@@ -79,20 +79,25 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setup()
 			throws Exception {
-		givenDisabledAfterTestValidations();
+		prepareSystem(
+				withZeCollection().withAllTest(users)
+		);
+		inCollection(zeCollection).giveWriteAccessTo(dakota);
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 		recordDao = getDataLayerFactory().newRecordDao();
 
-		givenCollection(zeCollection).withAllTestUsers().andUsersWithWriteAccess(dakota);
 		defineSchemasManager().using(schemas.with(copiedAndCalculatedMetadatas()));
 
-		dakotaId = users.setUp(getModelLayerFactory().newUserServices()).dakotaLIndienIn(zeCollection).getId();
+		dakotaId = users.dakotaLIndienIn(zeCollection).getId();
 	}
 
 	@Test
 	public void whenReindexingThenRefreshCopiedAndCalculatedMetadatas_1()
 			throws Exception {
+
+		givenDisabledAfterTestValidations();
 
 		givenTimeIs(shishOClock);
 		Transaction transaction = new Transaction();
@@ -118,6 +123,7 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 		modifiedValues.put("copiedMetadataInput_s", "value3");
 		modifiedValues.put("calculatedMetadataInput_s", "value4");
 
+		//This call is breaking the transactionnal log
 		RecordDTO record = recordDao.get("000042");
 		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
 		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
@@ -147,7 +153,7 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenReindexingThenRefreshCopiedAndCalculatedMetadatas_2()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		givenTimeIs(shishOClock);
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
@@ -172,6 +178,7 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 		modifiedValues.put("copiedMetadataInput_s", "value3");
 		modifiedValues.put("calculatedMetadataInput_s", "value4");
 
+		//This call is breaking the transactionnal log
 		RecordDTO record = recordDao.get("000666");
 		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
 		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));

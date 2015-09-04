@@ -1,0 +1,116 @@
+/*Constellio Enterprise Information Management
+
+Copyright (c) 2015 "Constellio inc."
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+package com.constellio.app.ui.pages.management.facet;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.structure.FacetType;
+import com.constellio.model.entities.structures.MapStringStringStructure;
+
+public class DisplayFacetConfigurationPresenter extends BasePresenter<DisplayFacetConfigurationView> {
+
+	private RecordVO displayRecordVO;
+	private RecordVO recordVO;
+
+	public DisplayFacetConfigurationPresenter(DisplayFacetConfigurationView view) {
+		super(view);
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_FACETS).globally();
+	}
+
+	public void deleteButtonClicked() {
+		Record record = recordServices().getDocumentById(recordVO.getId());
+		recordServices().logicallyDelete(record, User.GOD);
+		recordServices().physicallyDelete(record, User.GOD);
+		view.navigateTo().listFacetConfiguration();
+	}
+
+	public void editButtonClicked() {
+		view.navigateTo().editFacetConfiguration(displayRecordVO.getId());
+	}
+
+	public void setDisplayRecordVO(String id) {
+		Record record = recordServices().getDocumentById(id);
+		List<String> metadatas = new ArrayList<>();
+		metadatas.add(Facet.TITLE);
+		metadatas.add(Facet.FACET_TYPE);
+		metadatas.add(Facet.ORDER_RESULT);
+		metadatas.add(Facet.FIELD_VALUES_LABEL);
+		metadatas.add(Facet.LIST_QUERIES);
+
+		final MetadataSchemaVO facetDefaultVO = new MetadataSchemaToVOBuilder().build(schema(Facet.DEFAULT_SCHEMA),
+				VIEW_MODE.TABLE, metadatas, view.getSessionContext());
+
+		displayRecordVO = new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, facetDefaultVO, view.getSessionContext());
+		recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
+
+	public RecordVO getDisplayRecordVO() {
+		return displayRecordVO;
+	}
+
+	public MapStringStringStructure getValues() {
+		FacetType type = recordVO.get(Facet.FACET_TYPE);
+		switch (type) {
+		case FIELD:
+			return recordVO.get(Facet.FIELD_VALUES_LABEL);
+		case QUERY:
+			return recordVO.get(Facet.LIST_QUERIES);
+		default:
+			throw new ImpossibleRuntimeException("Unknown type");
+		}
+	}
+
+	public String getTypePostfix() {
+		FacetType type = recordVO.get(Facet.FACET_TYPE);
+		return type.getCode();
+	}
+
+	public void backButtonClicked() {
+		view.navigateTo().listFacetConfiguration();
+	}
+
+	public Record toRecord(RecordVO recordVO) {
+		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchema().getCode(),
+				view.getConstellioFactories(), view.getSessionContext());
+		return schemaPresenterUtils.toRecord(recordVO);
+	}
+
+}

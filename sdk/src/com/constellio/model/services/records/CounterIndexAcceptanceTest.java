@@ -63,13 +63,13 @@ public class CounterIndexAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenDisabledAfterTestValidations();
+		prepareSystem(
+				withZeCollection().withAllTest(users)
+		);
+		inCollection(zeCollection).giveWriteAccessTo(dakota, edouard);
 
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		givenCollection(zeCollection, asList("fr", "en")).withAllTestUsers().andUsersWithWriteAccess(dakota)
-				.andUsersWithWriteAccess(edouard);
-
-		users.setUp(getModelLayerFactory().newUserServices());
 
 	}
 
@@ -87,13 +87,13 @@ public class CounterIndexAcceptanceTest extends ConstellioTest {
 
 		assertCounterIndexForRecordWithValue("record1", 0, noAncestors);
 		assertCounterIndexForRecordWithValue("record2", 0, noAncestors);
-		assertCounterIndexForRecordWithValue("record3", 0, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 0, asList("record1"));
 
 		recordServices.update(record3.set(zeCollectionSchema.metadata(childOfReference), "record2"));
 
 		assertCounterIndexForRecordWithValue("record1", 0, noAncestors);
 		assertCounterIndexForRecordWithValue("record2", 0, noAncestors);
-		assertCounterIndexForRecordWithValue("record3", 0, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 0, asList("record2"));
 
 	}
 
@@ -111,13 +111,13 @@ public class CounterIndexAcceptanceTest extends ConstellioTest {
 
 		assertCounterIndexForRecordWithValue("record1", 0, noAncestors);
 		assertCounterIndexForRecordWithValue("record2", 0, noAncestors);
-		assertCounterIndexForRecordWithValue("record3", 0, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 0, asList("record1"));
 
 		recordServices.update(record3.set(zeCollectionSchema.metadata(childOfReference), "record2"));
 
 		assertCounterIndexForRecordWithValue("record1", 0, noAncestors);
 		assertCounterIndexForRecordWithValue("record2", 0, noAncestors);
-		assertCounterIndexForRecordWithValue("record3", 0, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 0, asList("record2"));
 
 	}
 
@@ -135,13 +135,13 @@ public class CounterIndexAcceptanceTest extends ConstellioTest {
 
 		assertCounterIndexForRecordWithValue("record1", 0, noAncestors);
 		assertCounterIndexForRecordWithValue("record2", 0, noAncestors);
-		assertCounterIndexForRecordWithValue("record3", 0, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 0, asList("record1"));
 
 		recordServices.update(record3.set(anotherCollectionSchema.metadata(childOfReference), "record2"));
 
 		assertCounterIndexForRecordWithValue("record1", 0, noAncestors);
 		assertCounterIndexForRecordWithValue("record2", 0, noAncestors);
-		assertCounterIndexForRecordWithValue("record3", 0, noAncestors);
+		assertCounterIndexForRecordWithValue("record3", 0, asList("record2"));
 
 	}
 

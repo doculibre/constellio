@@ -27,6 +27,7 @@ import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseRichTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -217,7 +218,14 @@ public class MetadataFieldFactory implements Serializable {
 				field = new BaseDoubleField();
 				break;
 			case STRING:
-				field = new BaseTextField();
+				switch (metadataInputType) {
+				case PASSWORD:
+					field = new BasePasswordField();
+					break;
+				default:
+					field = new BaseTextField();
+					break;
+				}
 				break;
 			case CONTENT:
 				// Two input types : CONTENT OR CONTENT_CHECK_IN_CHECK_OUT

@@ -17,11 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.services.events;
 
+import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
 import static com.constellio.model.services.contents.ContentFactory.checkedOut;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNull;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,17 +32,22 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 
 public class RMEventsSearchServices {
 	private ModelLayerFactory modelLayerFactory;
@@ -97,13 +104,16 @@ public class RMEventsSearchServices {
 	}
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersQuery(User currentUser) {
-		return new LogicalSearchQuery(from(schemas.folderSchemaType()).where(schemas.folderBorrowed()).isTrue())
+		return new LogicalSearchQuery(from(schemas.folderSchemaType())
+				.where(schemas.folderBorrowed()).isTrue()
+				.andWhere(schemas.folderBorrowingType()).is(BorrowingType.BORROW))
 				.filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
 
-	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersByUserAndDateRangeQuery(User currentUser, String userId) {
+	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersByUser(User currentUser, String userId) {
 		LogicalSearchCondition condition = from(schemas.folderSchemaType())
 				.where(schemas.folderBorrowed()).isTrue()
+				.andWhere(schemas.folderBorrowingType()).is(BorrowingType.BORROW)
 				.andWhere(schemas.folderBorrowedUserEntered()).is(userId);
 		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
@@ -112,7 +122,7 @@ public class RMEventsSearchServices {
 		LogicalSearchCondition condition = from(schemas.folderSchemaType())
 				.where(schemas.folderBorrowed()).isTrue().andWhere(schemas.folderBorrowedUserEntered())
 				.is(userId).andWhere(schemas.folderBorrowPreviewReturnDate())
-				.isLessThan(TimeProvider.getLocalDateTime());
+				.isLessThan(TimeProvider.getLocalDate());
 		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
 
@@ -206,8 +216,8 @@ public class RMEventsSearchServices {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
 
-		return new LogicalSearchQuery(from(schemas.eventSchema()).where(type).isEqualTo(eventType))
-				.filteredWithUser(currentUser).sortDesc(timestamp);
+		return new LogicalSearchQuery(fromEventsAccessibleBy(currentUser).andWhere(type).isEqualTo(eventType))
+				.sortDesc(timestamp);
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeQuery(User currentUser, String eventType, LocalDateTime startDate,
@@ -215,9 +225,9 @@ public class RMEventsSearchServices {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
 
-		LogicalSearchCondition condition = from(schemas.eventSchema())
-				.where(type).isEqualTo(eventType).andWhere(timestamp).isValueInRange(startDate, endDate);
-		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(type).isEqualTo(eventType).andWhere(timestamp).isValueInRange(startDate, endDate);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeAndByFolderQuery(User currentUser, String eventType, LocalDateTime startDate,
@@ -226,11 +236,11 @@ public class RMEventsSearchServices {
 		Metadata recordId = schemas.eventSchema().getMetadata(Event.RECORD_ID);
 		Metadata timestamp = Schemas.CREATED_ON;
 
-		LogicalSearchCondition condition = from(schemas.eventSchema())
-				.where(type).isEqualTo(eventType)
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(type).isEqualTo(eventType)
 				.andWhere(timestamp).isValueInRange(startDate, endDate)
 				.andWhere(recordId).isEqualTo(folder);
-		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeAndByUserIdQuery(User currentUser, String eventType, LocalDateTime startDate,
@@ -246,18 +256,18 @@ public class RMEventsSearchServices {
 		Metadata timestamp = Schemas.CREATED_ON;
 		Metadata user = schemas.eventSchema().getMetadata(Event.USERNAME);
 
-		LogicalSearchCondition condition = from(schemas.eventSchema())
-				.where(type).isEqualTo(eventType)
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(type).isEqualTo(eventType)
 				.andWhere(timestamp).isValueInRange(startDate, endDate)
 				.andWhere(user).isEqualTo(userName);
-		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeAndByAdministrativeUnitQuery(User currentUser, String eventType,
 			LocalDateTime startDate, LocalDateTime endDate, String id) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
-		Metadata principalPath = schemas.eventSchema().getMetadata(Event.EVENT_PRINCIPAL_PATH);
+		Metadata principalPath = schemas.eventSchema().getMetadata(EVENT_PRINCIPAL_PATH);
 
 		String filteringSpacePathWithoutFirstAndLastSeparator = StringUtils.removeEnd(id, "/");
 		if (filteringSpacePathWithoutFirstAndLastSeparator.startsWith("/")) {
@@ -265,14 +275,13 @@ public class RMEventsSearchServices {
 					.removeStart("/", filteringSpacePathWithoutFirstAndLastSeparator);
 		}
 
-		LogicalSearchCondition containingId = where(principalPath).isAny(
-				endingWithText("/" + filteringSpacePathWithoutFirstAndLastSeparator),
-				containingText("/" + filteringSpacePathWithoutFirstAndLastSeparator + "/"));
-		LogicalSearchCondition condition = from(schemas.eventSchema())
-				.where(containingId)
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(principalPath).isAny(
+						endingWithText("/" + filteringSpacePathWithoutFirstAndLastSeparator),
+						containingText("/" + filteringSpacePathWithoutFirstAndLastSeparator + "/"))
 				.andWhere(type).isEqualTo(eventType)
 				.andWhere(timestamp).isValueInRange(startDate, endDate);
-		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 
 	private List<Event> findNotCanceledEventsPerUser(User currentUser, String eventType, String eventTypeCancellation) {
@@ -300,10 +309,40 @@ public class RMEventsSearchServices {
 		Metadata timestamp = Schemas.CREATED_ON;
 		Metadata user = schemas.eventSchema().getMetadata(Event.USERNAME);
 
-		LogicalSearchCondition condition = from(schemas.eventSchema())
-				.where(type).isEqualTo(eventType)
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(type).isEqualTo(eventType)
 				.andWhere(user).isEqualTo(username)
 				.andWhere(timestamp).isGreaterOrEqualThan(date);
-		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortDesc(timestamp);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
+	}
+
+	private LogicalSearchCondition fromEventsAccessibleBy(User user) {
+		Metadata eventPrincipalPath = schemas.eventSchema().getMetadata(EVENT_PRINCIPAL_PATH);
+		AuthorizationsServices authenticationService = schemas.getModelLayerFactory().newAuthorizationsServices();
+
+		if (user.hasCollectionReadWriteOrDeleteAccess()) {
+			return from(schemas.eventSchemaType()).returnAll();
+		} else {
+			SearchServices searchServices = schemas.getModelLayerFactory().newSearchServices();
+			List<String> ids = new ArrayList<>();
+
+			for (Authorization unit : authenticationService.getRecordAuthorizations(user)) {
+				ids.addAll(unit.getGrantedOnRecords());
+			}
+
+			List<LogicalSearchValueCondition> ofTheseAdministrativeUnits = new ArrayList<>();
+			ofTheseAdministrativeUnits.add(isNull());
+			for (Record concept : searchServices.search(
+					new LogicalSearchQuery(from(schemas.administrativeUnitSchemaType()).where(Schemas.IDENTIFIER).isIn(ids)))) {
+
+				List<String> paths = concept.get(Schemas.PATH);
+
+				if (!paths.isEmpty()) {
+					ofTheseAdministrativeUnits.add(startingWithText(paths.get(0)));
+				}
+			}
+
+			return from(schemas.eventSchemaType()).where(eventPrincipalPath).isAny(ofTheseAdministrativeUnits);
+		}
 	}
 }

@@ -40,6 +40,7 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
 	RecordServices recordServices;
 	RMTestRecords records = new RMTestRecords(zeCollection);
+	String bobId, chuckId, aliceId;
 
 	@Before
 	public void setUp()
@@ -53,6 +54,9 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		service = new DecommissioningService(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
+		bobId = records.getBob_userInAC().getId();
+		chuckId = records.getChuckNorris().getId();
+		aliceId = records.getAlice().getId();
 	}
 
 	@Test
@@ -83,16 +87,16 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 
 	@Test
 	public void whenGetFoldersForAdministrativeUnitThenOk() {
-		List<Folder> folders = service.getFoldersForAdministrativeUnit("unitId_12");
+		List<Folder> folders = service.getFoldersForAdministrativeUnit("unitId_12b");
 		assertThat(folders).extracting("title").containsExactly(
 				"Avocat", "Banane", "Datte", "Framboise", "Mangue", "Mûre", "Nectarine", "Pêche", "Pomme", "Tomate");
 	}
 
 	@Test
 	public void givenDeletedFolderWhenGetFolderForAdministrativeUnitThenOk() {
-		List<Folder> folders = service.getFoldersForAdministrativeUnit("unitId_12");
+		List<Folder> folders = service.getFoldersForAdministrativeUnit("unitId_12b");
 		recordServices.logicallyDelete(folders.get(0).getWrappedRecord(), User.GOD);
-		folders = service.getFoldersForAdministrativeUnit("unitId_12");
+		folders = service.getFoldersForAdministrativeUnit("unitId_12b");
 		assertThat(folders).extracting("title").containsExactly(
 				"Banane", "Datte", "Framboise", "Mangue", "Mûre", "Nectarine", "Pêche", "Pomme", "Tomate");
 	}
@@ -113,7 +117,7 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 
 	@Test
 	public void whenGetRetentionRulesForAdministrativeUnitThenOk() {
-		List<RetentionRule> retentionRules = service.getRetentionRulesForAdministrativeUnit("unitId_12");
+		List<RetentionRule> retentionRules = service.getRetentionRulesForAdministrativeUnit("unitId_12b");
 		assertThat(retentionRules).hasSize(3).extracting("id").containsOnly("ruleId_4", "ruleId_2", "ruleId_1");
 	}
 
@@ -127,7 +131,7 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 				.setAdministrativeUnits(asList(records.unitId_12)).setApproved(true)
 				.setCopyRetentionRules(asList(principal_PA_3_888_D, secondary_MD_3_888_C)));
 		recordServices.logicallyDelete(recordServices.getDocumentById("zeRule"), User.GOD);
-		List<RetentionRule> retentionRules = service.getRetentionRulesForAdministrativeUnit("unitId_12");
+		List<RetentionRule> retentionRules = service.getRetentionRulesForAdministrativeUnit("unitId_12b");
 		assertThat(retentionRules).hasSize(3).extracting("id").containsOnly("ruleId_2", "ruleId_1", "ruleId_4");
 	}
 

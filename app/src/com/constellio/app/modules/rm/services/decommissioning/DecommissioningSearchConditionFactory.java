@@ -25,18 +25,16 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNull;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -64,89 +62,85 @@ public class DecommissioningSearchConditionFactory {
 				SearchType.semiActiveToDeposit, SearchType.semiActiveToDestroy);
 	}
 
-	public LogicalSearchCondition bySearchType(SearchType type, String filingSpaceId, String adminUnitId) {
+	public LogicalSearchCondition bySearchType(SearchType type, String adminUnitId) {
 		switch (type) {
 		case fixedPeriod:
-			return withoutClosingDateAndWithFixedPeriod(filingSpaceId, adminUnitId);
+			return withoutClosingDateAndWithFixedPeriod(adminUnitId);
 		case code888:
-			return withoutClosingDateAndWith888Period(filingSpaceId, adminUnitId);
+			return withoutClosingDateAndWith888Period(adminUnitId);
 		case code999:
-			return withoutClosingDateAndWith999Period(filingSpaceId, adminUnitId);
+			return withoutClosingDateAndWith999Period(adminUnitId);
 		case transfer:
-			return activeToTransferToSemiActive(filingSpaceId, adminUnitId);
+			return activeToTransferToSemiActive(adminUnitId);
 		case activeToDeposit:
-			return activeToDeposit(filingSpaceId, adminUnitId);
+			return activeToDeposit(adminUnitId);
 		case activeToDestroy:
-			return activeToDestroy(filingSpaceId, adminUnitId);
+			return activeToDestroy(adminUnitId);
 		case semiActiveToDeposit:
-			return semiActiveToDeposit(filingSpaceId, adminUnitId);
+			return semiActiveToDeposit(adminUnitId);
 		case semiActiveToDestroy:
-			return semiActiveToDestroy(filingSpaceId, adminUnitId);
+			return semiActiveToDestroy(adminUnitId);
 		default:
 			throw new RuntimeException("Unknown search type: " + type);
 		}
 	}
 
-	public LogicalSearchCondition withoutClosingDateAndWithFixedPeriod(String filingSpaceId, String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(filingSpaceId, adminUnitId)
+	public LogicalSearchCondition withoutClosingDateAndWithFixedPeriod(String adminUnitId) {
+		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
 				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.FIXED)
 				.andWhere(schemas.folderCloseDate()).isNull()
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
-	public LogicalSearchCondition withoutClosingDateAndWith888Period(String filingSpaceId, String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(filingSpaceId, adminUnitId)
+	public LogicalSearchCondition withoutClosingDateAndWith888Period(String adminUnitId) {
+		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
 				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.OPEN)
 				.andWhere(schemas.folderCloseDate()).isNull()
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
-	public LogicalSearchCondition withoutClosingDateAndWith999Period(String filingSpaceId, String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(filingSpaceId, adminUnitId)
+	public LogicalSearchCondition withoutClosingDateAndWith999Period(String adminUnitId) {
+		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
 				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.UNTIL_REPLACED)
 				.andWhere(schemas.folderCloseDate()).isNull()
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
-	public LogicalSearchCondition activeToTransferToSemiActive(String filingSpaceId, String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(filingSpaceId, adminUnitId)
+	public LogicalSearchCondition activeToTransferToSemiActive(String adminUnitId) {
+		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
 				.andWhere(schemas.folderPlanifiedTransferDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
-	public LogicalSearchCondition activeToDestroy(String filingSpaceId, String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(filingSpaceId, adminUnitId)
+	public LogicalSearchCondition activeToDestroy(String adminUnitId) {
+		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
 				.andWhere(schemas.folderPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
-	public LogicalSearchCondition activeToDeposit(String filingSpaceId, String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(filingSpaceId, adminUnitId)
+	public LogicalSearchCondition activeToDeposit(String adminUnitId) {
+		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
 				.andWhere(schemas.folderPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
-	public LogicalSearchCondition semiActiveToDestroy(String filingSpaceId, String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(filingSpaceId, adminUnitId)
+	public LogicalSearchCondition semiActiveToDestroy(String adminUnitId) {
+		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
 				.andWhere(schemas.folderPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
-	public LogicalSearchCondition semiActiveToDeposit(String filingSpaceId, String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(filingSpaceId, adminUnitId)
+	public LogicalSearchCondition semiActiveToDeposit(String adminUnitId) {
+		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
 				.andWhere(schemas.folderPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition getVisibleContainersCondition(ContainerSearchParameters params) {
 		params.validate();
-		if (params.filingSpaceId == null) {
-			throw new ImpossibleRuntimeException("filingSpaceId required");
-		}
 
 		return from(schemas.containerRecordSchemaType())
 				.where(schemas.containerAdministrativeUnit()).isEqualTo(params.adminUnitId)
-				.andWhere(schemas.containerFilingSpace()).isEqualTo(params.filingSpaceId)
 				.andWhere(schemas.containerDecommissioningType()).isEqualTo(params.type)
 				.andWhere(schemas.containerStorageSpace()).is(params.withStorage ? isNotNull() : isNull());
 	}
@@ -161,35 +155,27 @@ public class DecommissioningSearchConditionFactory {
 				.andWhere(schemas.containerDecommissioningType()).isEqualTo(params.type)
 				.andWhere(schemas.containerStorageSpace()).is(params.withStorage ? isNotNull() : isNull());
 
-		if (params.filingSpaceId != null) {
-			condition = condition.andWhere(schemas.containerFilingSpace()).isEqualTo(params.filingSpaceId);
-		}
-
 		return searchServices.getResultsCount(condition);
 	}
 
-	public int getVisibleFilingSpacesCount(String administrativeUnitId) {
-		Set<String> filingSpaces = new HashSet<>();
-		for (AdministrativeUnit unit : decommissioningService.getAllAdminUnitHierarchyOf(administrativeUnitId)) {
-			filingSpaces.addAll(unit.getFilingSpaces());
-		}
+	public long getVisibleSubAdministrativeUnitCount(String administrativeUnitId) {
 
-		return filingSpaces.size();
+		LogicalSearchCondition condition = from(schemas.administrativeUnitSchemaType())
+				.where(schemas.administrativeUnitParent()).is(administrativeUnitId)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+		return searchServices.getResultsCount(condition);
 	}
 
-	private LogicalSearchCondition fromFolderWhereFilingSpaceAndAdministrativeUnitAre(String filingSpaceId, String adminUnitId) {
+	private LogicalSearchCondition fromFolderWhereFilingSpaceAndAdministrativeUnitAre(String adminUnitId) {
 		MetadataSchema folderSchema = schemas.defaultFolderSchema();
-		Metadata filingSpace = folderSchema.getMetadata(Folder.FILING_SPACE);
 		Metadata administrativeUnit = folderSchema.getMetadata(Folder.ADMINISTRATIVE_UNIT);
 
-		return from(schemas.folderSchemaType())
-				.where(filingSpace).isEqualTo(filingSpaceId).andWhere(administrativeUnit).isEqualTo(adminUnitId);
+		return from(schemas.folderSchemaType()).where(administrativeUnit).isEqualTo(adminUnitId);
 	}
 
 	public static class ContainerSearchParameters {
 
 		String userId;
-		String filingSpaceId;
 		String adminUnitId;
 		DecommissioningType type;
 		boolean withStorage;
@@ -200,15 +186,6 @@ public class DecommissioningSearchConditionFactory {
 
 		public ContainerSearchParameters setUserId(String userId) {
 			this.userId = userId;
-			return this;
-		}
-
-		public String getFilingSpaceId() {
-			return filingSpaceId;
-		}
-
-		public ContainerSearchParameters setFilingSpaceId(String filingSpaceId) {
-			this.filingSpaceId = filingSpaceId;
 			return this;
 		}
 

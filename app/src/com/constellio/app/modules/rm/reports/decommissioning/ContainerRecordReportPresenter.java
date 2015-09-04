@@ -36,9 +36,9 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -68,6 +68,7 @@ public class ContainerRecordReportPresenter {
 	private MetadataSchemasManager schemasManager;
 	private IOServices ioServices;
 	private DecommissioningType reportType;
+	private MetadataSchemaTypes types;
 
 	public ContainerRecordReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
@@ -77,6 +78,7 @@ public class ContainerRecordReportPresenter {
 		recordServices = modelLayerFactory.newRecordServices();
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
 	}
 
@@ -299,11 +301,13 @@ public class ContainerRecordReportPresenter {
 			List<String> mediumTypes = decommissioningService.getMediumTypesOf(container);
 
 			if (mediumTypes != null) {
-
-				ReportBooleanField dmField = new ReportBooleanField("DM", mediumTypes.contains(rm.DM()));
-				fields.add(dmField);
-				ReportBooleanField paField = new ReportBooleanField("PA", mediumTypes.contains(rm.PA()));
-				fields.add(paField);
+				for (String mediumTypeStr : mediumTypes) {
+					Record record = recordServices.getDocumentById(mediumTypeStr);
+					MediumType mediumType = new MediumType(record, types);
+					ReportBooleanField field = new ReportBooleanField(mediumType.getCode(),
+							mediumTypes.contains(mediumType.getId()));
+					fields.add(field);
+				}
 			}
 		}
 
@@ -351,8 +355,6 @@ public class ContainerRecordReportPresenter {
 
 			boxNumber = container.getTitle();
 
-			builFilingSpacePart(container, identificationModel);
-
 			buildUserPart(container, identificationModel);
 
 			organisationName = EMPTY_FOR_NOW;
@@ -371,26 +373,6 @@ public class ContainerRecordReportPresenter {
 		identificationModel.setSentDate(sentDate);
 
 		return identificationModel;
-	}
-
-	private void builFilingSpacePart(ContainerRecord container,
-			DocumentTransfertModel_Identification identificationModel) {
-		String codeEspaceClassement = "";
-		String espaceClassement = "";
-
-		if (container != null) {
-			String filingSpaceId = container.getFilingSpace();
-
-			FilingSpace filingSpace = getFilingSpaceOrNull(filingSpaceId);
-			if (filingSpace != null) {
-				codeEspaceClassement = StringUtils.defaultString(filingSpace.getCode());
-				espaceClassement = StringUtils.defaultString(filingSpace.getTitle());
-			}
-		}
-
-		identificationModel.setCodeEspaceClassement(codeEspaceClassement);
-		identificationModel.setEspaceClassement(espaceClassement);
-
 	}
 
 	private void buildUserPart(ContainerRecord container, DocumentTransfertModel_Identification identificationModel) {
@@ -425,16 +407,6 @@ public class ContainerRecordReportPresenter {
 		}
 
 		return administrativeUnit;
-	}
-
-	private FilingSpace getFilingSpaceOrNull(String filingSpaceId) {
-		FilingSpace filingSpace = null;
-
-		if (filingSpaceId != null && !filingSpaceId.isEmpty()) {
-			filingSpace = rm.getFilingSpace(filingSpaceId);
-		}
-
-		return filingSpace;
 	}
 
 	private User getUser(String userId) {

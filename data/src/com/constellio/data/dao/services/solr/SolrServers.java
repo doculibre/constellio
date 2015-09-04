@@ -23,6 +23,7 @@ import java.util.Map;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.extensions.DataLayerExtensions;
 
 public class SolrServers {
 
@@ -32,17 +33,20 @@ public class SolrServers {
 
 	private final BigVaultLogger bigVaultLogger;
 
-	public SolrServers(SolrServerFactory solrServerFactory, BigVaultLogger bigVaultLogger) {
+	private final DataLayerExtensions extensions;
+
+	public SolrServers(SolrServerFactory solrServerFactory, BigVaultLogger bigVaultLogger, DataLayerExtensions extensions) {
 		this.solrServerFactory = solrServerFactory;
 		this.bigVaultLogger = bigVaultLogger;
+		this.extensions = extensions;
 	}
 
 	public synchronized BigVaultServer getSolrServer(String core) {
-		BigVaultServer server = servers.get(core); 
+		BigVaultServer server = servers.get(core);
 		if (server == null) {
-			server = new BigVaultServer(core, solrServerFactory.newSolrServer(core), 
+			server = new BigVaultServer(core, solrServerFactory.newSolrServer(core),
 					solrServerFactory.getConfigFileSystem(core), solrServerFactory.getAdminServer(),
-					bigVaultLogger);
+					bigVaultLogger, extensions.getSystemWideExtensions());
 			servers.put(core, server);
 		}
 		return server;

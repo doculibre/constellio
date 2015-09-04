@@ -92,6 +92,6 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listSchemaType();
+		view.navigateTo().listSchemaTypes();
 	}
 }

@@ -33,6 +33,7 @@ import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.ConstellioPluginManager;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
@@ -63,6 +64,7 @@ public class SystemSetupServicesAcceptTest extends ConstellioTest {
 
 		List<InstallableModule> modules = new ArrayList<>();
 		modules.add(new ConstellioRMModule());
+		modules.add(new TaskModule());
 
 		pluginManager = getAppLayerFactory().getPluginManager();
 		when(pluginManager.getPlugins(InstallableModule.class)).thenReturn(modules);
@@ -116,9 +118,9 @@ public class SystemSetupServicesAcceptTest extends ConstellioTest {
 		assertThat(getModelLayerFactory().getCollectionsListManager().getCollections())
 				.containsOnly("myCollection1", "myCollection2");
 
-		List<Module> modules = getAppLayerFactory().getModulesManager().getEnabledModules("myCollection1");
-		assertThat(modules).hasSize(1);
-		assertThat(modules.get(0).getClass()).isEqualTo(ConstellioRMModule.class);
+		List<? extends Module> modules = getAppLayerFactory().getModulesManager().getEnabledModules("myCollection1");
+		assertThat(modules).hasSize(2);
+		assertThat(modules).extractingResultOf("getClass").containsOnly(ConstellioRMModule.class, TaskModule.class);
 
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", "myCollection1");
 		assertThat(admin.isSystemAdmin()).isTrue();

@@ -23,7 +23,7 @@ import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.vaadin.server.Resource;
 
 public class RecordLazyTree extends LazyTree<String> {
-	
+
 	private RecordIdToCaptionConverter itemsConverter;
 
 	public RecordLazyTree(String taxonomyCode, int bufferSize) {
@@ -45,19 +45,20 @@ public class RecordLazyTree extends LazyTree<String> {
 		super(dataProvider);
 		init();
 	}
-	
+
 	private void init() {
 		itemsConverter = new RecordIdToCaptionConverter();
 	}
 
 	@Override
-	public String getItemCaption(String object) {
-		return itemsConverter.convertToPresentation((String) object, String.class, getLocale());
+	public String getItemCaption(String id) {
+		return getDataProvider().getCaption(id);
 	}
 
 	@Override
 	public Resource getItemIcon(Object itemId) {
-		return itemsConverter.getIcon((String) itemId);
+		boolean expanded = isExpanded(itemId);
+		return itemsConverter.getIcon((String) itemId, expanded);
 	}
 
 	@Override

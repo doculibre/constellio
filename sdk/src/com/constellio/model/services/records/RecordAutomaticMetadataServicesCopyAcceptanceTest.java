@@ -51,7 +51,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends ConstellioTest {
 
-	RecordServices recordServices;
+	RecordServicesImpl recordServices;
 	RecordProvider recordProvider;
 
 	RecordAutomaticMetadataServices services;
@@ -86,7 +86,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		services = new RecordAutomaticMetadataServices(getModelLayerFactory().getMetadataSchemasManager(),
 				getModelLayerFactory().getTaxonomiesManager(), getModelLayerFactory().getSystemConfigurationsManager());
 
-		recordServices = spy(getModelLayerFactory().newRecordServices());
+		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
 		recordProvider = recordServices.newRecordProvider(null, new Transaction());
 
 		reindexedMetadata = new TransactionRecordsReindexation(asList(firstReindexedMetadata, secondReindexedMetadata));

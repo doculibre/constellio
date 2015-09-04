@@ -17,7 +17,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.pages.search.criteria;
 
-import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 
@@ -60,10 +59,6 @@ public class CriterionBuilder {
 	public CriterionBuilder rightParens(boolean rightParens) {
 		criterion.setRightParens(rightParens);
 		return this;
-	}
-
-	public MetadataVO getMetadata() {
-		return criterion.getMetadata();
 	}
 
 	public CriterionBuilder searchOperator(SearchOperator searchOperator) {

@@ -52,18 +52,12 @@ public class ConstellioNavigatorTest extends ConstellioTest {
 	@Test
 	public void whenNavigatingToSimpleSearchResultInnerPageThenNavigateToSearchURLWithQueryAndPage() {
 		navigator.simpleSearch("query", 42);
-		verify(theVaadinNavigator, times(1)).navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/query/42");
+		verify(theVaadinNavigator, times(1)).navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/q/query/42");
 	}
 
 	@Test
 	public void whenNavigatingToSimpleSearchResultPageThenNavigateToSearchURLWithQuery() {
 		navigator.simpleSearch("query");
-		verify(theVaadinNavigator, times(1)).navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/query");
-	}
-
-	@Test
-	public void whenNavigatingToSimpleSearchPageThenNavigateToSearchURL() {
-		navigator.simpleSearch();
-		verify(theVaadinNavigator, times(1)).navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH);
+		verify(theVaadinNavigator, times(1)).navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/q/query");
 	}
 }

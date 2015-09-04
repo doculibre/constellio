@@ -17,9 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,7 +61,7 @@ public class UserCredentialReaderTest extends ConstellioTest {
 	@Test
 	public void givenTwoUsersCredentialsWhenReadAllThenGetThem()
 			throws Exception {
-		Map<String, UserCredential> usersCredentials = reader.readAll();
+		Map<String, UserCredential> usersCredentials = reader.readAll(asList("zeCollection"));
 
 		assertThat(usersCredentials).hasSize(2);
 		assertThat(usersCredentials.containsKey("chuck")).isTrue();
@@ -74,11 +74,11 @@ public class UserCredentialReaderTest extends ConstellioTest {
 		endDateTime = new LocalDateTime(2014, 11, 04, 10, 30);
 		tokens.put("token1", endDateTime);
 		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", "serviceKeyChuck", false,
-				Arrays.asList("group1"), Arrays.asList(zeCollection), tokens, UserCredentialStatus.ACTIVE, "domain");
+				asList("group1"), asList(zeCollection), tokens, UserCredentialStatus.ACTIVE, "domain");
 	}
 
 	private void newEdouardUserCredential() {
 		edouardUserCredential = new UserCredential("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com",
-				Arrays.asList("group1"), Arrays.asList("collection1"), UserCredentialStatus.ACTIVE, "domain");
+				asList("group1"), asList("collection1"), UserCredentialStatus.ACTIVE, "domain");
 	}
 }

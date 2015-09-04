@@ -45,15 +45,22 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.extensions.ConstellioPluginManager;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.Task;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -62,7 +69,6 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTest {
-
 	ConstellioPluginManager pluginManager;
 
 	@Before
@@ -101,7 +107,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("collection").getCode()).isEqualTo("collection");
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("task").getCode()).isEqualTo("task");
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("event").getCode()).isEqualTo("event");
-		assertThat(getAppLayerFactory().newMigrationServices().getCurrentVersion(zeCollection)).isEqualTo("5.0.4");
+		assertThat(getAppLayerFactory().newMigrationServices().getCurrentVersion(zeCollection)).isEqualTo("5.1.0");
 
 	}
 
@@ -129,7 +135,6 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.OPENING_DATE);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.ENTERED_CLOSING_DATE);
-		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.FILING_SPACE_ENTERED);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.MEDIUM_TYPES);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.KEYWORDS);
@@ -317,7 +322,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		);
 		pluginManager = getAppLayerFactory().getPluginManager();
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(22);
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(29);
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Task.SCHEMA_TYPE)).isNotNull();
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(TaskType.SCHEMA_TYPE)).isNotNull();
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(TaskStatus.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(UserDocument.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(AdministrativeUnit.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(DecommissioningList.SCHEMA_TYPE)).isNotNull();
@@ -325,7 +333,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(User.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Group.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Collection.SCHEMA_TYPE)).isNotNull();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Task.SCHEMA_TYPE)).isNotNull();
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(WorkflowTask.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Category.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Folder.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Document.SCHEMA_TYPE)).isNotNull();
@@ -340,6 +348,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(MediumType.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Event.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(VariableRetentionPeriod.SCHEMA_TYPE)).isNotNull();
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Report.SCHEMA_TYPE)).isNotNull();
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(EmailToSend.SCHEMA_TYPE)).isNotNull();
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(SavedSearch.SCHEMA_TYPE)).isNotNull();
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Facet.SCHEMA_TYPE)).isNotNull();
 
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy administrativeUnitsTaxonomy = taxonomiesManager.getEnabledTaxonomyWithCode("zeCollection",
@@ -380,27 +392,18 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 	// ---------------------------
 
 	private List<String> schemaTypesOf(List<SchemaTypeDisplayConfig> configs) {
-
 		List<String> codes = new ArrayList<>();
-
 		for (SchemaTypeDisplayConfig type : configs) {
 			codes.add(type.getSchemaType());
 		}
-
 		return codes;
 	}
 
 	private List<String> metadataCodesOf(List<MetadataDisplayConfig> configs) {
-
 		List<String> codes = new ArrayList<>();
-
 		for (MetadataDisplayConfig metadata : configs) {
-
 			codes.add(new SchemaUtils().toLocalMetadataCode(metadata.getMetadataCode()));
 		}
-
 		return codes;
 	}
 }
-
-

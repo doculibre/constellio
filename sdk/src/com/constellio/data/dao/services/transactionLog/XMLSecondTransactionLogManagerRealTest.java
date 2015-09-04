@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -66,6 +67,7 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRunti
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -77,6 +79,8 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	@Mock BigVaultServer bigVaultServer;
 
 	@Mock RecordDao recordDao;
+
+	@Mock DataLayerSystemExtensions systemExtensions;
 
 	LocalDateTime shishOclockLocalDateTime = new LocalDateTime().plusHours(1);
 	LocalDateTime tockOClockLocalDateTime = shishOclockLocalDateTime.plusMinutes(1);
@@ -126,6 +130,12 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+
+		when(systemExtensions.isDocumentFieldLoggedInTransactionLog(anyString(), anyString(), anyString(), eq(true)))
+				.thenReturn(true);
+		when(systemExtensions.isDocumentFieldLoggedInTransactionLog(anyString(), anyString(), anyString(), eq(false)))
+				.thenReturn(false);
+
 		givenDisabledAfterTestValidations();
 		withSpiedServices(ContentDao.class);
 
@@ -138,12 +148,14 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		when(recordDao.getBigVaultServer()).thenReturn(bigVaultServer);
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions));
 		transactionLog.initialize();
 
 		record1 = newSolrInputDocument("record1", -1L);
 		record1.setField("text_s", "aValue");
 		record1.setField("date_dt", shishOclock);
+		record1.setField("content_txt_fr", "ze french parsed content");
+		record1.setField("content_txt_en", "ze english parsed content");
 
 		record2 = newSolrInputDocument("record2", -1L);
 		record2.setField("text_s", "anotherValue");
@@ -328,7 +340,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions));
 
 		doReturn(true).when(transactionLog).isCommitted(firstTransactionTempFile, recordDao);
 		doReturn(false).when(transactionLog).isCommitted(secondTransactionTempFile, recordDao);
@@ -346,7 +358,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	public void givenPreparedIsCalledBeforeInitializingTheTransactionLogThenException() {
 
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 
 	}
@@ -615,6 +627,48 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		} catch (SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException e) {
 			//OK
 		}
+	}
+
+	@Test
+	public void givenFileWithoutCarriageReturnsThenLineIteratorReturnLines()
+			throws Exception {
+
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("line1\n");
+		stringBuilder.append("line2\\nend\n");
+		stringBuilder.append("line3__LINEBREAK__end");
+
+		File file = newTempFileWithContent("zeFile", stringBuilder.toString());
+		Iterator<String> lineIterator = transactionLog.newLinesIterator(file);
+
+		assertThat(lineIterator.next()).isEqualTo("line1");
+		assertThat(lineIterator.next()).isEqualTo("line2\\nend");
+		assertThat(lineIterator.next()).isEqualTo("line3__LINEBREAK__end");
+		assertThat(lineIterator.hasNext()).isFalse();
+
+	}
+
+	@Test
+	public void givenFileWithCarriageReturnsThenLineIteratorReturnLines()
+			throws Exception {
+
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("line1\n");
+		stringBuilder.append("line2\\nend\n");
+		stringBuilder.append("line3\r\nend\n");
+		stringBuilder.append("line4\rend\n");
+		stringBuilder.append("line5__LINEBREAK__end");
+
+		File file = newTempFileWithContent("zeFile", stringBuilder.toString());
+		Iterator<String> lineIterator = transactionLog.newLinesIterator(file);
+
+		assertThat(lineIterator.next()).isEqualTo("line1");
+		assertThat(lineIterator.next()).isEqualTo("line2\\nend");
+		assertThat(lineIterator.next()).isEqualTo("line3__LINEBREAK__end");
+		assertThat(lineIterator.next()).isEqualTo("line4end");
+		assertThat(lineIterator.next()).isEqualTo("line5__LINEBREAK__end");
+		assertThat(lineIterator.hasNext()).isFalse();
+
 	}
 
 	//TODO Test flush exception

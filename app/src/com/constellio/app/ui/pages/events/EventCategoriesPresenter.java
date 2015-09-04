@@ -18,10 +18,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.app.ui.pages.events;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.services.extensions.ConstellioPluginManagerRuntimeException.ConstellioPluginManagerRuntimeException_NoSuchModule;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView> {
@@ -29,7 +33,7 @@ public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>
 	public EventCategoriesPresenter(EventCategoriesView view) {
 		super(view);
 	}
-	
+
 	void viewEntered() {
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
@@ -41,6 +45,8 @@ public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>
 	public void eventButtonClicked(EventCategory eventCategory) {
 		if (eventCategory == EventCategory.AGENT_EVENTS) {
 			view.navigateTo().listAgentLogs();
+		} else if (eventCategory == EventCategory.TASKS_EVENTS) {
+			view.navigateTo().listTasksLogs();
 		} else {
 			view.navigateTo().showEventCategory(eventCategory);
 		}
@@ -51,4 +57,14 @@ public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>
 		return user.has(CorePermissions.VIEW_EVENTS).globally();
 	}
 
+	public boolean isTaskModuleInstalled() {
+		return false;
+		/*ConstellioModulesManager modulesManager = appLayerFactory.getModulesManager();
+		try {
+			Module tasksModule = modulesManager.getInstalledModule(TaskModule.ID);
+			return modulesManager.isModuleEnabled(collection, tasksModule);
+		} catch (ConstellioPluginManagerRuntimeException_NoSuchModule e) {
+			return false;
+		}*/
+	}
 }

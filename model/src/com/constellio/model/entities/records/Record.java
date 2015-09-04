@@ -27,6 +27,8 @@ import com.constellio.model.services.schemas.MetadataList;
 
 public interface Record extends Serializable, CollectionObject {
 
+	public static final String PUBLIC_TOKEN = "__public__";
+
 	public String getId();
 
 	public long getVersion();
@@ -34,6 +36,8 @@ public interface Record extends Serializable, CollectionObject {
 	public String getSchemaCode();
 
 	public boolean isDirty();
+
+	public boolean isFullyLoaded();
 
 	boolean isModified(Metadata metadata);
 
@@ -66,4 +70,6 @@ public interface Record extends Serializable, CollectionObject {
 	void removeAllFieldsStartingWith(String field);
 
 	void markAsModified(Metadata metadata);
+
+	void changeSchemaTo(String email);
 }

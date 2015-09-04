@@ -17,19 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.components.folder.fields;
 
-import java.util.List;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 
-import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
-import com.constellio.app.ui.util.EventUtils;
-import com.vaadin.ui.ComboBox;
+public class FolderAdministrativeUnitFieldImpl extends LookupRecordField implements FolderAdministrativeUnitField {
 
-public class FolderAdministrativeUnitFieldImpl extends ComboBox implements FolderAdministrativeUnitField {
-
-	private RecordIdToCaptionConverter captionConverter = new RecordIdToCaptionConverter();
-
-	@Override
-	public String getItemCaption(Object itemId) {
-		return captionConverter.convertToPresentation((String) itemId, String.class, getLocale());
+	public FolderAdministrativeUnitFieldImpl() {
+		super(AdministrativeUnit.SCHEMA_TYPE, true);
 	}
 
 	@Override
@@ -39,18 +33,7 @@ public class FolderAdministrativeUnitFieldImpl extends ComboBox implements Folde
 
 	@Override
 	public void setFieldValue(Object value) {
-		setInternalValue(value);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<String> getOptions() {
-		return (List<String>) getItemIds();
-	}
-
-	@Override
-	public void setOptions(List<String> options) {
-		EventUtils.setOptionsWithoutNotifyingListeners(this, options);
+		setInternalValue((String) value);
 	}
 
 }

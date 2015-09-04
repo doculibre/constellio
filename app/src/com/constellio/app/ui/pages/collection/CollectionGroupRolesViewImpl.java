@@ -19,25 +19,35 @@ package com.constellio.app.ui.pages.collection;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RoleAuthVO;
 import com.constellio.app.ui.entities.RoleVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.containers.ButtonsContainer;
+import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.VerticalLayout;
@@ -50,8 +60,12 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 
 	private final CollectionGroupRolesPresenter presenter;
 	private RecordVO group;
-	private ComboBox availableRoles;
-	private Table roles;
+	@PropertyId("roles") private OptionGroup availableRolesField;
+	@PropertyId("target") private LookupRecordField targetField;
+
+	private Table inheritedRolesTable;
+	private Table specificRolesTable;
+	private VerticalLayout layout;
 
 	public CollectionGroupRolesViewImpl() {
 		presenter = new CollectionGroupRolesPresenter(this);
@@ -80,89 +94,130 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		List<String> groupRoles = group.get(GROUP_ROLES);
-
-		final Button add = new AddButton() {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.roleAdditionRequested((String) availableRoles.getValue());
-			}
-		};
-		add.addStyleName(ADD_ROLE);
-		add.setEnabled(false);
-
-		availableRoles = new ComboBox();
-		for (RoleVO roleVO : presenter.getRoles()) {
-			if (!groupRoles.contains(roleVO.getCode())) {
-				availableRoles.addItem(roleVO.getCode());
-				availableRoles.setItemCaption(roleVO.getCode(), roleVO.getTitle());
-			}
+		buildInheritedRolesTable();
+		specificRolesTable = buildSpecificRolesTable();
+		availableRolesField = new ListOptionGroup($("CollectionGroupRolesView.rolesField"));
+		availableRolesField.setMultiSelect(true);
+		availableRolesField.setId("roles");
+		for (RoleVO role : presenter.getRoles()) {
+			availableRolesField.addItem(role.getCode());
+			availableRolesField.setItemCaption(role.getCode(), role.getTitle());
 		}
-		availableRoles.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				add.setEnabled(availableRoles.getValue() != null);
-			}
-		});
-		availableRoles.addStyleName(ROLE_SELECTOR);
 
-		HorizontalLayout adder = new HorizontalLayout(availableRoles, add);
-
-		roles = new Table();
-		for (String roleCode : groupRoles) {
-			roles.addItem(roleCode);
-		}
-		roles.setWidth("100%");
-		roles.setPageLength(roles.size());
-		roles.addStyleName(ROLES);
-		new RoleDisplay().attachTo(roles);
-
-		VerticalLayout layout = new VerticalLayout(adder, roles);
+		layout = new VerticalLayout(inheritedRolesTable, specificRolesTable);
 		layout.setSpacing(true);
 
 		return layout;
 	}
 
-	@Override
-	public void roleAdded(String roleCode) {
-		availableRoles.removeItem(roleCode);
-		roles.addItem(roleCode);
-		roles.setPageLength(roles.size());
+	private void buildInheritedRolesTable() {
+		inheritedRolesTable = new Table($("CollectionGroupRolesView.inheritedRolesTable"));
+		BeanItemContainer<RoleAuthVO> container = new BeanItemContainer<>(RoleAuthVO.class);
+		List<RoleAuthVO> userRoles = presenter.getInheritedRoles();
+		for (RoleAuthVO roleAuth : userRoles) {
+			container.addItem(roleAuth);
+		}
+		inheritedRolesTable.setContainerDataSource(container);
+		inheritedRolesTable.addStyleName(ROLES);
+		inheritedRolesTable.setWidth("100%");
+		inheritedRolesTable.setPageLength(inheritedRolesTable.size());
+		inheritedRolesTable.setVisibleColumns(RoleDisplay.ROLES, RoleDisplay.TARGET);
+		new RoleDisplay().attachTo(inheritedRolesTable);
+	}
+
+	private Table buildSpecificRolesTable() {
+		Table table = new Table($("CollectionGroupRolesView.specificRolesTable"));
+		BeanItemContainer<RoleAuthVO> container = new BeanItemContainer<>(RoleAuthVO.class);
+		ButtonsContainer<BeanItemContainer> buttonsContainer = new ButtonsContainer<BeanItemContainer>(container, "buttons");
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteRoleButtonClicked((RoleAuthVO) itemId);
+					}
+				};
+			}
+		});
+		List<RoleAuthVO> userRoles = presenter.getSpecificRoles();
+		for (RoleAuthVO roleAuth : userRoles) {
+			container.addItem(roleAuth);
+		}
+		table.setContainerDataSource(buttonsContainer);
+		table.setColumnHeader("buttons", "");
+		table.addStyleName(ROLES);
+		table.setWidth("100%");
+		table.setPageLength(table.size());
+		table.setVisibleColumns(RoleDisplay.ROLES, RoleDisplay.TARGET, "buttons");
+		new RoleDisplay().attachTo(table);
+		return table;
+	}
+
+	public void refreshTable() {
+		Table newSpecificRolesTable = buildSpecificRolesTable();
+		layout.replaceComponent(specificRolesTable, newSpecificRolesTable);
+		specificRolesTable = newSpecificRolesTable;
 	}
 
 	@Override
-	public void roleRemoved(String roleCode) {
-		availableRoles.addItem(roleCode);
-		availableRoles.setItemCaption(roleCode, presenter.getRoleTitle(roleCode));
-		roles.removeItem(roleCode);
-		roles.setPageLength(roles.size());
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		Button windowButton = new WindowButton($("CollectionGroupRolesView.addRoleButton"),
+				$("CollectionGroupRolesView.addRoleWindowTitle")) {
+			@Override
+			protected Component buildWindowContent() {
+
+				targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
+				targetField.setCaption($("CollectionGroupRolesView.targetField"));
+
+				return new BaseForm<RoleAuthVO>(presenter.newRoleAuthVO(), CollectionGroupRolesViewImpl.this, availableRolesField,
+						targetField) {
+					@Override
+					protected void saveButtonClick(RoleAuthVO viewObject)
+							throws ValidationException {
+						presenter.addRoleButtonClicked(viewObject);
+						getWindow().close();
+					}
+
+					@Override
+					protected void cancelButtonClick(RoleAuthVO viewObject) {
+						getWindow().close();
+					}
+				};
+			}
+		};
+		return Arrays.asList(windowButton);
 	}
 
 	public class RoleDisplay implements ColumnGenerator {
-		public static final String TITLE = "title";
-		public static final String REMOVE = "remove";
+		public static final String ROLES = "roles";
+		public static final String TARGET = "target";
 
 		public void attachTo(Table table) {
-			table.addGeneratedColumn(TITLE, this);
-			table.setColumnHeader(TITLE, $("CollectionGroupView.roleTitle"));
-			table.setColumnExpandRatio(TITLE, 1);
-			table.addGeneratedColumn(REMOVE, this);
-			table.setColumnHeader(REMOVE, "");
-			table.setColumnWidth(REMOVE, 50);
+			table.addGeneratedColumn(ROLES, this);
+			table.setColumnHeader(ROLES, $("CollectionGroupRolesView.rolesHeader"));
+			table.setColumnExpandRatio(ROLES, 1);
+			table.addGeneratedColumn(TARGET, this);
+			table.setColumnHeader(TARGET, $("CollectionGroupRolesView.targetHeader"));
+			table.setColumnExpandRatio(TARGET, 1);
 		}
 
 		@Override
 		public Object generateCell(Table source, final Object itemId, Object columnId) {
-			if (columnId.equals(TITLE)) {
-				return presenter.getRoleTitle((String) itemId);
+			if (columnId.equals(ROLES)) {
+				List<Label> results = new ArrayList<>();
+				for (String roleCode : ((RoleAuthVO) itemId).getRoles()) {
+					results.add(new Label(presenter.getRoleTitle(roleCode)));
+				}
+				return new VerticalLayout(results.toArray(new Component[results.size()]));
 			}
-			if (columnId.equals(REMOVE)) {
-				return new DeleteButton() {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.roleRemovalRequested((String) itemId);
-					}
-				};
+			if (columnId.equals(TARGET)) {
+				String target = ((RoleAuthVO) itemId).getTarget();
+				if (target != null) {
+					return new ReferenceDisplay(target);
+				} else {
+					return $("CollectionGroupRolesView.global");
+				}
 			}
 			return null;
 		}

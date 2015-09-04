@@ -32,34 +32,20 @@ public class FolderLinearMeasureStatsReportPresenter {
 	private TaxonomiesSearchOptions searchOptions;
 	private TaxonomiesSearchServices searchService;
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
-	private boolean withUsers;
 
 	public FolderLinearMeasureStatsReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
-
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
-		this.withUsers = true;
 	}
 
 	public FolderLinearMeasureStatsReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean withUsers) {
 
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
-		this.withUsers = withUsers;
 	}
 
 	public StatsReportModel build() {
 		init();
-
-		/*AdministrativeUnitReportModel model = new AdministrativeUnitReportModel();
-
-		List<TaxonomySearchRecord> taxonomySearchRecords = searchService.getLinkableRootConcept(User.GOD, collection,
-				RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
-
-		List<AdministrativeUnitReportModel_AdministrativeUnit> modelAdministrativeUnits = getUnits(taxonomySearchRecords);
-
-		model.setAdministrativeUnits(modelAdministrativeUnits);*/
-
 		return null;
 	}
 
@@ -68,10 +54,6 @@ public class FolderLinearMeasureStatsReportPresenter {
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
 		searchService = modelLayerFactory.newTaxonomiesSearchService();
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
-	}
-
-	public boolean isWithUsers() {
-		return withUsers;
 	}
 
 	public FoldersLocator getFoldersLocator() {

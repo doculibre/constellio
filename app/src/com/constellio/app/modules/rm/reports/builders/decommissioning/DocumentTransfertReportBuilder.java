@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,7 +39,7 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentRepor
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Document;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Identification;
 import com.constellio.app.modules.rm.reports.model.decommissioning.ReportBooleanField;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -175,7 +174,7 @@ public class DocumentTransfertReportBuilder implements ReportBuilder {
 	}
 
 	private PdfPTable createReport(PdfWriter writer, Document document)
-			throws BadElementException, MalformedURLException, IOException {
+			throws BadElementException, IOException {
 
 		PdfPTable table = new PdfPTable(2);
 		table.setWidthPercentage(99);
@@ -251,16 +250,6 @@ public class DocumentTransfertReportBuilder implements ReportBuilder {
 
 		title = $("DocumentTransfertReport.IdentificationOrganismNumber");
 		value = modelId.getPublicOrganisationNumber();
-		addDataCell(table, title, value, alignment);
-
-		table.completeRow();
-
-		title = $("DocumentTransfertReport.IdentificationClassificationSpace");
-		value = modelId.getEspaceClassement();
-		addDataCell(table, title, value, alignment);
-
-		title = $("DocumentTransfertReport.IdentificationClassificationSpaceCode");
-		value = modelId.getCodeEspaceClassement();
 		addDataCell(table, title, value, alignment);
 
 		table.completeRow();
@@ -345,7 +334,7 @@ public class DocumentTransfertReportBuilder implements ReportBuilder {
 	}
 
 	private PdfPTable createCalendarTable()
-			throws BadElementException, MalformedURLException, IOException {
+			throws BadElementException, IOException {
 
 		DocumentTransfertModel_Calendar modelCalendar = model.getCalendarModel();
 		PdfPTable calendarTable = new PdfPTable(4);
@@ -551,25 +540,39 @@ public class DocumentTransfertReportBuilder implements ReportBuilder {
 
 		PdfPTable support = new PdfPTable(4);
 
-		boolean DM = options.get(0).getValue();
-		boolean PA = options.get(1).getValue();
+		int rows = 1;
+		int i = 0;
+		for (ReportBooleanField reportBooleanField : options) {
 
-		support.addCell(getCheckCell($("DocumentTransfertReport.ConservationCalendarInformationSupportDM"), DM));
-		support.addCell(getCheckCell($("DocumentTransfertReport.ConservationCalendarInformationSupportPA"), PA));
+			boolean value = reportBooleanField.getValue();
+			String label = reportBooleanField.getLabel();
 
-		PdfPCell empty = new PdfPCell();
-		empty.setColspan(2);
-		support.addCell(empty);
-		support.completeRow();
+			PdfPCell checkCell = getCheckCell(label, value);
+			support.addCell(checkCell);
 
-		empty = new PdfPCell();
-		empty.setColspan(4);
-		support.addCell(empty);
-		support.completeRow();
-
+			i++;
+			if (i == 4) {
+				rows++;
+				i = 0;
+				support.completeRow();
+			}
+		}
+		if (i != 4) {
+			completeRow(support, 4 - i);
+		}
+		if (rows < 3) {
+			completeRow(support, 4);
+		}
 		PdfPCell supportCell = new PdfPCell(support);
 
 		return supportCell;
+	}
+
+	private void completeRow(PdfPTable support, int cells) {
+		PdfPCell empty = new PdfPCell();
+		empty.setColspan(cells);
+		support.addCell(empty);
+		support.completeRow();
 	}
 
 	private void addDataCell(PdfPTable table, String title, String value, int alignment) {
@@ -764,7 +767,7 @@ public class DocumentTransfertReportBuilder implements ReportBuilder {
 		}
 		return sentDateStr;
 	}
-	
+
 	/*class DashedBorder implements PdfPCellEvent {
 		public void cellLayout(PdfPCell cell, Rectangle rect, PdfContentByte[] canvas) {
 			PdfContentByte cb = canvas[PdfPTable.LINECANVAS];

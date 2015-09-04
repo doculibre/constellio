@@ -25,7 +25,7 @@ import com.vaadin.server.ThemeResource;
 @SuppressWarnings("serial")
 public abstract class DisplayButton extends IconButton {
 
-	public static final Resource ICON_RESOURCE = new ThemeResource("images/commun/assistant.gif");
+	public static final Resource ICON_RESOURCE = new ThemeResource("images/icons/actions/document_view.png");
 	
 	public static final String BUTTON_STYLE = "display-button";
 	

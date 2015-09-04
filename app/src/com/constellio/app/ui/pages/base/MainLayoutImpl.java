@@ -25,18 +25,16 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import com.constellio.app.api.extensions.PagesComponentsExtensions;
+import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.ui.components.userDocument.UserDocumentsWindow;
-import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
-import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
-import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
-import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
-import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
-import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
 import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.data.utils.Factory;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
@@ -129,7 +127,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			license.addStyleName("license");
 		}
 
-		// TODO UserDocumentsWindow should not be used if RM module is not enabled
 		userDocumentsWindow = new UserDocumentsWindow();
 		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout);
 		dragAndDropWrapper.setSizeFull();
@@ -201,143 +198,48 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		return mainMenu;
 	}
 
-	/**
-	 * TODO Modules will provide their own menu items.
-	 *
-	 * Tableau de bord
-	 * Gestion documentaire
-	 * Gestion des archives
-	 * Pilotage (y integrer la création des utilisateurs et des groupes)
-	 * Audit
-	 * Recherche entreprise
-	 * Gestion des actifs numériques
-	 * Gestion des cas
-	 *
-	 * @return
-	 */
 	protected List<ConstellioMenuButton> buildMainMenuButtons() {
-		List<ConstellioMenuButton> mainMenuButtons = new ArrayList<ConstellioMenuButton>();
+		List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 
-		Button dashboardButton = new Button($("MainLayout.dashboard"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.dashboardButtonClicked();
-			}
-		});
-		dashboardButton.addStyleName("dashboardLink");
-
-		Button recordsManagementButton = new Button($("MainLayout.recordsManagement"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.recordsManagementButtonClicked();
-			}
-		});
-		recordsManagementButton.addStyleName("recordsManagementLink");
-
-		Button archivesManagementButton = new Button($("MainLayout.archivesManagement"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.archivesManagementButtonClicked();
-			}
-		});
-		archivesManagementButton.addStyleName("archivesManagementLink");
-
-		Button logsButton = new Button($("MainLayout.logs"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.auditButtonClicked();
-			}
-		});
-		logsButton.addStyleName("logsLink");
-
-		Button adminModuleButton = new Button($("MainLayout.adminModule"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.adminModuleButtonClicked();
-			}
-		});
-		adminModuleButton.addStyleName("adminModuleLink");
-
-		Button enterpriseSearchButton = new Button($("MainLayout.enterpriseSearch"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.enterpriseSearchButtonClicked();
-			}
-		});
-		enterpriseSearchButton.addStyleName("enterpriseSearchLink");
-
-		Button digitalAssetManagementButton = new Button($("MainLayout.digitalAssetManagement"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.digitalAssetManagementButtonClicked();
-			}
-		});
-		digitalAssetManagementButton.addStyleName("digitalAssetManagementLink");
-
-		Button caseManagementButton = new Button($("MainLayout.caseManagement"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.caseManagementButtonClicked();
-			}
-		});
-		caseManagementButton.addStyleName("caseManagementLink");
-
-		// TODO ListUserDocumentsView should not be used if RM module is not enabled
-		Button userDocumentsButton = new Button($("MainLayout.userDocuments"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.userDocumentsButtonClicked();
-			}
-		});
-		userDocumentsButton.addStyleName("userDocumentsLink");
-
-		Button agentButton = new Button($("MainLayout.agent"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.agentButtonClicked();
-			}
-		});
-		userDocumentsButton.addStyleName("agentLink");
-
-		//		mainMenuButtons.add(new ConstellioMenuButton(DashboardViewGroup.class, dashboardButton));
-		if (presenter.isRecordsManagementViewVisible()) {
-			mainMenuButtons.add(new ConstellioMenuButton(RecordsManagementViewGroup.class, recordsManagementButton));
+		for (NavigationItem item : presenter.getNavigationIems()) {
+			mainMenuButtons.add(buildButton(item));
 		}
-		if (presenter.isArchivesManagementViewVisible()) {
-			mainMenuButtons.add(new ConstellioMenuButton(ArchivesManagementViewGroup.class, archivesManagementButton));
-		}
-		if (presenter.isLogsViewVisible()) {
-			mainMenuButtons.add(new ConstellioMenuButton(LogsViewGroup.class, logsButton));
-		}
-		if (presenter.isAdminModuleViewVisible()) {
-			mainMenuButtons.add(new ConstellioMenuButton(AdminModuleViewGroup.class, adminModuleButton));
-		}
-		if (presenter.isAgentViewVisible()) {
-			mainMenuButtons.add(new ConstellioMenuButton(AgentViewGroup.class, agentButton));
-		}
-		mainMenuButtons.add(new ConstellioMenuButton(UserDocumentsViewGroup.class, userDocumentsButton));
-		//		mainMenuButtons.add(new ConstellioMenuButton(EnterpriseSearchViewGroup.class, enterpriseSearchButton));
-		//		mainMenuButtons.add(new ConstellioMenuButton(DigitalAssetManagementViewGroup.class, digitalAssetManagementButton));
-		//		mainMenuButtons.add(new ConstellioMenuButton(CaseManagementViewGroup.class, caseManagementButton));
 
 		return mainMenuButtons;
 	}
 
 	protected Component buildFooter() {
 
-		Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + ")",
-				new ExternalResource("http://www.constellio.com"));
-		poweredByConstellioLink.setTargetName("_blank");
-		poweredByConstellioLink.addStyleName(ValoTheme.LINK_LARGE);
-		return poweredByConstellioLink;
+		PagesComponentsExtensions extensions = presenter.getPagesComponentsExtensions();
+		Factory<Component> footerFactory = extensions.getFooterComponentFactory();
+
+		if (footerFactory == null) {
+
+			Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + ")",
+					new ExternalResource("http://www.constellio.com"));
+			poweredByConstellioLink.setTargetName("_blank");
+			poweredByConstellioLink.addStyleName(ValoTheme.LINK_LARGE);
+			return poweredByConstellioLink;
+		} else {
+			return footerFactory.get();
+		}
 	}
 
 	protected Component buildLicense() {
-		Label licenseLabel = new Label($("MainLayout.footerLicense"));
-		licenseLabel.addStyleName(ValoTheme.LABEL_TINY);
-		licenseLabel.setContentMode(ContentMode.HTML);
-		licenseLabel.setVisible(presenter.isBeta());
-		return licenseLabel;
+
+		PagesComponentsExtensions extensions = presenter.getPagesComponentsExtensions();
+		Factory<Component> licenseFactory = extensions.getLicenseComponentFactory();
+
+		if (licenseFactory == null) {
+
+			Label licenseLabel = new Label($("MainLayout.footerLicense"));
+			licenseLabel.addStyleName(ValoTheme.LABEL_TINY);
+			licenseLabel.setContentMode(ContentMode.HTML);
+			licenseLabel.setVisible(presenter.t());
+			return licenseLabel;
+		} else {
+			return licenseFactory.get();
+		}
 	}
 
 	protected void buildInitJavascript() {
@@ -350,6 +252,21 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		});
 		//		JavaScript.getCurrent()
 		//				.execute("constellio_registerKeyDownListener(\"" + contentFooterWrapperLayout.getId() + "\")");
+	}
+
+	private ConstellioMenuButton buildButton(final NavigationItem item) {
+		ComponentState state = presenter.getStateFor(item);
+		Button button = new Button($("MainLayout." + item.getCode()));
+		button.setVisible(state.isVisible());
+		button.setEnabled(state.isEnabled());
+		button.addStyleName(item.getCode());
+		button.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				item.activate(navigateTo());
+			}
+		});
+		return new ConstellioMenuButton(item.getViewGroup(), button);
 	}
 
 	@Override

@@ -46,9 +46,14 @@ public class BaseDoubleField extends BaseTextField {
 		super(caption);
 		init();
 	}
-	
-	private void init() {
-		setConverter(new StringToDoubleConverter());
+
+	@Override
+	public Double getConvertedValue() {
+		return (Double) super.getConvertedValue();
 	}
 
+	private void init() {
+		setConverter(new StringToDoubleConverter());
+		setWidth("100px");
+	}
 }

@@ -33,7 +33,8 @@ import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
-import com.constellio.model.services.schemas.calculators.TokensCalculator;
+import com.constellio.model.services.schemas.calculators.TokensCalculator2;
+import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 
 public class CommonMetadataBuilder {
 	public static final String ID = "id";
@@ -57,6 +58,7 @@ public class CommonMetadataBuilder {
 	public static final String FOLLOWERS = "followers";
 	public static final String LEGACY_ID = "legacyIdentifier";
 	public static final String VISIBLE_IN_TREES = "visibleInTrees";
+	public static final String MANUAL_TOKENS = "manualTokens";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -155,7 +157,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				schema.createSystemReserved(TOKENS).setType(MetadataValueType.STRING).setMultivalue(true)
-						.defineDataEntry().asCalculated(TokensCalculator.class);
+						.defineDataEntry().asCalculated(TokensCalculator2.class);
 			}
 		});
 
@@ -223,6 +225,14 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				schema.createSystemReserved(FOLLOWERS).setType(MetadataValueType.STRING).setMultivalue(true).setSearchable(true);
+			}
+		});
+
+		metadata.put(MANUAL_TOKENS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				schema.createSystemReserved(MANUAL_TOKENS).setType(MetadataValueType.STRING).setMultivalue(true)
+						.defineValidators().add(ManualTokenValidator.class);
 			}
 		});
 

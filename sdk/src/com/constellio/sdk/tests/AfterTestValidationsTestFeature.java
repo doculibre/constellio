@@ -69,26 +69,29 @@ public class AfterTestValidationsTestFeature {
 
 	public Throwable afterTest(boolean firstClean, boolean failed) {
 		if (!failed && !disabledInCurrentTest) {
-			DataLayerFactory dataLayerFactory = factoriesTestFeatures.getConstellioFactories().getDataLayerFactory();
-			DataLayerConfiguration configuration = dataLayerFactory.getDataLayerConfiguration();
-			RecordDao recordDao = dataLayerFactory.newRecordDao();
-			SolrSDKToolsServices solrSDKTools = new SolrSDKToolsServices(recordDao);
-			if (!firstClean) {
-				try {
-					if (isValidatingSecondTransactionLog() && configuration.isSecondTransactionLogEnabled()) {
-						solrSDKTools.flushAndDeleteContentMarkers();
-						validateSecondTransactionLog(solrSDKTools);
 
+			if (factoriesTestFeatures.isInitialized()) {
+				DataLayerFactory dataLayerFactory = factoriesTestFeatures.getConstellioFactories().getDataLayerFactory();
+				DataLayerConfiguration configuration = dataLayerFactory.getDataLayerConfiguration();
+				RecordDao recordDao = dataLayerFactory.newRecordDao();
+				SolrSDKToolsServices solrSDKTools = new SolrSDKToolsServices(recordDao);
+				if (!firstClean) {
+					try {
+						if (isValidatingSecondTransactionLog() && configuration.isSecondTransactionLogEnabled()) {
+							solrSDKTools.flushAndDeleteContentMarkers();
+							validateSecondTransactionLog(solrSDKTools);
+
+						}
+
+						if (isValidatingIntegrity()) {
+							solrSDKTools.flushAndDeleteContentMarkers();
+							validateIntegrity(solrSDKTools);
+						}
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+						return t;
 					}
-
-					if (isValidatingIntegrity()) {
-						solrSDKTools.flushAndDeleteContentMarkers();
-						validateIntegrity(solrSDKTools);
-					}
-
-				} catch (Throwable t) {
-					t.printStackTrace();
-					return t;
 				}
 			}
 		}

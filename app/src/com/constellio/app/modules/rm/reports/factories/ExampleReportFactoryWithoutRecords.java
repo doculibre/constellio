@@ -26,8 +26,8 @@ import com.constellio.app.modules.rm.reports.model.labels.LabelsReportFont;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 // TODO: DELETE ME!

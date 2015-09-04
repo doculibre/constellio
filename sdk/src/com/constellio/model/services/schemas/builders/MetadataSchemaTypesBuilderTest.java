@@ -413,7 +413,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		typesBuilder.build(typesFactory, taxonomiesManager);
 	}
 
-	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.class)
+	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata.class)
 	public void givenNumberValueMetadataWithCalculatedEntryWithAReferenceToANotNumberTypeMetadataAndNumberValueCalculatedWhenBuildingThenOk()
 			throws Exception {
 
@@ -645,10 +645,9 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		MetadataBuilder anotherSchemaMetadata = givenAnotherDefaultSchemaMetadata(STRING);
 
 		MetadataBuilder zeSchemaMetadataRef = givenZeDefaultSchemaMetadata(REFERENCE);
+		zeSchemaMetadataRef.defineReferences().set(anotherType);
 		givenZeDefaultSchemaMetadata("m1", STRING).defineDataEntry().asCalculated(CalculatorUsingM2.class);
 		givenZeDefaultSchemaMetadata("m2", STRING).defineDataEntry().asCopied(zeSchemaMetadataRef, anotherSchemaMetadata);
-
-		zeSchemaMetadataRef.defineReferences().set(anotherType);
 
 		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, taxonomiesManager).getAutomaticMetadatas();
 
@@ -696,6 +695,21 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		assertThat(typesBuilder.getTypesDependencies()).hasSize(2).containsEntry(zeType.getCode(), expectedZeTypeDependencies)
 				.containsEntry(anotherType.getCode(), expectedAnotherTypeDependencies);
+	}
+
+	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCopyUsingACustomMetadata.class)
+	public void givenMetadataWithCopiedEntryUsingAReferenceOnCustomSchemasThenException()
+			throws Exception {
+
+		MetadataBuilder metadataWithCopiedEntry = givenZeDefaultSchemaMetadata(STRING);
+		MetadataBuilder metadataWithReferenceToAnotherSchema = givenZeDefaultSchemaMetadata(REFERENCE);
+		MetadataBuilder anotherMetadata = givenAnotherDefaultSchemaMetadata(STRING);
+
+		metadataWithReferenceToAnotherSchema.defineReferences().add(anotherTypeCustomSchema);
+		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
+
+		typesBuilder.build(typesFactory, taxonomiesManager);
+
 	}
 
 	private void givenCopiedMetadata() {

@@ -46,6 +46,9 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordImplRuntimeException.CannotGetListForSingleValue;
+import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotBuildStructureValue;
+import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotChangeSchemaOfSavedRecord;
+import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotChangeTypeOfRecord;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_PopulatorReturnedNullValue;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_RecordCannotHaveTwoParents;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_UnsupportedOperationOnUnsavedRecord;
@@ -56,7 +59,7 @@ import com.constellio.model.utils.EnumWithSmallCodeUtils;
 public class RecordImpl implements Record {
 
 	protected final Map<String, Object> modifiedValues = new HashMap<String, Object>();
-	private final String schemaCode;
+	private String schemaCode;
 	private final String collection;
 	private final String id;
 	private long version;
@@ -64,6 +67,7 @@ public class RecordImpl implements Record {
 	private RecordDTO recordDTO;
 	private Map<String, Object> structuredValues;
 	private List<String> followers;
+	private boolean fullyLoaded;
 
 	public RecordImpl(String schemaCode, String collection, String id) {
 		if (schemaCode == null) {
@@ -79,10 +83,15 @@ public class RecordImpl implements Record {
 		this.version = -1;
 		this.recordDTO = null;
 		this.followers = new ArrayList<String>();
+		this.fullyLoaded = true;
 	}
 
 	public RecordImpl(RecordDTO recordDTO) {
+		this(recordDTO, true);
+	}
 
+	public RecordImpl(RecordDTO recordDTO, boolean fullyLoaded) {
+		this.fullyLoaded = fullyLoaded;
 		this.id = recordDTO.getId();
 		this.version = recordDTO.getVersion();
 		this.schemaCode = (String) recordDTO.getFields().get("schema_s");
@@ -96,6 +105,10 @@ public class RecordImpl implements Record {
 			this.followers = new ArrayList<>();
 		}
 		this.recordDTO = recordDTO;
+	}
+
+	public boolean isFullyLoaded() {
+		return fullyLoaded;
 	}
 
 	public Record updateAutomaticValue(Metadata metadata, Object value) {
@@ -282,7 +295,11 @@ public class RecordImpl implements Record {
 			}
 			return convertedValues;
 		} else {
-			return metadata.getStructureFactory().build((String) rawValue);
+			try {
+				return metadata.getStructureFactory().build((String) rawValue);
+			} catch (RuntimeException e) {
+				throw new RecordImplException_CannotBuildStructureValue(id, (String) rawValue, e);
+			}
 		}
 	}
 
@@ -734,6 +751,27 @@ public class RecordImpl implements Record {
 	@Override
 	public void markAsModified(Metadata metadata) {
 		modifiedValues.put(metadata.getDataStoreCode(), get(metadata));
+	}
+
+	@Override
+	public void changeSchemaTo(String newSchemaCodeOrLocalCode) {
+		SchemaUtils schemaUtils = new SchemaUtils();
+		if (isSaved()) {
+			throw new RecordImplException_CannotChangeSchemaOfSavedRecord(id);
+		}
+		String currentType = schemaUtils.getSchemaTypeCode(schemaCode);
+		String newSchemaCode;
+		if (newSchemaCodeOrLocalCode.contains("_")) {
+			String newType = schemaUtils.getSchemaTypeCode(newSchemaCodeOrLocalCode);
+			if (!currentType.equals(newType)) {
+				throw new RecordImplException_CannotChangeTypeOfRecord(id);
+			}
+			newSchemaCode = newSchemaCodeOrLocalCode;
+		} else {
+			newSchemaCode = currentType + "_" + newSchemaCodeOrLocalCode;
+		}
+
+		this.schemaCode = newSchemaCode;
 	}
 
 }

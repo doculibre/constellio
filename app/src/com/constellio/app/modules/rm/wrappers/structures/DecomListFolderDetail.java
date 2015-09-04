@@ -19,21 +19,16 @@ package com.constellio.app.modules.rm.wrappers.structures;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.joda.time.LocalDate;
 
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class DecomListFolderDetail implements ModifiableStructure {
 	String folderId;
-	boolean folderIncluded;
-	String validationUserId;
-	String validationUsername;
-	LocalDate validationDate;
+	boolean folderExcluded;
 	String containerRecordId;
 	boolean reversedSort;
-	boolean dirty;
 	Double folderLinearSize;
+	boolean dirty;
 
 	public DecomListFolderDetail() {
 	}
@@ -46,44 +41,24 @@ public class DecomListFolderDetail implements ModifiableStructure {
 		return folderId;
 	}
 
-	public void setFolderId(String folderId) {
+	public DecomListFolderDetail setFolderId(String folderId) {
 		dirty = true;
 		this.folderId = folderId;
+		return this;
 	}
 
 	public boolean isFolderIncluded() {
-		return folderIncluded;
+		return !folderExcluded;
 	}
 
-	public void setFolderIncluded(boolean folderIncluded) {
+	public boolean isFolderExcluded() {
+		return folderExcluded;
+	}
+
+	public DecomListFolderDetail setFolderIncluded(boolean folderIncluded) {
 		dirty = true;
-		this.folderIncluded = folderIncluded;
-	}
-
-	public String getValidationUserId() {
-		return validationUserId;
-	}
-
-	public String getValidationUsername() {
-		return validationUsername;
-	}
-
-	public void setValidationUser(User user) {
-		dirty = true;
-		if (user != null) {
-			validationUserId = user.getId();
-			validationUsername = user.getUsername();
-		}
-	}
-
-	public LocalDate getValidationDate() {
-		return validationDate;
-	}
-
-	public void setValidationDate(LocalDate validationDate) {
-		dirty = true;
-		this.validationDate = validationDate;
-
+		this.folderExcluded = !folderIncluded;
+		return this;
 	}
 
 	public String getContainerRecordId() {
@@ -100,18 +75,20 @@ public class DecomListFolderDetail implements ModifiableStructure {
 		return reversedSort;
 	}
 
-	public void setReversedSort(boolean reversedSort) {
+	public DecomListFolderDetail setReversedSort(boolean reversedSort) {
 		dirty = true;
 		this.reversedSort = reversedSort;
+		return this;
 	}
 
 	public Double getFolderLinearSize() {
 		return folderLinearSize;
 	}
 
-	public void setFolderLinearSize(Double folderLinearSize) {
+	public DecomListFolderDetail setFolderLinearSize(Double folderLinearSize) {
 		dirty = true;
 		this.folderLinearSize = folderLinearSize;
+		return this;
 	}
 
 	@Override
@@ -123,9 +100,7 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	public String toString() {
 		return "DecommissioningListFolderDetail{" +
 				"folderId='" + folderId + '\'' +
-				", folderIncluded=" + folderIncluded +
-				", validationUser='" + validationUserId + validationUsername + '\'' +
-				", validationDate=" + validationDate +
+				", folderIncluded=" + !folderExcluded +
 				", containerRecordId='" + containerRecordId + '\'' +
 				", reversedSort=" + reversedSort +
 				", dirty=" + dirty +

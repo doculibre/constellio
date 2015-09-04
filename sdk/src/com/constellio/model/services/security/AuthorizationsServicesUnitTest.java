@@ -260,10 +260,12 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 			throws Exception {
 		AuthorizationDetails authDetails = mock(AuthorizationDetails.class, "authDetails");
 		when(authDetails.getId()).thenReturn("theAuth");
+		when(authDetails.getCollection()).thenReturn(zeCollection);
 
 		records.addAll(users);
 		doReturn(records).when(searchServices).search(any(LogicalSearchQuery.class));
 		doReturn(null).when(authorizationsServices).getAuthorization(anyString(), anyString());
+		doReturn(authDetails).when(manager).get(zeCollection, "theAuth");
 
 		authorizationsServices.delete(authDetails, null);
 

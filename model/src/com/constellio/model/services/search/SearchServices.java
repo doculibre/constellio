@@ -22,17 +22,25 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.*;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.ShardParams;
+import org.apache.solr.common.params.StatsParams;
 
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -67,17 +75,27 @@ public class SearchServices {
 		return response.getNumFound() == 1 ? response.getRecords().get(0) : null;
 	}
 
+	public Iterator<List<Record>> recordsBatchIterator(int batch, LogicalSearchQuery query) {
+		Iterator<Record> recordsIterator = recordsIterator(query, batch);
+		return new BatchBuilderIterator<>(recordsIterator, batch);
+	}
+
+	public Iterator<List<Record>> recordsBatchIterator(LogicalSearchQuery query) {
+		return recordsBatchIterator(100, query);
+	}
+
 	public Iterator<Record> recordsIterator(LogicalSearchQuery query) {
-		return recordsIterator(query, 10);
+		return recordsIterator(query, 100);
 	}
 
 	public Iterator<Record> recordsIterator(LogicalSearchQuery query, int batchSize) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
+		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
 		return new LazyResultsIterator<Record>(recordDao, params, batchSize) {
 
 			@Override
 			public Record convert(RecordDTO recordDTO) {
-				return recordServices.toRecord(recordDTO);
+				return recordServices.toRecord(recordDTO, fullyLoaded);
 			}
 		};
 	}
@@ -87,9 +105,12 @@ public class SearchServices {
 	}
 
 	public long getResultsCount(LogicalSearchQuery query) {
+		int oldNumberOfRows = query.getNumberOfRows();
 		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return recordDao.query(params).getNumFound();
+		long result = recordDao.query(params).getNumFound();
+		query.setNumberOfRows(oldNumberOfRows);
+		return result;
 	}
 
 	public List<String> searchRecordIds(LogicalSearchQuery query) {
@@ -170,22 +191,24 @@ public class SearchServices {
 		}
 		if (!query.getFieldFacets().isEmpty()) {
 			params.add(FacetParams.FACET_MINCOUNT, "1");
-			for (DataStoreField field : query.getFieldFacets()) {
-				params.add(FacetParams.FACET_FIELD, "{!ex=" + field.getDataStoreCode() + "}" + field.getDataStoreCode());
+			for (String field : query.getFieldFacets()) {
+				params.add(FacetParams.FACET_FIELD, "{!ex=" + field + "}" + field);
 			}
 			if (query.getFieldFacetLimit() != 0) {
 				params.add(FacetParams.FACET_LIMIT, "" + query.getFieldFacetLimit());
 			}
 		}
-		if(!query.getStatisticFields().isEmpty()){
+		if (!query.getStatisticFields().isEmpty()) {
 			params.set(StatsParams.STATS, "true");
-			for(DataStoreField field : query.getStatisticFields()){
-				params.add(StatsParams.STATS_FIELD, field.getDataStoreCode());
+			for (String field : query.getStatisticFields()) {
+				params.add(StatsParams.STATS_FIELD, field);
 			}
 		}
 		if (!query.getQueryFacets().isEmpty()) {
-			for (String facetQuery : query.getQueryFacets()) {
-				params.add(FacetParams.FACET_QUERY, facetQuery);
+			for (Entry<String, Set<String>> facetQuery : query.getQueryFacets().getMapEntries()) {
+				for (String aQuery : facetQuery.getValue()) {
+					params.add(FacetParams.FACET_QUERY, "{!ex=f" + facetQuery.getKey() + "}" + aQuery);
+				}
 			}
 		}
 
@@ -229,13 +252,15 @@ public class SearchServices {
 		QueryResponseDTO queryResponseDTO = recordDao.query(params);
 		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
 
-		List<Record> records = recordServices.toRecords(recordDTOs);
-		Map<DataStoreField, List<FacetValue>> fieldFacetValues = buildFacets(query.getFieldFacets(),
+		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
+		Map<String, List<FacetValue>> fieldFacetValues = buildFacets(query.getFieldFacets(),
 				queryResponseDTO.getFieldFacetValues());
-		Map<String, Integer> queryFacetValues = queryResponseDTO.getQueryFacetValues();
+		Map<String, Integer> queryFacetValues = withRemoveExclusions(queryResponseDTO.getQueryFacetValues());
 
-		Map<DataStoreField, Map<String, Object>> statisticsValues = buildStats(query.getStatisticFields(), queryResponseDTO.getFieldsStatistics());
-		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetValues, queryResponseDTO.getQtime(),
+		Map<String, Map<String, Object>> statisticsValues = buildStats(query.getStatisticFields(),
+				queryResponseDTO.getFieldsStatistics());
+		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetValues,
+				queryResponseDTO.getQtime(),
 				queryResponseDTO.getNumFound(), records, queryResponseDTO.getHighlights(),
 				queryResponseDTO.isCorrectlySpelt(), queryResponseDTO.getSpellCheckerSuggestions());
 
@@ -246,11 +271,24 @@ public class SearchServices {
 		}
 	}
 
-	private Map<DataStoreField, List<FacetValue>> buildFacets(
-			List<DataStoreField> fields, Map<String, List<FacetValue>> facetValues) {
-		Map<DataStoreField, List<FacetValue>> result = new HashMap<>();
-		for (DataStoreField field : fields) {
-			List<FacetValue> values = facetValues.get(field.getDataStoreCode());
+	private Map<String, Integer> withRemoveExclusions(Map<String, Integer> queryFacetValues) {
+		if (queryFacetValues == null) {
+			return null;
+		}
+		Map<String, Integer> withRemovedExclusions = new HashMap<>();
+		for (Map.Entry<String, Integer> queryEntry : queryFacetValues.entrySet()) {
+			String query = queryEntry.getKey();
+			query = query.substring(query.indexOf("}") + 1);
+			withRemovedExclusions.put(query, queryEntry.getValue());
+		}
+		return withRemovedExclusions;
+	}
+
+	private Map<String, List<FacetValue>> buildFacets(
+			List<String> fields, Map<String, List<FacetValue>> facetValues) {
+		Map<String, List<FacetValue>> result = new HashMap<>();
+		for (String field : fields) {
+			List<FacetValue> values = facetValues.get(field);
 			if (values != null) {
 				result.put(field, values);
 			}
@@ -258,11 +296,11 @@ public class SearchServices {
 		return result;
 	}
 
-	private Map<DataStoreField, Map<String, Object>> buildStats(
-			List<DataStoreField> fields, Map<String, Map<String, Object>> fieldStatsValues) {
-		Map<DataStoreField, Map<String, Object>> result = new HashMap<>();
-		for (DataStoreField field : fields) {
-			Map<String, Object> values = fieldStatsValues.get(field.getDataStoreCode());
+	private Map<String, Map<String, Object>> buildStats(
+			List<String> fields, Map<String, Map<String, Object>> fieldStatsValues) {
+		Map<String, Map<String, Object>> result = new HashMap<>();
+		for (String field : fields) {
+			Map<String, Object> values = fieldStatsValues.get(field);
 			if (values != null) {
 				result.put(field, values);
 			}

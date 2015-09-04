@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
+import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
@@ -49,6 +52,8 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class RecordExtensionsAcceptanceTest extends ConstellioTest {
+
+	LocalDateTime shishOClock = new LocalDateTime();
 
 	String anotherCollection = "anotherCollection";
 	TestsSchemasSetup schemas = new TestsSchemasSetup();
@@ -69,7 +74,7 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas
 				.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, false, false)
 				.withAParentReferenceFromZeSchemaToZeSchema());
-
+		givenTimeIs(shishOClock);
 		Taxonomy taxonomy = new Taxonomy("ze taxo", "ze taxo", zeCollection, zeSchema.typeCode());
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 
@@ -98,6 +103,7 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		zeCollectionListeners.recordExtensions.add(1, recordExtension1);
 		zeCollectionListeners.recordExtensions.add(2, recordExtension2);
 		anotherCollectionListeners.recordExtensions.add(1, otherCollectionRecordExtension);
+		givenTimeIs(shishOClock.plusDays(1));
 
 	}
 
@@ -111,50 +117,85 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCreatingARecordThenListenersCalled()
 			throws Exception {
-		ArgumentCaptor<RecordCreationEvent> argumentCaptor = ArgumentCaptor.forClass(RecordCreationEvent.class);
+		ArgumentCaptor<RecordInCreationEvent> recordInCreationArgs = ArgumentCaptor.forClass(RecordInCreationEvent.class);
+		ArgumentCaptor<RecordCreationEvent> recordCreatedArgs = ArgumentCaptor.forClass(RecordCreationEvent.class);
 		Record record1 = new TestRecord(zeSchema, "newZeSchemaRecord").set(TITLE, "My first record");
 		Record record2 = new TestRecord(anotherSchema, "newOtherSchemaRecord").set(TITLE, "My second record");
 		recordServices.execute(new Transaction(record1, record2));
 
 		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
-		inOrder.verify(recordExtension1).recordCreated(argumentCaptor.capture());
-		inOrder.verify(recordExtension2).recordCreated(argumentCaptor.capture());
-		inOrder.verify(recordExtension1).recordCreated(argumentCaptor.capture());
-		inOrder.verify(recordExtension2).recordCreated(argumentCaptor.capture());
+
+		inOrder.verify(recordExtension1).recordInCreation(recordInCreationArgs.capture());
+		inOrder.verify(recordExtension2).recordInCreation(recordInCreationArgs.capture());
+		inOrder.verify(recordExtension1).recordInCreation(recordInCreationArgs.capture());
+		inOrder.verify(recordExtension2).recordInCreation(recordInCreationArgs.capture());
+
+		inOrder.verify(recordExtension1).recordCreated(recordCreatedArgs.capture());
+		inOrder.verify(recordExtension2).recordCreated(recordCreatedArgs.capture());
+		inOrder.verify(recordExtension1).recordCreated(recordCreatedArgs.capture());
+		inOrder.verify(recordExtension2).recordCreated(recordCreatedArgs.capture());
 		verifyZeroInteractions(otherCollectionRecordExtension);
 
-		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId()).isEqualTo("newOtherSchemaRecord");
-		assertThat(argumentCaptor.getAllValues().get(1).getRecord().getId()).isEqualTo("newOtherSchemaRecord");
-		assertThat(argumentCaptor.getAllValues().get(2).getRecord().getId()).isEqualTo("newZeSchemaRecord");
-		assertThat(argumentCaptor.getAllValues().get(3).getRecord().getId()).isEqualTo("newZeSchemaRecord");
+		assertThat(recordInCreationArgs.getAllValues().get(0).getRecord().getId()).isEqualTo("newOtherSchemaRecord");
+		assertThat(recordInCreationArgs.getAllValues().get(1).getRecord().getId()).isEqualTo("newOtherSchemaRecord");
+		assertThat(recordInCreationArgs.getAllValues().get(2).getRecord().getId()).isEqualTo("newZeSchemaRecord");
+		assertThat(recordInCreationArgs.getAllValues().get(3).getRecord().getId()).isEqualTo("newZeSchemaRecord");
+
+		assertThat(recordCreatedArgs.getAllValues().get(0).getRecord().getId()).isEqualTo("newOtherSchemaRecord");
+		assertThat(recordCreatedArgs.getAllValues().get(1).getRecord().getId()).isEqualTo("newOtherSchemaRecord");
+		assertThat(recordCreatedArgs.getAllValues().get(2).getRecord().getId()).isEqualTo("newZeSchemaRecord");
+		assertThat(recordCreatedArgs.getAllValues().get(3).getRecord().getId()).isEqualTo("newZeSchemaRecord");
 	}
 
 	@Test
 	public void whenModifyingARecordThenListenersCalled()
 			throws Exception {
-		ArgumentCaptor<RecordModificationEvent> argumentCaptor = ArgumentCaptor.forClass(RecordModificationEvent.class);
+		ArgumentCaptor<RecordInModificationEvent> recordInModificationArgs = ArgumentCaptor
+				.forClass(RecordInModificationEvent.class);
+		ArgumentCaptor<RecordModificationEvent> recordModifiedArgs = ArgumentCaptor.forClass(RecordModificationEvent.class);
 		existingZeSchemaRecord.set(Schemas.TITLE, "new title");
 		existingAnotherSchemaRecord.set(Schemas.TITLE, "an other new title");
 		recordServices.execute(new Transaction(existingZeSchemaRecord, existingAnotherSchemaRecord));
 
 		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
-		inOrder.verify(recordExtension1).recordModified(argumentCaptor.capture());
-		inOrder.verify(recordExtension2).recordModified(argumentCaptor.capture());
-		inOrder.verify(recordExtension1).recordModified(argumentCaptor.capture());
-		inOrder.verify(recordExtension2).recordModified(argumentCaptor.capture());
+
+		inOrder.verify(recordExtension1).recordInModification(recordInModificationArgs.capture());
+		inOrder.verify(recordExtension2).recordInModification(recordInModificationArgs.capture());
+		inOrder.verify(recordExtension1).recordInModification(recordInModificationArgs.capture());
+		inOrder.verify(recordExtension2).recordInModification(recordInModificationArgs.capture());
+
+		inOrder.verify(recordExtension1).recordModified(recordModifiedArgs.capture());
+		inOrder.verify(recordExtension2).recordModified(recordModifiedArgs.capture());
+		inOrder.verify(recordExtension1).recordModified(recordModifiedArgs.capture());
+		inOrder.verify(recordExtension2).recordModified(recordModifiedArgs.capture());
 		verifyZeroInteractions(otherCollectionRecordExtension);
 
-		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(0).getModifiedMetadatas().toMetadatasCodesList())
+		assertThat(recordInModificationArgs.getAllValues().get(0).getRecord().getId())
+				.isEqualTo(existingAnotherSchemaRecord.getId());
+		assertThat(recordInModificationArgs.getAllValues().get(0).getModifiedMetadatas().toMetadatasCodesList())
+				.containsOnly("anotherSchemaType_default_title");
+		assertThat(recordInModificationArgs.getAllValues().get(1).getRecord().getId())
+				.isEqualTo(existingAnotherSchemaRecord.getId());
+		assertThat(recordInModificationArgs.getAllValues().get(1).getModifiedMetadatas().toMetadatasCodesList())
+				.containsOnly("anotherSchemaType_default_title");
+		assertThat(recordInModificationArgs.getAllValues().get(2).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
+		assertThat(recordInModificationArgs.getAllValues().get(2).getModifiedMetadatas().toMetadatasCodesList())
+				.containsOnly("zeSchemaType_default_title");
+		assertThat(recordInModificationArgs.getAllValues().get(3).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
+		assertThat(recordInModificationArgs.getAllValues().get(3).getModifiedMetadatas().toMetadatasCodesList())
+				.containsOnly("zeSchemaType_default_title");
+
+		assertThat(recordModifiedArgs.getAllValues().get(0).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
+		assertThat(recordModifiedArgs.getAllValues().get(0).getModifiedMetadatas().toMetadatasCodesList())
 				.containsOnly("anotherSchemaType_default_title", "anotherSchemaType_default_modifiedOn");
-		assertThat(argumentCaptor.getAllValues().get(1).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(1).getModifiedMetadatas().toMetadatasCodesList())
+		assertThat(recordModifiedArgs.getAllValues().get(1).getRecord().getId()).isEqualTo(existingAnotherSchemaRecord.getId());
+		assertThat(recordModifiedArgs.getAllValues().get(1).getModifiedMetadatas().toMetadatasCodesList())
 				.containsOnly("anotherSchemaType_default_title", "anotherSchemaType_default_modifiedOn");
-		assertThat(argumentCaptor.getAllValues().get(2).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(2).getModifiedMetadatas().toMetadatasCodesList())
+		assertThat(recordModifiedArgs.getAllValues().get(2).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
+		assertThat(recordModifiedArgs.getAllValues().get(2).getModifiedMetadatas().toMetadatasCodesList())
 				.containsOnly("zeSchemaType_default_title", "zeSchemaType_default_modifiedOn");
-		assertThat(argumentCaptor.getAllValues().get(3).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(3).getModifiedMetadatas().toMetadatasCodesList())
+		assertThat(recordModifiedArgs.getAllValues().get(3).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
+		assertThat(recordModifiedArgs.getAllValues().get(3).getModifiedMetadatas().toMetadatasCodesList())
 				.containsOnly("zeSchemaType_default_title", "zeSchemaType_default_modifiedOn");
 	}
 

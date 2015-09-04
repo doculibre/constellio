@@ -38,6 +38,7 @@ import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.Octets;
+import com.constellio.sdk.tests.annotations.PreserveState;
 
 public class FileSystemTestFeatures {
 
@@ -59,13 +60,44 @@ public class FileSystemTestFeatures {
 			tempFolder = new File(tempFolders, tempFolderName);
 		}
 
-		if (tempFolder.exists()) {
+		boolean clearTempFolder = true;
+		String lastPreservedState = getLastPreservedState();
+		if (lastPreservedState != null) {
+			PreserveState preserveStateAnnotation = testClass.getAnnotation(PreserveState.class);
+			if (preserveStateAnnotation != null) {
+				clearTempFolder = !lastPreservedState.equals(testClass.getName() + "-" + preserveStateAnnotation.state());
+			}
+		}
+
+		if (clearTempFolder && tempFolder.exists()) {
 			try {
 				FileUtils.deleteDirectory(tempFolder);
 			} catch (IOException e) {
 				throw new Error("Cannot deleteLogically temp test directory, it is impossible to start tests in a clean state.",
 						e);
 			}
+		}
+	}
+
+	void setPreservedState(String state) {
+		File stateFile = new File(tempFolder, "state.txt");
+		try {
+			FileUtils.write(stateFile, state);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	String getLastPreservedState() {
+		File stateFile = new File(tempFolder, "state.txt");
+		if (stateFile.exists()) {
+			try {
+				return FileUtils.readFileToString(stateFile);
+			} catch (IOException e) {
+				return null;
+			}
+		} else {
+			return null;
 		}
 	}
 

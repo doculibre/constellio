@@ -17,9 +17,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.schemas;
 
+import static com.constellio.data.utils.LangUtils.compareStrings;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -327,11 +331,13 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
-	public MetadataList onlyWithType(MetadataValueType type) {
+	public MetadataList onlyWithType(MetadataValueType... types) {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
-			if (metadata.getType() == type) {
-				filteredMetadatasList.add(metadata);
+			for (MetadataValueType type : types) {
+				if (metadata.getType() == type) {
+					filteredMetadatasList.add(metadata);
+				}
 			}
 		}
 		return new MetadataList(filteredMetadatasList).unModifiable();
@@ -439,6 +445,31 @@ public class MetadataList implements List<Metadata> {
 				filteredMetadatasList.add(metadata);
 			}
 		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public List<Metadata> onlyWithoutInheritance() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getInheritance() == null) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList sortAscTitle() {
+		return sortedUsing(new Comparator<Metadata>() {
+			@Override
+			public int compare(Metadata o1, Metadata o2) {
+				return compareStrings(o1.getLabel(), o2.getLabel());
+			}
+		});
+	}
+
+	public MetadataList sortedUsing(Comparator<Metadata> comparator) {
+		List<Metadata> filteredMetadatasList = new ArrayList<>(nestedList);
+		Collections.sort(filteredMetadatasList, comparator);
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 }

@@ -194,4 +194,13 @@ public class MetadataSchemaTypes {
 
 		return returnedMetadataSchemaTypes;
 	}
+
+	public boolean hasType(String schemaType) {
+		try {
+			getSchemaType(schemaType);
+			return true;
+		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			return false;
+		}
+	}
 }

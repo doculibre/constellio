@@ -61,6 +61,10 @@ public class MigrationResourcesProvider {
 		}
 	}
 
+	public String get(String key) {
+		return getDefaultLanguageString(key);
+	}
+
 	public String getDefaultLanguageString(String key) {
 		ensureBundles();
 

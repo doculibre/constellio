@@ -63,6 +63,7 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 		getSaveStateFeature().saveStateAfterTestWithTitle("with_test_records");
 
 		newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		getModelLayerFactory().getBatchProcessesController().close();
 		waitUntilICloseTheBrowsers();
 
 	}

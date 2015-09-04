@@ -73,7 +73,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 
 	@Mock User user;
 
-	@Mock RecordServices recordServices;
+	@Mock RecordServicesImpl recordServices;
 
 	@Mock ContentManager contentManager;
 
@@ -410,18 +410,6 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 
 		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
-
-	}
-
-	@Test
-	public void givenDeleteAccessOnAllLogicallyDeletedRecordsOfHierarchyThenPhysicallyDeletable()
-			throws Exception {
-		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
-		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
-		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
-		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
-
-		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isTrue();
 
 	}
 

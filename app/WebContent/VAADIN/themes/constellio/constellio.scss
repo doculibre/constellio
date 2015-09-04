@@ -36,8 +36,8 @@ $header-height: 63px;
 
 $popup-view-z-index: 3;
 
-@mixin file-icon($extension) {
-	background-image: url('images/icons/ext/mantis/#{$extension}.gif');
+@mixin file-icon($file-name) {
+	background-image: url('images/icons/ext/mantis/#{$file-name}');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
 
@@ -49,7 +49,7 @@ $popup-view-z-index: 3;
 }
 
 @mixin folder-icon($file-name) {
-	background-image: url('images/commun/dossier/#{$file-name}.gif');
+	background-image: url('images/icons/folder/#{$file-name}.png');
 	background-repeat: no-repeat;
 	background-position: 2px 10px;
 
@@ -64,192 +64,251 @@ $popup-view-z-index: 3;
 
     // Insert your own theme rules here
 
+	.v-table-cell-content-file-icon-box {
+		background-image: url('images/icons/container/box.png');
+		background-repeat: no-repeat;
+		background-position: 2px 10px;
+	
+		.v-table-cell-wrapper {
+			position: relative;
+			text-align: left;
+			left: 20px;
+		}
+	}
+
+	.v-table-cell-content-file-icon-task {
+		background-image: url('images/icons/task/task.png');
+		background-repeat: no-repeat;
+		background-position: 2px 10px;
+	
+		.v-table-cell-wrapper {
+			position: relative;
+			text-align: left;
+			left: 20px;
+		}
+	}
+
 	.v-table-cell-content-file-icon-chm {
-		@include file-icon(chm);
+		@include file-icon(unquote("chm.gif"));
 	}
 
 	.v-table-cell-content-file-icon-cpp {
-		@include file-icon(cpp);
+		@include file-icon(unquote("cpp.gif"));
 	}
 
 	.v-table-cell-content-file-icon-css {
-		@include file-icon(css);
+		@include file-icon(unquote("css.gif"));
 	}
 
 	.v-table-cell-content-file-icon-csv {
-		@include file-icon(csv);
+		@include file-icon(unquote("csv.gif"));
 	}
 
 	.v-table-cell-content-file-icon-doc {
-		@include file-icon(doc);
+		@include file-icon(unquote("doc.gif"));
 	}
 
 	.v-table-cell-content-file-icon-document {
-		@include file-icon(document);
+		@include file-icon(unquote("document.gif")); 
 	}
 
 	.v-table-cell-content-file-icon-docx {
-		@include file-icon(docx);
+		@include file-icon(unquote("docx.gif"));
 	}
 
 	.v-table-cell-content-file-icon-eml {
-		@include file-icon(eml);
+		@include file-icon(unquote("eml.gif"));
 	}
 
 	.v-table-cell-content-file-icon-gif {
-		@include file-icon(gif);
+		@include file-icon(unquote("gif.gif"));
 	}
 
 	.v-table-cell-content-file-icon-html {
-		@include file-icon(html);
+		@include file-icon(unquote("html.gif"));
 	}
 
 	.v-table-cell-content-file-icon-jpg {
-		@include file-icon(jpg);
+		@include file-icon(unquote("jpg.gif"));
 	}
 
 	.v-table-cell-content-file-icon-mhtml {
-		@include file-icon(mhtml);
+		@include file-icon(unquote("mhtml.gif"));
 	}
 
 	.v-table-cell-content-file-icon-mid {
-		@include file-icon(mid);
+		@include file-icon(unquote("mid.gif"));
 	}
 
 	.v-table-cell-content-file-icon-mov {
-		@include file-icon(mov);
+		@include file-icon(unquote("mov.gif"));
 	}
 
 	.v-table-cell-content-file-icon-msg {
-		@include file-icon(msg);
+		@include file-icon(unquote("msg.gif"));
 	}
 
 	.v-table-cell-content-file-icon-odb {
-		@include file-icon(odb);
+		@include file-icon(unquote("odb.gif"));
 	}
 
 	.v-table-cell-content-file-icon-odf {
-		@include file-icon(odf);
+		@include file-icon(unquote("odf.gif"));
 	}
 
 	.v-table-cell-content-file-icon-odg {
-		@include file-icon(odg);
+		@include file-icon(unquote("odg.gif"));
 	}
 
 	.v-table-cell-content-file-icon-odp {
-		@include file-icon(odp);
+		@include file-icon(unquote("odp.gif"));
 	}
 
 	.v-table-cell-content-file-icon-ods {
-		@include file-icon(ods);
+		@include file-icon(unquote("ods.gif"));
 	}
 
 	.v-table-cell-content-file-icon-odt {
-		@include file-icon(odt);
+		@include file-icon(unquote("odt.gif"));
 	}
 
 	.v-table-cell-content-file-icon-one {
-		@include file-icon(one);
+		@include file-icon(unquote("one.gif"));
 	}
 
 	.v-table-cell-content-file-icon-pcx {
-		@include file-icon(pcx);
+		@include file-icon(unquote("pcx.gif"));
 	}
 
 	.v-table-cell-content-file-icon-pdf {
-		@include file-icon(pdf);
+		@include file-icon(unquote("pdf.gif"));
 	}
 
 	.v-table-cell-content-file-icon-png {
-		@include file-icon(png);
+		@include file-icon(unquote("png.gif"));
 	}
 
 	.v-table-cell-content-file-icon-pot {
-		@include file-icon(pot);
+		@include file-icon(unquote("pot.gif"));
 	}
 
 	.v-table-cell-content-file-icon-pps {
-		@include file-icon(pps);
+		@include file-icon(unquote("pps.gif"));
 	}
 
 	.v-table-cell-content-file-icon-ppt {
-		@include file-icon(ppt);
+		@include file-icon(unquote("ppt.gif"));
 	}
 
 	.v-table-cell-content-file-icon-pptx {
-		@include file-icon(pptx);
+		@include file-icon(unquote("pptx.gif"));
 	}
 
 	.v-table-cell-content-file-icon-pub {
-		@include file-icon(pub);
+		@include file-icon(unquote("pub.gif"));
 	}
 
 	.v-table-cell-content-file-icon-reg {
-		@include file-icon(reg);
+		@include file-icon(unquote("reg.gif"));
 	}
 
 	.v-table-cell-content-file-icon-text {
-		@include file-icon(text);
+		@include file-icon(unquote("text.gif"));
 	}
 
 	.v-table-cell-content-file-icon-unknown {
-		@include file-icon(unknown);
+		@include file-icon(unquote("unknown.gif"));
 	}
 
 	.v-table-cell-content-file-icon-vsd {
-		@include file-icon(vsd);
+		@include file-icon(unquote("vsd.gif"));
 	}
 
 	.v-table-cell-content-file-icon-vsl {
-		@include file-icon(vsl);
+		@include file-icon(unquote("vsl.gif"));
 	}
 
 	.v-table-cell-content-file-icon-vst {
-		@include file-icon(vst);
+		@include file-icon(unquote("vst.gif"));
 	}
 
 	.v-table-cell-content-file-icon-wav {
-		@include file-icon(wav);
+		@include file-icon(unquote("wav.gif"));
 	}
 
 	.v-table-cell-content-file-icon-wbk {
-		@include file-icon(wbk);
+		@include file-icon(unquote("wbk.gif"));
 	}
 
 	.v-table-cell-content-file-icon-wri {
-		@include file-icon(wri);
+		@include file-icon(unquote("wri.gif"));
 	}
 
 	.v-table-cell-content-file-icon-xls {
-		@include file-icon(xlsx);
+		@include file-icon(unquote("xls.gif"));
+	}
+
+	.v-table-cell-content-file-icon-xlsx {
+		@include file-icon(unquote("xlsx.gif"));
 	}
 
 	.v-table-cell-content-file-icon-xlt {
-		@include file-icon(xlt);
+		@include file-icon(unquote("xlt.gif"));
 	}
 
 	.v-table-cell-content-file-icon-xml {
-		@include file-icon(xml);
+		@include file-icon(unquote("xml.gif"));
 	}
 
 	.v-table-cell-content-file-icon-zip {
-		@include file-icon(zip);
+		@include file-icon(unquote("zip.gif"));
 	}
 
-	.v-table-cell-content-file-icon-dossier {
-		@include folder-icon(dossier);
+	.v-table-cell-content-file-icon-folder {
+		@include folder-icon(folder);
 	}
 
-	.v-table-cell-content-file-icon-dossier_orange {
-		@include folder-icon(dossier_orange);
+	.v-table-cell-content-file-icon-folder_orange {
+		@include folder-icon(folder_orange);
 	}
 
-	.v-table-cell-content-file-icon-dossier_gris {
-		@include folder-icon(dossier_gris);
+	.v-table-cell-content-file-icon-folder_grey {
+		@include folder-icon(folder_grey);
 	}
 
-	.v-table-cell-content-file-icon-dossier_mauve {
-		@include folder-icon(dossier_mauve);
+	.v-table-cell-content-file-icon-folder_purple {
+		@include folder-icon(folder_purple);
+	}
+	
+	.v-table-cell-content-error {
+		color: #FFFFFF;
+		background-color: #F5A9A9;
+		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ff3019+0,cf0404+100;Red+3D */
+		background: #ff3019; /* Old browsers */
+		background: -moz-linear-gradient(top,  #ff3019 0%, #cf0404 100%); /* FF3.6+ */
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ff3019), color-stop(100%,#cf0404)); /* Chrome,Safari4+ */
+		background: -webkit-linear-gradient(top,  #ff3019 0%,#cf0404 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-linear-gradient(top,  #ff3019 0%,#cf0404 100%); /* Opera 11.10+ */
+		background: -ms-linear-gradient(top,  #ff3019 0%,#cf0404 100%); /* IE10+ */
+		background: linear-gradient(to bottom,  #ff3019 0%,#cf0404 100%); /* W3C */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff3019', endColorstr='#cf0404',GradientType=0 ); /* IE6-9 */
+	}
+	
+	.v-table-cell-content-disabled {
+		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#eeeeee+0,cccccc+100;Gren+3D */
+		background: rgb(238,238,238); /* Old browsers */
+		background: -moz-linear-gradient(top,  rgba(238,238,238,1) 0%, rgba(204,204,204,1) 100%); /* FF3.6+ */
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(238,238,238,1)), color-stop(100%,rgba(204,204,204,1))); /* Chrome,Safari4+ */
+		background: -webkit-linear-gradient(top,  rgba(238,238,238,1) 0%,rgba(204,204,204,1) 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-linear-gradient(top,  rgba(238,238,238,1) 0%,rgba(204,204,204,1) 100%); /* Opera 11.10+ */
+		background: -ms-linear-gradient(top,  rgba(238,238,238,1) 0%,rgba(204,204,204,1) 100%); /* IE10+ */
+		background: linear-gradient(to bottom,  rgba(238,238,238,1) 0%,rgba(204,204,204,1) 100%); /* W3C */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 ); /* IE6-9 */
+	}
+		
+	.v-slot-disabled-button {
+	    opacity: 0.4;
+	    filter: alpha(opacity=40); /* msie */
 	}
 
     body, div, p, h2, h3, pre {
@@ -260,7 +319,7 @@ $popup-view-z-index: 3;
     	padding-left: 10px;
     }
 
-    .v-slot-login-panel {
+    .v-slot-login-panel, .v-slot-setup-panel {
     	background-image: url(images/back-const-1920x1358.jpg);
 		background-repeat: no-repeat;
 
@@ -280,11 +339,11 @@ $popup-view-z-index: 3;
 	    	width: 300px;
 	    	word-wrap: break-word;
 			border-bottom: 1px dotted #dfdfdf;
+	    	font-weight: bold;
 		}
 
 	    .display-value, .v-caption-display-value {
 	    	text-align: left;
-	    	font-weight: bold;
 	    	font-size: inherit;
 	    	word-break: break-word;
 	    	padding-left: 10px;
@@ -304,6 +363,16 @@ $popup-view-z-index: 3;
     .lookup-window-content {
     	padding-top: 10px;
     	padding-left: 10px;
+    }
+    
+    .lookup-autocomplete-field {
+        .v-filterselect-input {
+        	padding-right: 0px;
+        }
+    	
+    	.v-filterselect-button {
+    		display:none;
+    	}
     }
 
     .link {
@@ -342,6 +411,22 @@ $popup-view-z-index: 3;
 	.permission-dirty {
 		background-color: orange;
 	}
+	
+	.xbreadcrumbs {
+		background-color: #FFFFFF;
+		
+		.v-link a span,.xbreadcrumbbutton .v-button-caption {
+			font-size: 0.9em;
+		}
+	
+		li {
+			height: auto;
+		}
+		
+		.xbreadcrumbbutton {
+		    height: auto;
+		}
+	}
 
 	.v-window {
 
@@ -364,6 +449,11 @@ $popup-view-z-index: 3;
 				padding-left: 10px;
 			}
 		}
+	}
+	
+	.window-button-window-content {
+		margin-left: 10px;
+		margin-top: 5px;
 	}
 
 	.user-documents-window {
@@ -683,6 +773,11 @@ $popup-view-z-index: 3;
 					    .main-component {
 							padding-top: 10px;
 							padding-left: 5px;
+							
+							.v-caption-list-add-remove {
+								padding-left: 0px;
+								font-weight: bold;
+							}
 
 							.list-add-remove {
 						    	border: 1px solid lightgray;
@@ -693,6 +788,15 @@ $popup-view-z-index: 3;
 							.copy-retention-rule-table-medium-types-field {
 								border: none;
 								padding: 0;
+							}
+							
+							.v-caption-display-value-retentionRule_default_copyRetentionRules {
+								padding-left: 0px;
+								font-weight: bold;
+							}
+							
+							.display-value-retentionRule_default_copyRetentionRules {
+								padding-left: 0px;
 							}
 
 							.spell-checker {

@@ -51,7 +51,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.server.Resource;
 
 public class LoginPresenter extends BasePresenter<LoginView> {
 
@@ -171,10 +170,6 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		query.setCondition(from(userDocumentsSchema).where(userMetadata).is(user.getId()));
 		query.sortDesc(Schemas.MODIFIED_ON);
 		return searchServices.getResultsCount(query) > 0;
-	}
-
-	public Resource getLogoResource() {
-		return LogoUtils.getLogoResource(modelLayerFactory);
 	}
 
 	public String getLogoTarget() {

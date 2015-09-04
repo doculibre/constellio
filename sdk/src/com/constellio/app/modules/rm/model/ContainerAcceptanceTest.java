@@ -82,8 +82,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		zeContainer.setFull(false);
 		zeContainer.setDecommissioningType(DecommissioningType.DEPOSIT);
 		zeContainer.setStorageSpace(storage666);
-		zeContainer.setAdministrativeUnit(records.unitId_10);
-		zeContainer.setFilingSpace(records.filingId_A);
+		zeContainer.setAdministrativeUnit(records.unitId_10a);
 		zeContainer.setType("zeBoite");
 
 		ContainerRecord anotherContainer = rm.newContainerRecordWithId("anotherContainer");
@@ -93,8 +92,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		anotherContainer.setFull(true);
 		anotherContainer.setDecommissioningType(DecommissioningType.DEPOSIT);
 		anotherContainer.setStorageSpace(storage666);
-		anotherContainer.setAdministrativeUnit(records.unitId_20);
-		anotherContainer.setFilingSpace(records.filingId_C);
+		anotherContainer.setAdministrativeUnit(records.unitId_20d);
 		anotherContainer.setType("zeBoite");
 
 		Transaction transaction = new Transaction();
@@ -124,8 +122,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		assertThat(zeContainer.getTemporaryIdentifier()).isEqualTo("Ze temp identifier");
 		assertThat(zeContainer.getDescription()).isEqualTo("Ze description");
 		assertThat(zeContainer.isFull()).isFalse();
-		assertThat(zeContainer.getAdministrativeUnit()).isEqualTo(records.unitId_10);
-		assertThat(zeContainer.getFilingSpace()).isEqualTo(records.filingId_A);
+		assertThat(zeContainer.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(zeContainer.getType()).isEqualTo("zeBoite");
 
 		assertThat(anotherContainer.getTitle()).isEqualTo("Ze ultimate identifier");
@@ -133,8 +130,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		assertThat(anotherContainer.getIdentifier()).isEqualTo("Ze ultimate identifier");
 		assertThat(anotherContainer.getDescription()).isEqualTo("Ze description");
 		assertThat(anotherContainer.isFull()).isTrue();
-		assertThat(anotherContainer.getAdministrativeUnit()).isEqualTo(records.unitId_20);
-		assertThat(anotherContainer.getFilingSpace()).isEqualTo(records.filingId_C);
+		assertThat(anotherContainer.getAdministrativeUnit()).isEqualTo(records.unitId_20d);
 		assertThat(anotherContainer.getType()).isEqualTo("zeBoite");
 	}
 }

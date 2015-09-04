@@ -63,9 +63,11 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		boolean access = true;
 
 		if (readAccess) {
+			boolean publicRecord = record.getList(Schemas.TOKENS).contains(Record.PUBLIC_TOKEN);
 			boolean globalReadAccess =
 					user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
-			access &= globalReadAccess || hasReadAccessOn(record) || hasWriteAccessOn(record) || hasDeleteAccessOn(record);
+			access = globalReadAccess || publicRecord || hasReadAccessOn(record) || hasWriteAccessOn(record) ||
+					hasDeleteAccessOn(record);
 		}
 
 		if (writeAccess) {
@@ -116,6 +118,11 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 		}
 
 		return false;
+	}
+
+	@Override
+	public boolean onSomething() {
+		throw new UnsupportedOperationException("onSomething() is not yet supported for this checker");
 	}
 
 }

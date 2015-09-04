@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_ManagerMustBeStartedBeforeConfiguringThreads;
 import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.BackgroundThreadsManagerRuntimeException_RepeatInfosNotConfigured;
@@ -30,12 +31,12 @@ public class BackgroundThreadsManager implements StatefulService {
 
 	AtomicBoolean systemStarted = new AtomicBoolean(false);
 
-	int threadPoolSize;
+	DataLayerConfiguration dataLayerConfiguration;
 
 	ScheduledExecutorService scheduledExecutorService;
 
-	public BackgroundThreadsManager(int threadPoolSize) {
-		this.threadPoolSize = threadPoolSize;
+	public BackgroundThreadsManager(DataLayerConfiguration dataLayerConfiguration) {
+		this.dataLayerConfiguration = dataLayerConfiguration;
 	}
 
 	@Override
@@ -65,7 +66,10 @@ public class BackgroundThreadsManager implements StatefulService {
 		long delayBeforeTheFirstCommandExecution = 0;
 		long executeEverySeconds = backgroundThreadConfiguration.getExecuteEvery().getStandardSeconds();
 		TimeUnit unit = TimeUnit.SECONDS;
-		scheduledExecutorService.scheduleAtFixedRate(command, delayBeforeTheFirstCommandExecution, executeEverySeconds, unit);
+
+		if (dataLayerConfiguration.isBackgroundThreadsEnabled()) {
+			scheduledExecutorService.scheduleAtFixedRate(command, delayBeforeTheFirstCommandExecution, executeEverySeconds, unit);
+		}
 	}
 
 	Runnable getRunnableCommand(BackgroundThreadConfiguration backgroundThreadConfiguration) {
@@ -73,7 +77,7 @@ public class BackgroundThreadsManager implements StatefulService {
 	}
 
 	ScheduledExecutorService newScheduledExecutorService() {
-		return Executors.newScheduledThreadPool(threadPoolSize);
+		return Executors.newScheduledThreadPool(dataLayerConfiguration.getBackgroudThreadsPoolSize());
 	}
 
 }

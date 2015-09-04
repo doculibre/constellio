@@ -88,6 +88,11 @@ public class CompositeLogicalSearchCondition extends LogicalSearchCondition {
 
 	@Override
 	public String getSolrQuery() {
+
+		if (nestedSearchConditions.isEmpty()) {
+			throw new IllegalStateException("No conditions");
+		}
+
 		String query = "(";
 
 		for (int i = 0; i < nestedSearchConditions.size() - 1; i++) {

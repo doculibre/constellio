@@ -29,6 +29,7 @@ import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.io.InputStream;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -55,16 +57,17 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -72,7 +75,6 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -83,9 +85,9 @@ import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -107,20 +109,21 @@ public class RMTestRecords {
 	public final String categoryId_X13 = "categoryId_X13";
 
 	public final String unitId_10 = "unitId_10";
+	public final String unitId_10a = "unitId_10a";
 	public final String unitId_11 = "unitId_11";
+	public final String unitId_11b = "unitId_11b";
 	public final String unitId_12 = "unitId_12";
+	public final String unitId_12b = "unitId_12b";
+	public final String unitId_12c = "unitId_12c";
 	public final String unitId_20 = "unitId_20";
+	public final String unitId_20d = "unitId_20d";
+	public final String unitId_20e = "unitId_20e";
 	public final String unitId_30 = "unitId_30";
+	public final String unitId_30c = "unitId_30c";
 
 	public final String subdivId_1 = "subdivId_1";
 	public final String subdivId_2 = "subdivId_2";
 	public final String subdivId_3 = "subdivId_3";
-
-	public final String filingId_A = "filingId_A";
-	public final String filingId_B = "filingId_B";
-	public final String filingId_C = "filingId_C";
-	public final String filingId_D = "filingId_D";
-	public final String filingId_E = "filingId_E";
 
 	public final String documentTypeId_1 = "documentTypeId_1";
 	public final String documentTypeId_2 = "documentTypeId_2";
@@ -304,6 +307,11 @@ public class RMTestRecords {
 	public final String list_19 = "list19";
 	public final String list_20 = "list20";
 	public final String list_21 = "list21";
+	public final String list_22 = "list22";
+	public final String list_23 = "list23";
+	public final String list_24 = "list24";
+	public final String list_25 = "list25";
+	public final String list_26 = "list26";
 
 	private String collection;
 	private RMSchemasRecordsServices rm;
@@ -315,6 +323,8 @@ public class RMTestRecords {
 	private String edouard_managerInB_userInC;
 	private String gandalf_managerInABC;
 	private String chuckNorris;
+	private String robin;
+	private String sasquatch;
 	private Users users = new Users();
 	private RecordServices recordServices;
 	private LoggingServices loggingServices;
@@ -333,20 +343,54 @@ public class RMTestRecords {
 		this.modelLayerFactory = modelLayerFactory;
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices);
-		alice_userWithNoWriteAccess = users.aliceIn(collection).getId();
-		admin_userIdWithAllAccess = users.adminIn(collection).getId();
-		bob_userInAC = users.bobIn(collection).getId();
-		charles_userInA = users.charlesIn(collection).getId();
-		dakota_managerInA_userInB = users.dakotaIn(collection).getId();
-		edouard_managerInB_userInC = users.edouardIn(collection).getId();
-		gandalf_managerInABC = users.gandalfIn(collection).getId();
-		chuckNorris = users.chuckNorrisIn(collection).getId();
+
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		List<Record> userRecords = searchServices.search(new LogicalSearchQuery()
+				.setCondition(from(rm.userSchemaType()).returnAll())
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(rm.userUsername())));
+
+		for (User user : rm.wrapUsers(userRecords)) {
+			if (user.getUsername().equals("admin")) {
+				admin_userIdWithAllAccess = user.getId();
+
+			} else if (user.getUsername().equals("chuck")) {
+				chuckNorris = user.getId();
+
+			} else if (user.getUsername().equals("alice")) {
+				alice_userWithNoWriteAccess = user.getId();
+
+			} else if (user.getUsername().equals("bob")) {
+				bob_userInAC = user.getId();
+
+			} else if (user.getUsername().equals("charles")) {
+				charles_userInA = user.getId();
+
+			} else if (user.getUsername().equals("dakota")) {
+				dakota_managerInA_userInB = user.getId();
+
+			} else if (user.getUsername().equals("edouard")) {
+				edouard_managerInB_userInC = user.getId();
+
+			} else if (user.getUsername().equals("gandalf")) {
+				gandalf_managerInABC = user.getId();
+
+			} else if (user.getUsername().equals("robin")) {
+				robin = user.getId();
+
+			} else if (user.getUsername().equals("sasquatch")) {
+				sasquatch = user.getId();
+
+			}
+		}
+
 		recordServices = modelLayerFactory.newRecordServices();
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(modelLayerFactory);
+
 		searchServices = modelLayerFactory.newSearchServices();
 		rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
+
 		contentManager = modelLayerFactory.getContentManager();
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
@@ -381,16 +425,69 @@ public class RMTestRecords {
 		setupUsers(transaction, userServices);
 		setupCategories(transaction);
 		setupUniformSubdivisions(transaction);
-		setupFilingSpaces(transaction);
 		setupAdministrativeUnits(transaction);
 		setupDocumentTypes(transaction);
 		setupRetentionRules(transaction);
 		recordServices.execute(transaction);
 
-		//		setupAuthorizations(modelLayerFactory.newAuthorizationsServices(), modelLayerFactory.getRolesManager());
+		setupAdministrativeUnitsAuthorizations();
 		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
 
 		return this;
+	}
+
+	private void setupAdministrativeUnitsAuthorizations() {
+
+		List<String> userInUnit10 = asList(bob_userInAC, charles_userInA, admin_userIdWithAllAccess);
+		List<String> managerInUnit10 = asList(dakota_managerInA_userInB, gandalf_managerInABC);
+
+		List<String> userInUnit11 = asList(dakota_managerInA_userInB, admin_userIdWithAllAccess);
+		List<String> managerInUnit11 = asList(edouard_managerInB_userInC, gandalf_managerInABC);
+
+		List<String> userInUnit12 = asList(dakota_managerInA_userInB, admin_userIdWithAllAccess, edouard_managerInB_userInC,
+				bob_userInAC, admin_userIdWithAllAccess);
+		List<String> managerInUnit12 = asList(edouard_managerInB_userInC, gandalf_managerInABC);
+
+		List<String> userInUnit20 = new ArrayList<>();
+		List<String> managerInUnit20 = new ArrayList<>();
+
+		List<String> userInUnit30 = asList(edouard_managerInB_userInC, bob_userInAC, admin_userIdWithAllAccess);
+		List<String> managerInUnit30 = asList(gandalf_managerInABC);
+
+		addUserAuthorization(unitId_10, userInUnit10);
+		addManagerAuthorization(unitId_10, managerInUnit10);
+
+		addUserAuthorization(unitId_11, userInUnit11);
+		addManagerAuthorization(unitId_11, managerInUnit11);
+
+		addUserAuthorization(unitId_12, userInUnit12);
+		addManagerAuthorization(unitId_12, managerInUnit12);
+
+		addUserAuthorization(unitId_20, userInUnit20);
+		addManagerAuthorization(unitId_20, managerInUnit20);
+
+		addUserAuthorization(unitId_30, userInUnit30);
+		addManagerAuthorization(unitId_30, managerInUnit30);
+	}
+
+	private void addUserAuthorization(String target, List<String> principals) {
+		addAuthorization(asList(RMRoles.USER), target, principals);
+		addAuthorization(asList(Role.READ, Role.WRITE), target, principals);
+	}
+
+	private void addManagerAuthorization(String target, List<String> principals) {
+		addAuthorization(asList(RMRoles.MANAGER), target, principals);
+		addAuthorization(asList(Role.READ, Role.WRITE, Role.DELETE), target, principals);
+	}
+
+	private void addAuthorization(List<String> roles, String target, List<String> principals) {
+		if (!principals.isEmpty()) {
+			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+			AuthorizationDetails authorizationDetails = AuthorizationDetails
+					.create(UUID.randomUUID().toString(), roles, collection);
+			Authorization authorization = new Authorization(authorizationDetails, principals, asList(target));
+			authorizationsServices.add(authorization, User.GOD);
+		}
 	}
 
 	public RMTestRecords withFoldersAndContainersOfEveryStatus() {
@@ -458,37 +555,6 @@ public class RMTestRecords {
 		}
 	}
 
-	private void setupAuthorizations(AuthorizationsServices authorizationsServices, RolesManager rolesManager) {
-
-		Authorization unit10Users = new Authorization();
-		unit10Users.setDetail(AuthorizationDetails.create("unit10Users", asList(Role.WRITE, RMRoles.USER), collection));
-		unit10Users.setGrantedOnRecords(asList(unitId_10));
-		unit10Users.setGrantedToPrincipals(asList(bob_userInAC, charles_userInA, dakota_managerInA_userInB));
-		authorizationsServices.add(unit10Users, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-
-		Authorization unit10Managers = new Authorization();
-		unit10Managers.setDetail(
-				AuthorizationDetails.create("unit10Managers", asList(Role.DELETE, Role.WRITE, RMRoles.MANAGER), collection));
-		unit10Managers.setGrantedOnRecords(asList(unitId_10));
-		unit10Managers.setGrantedToPrincipals(asList(dakota_managerInA_userInB, edouard_managerInB_userInC,
-				gandalf_managerInABC));
-		authorizationsServices.add(unit10Managers, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-
-		Authorization unit30Users = new Authorization();
-		unit30Users.setDetail(AuthorizationDetails.create("unit30Users", asList(Role.WRITE, RMRoles.USER), collection));
-		unit30Users.setGrantedOnRecords(asList(unitId_30));
-		unit30Users.setGrantedToPrincipals(asList(bob_userInAC, edouard_managerInB_userInC));
-		authorizationsServices.add(unit30Users, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-
-		Authorization unit30Managers = new Authorization();
-		unit30Managers.setDetail(
-				AuthorizationDetails.create("unit30Managers", asList(Role.DELETE, Role.WRITE, RMRoles.MANAGER), collection));
-		unit30Managers.setGrantedOnRecords(asList(unitId_30));
-		unit30Managers.setGrantedToPrincipals(asList(gandalf_managerInABC));
-		authorizationsServices.add(unit30Managers, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
-
-	}
-
 	private void setupUsers(Transaction transaction, UserServices userServices) {
 		userServices.addUserToCollection(users.admin(), collection);
 		userServices.addUserToCollection(users.alice(), collection);
@@ -514,62 +580,91 @@ public class RMTestRecords {
 	private void setupCategories(Transaction transaction) {
 
 		transaction.add(rm.newCategoryWithId(categoryId_X).setCode("X").setTitle("Xe category"))
+				.setDescription("Ze ultimate category X")
 				.setRetentionRules(asList(ruleId_1));
 
 		transaction.add(rm.newCategoryWithId(categoryId_X100).setCode("X100").setTitle("X100")
+				.setDescription("Ze category X100")
 				.setParent(categoryId_X).setRetentionRules(asList(ruleId_1)));
 
 		transaction.add(rm.newCategoryWithId(categoryId_X110).setCode("X110").setTitle("X110")
+				.setDescription("Ze category X110")
 				.setParent(categoryId_X100).setRetentionRules(asList(ruleId_1, ruleId_2)));
 
 		transaction.add(rm.newCategoryWithId(categoryId_X120).setCode("X120").setTitle("X120")
+				.setDescription("Ze category X120")
 				.setParent(categoryId_X100).setRetentionRules(asList(ruleId_3, ruleId_4)));
 
 		transaction.add(rm.newCategoryWithId(categoryId_X13).setCode("X13").setTitle("Agent Secreet")
 				.setDescription("218. Requiem pour un espion").setParent(categoryId_X)
 				.setRetentionRules(asList(ruleId_1, ruleId_2, ruleId_3, ruleId_4)));
 
-		transaction.add(rm.newCategoryWithId(categoryId_Z).setCode("Z").setTitle("Ze category"));
+		transaction.add(rm.newCategoryWithId(categoryId_Z).setCode("Z").setTitle("Ze category")
+				.setDescription("Ze ultimate category Z"));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z100).setCode("Z100").setTitle("Z100")
+				.setDescription("Ze category Z100")
 				.setParent(categoryId_Z));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z110).setCode("Z110").setTitle("Z110")
+				.setDescription("Ze category Z110")
 				.setParent(categoryId_Z100)).setRetentionRules(asList(ruleId_2));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z111).setCode("Z111").setTitle("Z111")
+				.setDescription("Ze category Z111")
 				.setParent(categoryId_Z110));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z112).setCode("Z112").setTitle("Z112")
+				.setDescription("Ze category Z112")
 				.setParent(categoryId_Z110)).setRetentionRules(asList(ruleId_3));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z120).setCode("Z120").setTitle("Z120")
+				.setDescription("Ze category Z120")
 				.setParent(categoryId_Z100)).setRetentionRules(asList(ruleId_3));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z200).setCode("Z200").setTitle("Z200")
+				.setDescription("Ze category Z200")
 				.setParent(categoryId_Z));
 
 		transaction.add(rm.newCategoryWithId(categoryId_ZE42).setCode("ZE42").setTitle("Ze 42")
+				.setDescription("Ze category 42")
 				.setParent(categoryId_Z).setRetentionRules(asList(ruleId_1, ruleId_2, ruleId_3, ruleId_4)));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z999).setCode("Z999").setTitle("Z999")
+				.setDescription("Ze category Z999")
 				.setParent(categoryId_Z).setRetentionRules(asList(ruleId_5)));
 
 	}
 
 	private void setupAdministrativeUnits(Transaction transaction) {
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_10)).setCode("10").setTitle("10")
-				.setFilingSpaces(asList(filingId_A)).setTitle("Administrative unit with room A")
-				.setAdress("Unit 10 Adress");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_11)).setCode("11").setTitle("11")
-				.setParent(unitId_10).setFilingSpaces(asList(filingId_B)).setTitle("Administrative unit with room B");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_12)).setCode("12").setTitle("12")
-				.setParent(unitId_10).setFilingSpaces(asList(filingId_B, filingId_C))
-				.setTitle("Administrative unit with room B and C");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_20)).setCode("20")
-				.setFilingSpaces(asList(filingId_D, filingId_E)).setTitle("Administrative unit with room D");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_30)).setCode("30")
-				.setFilingSpaces(asList(filingId_C)).setTitle("Administrative unit without filing spaces");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_10)).setCode("10").setTitle("Unité 10").setAdress("Unit 10 Adress")
+				.setDescription("Ze ultimate unit 10");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_10a)).setCode("10A").setTitle("Unité 10-A").setParent(unitId_10)
+				.setDescription("Ze ultimate unit 10A");
+
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_11)).setCode("11").setTitle("Unité 11").setParent(unitId_10)
+				.setDescription("Ze ultimate unit 11");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_11b)).setCode("11B").setTitle("Unité 11-B").setParent(unitId_11)
+				.setDescription("Ze ultimate unit 11B");
+
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12)).setCode("12").setTitle("Unité 12").setParent(unitId_10)
+				.setDescription("Ze ultimate unit 12");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12b)).setCode("12B").setTitle("Unité 12-B").setParent(unitId_12)
+				.setDescription("Ze ultimate unit 12B");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12c)).setCode("12C").setTitle("Unité 12-C").setParent(unitId_12)
+				.setDescription("Ze ultimate unit 12C");
+
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20)).setCode("20").setTitle("Unité 20")
+				.setDescription("Ze ultimate unit 20");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20d)).setCode("20D").setTitle("Unité 20-D").setParent(unitId_20)
+				.setDescription("Ze ultimate unit 20D");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20e)).setCode("20E").setTitle("Unité 20-E").setParent(unitId_20)
+				.setDescription("Ze ultimate unit 20E");
+
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_30)).setCode("30").setTitle("Unité 30")
+				.setDescription("Ze ultimate unit 30");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_30c)).setCode("30C").setTitle("Unité 30-C").setParent(unitId_30)
+				.setDescription("Ze ultimate unit 30C");
 	}
 
 	private void setupUniformSubdivisions(Transaction transaction) {
@@ -577,26 +672,6 @@ public class RMTestRecords {
 				.setRetentionRules(asList(ruleId_2)));
 		transaction.add(rm.newUniformSubdivisionWithId(subdivId_2).setCode("sub2").setTitle("Subdiv. 2"));
 		transaction.add(rm.newUniformSubdivisionWithId(subdivId_3).setCode("sub3").setTitle("Subdiv. 3"));
-	}
-
-	private void setupFilingSpaces(Transaction transaction) {
-
-		transaction.add(rm.newFilingSpaceWithId(filingId_A)).setCode("A").setTitle("Room A")
-				.setUsers(asList(bob_userInAC, charles_userInA, admin_userIdWithAllAccess))
-				.setAdministrators(asList(dakota_managerInA_userInB, gandalf_managerInABC));
-
-		transaction.add(rm.newFilingSpaceWithId(filingId_B)).setCode("B").setTitle("Room B")
-				.setUsers(asList(dakota_managerInA_userInB, admin_userIdWithAllAccess))
-				.setAdministrators(asList(edouard_managerInB_userInC, gandalf_managerInABC));
-
-		transaction.add(rm.newFilingSpaceWithId(filingId_C)).setCode("C").setTitle("Room C")
-				.setUsers(asList(edouard_managerInB_userInC, bob_userInAC, admin_userIdWithAllAccess))
-				.setAdministrators(asList(gandalf_managerInABC));
-
-		transaction.add(rm.newFilingSpaceWithId(filingId_D)).setCode("D").setTitle("Room D");
-
-		transaction.add(rm.newFilingSpaceWithId(filingId_E)).setCode("E").setTitle("Room E");
-
 	}
 
 	private void setupRetentionRules(Transaction transaction) {
@@ -760,15 +835,6 @@ public class RMTestRecords {
 		User leblanc = users.gandalfLeblancIn(collection);
 		loggingServices.addUser(leblanc.getWrappedRecord(), charles);
 		recordServices.flush();
-
-		LogicalSearchQuery query = rmEventsSearchServices
-				.newFindEventByDateRangeAndByUserQuery(users.adminIn(collection), EventType.CREATE_USER,
-						new LocalDateTime().minusDays(
-								1), new LocalDateTime(), charles.getUsername());
-		long addedUsersCount = searchServices.getResultsCount(query);
-
-		//		assertThat(addedUsersCount).isEqualTo(2l);
-
 	}
 
 	private void createViewEvents() {
@@ -880,13 +946,13 @@ public class RMTestRecords {
 
 	private void setupLists(Transaction transaction) {
 		transaction.add(rm.newDecommissioningListWithId(list_01))
-				.setTitle("Listes avec plusieurs supports à détruire").setAdministrativeUnit(unitId_10)
-				.setFilingSpace(filingId_A).setDecommissioningListType(FOLDERS_TO_DESTROY)
+				.setTitle("Listes avec plusieurs supports à détruire").setAdministrativeUnit(unitId_10a)
+				.setDecommissioningListType(FOLDERS_TO_DESTROY)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setContainerDetailsFor(containerId_bac18, containerId_bac19).setFolderDetailsFor(folder_A(42, 47));
 
 		DecommissioningList zeList02 = rm.newDecommissioningListWithId(list_02).setTitle("Liste analogique à détruire")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DESTROY).setContainerDetailsFor(containerId_bac10)
 				.setFolderDetailsFor(folder_A(54, 56));
@@ -897,30 +963,31 @@ public class RMTestRecords {
 		transaction.add(zeList02);
 
 		transaction.add(rm.newDecommissioningListWithId(list_03)).setTitle("Liste hybride à fermer")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setFolderDetailsFor(folder_A(1, 3));
 
 		transaction.add(rm.newDecommissioningListWithId(list_04)).setTitle("Liste analogique à transférer")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setContainerDetailsFor(containerId_bac14, containerId_bac15).setFolderDetailsFor(folder_A(22, 24));
 
 		transaction.add(rm.newDecommissioningListWithId(list_05)).setTitle("Liste hybride à transférer")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setFolderDetailsFor(folder_A(19, 21));
 
 		transaction.add(rm.newDecommissioningListWithId(list_06)).setTitle("Liste électronique à transférer")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setFolderDetailsFor(folder_A(25, 27));
 
 		transaction.add(rm.newDecommissioningListWithId(list_07)).setTitle("Liste analogique à détruire")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DESTROY).setFolderDetailsFor(folder_A(54, 56));
 
+		//TODO Vérifier, était autrefois dans le filing space B
 		DecommissioningList zeList08 = transaction.add(rm.newDecommissioningListWithId(list_08))
 				.setTitle("Liste hybride à verser")
-				.setAdministrativeUnit(unitId_20).setFilingSpace(filingId_B).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setAdministrativeUnit(unitId_20d).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setFolderDetailsFor(folder_B30, folder_B33, folder_B35)
 				.setContainerDetailsFor(containerId_bac08, containerId_bac09);
 		List<DecomListFolderDetail> details = zeList08.getFolderDetails();
@@ -928,12 +995,12 @@ public class RMTestRecords {
 		details.get(1).setContainerRecordId(containerId_bac09);
 
 		transaction.add(rm.newDecommissioningListWithId(list_09)).setTitle("Liste électronique à verser")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setFolderDetailsFor(folder_A(57, 59));
 
 		DecommissioningList zeList10 = transaction.add(rm.newDecommissioningListWithId(list_10))
-				.setTitle("Liste avec plusieurs supports à verser").setAdministrativeUnit(unitId_10)
-				.setFilingSpace(filingId_A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
+				.setTitle("Liste avec plusieurs supports à verser").setAdministrativeUnit(unitId_10a)
+				.setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setContainerDetailsFor(containerId_bac11, containerId_bac13)
 				.setFolderDetailsFor(folders("A42-A44, A48-A50"));
@@ -945,46 +1012,46 @@ public class RMTestRecords {
 		details.get(5).setContainerRecordId(containerId_bac11);
 
 		transaction.add(rm.newDecommissioningListWithId(list_11)).setTitle("Liste de fermeture traîtée")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setProcessingUser(dakota_managerInA_userInB)
 				.setProcessingDate(date(2012, 5, 5)).setFolderDetailsFor(folder_A(10, 15));
 
 		transaction.add(rm.newDecommissioningListWithId(list_12)).setTitle("Liste de transfert traîtée")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setAdministrativeUnit(unitId_10a)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setProcessingUser(dakota_managerInA_userInB)
 				.setProcessingDate(date(2012, 5, 5)).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setContainerDetailsFor(containerId_bac10, containerId_bac11, containerId_bac12)
 				.setFolderDetailsFor(folder_A(45, 59));
 
 		transaction.add(rm.newDecommissioningListWithId(list_13)).setTitle("Liste de transfert uniforme traîtée")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setProcessingUser(dakota_managerInA_userInB)
 				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac13)
 				.setFolderDetailsFor(folder_A(42, 44));
 
 		transaction.add(rm.newDecommissioningListWithId(list_14)).setTitle("Liste de versement traîtée")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setProcessingUser(dakota_managerInA_userInB)
 				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac05)
 				.setFolderDetailsFor(folder_A(79, 93));
 
 		transaction.add(rm.newDecommissioningListWithId(list_15)).setTitle("Liste de versement uniforme traîtée")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setProcessingUser(dakota_managerInA_userInB)
 				.setProcessingDate(date(2012, 5, 5)).setContainerDetailsFor(containerId_bac04)
 				.setFolderDetailsFor(folder_A(94, 96));
 
 		DecommissioningList zeList16 = transaction.add(rm.newDecommissioningListWithId(list_16)
 				.setTitle("Liste analogique à transférer en contenants").setOriginArchivisticStatus(OriginStatus.ACTIVE)
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setDecommissioningListType(FOLDERS_TO_TRANSFER)
+				.setAdministrativeUnit(unitId_10a).setDecommissioningListType(FOLDERS_TO_TRANSFER)
 				.setContainerDetailsFor(containerId_bac14).setFolderDetailsFor(folder_A(22, 24)));
 		for (DecomListFolderDetail detail : zeList16.getFolderDetails()) {
 			detail.setContainerRecordId(containerId_bac14);
 		}
 
 		DecommissioningList zeList17 = transaction.add(rm.newDecommissioningListWithId(list_17))
-				.setTitle("Liste à verser").setAdministrativeUnit(unitId_10)
-				.setFilingSpace(filingId_A).setDecommissioningListType(FOLDERS_TO_DEPOSIT)
+				.setTitle("Liste à verser").setAdministrativeUnit(unitId_10a)
+				.setDecommissioningListType(FOLDERS_TO_DEPOSIT)
 				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setContainerDetailsFor(containerId_bac11)
 				.setFolderDetailsFor(folders("A48-A50"));
@@ -992,18 +1059,20 @@ public class RMTestRecords {
 		details.get(1).setContainerRecordId(containerId_bac11);
 		details.get(2).setContainerRecordId(containerId_bac11);
 
+		//TODO Vérifier, était autrefois dans le filing space B
 		DecommissioningList zeList18 = transaction.add(rm.newDecommissioningListWithId(list_18))
 				.setTitle("Liste hybride à verser avec tri")
-				.setAdministrativeUnit(unitId_20).setFilingSpace(filingId_B).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setAdministrativeUnit(unitId_20d).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setFolderDetailsFor(folder_B30, folder_B33)
 				.setContainerDetailsFor(containerId_bac08, containerId_bac09);
 		details = zeList18.getFolderDetails();
 		details.get(0).setContainerRecordId(containerId_bac08);
 		details.get(1).setContainerRecordId(containerId_bac09).setReversedSort(true);
 
+		//TODO Vérifier, était autrefois dans le filing space B
 		DecommissioningList zeList19 = transaction.add(rm.newDecommissioningListWithId(list_19))
 				.setTitle("Liste hybride à détruire avec tri")
-				.setAdministrativeUnit(unitId_20).setFilingSpace(filingId_B).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setAdministrativeUnit(unitId_20d).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DESTROY).setFolderDetailsFor(folder_B30, folder_B33)
 				.setContainerDetailsFor(containerId_bac08, containerId_bac09);
 		details = zeList19.getFolderDetails();
@@ -1011,12 +1080,38 @@ public class RMTestRecords {
 		details.get(1).setContainerRecordId(containerId_bac09).setReversedSort(true);
 
 		transaction.add(rm.newDecommissioningListWithId(list_20)).setTitle("Liste hybride à verser")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DEPOSIT).setFolderDetailsFor(folder_A(19, 21));
 
 		transaction.add(rm.newDecommissioningListWithId(list_21)).setTitle("Liste hybride à détruire")
-				.setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DESTROY).setFolderDetailsFor(folder_A(19, 21));
+
+		transaction.add(rm.newDecommissioningListWithId(list_23)).setTitle("Liste à approuver")
+				.setAdministrativeUnit(unitId_10a)
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setDecommissioningListType(FOLDERS_TO_CLOSE).setFolderDetailsFor(folder_A(1, 3))
+				.setApprovalRequest(dakota_managerInA_userInB).setApprovalRequestDate(new LocalDate());
+
+		DecomListValidation validationDakota = new DecomListValidation(dakota_managerInA_userInB, new LocalDate().minusDays(1))
+				.setValidationDate(new LocalDate());
+		DecomListValidation validationBob = new DecomListValidation(bob_userInAC, new LocalDate().minusDays(1))
+				.setValidationDate(new LocalDate());
+		transaction.add(rm.newDecommissioningListWithId(list_24)).setTitle("Liste approuvée et validée")
+				.setAdministrativeUnit(unitId_10a)
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setDecommissioningListType(FOLDERS_TO_CLOSE).setFolderDetailsFor(folder_A(1, 3))
+				.setApprovalRequest(dakota_managerInA_userInB).setApprovalRequestDate(new LocalDate())
+				.setApprovalUser(getAdmin()).setApprovalDate(new LocalDate())
+				.setValidations(asList(validationDakota, validationBob));
+
+		transaction.add(rm.newDecommissioningListWithId(list_25)).setTitle("Autre liste à approuver et valider")
+				.setAdministrativeUnit(unitId_10a)
+				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setDecommissioningListType(FOLDERS_TO_CLOSE).setFolderDetailsFor(folder_A(1, 3))
+				.setApprovalRequest(gandalf_managerInABC).setApprovalRequestDate(new LocalDate())
+				.addValidationRequest(dakota_managerInA_userInB, new LocalDate())
+				.addValidationRequest(bob_userInAC, new LocalDate());
 	}
 
 	private void setupStorageSpace(Transaction transaction) {
@@ -1052,109 +1147,109 @@ public class RMTestRecords {
 		String noStorageSpace = null;
 
 		transaction.add(rm.newContainerRecordWithId(containerId_bac19)).setTemporaryIdentifier("10_A_12")
-				.setFull(false).setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setFull(false).setAdministrativeUnit(unitId_10a)
 				.setDecommissioningType(DESTRUCTION).setType(containerTypeId_boite22x22);
 
 		transaction.add(rm.newContainerRecordWithId(containerId_bac18)).setTemporaryIdentifier("10_A_11")
-				.setFull(false).setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setFull(false).setAdministrativeUnit(unitId_10a)
 				.setDecommissioningType(DESTRUCTION).setType(containerTypeId_boite22x22);
 
 		transaction.add(rm.newContainerRecordWithId(containerId_bac17)).setTemporaryIdentifier("10_A_10")
-				.setFull(false).setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setFull(false).setAdministrativeUnit(unitId_10a)
 				.setDecommissioningType(DEPOSIT).setType(containerTypeId_boite22x22);
 
 		transaction.add(rm.newContainerRecordWithId(containerId_bac16)).setTemporaryIdentifier("10_A_09")
-				.setFull(false).setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setFull(false).setAdministrativeUnit(unitId_10a)
 				.setDecommissioningType(DEPOSIT).setType(containerTypeId_boite22x22);
 
 		transaction.add(rm.newContainerRecordWithId(containerId_bac15)).setTemporaryIdentifier("10_A_08")
-				.setFull(false).setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setFull(false).setAdministrativeUnit(unitId_10a)
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction.add(rm.newContainerRecordWithId(containerId_bac14)).setTemporaryIdentifier("10_A_07")
-				.setFull(false).setAdministrativeUnit(unitId_10).setFilingSpace(filingId_A)
+				.setFull(false).setAdministrativeUnit(unitId_10a)
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac13).setTemporaryIdentifier("10_A_06")
-						.setFull(false).setStorageSpace(storageSpaceId_S01_01).setAdministrativeUnit(unitId_10)
-						.setFilingSpace(filingId_A).setRealTransferDate(date(2008, 10, 31)))
+						.setFull(false).setStorageSpace(storageSpaceId_S01_01).setAdministrativeUnit(unitId_10a)
+						.setRealTransferDate(date(2008, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac12).setTemporaryIdentifier("10_A_05")
-						.setFull(false).setStorageSpace(storageSpaceId_S01_01).setAdministrativeUnit(unitId_10)
-						.setFilingSpace(filingId_A).setRealTransferDate(date(2006, 10, 31)))
+						.setFull(false).setStorageSpace(storageSpaceId_S01_01).setAdministrativeUnit(unitId_10a)
+						.setRealTransferDate(date(2006, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac11).setTemporaryIdentifier("10_A_04")
-						.setFull(false).setStorageSpace(storageSpaceId_S01_01).setAdministrativeUnit(unitId_10)
-						.setFilingSpace(filingId_A).setRealTransferDate(date(2005, 10, 31)))
+						.setFull(false).setStorageSpace(storageSpaceId_S01_01).setAdministrativeUnit(unitId_10a)
+						.setRealTransferDate(date(2005, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac10).setTemporaryIdentifier("10_A_03")
-						.setFull(true).setStorageSpace(noStorageSpace).setAdministrativeUnit(unitId_10)
-						.setFilingSpace(filingId_A).setRealTransferDate(date(2007, 10, 31)))
+						.setFull(true).setStorageSpace(noStorageSpace).setAdministrativeUnit(unitId_10a)
+						.setRealTransferDate(date(2007, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac09).setTemporaryIdentifier("11_B_02")
-						.setFull(false).setStorageSpace(storageSpaceId_S02_01).setAdministrativeUnit(unitId_11)
-						.setFilingSpace(filingId_B).setRealTransferDate(date(2006, 10, 31)))
+						.setFull(false).setStorageSpace(storageSpaceId_S02_01).setAdministrativeUnit(unitId_11b)
+						.setRealTransferDate(date(2006, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac08).setTemporaryIdentifier("12_B_02")
-						.setFull(false).setStorageSpace(storageSpaceId_S02_01).setAdministrativeUnit(unitId_12)
-						.setFilingSpace(filingId_B).setRealTransferDate(date(2007, 10, 31)))
+						.setFull(false).setStorageSpace(storageSpaceId_S02_01).setAdministrativeUnit(unitId_12b)
+						.setRealTransferDate(date(2007, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac07).setTemporaryIdentifier("30_C_03")
-						.setFull(false).setStorageSpace(storageSpaceId_S02_01).setAdministrativeUnit(unitId_30)
-						.setFilingSpace(filingId_C).setRealTransferDate(date(2007, 10, 31)))
+						.setFull(false).setStorageSpace(storageSpaceId_S02_01).setAdministrativeUnit(unitId_30c)
+						.setRealTransferDate(date(2007, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac06).setTemporaryIdentifier("30_C_02")
-						.setFull(false).setStorageSpace(noStorageSpace).setAdministrativeUnit(unitId_30)
-						.setFilingSpace(filingId_C).setRealTransferDate(date(2006, 10, 31)))
+						.setFull(false).setStorageSpace(noStorageSpace).setAdministrativeUnit(unitId_30c)
+						.setRealTransferDate(date(2006, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac05).setTemporaryIdentifier("10_A_02")
-						.setFull(true).setStorageSpace(storageSpaceId_S01_02).setAdministrativeUnit(unitId_10)
-						.setFilingSpace(filingId_A).setRealTransferDate(date(2008, 10, 31))
+						.setFull(true).setStorageSpace(storageSpaceId_S01_02).setAdministrativeUnit(unitId_10a)
+						.setRealTransferDate(date(2008, 10, 31))
 						.setRealDepositDate(date(2012, 5, 15))).setDecommissioningType(DEPOSIT)
 				.setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac04).setTemporaryIdentifier("10_A_01")
-						.setFull(false).setStorageSpace(storageSpaceId_S01_02).setAdministrativeUnit(unitId_10)
-						.setFilingSpace(filingId_A).setRealTransferDate(date(2007, 10, 31))
+						.setFull(false).setStorageSpace(storageSpaceId_S01_02).setAdministrativeUnit(unitId_10a)
+						.setRealTransferDate(date(2007, 10, 31))
 						.setRealDepositDate(date(2010, 8, 17))).setDecommissioningType(DEPOSIT)
 				.setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac03).setTemporaryIdentifier("11_B_01")
-						.setFull(false).setStorageSpace(storageSpaceId_S02_02).setAdministrativeUnit(unitId_11)
-						.setFilingSpace(filingId_B).setRealTransferDate(date(2006, 10, 31))
+						.setFull(false).setStorageSpace(storageSpaceId_S02_02).setAdministrativeUnit(unitId_11b)
+						.setRealTransferDate(date(2006, 10, 31))
 						.setRealDepositDate(date(2009, 8, 17))).setDecommissioningType(DEPOSIT)
 				.setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac02).setTemporaryIdentifier("12_B_01")
-						.setFull(false).setStorageSpace(noStorageSpace).setAdministrativeUnit(unitId_12)
-						.setFilingSpace(filingId_B).setRealTransferDate(date(2007, 10, 31))
+						.setFull(false).setStorageSpace(noStorageSpace).setAdministrativeUnit(unitId_12b)
+						.setRealTransferDate(date(2007, 10, 31))
 						.setRealDepositDate(date(2011, 2, 13))).setDecommissioningType(DEPOSIT)
 				.setType(containerTypeId_boite22x22);
 
 		transaction
 				.add(rm.newContainerRecordWithId(containerId_bac01).setTemporaryIdentifier("30_C_01")
-						.setFull(true).setStorageSpace(storageSpaceId_S02_02).setAdministrativeUnit(unitId_30)
-						.setFilingSpace(filingId_C).setRealTransferDate(date(2007, 10, 31))
+						.setFull(true).setStorageSpace(storageSpaceId_S02_02).setAdministrativeUnit(unitId_30c)
+						.setRealTransferDate(date(2007, 10, 31))
 						.setRealDepositDate(date(2011, 2, 13))).setDecommissioningType(DEPOSIT)
 				.setType(containerTypeId_boite22x22).setModifiedBy(bob_userInAC);
 	}
@@ -1163,557 +1258,557 @@ public class RMTestRecords {
 
 		List<Folder> folders = new ArrayList<>();
 
-		folders.add(rm.newFolderWithId(folder_A01).setTitle("Abeille").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A01).setTitle("Abeille").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4)));
 
-		folders.add(rm.newFolderWithId(folder_A02).setTitle("Aigle").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A02).setTitle("Aigle").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 4)));
 
-		folders.add(rm.newFolderWithId(folder_A03).setTitle("Alouette").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A03).setTitle("Alouette").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 5)));
 
-		folders.add(rm.newFolderWithId(folder_A04).setTitle("Baleine").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A04).setTitle("Baleine").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setDescription("King Dedede"));
 
-		folders.add(rm.newFolderWithId(folder_A05).setTitle("Belette").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A05).setTitle("Belette").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 11, 4)));
 
-		folders.add(rm.newFolderWithId(folder_A06).setTitle("Bison").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A06).setTitle("Bison").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 11, 5)));
 
-		folders.add(rm.newFolderWithId(folder_A07).setTitle("Bouc").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A07).setTitle("Bouc").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4)));
 
-		folders.add(rm.newFolderWithId(folder_A08).setTitle("Boeuf").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A08).setTitle("Boeuf").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 4)));
 
-		folders.add(rm.newFolderWithId(folder_A09).setTitle("Buffle").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A09).setTitle("Buffle").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 5)));
 
-		folders.add(rm.newFolderWithId(folder_A10).setTitle("Canard").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A10).setTitle("Canard").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A11).setTitle("Carpe").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A11).setTitle("Carpe").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A12).setTitle("Castor").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A12).setTitle("Castor").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 5))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A13).setTitle("Cerf").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A13).setTitle("Cerf").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A14).setTitle("Chacal").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A14).setTitle("Chacal").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A15).setTitle("Chameau").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A15).setTitle("Chameau").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 5))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A16).setTitle("Chat").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A16).setTitle("Chat").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A17).setTitle("Chauve-souris").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A17).setTitle("Chauve-souris").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 11, 4)).setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A18).setTitle("Cheval").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A18).setTitle("Cheval").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 11, 5)).setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A19).setTitle("Chevreuil").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A19).setTitle("Chevreuil").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A20).setTitle("Chien").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A20).setTitle("Chien").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 4)).setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A21).setTitle("Chimpanzé").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A21).setTitle("Chimpanzé").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 5))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A22).setTitle("Chouette").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A22).setTitle("Chouette").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A23).setTitle("Cigale").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A23).setTitle("Cigale").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 4))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A24).setTitle("Cochon").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A24).setTitle("Cochon").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 5))
 				.setCloseDateEntered(date(2003, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A25).setTitle("Coq").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A25).setTitle("Coq").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A26).setTitle("Corbeau").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A26).setTitle("Corbeau").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 4))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A27).setTitle("Coyote").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A27).setTitle("Coyote").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 5))
 				.setCloseDateEntered(date(2003, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_A42).setTitle("Crocodile").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A42).setTitle("Crocodile").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setContainer(containerId_bac13));
 
-		folders.add(rm.newFolderWithId(folder_A43).setTitle("Dauphin").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A43).setTitle("Dauphin").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setContainer(containerId_bac13));
 
-		folders.add(rm.newFolderWithId(folder_A44).setTitle("Dindon").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A44).setTitle("Dindon").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 5)).setCloseDateEntered(date(2002, 10, 31))
 				.setActualTransferDate(date(2008, 10, 31)).setContainer(containerId_bac13));
 
-		folders.add(rm.newFolderWithId(folder_A45).setTitle("Écureuil").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A45).setTitle("Écureuil").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setContainer(containerId_bac12));
 
-		folders.add(rm.newFolderWithId(folder_A46).setTitle("Éléphant").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A46).setTitle("Éléphant").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setContainer(containerId_bac12).setDescription("Babar"));
 
-		folders.add(rm.newFolderWithId(folder_A47).setTitle("Girafe").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A47).setTitle("Girafe").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 5)).setCloseDateEntered(date(2002, 10, 31))
 				.setActualTransferDate(date(2006, 10, 31)).setContainer(containerId_bac12));
 
-		folders.add(rm.newFolderWithId(folder_A48).setTitle("Gorille").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A48).setTitle("Gorille").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
 				.setActualTransferDate(date(2004, 10, 31)).setDescription("Donkey Kong"));
 
-		folders.add(rm.newFolderWithId(folder_A49).setTitle("Grenouille").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A49).setTitle("Grenouille").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 11, 4)).setCloseDateEntered(date(2001, 10, 31))
 				.setActualTransferDate(date(2004, 10, 31)).setContainer(containerId_bac11).setDescription("Greninja"));
 
-		folders.add(rm.newFolderWithId(folder_A50).setTitle("Hamster").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A50).setTitle("Hamster").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 11, 5)).setCloseDateEntered(date(2002, 10, 31))
 				.setActualTransferDate(date(2005, 10, 31)).setContainer(containerId_bac11));
 
-		folders.add(rm.newFolderWithId(folder_A51).setTitle("Hérisson").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A51).setTitle("Hérisson").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2004, 10, 31))
 				.setDescription("Sonic").setContainer(containerId_bac10));
 
-		folders.add(rm.newFolderWithId(folder_A52).setTitle("Hibou").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A52).setTitle("Hibou").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2004, 10, 31))
 				.setContainer(containerId_bac10).setDescription("Gibou"));
 
-		folders.add(rm.newFolderWithId(folder_A53).setTitle("Hippopotame").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A53).setTitle("Hippopotame").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 5))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setContainer(containerId_bac10));
 
-		folders.add(rm.newFolderWithId(folder_A54).setTitle("Jaguar").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A54).setTitle("Jaguar").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setContainer(containerId_bac10));
 
-		folders.add(rm.newFolderWithId(folder_A55).setTitle("Kangourou").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A55).setTitle("Kangourou").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setContainer(containerId_bac10));
 
-		folders.add(rm.newFolderWithId(folder_A56).setTitle("Léopard").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A56).setTitle("Léopard").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 5))
 				.setCloseDateEntered(date(2003, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setContainer(containerId_bac10));
 
-		folders.add(rm.newFolderWithId(folder_A57).setTitle("Lièvre").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A57).setTitle("Lièvre").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setContainer(containerId_bac10).setDescription("Gèvre"));
 
-		folders.add(rm.newFolderWithId(folder_A58).setTitle("Lion").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A58).setTitle("Lion").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setContainer(containerId_bac10));
 
-		folders.add(rm.newFolderWithId(folder_A59).setTitle("Loup").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A59).setTitle("Loup").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 5))
 				.setCloseDateEntered(date(2003, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setContainer(containerId_bac10));
 
-		folders.add(rm.newFolderWithId(folder_A79).setTitle("Lynx").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A79).setTitle("Lynx").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setActualDepositDate(date(2011, 2, 13)).setContainer(containerId_bac05));
 
-		folders.add(rm.newFolderWithId(folder_A80).setTitle("Marmotte").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A80).setTitle("Marmotte").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setActualDestructionDate(date(2011, 2, 13)));
 
-		folders.add(rm.newFolderWithId(folder_A81).setTitle("Moineau").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A81).setTitle("Moineau").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 5))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2008, 10, 31))
 				.setActualDepositDate(date(2012, 2, 13)).setContainer(containerId_bac05));
 
-		folders.add(rm.newFolderWithId(folder_A82).setTitle("Mouton").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A82).setTitle("Mouton").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setActualDestructionDate(date(2007, 4, 14)));
 
-		folders.add(rm.newFolderWithId(folder_A83).setTitle("Orignal").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A83).setTitle("Orignal").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setActualDestructionDate(date(2007, 4, 14)));
 
-		folders.add(rm.newFolderWithId(folder_A84).setTitle("Ours").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_A84).setTitle("Ours").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 5))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDestructionDate(date(2008, 4, 14)));
 
-		folders.add(rm.newFolderWithId(folder_A85).setTitle("Panda").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A85).setTitle("Panda").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
 				.setActualTransferDate(date(2004, 10, 31)).setActualDepositDate(date(2011, 5, 15))
 				.setContainer(containerId_bac05));
 
-		folders.add(rm.newFolderWithId(folder_A86).setTitle("Perroquet").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A86).setTitle("Perroquet").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 11, 4)).setCloseDateEntered(date(2001, 10, 31))
 				.setActualTransferDate(date(2004, 10, 31)).setActualDepositDate(date(2011, 5, 15))
 				.setContainer(containerId_bac05));
 
-		folders.add(rm.newFolderWithId(folder_A87).setTitle("Phoque").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_A87).setTitle("Phoque").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 11, 5)).setCloseDateEntered(date(2002, 10, 31))
 				.setActualTransferDate(date(2005, 10, 31)).setActualDepositDate(date(2012, 5, 15))
 				.setContainer(containerId_bac05));
 
-		folders.add(rm.newFolderWithId(folder_A88).setTitle("Pigeon").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A88).setTitle("Pigeon").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2004, 10, 31))
 				.setActualDestructionDate(date(2011, 6, 16)));
 
-		folders.add(rm.newFolderWithId(folder_A89).setTitle("Rossignol").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A89).setTitle("Rossignol").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2004, 10, 31))
 				.setActualDepositDate(date(2011, 6, 16)).setContainer(containerId_bac05));
 
-		folders.add(rm.newFolderWithId(folder_A90).setTitle("Sanglier").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_A90).setTitle("Sanglier").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 11, 5))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setActualDestructionDate(date(2012, 6, 16)));
 
-		folders.add(rm.newFolderWithId(folder_A91).setTitle("Serpent").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A91).setTitle("Serpent").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDestructionDate(date(2009, 7, 16)));
 
-		folders.add(rm.newFolderWithId(folder_A92).setTitle("Singe").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A92).setTitle("Singe").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDestructionDate(date(2009, 7, 16)));
 
-		folders.add(rm.newFolderWithId(folder_A93).setTitle("Souris").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A93).setTitle("Souris").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 5))
 				.setCloseDateEntered(date(2003, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setActualDestructionDate(date(2010, 7, 16)));
 
-		folders.add(rm.newFolderWithId(folder_A94).setTitle("Taupe").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A94).setTitle("Taupe").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDepositDate(date(2009, 8, 17)).setContainer(containerId_bac04));
 
-		folders.add(rm.newFolderWithId(folder_A95).setTitle("Tigre").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A95).setTitle("Tigre").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDepositDate(date(2009, 8, 17)).setContainer(containerId_bac04));
 
-		folders.add(rm.newFolderWithId(folder_A96).setTitle("Zèbre").setAdministrativeUnitEntered(unitId_10)
-				.setFilingSpaceEntered(filingId_A).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_A96).setTitle("Zèbre").setAdministrativeUnitEntered(unitId_10a)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 7, 5))
 				.setCloseDateEntered(date(2003, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setActualDepositDate(date(2010, 8, 17)).setContainer(containerId_bac04));
 
-		folders.add(rm.newFolderWithId(folder_B01).setTitle("Abricot").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_B01).setTitle("Abricot").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4)));
 
-		folders.add(rm.newFolderWithId(folder_B02).setTitle("Banane").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_B02).setTitle("Banane").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)));
 
-		folders.add(rm.newFolderWithId(folder_B03).setTitle("Citron").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_B03).setTitle("Citron").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4)));
 
-		folders.add(rm.newFolderWithId(folder_B04).setTitle("Datte").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_B04).setTitle("Datte").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_B05).setTitle("Fraise").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_B05).setTitle("Fraise").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_B06).setTitle("Framboise").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_B06).setTitle("Framboise").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1).setCopyStatusEntered(SECONDARY)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_B07).setTitle("Kiwi").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_B07).setTitle("Kiwi").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_B08).setTitle("Mangue").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_B08).setTitle("Mangue").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_B09).setTitle("Melon").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_B09).setTitle("Melon").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_B30).setTitle("Nectarine").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_B30).setTitle("Nectarine").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setContainer(containerId_bac08));
 
-		folders.add(rm.newFolderWithId(folder_B31).setTitle("Orange").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_B31).setTitle("Orange").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setContainer(containerId_bac09));
 
-		folders.add(rm.newFolderWithId(folder_B32).setTitle("Pêche").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_B32).setTitle("Pêche").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1).setCopyStatusEntered(SECONDARY)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
 				.setActualTransferDate(date(2004, 10, 31)).setContainer(containerId_bac08));
 
-		folders.add(rm.newFolderWithId(folder_B33).setTitle("Poire").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_B33).setTitle("Poire").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2004, 10, 31))
 				.setContainer(containerId_bac09));
 
-		folders.add(rm.newFolderWithId(folder_B34).setTitle("Pomme").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_B34).setTitle("Pomme").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setContainer(containerId_bac08));
 
-		folders.add(rm.newFolderWithId(folder_B35).setTitle("Raison").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_B35).setTitle("Raison").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_B50).setTitle("Tomate").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_B50).setTitle("Tomate").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setActualDepositDate(date(2011, 2, 13)).setContainer(containerId_bac02));
 
-		folders.add(rm.newFolderWithId(folder_B51).setTitle("Cerise").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_B51).setTitle("Cerise").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setActualDestructionDate(date(2007, 4, 14)));
 
-		folders.add(rm.newFolderWithId(folder_B52).setTitle("Avocat").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_B52).setTitle("Avocat").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
 				.setActualTransferDate(date(2004, 10, 31)).setActualDestructionDate(date(2006, 5, 15)));
 
-		folders.add(rm.newFolderWithId(folder_B53).setTitle("Ananas").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_B53).setTitle("Ananas").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2004, 10, 31))
 				.setActualDestructionDate(date(2011, 6, 16)));
 
-		folders.add(rm.newFolderWithId(folder_B54).setTitle("Mûre").setAdministrativeUnitEntered(unitId_12)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_B54).setTitle("Mûre").setAdministrativeUnitEntered(unitId_12b)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDestructionDate(date(2009, 7, 16)));
 
-		folders.add(rm.newFolderWithId(folder_B55).setTitle("Prune").setAdministrativeUnitEntered(unitId_11)
-				.setFilingSpaceEntered(filingId_B).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_B55).setTitle("Prune").setAdministrativeUnitEntered(unitId_11b)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDepositDate(date(2009, 8, 17)).setContainer(containerId_bac03));
 
-		folders.add(rm.newFolderWithId(folder_C01).setTitle("Asperge").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_C01).setTitle("Asperge").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4)));
 
-		folders.add(rm.newFolderWithId(folder_C02).setTitle("Brocoli").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_C02).setTitle("Brocoli").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)));
 
-		folders.add(rm.newFolderWithId(folder_C03).setTitle("Carotte").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_C03).setTitle("Carotte").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_Z112).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4)));
 
-		folders.add(rm.newFolderWithId(folder_C04).setTitle("Céleri").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_C04).setTitle("Céleri").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_C05).setTitle("Chou").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_C05).setTitle("Chou").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_C06).setTitle("Chou-fleur").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_C06).setTitle("Chou-fleur").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_C07).setTitle("Citrouille").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_C07).setTitle("Citrouille").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_C08).setTitle("Concombre").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_C08).setTitle("Concombre").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_C09).setTitle("Courge").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_C09).setTitle("Courge").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)));
 
-		folders.add(rm.newFolderWithId(folder_C30).setTitle("Haricot").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_C30).setTitle("Haricot").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setContainer(containerId_bac07));
 
-		folders.add(rm.newFolderWithId(folder_C31).setTitle("Laitue").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_C31).setTitle("Laitue").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setContainer(containerId_bac07));
 
-		folders.add(rm.newFolderWithId(folder_C32).setTitle("Maïs").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
+		folders.add(rm.newFolderWithId(folder_C32).setTitle("Maïs").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
 				.setActualTransferDate(date(2004, 10, 31)).setContainer(containerId_bac07));
 
-		folders.add(rm.newFolderWithId(folder_C33).setTitle("Navet").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_C33).setTitle("Navet").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2004, 10, 31))
 				.setContainer(containerId_bac07));
 
-		folders.add(rm.newFolderWithId(folder_C34).setTitle("Oignon").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_C34).setTitle("Oignon").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setContainer(containerId_bac07));
 
-		folders.add(rm.newFolderWithId(folder_C35).setTitle("Poireau").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_C35).setTitle("Poireau").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setContainer(containerId_bac06));
 
-		folders.add(rm.newFolderWithId(folder_C50).setTitle("Pois").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_C50).setTitle("Pois").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2007, 10, 31))
 				.setActualDepositDate(date(2011, 2, 13)).setContainer(containerId_bac01));
 
-		folders.add(rm.newFolderWithId(folder_C51).setTitle("Poivron").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
+		folders.add(rm.newFolderWithId(folder_C51).setTitle("Poivron").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
 				.setActualDestructionDate(date(2007, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_C52).setTitle("Pomme de terre")
-				.setAdministrativeUnitEntered(unitId_30).setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X100)
+				.setAdministrativeUnitEntered(unitId_30c).setCategoryEntered(categoryId_X100)
 				.setRetentionRuleEntered(ruleId_1).setMediumTypes(rm.PA(), rm.DM()).setDescription("Patate")
 				.setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
 				.setActualTransferDate(date(2004, 10, 31)).setActualDestructionDate(date(2006, 5, 15)));
 
-		folders.add(rm.newFolderWithId(folder_C53).setTitle("Radis").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
+		folders.add(rm.newFolderWithId(folder_C53).setTitle("Radis").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 10, 4))
 				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2004, 10, 31))
 				.setActualDestructionDate(date(2011, 6, 16)));
 
-		folders.add(rm.newFolderWithId(folder_C54).setTitle("Epinard").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_C54).setTitle("Epinard").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 5, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDestructionDate(date(2009, 7, 16)));
 
-		folders.add(rm.newFolderWithId(folder_C55).setTitle("Bette").setAdministrativeUnitEntered(unitId_30)
-				.setFilingSpaceEntered(filingId_C).setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
+		folders.add(rm.newFolderWithId(folder_C55).setTitle("Bette").setAdministrativeUnitEntered(unitId_30c)
+				.setCategoryEntered(categoryId_X120).setRetentionRuleEntered(ruleId_4)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(PRINCIPAL).setOpenDate(date(2000, 6, 4))
 				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
 				.setActualDepositDate(date(2009, 8, 17)).setContainer(containerId_bac01));
@@ -1831,20 +1926,48 @@ public class RMTestRecords {
 		return rm.getAdministrativeUnit(unitId_10);
 	}
 
+	public AdministrativeUnit getUnit10a() {
+		return rm.getAdministrativeUnit(unitId_10a);
+	}
+
 	public AdministrativeUnit getUnit11() {
 		return rm.getAdministrativeUnit(unitId_11);
+	}
+
+	public AdministrativeUnit getUnit11b() {
+		return rm.getAdministrativeUnit(unitId_11b);
 	}
 
 	public AdministrativeUnit getUnit12() {
 		return rm.getAdministrativeUnit(unitId_12);
 	}
 
+	public AdministrativeUnit getUnit12b() {
+		return rm.getAdministrativeUnit(unitId_12b);
+	}
+
+	public AdministrativeUnit getUnit12c() {
+		return rm.getAdministrativeUnit(unitId_12c);
+	}
+
 	public AdministrativeUnit getUnit20() {
 		return rm.getAdministrativeUnit(unitId_20);
 	}
 
+	public AdministrativeUnit getUnit20d() {
+		return rm.getAdministrativeUnit(unitId_20d);
+	}
+
+	public AdministrativeUnit getUnit20e() {
+		return rm.getAdministrativeUnit(unitId_20e);
+	}
+
 	public AdministrativeUnit getUnit30() {
 		return rm.getAdministrativeUnit(unitId_30);
+	}
+
+	public AdministrativeUnit getUnit30c() {
+		return rm.getAdministrativeUnit(unitId_30c);
 	}
 
 	public UniformSubdivision getUniformSubdivision1() {
@@ -1859,25 +1982,25 @@ public class RMTestRecords {
 		return rm.getUniformSubdivision(subdivId_3);
 	}
 
-	public FilingSpace getFilingA() {
-		return rm.getFilingSpace(filingId_A);
-	}
-
-	public FilingSpace getFilingB() {
-		return rm.getFilingSpace(filingId_B);
-	}
-
-	public FilingSpace getFilingC() {
-		return rm.getFilingSpace(filingId_C);
-	}
-
-	public FilingSpace getFilingD() {
-		return rm.getFilingSpace(filingId_D);
-	}
-
-	public FilingSpace getFilingE() {
-		return rm.getFilingSpace(filingId_E);
-	}
+	//	public FilingSpace getFilingA() {
+	//		return rm.getFilingSpace(filingId_A);
+	//	}
+	//
+	//	public FilingSpace getFilingB() {
+	//		return rm.getFilingSpace(filingId_B);
+	//	}
+	//
+	//	public FilingSpace getFilingC() {
+	//		return rm.getFilingSpace(filingId_C);
+	//	}
+	//
+	//	public FilingSpace getFilingD() {
+	//		return rm.getFilingSpace(filingId_D);
+	//	}
+	//
+	//	public FilingSpace getFilingE() {
+	//		return rm.getFilingSpace(filingId_E);
+	//	}
 
 	public RetentionRule getRule1() {
 		return rm.getRetentionRule(ruleId_1);
@@ -2101,6 +2224,22 @@ public class RMTestRecords {
 
 	public DecommissioningList getList21() {
 		return rm.getDecommissioningList(list_21);
+	}
+
+	public DecommissioningList getList23() {
+		return rm.getDecommissioningList(list_23);
+	}
+
+	public DecommissioningList getList24() {
+		return rm.getDecommissioningList(list_24);
+	}
+
+	public DecommissioningList getList25() {
+		return rm.getDecommissioningList(list_25);
+	}
+
+	public DecommissioningList getList26() {
+		return rm.getDecommissioningList(list_26);
 	}
 
 	public VariableRetentionPeriod getVariableRetentionPeriod_42() {

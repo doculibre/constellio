@@ -19,6 +19,7 @@ package com.constellio.app.modules.rm.services.logging;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.Document;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -85,4 +86,14 @@ public class DecommissioningLoggingService {
 		event.setCreatedOn(TimeProvider.getLocalDateTime());
 	}
 
+	public void logPdfAGeneration(Document document, User user) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
+		Event event = schemasRecords.newEvent();
+		event.setType(EventType.PDF_A_GENERATION);
+
+		setDefaultMetadata(event, user);
+		setRecordMetadata(event, document.getWrappedRecord());
+
+		executeTransaction(event.getWrappedRecord());
+	}
 }

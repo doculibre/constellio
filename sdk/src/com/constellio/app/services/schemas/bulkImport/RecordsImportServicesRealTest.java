@@ -225,7 +225,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withAllTestUsers();
+		prepareSystem(
+				withZeCollection().withAllTestUsers()
+		);
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
 		data.put(zeSchema.typeCode(), zeSchemaTypeRecords);

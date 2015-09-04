@@ -86,9 +86,4 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		verify(view, times(1)).addEmptyCriterion();
 	}
 
-	@Test
-	public void givenFilingSpaceSelectedThenItStoresTheFilingSpace() {
-		presenter.filingSpaceSelected("zeFilingSpaceId");
-		assertThat(presenter.filingSpaceId).isEqualTo("zeFilingSpaceId");
-	}
 }

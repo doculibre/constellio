@@ -36,7 +36,7 @@ public class GetLatestVersionInfoAgentServlet extends SocketAgentServlet<Map<Str
 		File resourcesFolder = foldersLocator.getModuleResourcesFolder("rm");
 		File agentFolder = new File(resourcesFolder, "agent");
 		File agentVersionFile = new File(agentFolder, "constellio-agent.version");
-		File agentJarFile = new File(agentFolder, "constellio-agent.jar");
+		File agentJarFile = new File(agentFolder, "constellio-agent.jar.rename");
 		
 		String version = FileUtils.readFileToString(agentVersionFile);
 		long agentJarLength = agentJarFile.length();

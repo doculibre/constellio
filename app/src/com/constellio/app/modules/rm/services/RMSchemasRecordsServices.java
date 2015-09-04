@@ -63,12 +63,10 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.HierarchicalValueListItem;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
-import com.constellio.app.modules.rm.wrappers.ValueListItem;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -76,13 +74,17 @@ import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -94,6 +96,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	private static final String EMAIL_MIME_TYPES = "mimeTypes";
 	private static final String EMAIL_ATTACHMENTS = "attachments";
+
+	public RMSchemasRecordsServices(String collection, SessionContextProvider sessionContextProvider) {
+		this(collection, sessionContextProvider.getConstellioFactories().getModelLayerFactory());
+	}
 
 	public RMSchemasRecordsServices(String collection, ModelLayerFactory modelLayerFactory) {
 		super(collection, modelLayerFactory);
@@ -124,7 +130,7 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public AdministrativeUnit wrapAdministrativeUnit(Record record) {
-		return new AdministrativeUnit(record, getTypes());
+		return record == null ? null : new AdministrativeUnit(record, getTypes());
 	}
 
 	public List<AdministrativeUnit> wrapAdministrativeUnits(List<Record> records) {
@@ -144,7 +150,7 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public AdministrativeUnit getAdministrativeUnitWithCode(String code) {
-		return new AdministrativeUnit(getByCode(administrativeUnitSchemaType(), code), getTypes());
+		return wrapAdministrativeUnit(getByCode(administrativeUnitSchemaType(), code));
 	}
 
 	public AdministrativeUnit newAdministrativeUnit() {
@@ -157,6 +163,14 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public Metadata administrativeUnitFilingSpaces() {
 		return administrativeUnitSchema().getMetadata(AdministrativeUnit.FILING_SPACES);
+	}
+
+	public Metadata administrativeUnit_parent() {
+		return administrativeUnitSchema().getMetadata(AdministrativeUnit.PARENT);
+	}
+
+	public Metadata administrativeUnitParent() {
+		return administrativeUnitSchema().getMetadata(AdministrativeUnit.PARENT);
 	}
 
 	//
@@ -309,11 +323,24 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//
+	public UserDocument getUserDocument(String id) {
+		return new UserDocument(get(id), getTypes());
+	}
+
+	//
 
 	//Document
 
 	public MetadataSchema defaultDocumentSchema() {
 		return getTypes().getSchema(Document.DEFAULT_SCHEMA);
+	}
+
+	public Email wrapEmail(Record record) {
+		return record == null ? null : new Email(record, getTypes());
+	}
+
+	public Email getEmail(String id) {
+		return new Email(get(id), getTypes());
 	}
 
 	public MetadataSchema emailSchema() {
@@ -429,48 +456,8 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	//Filing space
 
-	public MetadataSchema filingSpaceSchema() {
-		return getTypes().getSchema(FilingSpace.DEFAULT_SCHEMA);
-	}
-
 	public MetadataSchemaType filingSpaceSchemaType() {
 		return getTypes().getSchemaType(FilingSpace.SCHEMA_TYPE);
-	}
-
-	public FilingSpace wrapFilingSpace(Record record) {
-		return new FilingSpace(record, getTypes());
-	}
-
-	public List<FilingSpace> wrapFilingSpaces(List<Record> records) {
-		List<FilingSpace> filingSpaces = new ArrayList<>();
-		for (Record record : records) {
-			filingSpaces.add(wrapFilingSpace(record));
-		}
-		return filingSpaces;
-	}
-
-	public FilingSpace getFilingSpace(String id) {
-		return new FilingSpace(get(id), getTypes());
-	}
-
-	public List<FilingSpace> getFilingSpaces(List<String> ids) {
-		return wrapFilingSpaces(get(ids));
-	}
-
-	public FilingSpace newFilingSpace() {
-		return new FilingSpace(create(filingSpaceSchema()), getTypes());
-	}
-
-	public FilingSpace newFilingSpaceWithId(String id) {
-		return new FilingSpace(create(filingSpaceSchema(), id), getTypes());
-	}
-
-	public Metadata filingSpaceAdministrators() {
-		return filingSpaceSchema().getMetadata(FilingSpace.ADMINISTRATORS);
-	}
-
-	public Metadata filingSpaceUsers() {
-		return filingSpaceSchema().getMetadata(FilingSpace.USERS);
 	}
 
 	//
@@ -627,6 +614,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return defaultFolderSchema().getMetadata(Folder.BORROW_DATE);
 	}
 
+	public Metadata folderBorrowingType() {
+		return defaultFolderSchema().getMetadata(Folder.BORROWING_TYPE);
+	}
+
 	public Metadata folderMediumTypes() {
 		return defaultFolderSchema().getMetadata(Folder.MEDIUM_TYPES);
 	}
@@ -659,12 +650,16 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return new FolderType(get(id), getTypes());
 	}
 
+	public MetadataSchema defaultFolderTypeSchema() {
+		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
+	}
+
 	public FolderType newFolderType() {
-		return new FolderType(create(defaultDocumentSchema()), getTypes());
+		return new FolderType(create(defaultFolderTypeSchema()), getTypes());
 	}
 
 	public FolderType newFolderTypeWithId(String id) {
-		return new FolderType(create(defaultDocumentSchema(), id), getTypes());
+		return new FolderType(create(defaultFolderTypeSchema(), id), getTypes());
 	}
 
 	//
@@ -720,14 +715,17 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return mediumTypes;
 	}
 
+	@Deprecated
 	public String PA() {
 		return getMediumTypeByCode("PA").getId();
 	}
 
+	@Deprecated
 	public String FI() {
 		return getMediumTypeByCode("FI").getId();
 	}
 
+	@Deprecated
 	public String DM() {
 		MediumType frenchMediumType = getMediumTypeByCode("DM");
 		if (frenchMediumType == null) {
@@ -925,6 +923,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return getTypes().getSchemaType(UniformSubdivision.SCHEMA_TYPE);
 	}
 
+	public Metadata uniformSubdivisionRetentionRule() {
+		return uniformSubdivisionSchema().get(UniformSubdivision.RETENTION_RULE);
+	}
+
 	public UniformSubdivision wrapUniformSubdivision(Record record) {
 		return new UniformSubdivision(record, getTypes());
 	}
@@ -1057,6 +1059,18 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	//DecommissioningList
 
+	public List<DecommissioningList> wrapDecommissioningLists(List<Record> records) {
+		List<DecommissioningList> decommissioningLists = new ArrayList<>();
+		for (Record record : records) {
+			decommissioningLists.add(wrapDecommissioningList(record));
+		}
+		return decommissioningLists;
+	}
+
+	public DecommissioningList wrapDecommissioningList(Record record) {
+		return new DecommissioningList(record, getTypes());
+	}
+
 	public DecommissioningList getDecommissioningList(String id) {
 		return new DecommissioningList(get(id), getTypes());
 	}
@@ -1069,8 +1083,20 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return new DecommissioningList(create(defaultDecommissioningListSchema(), id), getTypes());
 	}
 
+	public MetadataSchemaType decommissioningListSchemaType() {
+		return getTypes().getSchemaType(DecommissioningList.SCHEMA_TYPE);
+	}
+
 	public MetadataSchema defaultDecommissioningListSchema() {
 		return getTypes().getSchema(DecommissioningList.DEFAULT_SCHEMA);
+	}
+
+	public Metadata decommissioningListPendingValidations() {
+		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.PENDING_VALIDATIONS);
+	}
+
+	public Metadata decommissioningListApprovalUser() {
+		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.APPROVAL_USER);
 	}
 
 	public RMObject wrapRMObject(Record record) {
@@ -1382,5 +1408,21 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 				attachmentFileNames.add(fileName);
 			}
 		}
+	}
+
+	public AuthorizationBuilder newAuthorization() {
+		return new AuthorizationBuilder(getCollection());
+	}
+
+	public List<MetadataSchemaType> valueListSchemaTypes() {
+		List<MetadataSchemaType> returnedTypes = new ArrayList<>();
+
+		for (MetadataSchemaType type : getTypes().getSchemaTypes()) {
+			if (type.getCode().startsWith("ddv")) {
+				returnedTypes.add(type);
+			}
+		}
+
+		return returnedTypes;
 	}
 }

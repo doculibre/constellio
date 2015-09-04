@@ -19,6 +19,8 @@ package com.constellio.model.services.taxonomies;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.spy;
@@ -42,6 +44,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager.TaxonomiesManagerCache;
@@ -64,6 +67,7 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 	@Mock XMLConfiguration xmlConfiguration;
 	@Mock Document document;
 	@Mock Taxonomy taxonomy2;
+	@Mock RecordsCaches caches;
 	@Mock MetadataSchemaTypes metadataSchemaTypes;
 	@Mock MetadataSchemaType type1;
 	@Mock MetadataSchema schema;
@@ -79,7 +83,7 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList(zeCollection));
 		taxonomiesManager = spy(
-				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager));
+				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager, caches));
 		doReturn(oneXMLConfigPerCollectionManager).when(taxonomiesManager).newOneXMLConfigPerCollectionManager();
 		taxonomiesManager.initialize();
 
@@ -97,6 +101,8 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 		when(type1.getDefaultSchema()).thenReturn(schema);
 		when(schema.getCollection()).thenReturn(zeCollection);
 		inOrder = inOrder(configManager, taxonomiesManager, reader, writer, oneXMLConfigPerCollectionManager);
+		doNothing().when(taxonomiesManager)
+				.createCacheForTaxonomyTypes(any(Taxonomy.class), eq(schemasManager), eq(zeCollection));
 	}
 
 	@Test

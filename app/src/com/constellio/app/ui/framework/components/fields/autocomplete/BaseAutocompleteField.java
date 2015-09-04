@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.ui.framework.components.fields.autocomplete;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
@@ -64,6 +66,7 @@ public class BaseAutocompleteField<T> extends ComboBox {
 		addStyleName(STYLE_NAME);
 		setImmediate(true);
 		setFilteringMode(FilteringMode.STARTSWITH);
+		setInputPrompt($("BaseAutocompleteField.inputPrompt"));
 		setTextInputAllowed(true);
 		setNullSelectionAllowed(true);
 		setItemCaptionMode(ItemCaptionMode.PROPERTY);

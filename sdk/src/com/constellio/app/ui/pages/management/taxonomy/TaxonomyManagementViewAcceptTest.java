@@ -100,15 +100,19 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 		taxoManagementWebElement.display("10");
 
 		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitCode()).isEqualTo("10");
-		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitTitle()).isEqualTo("Administrative unit with room A");
-		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitFilingSpaces()).contains("Room A");
-		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitFilingSpacesAdministrators())
-				.contains("Dakota L'Indien").contains("Gandalf Leblanc");
+		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitTitle()).isEqualTo("Unité 10");
 		assertThat(taxoManagementWebElement.getCurrentAdministrativeUnitCreationDate()).isEqualTo(
 				records.getUnit10().getCreatedOn().toString("yyyy-MM-dd HH:mm:ss"));
-		assertThat(taxoManagementWebElement.getElementByClassName("display-value-numberOfFolders").getText())
+
+		assertThat(taxoManagementWebElement.getElementByClassName("display-value-count-folder").getText())
+				.isEqualTo("0");
+		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("11", "12", "10A");
+
+		taxoManagementWebElement.display("10A");
+
+		assertThat(taxoManagementWebElement.getElementByClassName("display-value-count-folder").getText())
 				.isEqualTo("63");
-		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("11", "12");
+		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).isEmpty();
 	}
 
 	@Test
@@ -123,7 +127,7 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 		assertThat(taxoManagementWebElement.getCurrentConceptCreationDate()).isEqualTo(
 				records.getCategory_X().getCreatedOn().toString("yyyy-MM-dd HH:mm:ss"));
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("X100", "X13");
-		assertThat(taxoManagementWebElement.getElementByClassName("display-value-numberOfFolders").getText())
+		assertThat(taxoManagementWebElement.getElementByClassName("display-value-count-folder").getText())
 				.isEqualTo("0");
 	}
 
@@ -136,9 +140,14 @@ public class TaxonomyManagementViewAcceptTest extends ConstellioTest {
 		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("10", "20", "30");
 
 		taxoManagementWebElement.display("30");
-		assertThat(taxoManagementWebElement.getElementByClassName("display-value-numberOfFolders").getText())
+
+		assertThat(taxoManagementWebElement.getConceptsCodesFromTable()).containsOnly("30C");
+
+		taxoManagementWebElement.display("30C");
+
+		assertThat(taxoManagementWebElement.getElementByClassName("display-value-count-folder").getText())
 				.isEqualTo("21");
-		taxoManagementWebElement.getTabByClassName("folders").click();
+		taxoManagementWebElement.getTabByClassName("folderTab").click();
 		Thread.sleep(1000);
 
 		taxoManagementWebElement.waitUntilFoldersTableExist();

@@ -382,6 +382,16 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	}
 
 	@Test
+	public void givenNumberMetadataWithZeroDefaultValueThenValueSaved()
+			throws Exception {
+		defineSchemasManager().using(schemas.withANumberMetadata(whichHasDefaultValue(0.0)));
+
+		assertThat(zeSchema.numberMetadata().getDefaultValue()).isEqualTo(0.0);
+		assertThat(newZeSchemaRecord().get(zeSchema.numberMetadata())).isEqualTo(0.0);
+		assertThat(newZeSchemaRecord().isModified(zeSchema.numberMetadata())).isTrue();
+	}
+
+	@Test
 	public void givenMultivalueNumberMetadataWithDefaultValueThenValueSaved()
 			throws Exception {
 		defineSchemasManager().using(schemas.withANumberMetadata(whichIsMultivalue,

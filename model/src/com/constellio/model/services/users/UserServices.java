@@ -203,10 +203,8 @@ public class UserServices {
 	}
 
 	public User getUserRecordInCollection(String username, String collection) {
-		LogicalSearchCondition condition = fromUsersIn(collection).where(usernameMetadata(collection)).is(username);
-
-		return User.wrapNullable(searchServices.searchSingleResult(condition), schemaTypes(collection),
-				rolesManager.getCollectionRoles(collection));
+		return User.wrapNullable(recordServices.getRecordByMetadata(usernameMetadata(collection), username),
+				schemaTypes(collection), rolesManager.getCollectionRoles(collection));
 	}
 
 	public GlobalGroup getGroup(String groupCode) {
@@ -409,7 +407,6 @@ public class UserServices {
 				|| !ldapConfigurationManager.isLDAPAuthentication();
 	}
 
-	//TODO Thiago
 	public boolean isLDAPAuthentication() {
 		return ldapConfigurationManager.isLDAPAuthentication();
 	}

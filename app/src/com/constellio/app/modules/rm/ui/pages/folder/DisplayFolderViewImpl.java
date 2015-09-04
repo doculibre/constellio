@@ -23,9 +23,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.entities.ComponentState;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -36,7 +39,9 @@ import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
@@ -45,6 +50,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -59,12 +65,14 @@ import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -79,11 +87,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private RecordDisplay recordDisplay;
 	private Component documentsComponent;
 	private Component subFoldersComponent;
+	private Component tasksComponent;
 	private DisplayFolderPresenter presenter;
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton,
 			editFolderButton, addSubFolderButton, addDocumentButton, addAuthorizationButton, shareFolderButton,
-			printLabelButton, linkToFolderButton, borrowButton, returnFolderButton;
+			printLabelButton, linkToFolderButton, borrowButton, returnFolderButton, reminderReturnFolderButton, alertWhenAvailableButton;
 	private Label borrowedLabel;
 
 	public DisplayFolderViewImpl() {
@@ -107,7 +116,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected String getTitle() {
-		return $("DisplayFolderView.viewTitle") + " " + presenter.getFolderTitle();
+		//		return $("DisplayFolderView.viewTitle") + " " + presenter.getFolderTitle();
+		return null;
 	}
 
 	@Override
@@ -131,12 +141,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
 		documentsComponent = new CustomComponent();
 		subFoldersComponent = new CustomComponent();
+		tasksComponent = new CustomComponent();
 
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName(STYLE_NAME);
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
-		tabSheet.addTab(documentsComponent, $("DisplayFolderView.tabs.documents"));
-		tabSheet.addTab(subFoldersComponent, $("DisplayFolderView.tabs.subFolders"));
+		tabSheet.addTab(documentsComponent, $("DisplayFolderView.tabs.documents", presenter.getDocumentCount()));
+		tabSheet.addTab(subFoldersComponent, $("DisplayFolderView.tabs.subFolders", presenter.getSubFolderCount()));
+		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
 
 		Component disabled = new CustomComponent();
 		tabSheet.addTab(disabled, $("DisplayFolderView.tabs.logs"));
@@ -150,6 +162,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		mainLayout.addComponents(borrowedLabel, uploadField, tabSheet);
 		presenter.selectInitialTabForUser();
 		return mainLayout;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new FolderDocumentBreadcrumbTrail(recordVO.getId());
 	}
 
 	@Override
@@ -195,13 +212,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		};
 
 		duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
-				"Dupliquer seulement le dossier ou son arborescence au complet?") {
+				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
 			@Override
 			protected Component buildWindowContent() {
 
 				HorizontalLayout layout = new HorizontalLayout();
 
-				BaseButton folderButton = new BaseButton("Dossier") {
+				BaseButton folderButton = new BaseButton($("DisplayFolderView.folderOnly")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.duplicateFolderButtonClicked();
@@ -210,7 +227,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				};
 				folderButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-				BaseButton structureButton = new BaseButton("Arborescence") {
+				BaseButton structureButton = new BaseButton($("DisplayFolderView.hierarchy")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.duplicateStructureButtonClicked();
@@ -219,7 +236,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				};
 				structureButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-				BaseButton cancelButton = new BaseButton("Annuler") {
+				BaseButton cancelButton = new BaseButton($("cancel")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						getWindow().close();
@@ -273,10 +290,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 		borrowButton = buildBorrowButton();
 
-		returnFolderButton = new BaseButton($("DisplayFolderView.returnDossier")) {
+		returnFolderButton = buildReturnFolderButton();
+
+		reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.returnFolder();
+				presenter.reminderReturnFolder();
+			}
+		};
+
+		alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.alertWhenAvailable();
 			}
 		};
 
@@ -291,6 +317,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(printLabelButton);
 		actionMenuButtons.add(borrowButton);
 		actionMenuButtons.add(returnFolderButton);
+		actionMenuButtons.add(reminderReturnFolderButton);
+		actionMenuButtons.add(alertWhenAvailableButton);
 
 		return actionMenuButtons;
 	}
@@ -315,6 +343,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
+	public void refreshDocumentsTab() {
+		Tab documentsTab = tabSheet.getTab(documentsComponent);
+		documentsTab.setCaption($("DisplayFolderView.tabs.documents", presenter.getDocumentCount()));
+	}
+
+	@Override
 	public void setSubFolders(RecordVODataProvider dataProvider) {
 		Table subFoldersTable = new RecordVOTable(dataProvider);
 		subFoldersTable.setSizeFull();
@@ -332,6 +366,23 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
+	public void setTasks(RecordVODataProvider dataProvider) {
+		Table tasksTable = new RecordVOTable(dataProvider);
+		tasksTable.setSizeFull();
+		tasksTable.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				RecordVOItem item = (RecordVOItem) event.getItem();
+				RecordVO recordVO = item.getRecord();
+				presenter.taskClicked(recordVO);
+			}
+		});
+		Component oldTasksComponent = tasksComponent;
+		tasksComponent = tasksTable;
+		tabSheet.replaceComponent(oldTasksComponent, tasksComponent);
+	}
+
+	@Override
 	public void selectMetadataTab() {
 		tabSheet.setSelectedTab(recordDisplay);
 	}
@@ -344,6 +395,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void selectSubFoldersTab() {
 		tabSheet.setSelectedTab(subFoldersComponent);
+	}
+
+	@Override
+	public void selectTasksTab() {
+		tabSheet.setSelectedTab(tasksComponent);
 	}
 
 	@Override
@@ -410,6 +466,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
+	public void setReminderReturnFolderButtonState(ComponentState state) {
+		reminderReturnFolderButton.setVisible(state.isVisible());
+		reminderReturnFolderButton.setEnabled(state.isEnabled());
+
+	}
+
+	@Override
+	public void setAlertWhenAvailableButtonState(ComponentState state) {
+		alertWhenAvailableButton.setVisible(state.isVisible());
+		alertWhenAvailableButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
 	public void drop(DragAndDropEvent event) {
 		if (dragNDropAllowed) {
 			uploadField.drop(event);
@@ -427,10 +496,28 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			@Override
 			protected Component buildWindowContent() {
 
+				final JodaDateField borrowDatefield = new JodaDateField();
+				borrowDatefield.setCaption($("DisplayFolderView.borrowDate"));
+				borrowDatefield.setRequired(true);
+				borrowDatefield.setId("borrowDate");
+				borrowDatefield.addStyleName("borrowDate");
+				borrowDatefield.setValue(TimeProvider.getLocalDate().toDate());
+
 				final Field<?> lookupUser = new LookupRecordField(User.SCHEMA_TYPE);
 				lookupUser.setCaption($("DisplayFolderView.borrower"));
 				lookupUser.setId("borrower");
 				lookupUser.addStyleName(USER_LOOKUP);
+				lookupUser.setRequired(true);
+
+				final ComboBox borrowingTypeField = new ComboBox();
+				borrowingTypeField.setCaption($("DisplayFolderView.borrowingType"));
+				for (BorrowingType borrowingType : BorrowingType.values()) {
+					borrowingTypeField.addItem(borrowingType);
+					borrowingTypeField
+							.setItemCaption(borrowingType, $("DisplayFolderView.borrowingType." + borrowingType.getCode()));
+				}
+				borrowingTypeField.setRequired(true);
+				borrowingTypeField.setNullSelectionAllowed(false);
 
 				final JodaDateField previewReturnDatefield = new JodaDateField();
 				previewReturnDatefield.setCaption($("DisplayFolderView.previewReturnDate"));
@@ -438,14 +525,52 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				previewReturnDatefield.setId("previewReturnDate");
 				previewReturnDatefield.addStyleName("previewReturnDate");
 
+				final JodaDateField returnDatefield = new JodaDateField();
+				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
+				returnDatefield.setRequired(false);
+				returnDatefield.setId("returnDate");
+				returnDatefield.addStyleName("returnDate");
+
+				borrowDatefield.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						previewReturnDatefield.setValue(
+								presenter.getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
+					}
+				});
+				borrowingTypeField.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						previewReturnDatefield.setValue(
+								presenter.getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
+					}
+				});
+
 				BaseButton borrowButton = new BaseButton($("DisplayFolderView.borrow")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						String userId = null;
+						BorrowingType borrowingType = null;
 						if (lookupUser.getValue() != null) {
 							userId = (String) lookupUser.getValue();
 						}
-						if (presenter.borrowFolder(previewReturnDatefield.getValue(), userId)) {
+						if (borrowingTypeField.getValue() != null) {
+							borrowingType = BorrowingType.valueOf(borrowingTypeField.getValue().toString());
+						}
+						LocalDate borrowLocalDate = null;
+						LocalDate previewReturnLocalDate = null;
+						LocalDate returnLocalDate = null;
+						if (borrowDatefield.getValue() != null) {
+							borrowLocalDate = LocalDate.fromDateFields(borrowDatefield.getValue());
+						}
+						if (previewReturnDatefield.getValue() != null) {
+							previewReturnLocalDate = LocalDate.fromDateFields(previewReturnDatefield.getValue());
+						}
+						if (returnDatefield.getValue() != null) {
+							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
+						}
+						if (presenter.borrowFolder(borrowLocalDate, previewReturnLocalDate, userId,
+								borrowingType, returnLocalDate)) {
 							getWindow().close();
 						}
 					}
@@ -465,7 +590,58 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				horizontalLayout.addComponents(borrowButton, cancelButton);
 
 				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout.addComponents(lookupUser, previewReturnDatefield, horizontalLayout);
+				verticalLayout
+						.addComponents(borrowDatefield, borrowingTypeField, lookupUser, previewReturnDatefield, returnDatefield,
+								horizontalLayout);
+				verticalLayout.setSpacing(true);
+
+				return verticalLayout;
+			}
+		};
+	}
+
+	private Button buildReturnFolderButton() {
+		return new WindowButton($("DisplayFolderView.returnFolder"),
+				$("DisplayFolderView.returnFolder")) {
+			@Override
+			protected Component buildWindowContent() {
+
+				final JodaDateField returnDatefield = new JodaDateField();
+				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
+				returnDatefield.setRequired(false);
+				returnDatefield.setId("returnDate");
+				returnDatefield.addStyleName("returnDate");
+				returnDatefield.setValue(TimeProvider.getLocalDate().toDate());
+
+				BaseButton returnFolderButton = new BaseButton($("DisplayFolderView.returnFolder")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						LocalDate returnLocalDate = null;
+						if (returnDatefield.getValue() != null) {
+							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
+						}
+						if (presenter.returnFolder(returnLocalDate)) {
+							getWindow().close();
+						}
+					}
+				};
+				returnFolderButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				BaseButton cancelButton = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				horizontalLayout.setSpacing(true);
+				horizontalLayout.addComponents(returnFolderButton, cancelButton);
+
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout
+						.addComponents(returnDatefield, horizontalLayout);
 				verticalLayout.setSpacing(true);
 
 				return verticalLayout;

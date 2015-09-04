@@ -17,10 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.records.bulkImport;
 
-import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
 
 public class ProgressionHandler {
 
@@ -51,10 +51,21 @@ public class ProgressionHandler {
 		this.stepProgression = 0;
 	}
 
+	public void onImportFinished() {
+		listener.updateCurrentStepName(null);
+	}
+
 	public void incrementProgression() {
 		totalProgression++;
 		stepProgression++;
 		listener.updateProgression(stepProgression, totalProgression);
 	}
 
+	public void onRecordImportPostponed(String legacyId) {
+		listener.onRecordImportPostponed(legacyId);
+	}
+
+	public void onRecordImport(int addUpdateCount, String legacyId, String title) {
+		listener.onRecordImport(addUpdateCount, legacyId, title);
+	}
 }

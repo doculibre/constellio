@@ -46,9 +46,9 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		addStyleName("view-group");
-		
+
 		decommissioning = new Button(
-				$("ArchiveManagementView.decommissioning"), new ThemeResource("images/icons/experience/platform_truck.png"));
+				$("ArchiveManagementView.decommissioning"), new ThemeResource("images/icons/config/platform_truck.png"));
 		decommissioning.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -60,7 +60,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		decommissioning.addStyleName("decommissioning-caption");
 
 		containers = new Button(
-				$("ArchiveManagementView.containers"), new ThemeResource("images/icons/experience/box.png"));
+				$("ArchiveManagementView.containers"), new ThemeResource("images/icons/config/box.png"));
 		containers.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -72,7 +72,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		containers.addStyleName("containers-caption");
 
 		robots = new Button($("ArchiveManagementView.robots"),
-				new ThemeResource("images/icons/experience/robot_platform_truck.png"));
+				new ThemeResource("images/icons/config/robot_platform_truck.png"));
 		robots.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -84,7 +84,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		robots.addStyleName("robots-caption");
 		robots.setEnabled(false);
 
-		reportsButton = new Button($("AdminRMModuleView.reports"), new ThemeResource("images/icons/experience/report.png"));
+		reportsButton = new Button($("ArchiveManagementView.reports"), new ThemeResource("images/icons/config/report.png"));
 		reportsButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {

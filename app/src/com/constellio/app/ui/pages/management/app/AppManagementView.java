@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.viewGroups.AdminModuleViewGroup;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -37,7 +37,7 @@ import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public class AppManagementView extends BaseViewImpl implements AdminModuleViewGroup {
+public class AppManagementView extends BaseViewImpl implements AdminViewGroup {
 
 	public static final String UPLOAD_FIELD_ID = "uploadField";
 	public static final String RESTART_BUTTON_ID = "restartButton";

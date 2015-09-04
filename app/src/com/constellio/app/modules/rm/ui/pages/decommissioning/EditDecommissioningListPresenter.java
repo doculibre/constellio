@@ -17,7 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import java.util.Arrays;
+import java.util.List;
+
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -39,7 +43,19 @@ public class EditDecommissioningListPresenter extends SingleSchemaBasePresenter<
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
+		return true;
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		return Arrays.asList(params);
+	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		DecommissioningList decommissioningList = rmRecordsServices().wrapDecommissioningList(restrictedRecord);
+		return securityService().hasAccessToDecommissioningListPage(decommissioningList, user) && securityService()
+				.canModify(decommissioningList, user);
 	}
 
 	public RecordVO getDecommissioningList() {
@@ -54,6 +70,14 @@ public class EditDecommissioningListPresenter extends SingleSchemaBasePresenter<
 		} catch (Exception e) {
 			view.showErrorMessage("Failed to save");
 		}
+	}
+
+	private DecommissioningSecurityService securityService() {
+		return new DecommissioningSecurityService(collection, modelLayerFactory);
+	}
+
+	private RMSchemasRecordsServices rmRecordsServices() {
+		return new RMSchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	public void cancelButtonClicked(RecordVO recordVO) {

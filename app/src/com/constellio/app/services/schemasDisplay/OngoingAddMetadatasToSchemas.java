@@ -17,6 +17,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.services.schemasDisplay;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,7 +82,11 @@ public class OngoingAddMetadatasToSchemas {
 		});
 	}
 
-	public void beforeMetadata(final String afterMetadata) {
+	public void beforeMetadata(final String beforeMetadata) {
+		beforeMetadatas(asList(beforeMetadata));
+	}
+
+	public void beforeMetadatas(final List<String> beforeMetadatas) {
 		transaction.updateAllSchemas(schemaType.getCode(), new SchemaDisplayAlteration() {
 			@Override
 			public SchemaDisplayConfig alter(SchemaDisplayConfig schemaDisplayConfig) {
@@ -89,7 +95,16 @@ public class OngoingAddMetadatasToSchemas {
 
 				list.removeAll(metadataCodes);
 
-				int index = list.indexOf(schemaDisplayConfig.getSchemaCode() + "_" + afterMetadata);
+				int index = -1;
+				for (String beforeMetadata : beforeMetadatas) {
+					int metadataIndex = list.indexOf(schemaDisplayConfig.getSchemaCode() + "_" + beforeMetadata);
+					if (index == -1) {
+						index = metadataIndex;
+					} else if (metadataIndex != -1) {
+						index = Math.min(index, metadataIndex);
+					}
+				}
+
 				if (index != -1) {
 					list.addAll(index, metadataCodes);
 				} else {

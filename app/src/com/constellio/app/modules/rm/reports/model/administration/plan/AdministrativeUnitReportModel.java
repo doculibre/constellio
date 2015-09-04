@@ -22,6 +22,8 @@ import java.util.List;
 
 public class AdministrativeUnitReportModel {
 
+	private boolean detailed = false;
+
 	private List<AdministrativeUnitReportModel_AdministrativeUnit> administrativeUnits = new ArrayList<>();
 
 	public List<AdministrativeUnitReportModel_AdministrativeUnit> getAdministrativeUnits() {
@@ -32,6 +34,14 @@ public class AdministrativeUnitReportModel {
 			List<AdministrativeUnitReportModel_AdministrativeUnit> administrativeUnits) {
 		this.administrativeUnits = administrativeUnits;
 		return this;
+	}
+
+	public boolean isDetailed() {
+		return detailed;
+	}
+
+	public void setDetailed(boolean detailed) {
+		this.detailed = detailed;
 	}
 
 	public static class AdministrativeUnitReportModel_AdministrativeUnit {
@@ -45,7 +55,7 @@ public class AdministrativeUnitReportModel {
 
 		private List<AdministrativeUnitReportModel_AdministrativeUnit> childAdministrativeUnits = new ArrayList<>();
 
-		private List<AdministrativeUnitReportModel_FilingSpace> filingSpaces = new ArrayList<>();
+		private List<AdministrativeUnitReportModel_User> users = new ArrayList<>();
 
 		public String getUnitId() {
 			return unitId;
@@ -82,13 +92,12 @@ public class AdministrativeUnitReportModel {
 			return this;
 		}
 
-		public List<AdministrativeUnitReportModel_FilingSpace> getFilingSpaces() {
-			return filingSpaces;
+		public List<AdministrativeUnitReportModel_User> getUsers() {
+			return users;
 		}
 
-		public AdministrativeUnitReportModel_AdministrativeUnit setFilingSpaces(
-				List<AdministrativeUnitReportModel_FilingSpace> filingSpaces) {
-			this.filingSpaces = filingSpaces;
+		public AdministrativeUnitReportModel_AdministrativeUnit setUsers(List<AdministrativeUnitReportModel_User> users) {
+			this.users = users;
 			return this;
 		}
 
@@ -101,65 +110,6 @@ public class AdministrativeUnitReportModel {
 			this.childAdministrativeUnits = childAdministrativeUnits;
 			return this;
 		}
-	}
-
-	public static class AdministrativeUnitReportModel_FilingSpace {
-		private String code;
-
-		private String label;
-
-		private String description;
-
-		private List<AdministrativeUnitReportModel_User> users = new ArrayList<>();
-
-		private List<AdministrativeUnitReportModel_User> administrators = new ArrayList<>();
-
-		public String getCode() {
-			return code;
-		}
-
-		public AdministrativeUnitReportModel_FilingSpace setCode(String code) {
-			this.code = code;
-			return this;
-		}
-
-		public String getLabel() {
-			return label;
-		}
-
-		public AdministrativeUnitReportModel_FilingSpace setLabel(String label) {
-			this.label = label;
-			return this;
-		}
-
-		public String getDescription() {
-			return description;
-		}
-
-		public AdministrativeUnitReportModel_FilingSpace setDescription(String description) {
-			this.description = description;
-			return this;
-		}
-
-		public List<AdministrativeUnitReportModel_User> getUsers() {
-			return users;
-		}
-
-		public AdministrativeUnitReportModel_FilingSpace setUsers(List<AdministrativeUnitReportModel_User> users) {
-			this.users = users;
-			return this;
-		}
-
-		public List<AdministrativeUnitReportModel_User> getAdministrators() {
-			return administrators;
-		}
-
-		public AdministrativeUnitReportModel_FilingSpace setAdministrators(
-				List<AdministrativeUnitReportModel_User> administrators) {
-			this.administrators = administrators;
-			return this;
-		}
-
 	}
 
 	public static class AdministrativeUnitReportModel_User {

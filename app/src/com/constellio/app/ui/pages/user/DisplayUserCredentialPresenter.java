@@ -133,7 +133,7 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 	}
 
 	GlobalGroupVODataProvider newGlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder) {
-		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory);
+		return new GlobalGroupVODataProvider(voBuilder, modelLayerFactory, true);
 	}
 
 	private void configureBreadCrumb(String backPage) {

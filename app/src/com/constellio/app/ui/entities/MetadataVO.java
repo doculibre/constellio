@@ -27,15 +27,18 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 @SuppressWarnings("serial")
 public class MetadataVO implements Serializable {
 	final String code;
+	final String datastoreCode;
 	final MetadataValueType type;
 	final String collection;
 	final MetadataSchemaVO schema;
@@ -53,13 +56,26 @@ public class MetadataVO implements Serializable {
 	final String metadataGroup;
 	final Object defaultValue;
 
-	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
+	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema,
+			boolean required,
+			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
+			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
+			AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory, String metadataGroup,
+			Object defaultValue) {
+
+		this(code, null, type, collection, schema, required, multivalue, readOnly, labels, enumClass, taxonomyCodes,
+				schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory, metadataGroup, defaultValue);
+	}
+
+	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
+			boolean required,
 			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
 			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
 			AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory, String metadataGroup,
 			Object defaultValue) {
 		super();
 		this.code = code;
+		this.datastoreCode = datastoreCode;
 		this.type = type;
 		this.collection = collection;
 		this.schema = schema;
@@ -82,7 +98,8 @@ public class MetadataVO implements Serializable {
 		}
 	}
 
-	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
+	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema,
+			boolean required,
 			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
 			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
 			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue) {
@@ -94,6 +111,7 @@ public class MetadataVO implements Serializable {
 	public MetadataVO() {
 		super();
 		this.code = "";
+		this.datastoreCode = null;
 		this.type = null;
 		this.collection = null;
 		this.schema = null;
@@ -193,6 +211,10 @@ public class MetadataVO implements Serializable {
 		return getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 	}
 
+	public String getLabel(SessionContext sessionContext) {
+		return getLabel(sessionContext.getCurrentLocale());
+	}
+
 	public void setLabel(Locale locale, String label) {
 		labels.put(locale, label);
 	}
@@ -246,6 +268,10 @@ public class MetadataVO implements Serializable {
 		return metadataGroup;
 	}
 
+	public String getDatastoreCode() {
+		return datastoreCode;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -296,5 +322,19 @@ public class MetadataVO implements Serializable {
 			toString = code;
 		}
 		return toString;
+	}
+
+	public boolean isSameLocalCode(Object object) {
+
+		if (object == null || !(object instanceof MetadataVO)) {
+			return false;
+		}
+
+		MetadataVO other = (MetadataVO) object;
+
+		String localCode = new SchemaUtils().getLocalCode(getCode(), getSchema().getCode());
+		String otherLocalCode = new SchemaUtils().getLocalCode(other.getCode(), other.getSchema().getCode());
+
+		return localCode.equals(otherLocalCode);
 	}
 }

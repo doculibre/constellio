@@ -47,4 +47,9 @@ public class MetadataAccessUserPermissionsChecker extends UserPermissionsChecker
 		return true;
 	}
 
+	@Override
+	public boolean onSomething() {
+		throw new UnsupportedOperationException("onSomething() is not yet supported for this checker");
+	}
+
 }

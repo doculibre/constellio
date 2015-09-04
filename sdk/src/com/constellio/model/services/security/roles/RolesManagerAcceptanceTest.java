@@ -51,15 +51,17 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 	private UserServices userServices;
 	private String anotherCollection = "anotherCollection";
 
-	Users users;
+	Users users = new Users();
 
 	@Before
 	public void setUp()
 			throws Exception {
+		prepareSystem(
+				withZeCollection().withAllTest(users),
+				withCollection(anotherCollection).withAllTestUsers()
+		);
 		pluginManager = getAppLayerFactory().getPluginManager();
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
-		givenCollection(zeCollection).withAllTestUsers();
-		givenCollection(anotherCollection).withAllTestUsers();
 
 		validRole = new Role(zeCollection, "uniqueCode", "zeValidRole", asList("operation1", "operation2"));
 		validRole2 = new Role(zeCollection, "uniqueCode2", "zeValidRole2", asList("operation3", "operation4"));

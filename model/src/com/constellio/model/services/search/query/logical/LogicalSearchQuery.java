@@ -18,21 +18,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package com.constellio.model.services.search.query.logical;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.FilterUtils;
 import com.constellio.model.services.search.query.ResultsProjection;
@@ -46,7 +41,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
 
 	LogicalSearchCondition condition;
-	private Map<DataStoreField, Set<String>> facetFilters;
+	private LogicalSearchQueryFacetFilters facetFilters = new LogicalSearchQueryFacetFilters();
 	private String freeTextQuery;
 	String filterUser;
 	String filterStatus;
@@ -58,9 +53,9 @@ public class LogicalSearchQuery implements SearchQuery {
 	private List<LogicalSearchQuerySort> sortFields = new ArrayList<>();
 	private ResultsProjection resultsProjection;
 
-	private List<String> queryFacets = new ArrayList<>();
-	private List<DataStoreField> fieldFacets = new ArrayList<>();
-	private List<DataStoreField> statisticFields = new ArrayList<>();
+	private KeySetMap<String, String> queryFacets = new KeySetMap<>();
+	private List<String> fieldFacets = new ArrayList<>();
+	private List<String> statisticFields = new ArrayList<>();
 	private int fieldFacetLimit;
 
 	private boolean highlighting = false;
@@ -69,7 +64,6 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery() {
 		numberOfRows = 10000000;
 		startRow = 0;
-		facetFilters = new HashMap<>();
 		fieldFacetLimit = 0;
 	}
 
@@ -83,7 +77,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery(LogicalSearchQuery query) {
 		condition = query.condition;
-		facetFilters = new HashMap<>(query.facetFilters);
+		facetFilters = new LogicalSearchQueryFacetFilters(query.facetFilters);
 		freeTextQuery = query.freeTextQuery;
 		filterUser = query.filterUser;
 		filterStatus = query.filterStatus;
@@ -95,7 +89,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		sortFields = new ArrayList<>(query.sortFields);
 		resultsProjection = query.resultsProjection;
 
-		queryFacets = new ArrayList<>(query.queryFacets);
+		queryFacets = new KeySetMap<>(query.queryFacets);
 		fieldFacets = new ArrayList<>(query.fieldFacets);
 		statisticFields = new ArrayList<>(query.statisticFields);
 		fieldFacetLimit = query.fieldFacetLimit;
@@ -115,14 +109,6 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	public LogicalSearchQuery filteredByFacetValues(DataStoreField field, Collection<String> values) {
-		if (!facetFilters.containsKey(field)) {
-			facetFilters.put(field, new HashSet<String>());
-		}
-		facetFilters.get(field).addAll(values);
-		return this;
-	}
-
 	public String getFreeTextQuery() {
 		return freeTextQuery;
 	}
@@ -139,7 +125,22 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public LogicalSearchQuery computeStatsOnField(DataStoreField metadata) {
+	public LogicalSearchQuery filteredWithUser(User user, String access) {
+		if (access.equals(Role.READ)) {
+			filterUser = FilterUtils.userReadFilter(user);
+
+		} else if (access.equals(Role.WRITE)) {
+			filterUser = FilterUtils.userWriteFilter(user);
+
+		} else if (access.equals(Role.DELETE)) {
+			filterUser = FilterUtils.userDeleteFilter(user);
+
+		}
+		return this;
+	}
+
+	@Override
+	public LogicalSearchQuery computeStatsOnField(String metadata) {
 		this.statisticFields.add(metadata);
 		return this;
 	}
@@ -182,7 +183,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public ReturnedMetadatasFilter getReturnedMetadatas() {
-		return returnedMetadatasFilter;
+		return returnedMetadatasFilter == null ? ReturnedMetadatasFilter.all() : returnedMetadatasFilter;
 	}
 
 	public LogicalSearchQuery setReturnedMetadatas(ReturnedMetadatasFilter filter) {
@@ -213,26 +214,30 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
-	public List<String> getQueryFacets() {
+	public KeySetMap<String, String> getQueryFacets() {
 		return queryFacets;
 	}
 
-	public LogicalSearchQuery addQueryFacet(String queryFacet) {
-		queryFacets.add(queryFacet);
+	public LogicalSearchQuery addQueryFacet(String facetGroup, String queryFacet) {
+		queryFacets.add(facetGroup, queryFacet);
 		return this;
 	}
 
-	public List<DataStoreField> getFieldFacets() {
+	public List<String> getFieldFacets() {
 		return fieldFacets;
 	}
 
-	public List<DataStoreField> getStatisticFields() {
+	public List<String> getStatisticFields() {
 		return statisticFields;
 	}
 
-	public LogicalSearchQuery addFieldFacet(DataStoreField fieldFacet) {
+	public LogicalSearchQuery addFieldFacet(String fieldFacet) {
 		fieldFacets.add(fieldFacet);
 		return this;
+	}
+
+	public LogicalSearchQueryFacetFilters getFacetFilters() {
+		return facetFilters;
 	}
 
 	public int getFieldFacetLimit() {
@@ -285,11 +290,7 @@ public class LogicalSearchQuery implements SearchQuery {
 			filterQueries.add(filterStatus);
 		}
 
-		for (Entry<DataStoreField, Set<String>> filter : facetFilters.entrySet()) {
-			filterQueries.add(
-					"{!tag=" + filter.getKey().getDataStoreCode() + "}" + filter.getKey().getDataStoreCode() + ":(" + StringUtils
-							.join(filter.getValue().toArray(), " OR ") + ")");
-		}
+		filterQueries.addAll(facetFilters.toSolrFilterQueries());
 
 		return filterQueries;
 	}
@@ -318,8 +319,13 @@ public class LogicalSearchQuery implements SearchQuery {
 		return fieldName;
 	}
 
+	@Deprecated
 	public MetadataSchema getSchemaCondition() {
 		return ((SchemaFilters) condition.getFilters()).getSchema();
+	}
+
+	public String getSchemaTypeCondition() {
+		return ((SchemaFilters) condition.getFilters()).getSchemaType();
 	}
 
 	public String getHighlightingFields() {
@@ -335,4 +341,9 @@ public class LogicalSearchQuery implements SearchQuery {
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
+
+	public static LogicalSearchQuery returningNoResults() {
+		return new LogicalSearchQuery(LogicalSearchQueryOperators.fromAllSchemasIn("inexistentCollection42").returnAll());
+	}
+
 }

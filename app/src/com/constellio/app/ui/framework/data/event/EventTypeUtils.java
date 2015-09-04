@@ -102,6 +102,14 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.currentlyBorrowedFolders");
 		} else if (eventType.equals(EventType.LATE_BORROWED_FOLDERS)) {
 			return $("ListEventsView.lateBorrowedFolders");
+		} else if (eventType.equals(EventType.CONSULTATION_FOLDER)) {
+			return $("ListEventsView.consultationFolders");
+		} else if (eventType.equals(EventType.CREATE_TASK)) {
+			return $("ListEventsView.createTask");
+		} else if (eventType.equals(EventType.MODIFY_TASK)) {
+			return $("ListEventsView.modifyTask");
+		} else if (eventType.equals(EventType.DELETE_TASK)) {
+			return $("ListEventsView.deleteTask");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
@@ -175,7 +183,9 @@ public class EventTypeUtils implements Serializable {
 	public static boolean isRecordEvent(String eventType) {
 		return isFolderEvent(eventType) ||
 				isDocumentEvent(eventType) ||
-				isContainerEvent(eventType);
+				isTaskEvent(eventType) ||
+				isContainerEvent(eventType) ||
+				eventType.equals(EventType.PDF_A_GENERATION);
 	}
 
 	private static boolean isContainerEvent(String eventType) {
@@ -190,6 +200,15 @@ public class EventTypeUtils implements Serializable {
 	private static boolean isDocumentEvent(String eventType) {
 		//FIXME list all events
 		if (eventType.contains("_document")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private static boolean isTaskEvent(String eventType) {
+		//FIXME list all events
+		if (eventType.contains("_userTask")) {
 			return true;
 		} else {
 			return false;

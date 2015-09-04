@@ -30,10 +30,12 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
+import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class SolrServersTest extends ConstellioTest {
 
+	@Mock DataLayerExtensions extensions;
 	@Mock SolrClient aCoreFirstSolrServerInstance;
 	@Mock SolrClient aCoreSecondSolrServerInstance;
 	@Mock SolrClient anotherCoreFirstSolrServerInstance;
@@ -73,7 +75,7 @@ public class SolrServersTest extends ConstellioTest {
 		when(solrServerFactory.newSolrServer(anOtherCore)).thenReturn(anotherCoreFirstSolrServerInstance).thenReturn(
 				anotherCoreSecondSolrServerInstance);
 
-		solrServers = new SolrServers(solrServerFactory, bigVaultLogger);
+		solrServers = new SolrServers(solrServerFactory, bigVaultLogger, extensions);
 	}
 
 	@Test

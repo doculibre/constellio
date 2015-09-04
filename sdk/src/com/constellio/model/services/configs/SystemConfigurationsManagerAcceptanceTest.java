@@ -34,6 +34,7 @@ import org.junit.Test;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.Delayed;
@@ -92,6 +93,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+
 		givenCollection(zeCollection).withModule(ZeModule.class).withAllTestUsers();
 		givenCollection(anotherCollection).withModule(ZeModule.class).withAllTestUsers();
 		givenCollection(aThirdCollection).withAllTestUsers();
@@ -348,7 +350,6 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	// ------------------------
 
 	public static class ZeModule implements InstallableModule {
-
 		@Override
 		public String getId() {
 			return "zeModule";
@@ -367,7 +368,6 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		@Override
 		public List<MigrationScript> getMigrationScripts() {
 			List<MigrationScript> scripts = new ArrayList<>();
-
 			scripts.add(new MigrationScript() {
 				@Override
 				public String getVersion() {
@@ -390,8 +390,11 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 					}
 				}
 			});
-
 			return scripts;
+		}
+
+		@Override
+		public void configureNavigation(NavigationConfig config) {
 		}
 
 		@Override
@@ -401,7 +404,6 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public List<SystemConfiguration> getConfigurations() {
-
 			return asList(text, textWithDefaultValue, booleanWithTrueByDefault, booleanWithFalseByDefault, number,
 					numberWithDefaultValue, enumValue, enumWithDefaultValue);
 		}
@@ -412,18 +414,25 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public void start(String collection, AppLayerFactory appLayerFactory) {
+		public List<String> getRolesForCreator() {
+			return new ArrayList<>();
+		}
 
+		@Override
+		public void start(String collection, AppLayerFactory appLayerFactory) {
 		}
 
 		@Override
 		public void stop(String collection, AppLayerFactory appLayerFactory) {
+		}
 
+		@Override
+		public void addDemoData(String collection, AppLayerFactory appLayerFactory) {
+			
 		}
 	}
 
 	public static class TextAlteringSchemasScript implements SystemConfigurationScript<String> {
-
 		@Override
 		public void validate(String newValue, ValidationErrors errors) {
 			if (!"ohHellYeah".equals(newValue) && !"ohHellNo".equals(newValue)) {
@@ -453,8 +462,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	public static class FavoriteNumberCalculator implements MetadataValueCalculator<Double> {
-
-		ConfigDependency<Integer> numberConfig = new ConfigDependency(numberUsedByCalculators);
+		ConfigDependency<Integer> numberConfig = new ConfigDependency<>(numberUsedByCalculators);
 
 		@Override
 		public Double calculate(CalculatorParameters parameters) {

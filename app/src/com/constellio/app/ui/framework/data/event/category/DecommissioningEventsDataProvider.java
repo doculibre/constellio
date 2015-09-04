@@ -117,12 +117,11 @@ public class DecommissioningEventsDataProvider implements EventsCategoryDataProv
 			return EventType.FOLDER_RELOCATION;
 		}else if (index == 1){
 			return EventType.FOLDER_DEPOSIT;
-		}else {// if (index == 2)
+		}else if (index == 2){
 			return EventType.FOLDER_DESTRUCTION;
-		}
-		/*else if (index == 3){
+		} else {//if (index == 3){
 			return EventType.PDF_A_GENERATION;
-		}else if (index == 4){
+		}/*else if (index == 4){
 			return EventType.RECEIVE_FOLDER;
 		}else{
 			return EventType.RECEIVE_CONTAINER;
@@ -130,7 +129,7 @@ public class DecommissioningEventsDataProvider implements EventsCategoryDataProv
 	}
 
 	public int size() {
-		return 3;//6
+		return 4;//6
 	}
 
 	@Override

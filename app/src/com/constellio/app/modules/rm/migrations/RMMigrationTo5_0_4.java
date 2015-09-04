@@ -171,7 +171,6 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 			emailSchema.createUndeletable(Email.EMAIL_BCC_TO).setType(MetadataValueType.STRING).setMultivalue(true);
 			emailSchema.createUndeletable(Email.EMAIL_ATTACHMENTS_LIST).setType(MetadataValueType.STRING).setMultivalue(true);
 			emailSchema.createUndeletable(Email.EMAIL_OBJECT).setType(MetadataValueType.STRING);
-			//			emailSchema.createUndeletable(Email.EMAIL_AUTHOR).setType(MetadataValueType.STRING);
 			emailSchema.createUndeletable(Email.EMAIL_COMPANY).setType(MetadataValueType.STRING);
 			emailSchema.createUndeletable(Email.EMAIL_CONTENT).setType(MetadataValueType.TEXT);
 			emailSchema.createUndeletable(Email.EMAIL_SENT_ON).setType(MetadataValueType.DATE_TIME);

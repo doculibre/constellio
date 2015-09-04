@@ -85,21 +85,80 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 	@Before
 	public void setup()
 			throws Exception {
+
 		givenDisabledAfterTestValidations();
+		prepareSystem(
+				withZeCollection().withAllTest(users)
+		);
+		getDataLayerFactory().getDataLayerLogger().logAllTransactions();
+		inCollection(zeCollection).giveWriteAccessTo(dakota);
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 		recordDao = getDataLayerFactory().newRecordDao();
 
-		givenCollection(zeCollection).withAllTestUsers().andUsersWithWriteAccess(dakota);
-
 		//		Taxonomy taxonomy = new Taxonomy(String code, String title, String collection, boolean visibleInHomePage,
 		//		List<String> userIds, List<String> groupIds, String taxonomySchemaType)
 
-		dakotaId = users.setUp(getModelLayerFactory().newUserServices()).dakotaLIndienIn(zeCollection).getId();
+		dakotaId = users.dakotaLIndienIn(zeCollection).getId();
 	}
 
 	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent_1()
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run1()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run2()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run3()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run4()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run5()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run6()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run7()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run8()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run9()
+			throws Exception {
+		whenReindexingThenReindexChildRecordsAfterTheParent1();
+	}
+
+	@Test
+	public void whenReindexingThenReindexChildRecordsAfterTheParent1()
 			throws Exception {
 		defineSchemasManager().using(schemas.with(childOfReferenceToSelfAndCopiedMetadataFromParent()));
 		givenTimeIs(shishOClock);
@@ -137,7 +196,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 	}
 
 	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent_2()
+	public void whenReindexingThenReindexChildRecordsAfterTheParent2()
 			throws Exception {
 		defineSchemasManager().using(schemas.with(childOfReferenceToSelfAndCopiedMetadataFromParent()));
 		givenTimeIs(shishOClock);
@@ -244,26 +303,26 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 				.set(zeSchema.metadata(anotherReference), "000042");
 		recordServices.execute(transaction);
 
-		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
+		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
 
-		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
+		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
 
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(100));
 
-		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
+		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
 
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
 
-		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
+		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
 
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(100));
 
-		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, null);
+		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, null);
 
 	}
@@ -283,6 +342,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 				.set(zeSchema.metadata(anotherReference), "000042");
 		recordServices.execute(transaction);
 
+		givenTimeIs(shishOClock.plusHours(1));
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("taxo", "000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, asList("taxo"));
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
@@ -290,6 +350,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("taxo", "000666"));
 		assertCounterIndexForRecordWithValueAndAncestors("000666", 0, asList("taxo"));
 
+		givenTimeIs(shishOClock.plusHours(2));
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(100));
 
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("taxo", "000666"));

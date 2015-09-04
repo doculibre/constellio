@@ -42,6 +42,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -61,6 +63,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	public static final String TAXONOMIES_CONFIG = "/taxonomies.xml";
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemConfigManager.class);
 
+	private final RecordsCaches recordsCaches;
 	private final SearchServices searchServices;
 	private final ConfigManager configManager;
 	private final CollectionsListManager collectionsListManager;
@@ -68,11 +71,13 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	private OneXMLConfigPerCollectionManager<TaxonomiesManagerCache> oneXMLConfigPerCollectionManager;
 
 	public TaxonomiesManager(ConfigManager configManager, SearchServices searchServices,
-			BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager) {
+			BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
+			RecordsCaches recordsCaches) {
 		this.searchServices = searchServices;
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.batchProcessesManager = batchProcessesManager;
+		this.recordsCaches = recordsCaches;
 	}
 
 	@Override
@@ -114,6 +119,15 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		canCreateTaxonomy(taxonomy, schemasManager);
 		String collection = taxonomy.getCollection();
 		oneXMLConfigPerCollectionManager.updateXML(collection, newAddTaxonomyDocumentAlteration(taxonomy));
+
+		createCacheForTaxonomyTypes(taxonomy, schemasManager, collection);
+	}
+
+	void createCacheForTaxonomyTypes(Taxonomy taxonomy, MetadataSchemasManager schemasManager, String collection) {
+		for (String schemaType : taxonomy.getSchemaTypes()) {
+			MetadataSchemaType type = schemasManager.getSchemaTypes(collection).getSchemaType(schemaType);
+			recordsCaches.getCache(collection).configureCache(CacheConfig.permanentCache(type));
+		}
 	}
 
 	public void editTaxonomy(Taxonomy taxonomy) {

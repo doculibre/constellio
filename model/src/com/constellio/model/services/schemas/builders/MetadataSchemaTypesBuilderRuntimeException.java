@@ -89,6 +89,13 @@ public class MetadataSchemaTypesBuilderRuntimeException extends RuntimeException
 		}
 	}
 
+	public static class CannotCopyUsingACustomMetadata extends MetadataSchemaTypesBuilderRuntimeException {
+		public CannotCopyUsingACustomMetadata(String referenceMetadata, String schema) {
+			super("Cannot copy a value in '" + referenceMetadata
+					+ "' using schema '" + schema + "'. Refer to the default metadata.");
+		}
+	}
+
 	public static class CannotUseACustomMetadataForCalculation extends MetadataSchemaTypesBuilderRuntimeException {
 		public CannotUseACustomMetadataForCalculation(String dependencyMetadata) {
 			super("Cannot use the value of '" + dependencyMetadata

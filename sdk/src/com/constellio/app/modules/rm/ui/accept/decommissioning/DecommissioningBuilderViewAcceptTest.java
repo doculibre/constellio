@@ -49,18 +49,14 @@ public class DecommissioningBuilderViewAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenAdministratorThenCanSelectFilingSpaceAndAdministrativeUnit() {
+	public void givenAdministratorTWhenAdministrativeUnitSelectedThenSearchButtonEnabled() {
 		givenTransfer();
 
 		assertThat(page.getSearchButton().isEnabled()).isFalse();
 
-		page.getFilingSpace().typeAndSelectFirst("Room A");
-		assertThat(page.getAdministrativeUnit().getSelectedValue()).isEqualTo("Administrative unit with room A");
+		page.getAdministrativeUnit().typeAndSelectFirst("10A");
 		assertThat(page.getSearchButton().isEnabled()).isTrue();
 
-		page.getFilingSpace().clear().typeAndSelectFirst("Room B");
-		assertThat(page.getAdministrativeUnit().getSelectedValue()).isNullOrEmpty();
-		assertThat(page.getSearchButton().isEnabled()).isFalse();
 	}
 
 	@Test
@@ -144,7 +140,7 @@ public class DecommissioningBuilderViewAcceptTest extends ConstellioTest {
 	}
 
 	private void createNewList() {
-		page.getFilingSpace().typeAndSelectFirst("Room A");
+		page.getAdministrativeUnit().typeAndSelectFirst("10A");
 		ButtonWebElement create = page.searchAndWaitForResults().getCreateButton();
 		assertThat(create.isEnabled()).isFalse();
 

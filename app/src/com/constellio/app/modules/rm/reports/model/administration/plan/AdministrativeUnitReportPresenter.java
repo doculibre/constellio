@@ -19,22 +19,24 @@ package com.constellio.app.modules.rm.reports.model.administration.plan;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_AdministrativeUnit;
-import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_FilingSpace;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_User;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
@@ -46,6 +48,7 @@ public class AdministrativeUnitReportPresenter {
 	private TaxonomiesSearchOptions searchOptions;
 	private TaxonomiesSearchServices searchService;
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
+	private AuthorizationsServices authorizationsServices;
 	private boolean withUsers;
 
 	public AdministrativeUnitReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
@@ -66,6 +69,12 @@ public class AdministrativeUnitReportPresenter {
 		init();
 
 		AdministrativeUnitReportModel model = new AdministrativeUnitReportModel();
+
+		if (withUsers) {
+			model.setDetailed(true);
+		} else {
+			model.setDetailed(false);
+		}
 
 		List<TaxonomySearchRecord> taxonomySearchRecords = searchService.getLinkableRootConcept(User.GOD, collection,
 				RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
@@ -101,7 +110,7 @@ public class AdministrativeUnitReportPresenter {
 						modelAdministrativeUnit.setCode(code);
 						modelAdministrativeUnit.setDescription(description);
 
-						modelAdministrativeUnit.setFilingSpaces(getFilingSpacesFrom(administrativeUnit));
+						modelAdministrativeUnit.setUsers(getUsersFrom(administrativeUnit));
 
 						modelAdministrativeUnit.setChildAdministrativeUnits(getChildUnits(administrativeUnitRecord));
 
@@ -142,7 +151,8 @@ public class AdministrativeUnitReportPresenter {
 							String description = StringUtils.defaultString(administrativeUnit.getDescription());
 							modelAdministrativeUnit.setDescription(description);
 
-							modelAdministrativeUnit.setFilingSpaces(getFilingSpacesFrom(administrativeUnit));
+							modelAdministrativeUnit.setUsers(getUsersFrom(administrativeUnit));
+
 							modelAdministrativeUnit
 									.setChildAdministrativeUnits(getChildUnits(administrativeUnitRecord));
 
@@ -156,107 +166,32 @@ public class AdministrativeUnitReportPresenter {
 		return children;
 	}
 
-	private List<AdministrativeUnitReportModel_FilingSpace> getFilingSpacesFrom(AdministrativeUnit administrativeUnit) {
-		List<AdministrativeUnitReportModel_FilingSpace> filingSpaces = new ArrayList<>();
-
-		if (administrativeUnit != null) {
-			for (String filingSpaceId : administrativeUnit.getFilingSpaces()) {
-
-				if (filingSpaceId != null && !filingSpaceId.isEmpty()) {
-					FilingSpace filingSpace = rmSchemasRecordsServices.getFilingSpace(filingSpaceId);
-					if (filingSpace != null) {
-						AdministrativeUnitReportModel_FilingSpace modelFilingSpace = new AdministrativeUnitReportModel_FilingSpace();
-
-						String code = StringUtils.defaultString(filingSpace.getCode());
-						modelFilingSpace.setCode(code);
-
-						String description = StringUtils.defaultString(filingSpace.getDescription());
-						modelFilingSpace.setDescription(description);
-
-						String title = StringUtils.defaultString(filingSpace.getTitle());
-						modelFilingSpace.setLabel(title);
-
-						modelFilingSpace.setUsers(getUsersFrom(filingSpace));
-						modelFilingSpace.setAdministrators(getAdministratorsFrom(filingSpace));
-
-						filingSpaces.add(modelFilingSpace);
-					}
-				}
-			}
-		}
-
-		return filingSpaces;
-	}
-
-	private List<AdministrativeUnitReportModel_User> getUsersFrom(FilingSpace filingSpace) {
-		List<AdministrativeUnitReportModel_User> modelUsers = new ArrayList<>();
+	private List<AdministrativeUnitReportModel_User> getUsersFrom(AdministrativeUnit administrativeUnit) {
+		Map<String, AdministrativeUnitReportModel_User> modelUsers = new TreeMap<>();
 
 		if (withUsers) {
-			if (filingSpace != null) {
-				List<String> userIds = filingSpace.getUsers();
-				if (userIds != null) {
-					for (String userId : userIds) {
-						if (userId != null && !userId.isEmpty()) {
-							User user = rmSchemasRecordsServices.getUser(userId);
-							if (user != null) {
-								AdministrativeUnitReportModel_User modelUser = new AdministrativeUnitReportModel_User();
+			List<User> users = authorizationsServices.getUsersWithRoleForRecord(Role.WRITE,
+					rmSchemasRecordsServices.getAdministrativeUnit(administrativeUnit.getId()).getWrappedRecord());
+			for (User user : users) {
+				AdministrativeUnitReportModel_User modelUser = new AdministrativeUnitReportModel_User();
 
-								String firstName = StringUtils.defaultString(user.getFirstName());
-								modelUser.setFirstName(firstName);
+				String firstName = StringUtils.defaultString(user.getFirstName());
+				modelUser.setFirstName(firstName);
 
-								String lastName = StringUtils.defaultString(user.getLastName());
-								modelUser.setLastName(lastName);
+				String lastName = StringUtils.defaultString(user.getLastName());
+				modelUser.setLastName(lastName);
 
-								String userName = StringUtils.defaultString(user.getUsername());
-								modelUser.setUserName(userName);
+				String userName = StringUtils.defaultString(user.getUsername());
+				modelUser.setUserName(userName);
 
-								String email = StringUtils.defaultString(user.getEmail());
-								modelUser.setEmail(email);
+				String email = StringUtils.defaultString(user.getEmail());
+				modelUser.setEmail(email);
 
-								modelUsers.add(modelUser);
-							}
-						}
-
-					}
-				}
+				modelUsers.put(modelUser.getUserName(), modelUser);
 			}
 		}
-		return modelUsers;
-	}
-
-	private List<AdministrativeUnitReportModel_User> getAdministratorsFrom(FilingSpace filingSpace) {
-		List<AdministrativeUnitReportModel_User> modelAdministrators = new ArrayList<>();
-
-		if (withUsers) {
-			if (filingSpace != null) {
-				List<String> administratorIds = filingSpace.getAdministrators();
-				if (administratorIds != null) {
-					for (String administratorId : administratorIds) {
-						if (administratorId != null && !administratorId.isEmpty()) {
-							User administrator = rmSchemasRecordsServices.getUser(administratorId);
-							if (administrator != null) {
-								AdministrativeUnitReportModel_User modelAdministrator = new AdministrativeUnitReportModel_User();
-
-								String firstName = StringUtils.defaultString(administrator.getFirstName());
-								modelAdministrator.setFirstName(firstName);
-
-								String lastName = StringUtils.defaultString(administrator.getLastName());
-								modelAdministrator.setLastName(lastName);
-
-								String userName = StringUtils.defaultString(administrator.getUsername());
-								modelAdministrator.setUserName(userName);
-
-								String email = StringUtils.defaultString(administrator.getEmail());
-								modelAdministrator.setEmail(email);
-
-								modelAdministrators.add(modelAdministrator);
-							}
-						}
-					}
-				}
-			}
-		}
-		return modelAdministrators;
+		List<AdministrativeUnitReportModel_User> modelUsersList = new ArrayList<>(modelUsers.values());
+		return modelUsersList;
 	}
 
 	private void init() {
@@ -264,6 +199,7 @@ public class AdministrativeUnitReportPresenter {
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
 		searchService = modelLayerFactory.newTaxonomiesSearchService();
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 
 	public boolean isWithUsers() {

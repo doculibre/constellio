@@ -54,8 +54,8 @@ public class AppManagementService {
 	static final String WRITE_WAR_FILE_STREAM = "AppManagementService-WriteWarFile";
 	public static final String UPDATE_COMMAND = "UPDATE";
 	public static final String RESTART_COMMAND = "RESTART";
-	public static final String URL_CHANGELOG = "http://update.constellio.com/changelog";
-	public static final String URL_WAR = "http://update.constellio.com/constellio.war";
+	public static final String URL_CHANGELOG = "http://update.constellio.com/changelog5_1";
+	public static final String URL_WAR = "http://update.constellio.com/constellio5_1.war";
 
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
 	private final FileService fileService;

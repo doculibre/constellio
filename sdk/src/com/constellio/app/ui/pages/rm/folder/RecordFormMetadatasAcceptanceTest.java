@@ -39,7 +39,6 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.HierarchicalValueListItem;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -50,6 +49,7 @@ import com.constellio.app.ui.tools.ResearchResultWebElement;
 import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveFieldWebElement;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
@@ -89,7 +89,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
 
 	String classificationFinder = "X100";
-	String administrativeUnitFinder = "12";
+	String administrativeUnitFinder = "12B";
 
 	String metadata1 = "metadata1";
 	String metadata2 = "metadata2";
@@ -139,7 +139,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		//TODO To be continued...
 	}
 
-	@Test
+	//TODO Maxime : Décommenter ce test lorsque firefox installé sur le serveur d'intégration @Test
 	public void givenCheckboxesMetadataReferencingUserThenOK()
 			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.CHECKBOXES, new MetadataBuilderConfigurator() {
@@ -3445,8 +3445,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		zeForm.getTextField("folder_default_title").setValue("Pokemon");
 		zeForm.getLookupField("folder_default_categoryEntered").typeAndSelectFirst(classificationFinder);
 		zeForm.getDateField("folder_default_openingDate").setValue(new LocalDate(2015, 2, 21));
-		zeForm.getDropDown("folder_default_filingSpaceEntered").selectItemContainingText("B");
-		zeForm.getDropDown("folder_default_administrativeUnitEntered").selectItemContainingText(administrativeUnitFinder);
+		zeForm.getDropDown("folder_default_administrativeUnitEntered").typeAndSelectFirst(administrativeUnitFinder);
 	}
 
 	private RecordDisplayWebElement folderDetails() {

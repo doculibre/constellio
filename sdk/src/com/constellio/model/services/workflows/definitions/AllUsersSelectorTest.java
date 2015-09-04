@@ -34,7 +34,7 @@ import com.constellio.model.entities.workflows.definitions.AllUsersSelector;
 import com.constellio.model.entities.workflows.definitions.RoleSelector;
 import com.constellio.model.entities.workflows.execution.WorkflowExecution;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -43,7 +43,7 @@ public class AllUsersSelectorTest extends ConstellioTest {
 
 	@Mock WorkflowExecution execution;
 	@Mock ModelLayerFactory modelLayerFactory;
-	@Mock RecordServices recordServices;
+	@Mock RecordServicesImpl recordServices;
 	@Mock RolesManager rolesManager;
 	@Mock AuthorizationsServices authServices;
 	@Mock RoleSelector roleSelector;

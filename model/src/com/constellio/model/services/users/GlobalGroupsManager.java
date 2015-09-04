@@ -17,6 +17,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.model.services.users;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.jdom2.Document;
+
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -25,10 +34,6 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_InvalidParent;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_ParentNotFound;
-import org.jdom2.Document;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 public class GlobalGroupsManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -86,7 +91,6 @@ public class GlobalGroupsManager implements StatefulService, ConfigUpdatedEventL
 		return Collections.unmodifiableList(activeGlobalGroups);
 	}
 
-	//TODO Thiago sort by hierarchy
 	public List<GlobalGroup> getAllGroups() {
 		List<GlobalGroup> globalGroups = new ArrayList<>(cache.values());
 		return Collections.unmodifiableList(globalGroups);

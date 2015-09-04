@@ -23,9 +23,10 @@ public interface DataStoreField {
 
 	String getDataStoreType();
 
+	boolean isMultivalue();
+
 	MetadataValueType getType();
 
 	String getCollection();
 
-	boolean isMultivalue();
 }

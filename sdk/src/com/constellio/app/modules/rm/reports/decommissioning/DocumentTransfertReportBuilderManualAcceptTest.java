@@ -57,8 +57,14 @@ public class DocumentTransfertReportBuilderManualAcceptTest extends ReportBuilde
 						new ReportBooleanField("Tri/T", false),
 						new ReportBooleanField("Conservation -> C", false)));
 		calendarModel.setSupports(
-				Arrays.asList(new ReportBooleanField("DM", false),
-						new ReportBooleanField("PA", true)));
+				Arrays.asList(
+						new ReportBooleanField("DM", false),
+						new ReportBooleanField("PA", true),
+						new ReportBooleanField("AA", true),
+						new ReportBooleanField("BB", true),
+						new ReportBooleanField("CC", true)
+
+				));
 
 		calendarModel.setQuantity("1");
 		calendarModel.setExtremeDate("2004-2005");
@@ -70,8 +76,6 @@ public class DocumentTransfertReportBuilderManualAcceptTest extends ReportBuilde
 		identificationModel.setBoxNumber("Transf2014-899-01");
 		identificationModel.setOrganisationName("MSE");
 		identificationModel.setPublicOrganisationNumber("001");
-		identificationModel.setEspaceClassement("MSEE");
-		identificationModel.setCodeEspaceClassement("003");
 		identificationModel.setAdministrationAddress("230 rue du Minist�re \n Local 20304 20eme etage \n Departement MS local 3");
 		identificationModel.setResponsible("Dakota Lindien");
 		identificationModel.setFunction("Charg� de projet");

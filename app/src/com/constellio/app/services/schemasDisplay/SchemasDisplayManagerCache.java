@@ -17,6 +17,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.services.schemasDisplay;
 
+import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
+import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,12 +31,12 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class SchemasDisplayManagerCache {
+
 	private String collection;
 	private SchemaTypesDisplayConfig collectionTypes;
 	private Map<String, SchemaTypeDisplayConfig> types = new HashMap<>();
@@ -105,7 +108,7 @@ public class SchemasDisplayManagerCache {
 	public SchemaDisplayConfig getSchema(String schemaCode, MetadataSchemasManager metadataSchemasManager) {
 		SchemaDisplayConfig config = schemas.get(schemaCode);
 		if (config == null) {
-			config = getDefaultSchemaDisplay(schemaCode, metadataSchemasManager);
+			config = getSchemaDefaultDisplay(schemaCode, metadataSchemasManager);
 			// No need to write the xml, just save the default config in the
 			// cache to reuse it
 			set(config);
@@ -113,31 +116,45 @@ public class SchemasDisplayManagerCache {
 		return config;
 	}
 
-	private SchemaDisplayConfig getDefaultSchemaDisplay(String schemaCode, MetadataSchemasManager metadataSchemasManager) {
-		SchemaUtils schemaUtils = new SchemaUtils();
-		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
-		List<String> displayMetadataCodes = schemaUtils.toMetadataCodes(schema.getMetadatas());
-		List<String> formMetadataCodes = schemaUtils
-				.toMetadataCodes(SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema));
+	public SchemaDisplayConfig getSchemaDefaultDisplay(String schemaCode, MetadataSchemasManager metadataSchemasManager) {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+		if (schemaCode.endsWith("_default")) {
+			return getDefaultSchemaDefaultDisplay(schemaCode, types);
+		} else {
 
-		String title = schema.getCode() + "_" + Schemas.TITLE.getLocalCode();
-		String lastModificationDate = schema.getCode() + "_" + Schemas.MODIFIED_ON.getLocalCode();
-
-		List<String> searchMetadatasCodes = Arrays.asList(title, lastModificationDate);
-
-		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchMetadatasCodes);
+			String schemaType = new SchemaUtils().getSchemaTypeCode(schemaCode);
+			String defaultSchema = schemaType + "_default";
+			SchemaDisplayConfig schema = getSchema(defaultSchema, metadataSchemasManager);
+			return getCustomSchemaDefaultDisplay(schema, schemaCode, types);
+		}
 	}
 
 	public MetadataDisplayConfig getMetadata(String metadataCode, MetadataSchemasManager metadataSchemasManager) {
 		MetadataDisplayConfig config = metadatas.get(metadataCode);
 		if (config == null) {
-			config = new MetadataDisplayConfig(collection, metadataCode, false, getDefaultMetadataInputType(
-					metadataCode, metadataSchemasManager), false, "");
+
+			config = getDefaultMetadata(metadataCode, metadataSchemasManager);
+
 			// No need to write the xml, just save the default config in the
 			// cache to reuse it
 			set(config);
 		}
+		return config;
+	}
+
+	private MetadataDisplayConfig getDefaultMetadata(String metadataCode,
+			MetadataSchemasManager metadataSchemasManager) {
+		MetadataDisplayConfig config;
+
+		Metadata metadata = metadataSchemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
+		if (metadata.getInheritance() == null) {
+			config = new MetadataDisplayConfig(collection, metadataCode, false, getDefaultMetadataInputType(
+					metadataCode, metadataSchemasManager), false, "");
+		} else {
+			MetadataDisplayConfig inheritedConfig = getMetadata(metadata.getInheritance().getCode(), metadataSchemasManager);
+			config = MetadataDisplayConfig.inheriting(metadataCode, inheritedConfig);
+		}
+
 		return config;
 	}
 

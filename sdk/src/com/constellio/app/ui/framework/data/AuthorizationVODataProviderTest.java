@@ -35,7 +35,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedFactories;
@@ -53,7 +53,7 @@ public class AuthorizationVODataProviderTest extends ConstellioTest {
 	@Mock AuthorizationToVOBuilder voBuilder;
 	@Mock AuthorizationVO authorizationVO1, authorizationVO2;
 	@Mock AuthorizationsServices authorizationsServices;
-	@Mock RecordServices recordServices;
+	@Mock RecordServicesImpl recordServices;
 	@Mock Record record1, record2;
 	@Mock Authorization authorization1, authorization2;
 	@Mock AuthorizationDetails authorizationDetails1;

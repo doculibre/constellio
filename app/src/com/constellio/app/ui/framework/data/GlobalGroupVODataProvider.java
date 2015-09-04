@@ -43,9 +43,12 @@ public class GlobalGroupVODataProvider implements DataProvider {
 	private transient List<GlobalGroupVO> globalGroupVOs;
 	private GlobalGroupToVOBuilder voBuilder;
 	private String filter;
+	private boolean hierarchical;
 
-	public GlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
+	public GlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
+			boolean hierarchical) {
 		this.voBuilder = voBuilder;
+		this.hierarchical = hierarchical;
 		init(modelLayerFactory);
 	}
 
@@ -221,7 +224,7 @@ public class GlobalGroupVODataProvider implements DataProvider {
 	public List<GlobalGroupVO> listBaseGlobalGroupsVOs() {
 		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
 		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
-			if (globalGroupVO.getParent() == null) {
+			if (!hierarchical || globalGroupVO.getParent() == null) {
 				newGlobalGroupVOs.add(globalGroupVO);
 			}
 		}

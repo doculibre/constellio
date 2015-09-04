@@ -20,7 +20,6 @@ package com.constellio.app.modules.rm.migrations;
 import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateSchemaTypes;
 import static java.util.Arrays.asList;
 
 import java.util.List;
@@ -44,8 +43,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -62,7 +61,8 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 
 		if (!rm.defaultFolderSchema().hasMetadataWithCode(Folder.LINEAR_SIZE)) {
 			new SchemaAlterationFor5_0_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -73,11 +73,14 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 			addVariablePeriod888And999(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
-		ReindexingServices reindexingServices = appLayerFactory.getModelLayerFactory().newReindexingServices();
-		reindexingServices.reindexCollection(collection, recalculateSchemaTypes(asList(Folder.SCHEMA_TYPE)));
-
-		appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
+		modelLayerFactory.getSystemConfigurationsManager()
 				.signalDefaultValueModification(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, true);
+
+		//Reindexation that was planned in 5.0.6, moved to 5.0.7
+		//		ReindexingServices reindexingServices = appLayerFactory.getModelLayerFactory().newReindexingServices();
+		//		reindexingServices.reindexCollection(collection, recalculateSchemaTypes(asList(Folder.SCHEMA_TYPE)));
+
+		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
 	}
 
 	private void updateFormAndDisplayConfigs(String collection, AppLayerFactory appLayerFactory) {

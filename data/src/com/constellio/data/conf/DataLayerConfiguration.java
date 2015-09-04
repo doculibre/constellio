@@ -60,4 +60,6 @@ public interface DataLayerConfiguration {
 	Duration getSecondTransactionLogMergeFrequency();
 
 	int getSecondTransactionLogBackupCount();
+
+	boolean isBackgroundThreadsEnabled();
 }

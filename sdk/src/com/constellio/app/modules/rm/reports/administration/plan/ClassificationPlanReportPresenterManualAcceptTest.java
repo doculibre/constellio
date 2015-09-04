@@ -72,23 +72,23 @@ public class ClassificationPlanReportPresenterManualAcceptTest extends ReportBui
 
 		ClassificationPlanReportModel_Category xeCategory = categories.get(0);
 		assertThat(xeCategory.getCode()).isEqualTo("X");
-		assertThat(xeCategory.getDescription()).isEmpty();
+		assertThat(xeCategory.getDescription()).isEqualTo("Ze ultimate category X");
 		assertThat(xeCategory.getLabel()).isEqualTo("Xe category");
 
 		ClassificationPlanReportModel_Category x100Category = xeCategory.getCategories().get(0);
 		assertThat(x100Category.getCode()).isEqualTo("X100");
-		assertThat(x100Category.getDescription()).isEmpty();
+		assertThat(x100Category.getDescription()).isEqualTo("Ze category X100");
 		assertThat(x100Category.getLabel()).isEqualTo("X100");
 
 		ClassificationPlanReportModel_Category x110Category = x100Category.getCategories().get(0);
 		assertThat(x110Category.getCode()).isEqualTo("X110");
-		assertThat(x110Category.getDescription()).isEmpty();
+		assertThat(x110Category.getDescription()).isEqualTo("Ze category X110");
 		assertThat(x110Category.getLabel()).isEqualTo("X110");
 		assertThat(x110Category.getCategories()).isEmpty();
 
 		ClassificationPlanReportModel_Category x120Category = x100Category.getCategories().get(1);
 		assertThat(x120Category.getCode()).isEqualTo("X120");
-		assertThat(x120Category.getDescription()).isEmpty();
+		assertThat(x120Category.getDescription()).isEqualTo("Ze category X120");
 		assertThat(x120Category.getLabel()).isEqualTo("X120");
 		assertThat(x120Category.getCategories()).isEmpty();
 
@@ -100,52 +100,52 @@ public class ClassificationPlanReportPresenterManualAcceptTest extends ReportBui
 
 		ClassificationPlanReportModel_Category zeCategory = categories.get(1);
 		assertThat(zeCategory.getCode()).isEqualTo("Z");
-		assertThat(zeCategory.getDescription()).isEmpty();
+		assertThat(zeCategory.getDescription()).isEqualTo("Ze ultimate category Z");
 		assertThat(zeCategory.getLabel()).isEqualTo("Ze category");
 
 		ClassificationPlanReportModel_Category z100Category = zeCategory.getCategories().get(0);
 		assertThat(z100Category.getCode()).isEqualTo("Z100");
-		assertThat(z100Category.getDescription()).isEmpty();
+		assertThat(z100Category.getDescription()).isEqualTo("Ze category Z100");
 		assertThat(z100Category.getLabel()).isEqualTo("Z100");
 
 		ClassificationPlanReportModel_Category z110Category = z100Category.getCategories().get(0);
 		assertThat(z110Category.getCode()).isEqualTo("Z110");
-		assertThat(z110Category.getDescription()).isEmpty();
+		assertThat(z110Category.getDescription()).isEqualTo("Ze category Z110");
 		assertThat(z110Category.getLabel()).isEqualTo("Z110");
 
 		ClassificationPlanReportModel_Category z111Category = z110Category.getCategories().get(0);
 		assertThat(z111Category.getCode()).isEqualTo("Z111");
-		assertThat(z111Category.getDescription()).isEmpty();
+		assertThat(z111Category.getDescription()).isEqualTo("Ze category Z111");
 		assertThat(z111Category.getLabel()).isEqualTo("Z111");
 		assertThat(z111Category.getCategories()).isEmpty();
 
 		ClassificationPlanReportModel_Category z112Category = z110Category.getCategories().get(1);
 		assertThat(z112Category.getCode()).isEqualTo("Z112");
-		assertThat(z112Category.getDescription()).isEmpty();
+		assertThat(z112Category.getDescription()).isEqualTo("Ze category Z112");
 		assertThat(z112Category.getLabel()).isEqualTo("Z112");
 		assertThat(z112Category.getCategories()).isEmpty();
 
 		ClassificationPlanReportModel_Category z120Category = z100Category.getCategories().get(1);
 		assertThat(z120Category.getCode()).isEqualTo("Z120");
-		assertThat(z120Category.getDescription()).isEmpty();
+		assertThat(z120Category.getDescription()).isEqualTo("Ze category Z120");
 		assertThat(z120Category.getLabel()).isEqualTo("Z120");
 		assertThat(z120Category.getCategories()).isEmpty();
 
 		ClassificationPlanReportModel_Category z200Category = zeCategory.getCategories().get(1);
 		assertThat(z200Category.getCode()).isEqualTo("Z200");
-		assertThat(z200Category.getDescription()).isEmpty();
+		assertThat(z200Category.getDescription()).isEqualTo("Ze category Z200");
 		assertThat(z200Category.getLabel()).isEqualTo("Z200");
 		assertThat(z200Category.getCategories()).isEmpty();
 
 		ClassificationPlanReportModel_Category z999Category = zeCategory.getCategories().get(2);
 		assertThat(z999Category.getCode()).isEqualTo("Z999");
-		assertThat(z999Category.getDescription()).isEmpty();
+		assertThat(z999Category.getDescription()).isEqualTo("Ze category Z999");
 		assertThat(z999Category.getLabel()).isEqualTo("Z999");
 		assertThat(z999Category.getCategories()).isEmpty();
 
 		ClassificationPlanReportModel_Category ze42Category = zeCategory.getCategories().get(3);
 		assertThat(ze42Category.getCode()).isEqualTo("ZE42");
-		assertThat(ze42Category.getDescription()).isEmpty();
+		assertThat(ze42Category.getDescription()).isEqualTo("Ze category 42");
 		assertThat(ze42Category.getLabel()).isEqualTo("Ze 42");
 		assertThat(ze42Category.getCategories()).isEmpty();
 

@@ -41,4 +41,7 @@ public enum DisposalType implements EnumWithSmallCode {
 		return this == SORT || this == DEPOSIT;
 	}
 
+	public static boolean isValidCode(String code) {
+		return "T".equals(code) || "D".equals(code) || "C".equals(code);
+	}
 }

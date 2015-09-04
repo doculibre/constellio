@@ -74,4 +74,8 @@ public class Authorization {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
+	@Override
+	public String toString() {
+		return "Authorization{ " + detail + " granted to" + grantedToPrincipals + " on " + grantedOnRecords + "}";
+	}
 }

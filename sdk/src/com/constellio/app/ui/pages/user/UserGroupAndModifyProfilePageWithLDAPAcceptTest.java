@@ -29,9 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.DemoTestRecords;
+import com.constellio.app.modules.rm.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.model.enums.StartTab;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -72,7 +71,6 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 	ConstellioWebDriver driver;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	DemoTestRecords records2 = new DemoTestRecords("LaCollectionDeRida");
-	RMSchemasRecordsServices schemas;
 	SessionContext sessionContext;
 	User administratorInZeCollection;
 	LDAPUserSyncConfiguration userSync;
@@ -109,7 +107,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 
 		testWithAdminAndLDAPActiveAndWithoutSynchronization();
 
-		//TODO Thiago fix this test
+		//TODO fix this test
 		//		givenAdministrator();
 		//		testWithAdministratorAndLDAPActiveAndWithoutSynchronization();
 
@@ -121,6 +119,8 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 
 	private void testWithAdminAndLDAPActiveAndWithoutSynchronization()
 			throws Exception {
+
+		navigatoToListUserCredentialPage();
 
 		assertThat(ldapConfigurationManager.idUsersSynchActivated()).isFalse();
 		assertThat(ldapConfigurationManager.isLDAPAuthentication()).isTrue();
@@ -139,7 +139,9 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		givenModifyProfilePageThenCanEdit();
 	}
 
-	private void testWithAdministratorAndLDAPActiveAndWithoutSynchronization() {
+	private void testWithAdministratorAndLDAPActiveAndWithoutSynchronization()
+			throws Exception {
+		navigatoToListUserCredentialPage();
 
 		assertThat(ldapConfigurationManager.idUsersSynchActivated()).isFalse();
 		assertThat(ldapConfigurationManager.isLDAPAuthentication()).isTrue();
@@ -413,7 +415,6 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 	}
 
 	private void givenModifyProfilePageThenCanEdit() {
-
 		modifyProfilePage.navigateToPage();
 		modifyProfilePage.waitForPageReload();
 
@@ -421,8 +422,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		modifyProfilePage.getLastNameElement().setValue("Admin1");
 		modifyProfilePage.getPhoneElement().setValue("33333333");
 		modifyProfilePage.getEmailElement().setValue("admin@organization.com");
-		modifyProfilePage.getStartTabElement().toggle($(
-				"ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
+		modifyProfilePage.getStartTabElement().toggle($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
 		modifyProfilePage.getDefaultTaxonomyElement().toggle("Plan de classification");
 		modifyProfilePage.getSaveButton().click();
 		modifyProfilePage.waitForPageReload();
@@ -432,21 +432,19 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		assertThat(modifyProfilePage.getLastNameElement().getValue()).isEqualTo("Admin1");
 		assertThat(modifyProfilePage.getEmailElement().getValue()).isEqualTo("admin@organization.com");
 		assertThat(modifyProfilePage.getPhoneElement().getValue()).isEqualTo("33333333");
-		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0)).isEqualTo($(
-				"ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
+		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0))
+				.isEqualTo($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
 		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getCheckedValues().get(0)).isEqualTo("Plan de classification");
 	}
 
 	private void givenAdministratorInModifyProfilePageThenCanEditOnlyStartTabAndDefaultTaxonomy() {
-
 		modifyProfilePage.navigateToPage();
 
 		assertThat(modifyProfilePage.getFirstNameElement().isEnabled()).isFalse();
 		assertThat(modifyProfilePage.getLastNameElement().isEnabled()).isFalse();
 		assertThat(modifyProfilePage.getPhoneElement().isEnabled()).isFalse();
 		assertThat(modifyProfilePage.getEmailElement().isEnabled()).isFalse();
-		modifyProfilePage.getStartTabElement().toggle($(
-				"ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
+		modifyProfilePage.getStartTabElement().toggle($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
 		modifyProfilePage.getDefaultTaxonomyElement().toggle("Plan de classification");
 		modifyProfilePage.getSaveButton().click();
 		modifyProfilePage.waitForPageReload();
@@ -456,13 +454,12 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		assertThat(modifyProfilePage.getLastNameElement().getValue()).isEqualTo("");
 		assertThat(modifyProfilePage.getEmailElement().getValue()).isEqualTo("");
 		assertThat(modifyProfilePage.getPhoneElement().getValue()).isEqualTo("");
-		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0)).isEqualTo($(
-				"ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
+		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0))
+				.isEqualTo($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
 		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getCheckedValues().get(0)).isEqualTo("Plan de classification");
 	}
 
 	private void givenListGlobalGroupsPageThenCannotAddOrEdit() {
-
 		listGlobalGroupPage.navigateToListGlobalGroupsPage();
 
 		assertThat(listGlobalGroupPage.getAddButton().isEnabled()).isFalse();
@@ -471,7 +468,6 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 	}
 
 	private void givenDisplayGlobalGroupsPageThenAllEditAddAndDeleteButtonsAreInvisibles() {
-
 		listGlobalGroupPage.getDisplayGlobalGroupButtonOnIndex(0).click();
 		listGlobalGroupPage.waitForPageReload();
 
@@ -481,13 +477,11 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		assertThat(displayGlobalGroupPage.getAddSubGlobalGroupButtonMenuAction().isEnabled()).isFalse();
 		assertThat(displayGlobalGroupPage.findDeleteButtonElements()).hasSize(1);
 		assertThat(displayGlobalGroupPage.getDeleteGlobalGroupButtonMenuAction().isEnabled()).isFalse();
-
 	}
 
 	//
 	private void navigatoToListUserCredentialPage()
 			throws Exception {
-
 		listUserCredentialPage.navigateToListUserCredentialsPage();
 	}
 

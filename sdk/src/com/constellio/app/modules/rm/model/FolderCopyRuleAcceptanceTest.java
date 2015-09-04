@@ -93,9 +93,8 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Folder folder = rm.newFolder();
-		folder.setAdministrativeUnitEntered(records.unitId_11);
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
 		folder.setDescription("Ze description");
-		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(records.ruleId_2);
@@ -104,9 +103,8 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 
 		folder = saveAndLoad(folder);
 
-		assertThat(folder.getAdministrativeUnitEntered()).isEqualTo(records.unitId_11);
+		assertThat(folder.getAdministrativeUnitEntered()).isEqualTo(records.unitId_11b);
 		assertThat(folder.getDescription()).isEqualTo("Ze description");
-		assertThat(folder.getFilingSpaceEntered()).isEqualTo(records.filingId_A);
 		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X110);
 		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_2);
 		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
@@ -227,7 +225,6 @@ public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(administrativeUnit);
-		folder.setFilingSpaceEntered(records.filingId_A);
 		folder.setCategoryEntered(records.categoryId_X110);
 		folder.setTitle("Ze folder");
 		folder.setRetentionRuleEntered(zeRule);

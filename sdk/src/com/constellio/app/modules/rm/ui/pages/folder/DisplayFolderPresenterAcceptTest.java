@@ -17,14 +17,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,46 +39,65 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
+	LocalDateTime shishOClock = new LocalDateTime().plusDays(1);
+
 	@Mock DisplayFolderView displayFolderView;
 	@Mock ConstellioNavigator navigator;
 	@Mock UserCredentialVO chuckCredentialVO;
-	RMTestRecords records = new RMTestRecords(zeCollection);
+	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
 	SearchServices searchServices;
 	DisplayFolderPresenter presenter;
 	SessionContext sessionContext;
-	LocalDateTime nowDateTime = new LocalDateTime();
+	LocalDate nowDate = new LocalDate();
 	RMEventsSearchServices rmEventsSearchServices;
 	RolesManager rolesManager;
+
+	RMSchemasRecordsServices rmSchemasRecordsServices;
+	MetadataSchemasManager metadataSchemasManager;
+	RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(rmRecords)
 						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
+
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		recordServices = getModelLayerFactory().newRecordServices();
 
 		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
@@ -87,31 +110,55 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		chuckCredentialVO = new UserCredentialVO();
 		chuckCredentialVO.setUsername("chuck");
 
-		presenter = spy(new DisplayFolderPresenter(displayFolderView));
+		presenter = new DisplayFolderPresenter(displayFolderView);//spy(
 		presenter.forParams("C30");
 
 		rolesManager = getModelLayerFactory().getRolesManager();
 
-		givenTimeIs(nowDateTime);
+		givenTimeIs(nowDate);
 	}
 
 	@Test
-	public void givenInvalidDateThenDoNotBorrow()
+	public void givenInvalidPreviewReturnDateThenDoNotBorrow()
 			throws Exception {
 
 		displayFolderView.navigateTo().displayFolder("C30");
 
-		presenter.borrowFolder(nowDateTime.minusHours(1).toDate(), records.getChuckNorris().getId());
+		presenter.borrowFolder(nowDate, nowDate.minusDays(1), rmRecords.getChuckNorris().getId(),
+				BorrowingType.BORROW, null);
 
-		Folder folderC30 = records.getFolder_C30();
+		Folder folderC30 = rmRecords.getFolder_C30();
 		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
 		assertThat(folderC30.getBorrowed()).isNull();
 		assertThat(folderC30.getBorrowDate()).isNull();
 		assertThat(folderC30.getBorrowReturnDate()).isNull();
 		assertThat(folderC30.getBorrowUser()).isNull();
 		assertThat(folderC30.getBorrowUserEntered()).isNull();
+		assertThat(folderC30.getBorrowType()).isNull();
 		assertThat(
-				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
+				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(rmRecords.getAdmin())))
+				.isEqualTo(0);
+	}
+
+	@Test
+	public void givenInvalidBorrowingDateThenDoNotBorrow()
+			throws Exception {
+
+		displayFolderView.navigateTo().displayFolder("C30");
+
+		presenter.borrowFolder(nowDate.plusDays(1), nowDate.plusDays(15), rmRecords.getChuckNorris().getId(),
+				BorrowingType.BORROW, null);
+
+		Folder folderC30 = rmRecords.getFolder_C30();
+		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
+		assertThat(folderC30.getBorrowed()).isNull();
+		assertThat(folderC30.getBorrowDate()).isNull();
+		assertThat(folderC30.getBorrowReturnDate()).isNull();
+		assertThat(folderC30.getBorrowUser()).isNull();
+		assertThat(folderC30.getBorrowUserEntered()).isNull();
+		assertThat(folderC30.getBorrowType()).isNull();
+		assertThat(
+				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(rmRecords.getAdmin())))
 				.isEqualTo(0);
 	}
 
@@ -121,17 +168,18 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		displayFolderView.navigateTo().displayFolder("C30");
 
-		presenter.borrowFolder(nowDateTime.minusHours(1).toDate(), null);
+		presenter.borrowFolder(nowDate, nowDate.minusDays(1), null, BorrowingType.BORROW, null);
 
-		Folder folderC30 = records.getFolder_C30();
+		Folder folderC30 = rmRecords.getFolder_C30();
 		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
 		assertThat(folderC30.getBorrowed()).isNull();
 		assertThat(folderC30.getBorrowDate()).isNull();
 		assertThat(folderC30.getBorrowReturnDate()).isNull();
 		assertThat(folderC30.getBorrowUser()).isNull();
 		assertThat(folderC30.getBorrowUserEntered()).isNull();
+		assertThat(folderC30.getBorrowType()).isNull();
 		assertThat(
-				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
+				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(rmRecords.getAdmin())))
 				.isEqualTo(0);
 	}
 
@@ -141,49 +189,92 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		displayFolderView.navigateTo().displayFolder("C30");
 
-		presenter.borrowFolder(nowDateTime.toDate(), records.getChuckNorris().getId());
+		User chuck = rmRecords.getChuckNorris();
 
-		Folder folderC30 = records.getFolder_C30();
+		presenter.borrowFolder(nowDate, nowDate, chuck.getId(), BorrowingType.BORROW, null);
+
+		Folder folderC30 = rmRecords.getFolder_C30();
 		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
 		assertThat(folderC30.getBorrowed()).isTrue();
-		assertThat(folderC30.getBorrowDate()).isEqualTo(nowDateTime);
+		assertThat(folderC30.getBorrowDate().toDate()).isEqualTo(nowDate.toDate());
 		assertThat(folderC30.getBorrowReturnDate()).isNull();
-		assertThat(folderC30.getBorrowUser()).isEqualTo(records.getChuckNorris().getId());
-		assertThat(folderC30.getBorrowUserEntered()).isEqualTo(records.getChuckNorris().getId());
+		assertThat(folderC30.getBorrowUser()).isEqualTo(rmRecords.getChuckNorris().getId());
+		assertThat(folderC30.getBorrowUserEntered()).isEqualTo(rmRecords.getChuckNorris().getId());
+		assertThat(folderC30.getBorrowType()).isEqualTo(BorrowingType.BORROW);
 		assertThat(
-				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
+				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(rmRecords.getAdmin())))
 				.isEqualTo(1);
-		assertThat(presenter.getBorrowMessageState(folderC30)).isEqualTo("DisplayFolderview.borrowedFolder");
+		assertThat(presenter.getBorrowMessageState(folderC30))
+				.isEqualTo("Dossier emprunté par " + chuck.getTitle() + " le " + nowDate);
 	}
 
 	@Test
+	//FIXME Ugly sleep
 	public void givenBorrowFolderWhenReturnItThenOk()
 			throws Exception {
 		displayFolderView.navigateTo().displayFolder("C30");
-		presenter.borrowFolder(nowDateTime.toDate(), records.getChuckNorris().getId());
+		LocalDate borrowingLocalDate = nowDate;
+		presenter
+				.borrowFolder(borrowingLocalDate, nowDate, rmRecords.getChuckNorris().getId(),
+						BorrowingType.BORROW, null);
 
-		givenTimeIs(nowDateTime.plusDays(1));
-		presenter.returnFolder();
+		nowDate = nowDate.plusDays(5);
+		givenTimeIs(nowDate);
+		presenter.forParams("C30");
+		presenter.returnFolder(nowDate.minusDays(1), borrowingLocalDate);
+		recordServices.flush();
+		//		Thread.sleep(1000);
 
-		Folder folderC30 = records.getFolder_C30();
+		Folder folderC30 = rmRecords.getFolder_C30();
 		assertThat(folderC30.getBorrowed()).isNull();
 		assertThat(folderC30.getBorrowDate()).isNull();
 		assertThat(folderC30.getBorrowReturnDate()).isNull();
 		assertThat(folderC30.getBorrowUser()).isNull();
 		assertThat(folderC30.getBorrowUserEntered()).isNull();
+		assertThat(folderC30.getBorrowType()).isNull();
 		assertThat(
-				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
+				searchServices
+						.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(rmRecords.getChuckNorris())))
 				.isEqualTo(0);
-		Thread.sleep(1000);
-		List<Record> records = searchServices.search(rmEventsSearchServices.newFindReturnedFoldersByDateRangeQuery(
-				this.records.getAdmin(),
-				nowDateTime.minusDays(1), nowDateTime.plusDays(1)));
-		assertThat(records).hasSize(2);
+		List<Record> records = searchServices.search(rmEventsSearchServices.newFindEventByDateRangeAndByUserIdQuery(
+				this.rmRecords.getChuckNorris(), EventType.RETURN_FOLDER,
+				nowDate.minusDays(1).toDateTimeAtStartOfDay().toLocalDateTime(),
+				nowDate.plusDays(1).toDateTimeAtStartOfDay().toLocalDateTime(), this.rmRecords.getChuckNorris().getId()));
+		assertThat(records).hasSize(1);
 		Event event = new Event(records.get(0), getSchemaTypes());
-		assertThat(event.getUsername()).isEqualTo(this.records.getChuckNorris().getUsername());
+		assertThat(event.getUsername()).isEqualTo(this.rmRecords.getChuckNorris().getUsername());
 		assertThat(event.getType()).isEqualTo(EventType.RETURN_FOLDER);
-		assertThat(event.getCreatedOn()).isEqualTo(nowDateTime.plusDays(1));
 		assertThat(presenter.getBorrowMessageState(folderC30)).isNull();
+		//TODO Francis
+		assertThat(event.getCreatedOn().toLocalDate()).isEqualTo(nowDate.minusDays(1));
+
+	}
+
+	@Test
+	public void givenBorrowFolderWhenReturnItWithAInvalideReturnDateItThenDoNotReturnIt()
+			throws Exception {
+		displayFolderView.navigateTo().displayFolder("C30");
+		LocalDate borrowingDate = nowDate;
+		User chuck = rmRecords.getChuckNorris();
+		presenter.borrowFolder(nowDate, nowDate, chuck.getId(), BorrowingType.BORROW, null);
+
+		givenTimeIs(nowDate.plusDays(1));
+		presenter.forParams("C30");
+		presenter.returnFolder(nowDate.minusDays(2), borrowingDate);
+
+		Folder folderC30 = rmRecords.getFolder_C30();
+		assertThat(folderC30.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
+		assertThat(folderC30.getBorrowed()).isTrue();
+		assertThat(folderC30.getBorrowDate().toDate()).isEqualTo(nowDate.toDate());
+		assertThat(folderC30.getBorrowReturnDate()).isNull();
+		assertThat(folderC30.getBorrowUser()).isEqualTo(chuck.getId());
+		assertThat(folderC30.getBorrowUserEntered()).isEqualTo(chuck.getId());
+		assertThat(folderC30.getBorrowType()).isEqualTo(BorrowingType.BORROW);
+		assertThat(
+				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(rmRecords.getAdmin())))
+				.isEqualTo(1);
+		assertThat(presenter.getBorrowMessageState(folderC30)).isEqualTo(
+				"Dossier emprunté par " + chuck.getTitle() + " le " + nowDate);
 	}
 
 	@Test
@@ -192,24 +283,27 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		givenRemovedPermissionToModifyBorrowedFolder(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
 		displayFolderView.navigateTo().displayFolder("C30");
-		presenter.borrowFolder(nowDateTime.toDate(), records.getChuckNorris().getId());
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
 
 		displayFolderView.navigateTo().displayFolder("C30");
-		assertThat(presenter.getDeleteButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isFalse();
-		assertThat(presenter.getEditButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isFalse();
-		assertThat(presenter.getAddFolderButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isFalse();
-		assertThat(presenter.getAddDocumentButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isFalse();
-		assertThat(presenter.getPrintButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isFalse();
+		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
+		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
+		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible())
+				.isFalse();
+		assertThat(presenter.getAddDocumentButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible())
+				.isFalse();
+		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
 
 		givenNoRemovedPermissionsToModifyBorrowedFolder();
 		displayFolderView.navigateTo().displayFolder("C30");
 
 		displayFolderView.navigateTo().displayFolder("C30");
-		assertThat(presenter.getDeleteButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isTrue();
-		assertThat(presenter.getEditButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isTrue();
-		assertThat(presenter.getAddFolderButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isTrue();
-		assertThat(presenter.getAddDocumentButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isTrue();
-		assertThat(presenter.getPrintButtonState(records.getChuckNorris(), records.getFolder_C30()).isVisible()).isTrue();
+		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
+		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
+		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
+		assertThat(presenter.getAddDocumentButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible())
+				.isTrue();
+		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
 	}
 
 	@Test
@@ -219,24 +313,27 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams("C50");
 		givenRemovedPermissionToModifyBorrowedFolder(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
 		displayFolderView.navigateTo().displayFolder("C50");
-		presenter.borrowFolder(nowDateTime.toDate(), records.getChuckNorris().getId());
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
 
 		displayFolderView.navigateTo().displayFolder("C50");
-		assertThat(presenter.getDeleteButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isFalse();
-		assertThat(presenter.getEditButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isFalse();
-		assertThat(presenter.getAddFolderButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isFalse();
-		assertThat(presenter.getAddDocumentButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isFalse();
-		assertThat(presenter.getPrintButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isFalse();
+		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
+		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
+		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible())
+				.isFalse();
+		assertThat(presenter.getAddDocumentButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible())
+				.isFalse();
+		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
 
 		givenNoRemovedPermissionsToModifyBorrowedFolder();
 		displayFolderView.navigateTo().displayFolder("C50");
 
 		displayFolderView.navigateTo().displayFolder("C50");
-		assertThat(presenter.getDeleteButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isTrue();
-		assertThat(presenter.getEditButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isTrue();
-		assertThat(presenter.getAddFolderButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isTrue();
-		assertThat(presenter.getAddDocumentButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isTrue();
-		assertThat(presenter.getPrintButtonState(records.getChuckNorris(), records.getFolder_C50()).isVisible()).isTrue();
+		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
+		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
+		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
+		assertThat(presenter.getAddDocumentButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible())
+				.isTrue();
+		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
 	}
 
 	@Test
@@ -245,25 +342,264 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		List<LabelTemplate> labelTemplates = presenter.getTemplates();
 
-		assertThat(labelTemplates).hasSize(2);
+		assertThat(labelTemplates).hasSize(6);
 
-		assertThat(labelTemplates.get(0).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
-		assertThat(labelTemplates.get(0).getColumns()).isEqualTo(30);
-		assertThat(labelTemplates.get(0).getLines()).isEqualTo(11);
-		assertThat(labelTemplates.get(0).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5159");
-		assertThat(labelTemplates.get(0).getName()).isEqualTo("Code de plan justifié à gauche");
-		assertThat(labelTemplates.get(0).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
-		assertThat(labelTemplates.get(0).getFields()).hasSize(6);
+		assertThat(labelTemplates.get(0).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5159");
+		assertThat(labelTemplates.get(0).getName()).isEqualTo("Code de plan justifié à droite (Avery 5159)");
 
-		assertThat(labelTemplates.get(1).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
-		assertThat(labelTemplates.get(1).getColumns()).isEqualTo(30);
-		assertThat(labelTemplates.get(1).getLines()).isEqualTo(11);
-		assertThat(labelTemplates.get(1).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5159");
-		assertThat(labelTemplates.get(1).getName()).isEqualTo("Code de plan justifié à droite");
-		assertThat(labelTemplates.get(1).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
-		assertThat(labelTemplates.get(1).getFields()).hasSize(6);
+		assertThat(labelTemplates.get(1).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5161");
+		assertThat(labelTemplates.get(1).getName()).isEqualTo("Code de plan justifié à droite (Avery 5161)");
+
+		assertThat(labelTemplates.get(2).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5163");
+		assertThat(labelTemplates.get(2).getName()).isEqualTo("Code de plan justifié à droite (Avery 5163)");
+
+		assertThat(labelTemplates.get(3).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5159");
+		assertThat(labelTemplates.get(3).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5159)");
+
+		assertThat(labelTemplates.get(4).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5161");
+		assertThat(labelTemplates.get(4).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5161)");
+
+		assertThat(labelTemplates.get(5).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5163");
+		assertThat(labelTemplates.get(5).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5163)");
+
 	}
 
+	@Test
+	public void givenBorrowedFolderWhenRemindingReturnThenOk()
+			throws Exception {
+
+		givenTimeIs(shishOClock);
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
+		Folder folderC30 = rmRecords.getFolder_C30();
+
+		presenter.forParams("C30");
+		presenter.reminderReturnFolder();
+
+		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
+				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
+		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
+				.where(subjectMetadata).isContainingText($("DisplayFolderView.returnFolderReminder") + folderC30.getTitle());
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		List<Record> emailToSendRecords = searchServices.search(query);
+
+		assertThat(emailToSendRecords).hasSize(1);
+		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
+		assertThat(emailToSend.getSendOn()).isEqualTo(shishOClock);
+		assertThat(emailToSend.getSubject()).isEqualTo($("DisplayFolderView.returnFolderReminder") + folderC30.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+		assertThat(emailToSend.getTo().get(0).getEmail())
+				.isEqualTo(rmSchemasRecordsServices.getUser(folderC30.getBorrowUser()).getEmail());
+		assertThat(emailToSend.getTo().get(0).getName())
+				.isEqualTo(rmSchemasRecordsServices.getUser(folderC30.getBorrowUser()).getTitle());
+		assertThat(emailToSend.getError()).isNull();
+		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
+		assertThat(emailToSend.getParameters()).hasSize(4);
+		assertThat(emailToSend.getParameters().get(0)).isEqualTo("previewReturnDate:" + folderC30.getBorrowPreviewReturnDate());
+		assertThat(emailToSend.getParameters().get(1))
+				.isEqualTo("borrower:" + chuckNorris);
+		assertThat(emailToSend.getParameters().get(2)).isEqualTo("borrowedFolderTitle:" + folderC30.getTitle());
+		assertThat(emailToSend.getParameters().get(3))
+				.isEqualTo("title:" + $("DisplayFolderView.returnFolderReminder") + " \"" + folderC30.getTitle() + "\"");
+		assertThat(emailToSend.getFrom()).isEqualTo(null);
+		verify(displayFolderView).showMessage($("DisplayFolderView.reminderEmailSent"));
+	}
+
+	//
+	@Test
+	public void givenNoBorrowedFolderThenRemiderButtonIsNotVisible()
+			throws Exception {
+
+		User currentUser = rmRecords.getChuckNorris();
+
+		presenter.forParams("C30");
+		assertThat(presenter.getReminderReturnFolderButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
+	}
+
+	@Test
+	public void givenBorrowedFolderAndBorrowerThenReminderButtonIsNotVisible()
+			throws Exception {
+
+		User currentUser = rmRecords.getChuckNorris();
+
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
+		assertThat(presenter.getReminderReturnFolderButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
+	}
+
+	@Test
+	public void givenBorrowedFolderAndAnotherUserThenReminderButtonIsVisible()
+			throws Exception {
+
+		User currentUser = rmRecords.getChuckNorris();
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, currentUser.getId(), BorrowingType.BORROW, null);
+
+		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
+		currentUser = rmRecords.getBob_userInAC();
+		presenter = new DisplayFolderPresenter(displayFolderView);
+		presenter.forParams("C30");
+
+		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
+	}
+	//
+
+	@Test
+	public void givenNoBorrowedFolderThenAlertButtonIsNotVisible()
+			throws Exception {
+
+		User currentUser = rmRecords.getChuckNorris();
+
+		presenter.forParams("C30");
+		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
+	}
+
+	@Test
+	public void givenBorrowedFolderAndBorrowerThenAlertButtonIsNotVisible()
+			throws Exception {
+
+		User currentUser = rmRecords.getChuckNorris();
+
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
+		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
+	}
+
+	@Test
+	public void givenBorrowedFolderAndAnotherUserThenAlertButtonIsVisible()
+			throws Exception {
+
+		User currentUser = rmRecords.getChuckNorris();
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, currentUser.getId(), BorrowingType.BORROW, null);
+
+		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
+		currentUser = rmRecords.getBob_userInAC();
+		presenter = new DisplayFolderPresenter(displayFolderView);
+		presenter.forParams("C30");
+
+		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
+	}
+
+	@Test
+	public void whenAlertWhenAvailableThenOk()
+			throws Exception {
+
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
+
+		presenter.forParams("C30");
+		presenter.alertWhenAvailable();
+
+		Folder folderC30 = rmRecords.getFolder_C30();
+		assertThat(folderC30.getAlertUsersWhenAvailable()).hasSize(1);
+		assertThat(folderC30.getAlertUsersWhenAvailable().get(0)).isEqualTo(rmRecords.getChuckNorris().getId());
+	}
+
+	@Test
+	public void givenSomeUsersToAlertWhenAlertWhenAvailableClickedManyTimeThenAlertOnceToEachUser()
+			throws Exception {
+
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
+
+		presenter.forParams("C30");
+		presenter.alertWhenAvailable();
+		presenter.alertWhenAvailable();
+
+		connectWithBob();
+
+		presenter.forParams("C30");
+		presenter.alertWhenAvailable();
+		presenter.alertWhenAvailable();
+
+		Folder folderC30 = rmRecords.getFolder_C30();
+		assertThat(folderC30.getAlertUsersWhenAvailable()).hasSize(2);
+		assertThat(folderC30.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getChuckNorris().getId(),
+				rmRecords.getBob_userInAC().getId());
+	}
+
+	@Test
+	public void givenTwoUsersToAlertWhenReturnFolderThenOneEmailToSend()
+			throws Exception {
+
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
+
+		presenter.forParams("C30");
+		presenter.alertWhenAvailable();
+
+		connectWithBob();
+
+		presenter.forParams("C30");
+		presenter.alertWhenAvailable();
+
+		connectWithChuck();
+
+		presenter.forParams("C30");
+		presenter.returnFolder(nowDate);
+		recordServices.flush();
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		searchEmailsToSend(query);
+		List<Record> emailToSendRecords = searchServices.search(query);
+
+		assertThat(emailToSendRecords.size()).isEqualTo(1);
+		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
+		assertThat(emailToSend.getTo()).hasSize(2);
+		assertThat(emailToSend.getTo()).extracting("email")
+				.containsOnly(rmRecords.getChuckNorris().getEmail(), rmRecords.getBob_userInAC().getEmail());
+	}
+
+	@Test
+	public void givenUserToAlertWhenReturnFolderThenEmailToSendIsCreated()
+			throws Exception {
+
+		presenter.forParams("C30");
+		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
+
+		presenter.forParams("C30");
+		presenter.alertWhenAvailable();
+
+		givenTimeIs(shishOClock);
+		presenter.forParams("C30");
+		presenter.returnFolder(shishOClock.toLocalDate());
+
+		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
+				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
+		Metadata sendOnMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
+				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SEND_ON);
+		User chuck = rmRecords.getChuckNorris();
+		Folder folderC30 = rmRecords.getFolder_C30();
+		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
+				.where(subjectMetadata).isContainingText(folderC30.getTitle())
+				.andWhere(sendOnMetadata).is(shishOClock);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		List<Record> emailToSendRecords = searchServices.search(query);
+		System.out.println(query.getQuery());
+
+		assertThat(emailToSendRecords).hasSize(1);
+		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
+		assertThat(emailToSend.getTo()).hasSize(1);
+		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(chuck.getTitle());
+		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(chuck.getEmail());
+		assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le folder est disponible " + folderC30.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+		assertThat(emailToSend.getError()).isNull();
+		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
+		assertThat(emailToSend.getParameters()).hasSize(2);
+		assertThat(emailToSend.getParameters().get(0)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock);
+		assertThat(emailToSend.getParameters().get(1))
+				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + folderC30.getTitle());
+	}
+
+	//
 	private void givenRemovedPermissionToModifyBorrowedFolder(String permission) {
 
 		for (Role role : rolesManager.getAllRoles(zeCollection)) {
@@ -294,5 +630,29 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	private MetadataSchemaTypes getSchemaTypes() {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+	}
+
+	private void searchEmailsToSend(LogicalSearchQuery query) {
+		Folder folderC30 = rmRecords.getFolder_C30();
+		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
+				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
+		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
+				.where(subjectMetadata).isContainingText(folderC30.getTitle());
+
+		query.setCondition(condition);
+	}
+
+	private void connectWithBob() {
+		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
+		presenter = new DisplayFolderPresenter(displayFolderView);
+	}
+
+	private void connectWithChuck() {
+		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
+		presenter = new DisplayFolderPresenter(displayFolderView);
 	}
 }

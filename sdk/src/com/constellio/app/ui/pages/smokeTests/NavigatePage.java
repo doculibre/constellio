@@ -81,23 +81,23 @@ public class NavigatePage extends PageHelper {
 	}
 
 	public ConstellioWebElement getArchivesManagementButton() {
-		return driver.findElement(By.className("archivesManagementLink"));
+		return driver.findElement(By.className("archivesManagement"));
 	}
 
 	public ConstellioWebElement getRecordsManagementButton() {
-		return driver.findElement(By.className("recordsManagementLink"));
+		return driver.findElement(By.className("recordsManagement"));
 	}
 
 	public ConstellioWebElement getLogsButton() {
-		return driver.findElement(By.className("logsLink"));
+		return driver.findElement(By.className("logs"));
 	}
 
 	public ConstellioWebElement getAdminModuleButton() {
-		return driver.findElement(By.className("adminModuleLink"));
+		return driver.findElement(By.className("adminModule"));
 	}
 
 	public ConstellioWebElement getUserDocumentsButton() {
-		return driver.findElement(By.className("userDocumentsLink"));
+		return driver.findElement(By.className("userDocuments"));
 	}
 
 	public ConstellioWebElement getIntoFolder(int index) {

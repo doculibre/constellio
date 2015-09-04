@@ -28,6 +28,4 @@ public interface DecommissioningListView extends BaseView, ArchivesManagementVie
 	void setProcessable(FolderDetailVO folderVO);
 
 	void setPackageable(FolderDetailVO folderVO);
-
-	void removeFolder(FolderDetailVO folder);
 }

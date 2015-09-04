@@ -19,10 +19,10 @@ package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;

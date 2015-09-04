@@ -24,7 +24,6 @@ import java.io.InputStream;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -45,60 +44,44 @@ import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
+import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfileView {
-
-	private static final String UPDATE_PICTURE_STREAM_SOURCE = "ModifyProfileViewImpl-UpdatePictureStreamSource";
+	public static final String UPDATE_PICTURE_STREAM_SOURCE = "ModifyProfileViewImpl-UpdatePictureStreamSource";
 
 	private ProfileVO profileVO;
-
 	private VerticalLayout mainLayout;
-
 	private Panel panel;
-
 	private StreamResource imageResource;
-
 	private Embedded image;
-
 	private BaseForm<ProfileVO> form;
 
 	@PropertyId("username")
 	private TextField usernameField;
-
 	@PropertyId("image")
 	private BaseUploadField imageField;
-
 	@PropertyId("firstName")
 	private TextField firstNameField;
-
 	@PropertyId("lastName")
 	private TextField lastNameField;
-
 	@PropertyId("email")
 	private TextField emailField;
-
 	@PropertyId("phone")
 	private TextField phoneField;
-
 	@PropertyId("password")
 	private PasswordField passwordField;
-
 	@PropertyId("confirmPassword")
 	private PasswordField confirmPasswordField;
-
 	@PropertyId("oldPassword")
 	private PasswordField oldPasswordField;
-
 	@PropertyId("startTab")
-	private EnumWithSmallCodeOptionGroup startTabField;
-
+	private OptionGroup startTabField;
 	@PropertyId("defaultTabInFolderDisplay")
 	private EnumWithSmallCodeOptionGroup defaultTabInFolderDisplay;
-
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
 
@@ -120,7 +103,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
 	@Override
 	protected String getTitle() {
-		return $("ModifyPofilView.viewTitle");
+		return $("ModifyProfileView.viewTitle");
 	}
 
 	@Override
@@ -130,7 +113,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		mainLayout.setSpacing(true);
 
 		usernameField = new TextField();
-		usernameField.setCaption($("ModifyPofilView.username"));
+		usernameField.setCaption($("ModifyProfileView.username"));
 		usernameField.setRequired(true);
 		usernameField.setNullRepresentation("");
 		usernameField.setId("username");
@@ -148,8 +131,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		imageField = new BaseUploadField();
 		imageField.setId("image");
 		imageField.addStyleName("image");
-		imageField.setCaption($("ModifyPofilView.image"));
-		imageField.setUploadButtonCaption($("ModifyPofilView.upload"));
+		imageField.setCaption($("ModifyProfileView.image"));
+		imageField.setUploadButtonCaption($("ModifyProfileView.upload"));
 		imageField.setMultiValue(false);
 		imageField.setConverter(new TempFileUploadToContentVersionVOConverter());
 		imageField.addValidator(new Validator() {
@@ -182,7 +165,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		imageField.setEnabled(presenter.canModify());
 
 		firstNameField = new TextField();
-		firstNameField.setCaption($("ModifyPofilView.firstName"));
+		firstNameField.setCaption($("ModifyProfileView.firstName"));
 		firstNameField.setRequired(!presenter.isLDAPAuthentication());
 		firstNameField.setNullRepresentation("");
 		firstNameField.setId("firstName");
@@ -190,7 +173,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		firstNameField.setEnabled(presenter.canModify());
 
 		lastNameField = new TextField();
-		lastNameField.setCaption($("ModifyPofilView.lastName"));
+		lastNameField.setCaption($("ModifyProfileView.lastName"));
 		lastNameField.setRequired(!presenter.isLDAPAuthentication());
 		lastNameField.setNullRepresentation("");
 		lastNameField.setId("lastName");
@@ -198,16 +181,16 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		lastNameField.setEnabled(presenter.canModify());
 
 		emailField = new TextField();
-		emailField.setCaption($("ModifyPofilView.email"));
+		emailField.setCaption($("ModifyProfileView.email"));
 		emailField.setRequired(!presenter.isLDAPAuthentication());
 		emailField.setNullRepresentation("");
 		emailField.setId("email");
 		emailField.addStyleName("email");
-		emailField.addValidator(new EmailValidator($("ModifyPofilView.invalidEmail")));
+		emailField.addValidator(new EmailValidator($("ModifyProfileView.invalidEmail")));
 		emailField.setEnabled(presenter.canModify());
 
 		phoneField = new TextField();
-		phoneField.setCaption($("ModifyPofilView.phone"));
+		phoneField.setCaption($("ModifyProfileView.phone"));
 		phoneField.setRequired(false);
 		phoneField.setNullRepresentation("");
 		phoneField.setId("phone");
@@ -215,7 +198,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		phoneField.setEnabled(presenter.canModify());
 
 		passwordField = new PasswordField();
-		passwordField.setCaption($("ModifyPofilView.password"));
+		passwordField.setCaption($("ModifyProfileView.password"));
 		passwordField.setNullRepresentation("");
 		passwordField.setId("password");
 		passwordField.addStyleName("password");
@@ -235,7 +218,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		passwordField.setEnabled(presenter.canModifyPassword());
 
 		confirmPasswordField = new PasswordField();
-		confirmPasswordField.setCaption($("ModifyPofilView.confirmPassword"));
+		confirmPasswordField.setCaption($("ModifyProfileView.confirmPassword"));
 		confirmPasswordField.setNullRepresentation("");
 		confirmPasswordField.setId("confirmPassword");
 		confirmPasswordField.addStyleName("confirmPassword");
@@ -245,7 +228,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 					throws InvalidValueException {
 				if (passwordField.getValue() != null && !passwordField.getValue().equals(confirmPasswordField.getValue())) {
 					confirmPasswordField.focus();
-					throw new InvalidValueException($("ModifyPofilView.passwordsFieldsMustBeEquals"));
+					throw new InvalidValueException($("ModifyProfileView.passwordsFieldsMustBeEquals"));
 				}
 			}
 		};
@@ -253,21 +236,21 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		confirmPasswordField.setEnabled(presenter.canModifyPassword());
 
 		oldPasswordField = new PasswordField();
-		oldPasswordField.setCaption($("ModifyPofilView.oldPassword"));
+		oldPasswordField.setCaption($("ModifyProfileView.oldPassword"));
 		oldPasswordField.setNullRepresentation("");
 		oldPasswordField.setId("oldPassword");
 		oldPasswordField.addStyleName("oldPassword");
 		oldPasswordField.setEnabled(presenter.canModifyPassword());
 
-		startTabField = new EnumWithSmallCodeOptionGroup(StartTab.class);
-		startTabField.setCaption($("ModifyPofilView.startTab"));
+		startTabField = new OptionGroup($("ModifyProfileView.startTab"));
 		startTabField.setId("startTab");
-		startTabField.setItemCaption(StartTab.RECENT_FOLDERS, $("ModifyPofilView." + StartTab.RECENT_FOLDERS));
-		startTabField.setItemCaption(StartTab.RECENT_DOCUMENTS, $("ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
-		startTabField.setItemCaption(StartTab.TAXONOMIES, $("ModifyPofilView." + StartTab.TAXONOMIES));
+		for (String tab : presenter.getAvailableHomepageTabs()) {
+			startTabField.addItem(tab);
+			startTabField.setItemCaption(tab, $("HomeView.tab." + tab));
+		}
 
 		defaultTabInFolderDisplay = new EnumWithSmallCodeOptionGroup(DefaultTabInFolderDisplay.class);
-		defaultTabInFolderDisplay.setCaption($("ModifyPofilView.defaultTabInFolderDisplay"));
+		defaultTabInFolderDisplay.setCaption($("ModifyProfileView.defaultTabInFolderDisplay"));
 		defaultTabInFolderDisplay.setId("defaultTabInFolderDisplay");
 		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.SUB_FOLDERS,
 				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.SUB_FOLDERS));
@@ -276,7 +259,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.METADATA,
 				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
 
-		taxonomyField = new ListOptionGroup($("ModifyPofilView.defaultTaxonomy"));
+		taxonomyField = new ListOptionGroup($("ModifyProfileView.defaultTaxonomy"));
 		taxonomyField.addStyleName("defaultTaxonomy");
 		taxonomyField.setId("defaultTaxonomy");
 		taxonomyField.setMultiSelect(false);

@@ -52,7 +52,7 @@ public class MigrationScriptsComparator implements Comparator<Migration> {
 		return result;
 	}
 
-	public static MigrationScriptsComparator forModules(List<Module> modules) {
+	public static MigrationScriptsComparator forModules(List<? extends Module> modules) {
 		Map<String, Set<String>> dependencies = new HashMap<>();
 		for (Module module : modules) {
 			dependencies.put(module.getId(), new HashSet<>(module.getDependencies()));

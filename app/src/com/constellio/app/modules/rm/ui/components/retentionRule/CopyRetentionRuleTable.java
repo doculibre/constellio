@@ -46,7 +46,7 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
-import com.vaadin.ui.AbstractSelect;
+import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -369,12 +369,14 @@ public class CopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>>
 					copyRetentionRule.getSemiActiveRetentionPeriod();
 
 			if (formMode) {
-				BeanItemContainer<VariableRetentionPeriodVO> container =
-						new BeanItemContainer<>(VariableRetentionPeriodVO.class, getVariablePeriods());
+				BeanItemContainer<VariableRetentionPeriodVO> container = new BeanItemContainer<>(VariableRetentionPeriodVO.class,
+						getVariablePeriods());
 				final ComboBox openRetentionPeriodDDVField = new ComboBox("", container);
 				openRetentionPeriodDDVField.setInputPrompt($("fixedPeriod"));
-				openRetentionPeriodDDVField.setItemCaptionMode(AbstractSelect.ItemCaptionMode.PROPERTY);
-				openRetentionPeriodDDVField.setItemCaptionPropertyId("code");
+				openRetentionPeriodDDVField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+				for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {
+					openRetentionPeriodDDVField.setItemCaption(periodVO, periodVO.getCode() + " - " + periodVO.getTitle());
+				}
 
 				final MiniTextField yearsField = new MiniTextField();
 				yearsField.setConverter(new StringToIntegerConverter());
@@ -387,6 +389,8 @@ public class CopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>>
 					for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {
 						if (periodVO.getCode().equals(retentionPeriod.getVariablePeriodCode())) {
 							openRetentionPeriodDDVField.setValue(periodVO);
+							openRetentionPeriodDDVField
+									.setItemCaption(periodVO, periodVO.getCode() + " - " + periodVO.getTitle());
 							break;
 						}
 					}

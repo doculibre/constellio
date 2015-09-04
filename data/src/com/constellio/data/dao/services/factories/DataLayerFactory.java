@@ -83,10 +83,10 @@ public class DataLayerFactory extends LayerFactory {
 		this.bigVaultLogger = BigVaultLogger.disabled();
 		this.ioServicesFactory = ioServicesFactory;
 		this.solrServerFactory = newSolrServerFactory();
-		this.solrServers = new SolrServers(solrServerFactory, bigVaultLogger);
+		this.solrServers = new SolrServers(solrServerFactory, bigVaultLogger, dataLayerExtensions);
 		this.dataLayerLogger = new DataLayerLogger();
 
-		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration.getBackgroudThreadsPoolSize()));
+		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration));
 
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(),
@@ -124,9 +124,9 @@ public class DataLayerFactory extends LayerFactory {
 		}
 
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
-			secondTransactionLogManager = add(
-					new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServicesFactory.newIOServices(),
-							newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger));
+			secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
+					ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
+					dataLayerExtensions.getSystemWideExtensions()));
 		} else {
 			secondTransactionLogManager = null;
 		}
@@ -191,6 +191,7 @@ public class DataLayerFactory extends LayerFactory {
 	@Override
 	public void initialize() {
 		super.initialize();
+		newRecordDao().removeOldLocks();
 	}
 
 	@Override

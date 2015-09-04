@@ -34,7 +34,6 @@ import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.FieldEvents.FocusEvent;
 import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.event.MouseEvents;
@@ -69,7 +68,6 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME = "header-show-advanced-search-button-popup-visible";
 
 	private final ConstellioHeaderPresenter presenter;
-	private ObjectProperty<String> searchFieldProperty;
 	private TextField searchField;
 	private ComboBox types;
 	private PopupView advancedSearchForm;
@@ -80,14 +78,9 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		presenter = new ConstellioHeaderPresenter(this);
 
 		Resource resource = presenter.getUserLogoResource();
-		Image logo;
-		if (resource != null) {
-			logo = new Image("", resource);
-			logo.setHeight("30px");
-			logo.setWidth("203px");
-		} else {
-			logo = new Image("", new ThemeResource("images/logo_eim_203x30.png"));
-		}
+		Image logo = new Image("", resource != null ? resource : new ThemeResource("images/logo_eim_406x60.png"));
+		logo.setHeight("30px");
+		logo.setWidth("203px");
 		logo.setAlternateText(("logo"));
 
 		logo.addStyleName("header-logo");
@@ -100,9 +93,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		});
 
-		searchFieldProperty = new ObjectProperty<>(null, String.class);
-
-		searchField = new BaseTextField(searchFieldProperty);
+		searchField = new BaseTextField();
 		searchField.addStyleName("header-search");
 		searchField.addFocusListener(new FocusListener() {
 			@Override
@@ -177,6 +168,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 					searchField.setValue(null);
 					types.setValue(null);
 					clearAdvancedSearch.setEnabled(false);
+					adjustSearchFieldContent();
 				}
 			}
 		});
@@ -234,7 +226,17 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			}
 		});
 
-		HorizontalLayout bottom = new HorizontalLayout(advancedSearch, clearAdvancedSearch);
+		Button savedSearches = new Button($("AdvancedSearchView.savedSearches"));
+		savedSearches.addStyleName(ValoTheme.BUTTON_LINK);
+		savedSearches.addStyleName("saved-searches-button");
+		savedSearches.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.savedSearchPageRequested();
+			}
+		});
+
+		HorizontalLayout bottom = new HorizontalLayout(advancedSearch, clearAdvancedSearch, savedSearches);
 		bottom.addStyleName("header-advanced-search-form-clear-and-search-buttons");
 		bottom.setSpacing(true);
 
@@ -263,8 +265,7 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 		types.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				presenter.schemaTypeSelected((String) types.getValue());
-				clearAdvancedSearch.setEnabled(true);
+				selectAdvancedSearchSchemaType((String) types.getValue());
 			}
 		});
 
@@ -290,13 +291,9 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 
 	@Override
-	public void setAdvancedSearchSchemaType(String schemaTypeCode) {
-		criteria.setSchemaType(schemaTypeCode);
-	}
-
-	@Override
-	public void hideAdvancedSearchPopup() {
+	public ConstellioHeader hideAdvancedSearchPopup() {
 		advancedSearchForm.setPopupVisible(false);
+		return this;
 	}
 
 	@Override
@@ -305,8 +302,27 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 
 	@Override
+	public void setAdvancedSearchCriteria(List<Criterion> criteria) {
+		this.criteria.setSearchCriteria(criteria);
+	}
+
+	@Override
+	public void selectAdvancedSearchSchemaType(String schemaTypeCode) {
+		if (schemaTypeCode == null || !schemaTypeCode.equals(types.getValue())) {
+			types.setValue(schemaTypeCode);
+		}
+		presenter.schemaTypeSelected(schemaTypeCode);
+		clearAdvancedSearch.setEnabled(true);
+	}
+
+	@Override
 	public String getAdvancedSearchSchemaType() {
 		return presenter.getSchemaType();
+	}
+
+	@Override
+	public void setAdvancedSearchSchemaType(String schemaTypeCode) {
+		criteria.setSchemaType(schemaTypeCode);
 	}
 
 	@Override

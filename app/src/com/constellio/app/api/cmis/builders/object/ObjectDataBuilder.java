@@ -73,7 +73,9 @@ public class ObjectDataBuilder {
 		ObjectDataImpl result = new ObjectDataImpl();
 		ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
-		result.setProperties(compileProperties(record, filter, objectInfo));
+		if (result != null) {
+			result.setProperties(compileProperties(record, filter, objectInfo));
+		}
 
 		if (includeAllowableActions) {
 			result.setAllowableActions(new AllowableActionsBuilder(repository, record).build());

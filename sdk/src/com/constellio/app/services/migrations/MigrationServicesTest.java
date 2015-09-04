@@ -49,7 +49,6 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -103,7 +102,7 @@ public class MigrationServicesTest extends ConstellioTest {
 		when(aModule.getMigrationScripts()).thenReturn(
 				newArrayList(aModuleMigrationTo100, aModuleMigration101To102, aModuleMigration103To110));
 
-		when(moduleManager.getInstalledModules()).thenReturn(newArrayList((Module) aModule));
+		when(moduleManager.getInstalledModules()).thenReturn(newArrayList(aModule));
 	}
 
 	//@Test

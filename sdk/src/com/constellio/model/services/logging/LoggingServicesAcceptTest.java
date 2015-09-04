@@ -34,8 +34,9 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.notifications.Notification;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -44,7 +45,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
-import com.constellio.model.services.notifications.NotificationsServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
@@ -71,7 +71,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
 	LoggingServices loggingServices;
-	NotificationsServices notificationsServices;
 
 	RMSchemasRecordsServices rm;
 	private RMTestRecords records = new RMTestRecords(zeCollection);
@@ -92,7 +91,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		loggingServices = getModelLayerFactory().newLoggingServices();
-		notificationsServices = getModelLayerFactory().newNotificationsServices();
 
 		defineSchemasManager().using(zeCollectionSetup);
 		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
@@ -297,31 +295,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenCreatingEventThenCreateNotifications()
-			throws Exception {
-		givenTimeIs(shishOClock);
-		Transaction transaction = new Transaction().setUser(users.aliceIn(zeCollection));
-		Record record1 = new TestRecord(zeSchema, "record1");
-		record1.set(Schemas.FOLLOWERS, asList(users.alice().getUsername()));
-		transaction.add(record1);
-		recordServices.execute(transaction);
-		recordServices.flush();
-
-		List<Notification> notifications = notificationsServices
-				.getUnseenAndUnsentNotificationByUser(users.alice().getUsername());
-		List<Event> events = getAllEvents();
-		Event event = events.get(0);
-
-		assertThat(notifications).isNotEmpty();
-		assertThat(notifications.get(0).getCreatedOn()).isEqualTo(shishOClock);
-		assertThat(notifications.get(0).getIdEvent()).isEqualTo(event.getId());
-		assertThat(notifications.get(0).getSeenOn()).isNull();
-		assertThat(notifications.get(0).getSentOn()).isNull();
-		assertThat(notifications.get(0).getUser()).isEqualTo(users.alice().getUsername());
-		assertThat(event).isEqualToComparingFieldByField(events.get(0));
-	}
-
-	@Test
 	public void whenGrantPermissionThenLogValidEvents()
 			throws Exception {
 
@@ -386,7 +359,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		Event event = rm.wrapEvent(folders.get(0));
 		assertThat(event.getType()).isEqualTo(EventType.DELETE_FOLDER);
 		//assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
-
 	}
 
 	//TODO Nouha
@@ -456,7 +428,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		getDataLayerFactory().getDataLayerLogger().monitor("00000000279");
 
 		Folder folder = rm.newFolder().setTitle("Ze Folder").setRetentionRuleEntered(records.ruleId_1)
-				.setFilingSpaceEntered(records.filingId_A).setAdministrativeUnitEntered(records.unitId_10)
+				.setAdministrativeUnitEntered(records.unitId_10a)
 				.setCategoryEntered(records.categoryId_X110).setOpenDate(new LocalDate(2010, 4, 4));
 		User alice = users.aliceIn(zeCollection);
 
@@ -480,8 +452,8 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	public void whenModifyFolderThenCreateValidEvent()
 			throws Exception {
 
-		Folder folder = rm.newFolder().setRetentionRuleEntered(records.ruleId_1).setFilingSpaceEntered(records.filingId_A)
-				.setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X110).setTitle("titre1")
+		Folder folder = rm.newFolder().setRetentionRuleEntered(records.ruleId_1)
+				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X110).setTitle("titre1")
 				.setOpenDate(new LocalDate(2010, 1, 1));
 		User alice = users.aliceIn(zeCollection);
 

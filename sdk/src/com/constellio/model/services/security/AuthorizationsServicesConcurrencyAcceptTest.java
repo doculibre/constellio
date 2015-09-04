@@ -394,20 +394,21 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 		List<String> roles = Arrays.asList(Role.READ, Role.WRITE, Role.DELETE);
 
 		addAuthorizationWithoutDetaching(roles, Arrays.asList(users.legendsIn(zeCollection).getId()),
-				Arrays.asList(records.folder4.getId()));
+				Arrays.asList(records.folder4().getId()));
 		addAuthorizationWithoutDetaching(roles, Arrays.asList(users.heroesIn(zeCollection).getId()),
-				Arrays.asList(records.folder2.getId()));
+				Arrays.asList(records.folder2().getId()));
 		addAuthorizationWithoutDetaching(roles, Arrays.asList(users.gandalfIn(zeCollection).getId()),
-				Arrays.asList(records.taxo1_category1.getId()));
+				Arrays.asList(records.taxo1_category1().getId()));
 
 		waitForBatchProcess();
 
 		List<String> foundRecords = findAllFoldersAndDocuments(users.gandalfIn(zeCollection));
 
-		assertThat(foundRecords).containsOnly(records.folder1.getId(), records.folder2.getId(), records.folder2_1.getId(),
-				records.folder2_2.getId(), records.folder1_doc1.getId(), records.folder2_2_doc1.getId(),
-				records.folder2_2_doc2.getId(), records.folder4.getId(), records.folder4_1.getId(), records.folder4_2.getId(),
-				records.folder4_1_doc1.getId(), records.folder4_2_doc1.getId());
+		assertThat(foundRecords).containsOnly(records.folder1().getId(), records.folder2().getId(), records.folder2_1().getId(),
+				records.folder2_2().getId(), records.folder1_doc1().getId(), records.folder2_2_doc1().getId(),
+				records.folder2_2_doc2().getId(), records.folder4().getId(), records.folder4_1().getId(),
+				records.folder4_2().getId(),
+				records.folder4_1_doc1().getId(), records.folder4_2_doc1().getId());
 	}
 
 	private void addZeUltimateAuthorization()
@@ -419,7 +420,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, null, null, zeCollection);
 		List<String> grantedToPrincipals = Arrays.asList(users.chuckNorrisIn(zeCollection).getId());
-		List<String> grantedOnRecords = Arrays.asList(records.taxo1_fond1.getId());
+		List<String> grantedOnRecords = Arrays.asList(records.taxo1_fond1().getId());
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 

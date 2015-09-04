@@ -26,9 +26,8 @@ import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_AdministrativeUnit;
-import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_FilingSpace;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_User;
-import com.constellio.app.reports.builders.administration.plan.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -60,6 +59,9 @@ public class UserReportBuilder implements ReportBuilder {
 	private final Font fontValue = FontFactory.getFont("Arial", 10);
 	private final Font fontHeader = FontFactory.getFont("Arial", 14);
 
+	//	private float[] columnWidths = new float[] { 0.7f, 0.8f, 0.8f, 1.6f, /*1.7f,*/ 0.7f, 0.7f };
+	private float[] columnWidths = new float[] { 1.0f, 1.1f, 1.1f, 1.9f, /*1.7f,*/ 1.0f, .9f };
+
 	private UserReportModel model;
 
 	private PdfTableUtils pdfTableUtils;
@@ -73,7 +75,7 @@ public class UserReportBuilder implements ReportBuilder {
 	}
 
 	public String getFileExtension() {
-		return pdfTableUtils.PDF;
+		return PdfTableUtils.PDF;
 	}
 
 	public void build(OutputStream output)
@@ -129,9 +131,9 @@ public class UserReportBuilder implements ReportBuilder {
 
 	private PdfPCell getUserTableHeader() {
 
-		PdfPTable tableHeader = new PdfPTable(7);
+		PdfPTable tableHeader = new PdfPTable(6);
 
-		float[] columnWidths = new float[] { 0.7f, 0.8f, 0.8f, 1.6f, 1.7f, 0.7f, 0.7f };
+		//		float[] columnWidths = new float[] { 0.7f, 0.8f, 0.8f, 1.6f, /*1.7f,*/ 0.7f, 0.7f };
 
 		try {
 			tableHeader.setWidths(columnWidths);
@@ -143,7 +145,6 @@ public class UserReportBuilder implements ReportBuilder {
 		addHeaderCell(tableHeader, $("UserReport.lastname"), Rectangle.ALIGN_LEFT);
 		addHeaderCell(tableHeader, $("UserReport.firstname"), Rectangle.ALIGN_LEFT);
 		addHeaderCell(tableHeader, $("UserReport.username"), Rectangle.ALIGN_LEFT);
-		addHeaderCell(tableHeader, $("UserReport.gradingStations"), Rectangle.ALIGN_LEFT);
 		addHeaderCell(tableHeader, $("UserReport.unit"), Rectangle.ALIGN_CENTER);
 		addHeaderCell(tableHeader, $("UserReport.status"), Rectangle.ALIGN_CENTER);
 
@@ -155,9 +156,9 @@ public class UserReportBuilder implements ReportBuilder {
 
 	private PdfPCell getUserTable(UserReportModel_User user) {
 
-		PdfPTable userTable = new PdfPTable(7);
+		PdfPTable userTable = new PdfPTable(6);
 
-		float[] columnWidths = new float[] { 0.7f, 0.8f, 0.8f, 1.6f, 1.7f, 0.7f, 0.7f };
+		//		float[] columnWidths = new float[] { 0.7f, 0.8f, 0.8f, 1.6f, /*1.7f,*/ 0.7f, 0.7f };
 
 		try {
 			userTable.setWidths(columnWidths);
@@ -169,8 +170,6 @@ public class UserReportBuilder implements ReportBuilder {
 		addUserInfoCell(userTable, user.getLastName(), Rectangle.ALIGN_LEFT);
 		addUserInfoCell(userTable, user.getFirstName(), Rectangle.ALIGN_LEFT);
 		addUserInfoCell(userTable, user.getUserName(), Rectangle.ALIGN_LEFT);
-		addUserInfoCell(userTable, getFilingSpaces(user), Rectangle.ALIGN_LEFT);
-
 		addUserInfoCell(userTable, getAdminUnits(user), Rectangle.ALIGN_CENTER);
 		addUserInfoCell(userTable, user.getStatus(), Rectangle.ALIGN_CENTER);
 
@@ -213,21 +212,6 @@ public class UserReportBuilder implements ReportBuilder {
 		currentCell.setBorder(Rectangle.NO_BORDER);
 
 		table.addCell(currentCell);
-	}
-
-	private String getFilingSpaces(UserReportModel_User user) {
-
-		String fillingspaces = "";
-		String fillingSpaceLabel = "";
-
-		for (UserReportModel_FilingSpace fillingSpace : user.getFilingSpaces()) {
-			fillingSpaceLabel = fillingSpace.getCode() + " - " + fillingSpace.getLabel();
-			fillingspaces += fillingSpaceLabel + "\n";
-		}
-
-		fillingspaces += "\n";
-
-		return fillingspaces;
 	}
 
 	private String getAdminUnits(UserReportModel_User user) {

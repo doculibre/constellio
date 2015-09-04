@@ -82,4 +82,9 @@ public class MetadataDisplayConfig {
 	public MetadataDisplayConfig withMetadataGroup(String metadataGroup) {
 		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight, metadataGroup);
 	}
+
+	public static MetadataDisplayConfig inheriting(String metadataCode, MetadataDisplayConfig inheritance) {
+		return new MetadataDisplayConfig(inheritance.collection, metadataCode, inheritance.visibleInAdvancedSearch,
+				inheritance.inputType, inheritance.highlight, inheritance.metadataGroup);
+	}
 }

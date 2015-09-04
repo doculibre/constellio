@@ -31,9 +31,9 @@ import com.constellio.model.entities.records.wrappers.ApprovalTask;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.Task;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -42,7 +42,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AllUserAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.RolesCalculator;
-import com.constellio.model.services.schemas.calculators.UserTokensCalculator;
+import com.constellio.model.services.schemas.calculators.UserTokensCalculator2;
 import com.constellio.model.services.schemas.validators.DecisionValidator;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 
@@ -148,7 +148,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		userSchema.createUndeletable(User.ALL_USER_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
 				.asCalculated(AllUserAuthorizationsCalculator.class);
 		userSchema.createUndeletable(User.USER_TOKENS).setType(STRING).setMultivalue(true).defineDataEntry()
-				.asCalculated(UserTokensCalculator.class);
+				.asCalculated(UserTokensCalculator2.class);
 
 		userSchema.createUndeletable(User.JOB_TITLE).setType(STRING);
 		userSchema.createUndeletable(User.PHONE).setType(STRING);
@@ -175,17 +175,17 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder createTaskSchemaType(MetadataSchemaTypesBuilder typesBuilder,
 			MetadataSchemaTypeBuilder userSchema) {
-		MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.createNewSchemaType(Task.SCHEMA_TYPE);
+		MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.createNewSchemaType(WorkflowTask.SCHEMA_TYPE);
 		MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
-		taskSchema.createUndeletable(Task.ASSIGNED_TO).setType(REFERENCE).defineReferencesTo(userSchema);
-		taskSchema.createUndeletable(Task.ASSIGNED_ON).setType(DATE_TIME);
-		taskSchema.createUndeletable(Task.ASSIGN_CANDIDATES).setType(REFERENCE).defineReferencesTo(userSchema)
+		taskSchema.createUndeletable(WorkflowTask.ASSIGNED_TO).setType(REFERENCE).defineReferencesTo(userSchema);
+		taskSchema.createUndeletable(WorkflowTask.ASSIGNED_ON).setType(DATE_TIME);
+		taskSchema.createUndeletable(WorkflowTask.ASSIGN_CANDIDATES).setType(REFERENCE).defineReferencesTo(userSchema)
 				.setMultivalue(true);
-		taskSchema.createUndeletable(Task.FINISHED_BY).setType(REFERENCE).defineReferencesTo(userSchema);
-		taskSchema.createUndeletable(Task.FINISHED_ON).setType(DATE_TIME);
-		taskSchema.createUndeletable(Task.WORKFLOW_ID).setType(STRING);
-		taskSchema.createUndeletable(Task.WORKFLOW_RECORD_IDS).setType(STRING).setMultivalue(true);
-		taskSchema.createUndeletable(Task.DUE_DATE).setType(DATE_TIME);
+		taskSchema.createUndeletable(WorkflowTask.FINISHED_BY).setType(REFERENCE).defineReferencesTo(userSchema);
+		taskSchema.createUndeletable(WorkflowTask.FINISHED_ON).setType(DATE_TIME);
+		taskSchema.createUndeletable(WorkflowTask.WORKFLOW_ID).setType(STRING);
+		taskSchema.createUndeletable(WorkflowTask.WORKFLOW_RECORD_IDS).setType(STRING).setMultivalue(true);
+		taskSchema.createUndeletable(WorkflowTask.DUE_DATE).setType(DATE_TIME);
 
 		MetadataSchemaBuilder approvalTaskSchema = taskSchemaType.createCustomSchema(ApprovalTask.SCHEMA_LOCAL_CODE);
 		approvalTaskSchema.createUndeletable(ApprovalTask.DECISION).setType(STRING).addValidator(DecisionValidator.class);

@@ -30,8 +30,9 @@ import com.vaadin.ui.themes.ValoTheme;
 public abstract class WindowButton extends Button implements Button.ClickListener {
 	public static final String STYLE_NAME = "window-button";
 	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
+	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
 
-	private final String windowCaption;
+	private String windowCaption;
 	private final WindowConfiguration configuration;
 	private BaseWindow window;
 	private Integer zIndex;
@@ -69,7 +70,9 @@ public abstract class WindowButton extends Button implements Button.ClickListene
 		window.setResizable(configuration.isResizable());
 		window.setWidth(configuration.getWidth());
 		window.setHeight(configuration.getHeight());
-		window.setContent(buildWindowContent());
+		Component windowContent = buildWindowContent();
+		windowContent.addStyleName(WINDOW_CONTENT_STYLE_NAME);
+		window.setContent(windowContent);
 		if (zIndex != null) {
 			window.setZIndex(zIndex);
 		}
@@ -90,6 +93,10 @@ public abstract class WindowButton extends Button implements Button.ClickListene
 
 	public final void setZIndex(Integer zIndex) {
 		this.zIndex = zIndex;
+	}
+
+	public void setWindowCaption(String caption) {
+		windowCaption = caption;
 	}
 
 	protected abstract Component buildWindowContent();

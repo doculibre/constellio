@@ -21,9 +21,6 @@ import java.io.File;
 
 import org.joda.time.Duration;
 
-import com.constellio.model.services.notifications.EventEmailBuilder;
-import com.constellio.model.services.notifications.SmtpServerConfig;
-
 public interface ModelLayerConfiguration {
 
 	void validate();
@@ -42,10 +39,6 @@ public interface ModelLayerConfiguration {
 
 	File getImportationFolder();
 
-	EventEmailBuilder getEventEmailBuilder();
-
-	SmtpServerConfig getSmtpServerConfig();
-
 	Duration getDelayBeforeDeletingUnreferencedContents();
 
 	Duration getUnreferencedContentsThreadDelayBetweenChecks();
@@ -57,5 +50,7 @@ public interface ModelLayerConfiguration {
 	int getDelayBeforeSendingNotificationEmailsInMinutes();
 
 	String getMainDataLanguage();
+
+	void setMainDataLanguage(String language);
 
 }

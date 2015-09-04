@@ -23,8 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.model.enums.StartTab;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.services.security.authentification.AuthenticationService;
@@ -35,7 +35,6 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 
 @UiTest
 public class ModifyProfilePageAcceptTest extends ConstellioTest {
-
 	ConstellioWebDriver driver;
 	RMSchemasRecordsServices schemas;
 	UserServices userServices;
@@ -93,8 +92,8 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		assertThat(modifyProfilePage.getPasswordElement().getValue()).isEqualTo("");
 		assertThat(modifyProfilePage.getConfirmPasswordElement().getValue()).isEqualTo("");
 		assertThat(modifyProfilePage.getOldPasswordElement().getValue()).isEqualTo("");
-		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0)).isEqualTo($(
-				"ModifyPofilView." + StartTab.RECENT_FOLDERS));
+		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0))
+				.isEqualTo($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_FOLDERS));
 		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getCheckedValues()).isEmpty();
 	}
 
@@ -127,25 +126,22 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 
 	private void whenModifyInfosAndCancelThenInfosAreNotUpdated()
 			throws Exception {
-
 		modifyProfilePage.navigateToPage();
 		modifyProfilePage.getFirstNameElement().setValue("System1");
 		modifyProfilePage.getLastNameElement().setValue("Administrator");
 		modifyProfilePage.getEmailElement().setValue("administrator@constellio.com");
 		modifyProfilePage.getPhoneElement().setValue("33333333");
-		modifyProfilePage.getStartTabElement().toggle(StartTab.RECENT_DOCUMENTS.getCode());
+		modifyProfilePage.getStartTabElement().toggle($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
 		modifyProfilePage.getDefaultTaxonomyElement().toggle("plan");
-		modifyProfilePage.getCancelButton().click();
-		modifyProfilePage.getCancelButton().click();
-		modifyProfilePage.waitForPageReload();
+		modifyProfilePage.getCancelButton().clickAndWaitForPageReload();
 
 		modifyProfilePage.navigateToPage();
 		assertThat(modifyProfilePage.getFirstNameElement().getValue()).isEqualTo("System");
 		assertThat(modifyProfilePage.getLastNameElement().getValue()).isEqualTo("Admin");
 		assertThat(modifyProfilePage.getEmailElement().getValue()).isEqualTo("admin@organization.com");
 		assertThat(modifyProfilePage.getPhoneElement().getValue()).isEqualTo("");
-		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0)).isEqualTo($(
-				"ModifyPofilView." + StartTab.RECENT_FOLDERS));
+		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0))
+				.isEqualTo($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_FOLDERS));
 		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getCheckedValues()).isEmpty();
 	}
 
@@ -157,8 +153,7 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		modifyProfilePage.getLastNameElement().setValue("Administrator");
 		modifyProfilePage.getPhoneElement().setValue("33333333");
 		modifyProfilePage.getEmailElement().setValue("administrator@constellio.com");
-		modifyProfilePage.getStartTabElement().toggle($(
-				"ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
+		modifyProfilePage.getStartTabElement().toggle($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
 		modifyProfilePage.getDefaultTaxonomyElement().toggle("Plan de classification");
 		modifyProfilePage.getSaveButton().click();
 		modifyProfilePage.waitForPageReload();
@@ -168,23 +163,21 @@ public class ModifyProfilePageAcceptTest extends ConstellioTest {
 		assertThat(modifyProfilePage.getLastNameElement().getValue()).isEqualTo("Administrator");
 		assertThat(modifyProfilePage.getEmailElement().getValue()).isEqualTo("administrator@constellio.com");
 		assertThat(modifyProfilePage.getPhoneElement().getValue()).isEqualTo("33333333");
-		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0)).isEqualTo($(
-				"ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
+		assertThat(modifyProfilePage.getStartTabElement().getCheckedValues().get(0))
+				.isEqualTo($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
 		assertThat(modifyProfilePage.getDefaultTaxonomyElement().getCheckedValues().get(0)).isEqualTo("Plan de classification");
 
 	}
 
 	private void whenModifyInfosAndSaveWithMissingRequiredInfoThenStayInPage()
 			throws Exception {
-
 		modifyProfilePage.navigateToPage();
 
 		modifyProfilePage.getFirstNameElement().setValue("System1");
 		modifyProfilePage.getLastNameElement().setValue("");
 		modifyProfilePage.getEmailElement().setValue("administrator@constellio.com");
 		modifyProfilePage.getPhoneElement().setValue("33333333");
-		modifyProfilePage.getStartTabElement().toggle($(
-				"ModifyPofilView." + StartTab.RECENT_DOCUMENTS));
+		modifyProfilePage.getStartTabElement().toggle($("HomeView.tab." + RMNavigationConfiguration.LAST_VIEWED_DOCUMENTS));
 		modifyProfilePage.getDefaultTaxonomyElement().toggle("Plan de classification");
 		modifyProfilePage.getSaveButton().click();
 
