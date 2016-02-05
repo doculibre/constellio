@@ -1,44 +1,35 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf;
+
+import static java.util.Arrays.asList;
+
+import java.util.List;
+
+import org.joda.time.Duration;
 
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.sdk.SDKPasswords;
-import org.joda.time.Duration;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class LDAPTestConfig {
 
-	public static List<String> getUrls(){
-		return Arrays.asList(new String[]{getLDAPDevServerUrl()});
+	public static List<String> getUrls() {
+		return asList(new String[] { getLDAPDevServerUrl() });
 	}
 
-	public static String getLDAPDevServerUrl(){
-		return "ldap://sp2010.constellio.com:389";
+	public static String getLDAPDevServerUrl() {
+		return SDKPasswords.testLDAPServer();
 	}
 
-	public static List<String>getDomains() {
-		return Arrays.asList(new String[]{"test.doculibre.ca"});
+
+	public static List<String> getExchangeLDAPDevServerUrl() {
+		return asList(SDKPasswords.testExchangeLDAPServer());
+	}
+
+
+	public static List<String> getDomains() {
+		return asList(new String[] { "test" });
 	}
 
 	public static LDAPDirectoryType getDirectoryType() {
@@ -46,11 +37,11 @@ public class LDAPTestConfig {
 	}
 
 	public static List<String> getGroupBaseContextList() {
-		return Arrays.asList("OU=Groupes,DC=test,DC=doculibre,DC=ca");
+		return asList("OU=Groupes,DC=test,DC=doculibre,DC=ca");
 	}
 
 	public static String getPassword() {
-		return SDKPasswords.testLDAPServer();
+		return SDKPasswords.testLDAPPassword();
 	}
 
 	public static String getUser() {
@@ -58,7 +49,7 @@ public class LDAPTestConfig {
 	}
 
 	public static List<String> getUsersWithoutGroupsBaseContextList() {
-		return  Arrays.asList("CN=Users,DC=test,DC=doculibre,DC=ca");
+		return asList("CN=Users,DC=test,DC=doculibre,DC=ca");
 	}
 
 	public static RegexFilter getUserFiler() {
@@ -70,23 +61,47 @@ public class LDAPTestConfig {
 	}
 
 	public static LDAPServerConfiguration getLDAPServerConfiguration() {
-		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true);
+		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true, false);
+	}
+
+	public static LDAPServerConfiguration getSharepointLDAPServerConfiguration() {
+		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), true, true);
 	}
 
 	public static LDAPServerConfiguration getLDAPServerConfigurationInactive() {
-		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false);
+		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false, false);
 	}
 
-	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(List<String> selectedCollectionsCodes){
-		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), null, getGroupBaseContextList(),
+	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(
+			List<String> selectedCollectionsCodes) {
+		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), null,
+				getGroupBaseContextList(),
 				getUsersWithoutGroupsBaseContextList(), selectedCollectionsCodes);
 	}
 
-	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(){
-		return getLDAPUserSyncConfiguration(null);
+	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
+		return getLDAPUserSyncConfiguration((Duration) null);
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(Duration duration) {
-		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), duration, getGroupBaseContextList(), getUsersWithoutGroupsBaseContextList());
+		return new LDAPUserSyncConfiguration(getUser(), getPassword(), getUserFiler(), getGroupFiler(), duration,
+				getGroupBaseContextList(), getUsersWithoutGroupsBaseContextList());
 	}
+
+	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(String password) {
+		return new LDAPUserSyncConfiguration(getUser(), password, getUserFiler(), getGroupFiler(), null,
+				getGroupBaseContextList(), getUsersWithoutGroupsBaseContextList());
+	}
+
+
+	public static LDAPServerConfiguration getExchangeLDAPServerConfiguration() {
+		return new LDAPServerConfiguration(getExchangeLDAPDevServerUrl(), getDomains(), getDirectoryType(), true, false);
+	}
+
+	public static LDAPUserSyncConfiguration getExchangeLDAPUserSyncConfiguration() {
+		return new LDAPUserSyncConfiguration(getUser(), SDKPasswords.testExchangeLDAPPassword(), new RegexFilter("indexer.*", null), getGroupFiler(), null,
+				getGroupBaseContextList(),
+				getUsersWithoutGroupsBaseContextList(), asList("zeCollection"));
+	}
+
 }

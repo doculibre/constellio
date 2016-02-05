@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import java.util.ArrayList;
@@ -32,6 +15,8 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.sdk.tests.SystemLoadSimulator.SystemLoadLevel;
 import com.constellio.sdk.tests.TestPagesComponentsExtensions.BottomPanelBigVaultServerExtension;
 import com.constellio.sdk.tests.TestPagesComponentsExtensions.LoggedItem;
@@ -65,8 +50,24 @@ public class SDKPanel extends HorizontalLayout {
 		addComponent(newShowQueriesButton());
 		addComponent(newShowUpdatesButton());
 		addComponent(newResetButton(loadLabel));
+		addComponent(newReindexButton());
 
 		addComponent(loadLabel);
+	}
+
+	private Button newReindexButton() {
+		final Button resetButton = new Button("Reindex");
+		resetButton.addClickListener(new ClickListener() {
+
+			@Override
+			public synchronized void buttonClick(ClickEvent event) {
+				ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+
+			}
+
+		});
+		return resetButton;
 	}
 
 	private Component newShowQueriesButton() {
@@ -170,7 +171,7 @@ public class SDKPanel extends HorizontalLayout {
 
 	private BottomPanelBigVaultServerExtension bigVaultServerExtension() {
 		Iterator<BigVaultServerExtension> extensionIterator = ConstellioFactories.getInstance().getDataLayerFactory()
-				.getExtensions().getSystemWideExtensions().bigVaultServerExtension.iterator();
+				.getExtensions().getSystemWideExtensions().getBigVaultServerExtension().iterator();
 		while (extensionIterator.hasNext()) {
 			BigVaultServerExtension next = extensionIterator.next();
 			if (next instanceof BottomPanelBigVaultServerExtension) {

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -37,14 +20,17 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Item;
 import com.vaadin.data.Validator;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -123,6 +109,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 		fieldGroup = new FieldGroup(item) {
 			@Override
 			protected void configureField(Field<?> field) {
+				if (field instanceof AbstractField) {
+					AbstractField<?> abstractField = (AbstractField<?>) field;
+					abstractField.setValidationVisible(false);
+				}
 				field.setBuffered(isBuffered());
 				// Do not alter the readOnly and enabled states of the field
 			}
@@ -231,6 +221,16 @@ public abstract class BaseForm<T> extends CustomComponent {
 		fieldLayout.addComponent(field);
 	}
 
+	public void commit() {
+		for (Field<?> field : fieldGroup.getFields()) {
+			try {
+				field.commit();
+			} catch (SourceException | InvalidValueException e) {
+				// Ignore the error
+			}
+		}
+	}
+
 	/**
 	 * If this method is overriden and doesn't return null anymore, a tab sheet will be used to display the fields.
 	 *
@@ -269,6 +269,12 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	private void trySave() {
 		clearBackendValidators();
+		for (Field<?> field : fields) {
+			if (field instanceof AbstractField) {
+				AbstractField<?> abstractField = (AbstractField<?>) field;
+				abstractField.setValidationVisible(true);
+			}
+		}
 		if (fieldGroup.isValid()) {
 			try {
 				fieldGroup.commit();

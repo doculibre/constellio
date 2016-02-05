@@ -1,37 +1,29 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
@@ -44,21 +36,27 @@ public class ClassificationPlanReportPresenter {
 	private ModelLayerFactory modelLayerFactory;
 	private MetadataSchemaTypes types;
 	private TaxonomiesSearchOptions searchOptions;
-	private TaxonomiesSearchServices searchService;
+	private TaxonomiesSearchServices taxonomiesSearchServices;
+	private SearchServices searchServices;
 	private boolean detailed;
+	private String administrativeUnitId;
+	private RMSchemasRecordsServices rm;
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
-
-		this.collection = collection;
-		this.modelLayerFactory = modelLayerFactory;
-		detailed = false;
+		this(collection, modelLayerFactory, false);
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed) {
+		this(collection, modelLayerFactory, detailed, null);
+	}
+
+	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
+			String administrativeUnitId) {
 
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
-		this.detailed = detailed;
+		this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
+		this.administrativeUnitId = administrativeUnitId;
 	}
 
 	public ClassificationPlanReportModel build() {
@@ -66,35 +64,93 @@ public class ClassificationPlanReportPresenter {
 
 		ClassificationPlanReportModel model = new ClassificationPlanReportModel();
 		model.setDetailed(detailed);
+		model.setByAdministrativeUnit(StringUtils.isNotBlank(administrativeUnitId));
 
-		List<ClassificationPlanReportModel_Category> rootCategories = model.getRootCategories();
+		if (StringUtils.isNotBlank(administrativeUnitId)) {
 
-		List<TaxonomySearchRecord> taxonomySearchRecords = searchService.getLinkableRootConcept(User.GOD, collection,
-				RMTaxonomies.CLASSIFICATION_PLAN, Category.SCHEMA_TYPE, searchOptions);
+			List<ClassificationPlanReportModel_Category> classificationPlanReportModel_categories = new ArrayList<>();
 
-		if (taxonomySearchRecords != null) {
-			for (TaxonomySearchRecord taxonomyRecord : taxonomySearchRecords) {
+			Map<AdministrativeUnit, List<ClassificationPlanReportModel_Category>> categoriesByAdmUnit = model
+					.getCategoriesByAdministrativeUnitMap();
 
-				if (taxonomyRecord != null) {
-					Record record = taxonomyRecord.getRecord();
-					if (record != null) {
-						Category recordCategory = new Category(record, types);
+			MetadataSchemaType retentionRuleSchemaType = rm.retentionRuleSchemaType();
+			AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(administrativeUnitId);
 
-						if (recordCategory != null) {
-							ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
+			LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
+					.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
+							.where(rm.retentionRuleAdministrativeUnitsId())
+							.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
+			List<String> retentionRulesIds = searchServices.searchRecordIds(retentionRulesQuery);
 
-							String code = StringUtils.defaultString(recordCategory.getCode());
-							modelCategory.setCode(code);
+			for (String retentionRulesId : retentionRulesIds) {
 
-							String title = StringUtils.defaultString(recordCategory.getTitle());
-							modelCategory.setLabel(title);
+				MetadataSchemaType categorySchemaType = rm.categorySchemaType();
+				LogicalSearchQuery categoriesQuery = new LogicalSearchQuery()
+						.setCondition(LogicalSearchQueryOperators.from(categorySchemaType)
+								.where(rm.categoryRetentionRules())
+								.isContaining(Arrays.asList(retentionRulesId)))
+						.sortAsc(Schemas.CODE);
 
-							String description = StringUtils.defaultString(recordCategory.getDescription());
-							modelCategory.setDescription(description);
+				List<Record> categoryRecords = searchServices.search(categoriesQuery);
 
-							modelCategory.setCategories(getCategoriesForRecord(record));
+				for (Record categoryRecord : categoryRecords) {
+					Category recordCategory = new Category(categoryRecord, types);
+					if (recordCategory != null) {
+						ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
 
-							rootCategories.add(modelCategory);
+						String code = StringUtils.defaultString(recordCategory.getCode());
+						modelCategory.setCode(code);
+
+						String title = StringUtils.defaultString(recordCategory.getTitle());
+						modelCategory.setLabel(title);
+
+						String description = StringUtils.defaultString(recordCategory.getDescription());
+						modelCategory.setDescription(description);
+
+						modelCategory.setKeywords(recordCategory.getKeywords());
+
+						List<String> retentionRules = new ArrayList<>();
+						for (String retentionRuleId : recordCategory.getRententionRules()) {
+							retentionRules.add(rm.getRetentionRule(retentionRuleId).getCode());
+						}
+						modelCategory.setRetentionRules(retentionRules);
+
+						classificationPlanReportModel_categories.add(modelCategory);
+					}
+				}
+			}
+			categoriesByAdmUnit.put(administrativeUnit, classificationPlanReportModel_categories);
+		} else {
+			List<ClassificationPlanReportModel_Category> rootCategories = model.getRootCategories();
+
+			List<TaxonomySearchRecord> taxonomySearchRecords = taxonomiesSearchServices
+					.getLinkableRootConcept(User.GOD, collection,
+							RMTaxonomies.CLASSIFICATION_PLAN, Category.SCHEMA_TYPE, searchOptions);
+
+			if (taxonomySearchRecords != null) {
+				for (TaxonomySearchRecord taxonomyRecord : taxonomySearchRecords) {
+
+					if (taxonomyRecord != null) {
+						Record record = taxonomyRecord.getRecord();
+						if (record != null) {
+							Category recordCategory = new Category(record, types);
+
+							if (recordCategory != null) {
+								ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
+
+								String code = StringUtils.defaultString(recordCategory.getCode());
+								modelCategory.setCode(code);
+
+								String title = StringUtils.defaultString(recordCategory.getTitle());
+								modelCategory.setLabel(title);
+
+								String description = StringUtils.defaultString(recordCategory.getDescription());
+								modelCategory.setDescription(description);
+
+								modelCategory.setCategories(getCategoriesForRecord(record));
+
+								rootCategories.add(modelCategory);
+							}
 						}
 					}
 				}
@@ -107,13 +163,15 @@ public class ClassificationPlanReportPresenter {
 	private void init() {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
-		searchService = modelLayerFactory.newTaxonomiesSearchService();
+		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
+		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		searchServices = modelLayerFactory.newSearchServices();
 	}
 
 	private List<ClassificationPlanReportModel_Category> getCategoriesForRecord(Record record) {
 		List<ClassificationPlanReportModel_Category> modelCategories = new ArrayList<>();
 
-		List<TaxonomySearchRecord> children = searchService.getLinkableChildConcept(User.GOD, record,
+		List<TaxonomySearchRecord> children = taxonomiesSearchServices.getLinkableChildConcept(User.GOD, record,
 				RMTaxonomies.CLASSIFICATION_PLAN, Category.SCHEMA_TYPE, searchOptions);
 
 		if (children != null) {

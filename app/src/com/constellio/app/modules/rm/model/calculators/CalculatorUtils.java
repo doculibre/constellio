@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.model.calculators;
 
 import static org.joda.time.Days.daysBetween;
@@ -22,6 +5,8 @@ import static org.joda.time.Days.daysBetween;
 import java.util.List;
 
 import org.joda.time.LocalDate;
+
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 
 public class CalculatorUtils {
 
@@ -76,5 +61,41 @@ public class CalculatorUtils {
 		int yearEndMonth = Integer.parseInt(yearEndStr.substring(0, indexOfSep));
 		int yearEndDay = Integer.parseInt(yearEndStr.substring(indexOfSep + 1));
 		return date.getDayOfMonth() == yearEndDay && date.getMonthOfYear() == yearEndMonth;
+	}
+
+	public static LocalDate calculateExpectedTransferDate(CopyRetentionRule copyRule, LocalDate ajustedDecommissioningDate,
+			int numberOfYearWhenVariableDelay) {
+
+		if (ajustedDecommissioningDate == null) {
+			return null;
+		}
+
+		if (copyRule.getActiveRetentionPeriod().isVariablePeriod()) {
+			if (numberOfYearWhenVariableDelay == -1) {
+				return null;
+			} else {
+				return ajustedDecommissioningDate.plusYears(numberOfYearWhenVariableDelay);
+			}
+		} else {
+			return ajustedDecommissioningDate.plusYears(copyRule.getActiveRetentionPeriod().getFixedPeriod());
+		}
+
+	}
+
+	public static LocalDate calculateExpectedInactiveDate(CopyRetentionRule copyRule,
+			LocalDate baseTransferDate, int numberOfYearWhenVariableDelayPeriod) {
+
+		if (baseTransferDate == null) {
+			return null;
+		} else if (copyRule.getSemiActiveRetentionPeriod().isVariablePeriod()) {
+			if (numberOfYearWhenVariableDelayPeriod == -1) {
+				return null;
+			} else {
+				return baseTransferDate.plusYears(numberOfYearWhenVariableDelayPeriod);
+			}
+		} else {
+			return baseTransferDate.plusYears(copyRule.getSemiActiveRetentionPeriod().getFixedPeriod());
+		}
+
 	}
 }

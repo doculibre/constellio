@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import java.util.ArrayList;
@@ -23,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Taxonomy;
@@ -30,14 +14,18 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.InheritedMetadataBehaviors;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.encrypt.EncryptionServices;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.MetadataCannotBeUniqueAndMultivalue;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -65,7 +53,8 @@ public class MetadataBuilder {
 	private boolean searchable = false;
 	private boolean schemaAutocomplete = false;
 	private boolean sortable = false;
-	private boolean writeNullValues = true;
+	private boolean encrypted = false;
+	private boolean essentialInSummary = false;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
 	private ClassListBuilder<RecordMetadataValidator<?>> recordMetadataValidators;
@@ -74,6 +63,7 @@ public class MetadataBuilder {
 	private Class<? extends Enum<?>> enumClass;
 	private Metadata originalMetadata;
 	private Object defaultValue = null;
+	private MetadataPopulateConfigsBuilder populateConfigsBuilder;
 
 	MetadataBuilder() {
 	}
@@ -91,6 +81,7 @@ public class MetadataBuilder {
 		builder.dataEntry = defaultMetadata.dataEntry;
 		builder.defaultValue = copy(defaultMetadata.defaultValue);
 		builder.recordMetadataValidators = new ClassListBuilder<>(RecordMetadataValidator.class);
+		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(defaultMetadata.getPopulateConfigsBuilder());
 
 		return builder;
 	}
@@ -112,6 +103,7 @@ public class MetadataBuilder {
 		builder.setCode(schemaBuilder.getCode() + UNDERSCORE + localCode);
 		builder.recordMetadataValidators = new ClassListBuilder<>(RecordMetadataValidator.class);
 		builder.accessRestrictionBuilder = MetadataAccessRestrictionBuilder.create();
+		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
 		return builder;
 	}
 
@@ -146,8 +138,9 @@ public class MetadataBuilder {
 		builder.unmodifiable = metadata.isUnmodifiable();
 		builder.uniqueValue = metadata.isUniqueValue();
 		builder.systemReserved = metadata.isSystemReserved();
+		builder.encrypted = metadata.isEncrypted();
 		builder.essential = metadata.isEssential();
-		builder.writeNullValues = metadata.isWriteNullValues();
+		builder.essentialInSummary = metadata.isEssentialInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.defaultValue = metadata.getDefaultValue();
@@ -162,6 +155,7 @@ public class MetadataBuilder {
 		if (metadata.getAllowedReferences() != null) {
 			builder.allowedReferencesBuilder = new AllowedReferencesBuilder(metadata.getAllowedReferences());
 		}
+		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -179,10 +173,11 @@ public class MetadataBuilder {
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
+		builder.encrypted = metadata.isEncrypted();
 		builder.uniqueValue = metadata.isUniqueValue();
 		builder.systemReserved = metadata.isSystemReserved();
 		builder.essential = metadata.isEssential();
-		builder.writeNullValues = metadata.isWriteNullValues();
+		builder.essentialInSummary = metadata.isEssentialInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(RecordMetadataValidator.class,
@@ -206,6 +201,7 @@ public class MetadataBuilder {
 				&& inheritanceMetadata.getDefaultRequirement().equals(metadata.isDefaultRequirement())) {
 			builder.setDefaultRequirement(null);
 		}
+		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
 	}
 
 	public MetadataBuilder getInheritance() {
@@ -352,6 +348,10 @@ public class MetadataBuilder {
 		return inheritance == null ? essential : inheritance.essential;
 	}
 
+	public boolean isEssentialInSummary() {
+		return inheritance == null ? essentialInSummary : inheritance.essentialInSummary;
+	}
+
 	public MetadataBuilder setEssential(boolean essential) {
 		ensureCanModify("essential");
 		this.essential = essential;
@@ -361,13 +361,19 @@ public class MetadataBuilder {
 		return this;
 	}
 
-	public boolean isWriteNullValues() {
-		return inheritance == null ? writeNullValues : inheritance.writeNullValues;
+	public MetadataBuilder setEssentialInSummary(boolean essentialInSummary) {
+		ensureCanModify("essentialInSummary");
+		this.essentialInSummary = essentialInSummary;
+		return this;
 	}
 
-	public MetadataBuilder setWriteNullValues(boolean writeNullValues) {
-		ensureCanModify("writeNullValues");
-		this.writeNullValues = writeNullValues;
+	public boolean isEncrypted() {
+		return inheritance == null ? encrypted : inheritance.encrypted;
+	}
+
+	public MetadataBuilder setEncrypted(boolean encrypted) {
+		ensureCanModify("encrypted");
+		this.encrypted = encrypted;
 		return this;
 	}
 
@@ -380,12 +386,25 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public MetadataPopulateConfigsBuilder getPopulateConfigsBuilder() {
+		return populateConfigsBuilder;
+	}
+
+	public MetadataPopulateConfigsBuilder definePopulateConfigsBuilder(MetadataPopulateConfigsBuilder populateConfigsBuilder) {
+		this.populateConfigsBuilder = populateConfigsBuilder;
+		return this.populateConfigsBuilder;
+	}
+
 	AllowedReferencesBuilder getAllowedReferencesBuider() {
 		return inheritance == null ? allowedReferencesBuilder : inheritance.allowedReferencesBuilder;
 	}
 
 	public Boolean getDefaultRequirement() {
 		return defaultRequirement;
+	}
+
+	public MetadataBuilder required() {
+		return setDefaultRequirement(true);
 	}
 
 	public MetadataBuilder setDefaultRequirement(Boolean defaultRequirement) {
@@ -495,14 +514,27 @@ public class MetadataBuilder {
 		if (this.getDefaultRequirement() == null) {
 			this.defaultRequirement = inheritance.isDefaultRequirement();
 		}
+		if (!this.getPopulateConfigsBuilder().isEmpty()) {
+			this.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(this.getPopulateConfigsBuilder());
+		} else {
+			this.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(inheritance.getPopulateConfigs());
+		}
 
 		validateWithInheritance(inheritance, this);
 
+		MetadataPopulateConfigs populateConfigs = this.populateConfigsBuilder.build();
+		if (originalMetadata != null && this.inheritance != null && this.inheritance.originalMetadata != null && populateConfigs
+				.equals(originalMetadata.getPopulateConfigs())) {
+			if (originalMetadata.getPopulateConfigs().equals(this.inheritance.originalMetadata.getPopulateConfigs())) {
+				populateConfigs = inheritance.getPopulateConfigs();
+			}
+		}
+
 		return new Metadata(inheritance, this.getLabel(), this.getEnabled(), this.getDefaultRequirement(), this.code,
-				this.recordMetadataValidators.build(), this.defaultValue);
+				this.recordMetadataValidators.build(), this.defaultValue, populateConfigs);
 	}
 
-	Metadata buildWithoutInheritance(DataStoreTypesFactory typesFactory, TaxonomiesManager taxonomiesManager) {
+	Metadata buildWithoutInheritance(DataStoreTypesFactory typesFactory, final ModelLayerFactory modelLayerFactory) {
 
 		AllowedReferences references = allowedReferencesBuilder == null ? null : allowedReferencesBuilder.build();
 		Set<RecordMetadataValidator<?>> validators = this.recordMetadataValidators.build();
@@ -520,7 +552,7 @@ public class MetadataBuilder {
 		}
 
 		if (references != null && taxonomyRelationship && multivalue) {
-
+			TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 			validateNotReferencingTaxonomy(references.getTypeWithAllowedSchemas(), taxonomiesManager);
 		}
 
@@ -532,13 +564,21 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, writeNullValues);
+				essential, encrypted, essentialInSummary);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
+		Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+			@Override
+			public EncryptionServices get() {
+				return modelLayerFactory.newEncryptionServices();
+			}
+		};
+
 		return new Metadata(localCode, this.getCode(), collection, this.getLabel(), this.getEnabled(), behaviors,
 				this.type, references, this.getDefaultRequirement(), this.dataEntry, validators, dataStoreType,
-				accessRestriction, structureFactory, enumClass, defaultValue);
+				accessRestriction, structureFactory, enumClass, defaultValue, populateConfigsBuilder.build(),
+				encryptionServicesFactory);
 	}
 
 	private void validateNotReferencingTaxonomy(String typeWithAllowedSchemas, TaxonomiesManager taxonomiesManager) {
@@ -643,6 +683,10 @@ public class MetadataBuilder {
 		if (Boolean.FALSE == builder.getEnabled() && inheritance.isEssential()) {
 			throw new EssentialMetadataCannotBeDisabled(code);
 		}
+
+		if (Boolean.FALSE == builder.getEnabled() && inheritance.isEssentialInSummary()) {
+			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
+		}
 	}
 
 	private void validateWithoutInheritance(MetadataBuilder builder) {
@@ -675,6 +719,9 @@ public class MetadataBuilder {
 
 		if (Boolean.FALSE == builder.getEnabled() && builder.isEssential()) {
 			throw new EssentialMetadataCannotBeDisabled(code);
+		}
+		if (Boolean.FALSE == builder.getEnabled() && builder.isEssentialInSummary()) {
+			throw new EssentialMetadataInSummaryCannotBeDisabled(code);
 		}
 	}
 
@@ -764,5 +811,9 @@ public class MetadataBuilder {
 
 	public Metadata getOriginalMetadata() {
 		return originalMetadata;
+	}
+
+	public void setAllowedReferenceBuilder(AllowedReferencesBuilder allowedReferencesBuilder) {
+		this.allowedReferencesBuilder = allowedReferencesBuilder;
 	}
 }

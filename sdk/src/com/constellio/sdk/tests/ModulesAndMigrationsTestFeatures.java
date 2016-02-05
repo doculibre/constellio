@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import static org.mockito.Mockito.doReturn;
@@ -25,10 +8,11 @@ import java.util.List;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.FailedToInstall;
 import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.FailedToStart;
-import com.constellio.app.services.extensions.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -50,6 +34,8 @@ public class ModulesAndMigrationsTestFeatures {
 
 	List<InstallableModule> modules = new ArrayList<>();
 
+	boolean mockedAvailableModules = true;
+
 	public ModulesAndMigrationsTestFeatures(FactoriesTestFeatures factoriesTestFeatures, String collection) {
 		this.factoriesTestFeatures = factoriesTestFeatures;
 		this.collection = collection;
@@ -60,19 +46,21 @@ public class ModulesAndMigrationsTestFeatures {
 		ModelLayerFactory modelFactory = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory();
 		ConstellioPluginManager pluginManager = appFactory.getPluginManager();
 
-		try {
-			this.modules.add(moduleClass.newInstance());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		if (mockedAvailableModules) {
+			try {
+				this.modules.add(moduleClass.newInstance());
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			doReturn(modules).when(pluginManager).getActivePlugins();
 		}
-		doReturn(modules).when(pluginManager).getPlugins(InstallableModule.class);
 		ConstellioModulesManager modulesManager = appFactory.getModulesManager();
 		try {
 			InstallableModule module = moduleClass.newInstance();
 			if (!modulesManager.isInstalled(module)) {
-				modulesManager.installModule(module, modelFactory.getCollectionsListManager());
+				modulesManager.installValidModuleAndGetInvalidOnes(module, modelFactory.getCollectionsListManager());
 			}
-			modulesManager.enableModule(collection, module);
+			modulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
 
 		} catch (FailedToInstall failedToStart) {
 			throw new RuntimeException(failedToStart);
@@ -81,6 +69,11 @@ public class ModulesAndMigrationsTestFeatures {
 		} catch (FailedToStart failedToStart) {
 			throw new RuntimeException(failedToStart);
 		}
+		return this;
+	}
+
+	public ModulesAndMigrationsTestFeatures withMockedAvailableModules(boolean mockedAvailableModules) {
+		this.mockedAvailableModules = mockedAvailableModules;
 		return this;
 	}
 
@@ -95,6 +88,10 @@ public class ModulesAndMigrationsTestFeatures {
 
 	public ModulesAndMigrationsTestFeatures withTaskModule() {
 		return withModule(TaskModule.class);
+	}
+
+	public ModulesAndMigrationsTestFeatures withRobotsModule() {
+		return withModule(ConstellioRobotsModule.class);
 	}
 
 	public ModulesAndMigrationsTestFeatures withAdmin() {

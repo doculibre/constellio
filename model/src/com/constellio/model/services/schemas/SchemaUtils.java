@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas;
 
 import java.util.ArrayList;
@@ -28,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -78,7 +62,7 @@ public class SchemaUtils {
 		return simpleCode;
 	}
 
-	public Set<String> getLocalDependencies(Metadata metadata) {
+	public Set<String> getLocalDependencies(Metadata metadata, List<Metadata> allMetadatas) {
 		Set<String> localDependencies = new HashSet<>();
 		if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
 			CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
@@ -87,7 +71,17 @@ public class SchemaUtils {
 		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
 			for (Dependency dependency : dataEntry.getCalculator().getDependencies()) {
-				localDependencies.add(toLocalMetadataCode(dependency.getLocalMetadataCode()));
+				if (dependency instanceof DynamicLocalDependency) {
+
+					for (Metadata aMetadata : allMetadatas) {
+						if (isDependentMetadata(metadata, aMetadata, (DynamicLocalDependency) dependency)) {
+							localDependencies.add(aMetadata.getLocalCode());
+						}
+					}
+
+				} else {
+					localDependencies.add(toLocalMetadataCode(dependency.getLocalMetadataCode()));
+				}
 			}
 		}
 		return localDependencies;
@@ -97,7 +91,7 @@ public class SchemaUtils {
 		Map<String, Set<String>> dependenciesMap = new HashMap<>();
 
 		for (Metadata metadata : metadatas) {
-			Set<String> localDependencies = getLocalDependencies(metadata);
+			Set<String> localDependencies = getLocalDependencies(metadata, metadatas);
 			if (!localDependencies.isEmpty()) {
 				dependenciesMap.put(metadata.getLocalCode(), localDependencies);
 			}
@@ -209,6 +203,12 @@ public class SchemaUtils {
 		return index;
 	}
 
+	public String getLocalCodeFromMetadataCode(String metadataCode) {
+		String schemaCode = getSchemaCode(metadataCode);
+		return getLocalCode(metadataCode, schemaCode);
+
+	}
+
 	public String getLocalCode(String codeOrLocalCode, String schemaCode) {
 		String partialCode;
 		String[] codeOrLocalCodeSplitted = underscoreSplitWithCache(codeOrLocalCode);
@@ -258,4 +258,43 @@ public class SchemaUtils {
 		return codes;
 	}
 
+	public boolean hasSameTypeAndLocalCode(String code1, String code2) {
+		String typeCode1 = getSchemaTypeCode(code1);
+		String typeCode2 = getSchemaTypeCode(code2);
+		String localCode1 = getLocalCodeFromMetadataCode(code1);
+		String localCode2 = getLocalCodeFromMetadataCode(code2);
+
+		return typeCode1.equals(typeCode2) && localCode1.equals(localCode2);
+	}
+
+	public boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
+			DynamicLocalDependency dependency) {
+		return !calculatedMetadata.getLocalCode().equals(otherMetadata.getLocalCode())
+				&& !Schemas.isGlobalMetadata(otherMetadata.getLocalCode())
+				&& dependency.isDependentOf(otherMetadata);
+	}
+
+	public static String getMetadataLocalCodeWithoutPrefix(Metadata metadata) {
+
+		//USR
+		//MAP
+		//USRMAP
+		//MAPUSR
+
+		String code = metadata.getLocalCode();
+		if (code.startsWith("MAP")) {
+			code = code.substring(3);
+
+		}
+		if (code.startsWith("USR")) {
+			code = code.substring(3);
+
+		}
+		if (code.startsWith("MAP")) {
+			code = code.substring(3);
+
+		}
+
+		return code;
+	}
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.managers.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -131,7 +114,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 
 		configManager.update(xmlConfigurationPath, "0", docXMLWithVersionUpdated);
 
-		XMLConfiguration expectedXMLConfiguration = new XMLConfiguration("1", docXMLWithVersionUpdated);
+		XMLConfiguration expectedXMLConfiguration = new XMLConfiguration("1", "anHash", docXMLWithVersionUpdated);
 
 		assertEquals(expectedXMLConfiguration.getDocument(), configManager.getXML(xmlConfigurationPath).getDocument());
 		assertThat(configManager.getXML(xmlConfigurationPath).getHash()).isEqualTo(expectedXMLConfiguration.getHash());
@@ -221,7 +204,7 @@ public class ZookeeperConfigManagerAcceptanceTest extends ConstellioTest {
 
 		String hash = configManager.getXML(xmlConfigurationPath).getHash();
 
-		XMLConfiguration expectedXMLConfiguration = new XMLConfiguration(hash, docXML);
+		XMLConfiguration expectedXMLConfiguration = new XMLConfiguration(hash, hash, docXML);
 		assertEquals(expectedXMLConfiguration.getDocument(), configManager.getXML(xmlConfigurationPath).getDocument());
 	}
 

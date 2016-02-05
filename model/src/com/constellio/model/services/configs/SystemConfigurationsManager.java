@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.configs;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -23,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +24,6 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.services.one.StreamOperation;
-import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
@@ -55,6 +36,7 @@ import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.SystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.modules.Module;
+import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -69,7 +51,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.utils.InstanciationUtils;
 
 public class SystemConfigurationsManager implements StatefulService, ConfigUpdatedEventListener {
@@ -147,6 +129,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 							}
 						}, streamFactory);
 					} catch (IOException e) {
+						LOGGER.error("error when saving stream", e);
 						throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), "");
 					}
 
@@ -161,6 +144,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 							}
 						}, streamFactory);
 					} catch (IOException e) {
+						LOGGER.error("error when saving stream", e);
 						throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), "");
 					}
 
@@ -260,13 +244,10 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<String> schemaCodes = new SchemaUtils().toMetadataCodes(metadatasToReindex);
-		BatchProcessAction action = new ReindexMetadatasBatchProcessAction(schemaCodes);
-		Iterator<String> allRecordsIterator = searchServices.recordsIdsIterator(new LogicalSearchQuery(from(type).returnAll()));
-		BatchBuilderIterator<String> batchBuilderIterator = new BatchBuilderIterator<>(allRecordsIterator, 100000);
-		while (batchBuilderIterator.hasNext()) {
-			List<String> records = batchBuilderIterator.next();
-			LOGGER.info("Reindexing " + schemaCodes + " on records " + records);
-			batchProcesses.add(batchProcessesManager.add(records, type.getCollection(), action));
+		LogicalSearchCondition condition = from(type).returnAll();
+		if (searchServices.hasResults(condition)) {
+			BatchProcessAction action = new ReindexMetadatasBatchProcessAction(schemaCodes);
+			batchProcesses.add(batchProcessesManager.addBatchProcessInStandby(condition, action));
 		}
 		return batchProcesses;
 	}
@@ -391,7 +372,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		List<SystemConfiguration> configurations = new ArrayList<>();
 		configurations.addAll(ConstellioEIMConfigs.getCoreConfigs());
 		for (Module module : constellioModulesManagerDelayed.get().getInstalledModules()) {
-			configurations.addAll(module.getConfigurations());
+			configurations.addAll(PluginUtil.getConfigurations(module));
 		}
 
 		return configurations;

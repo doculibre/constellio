@@ -1,21 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.factories;
+
+import java.security.Key;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -31,12 +19,15 @@ import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.emails.EmailQueueManager;
 import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.emails.EmailTemplatesManager;
+import com.constellio.model.services.encrypt.EncryptionKeyFactory;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
@@ -47,12 +38,15 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.FreeTextSearchServices;
+import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.authentification.CombinedAuthenticationService;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
@@ -73,13 +67,10 @@ import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexM
 import com.constellio.model.services.workflows.execution.WorkflowExecutionService;
 
 public class ModelLayerFactory extends LayerFactory {
-
+	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactory.class);
 	private final DataLayerFactory dataLayerFactory;
-
 	private final IOServicesFactory ioServicesFactory;
-
 	private final FoldersLocator foldersLocator;
-
 	private final ForkParsers forkParsers;
 	private final MetadataSchemasManager schemasManager;
 	private final BatchProcessController batchProcessesController;
@@ -98,9 +89,8 @@ public class ModelLayerFactory extends LayerFactory {
 	private final WorkflowExecutor workflowExecutor;
 	private final ModelLayerConfiguration modelLayerConfiguration;
 	private final ContentManager contentsManager;
-	private final AuthenticationService authenticationManager;
+	private AuthenticationService authenticationManager;
 	private final EmailTemplatesManager emailTemplatesManager;
-	//private final LDAPUserSyncManager ldapUserSyncManager;
 	private final ModelLayerExtensions modelLayerExtensions;
 	private final LDAPConfigurationManager ldapConfigurationManager;
 	private final LDAPAuthenticationService ldapAuthenticationService;
@@ -108,6 +98,12 @@ public class ModelLayerFactory extends LayerFactory {
 	private final PasswordFileAuthenticationService passwordFileAuthenticationService;
 	private final EmailQueueManager emailQueueManager;
 	private final RecordsCaches recordsCaches = new RecordsCaches();
+	private final SecurityTokenManager securityTokenManager;
+	protected Key applicationEncryptionKey;
+	private final StoredBatchProcessProgressionServices storedBatchProcessProgressionServices;
+	private final SearchBoostManager searchBoostManager;
+	private final ModelLayerLogger modelLayerLogger;
+	private EncryptionServices encryptionServices;
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -115,6 +111,7 @@ public class ModelLayerFactory extends LayerFactory {
 
 		super(dataLayerFactory, statefullServiceDecorator);
 
+		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;
 		this.dataLayerFactory = dataLayerFactory;
@@ -126,48 +123,54 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
 		this.collectionsListManager = add(new CollectionsListManager(configManager));
-		this.batchProcessesManager = add(new BatchProcessesManager(modelLayerConfiguration.getComputerName(),
-				modelLayerConfiguration.getBatchProcessesPartSize(), newRecordServices(), newSearchServices(), configManager));
+		this.batchProcessesManager = add(new BatchProcessesManager(newSearchServices(), configManager));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
 						recordsCaches));
 
-		this.schemasManager = add(new MetadataSchemasManager(configManager, dataLayerFactory.newTypesFactory(), taxonomiesManager,
-				collectionsListManager, batchProcessesManager, newSearchServices()));
+		this.schemasManager = add(new MetadataSchemasManager(this));
 
-		this.batchProcessesController = add(new BatchProcessController(batchProcessesManager, newRecordServices(),
-				modelLayerConfiguration.getNumberOfRecordsPerTask(), schemasManager, newSearchServices()));
+		this.batchProcessesController = add(
+				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		this.userCredentialsManager = add(
-				new UserCredentialsManager(dataLayerFactory, collectionsListManager, modelLayerConfiguration));
+				new UserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
 		this.globalGroupsManager = add(new GlobalGroupsManager(configManager));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
 		this.rolesManager = add(new RolesManager(configManager, collectionsListManager));
 
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
 
-		this.contentsManager = add(new ContentManager(newFileParser(), newSearchServices(), schemasManager, dataLayerFactory,
-				modelLayerConfiguration));
+		this.contentsManager = add(new ContentManager(this));
 
 		workflowsConfigManager = add(new WorkflowsConfigManager(configManager, collectionsListManager,
 				newWorkflowBPMNDefinitionsService()));
 		workflowExecutionIndexManager = add(new WorkflowExecutionIndexManager(configManager, collectionsListManager));
 
 		this.workflowExecutor = new WorkflowExecutor(this);
+
+		securityTokenManager = add(new SecurityTokenManager());
+
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
-
-		this.ldapUserSyncManager = add(new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
-				dataLayerFactory.getBackgroundThreadsManager()));
-
+		this.ldapUserSyncManager = add(
+				new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
+						dataLayerFactory.getBackgroundThreadsManager()));
 		ldapAuthenticationService = add(
-				new LDAPAuthenticationService(ldapConfigurationManager, configManager, ioServicesFactory.newHashingService()));
+				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
+						ioServicesFactory.newHashingService()));
 		passwordFileAuthenticationService = new PasswordFileAuthenticationService(configManager,
 				ioServicesFactory.newHashingService());
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
 				passwordFileAuthenticationService);
-		this.emailConfigurationsManager = add(new EmailConfigurationsManager(configManager, collectionsListManager));
+		this.emailConfigurationsManager = add(
+				new EmailConfigurationsManager(configManager, collectionsListManager, this));
+
 		this.emailTemplatesManager = add(
 				new EmailTemplatesManager(configManager, collectionsListManager, ioServicesFactory.newIOServices()));
 		this.emailQueueManager = add(new EmailQueueManager(this, new EmailServices()));
+		this.storedBatchProcessProgressionServices = add(new StoredBatchProcessProgressionServices(configManager));
+		this.searchBoostManager = add(
+				new SearchBoostManager(configManager, collectionsListManager));
+
 	}
 
 	public ModelLayerExtensions getExtensions() {
@@ -188,16 +191,17 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public SearchServices newSearchServices() {
-		return new SearchServices(dataLayerFactory.newRecordDao(), newRecordServices());
+		return new SearchServices(dataLayerFactory.newRecordDao(), this);
 	}
 
 	public FreeTextSearchServices newFreeTextSearchServices() {
-		return new FreeTextSearchServices(dataLayerFactory.newRecordDao(), dataLayerFactory.newEventsDao(), newUserServices());
+		return new FreeTextSearchServices(dataLayerFactory.newRecordDao(), dataLayerFactory.newEventsDao(), newUserServices(),
+				securityTokenManager);
 	}
 
 	public FileParser newFileParser() {
-		return new FileParser(forkParsers, getLanguageDetectionManager(),
-				modelLayerConfiguration.isDocumentsParsedInForkProcess());
+		return new FileParser(forkParsers, getLanguageDetectionManager(), ioServicesFactory.newIOServices(),
+				systemConfigurationsManager, modelLayerConfiguration.isDocumentsParsedInForkProcess());
 	}
 
 	public MetadataSchemasManager getMetadataSchemasManager() {
@@ -253,6 +257,10 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public UserCredentialsManager getUserCredentialsManager() {
 		return userCredentialsManager;
+	}
+
+	public StoredBatchProcessProgressionServices getStoredBatchProcessProgressionServices() {
+		return storedBatchProcessProgressionServices;
 	}
 
 	public GlobalGroupsManager getGlobalGroupsManager() {
@@ -353,5 +361,45 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public RecordsCaches getRecordsCaches() {
 		return recordsCaches;
+	}
+
+	public SecurityTokenManager getSecurityTokenManager() {
+		return securityTokenManager;
+	}
+
+	public ModelLayerLogger getModelLayerLogger() {
+		return modelLayerLogger;
+	}
+
+	public RecordPopulateServices newRecordPopulateServices() {
+		return new RecordPopulateServices(schemasManager, contentsManager, systemConfigurationsManager, modelLayerExtensions);
+	}
+
+	final void setEncryptionKey(Key key) {
+		this.applicationEncryptionKey = key;
+	}
+
+	synchronized public EncryptionServices newEncryptionServices() {
+		if (encryptionServices != null) {
+			return encryptionServices;
+		}
+		if (applicationEncryptionKey == null) {
+			this.applicationEncryptionKey = EncryptionKeyFactory.getApplicationKey(this);
+		}
+		return EncryptionServices.create(applicationEncryptionKey);
+	}
+
+	public SearchBoostManager getSearchBoostManager() {
+		return searchBoostManager;
+	}
+
+	public void setEncryptionServices(EncryptionServices encryptionServices) {
+		ensureNotYetInitialized();
+		this.encryptionServices = encryptionServices;
+	}
+
+	public void setAuthenticationService(AuthenticationService authenticationService) {
+		ensureNotYetInitialized();
+		this.authenticationManager = authenticationService;
 	}
 }

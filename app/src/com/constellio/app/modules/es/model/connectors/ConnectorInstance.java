@@ -1,24 +1,15 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.model.connectors;
 
-import org.joda.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import com.constellio.app.modules.es.model.connectors.structures.TraversalSchedule;
+import com.constellio.app.modules.es.services.mapping.ConnectorField;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -34,6 +25,8 @@ public class ConnectorInstance<T extends ConnectorInstance> extends RecordWrappe
 	public static final String CONNECTOR_TYPE = "connectorType";
 	public static final String ENABLED = "enabled";
 	public static final String PROPERTIES_MAPPING = "propertiesMapping";
+	public static final String AVAILABLE_FIELDS = "availableFields";
+	public static final String TRAVERSAL_SCHEDULE = "traversalSchedule";
 
 	public ConnectorInstance(Record record, MetadataSchemaTypes types) {
 		super(record, types, "connector");
@@ -72,6 +65,15 @@ public class ConnectorInstance<T extends ConnectorInstance> extends RecordWrappe
 		return (T) this;
 	}
 
+	public List<ConnectorField> getAvailableFields() {
+		return getList(AVAILABLE_FIELDS);
+	}
+
+	public T setAvailableFields(List<ConnectorField> availableFields) {
+		this.set(AVAILABLE_FIELDS, availableFields);
+		return (T) this;
+	}
+
 	public String getConnectorType() {
 		return get(CONNECTOR_TYPE);
 	}
@@ -99,8 +101,9 @@ public class ConnectorInstance<T extends ConnectorInstance> extends RecordWrappe
 		return get(PROPERTIES_MAPPING);
 	}
 
-	public void setPropertiesMapping(MapStringListStringStructure propertiesMapping) {
+	public T setPropertiesMapping(MapStringListStringStructure propertiesMapping) {
 		this.set(PROPERTIES_MAPPING, propertiesMapping);
+		return (T) this;
 	}
 
 	public String getTraversalCode() {
@@ -123,5 +126,67 @@ public class ConnectorInstance<T extends ConnectorInstance> extends RecordWrappe
 
 	public String readToken(String code) {
 		return "r" + getId() + code;
+	}
+
+	public List<TraversalSchedule> getTraversalSchedule() {
+		return getList(TRAVERSAL_SCHEDULE);
+	}
+
+	public List<TraversalSchedule> getValidTraversalSchedule() {
+
+		List<TraversalSchedule> validSchedules = new ArrayList<>();
+
+		for (TraversalSchedule schedule : getTraversalSchedule()) {
+			if (schedule.isValid()) {
+				validSchedules.add(schedule);
+			}
+		}
+		return validSchedules;
+	}
+
+	public T setTraversalSchedule(List<TraversalSchedule> traversalSchedule) {
+		this.set(TRAVERSAL_SCHEDULE, traversalSchedule);
+		return (T) this;
+	}
+
+	public boolean isCurrentlyRunning() {
+		LocalDateTime currentTime = TimeProvider.getLocalDateTime();
+		DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm");
+		List<TraversalSchedule> traversalSchedules = getValidTraversalSchedule();
+		if (traversalSchedules.isEmpty()) {
+			return true;
+		}
+		for (TraversalSchedule schedule : traversalSchedules) {
+			if (schedule.getWeekDay() == currentTime.getDayOfWeek()) {
+				LocalDateTime startTime = formatter.parseLocalDateTime(schedule.getStartTime());
+				LocalDateTime endTime = formatter.parseLocalDateTime(schedule.getEndTime());
+				if (startTimeBeforeCurrentTime(startTime, currentTime) && endTimeAfterCurrentTime(endTime, currentTime)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean startTimeBeforeCurrentTime(LocalDateTime startTime, LocalDateTime currentTime) {
+		if (startTime.getHourOfDay() == currentTime.getHourOfDay()) {
+			if (startTime.getMinuteOfHour() < currentTime.getMinuteOfHour()) {
+				return true;
+			}
+		} else if (startTime.getHourOfDay() < currentTime.getHourOfDay()) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean endTimeAfterCurrentTime(LocalDateTime endTime, LocalDateTime currentTime) {
+		if (endTime.getHourOfDay() == currentTime.getHourOfDay()) {
+			if (endTime.getMinuteOfHour() > currentTime.getMinuteOfHour()) {
+				return true;
+			}
+		} else if (endTime.getHourOfDay() > currentTime.getHourOfDay()) {
+			return true;
+		}
+		return false;
 	}
 }

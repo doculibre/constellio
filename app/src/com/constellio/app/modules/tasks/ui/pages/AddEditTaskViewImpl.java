@@ -1,38 +1,35 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.ui.pages;
 
+import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Buffered.SourceException;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 
 public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView {
+	
 	private final AddEditTaskPresenter presenter;
 
-	private TaskFormImpl form;
+	private TaskFormImpl recordForm;
+	
+	private TaskVO taskVO;
 
 	public AddEditTaskViewImpl() {
 		presenter = new AddEditTaskPresenter(this);
+	}
+
+	@Override
+	public void setRecord(TaskVO taskVO) {
+		this.taskVO = taskVO;
 	}
 
 	@Override
@@ -51,9 +48,11 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		TaskVO task = presenter.getTask();
+		return newForm();
+	}
 
-		form = new TaskFormImpl(task) {
+	private TaskFormImpl newForm() {
+		recordForm = new TaskFormImpl(taskVO) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
@@ -62,15 +61,41 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 
 			@Override
 			protected void cancelButtonClick(RecordVO viewObject) {
-				presenter.cancel();
+				presenter.cancelButtonClicked();
+			}
+
+			@Override
+			public void reload() {
+				replaceComponent(this, newForm());
+			}
+
+			@Override
+			public void commit() {
+				for (Field<?> field : fieldGroup.getFields()) {
+					try {
+						field.commit();
+					} catch (SourceException | InvalidValueException e) {
+					}
+				}
 			}
 		};
 
-		return form;
+		for (final Field<?> field : recordForm.getFields()) {
+			if (field instanceof CustomTaskField) {
+				field.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						presenter.customFieldValueChanged((CustomTaskField<?>) field);
+					}
+				});
+			}
+		}
+		
+		return recordForm;
 	}
 
 	@Override
 	public TaskForm getForm() {
-		return form;
+		return recordForm;
 	}
 }

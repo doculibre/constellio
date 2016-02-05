@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.builders;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -94,7 +77,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private MetadataVO getCategoriesMetadata(MetadataSchemaVO schema) {
-		return getSynteticMetadata(schema, "categories", Category.SCHEMA_TYPE, Category.DEFAULT_SCHEMA);
+		return getSynteticMetadata(schema, RetentionRuleVO.CATEGORIES, Category.SCHEMA_TYPE, Category.DEFAULT_SCHEMA);
 	}
 
 	private List<String> getUniformSubdivisions(String id) {
@@ -104,7 +87,8 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private MetadataVO getUniformSubdivisionsMetadata(MetadataSchemaVO schema) {
-		return getSynteticMetadata(schema, "subdivisions", UniformSubdivision.SCHEMA_TYPE, UniformSubdivision.DEFAULT_SCHEMA);
+		return getSynteticMetadata(schema, RetentionRuleVO.UNIFORM_SUBDIVISIONS, UniformSubdivision.SCHEMA_TYPE,
+				UniformSubdivision.DEFAULT_SCHEMA);
 	}
 
 	private MetadataVO getSynteticMetadata(MetadataSchemaVO schema, String label, String referencedSchemaType,
@@ -126,7 +110,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
 				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP,
-				new AllowedReferences(referencedSchemaType, references), groupLabel, null);
+				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false);
 	}
 
 	private void insertMetadataCodeBefore(String codeToInsert, String codeToSearch, List<String> codes) {

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.facet;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -22,12 +5,11 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -118,21 +100,17 @@ public class OrderFacetConfigurationPresenter extends BasePresenter<OrderFacetCo
 
 	public List<String> getFacetTitle() {
 		if (codeTitles == null) {
+			List<Entry<String, Facet>> entries = new ArrayList<>(facets.entrySet());
+			Collections.sort(entries, new Comparator<Entry<String, Facet>>() {
+				@Override
+				public int compare(Entry<String, Facet> e1, Entry<String, Facet> e2) {
+					return new Integer(e1.getValue().getOrder()).compareTo(e2.getValue().getOrder());
+				}
+			});
+
 			codeTitles = new ArrayList<>();
-			for (String facetId : facets.keySet()) {
-				codeTitles.add(facetId);
-			}
-			List<String> initialCodeTitles = new ArrayList<>();
-			initialCodeTitles.addAll(codeTitles);
-			Set<String> finalCodeTitles = new HashSet<>();
-			for (Entry<String, Facet> stringFacetEntry : facets.entrySet()) {
-				int order = ((Double) stringFacetEntry.getValue().get(Facet.ORDER)).intValue();
-				String facetId = stringFacetEntry.getKey();
-				codeTitles.set(order, facetId);
-			}
-			finalCodeTitles.addAll(codeTitles);
-			if (finalCodeTitles.size() != facets.size()) {
-				codeTitles = initialCodeTitles;
+			for (Map.Entry<String, Facet> entry : entries) {
+				codeTitles.add(entry.getKey());
 			}
 		}
 		return codeTitles;

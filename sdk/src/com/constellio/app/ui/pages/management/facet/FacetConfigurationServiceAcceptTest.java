@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.facet;
 
 import static java.util.Arrays.asList;
@@ -31,20 +14,35 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationPresenter.AvailableFacetFieldMetadata;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 
 public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 	@Mock AddEditFacetConfigurationView view;
 	FacetConfigurationPresenterService service;
+	SearchServices searchServices;
+	MetadataSchemasManager schemasManager;
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	private SchemasRecordsServices schemasRecords;
 	private RecordServices recordServices;
+	private SessionContext sessionContext;
 
 	@Before
 	public void setUp()
@@ -54,13 +52,16 @@ public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 		);
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
+		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
+		when(view.getSessionContext()).thenReturn(sessionContext);
 
 		service = spy(new FacetConfigurationPresenterService(getConstellioFactories(),
 				FakeSessionContext.adminInCollection(zeCollection)));
 		schemasRecords = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		recordServices = schemasRecords.getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		recordServices.update(records.getFolder_A04().setKeywords(asList("King Dedede", "La passe de la baleine échouée")));
 		recordServices.update(records.getFolder_A07().setKeywords(asList("aKeyword")));
@@ -122,7 +123,7 @@ public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetFieldFacetValuesThenObtainValidRecordValues()
+	public void whenGetFieldFacetValuesThenObtainValidecordValues()
 			throws Exception {
 		assertThat(service.getFieldFacetValues("keywords_ss"))
 				.containsOnly("King Dedede", "La passe de la baleine échouée", "aKeyword");
@@ -130,4 +131,58 @@ public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenActiveFacetWhenIsActiveThenTrue()
+			throws Exception {
+
+		Record record = givenActiveFacetRecord();
+
+		RecordVO recordVO = buildRecordVO(record);
+		assertThat(service.isActive(recordVO)).isTrue();
+	}
+
+	@Test
+	public void givenActiveFacetWhenDeactivateThenIsActiveFalse()
+			throws Exception {
+
+		Record record = givenActiveFacetRecord();
+
+		service.deactivate(record.getId());
+
+		RecordVO recordVO = buildRecordVO(record);
+		assertThat(service.isActive(recordVO)).isFalse();
+	}
+
+	@Test
+	public void givenDeactivateFacetWhenActivateThenIsActiveTrue()
+			throws Exception {
+
+		Record record = givenActiveFacetRecord();
+		service.deactivate(record.getId());
+		RecordVO recordVO = buildRecordVO(record);
+		assertThat(service.isActive(recordVO)).isFalse();
+
+		service.activate(record.getId());
+		recordVO = new RecordToVOBuilder()
+				.build(recordServices.getDocumentById(record.getId()), VIEW_MODE.DISPLAY, sessionContext);
+		assertThat(service.isActive(recordVO)).isTrue();
+	}
+
+	//
+	private RecordVO buildRecordVO(Record record) {
+		return new RecordToVOBuilder()
+				.build(recordServices.getDocumentById(record.getId()), VIEW_MODE.DISPLAY, sessionContext);
+	}
+
+	private Record givenActiveFacetRecord() {
+		MetadataSchemaType type = schemasManager.getSchemaTypes(zeCollection).getSchemaType(Facet.SCHEMA_TYPE);
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(type).where(Schemas.TITLE)
+				.isEqualTo("Création/Modification date");
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		query.setNumberOfRows(1);
+		List<Record> records = searchServices.search(query);
+		assertThat(records.get(0).getSchemaCode()).startsWith(Facet.SCHEMA_TYPE);
+		return records.get(0);
+	}
 }

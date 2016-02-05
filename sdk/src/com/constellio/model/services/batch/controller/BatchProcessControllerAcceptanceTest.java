@@ -1,27 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.controller;
 
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -52,6 +35,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 
@@ -106,6 +90,8 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		doReturn(new AddToBatchProcessImpactHandler(batchProcessManager, searchServices)).when(recordServices)
 				.addToBatchProcessModificationImpactHandler();
+
+		givenWaitForBatchProcessAfterTestIsDisabled();
 	}
 
 	// @After
@@ -141,7 +127,8 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		batchProcessManager = spy(batchProcessManager);
-		doThrow(Error.class).when(batchProcessManager).add(anyList(), anyString(), any(BatchProcessAction.class));
+		doThrow(Error.class).when(batchProcessManager)
+				.addBatchProcessInStandby(any(LogicalSearchCondition.class), any(BatchProcessAction.class));
 		when(modelFactory.getBatchProcessesManager()).thenReturn(batchProcessManager);
 		recordServices = new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory,
 				getDataLayerFactory().newTypesFactory(), getDataLayerFactory().getUniqueIdGenerator(), recordsCaches);
@@ -188,6 +175,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 	public void givenMultipleOptimisticLockingThenSystemErrorWhenExecutingTransactionDTOThenNoModificationsAndOnlyOneStandbyBatchProcess()
 			throws Exception {
 
+		givenWaitForBatchProcessAfterTestIsDisabled();
 		// A really bad day...
 		doThrow(RecordDaoException.OptimisticLocking.class).doThrow(RecordDaoException.OptimisticLocking.class)
 				.doThrow(Error.class).when(recordDao).execute(any(TransactionDTO.class));
@@ -244,7 +232,8 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changedMetadataValues);
 
-		BatchProcess batchProcess = batchProcessManager.add(recordIds, zeCollection, action);
+		LogicalSearchCondition condition = fromAllSchemasIn(zeCollection).where(IDENTIFIER).isIn(recordIds);
+		BatchProcess batchProcess = batchProcessManager.addBatchProcessInStandby(condition, action);
 		batchProcessManager.markAsPending(batchProcess);
 
 		waitForBatchProcess();

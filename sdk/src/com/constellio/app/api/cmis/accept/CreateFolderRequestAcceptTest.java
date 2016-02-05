@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +42,12 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 
 	Session cmisSession;
 
+	String chuckNorrisKey = "chuckNorrisKey";
+	String chuckNorrisToken;
+
+	String bobKey = "bobKey";
+	String bobToken;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -77,6 +66,11 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
+		userServices.addUpdateUserCredential(users.bob().withServiceKey(bobKey).withSystemAdminPermission());
+		userServices.addUpdateUserCredential(users.chuckNorris().withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+
+		chuckNorrisToken = userServices.generateToken(chuckNorris);
+		bobToken = userServices.generateToken(bobGratton);
 		userServices.addUserToCollection(users.bob(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
@@ -88,7 +82,7 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 	public void whenCreatingAFolderThenFolderHasRightValues()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 11, 04));
-		String id = createNewFolderWithTestProperties("taxo1_category1", "folder_default");
+		String id = createNewFolderWithTestProperties("zetaxo1_category1", "folder_default");
 
 		Record createdRecord = recordServices.getDocumentById(id);
 		assertThat(createdRecord).isNotNull();
@@ -96,14 +90,15 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 		assertThat(((LocalDateTime) createdRecord.get(Schemas.CREATED_ON)).toDate()).isEqualTo(
 				new LocalDate(2014, 11, 04).toDate());
 		assertThat(createdRecord.get(Schemas.CREATED_BY)).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
-		assertThat(createdRecord.get(zeCollectionSchemas.folderSchema.taxonomy1())).isEqualTo("taxo1_category1");
+		assertThat(createdRecord.get(zeCollectionSchemas.folderSchema.taxonomy1())).isEqualTo("zetaxo1_category1");
+		assertThat(createdRecord.get(zeCollectionSchemas.folderSchema.numberMeta())).isEqualTo(42.666);
 	}
 
 	@Test
 	public void whenCreatingACategoryThenCategoryHasRightValues()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 11, 04));
-		String id = createNewCategoryWithTestProperties("taxo1_fond1", "category_default");
+		String id = createNewCategoryWithTestProperties("zetaxo1_fond1", "category_default");
 
 		Record createdRecord = recordServices.getDocumentById(id);
 		assertThat(createdRecord).isNotNull();
@@ -111,7 +106,7 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 		assertThat(((LocalDateTime) createdRecord.get(Schemas.CREATED_ON)).toDate()).isEqualTo(
 				new LocalDate(2014, 11, 04).toDate());
 		assertThat(createdRecord.get(Schemas.CREATED_BY)).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
-		assertThat(createdRecord.get(zeCollectionSchemas.category.parentOfDocumentFond())).isEqualTo("taxo1_fond1");
+		assertThat(createdRecord.get(zeCollectionSchemas.category.parentOfDocumentFond())).isEqualTo("zetaxo1_fond1");
 	}
 
 	@Test
@@ -139,7 +134,8 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 		ObjectId parentFolderId = new ObjectIdImpl(parent);
 		Map<String, Object> newFolderProperties = new HashMap<>();
 		newFolderProperties.put(PropertyIds.OBJECT_TYPE_ID, objectType);
-		newFolderProperties.put("folder_default_title", "testFolder");
+		newFolderProperties.put("title", "testFolder");
+		newFolderProperties.put("numberMeta", 42.666);
 		return cmisSession.createFolder(newFolderProperties, parentFolderId).getId();
 	}
 
@@ -147,7 +143,7 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 		ObjectId parentFolderId = new ObjectIdImpl(parent);
 		Map<String, Object> newFolderProperties = new HashMap<>();
 		newFolderProperties.put(PropertyIds.OBJECT_TYPE_ID, objectType);
-		newFolderProperties.put("category_default_title", "testCategory");
+		newFolderProperties.put("title", "testCategory");
 		return cmisSession.createFolder(newFolderProperties, parentFolderId).getId();
 	}
 
@@ -155,7 +151,7 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 		ObjectId parentFolderId = new ObjectIdImpl(parent);
 		Map<String, Object> newFolderProperties = new HashMap<>();
 		newFolderProperties.put(PropertyIds.OBJECT_TYPE_ID, objectType);
-		newFolderProperties.put("collection_default_title", "testCollection");
+		newFolderProperties.put("title", "testCollection");
 		return cmisSession.createFolder(newFolderProperties, parentFolderId).getId();
 	}
 
@@ -168,7 +164,6 @@ public class CreateFolderRequestAcceptTest extends ConstellioTest {
 
 	private Session givenAdminSessionOnZeCollection()
 			throws RecordServicesException {
-		getModelLayerFactory().newAuthenticationService().changePassword(chuckNorris, "1qaz2wsx");
-		return newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
+		return newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection).build();
 	}
 }

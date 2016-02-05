@@ -1,25 +1,13 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.sdk;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.joda.time.LocalDateTime;
+
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
@@ -30,15 +18,25 @@ public class TestConnectorEvent {
 	public static final String MODIFY_EVENT = "addmodify";
 	public static final String DELETE_EVENT = "delete";
 
+	ESSchemasRecordsServices es;
+
 	String eventType;
 
 	Record record;
 
+	String url;
+
+	LocalDateTime fetchedDateTime;
+
 	List<Metadata> toStringMetadatas = new ArrayList<>();
 
-	private TestConnectorEvent(String eventType, Record record) {
+	private TestConnectorEvent(String eventType, Record record, ESSchemasRecordsServices es) {
+		this.es = es;
 		this.eventType = eventType;
 		this.record = record;
+
+		this.url = record.get(es.connectorDocument.url());
+		this.fetchedDateTime = record.get(es.connectorDocument.fetchedDateTime());
 	}
 
 	public void setToStringMetadatas(List<Metadata> toStringMetadatas) {
@@ -53,28 +51,41 @@ public class TestConnectorEvent {
 		return record;
 	}
 
+	public String getUrl() {
+		return url;
+	}
+
+	public LocalDateTime getFetchedDateTime() {
+		return fetchedDateTime;
+	}
+
+	private static ESSchemasRecordsServices es(CollectionObject object) {
+		return new ESSchemasRecordsServices(object.getCollection(), ConstellioFactories.getInstance().getAppLayerFactory());
+	}
+
 	public static TestConnectorEvent addEvent(Record record) {
-		return new TestConnectorEvent(ADD_EVENT, record);
+
+		return new TestConnectorEvent(ADD_EVENT, record, es(record));
 	}
 
 	public static TestConnectorEvent addEvent(RecordWrapper recordWrapper) {
-		return new TestConnectorEvent(ADD_EVENT, recordWrapper.getWrappedRecord());
+		return new TestConnectorEvent(ADD_EVENT, recordWrapper.getWrappedRecord(), es(recordWrapper));
 	}
 
 	public static TestConnectorEvent modifyEvent(Record record) {
-		return new TestConnectorEvent(MODIFY_EVENT, record);
+		return new TestConnectorEvent(MODIFY_EVENT, record, es(record));
 	}
 
 	public static TestConnectorEvent modifyEvent(RecordWrapper recordWrapper) {
-		return new TestConnectorEvent(MODIFY_EVENT, recordWrapper.getWrappedRecord());
+		return new TestConnectorEvent(MODIFY_EVENT, recordWrapper.getWrappedRecord(), es(recordWrapper));
 	}
 
 	public static TestConnectorEvent deleteEvent(Record record) {
-		return new TestConnectorEvent(DELETE_EVENT, record);
+		return new TestConnectorEvent(DELETE_EVENT, record, es(record));
 	}
 
 	public static TestConnectorEvent deleteEvent(RecordWrapper recordWrapper) {
-		return new TestConnectorEvent(DELETE_EVENT, recordWrapper.getWrappedRecord());
+		return new TestConnectorEvent(DELETE_EVENT, recordWrapper.getWrappedRecord(), es(recordWrapper));
 	}
 
 	@Override

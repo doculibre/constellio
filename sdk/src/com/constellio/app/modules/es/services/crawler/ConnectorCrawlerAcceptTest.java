@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.services.crawler;
 
 import static java.util.Arrays.asList;
@@ -24,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,8 +50,35 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenConnectorThatReturnsEmptyJobsThanItsTraversalDateSetCorrectly()
+		throws Exception{
+		LocalDateTime now = LocalDateTime.now();
+		givenTimeIs(now);
+		areConnectorsDoingJobs = false;
+		ConnectorInstance<ConnectorInstance<?>> connectorInstance;
+		connectorManager.createConnector(connectorInstance = newEnabledTestConnectorWithCode("connector1"));
+		crawl();
+		connectorInstance = es.getConnectorInstance(connectorInstance.getId());
+		assertThat(connectorInstance.getLastTraversalOn()).isEqualTo(now);
+	}
+
+	@Test
+	public void givenConnectorThatDoesNotReturnsEmptyJobsThanItsTraversalDateIsNull()
+			throws Exception{
+		LocalDateTime now = LocalDateTime.now();
+		givenTimeIs(now);
+		areConnectorsDoingJobs = true;
+		ConnectorInstance<ConnectorInstance<?>> connectorInstance;
+		connectorManager.createConnector(connectorInstance = newEnabledTestConnectorWithCode("connector1"));
+		crawl();
+		connectorInstance = es.getConnectorInstance(connectorInstance.getId());
+		assertThat(connectorInstance.getLastTraversalOn()).isNull();
+	}
+
+	@Test
 	public void whenAConnectorDoingNoJobsIsCreatedThenItIsStartedOnNextCrawl()
 			throws Exception {
+
 		areConnectorsDoingJobs = false;
 
 		crawl();
@@ -108,7 +119,8 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector2-start",
 				"connector2-getJobs",
 				"connector2-execute-job1",
-				"connector2-execute-job2"));
+				"connector2-execute-job2",
+				"connector2-afterJobs"));
 
 		connectorManager.save(connector1.setEnabled(true));
 		crawl();
@@ -118,9 +130,11 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector1-getJobs",
 				"connector1-execute-job1",
 				"connector1-execute-job2",
+				"connector1-afterJobs",
 				"connector2-getJobs",
 				"connector2-execute-job3",
-				"connector2-execute-job4"));
+				"connector2-execute-job4",
+				"connector2-afterJobs"));
 
 	}
 
@@ -142,22 +156,27 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector1-getJobs",
 				"connector1-execute-job1",
 				"connector1-execute-job2",
+				"connector1-afterJobs",
 				"connector2-getJobs",
 				"connector2-execute-job1",
-				"connector2-execute-job2"));
+				"connector2-execute-job2",
+				"connector2-afterJobs"));
 
 		connectorManager.save(connector2.setEnabled(false));
 
 		crawl();
 		assertThat(connectorEvents).isEqualTo(asList(
+				"connector2-stop",
 				"connector1-getJobs",
 				"connector1-execute-job3",
-				"connector1-execute-job4"));
+				"connector1-execute-job4",
+				"connector1-afterJobs"));
 
 		connectorManager.save(connector1.setEnabled(false));
 
 		crawl();
-		assertThat(connectorEvents).isEmpty();
+		assertThat(connectorEvents).isEqualTo(asList(
+				"connector1-stop"));
 
 	}
 
@@ -188,13 +207,15 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector1-start",
 				"connector1-getJobs",
 				"connector1-execute-job1",
-				"connector1-execute-job2"));
+				"connector1-execute-job2",
+				"connector1-afterJobs"));
 
 		crawl();
 		assertThat(connectorEvents).isEqualTo(asList(
 				"connector1-getJobs",
 				"connector1-execute-job3",
-				"connector1-execute-job4"));
+				"connector1-execute-job4",
+				"connector1-afterJobs"));
 
 	}
 
@@ -214,18 +235,22 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector1-getJobs",
 				"connector1-execute-job1",
 				"connector1-execute-job2",
+				"connector1-afterJobs",
 				"connector2-getJobs",
 				"connector2-execute-job1",
-				"connector2-execute-job2"));
+				"connector2-execute-job2",
+				"connector2-afterJobs"));
 
 		crawl();
 		assertThat(connectorEvents).isEqualTo(asList(
 				"connector1-getJobs",
 				"connector1-execute-job3",
 				"connector1-execute-job4",
+				"connector1-afterJobs",
 				"connector2-getJobs",
 				"connector2-execute-job3",
-				"connector2-execute-job4"));
+				"connector2-execute-job4",
+				"connector2-afterJobs"));
 
 	}
 
@@ -245,22 +270,27 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector1-getJobs",
 				"connector1-execute-job1",
 				"connector1-execute-job2",
+				"connector1-afterJobs",
 				"connector2-getJobs",
 				"connector2-execute-job1",
-				"connector2-execute-job2"));
+				"connector2-execute-job2",
+				"connector2-afterJobs"));
 
 		connectorManager.restartConnectorTraversal(connector2.getId());
 
 		crawl();
 		assertThat(connectorEvents).isEqualTo(asList(
+				"connector2-stop",
 				"connector2-initialize",
 				"connector2-start",
 				"connector1-getJobs",
 				"connector1-execute-job3",
 				"connector1-execute-job4",
+				"connector1-afterJobs",
 				"connector2-getJobs",
 				"connector2-execute-job1",
-				"connector2-execute-job2"));
+				"connector2-execute-job2",
+				"connector2-afterJobs"));
 
 	}
 
@@ -303,6 +333,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 
 		ConnectorInstance connectorInstance = new ConnectorInstance(recordServices.newRecordWithSchema(schema), types);
 		connectorInstance.setCode(code).setTitle(code);
+		connectorInstance.setEnabled(false);
 		connectorInstance.setConnectorType(testConnectorTypeId);
 		return connectorInstance;
 	}
@@ -311,14 +342,16 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		prepareSystem(withZeCollection().withConstellioESModule());
 		connectorEvents = new ArrayList<>();
-		givenCollection(zeCollection).withConstellioESModule();
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = es.getModelLayerFactory().newRecordServices();
 		connectorManager = es.getConnectorManager();
 		connectorManager.setCrawlerInParallel(false);
 		connectorCrawler = es.getConnectorManager().getCrawler();
+		connectorCrawler.timeWaitedWhenNoJobs = 0;
 		givenDummyConnectorType();
+		connectorEvents.clear();
 	}
 
 	private void givenDummyConnectorType()
@@ -391,8 +424,33 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 		}
 
 		@Override
+		public void stop() {
+			connectorEvents.add(code + "-stop");
+		}
+
+		@Override
+		public void afterJobs(List<ConnectorJob> jobs) {
+			connectorEvents.add(code + "-afterJobs");
+		}
+
+		@Override
 		public void resume() {
 			connectorEvents.add(code + "-resume");
+		}
+
+		@Override
+		public List<String> getReportMetadatas(String reportMode) {
+			return null;
+		}
+
+		@Override
+		public String getMainConnectorDocumentType() {
+			return null;
+		}
+
+		@Override
+		public void onAllDocumentsDeleted() {
+
 		}
 	}
 }

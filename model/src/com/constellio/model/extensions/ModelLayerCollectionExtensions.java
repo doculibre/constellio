@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.extensions;
 
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -23,14 +6,17 @@ import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
+import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -44,6 +30,12 @@ public class ModelLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordExtension> recordExtensions = new VaultBehaviorsList<>();
 
 	//----------------- Callers ---------------
+
+	public void callSetRecordCategory(RecordSetCategoryEvent event) {
+		for (RecordExtension extension : recordExtensions) {
+			extension.setRecordCategory(event);
+		}
+	}
 
 	public void callRecordImportBuild(String schemaType, BuildParams params) {
 		for (RecordImportExtension extension : recordImportExtensions) {
@@ -69,15 +61,31 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-	public void callRecordInCreationEvent(RecordInCreationEvent event) {
+	public void callRecordInCreationBeforeSave(
+			RecordInCreationBeforeSaveEvent event) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInCreation(event);
+			extension.recordInCreationBeforeSave(event);
 		}
 	}
 
-	public void callRecordInModificationEvent(RecordInModificationEvent event) {
+	public void callRecordInModificationBeforeSave(
+			RecordInModificationBeforeSaveEvent event) {
 		for (RecordExtension extension : recordExtensions) {
-			extension.recordInModification(event);
+			extension.recordInModificationBeforeSave(event);
+		}
+	}
+
+	public void callRecordInCreationBeforeValidationAndAutomaticValuesCalculation(
+			RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		for (RecordExtension extension : recordExtensions) {
+			extension.recordInCreationBeforeValidationAndAutomaticValuesCalculation(event);
+		}
+	}
+
+	public void callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		for (RecordExtension extension : recordExtensions) {
+			extension.recordInModificationBeforeValidationAndAutomaticValuesCalculation(event);
 		}
 	}
 

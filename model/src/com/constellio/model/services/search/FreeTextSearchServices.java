@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -27,29 +10,32 @@ import com.constellio.data.utils.LoggerUtils;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.FilterUtils;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
+import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.users.UserServices;
 
 public class FreeTextSearchServices {
-
 	Logger LOGGER = LoggerFactory.getLogger(FreeTextSearchServices.class);
 
 	RecordDao recordDao;
 	RecordDao eventsDao;
 	RecordServices recordServices;
 	UserServices userServices;
+	SecurityTokenManager securityTokenManager;
 
-	public FreeTextSearchServices(RecordDao recordDao, RecordDao eventsDao, UserServices userServices) {
+	public FreeTextSearchServices(RecordDao recordDao, RecordDao eventsDao, UserServices userServices,
+			SecurityTokenManager securityTokenManager) {
 		super();
 		this.recordDao = recordDao;
 		this.eventsDao = eventsDao;
 		this.userServices = userServices;
+		this.securityTokenManager = securityTokenManager;
 	}
 
 	public QueryResponse search(FreeTextQuery query) {
 		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams(query.getSolrParams());
 
 		if (query.getUserFilter() != null) {
-			String filter = FilterUtils.multiCollectionUserReadFilter(query.getUserFilter(), userServices);
+			String filter = FilterUtils.multiCollectionUserReadFilter(query.getUserFilter(), userServices, securityTokenManager);
 			modifiableSolrParams.add("fq", filter);
 		}
 

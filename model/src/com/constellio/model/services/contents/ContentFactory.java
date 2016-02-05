@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.contents;
 
 import java.util.ArrayList;
@@ -22,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
@@ -36,6 +20,7 @@ import com.constellio.model.utils.Lazy;
 
 public class ContentFactory implements StructureFactory {
 
+	public static final String COLON_REPLACER = "$#$";
 	public static final String INFO_SEPARATOR = ":";
 	private static final String NULL_STRING = "null";
 
@@ -87,13 +72,25 @@ public class ContentFactory implements StructureFactory {
 
 	@Override
 	public ModifiableStructure build(String string) {
-		Iterator<String> iterator = newPartsIterator(string);
 
+		int version = getFactoryVersion(string);
+		Iterator<String> iterator;
+
+		if (version == 1) {
+			iterator = newPartsIterator(string);
+		} else {
+			iterator = newPartsIterator(string.substring(3));
+		}
+
+		return build(iterator, version);
+	}
+
+	private ModifiableStructure build(Iterator<String> iterator, int version) {
 		String id = iterator.next();
 		skipCurrentFileName(iterator);
 		skipIsCheckedOut(iterator);
-		ContentVersion current = toContentVersion(iterator.next());
-		ContentVersion currentCheckedOut = toContentVersion(iterator.next());
+		ContentVersion current = toContentVersion(iterator.next(), version);
+		ContentVersion currentCheckedOut = toContentVersion(iterator.next(), version);
 
 		String nextLine = iterator.next();
 		boolean emptyVersion = false;
@@ -104,9 +101,17 @@ public class ContentFactory implements StructureFactory {
 
 		String checkedOutBy = toNullableString(nextLine);
 		LocalDateTime checkedOutDateTime = toDateTime(iterator.next());
-		Lazy<List<ContentVersion>> lazyLoadedHistory = newLazyLoadedHistory(iterator);
+		Lazy<List<ContentVersion>> lazyLoadedHistory = newLazyLoadedHistory(iterator, version);
 
 		return new ContentImpl(id, current, lazyLoadedHistory, currentCheckedOut, checkedOutDateTime, checkedOutBy, emptyVersion);
+	}
+
+	private int getFactoryVersion(String string) {
+		if (string.startsWith("v2:")) {
+			return 2;
+		} else {
+			return 1;
+		}
 
 	}
 
@@ -118,14 +123,14 @@ public class ContentFactory implements StructureFactory {
 		iterator.next();
 	}
 
-	private Lazy<List<ContentVersion>> newLazyLoadedHistory(final Iterator<String> iterator) {
+	private Lazy<List<ContentVersion>> newLazyLoadedHistory(final Iterator<String> iterator, final int version) {
 		return new Lazy<List<ContentVersion>>() {
 			@Override
 			protected List<ContentVersion> load() {
 				List<ContentVersion> versions = new ArrayList<>();
 
 				while (iterator.hasNext()) {
-					versions.add(toContentVersion(iterator.next()));
+					versions.add(toContentVersion(iterator.next(), version));
 				}
 
 				return versions;
@@ -144,8 +149,10 @@ public class ContentFactory implements StructureFactory {
 
 	@Override
 	public String toString(ModifiableStructure value) {
+		//Version 2
+		StringBuilder stringBuilder = new StringBuilder("v2:");
+
 		ContentImpl contentInfo = (ContentImpl) value;
-		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(contentInfo.getId());
 		stringBuilder.append("::cf=");
 		stringBuilder.append(contentInfo.getCurrentVersion().getFilename());
@@ -191,10 +198,20 @@ public class ContentFactory implements StructureFactory {
 		stringBuilder.append(":v=");
 		stringBuilder.append(contentVersion.getVersion());
 		stringBuilder.append(":");
+		stringBuilder.append(writeComment(contentVersion.getComment()));
+		stringBuilder.append(":");
 		return stringBuilder.toString();
 	}
 
-	private ContentVersion toContentVersion(String string) {
+	private ContentVersion toContentVersion(String string, int version) {
+		if (version == 2) {
+			return toContentVersion2(string);
+		} else {
+			return toContentVersion1(string);
+		}
+	}
+
+	private ContentVersion toContentVersion1(String string) {
 		if (string.equals(NULL_STRING)) {
 			return null;
 		}
@@ -210,7 +227,28 @@ public class ContentFactory implements StructureFactory {
 
 		long length = Long.valueOf(lengthStr);
 		ContentVersionDataSummary contentVersionDataSummary = new ContentVersionDataSummary(hash, mimetype, length);
-		return new ContentVersion(contentVersionDataSummary, filename, version, modifiedBy, toDateTime(modifiedDateTime));
+		return new ContentVersion(contentVersionDataSummary, filename, version, modifiedBy, toDateTime(modifiedDateTime), null);
+	}
+
+	private ContentVersion toContentVersion2(String string) {
+		if (string.equals(NULL_STRING)) {
+			return null;
+		}
+
+		StringTokenizer tokenizer = new StringTokenizer(string, ":");
+		String filename = afterEqual(tokenizer.nextToken());
+		String hash = afterEqual(tokenizer.nextToken());
+		String lengthStr = afterEqual(tokenizer.nextToken());
+		String mimetype = afterEqual(tokenizer.nextToken());
+		String modifiedBy = afterEqual(tokenizer.nextToken());
+		String modifiedDateTime = afterEqual(tokenizer.nextToken());
+		String version = afterEqual(tokenizer.nextToken());
+		String comment = readComment(afterEqual(tokenizer.nextToken()));
+
+		long length = Long.valueOf(lengthStr);
+		ContentVersionDataSummary contentVersionDataSummary = new ContentVersionDataSummary(hash, mimetype, length);
+		return new ContentVersion(contentVersionDataSummary, filename, version, modifiedBy, toDateTime(modifiedDateTime),
+				comment);
 	}
 
 	private LocalDateTime toDateTime(String dateTimeString) {
@@ -232,6 +270,14 @@ public class ContentFactory implements StructureFactory {
 	private String afterEqual(String keyValue) {
 		int equalIndex = keyValue.indexOf("=");
 		return keyValue.substring(equalIndex + 1);
+	}
+
+	private String readComment(String comment) {
+		return comment.equals(NULL_STRING) ? null : comment.replace(COLON_REPLACER, ":");
+	}
+
+	private String writeComment(String comment) {
+		return StringUtils.isBlank(comment) ? null : comment.replace(":", COLON_REPLACER);
 	}
 
 	@Override

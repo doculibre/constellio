@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.io.concurrent.filesystem;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +7,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,15 +22,21 @@ import com.constellio.model.conf.FoldersLocator;
 public class AtomicFileSystemUtilsTest {
 
 	private AtomicFileSystem master, slave;
+	private File baseFld;
 
 	@Before
 	public void setUp(){
-		File baseFld = new FoldersLocator().getDefaultTempFolder();
+		baseFld = new FoldersLocator().getDefaultTempFolder();
 		HashingService hashingService = new IOServicesFactory(null).newHashingService();
-		master = new AtomicLocalFileSystem(new File(baseFld, "master"), hashingService);
-		slave = spy(new AtomicLocalFileSystem(new File(baseFld, "slave"), hashingService));
-		master.delete("/", null);
-		slave.delete("/", null);
+		master = new ChildAtomicFileSystem(new AtomicLocalFileSystem(hashingService), new File(baseFld, "master").getAbsolutePath());
+		slave = spy(new ChildAtomicFileSystem(new AtomicLocalFileSystem(hashingService), new File(baseFld, "slave").getAbsolutePath()));
+		master.delete(File.separator, null);
+		slave.delete(File.separator, null);
+	}
+	
+	@After
+	public void cleanup() throws IOException{
+		FileUtils.deleteDirectory(baseFld);
 	}
 
 	@Test

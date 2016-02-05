@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.transactionLog;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -67,6 +50,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexationParams;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -75,10 +60,12 @@ import com.constellio.sdk.tests.SolrSDKToolsServices;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.LoadTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
 
+@SlowTest
 public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 	private LocalDateTime shishOClock = new LocalDateTime();
@@ -145,6 +132,41 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 		runAdding(500);
 
+	}
+
+	@Test
+	public void givenSchemaTypeRecordsAreNotSavedInTransactionLogThenNotInTLog()
+			throws Exception {
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setInTransactionLog(false);
+			}
+		});
+		schemas.refresh();
+
+		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary data = contentManager
+				.upload(getTestResourceInputStreamFactory("guide.pdf").create(SDK_STREAM));
+
+		//Schema schema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchema()
+		Record record1 = recordServices.newRecordWithSchema(zeSchema.instance());
+		record1.set(zeSchema.stringMetadata(), "Guide d'architecture");
+		record1.set(zeSchema.contentMetadata(), contentManager.createMajor(admin, "guide.pdf", data));
+		recordServices.add(record1);
+
+		record1.set(zeSchema.stringMetadata(), "Guide d'architecture 2");
+		recordServices.update(record1);
+
+		recordServices.logicallyDelete(record1, User.GOD);
+		recordServices.physicallyDelete(record1, User.GOD);
+
+		log.regroupAndMoveInVault();
+		log.destroyAndRebuildSolrCollection();
+
+		assertThat(completeTLOG()).doesNotContain(record1.getId());
 	}
 
 	@Test

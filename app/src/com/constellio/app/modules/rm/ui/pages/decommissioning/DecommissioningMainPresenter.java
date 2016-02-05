@@ -1,26 +1,11 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.DecomissioningListQueryFactory;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListQueryFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
@@ -32,10 +17,11 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<DecommissioningMainView> {
@@ -43,7 +29,10 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	public static final String GENERATED = "generated";
 	public static final String PENDING_VALIDATION = "pendingValidation";
 	public static final String TO_VALIDATE = "toValidate";
+	public static final String VALIDATED = "validated";
 	public static final String PENDING_APPROVAL = "pendingApproval";
+	public static final String TO_APPROVE = "toApprove";
+	public static final String APPROVED = "approved";
 	public static final String PROCESSED = "processed";
 
 	private transient RMSchemasRecordsServices rmRecordServices;
@@ -58,7 +47,14 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<String> getTabs() {
-		return securityService().getVisibleTabsInDecommissioningMainPage(getCurrentUser());
+		SearchServices service = searchServices();
+		List<String> result = new ArrayList<>();
+		for (String tabId : securityService().getVisibleTabsInDecommissioningMainPage(getCurrentUser())) {
+			if (CREATE.equals(tabId) || service.hasResults(getQueryForTab(tabId))) {
+				result.add(tabId);
+			}
+		}
+		return result;
 	}
 
 	public void tabSelected(String tabId) {
@@ -67,22 +63,19 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 			view.displayListCreation();
 			break;
 		case GENERATED:
-			view.displayEditableTable(getGeneratedLists());
+		case VALIDATED:
+		case APPROVED:
+			view.displayEditableTable(buildDataProvider(tabId));
 			break;
 		case PENDING_VALIDATION:
-			view.displayReadOnlyTable(getListsPendingValidation());
-			break;
 		case TO_VALIDATE:
-			view.displayReadOnlyTable(getListsToValidate());
-			break;
 		case PENDING_APPROVAL:
-			view.displayReadOnlyTable(getListsPendingApproval());
-			break;
+		case TO_APPROVE:
 		case PROCESSED:
-			view.displayReadOnlyTable(getProcessedLists());
+			view.displayReadOnlyTable(buildDataProvider(tabId));
 			break;
 		default:
-			throw new RuntimeException("BUG: Unknown tabId + " + tabId);
+			throw new ImpossibleRuntimeException("Unknown tabId + " + tabId);
 		}
 	}
 
@@ -94,12 +87,24 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 		return DecommissioningSearchConditionFactory.availableCriteriaForFoldersWithPlanifiedDate();
 	}
 
+	public boolean isDocumentDecommissioningSupported() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
+
+	public List<SearchType> getCriteriaForDocuments() {
+		return DecommissioningSearchConditionFactory.availableCriteriaForDocuments();
+	}
+
 	public void creationRequested(SearchType type) {
 		view.navigateTo().decommissioningListBuilder(type.toString());
 	}
 
 	public void displayButtonClicked(RecordVO entity) {
-		view.navigateTo().displayDecommissioningList(entity.getId());
+		if (rmRecordServices().getDecommissioningList(entity.getId()).getDecommissioningListType().isFolderList()) {
+			view.navigateTo().displayDecommissioningList(entity.getId());
+		} else {
+			view.navigateTo().displayDocumentDecommissioningList(entity.getId());
+		}
 	}
 
 	public void editButtonClicked(RecordVO entity) {
@@ -112,49 +117,42 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 		view.reloadCurrentTab();
 	}
 
-	RecordVODataProvider getGeneratedLists() {
-		return buildDataProvider(new Factory<LogicalSearchQuery>() {
-			@Override
-			public LogicalSearchQuery get() {
-				return queryFactory().getGeneratedListsQuery(getCurrentUser());
-			}
-		});
+	public void backButtonClicked() {
+		view.navigateTo().archivesManagement();
 	}
 
-	RecordVODataProvider getListsPendingValidation() {
-		return buildDataProvider(new Factory<LogicalSearchQuery>() {
-			@Override
-			public LogicalSearchQuery get() {
-				return queryFactory().getListsPendingValidationQuery(getCurrentUser());
-			}
-		});
+	private LogicalSearchQuery getQueryForTab(String tabId) {
+		switch (tabId) {
+		case GENERATED:
+			return queryFactory().getGeneratedListsQuery(getCurrentUser());
+		case PENDING_VALIDATION:
+			return queryFactory().getListsPendingValidationQuery(getCurrentUser());
+		case TO_VALIDATE:
+			return queryFactory().getListsToValidateQuery(getCurrentUser());
+		case VALIDATED:
+			return queryFactory().getValidatedListsQuery(getCurrentUser());
+		case PENDING_APPROVAL:
+			return queryFactory().getListsPendingApprovalQuery(getCurrentUser());
+		case TO_APPROVE:
+			return queryFactory().getListsToApproveQuery(getCurrentUser());
+		case APPROVED:
+			return queryFactory().getApprovedListsQuery(getCurrentUser());
+		case PROCESSED:
+			return queryFactory().getProcessedListsQuery(getCurrentUser());
+		default:
+			throw new ImpossibleRuntimeException("Unknown tabId: " + tabId);
+		}
 	}
 
-	RecordVODataProvider getListsToValidate() {
-		return buildDataProvider(new Factory<LogicalSearchQuery>() {
+	private RecordVODataProvider buildDataProvider(final String tabId) {
+		MetadataSchema schema = rmRecordServices().defaultDecommissioningListSchema();
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			public LogicalSearchQuery get() {
-				return queryFactory().getListsToValidateQuery(getCurrentUser());
+			protected LogicalSearchQuery getQuery() {
+				return getQueryForTab(tabId);
 			}
-		});
-	}
-
-	RecordVODataProvider getListsPendingApproval() {
-		return buildDataProvider(new Factory<LogicalSearchQuery>() {
-			@Override
-			public LogicalSearchQuery get() {
-				return queryFactory().getListsPendingApprovalQuery(getCurrentUser());
-			}
-		});
-	}
-
-	RecordVODataProvider getProcessedLists() {
-		return buildDataProvider(new Factory<LogicalSearchQuery>() {
-			@Override
-			public LogicalSearchQuery get() {
-				return queryFactory().getProcessedListsQuery(getCurrentUser());
-			}
-		});
+		};
 	}
 
 	private RMSchemasRecordsServices rmRecordServices() {
@@ -164,26 +162,11 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 		return rmRecordServices;
 	}
 
-	private DecomissioningListQueryFactory queryFactory() {
-		return new DecomissioningListQueryFactory(collection, modelLayerFactory);
+	DecommissioningListQueryFactory queryFactory() {
+		return new DecommissioningListQueryFactory(collection, modelLayerFactory);
 	}
 
 	private DecommissioningSecurityService securityService() {
 		return new DecommissioningSecurityService(collection, modelLayerFactory);
-	}
-
-	private RecordVODataProvider buildDataProvider(final Factory<LogicalSearchQuery> factory) {
-		MetadataSchema schema = rmRecordServices().defaultDecommissioningListSchema();
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return factory.get();
-			}
-		};
-	}
-
-	public void backButtonClicked() {
-		view.navigateTo().archivesManagement();
 	}
 }

@@ -1,26 +1,11 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.users;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 
+import java.security.Key;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +20,8 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.encrypt.EncryptionKeyFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 
@@ -48,11 +35,14 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 	UserCredential chuckUserCredential, edouardUserCredential, bobUserCredential;
 	CollectionsListManager collectionsListManager;
 	LocalDateTime endDate = new LocalDateTime().plusMinutes(30);
+	List<String> msExchDelegateListBL = new ArrayList<>();
 
 	@Before
 	public void setUp()
 			throws Exception {
 
+		givenCollection("collection1");
+		givenCollection("zeCollection");
 		givenDisabledAfterTestValidations();
 		withSpiedServices(ModelLayerConfiguration.class, CollectionsListManager.class);
 		configure(new ModelLayerConfigurationAlteration() {
@@ -64,7 +54,14 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		});
 
 		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-		doReturn(asList(zeCollection, "collection1")).when(collectionsListManager).getCollections();
+
+		msExchDelegateListBL = new ArrayList<>();
+		msExchDelegateListBL.add("msExchDelegateListBL1");
+		msExchDelegateListBL.add("msExchDelegateListBL2");
+
+		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
+		ModelLayerFactoryUtils.setApplicationEncryptionKey(getModelLayerFactory(), key);
+
 		createUserCredentials();
 
 		manager = getModelLayerFactory().getUserCredentialsManager();
@@ -89,11 +86,10 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenHasInvalidCollectionWhenReadThenHAsOnlyValidCollections() {
-		doReturn(asList(zeCollection)).when(collectionsListManager).getCollections();
 
 		manager.addUpdate(edouardUserCredential);
 
-		assertThat(manager.getUserCredential("Édouard").getCollections()).containsOnly(zeCollection);
+		assertThat(manager.getUserCredential("Édouard").getCollections()).containsOnly(zeCollection, "collection1");
 	}
 
 	@Test
@@ -104,7 +100,8 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(edouardUserCredential);
 
 		chuckUserCredential = new UserCredential("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com",
-				asList("group11"), asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain");
+				asList("group11"), asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain",
+				msExchDelegateListBL, null);
 		manager.addUpdate(chuckUserCredential);
 
 		assertThat(manager.getActiveUserCredentials()).hasSize(3);
@@ -123,7 +120,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(chuckUserCredential);
 
 		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", asList("group1"),
-				asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain");
+				asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
 		manager.addUpdate(chuckUserCredential);
 		assertThat(manager.getActiveUserCredentials()).hasSize(2);
@@ -292,18 +289,18 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 	private void createUserCredentials() {
 		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", null, true,
 				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
-				UserCredentialStatus.ACTIVE, "domain");
+				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
 		bobUserCredential = new UserCredential("bob", "Bob", "Gratton", "bob.gratton@gmail.com", null, true,
 				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
-				UserCredentialStatus.ACTIVE, "domain");
+				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
 		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 		tokens.put("token1", endDate);
 		tokens.put("token2", endDate.plusMinutes(30));
 		edouardUserCredential = new UserCredential("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com", edouardServiceKey,
 				false, asList("group2"), asList(zeCollection, "collection1"), tokens, UserCredentialStatus.ACTIVE,
-				"domain");
+				"domain", msExchDelegateListBL, null);
 	}
 
 	private Set<String> getAllCollectionsInUserCredentialFile() {

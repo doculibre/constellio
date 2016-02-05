@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.facet;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -24,8 +7,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -49,6 +36,7 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 
 	private RecordVO recordVO;
 	private FacetType facetType;
+	private String dataFieldCode;
 	private FacetConfigurationPresenterService service;
 	private boolean edit;
 	private Map<Integer, Map<String, String>> values;
@@ -62,6 +50,7 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 		if (recordId != null && !recordId.isEmpty() && edit) {
 			this.recordVO = service.getVOForRecord(recordServices().getDocumentById(recordId));
 			this.facetType = recordVO.get(Facet.FACET_TYPE);
+			this.dataFieldCode = recordVO.get(Facet.FIELD_DATA_STORE_CODE);
 		}
 		this.edit = edit;
 	}
@@ -86,18 +75,37 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 		}
 	}
 
-	public void typeChanged(String dataFieldCode) {
-		switch (facetType) {
-		case FIELD:
-			displayCorrectTab(dataFieldCode);
-			break;
-		case QUERY:
-			view.refreshValuesTab();
-			break;
-		default:
-			throw new ImpossibleRuntimeException("Unknown type");
+	public FacetType getFacetType() {
+		return facetType;
+	}
+
+	public void setDataFieldCode(String dataFieldCode) {
+		this.dataFieldCode = dataFieldCode;
+	}
+
+	public String getDataFieldCode() {
+		return dataFieldCode;
+	}
+
+	void reloadForm() {
+
+		if (!edit) {
+			RecordVO newRecordVO = service.getVOForType(facetType);
+			view.getForm().commit();
+			for (MetadataVO metadataVO : recordVO.getMetadatas()) {
+				if (recordVO.getMetadataValue(metadataVO) != null
+						&& recordVO.getMetadataValue(metadataVO).getValue() != null) {
+					newRecordVO.set(metadataVO, recordVO.getMetadataValue(metadataVO).getValue());
+				}
+			}
+			recordVO = newRecordVO;
+			view.getForm().reload();
 		}
-		view.refreshProfileTab();
+	}
+
+	public void reloadForm(String dataFieldCode) {
+		this.dataFieldCode = dataFieldCode;
+		reloadForm();
 	}
 
 	public String getTypePostfix() {
@@ -113,15 +121,13 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 		return values;
 	}
 
-	public List<Map<String, String>> getValueForFacet(String dataFieldCode) {
-		List<Map<String, String>> values = new ArrayList<>();
+	public Map<String, String> getValueForFacet() {
+		Map<String, String> values = new HashMap<>();
 
 		MapStringStringStructure valuesMap;
-		List<String> labels = new ArrayList<>();
 		switch (facetType) {
 		case FIELD:
 			valuesMap = recordVO.get(Facet.FIELD_VALUES_LABEL);
-			labels = service.getFieldFacetValues(dataFieldCode);
 			break;
 		case QUERY:
 			valuesMap = recordVO.get(Facet.LIST_QUERIES);
@@ -129,22 +135,35 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 		default:
 			throw new ImpossibleRuntimeException("Unknown type");
 		}
-
-		if (valuesMap == null || valuesMap.isEmpty()) {
-			for (String label : labels) {
-				Map<String, String> value = new HashMap<>();
-				value.put("", label);
-				values.add(value);
-			}
-		} else {
+		if (valuesMap != null) {
 			for (String key : valuesMap.keySet()) {
 				Map<String, String> tmp = new HashMap<>();
 				tmp.put(valuesMap.get(key), key);
-				values.add(tmp);
+				values.put(key, valuesMap.get(key));
 			}
 		}
-
 		return values;
+	}
+
+	public Map<String, String> getAutomaticValueForFacet(String dataFieldCode, List<String> valuesInTable) {
+		Map<String, String> valuesMap = new HashMap<>();
+
+		List<String> values = new ArrayList<>();
+		switch (facetType) {
+		case FIELD:
+			values = service.getFieldFacetValues(dataFieldCode);
+			break;
+		case QUERY:
+			break;
+		default:
+			throw new ImpossibleRuntimeException("Unknown type");
+		}
+		for (String value : values) {
+			if (!valuesInTable.contains(value)) {
+				valuesMap.put(value, "");
+			}
+		}
+		return valuesMap;
 	}
 
 	public void removeValue(int index) {
@@ -194,6 +213,7 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 
 	public void saveButtonClicked(RecordVO recordVO) {
 
+		filterValues(values);
 		switch (facetType) {
 		case FIELD:
 			if (recordVO.get(Facet.FIELD_DATA_STORE_CODE) == null) {
@@ -231,6 +251,20 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 		}
 	}
 
+	private void filterValues(Map<Integer, Map<String, String>> values) {
+		List<Integer> valuesToRemove = new ArrayList<>();
+		for (Integer integer : values.keySet()) {
+			for (Entry<String, String> entry : values.get(integer).entrySet()) {
+				if (StringUtils.isBlank(entry.getKey()) || StringUtils.isBlank(entry.getValue())) {
+					valuesToRemove.add(integer);
+				}
+			}
+		}
+		for (Integer integer : valuesToRemove) {
+			values.remove(integer);
+		}
+	}
+
 	public List<AvailableFacetFieldMetadata> getAvailableDataStoreCodes() {
 		return service.getAvailableDataStoreCodes();
 	}
@@ -241,18 +275,6 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 
 	public boolean isDataStoreCodeSupportingLabelValues(String datastoreCode) {
 		return service.isDataStoreCodeSupportingLabelValues(datastoreCode);
-	}
-
-	public void displayCorrectTab(String dataFieldCode) {
-		if (dataFieldCode != null && !dataFieldCode.isEmpty()) {
-			if (isDataStoreCodeSupportingLabelValues(dataFieldCode)) {
-				view.refreshValuesTab();
-			} else {
-				view.removeValuesTab();
-			}
-		} else {
-			view.removeValuesTab();
-		}
 	}
 
 	public void cancelButtonClicked() {

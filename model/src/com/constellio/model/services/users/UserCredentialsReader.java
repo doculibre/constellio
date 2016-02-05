@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.users;
 
 import static com.constellio.model.services.users.UserUtils.toCacheKey;
@@ -28,8 +11,10 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class UserCredentialsReader {
@@ -45,15 +30,22 @@ public class UserCredentialsReader {
 	private static final String TOKEN_ID = "tokenId";
 	private static final String TOKEN_END_DATE = "tokenEndDate";
 	private static final String SYSTEM_ADMIN = "systemAdmin";
-	public static final String STATUS = "status";
-	public static final String DOMAIN = "domain";
+	private static final String STATUS = "status";
+	private static final String DOMAIN = "domain";
+	private static final String MS_EXCH_DELEGATE_LIST_BL = "msExchDelegateListBL";
+	private static final String MS_EXCH_DELEGATE_BL = "msExchDelegateBL";
+	private static final String DN = UserCredentialsWriter.DN;
 	Document document;
+	int documentVersion;
+	Factory<EncryptionServices> encryptionServicesFactory;
 
-	public UserCredentialsReader(Document document) {
+	public UserCredentialsReader(Document document, Factory<EncryptionServices> encryptionServicesFactory) {
 		this.document = document;
+		this.encryptionServicesFactory = encryptionServicesFactory;
 	}
 
 	public Map<String, UserCredential> readAll(List<String> collections) {
+		readVersion();
 		UserCredential userCredential;
 		Map<String, UserCredential> usersCredentials = new HashMap<>();
 		Element usersCredentialsElements = document.getRootElement();
@@ -63,6 +55,15 @@ public class UserCredentialsReader {
 			usersCredentials.put(toCacheKey(userCredential.getUsername()), userCredential);
 		}
 		return usersCredentials;
+	}
+
+	private void readVersion() {
+		String version = document.getRootElement().getAttributeValue("apiVersion");
+		if (version == null) {
+			documentVersion = 0;
+		} else {
+			documentVersion = Integer.valueOf(version);
+		}
 	}
 
 	private UserCredential createUserCredentialObject(Element userCredentialElement, List<String> allCollections) {
@@ -79,6 +80,11 @@ public class UserCredentialsReader {
 		Element tokensElements = userCredentialElement.getChild(TOKENS);
 		for (Element tokenElement : tokensElements.getChildren()) {
 			String tokenId = tokenElement.getChildText(TOKEN_ID);
+
+			if (documentVersion > 1) {
+				tokenId = encryptionServicesFactory.get().decrypt(tokenId);
+			}
+
 			String tokenEndDate = tokenElement.getChildText(TOKEN_END_DATE);
 			LocalDateTime endDateTime = LocalDateTime.parse(tokenEndDate);
 			tokens.put(tokenId, endDateTime);
@@ -96,6 +102,19 @@ public class UserCredentialsReader {
 				collections.add(collectionElement.getText());
 			}
 		}
+		List<String> msExchDelegateListBL = new ArrayList<>();
+		Element msExchDelegateListBLElements = userCredentialElement.getChild(MS_EXCH_DELEGATE_LIST_BL);
+		if (msExchDelegateListBLElements != null) {
+			for (Element msExchDelegateBLElement : msExchDelegateListBLElements.getChildren()) {
+				msExchDelegateListBL.add(msExchDelegateBLElement.getText());
+			}
+		}
+
+		String dn = userCredentialElement.getChildText(DN);
+		if ("null".equals(dn)) {
+			dn = null;
+		}
+
 		UserCredentialStatus status;
 		String statusStr = userCredentialElement.getChildText(STATUS);
 		if (statusStr != null) {
@@ -105,7 +124,7 @@ public class UserCredentialsReader {
 		}
 		String domain = userCredentialElement.getChildText(DOMAIN);
 		userCredential = new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups,
-				collections, tokens, status, domain);
+				collections, tokens, status, domain, msExchDelegateListBL, dn);
 		return userCredential;
 	}
 }

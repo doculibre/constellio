@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.model.labelTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,7 +46,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(labelTemplates.get(0).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5159");
 		assertThat(labelTemplates.get(0).getName()).isEqualTo("Code de plan justifié à droite (Avery 5159)");
 		assertThat(labelTemplates.get(0).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
-		assertThat(labelTemplates.get(0).getFields()).hasSize(6);
+		assertThat(labelTemplates.get(0).getFields()).hasSize(5);
 
 		assertThat(labelTemplates.get(1).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(labelTemplates.get(1).getColumns()).isEqualTo(30);
@@ -71,7 +54,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(labelTemplates.get(1).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5161");
 		assertThat(labelTemplates.get(1).getName()).isEqualTo("Code de plan justifié à droite (Avery 5161)");
 		assertThat(labelTemplates.get(1).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5161);
-		assertThat(labelTemplates.get(1).getFields()).hasSize(6);
+		assertThat(labelTemplates.get(1).getFields()).hasSize(5);
 
 		assertThat(labelTemplates.get(2).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(labelTemplates.get(2).getColumns()).isEqualTo(30);
@@ -79,7 +62,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(labelTemplates.get(2).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5163");
 		assertThat(labelTemplates.get(2).getName()).isEqualTo("Code de plan justifié à droite (Avery 5163)");
 		assertThat(labelTemplates.get(2).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5163);
-		assertThat(labelTemplates.get(2).getFields()).hasSize(6);
+		assertThat(labelTemplates.get(2).getFields()).hasSize(5);
 
 		assertThat(labelTemplates.get(3).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(labelTemplates.get(3).getColumns()).isEqualTo(30);
@@ -87,7 +70,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(labelTemplates.get(3).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5159");
 		assertThat(labelTemplates.get(3).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5159)");
 		assertThat(labelTemplates.get(3).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
-		assertThat(labelTemplates.get(3).getFields()).hasSize(6);
+		assertThat(labelTemplates.get(3).getFields()).hasSize(5);
 
 		assertThat(labelTemplates.get(4).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(labelTemplates.get(4).getColumns()).isEqualTo(30);
@@ -95,7 +78,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(labelTemplates.get(4).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5161");
 		assertThat(labelTemplates.get(4).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5161)");
 		assertThat(labelTemplates.get(4).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5161);
-		assertThat(labelTemplates.get(4).getFields()).hasSize(6);
+		assertThat(labelTemplates.get(4).getFields()).hasSize(5);
 
 		assertThat(labelTemplates.get(5).getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(labelTemplates.get(5).getColumns()).isEqualTo(30);
@@ -103,7 +86,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(labelTemplates.get(5).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5163");
 		assertThat(labelTemplates.get(5).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5163)");
 		assertThat(labelTemplates.get(5).getLabelsReportLayout()).isEqualTo(LabelsReportLayout.AVERY_5163);
-		assertThat(labelTemplates.get(5).getFields()).hasSize(6);
+		assertThat(labelTemplates.get(5).getFields()).hasSize(5);
 	}
 
 	@Test

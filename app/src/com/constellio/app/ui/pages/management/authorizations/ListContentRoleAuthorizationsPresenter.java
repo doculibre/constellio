@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.authorizations;
 
 import java.util.ArrayList;
@@ -87,23 +70,8 @@ public class ListContentRoleAuthorizationsPresenter extends ListAuthorizationsPr
 
 	@Override
 	public List<String> getAllowedAccesses() {
-		List<String> results = new ArrayList<>();
-
-		// What to do with this in roles context?
-
-//		User user = getCurrentUser();
-//		Record record = presenterService().getRecord(recordId);
-//		if (authorizationsServices().canRead(user, record)) {
-//			results.add(Role.READ);
-//		}
-//		if (authorizationsServices().canWrite(user, record)) {
-//			results.add(Role.WRITE);
-//		}
-//		if (authorizationsServices().canDelete(user, record)) {
-//			results.add(Role.DELETE);
-//		}
-
-		return results;
+		// Irrelevant in roles management context.
+		return new ArrayList<>();
 	}
 
 	@Override

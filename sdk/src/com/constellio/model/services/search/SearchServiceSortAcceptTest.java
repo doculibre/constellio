@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +31,7 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 			throws Exception {
 		recordServices = getModelLayerFactory().newRecordServices();
 		recordDao = spy(getDataLayerFactory().newRecordDao());
-		searchServices = new SearchServices(recordDao, recordServices);
+		searchServices = new SearchServices(recordDao, getModelLayerFactory());
 
 		defineSchemasManager()
 				.using(schema.withADateTimeMetadata().withANumberMetadata().withAStringMetadata());
@@ -73,13 +56,13 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		assertThat(searchServices.search(findAllQuery().sortAsc(zeSchema.dateTimeMetadata())))
-				.containsExactly(record2, record3, record4, record5, recordWithNull);
+				.containsExactly(recordWithNull, record2, record3, record4, record5);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortAsc(zeSchema.dateTimeMetadata())))
-				.containsExactly(record2.getId(), record3.getId(), record4.getId(), record5.getId(), recordWithNull.getId());
+				.containsExactly(recordWithNull.getId(), record2.getId(), record3.getId(), record4.getId(), record5.getId());
 		assertThat(searchServices.search(findAllQuery().sortDesc(zeSchema.dateTimeMetadata())))
-				.containsExactly(recordWithNull, record5, record4, record3, record2);
+				.containsExactly(record5, record4, record3, record2, recordWithNull);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortDesc(zeSchema.dateTimeMetadata())))
-				.containsExactly(recordWithNull.getId(), record5.getId(), record4.getId(), record3.getId(), record2.getId());
+				.containsExactly(record5.getId(), record4.getId(), record3.getId(), record2.getId(), recordWithNull.getId());
 
 	}
 
@@ -108,16 +91,17 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		assertThat(searchServices.search(findAllQuery().sortAsc(zeSchema.numberMetadata())))
-				.containsExactly(record1, record2, record3, record4, record5, record6, record7, record8);
+				.containsExactly(record2, record1, record3, record4, record5, record6, record7, record8);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortAsc(zeSchema.numberMetadata())))
-				.containsExactly(record1.getId(), record2.getId(), record3.getId(), record4.getId(), record5.getId(),
+				.containsExactly(record2.getId(), record1.getId(), record3.getId(), record4.getId(), record5.getId(),
 						record6.getId(), record7.getId(), record8.getId());
 		assertThat(searchServices.search(findAllQuery().sortDesc(zeSchema.numberMetadata())))
-				.containsExactly(record8, record7, record6, record5, record4, record3, record2, record1);
+				.containsExactly(record8, record7, record6, record5, record4, record3, record1, record2);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortDesc(zeSchema.numberMetadata())))
-				.containsExactly(record8.getId(), record7.getId(), record6.getId(), record5.getId(), record4.getId(),
-						record3.getId(), record2.getId(),
-						record1.getId());
+				.containsExactly(record8.getId(), record7.getId(), record6.getId(), record5.getId(),
+						record4.getId(),
+						record3.getId(), record1.getId(), record2.getId()
+				);
 
 	}
 
@@ -140,9 +124,9 @@ public class SearchServiceSortAcceptTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		assertThat(searchServices.search(findAllQuery().sortAsc(zeSchema.stringMetadata())))
-				.containsExactly(record1, record2, record3, record4, record5);
+				.containsExactly(record2, record3, record4, record1, record5);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortAsc(zeSchema.stringMetadata())))
-				.containsExactly(record1.getId(), record2.getId(), record3.getId(), record4.getId(), record5.getId());
+				.containsExactly(record2.getId(), record3.getId(), record4.getId(), record1.getId(), record5.getId());
 		assertThat(searchServices.search(findAllQuery().sortDesc(zeSchema.stringMetadata())))
 				.containsExactly(record4, record3, record2, record1, record5);
 		assertThat(searchServices.searchRecordIds(findAllQuery().sortDesc(zeSchema.stringMetadata())))

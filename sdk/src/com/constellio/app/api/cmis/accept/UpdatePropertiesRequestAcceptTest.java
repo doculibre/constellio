@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +35,8 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 	TaxonomiesSearchServices taxonomiesSearchServices;
 
 	Session cmisSession;
+	String chuckNorrisKey = "chuckNorris-key";
+	String chuckNorrisToken;
 
 	@Before
 	public void setUp()
@@ -71,10 +56,14 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUserToCollection(users.bob(), zeCollection);
+		userServices.addUpdateUserCredential(
+				userServices.getUserCredential(chuckNorris).withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
-		cmisSession = givenAdminSessionOnZeCollection();
+		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
+				.build();
+
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
 	}
 
@@ -82,31 +71,31 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 	public void whenUpdatingFolderThenPropertiesUpdated()
 			throws Exception {
 		Map<String, Object> properties = new HashMap<>();
-		properties.put("folder_default_title", "updatedTitle");
+		properties.put("title", "updatedTitle");
 		//		properties.put(PropertyIds.CHANGE_TOKEN, recordServices.getDocumentById("folder1").getVersionLabel());
 		CmisObject initialObject = cmisSession.getObject("folder1");
 		CmisObject updatedObject = initialObject.updateProperties(properties);
 
-		assertThat(updatedObject.getProperty("folder_default_title").getFirstValue()).isEqualTo("updatedTitle");
+		assertThat(updatedObject.getProperty("title").getFirstValue()).isEqualTo("updatedTitle");
 	}
 
 	@Test
 	public void whenUpdatingCategoryThenPropertiesUpdated()
 			throws Exception {
 		Map<String, Object> properties = new HashMap<>();
-		properties.put("category_default_title", "updatedTitle");
+		properties.put("title", "updatedTitle");
 		//		properties.put(PropertyIds.CHANGE_TOKEN, recordServices.getDocumentById("folder1").getVersionLabel());
-		CmisObject initialObject = cmisSession.getObject("taxo1_category1");
+		CmisObject initialObject = cmisSession.getObject("zetaxo1_category1");
 		CmisObject updatedObject = initialObject.updateProperties(properties);
 
-		assertThat(updatedObject.getProperty("category_default_title").getFirstValue()).isEqualTo("updatedTitle");
+		assertThat(updatedObject.getProperty("title").getFirstValue()).isEqualTo("updatedTitle");
 	}
 
 	@Test
 	public void whenUpdatingCollectionThenException()
 			throws Exception {
 		Map<String, Object> properties = new HashMap<>();
-		properties.put("collection_default_title", "updatedTitle");
+		properties.put("title", "updatedTitle");
 		//		properties.put(PropertyIds.CHANGE_TOKEN, recordServices.getDocumentById("folder1").getVersionLabel());
 		CmisObject initialObject = cmisSession.getRootFolder();
 		try {

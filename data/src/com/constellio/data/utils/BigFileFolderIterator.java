@@ -1,26 +1,12 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.utils;
+
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -46,9 +32,11 @@ public class BigFileFolderIterator extends LazyIterator<BigFileEntry> {
 
 	private static List<File> getBigFilesIn(File folder) {
 		List<File> files = new ArrayList<>();
-		for (File file : folder.listFiles()) {
-			if (file.getName().endsWith(".bigf")) {
-				files.add(file);
+		List<String> filenames = asList(folder.list());
+		Collections.sort(filenames);
+		for (String filename : filenames) {
+			if (filename.endsWith(".bigf")) {
+				files.add(new File(folder, filename));
 			}
 		}
 		return files;
@@ -64,6 +52,7 @@ public class BigFileFolderIterator extends LazyIterator<BigFileEntry> {
 					ioServices.closeQuietly(currentIteratorInputStream);
 				}
 				File nextFile = filesIterator.next();
+				System.out.println("Reading bigfile '" + nextFile.getName() + "'");
 				try {
 					currentIteratorInputStream = ioServices.newBufferedFileInputStream(nextFile, resourceName);
 					currentIterator = new BigFileIterator(currentIteratorInputStream);

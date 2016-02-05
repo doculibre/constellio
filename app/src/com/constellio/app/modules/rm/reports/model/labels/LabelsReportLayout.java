@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.model.labels;
 
 import com.itextpdf.text.PageSize;
@@ -23,10 +6,13 @@ import com.itextpdf.text.Rectangle;
 public enum LabelsReportLayout {
 
 	AVERY_5159(2, 7, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((2f / 16f) * 72f), ((4f / 32f) * 72f)),
+	AVERY_5159_V2(2, 7, PageSize.LETTER, 12f, 0f, 17f, 17f),
 	AVERY_5161(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
-	AVERY_5163(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f));
+	AVERY_5163(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
+	LABEL_1_5_X_5_25(2, 5, PageSize.LETTER.rotate(), 16.0f, 20.f, 36.0f, 37.0f),
+	AVERY_5168(2, 2, PageSize.LETTER, 22.0f, 0f, 20.0f, 20.0f);
 
-//	Top 0.5", Bottom 0.5", Left 0.18", Right 0.18"
+	//	Top 0.5", Bottom 0.5", Left 0.18", Right 0.18"
 
 	private int numberOfColumns;
 	private int numberOfRows;

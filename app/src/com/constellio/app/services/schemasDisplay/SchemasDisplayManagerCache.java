@@ -1,29 +1,15 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemasDisplay;
 
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
@@ -31,7 +17,10 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 
@@ -42,6 +31,7 @@ public class SchemasDisplayManagerCache {
 	private Map<String, SchemaTypeDisplayConfig> types = new HashMap<>();
 	private Map<String, SchemaDisplayConfig> schemas = new HashMap<>();
 	private Map<String, MetadataDisplayConfig> metadatas = new HashMap<>();
+	private Set<String> returnedFields;
 
 	public SchemasDisplayManagerCache(String collection) {
 		this.collection = collection;
@@ -140,6 +130,47 @@ public class SchemasDisplayManagerCache {
 			set(config);
 		}
 		return config;
+	}
+
+	public Set<String> getReturnedFieldsForSearch(MetadataSchemasManager metadataSchemasManager) {
+		return getReturnedFieldsFor(metadataSchemasManager, "search");
+	}
+
+	public Set<String> getReturnedFieldsForTable(MetadataSchemasManager metadataSchemasManager) {
+		return getReturnedFieldsFor(metadataSchemasManager, "table");
+	}
+
+	private Set<String> getReturnedFieldsFor(MetadataSchemasManager metadataSchemasManager, String viewMode) {
+		if (returnedFields == null) {
+
+			Set<String> dataStoreCodes = new HashSet<>();
+			dataStoreCodes.add(Schemas.TITLE.getDataStoreCode());
+			for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+				for (Metadata metadata : type.getAllMetadatas()) {
+					if (metadata.isEssentialInSummary()) {
+						dataStoreCodes.add(metadata.getDataStoreCode());
+					}
+				}
+
+				for (MetadataSchema schema : type.getAllSchemas()) {
+					SchemaDisplayConfig schemaDisplayConfig = getSchema(schema.getCode(), metadataSchemasManager);
+					List<String> metadatas = new ArrayList<>();
+					if ("search" .equals(viewMode)) {
+						metadatas = schemaDisplayConfig.getSearchResultsMetadataCodes();
+					} else if ("table" .equals(viewMode)) {
+						metadatas = schemaDisplayConfig.getTableMetadataCodes();
+					}
+					for (String displayedMetadata : metadatas) {
+						if (schema.hasMetadataWithCode(displayedMetadata)) {
+							Metadata metadata = schema.getMetadata(displayedMetadata);
+							dataStoreCodes.add(metadata.getDataStoreCode());
+						}
+					}
+				}
+			}
+			returnedFields = dataStoreCodes;
+		}
+		return returnedFields;
 	}
 
 	private MetadataDisplayConfig getDefaultMetadata(String metadataCode,

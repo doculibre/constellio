@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.connectors.smb;
 
 import static com.constellio.app.modules.es.constants.ESTaxonomies.SMB_FOLDERS;
@@ -89,8 +72,8 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioESModule().withAllTestUsers().andUsersWithReadAccess(gandalf);
-		Users users = new Users().setUp(getModelLayerFactory().newUserServices());
+		prepareSystem(withZeCollection().withConstellioESModule().withAllTest(users));
+		inCollection(zeCollection).giveReadAccessTo(gandalf);
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -110,12 +93,13 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		userWithToken1And2 = users.chuckNorrisIn(zeCollection);
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("zeConnector").setEnabled(false)
-				.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
+				.setTitle("ze connector").setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
 				.setTraversalCode("zeTraversal"));
 
 		anotherConnectorInstance = connectorManager
 				.createConnector(es.newConnectorSmbInstance().setCode("anotherConnector").setEnabled(false)
-						.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
+						.setTitle("another connector").setSeeds(asList(share)).setUsername(username).setPassword(password)
+						.setDomain(domain)
 						.setTraversalCode("anotherConnectorTraversal"));
 
 	}
@@ -228,19 +212,6 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAA).containsOnly(documentAA4, documentAA5);
 		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAB).isEmpty();
 
-	}
-
-	@Test
-	public void givenFolderAndDocumentsThenPublicOnesAppearsInTaxonomyForAUserWithoutTokensAndWithoutReadAccess()
-			throws Exception {
-
-		givenFetchedFoldersAndDocuments();
-
-		assertThatVisibleRootRecordsFor(userWithoutTokens).containsOnly(folderA);
-		assertThatVisibleChildRecordsFor(userWithoutTokens).in(folderA).containsOnly(folderAA, documentA1, documentA2);
-		assertThatVisibleChildRecordsFor(userWithoutTokens).in(folderB).isEmpty();
-		assertThatVisibleChildRecordsFor(userWithoutTokens).in(folderAA).containsOnly(documentAA4);
-		assertThatVisibleChildRecordsFor(userWithoutTokens).in(folderAB).isEmpty();
 	}
 
 	@Test

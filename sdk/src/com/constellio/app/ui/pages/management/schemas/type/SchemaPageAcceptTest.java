@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.schemas.type;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -533,7 +516,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
 		addEditSchemaMetadataPage.getFacetElement().toggle();
-		new DateFieldWebElement(addEditSchemaMetadataPage.getDefaultValueElement()).setValue(date(4, 10, 2014).toLocalDate());
+		new DateFieldWebElement(addEditSchemaMetadataPage.getDefaultValueElement()).setValue(dateTime(4, 10, 2014).toLocalDate());
 		addEditSchemaMetadataPage.getSaveButton().click();
 		addEditSchemaMetadataPage.waitForPageReload();
 
@@ -552,7 +535,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(metadata.isSearchable()).isFalse();
 		assertThat(metadata.isSortable()).isFalse();
 		assertThat(metadata.isTaxonomyRelationship()).isFalse();
-		assertThat(metadata.getDefaultValue()).isEqualTo(date(4, 10, 2014).toLocalDate());
+		assertThat(metadata.getDefaultValue()).isEqualTo(dateTime(4, 10, 2014).toLocalDate());
 
 	}
 
@@ -565,7 +548,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		addEditSchemaMetadataPage.getMetadataGroupElement().toggle("Default");
 		addEditSchemaMetadataPage.getRequiredElement().toggle();
 		addEditSchemaMetadataPage.getFacetElement().toggle();
-		new DateTimeFieldWebElement(addEditSchemaMetadataPage.getDefaultValueElement()).setValue(date(4, 10, 2014));
+		new DateTimeFieldWebElement(addEditSchemaMetadataPage.getDefaultValueElement()).setValue(dateTime(4, 10, 2014));
 		addEditSchemaMetadataPage.getSaveButton().click();
 		addEditSchemaMetadataPage.waitForPageReload();
 
@@ -584,7 +567,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(metadata.isSearchable()).isFalse();
 		assertThat(metadata.isSortable()).isFalse();
 		assertThat(metadata.isTaxonomyRelationship()).isFalse();
-		assertThat(metadata.getDefaultValue()).isEqualTo(date(4, 10, 2014));
+		assertThat(metadata.getDefaultValue()).isEqualTo(dateTime(4, 10, 2014));
 	}
 
 	private void givenAddFolderSchemaMetadataPageWhenAddReferenceLookupMetadataThenOk()

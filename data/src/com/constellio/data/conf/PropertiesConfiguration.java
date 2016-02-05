@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.conf;
 
 import java.io.File;
@@ -57,7 +40,7 @@ public abstract class PropertiesConfiguration {
 	}
 
 	protected String getString(String key, String defaultValue) {
-		String value = (String) configs.get(key);
+		String value = configs.get(key);
 		return value == null ? defaultValue : value;
 	}
 
@@ -68,14 +51,15 @@ public abstract class PropertiesConfiguration {
 			for (String property : properties) {
 				if (property.startsWith(key)) {
 					languageProperty = property;
+					break;
 				}
 			}
 			if (languageProperty != null) {
 				properties.remove(languageProperty);
-				properties.add(key + "=" + value);
-				propertyFile.delete();
-				FileUtils.writeLines(propertyFile, properties);
 			}
+			properties.add(key + "=" + value);
+			propertyFile.delete();
+			FileUtils.writeLines(propertyFile, properties);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -88,7 +72,7 @@ public abstract class PropertiesConfiguration {
 	}
 
 	protected File getFile(String key, File defaultValue) {
-		String value = (String) configs.get(key);
+		String value = configs.get(key);
 
 		if (value == null) {
 			return defaultValue;
@@ -110,7 +94,7 @@ public abstract class PropertiesConfiguration {
 	}
 
 	protected String getRequiredString(String key) {
-		String value = (String) configs.get(key);
+		String value = configs.get(key);
 		if (value == null) {
 			throw new PropertiesConfigurationRuntimeException_ConfigNotDefined(key);
 		}

@@ -1,32 +1,30 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.authorizations;
 
+import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
+import static com.constellio.app.ui.framework.components.BaseForm.CANCEL_BUTTON;
+import static com.constellio.app.ui.framework.components.BaseForm.SAVE_BUTTON;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.AuthorizationVO;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorizationsViewImpl implements
 																						  ListPrincipalAccessAuthorizationsView {
@@ -46,8 +44,39 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 	}
 
 	@Override
+	protected Button buildAddAccessButton() {
+		return new AddPrincipalAccessButton();
+	}
+
+	@Override
 	protected DisplayMode getDisplayMode() {
 		return DisplayMode.CONTENT;
+	}
+
+	@Override
+	protected void buildGlobalAccess(VerticalLayout layout) {
+		ListPrincipalAccessAuthorizationsPresenter accessPresenter = (ListPrincipalAccessAuthorizationsPresenter) presenter;
+		List<String> globalAccesses = accessPresenter.getUserGlobalAccess();
+		if (!globalAccesses.isEmpty()) {
+			Label label = new Label();
+			if (presenter.seeAccessField()) {
+				label.setValue($("ListAccessAuthorizationsView.globalAccesses"));
+			}
+
+			label.addStyleName(ValoTheme.LABEL_H2);
+			layout.addComponent(label);
+			StringBuilder accesses = new StringBuilder();
+			for (String access : globalAccesses) {
+				if (accesses.length() > 0) {
+					accesses.append(", ");
+				}
+				accesses.append($("AuthorizationsView." + access));
+			}
+			if (accesses.length() > 0) {
+				layout.addComponent(new Label(accesses.toString()));
+			}
+		}
+
 	}
 
 	public class AddPrincipalAuthorizationButton extends AddAuthorizationButton {
@@ -73,6 +102,7 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 					getWindow().close();
 				}
 			};
+
 		}
 
 		protected void buildRecordField() {
@@ -80,6 +110,70 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 			content.setCaption($("AuthorizationsView.content"));
 			content.setRequired(true);
 			content.setId("content");
+		}
+	}
+
+	public class AddPrincipalAccessButton extends WindowButton {
+		@PropertyId("accessRoles") protected ListOptionGroup accessRoles;
+
+		public AddPrincipalAccessButton() {
+			super("", "", WindowConfiguration.modalDialog("40%", "30%"));
+			String caption = $("ListPrincipalAccessAuthorizationsView.addAccess");
+			super.setCaption(caption);
+			super.setWindowCaption(caption);
+			ListPrincipalAccessAuthorizationsPresenter accessPresenter = (ListPrincipalAccessAuthorizationsPresenter) presenter;
+			setVisible(accessPresenter.seeCollectionAccessField());
+		}
+
+		protected void buildAccessField() {
+			//FIXME accessRoles doit etre alimenté avec la bonne valeur soit les accès de l utilisateur à la collection courante
+			accessRoles = new ListOptionGroup($("AuthorizationsView.access"));
+			ListPrincipalAccessAuthorizationsPresenter accessPresenter = (ListPrincipalAccessAuthorizationsPresenter) presenter;
+			for (String accessCode : accessPresenter.getCollectionAccessChoicesModifiableByCurrentUser()) {
+				accessRoles.addItem(accessCode);
+				accessRoles.setItemCaption(accessCode, $("AuthorizationsView." + accessCode));
+			}
+			accessRoles.setMultiSelect(true);
+			accessRoles.setValue(accessPresenter.getUserGlobalAccess());
+
+			accessRoles.setId("accessRoles");
+		}
+
+		@Override
+		protected Component buildWindowContent() {
+			VerticalLayout vLayout = new VerticalLayout();
+			vLayout.setSizeFull();
+			buildAccessField();
+			vLayout.addComponent(accessRoles);
+			Button saveButton = new Button($("save"));
+			saveButton.addStyleName(SAVE_BUTTON);
+			saveButton.addStyleName(BUTTON_PRIMARY);
+			saveButton.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					ListPrincipalAccessAuthorizationsPresenter accessPresenter = (ListPrincipalAccessAuthorizationsPresenter) presenter;
+					Object accessModified = accessRoles.getValue();
+					getWindow().close();
+					accessPresenter.accessCreationRequested(new ArrayList<>((Set<String>) accessModified));
+				}
+			});
+
+			Button cancelButton = new Button($("cancel"));
+			cancelButton.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					getWindow().close();
+				}
+			});
+			cancelButton.addStyleName(CANCEL_BUTTON);
+			HorizontalLayout buttonsLayout = new HorizontalLayout();
+			buttonsLayout.addStyleName(BUTTONS_LAYOUT);
+			buttonsLayout.setSpacing(true);
+
+			buttonsLayout.addComponents(saveButton, cancelButton);
+			vLayout.addComponent(buttonsLayout);
+			vLayout.setComponentAlignment(buttonsLayout, Alignment.MIDDLE_RIGHT);
+			return vLayout;
 		}
 	}
 }

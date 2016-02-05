@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records.populators;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,12 +93,13 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 		when(contentWithoutParsedContentCurrentVersion.getFilename())
 				.thenReturn(contentWithoutParsedContentCurrentVersionFilename);
 
-		when(contentManager.getParsedContent(klingonIntimidationContent1Hash))
+		when(contentManager.getParsedContentParsingIfNotYetDone(klingonIntimidationContent1Hash))
 				.thenReturn(klingonParsedContent(klingonIntimidation));
-		when(contentManager.getParsedContent(klingonIntimidationContent2Hash))
+		when(contentManager.getParsedContentParsingIfNotYetDone(klingonIntimidationContent2Hash))
 				.thenReturn(klingonParsedContent(klingonIntimidation2));
-		when(contentManager.getParsedContent(oldElvishTextContentHash)).thenReturn(elvishParsedContent(oldElvishText));
-		when(contentManager.getParsedContent(contentWithoutParsedContentHash)).thenReturn(null);
+		when(contentManager.getParsedContentParsingIfNotYetDone(oldElvishTextContentHash)).thenReturn(
+				elvishParsedContent(oldElvishText));
+		when(contentManager.getParsedContentParsingIfNotYetDone(contentWithoutParsedContentHash)).thenReturn(null);
 	}
 
 	@Test
@@ -338,11 +322,13 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 	}
 
 	private ParsedContent elvishParsedContent(String text) {
-		return new ParsedContent(text, "elvish", "zeMime", 42, new HashMap<String, Object>());
+		return new ParsedContent(text, "elvish", "zeMime", 42, new HashMap<String, Object>(),
+				new HashMap<String, List<String>>());
 	}
 
 	private ParsedContent klingonParsedContent(String text) {
-		return new ParsedContent(text, "klingon", "zeMime", 666, new HashMap<String, Object>());
+		return new ParsedContent(text, "klingon", "zeMime", 666, new HashMap<String, Object>(),
+				new HashMap<String, List<String>>());
 	}
 
 	private Map<String, Object> populate(Object value) {

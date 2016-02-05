@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.parser;
 
 import static org.mockito.Matchers.any;
@@ -25,6 +8,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,23 +26,35 @@ import org.mockito.Mock;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class FileParserTest extends ConstellioTest {
 
+	@Mock SystemConfigurationsManager systemConfigurationsManager;
+	@Mock IOServices ioServices;
 	@Mock InputStream stream;
 	@Mock ForkParser forkParser;
 	@Mock AutoDetectParser autoDetectParser;
 	@Mock ForkParsers forkParsers;
 	@Mock LanguageDetectionManager languageDetectionManager;
+	@Mock StreamFactory<InputStream> inputStreamFactory;
 	FileParser fileParserWithForkProcess;
 	FileParser fileParserWithoutForkProcess;
 
 	@Before
-	public void setup() {
-		fileParserWithForkProcess = spy(new FileParser(forkParsers, languageDetectionManager, true));
-		fileParserWithoutForkProcess = spy(new FileParser(forkParsers, languageDetectionManager, false));
+	public void setup()
+			throws IOException {
+		fileParserWithForkProcess = spy(
+				new FileParser(forkParsers, languageDetectionManager, ioServices, systemConfigurationsManager, true));
+		fileParserWithoutForkProcess = spy(
+				new FileParser(forkParsers, languageDetectionManager, ioServices, systemConfigurationsManager, false));
+		when(inputStreamFactory.create(anyString())).thenReturn(stream);
+		when(systemConfigurationsManager.getValue(ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS)).thenReturn(2);
 	}
 
 	@Test(expected = FileParserException_CannotParse.class)
@@ -68,7 +64,7 @@ public class FileParserTest extends ConstellioTest {
 		doThrow(IOException.class).when(forkParser).parse(any(InputStream.class), any(ContentHandler.class), any(Metadata.class),
 				any(ParseContext.class));
 
-		fileParserWithForkProcess.parse(stream, 42);
+		fileParserWithForkProcess.parse(inputStreamFactory, 42);
 
 	}
 
@@ -79,7 +75,7 @@ public class FileParserTest extends ConstellioTest {
 		doReturn(new HashMap<String, Object>()).when(fileParserWithForkProcess)
 				.getPropertiesHashMap(any(Metadata.class), anyString());
 
-		fileParserWithForkProcess.parse(stream, 42);
+		fileParserWithForkProcess.parse(inputStreamFactory, 42);
 
 		verify(forkParser, times(1)).parse(eq(stream), any(BodyContentHandler.class), any(Metadata.class),
 				any(ParseContext.class));
@@ -92,7 +88,7 @@ public class FileParserTest extends ConstellioTest {
 		doReturn(new HashMap<String, Object>()).when(fileParserWithoutForkProcess)
 				.getPropertiesHashMap(any(Metadata.class), anyString());
 
-		fileParserWithoutForkProcess.parse(stream, 42);
+		fileParserWithoutForkProcess.parse(inputStreamFactory, 42);
 		verify(autoDetectParser, times(1)).parse(eq(stream), any(BodyContentHandler.class), any(Metadata.class));
 	}
 
@@ -103,7 +99,7 @@ public class FileParserTest extends ConstellioTest {
 		doThrow(SAXException.class).when(forkParser).parse(any(InputStream.class), any(ContentHandler.class),
 				any(Metadata.class), any(ParseContext.class));
 
-		fileParserWithForkProcess.parse(stream, 42);
+		fileParserWithForkProcess.parse(inputStreamFactory, 42);
 
 	}
 
@@ -114,7 +110,7 @@ public class FileParserTest extends ConstellioTest {
 		doThrow(TikaException.class).when(forkParser).parse(any(InputStream.class), any(ContentHandler.class),
 				any(Metadata.class), any(ParseContext.class));
 
-		fileParserWithForkProcess.parse(stream, 42);
+		fileParserWithForkProcess.parse(inputStreamFactory, 42);
 
 	}
 

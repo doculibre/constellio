@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -110,6 +93,62 @@ public class ModificationImpactCalculator {
 				recordsModificationImpactsInType, references, reindexedMetadatas);
 	}
 
+	//	private List<ModificationImpact> findRealImpactsOfPotentialMetadataToReindex(MetadataSchemaType schemaType,
+	//			RecordsModification recordsModification, List<String> transactionRecordIds,
+	//			List<ModificationImpact> recordsModificationImpactsInType, List<Metadata> references,
+	//			List<Metadata> reindexedMetadatas) {
+	//		if (!references.isEmpty()) {
+	//			Iterator<List<Record>> batchIterator = splitModifiedRecordsInBatchOf1000(recordsModification);
+	//			while (batchIterator.hasNext()) {
+	//
+	//				LogicalSearchCondition facetsMainCondition = from(schemaType).whereAny(references).isNotNull();
+	//				if (transactionRecordIds != null) {
+	//					facetsMainCondition = facetsMainCondition.andWhere(Schemas.IDENTIFIER).isNotIn(transactionRecordIds);
+	//				}
+	//
+	//				LogicalSearchQuery query = new LogicalSearchQuery(facetsMainCondition);
+	//				List<Record> records = batchIterator.next();
+	//				List<String> queries = new ArrayList<>();
+	//				for (Record record : records) {
+	//					LogicalSearchCondition facetCondition = from(schemaType).whereAny(references).isEqualTo(record.getId());
+	//					queries.add(facetCondition.getSolrQuery());
+	//				}
+	//				query.addQueryFacets("batch", queries);
+	//				query.setNumberOfRows(0);
+	//
+	//				SPEQueryResponse response = searchServices.query(query);
+	//
+	//				List<String> recordIdsWithModificationImpacts = new ArrayList<>();
+	//				for(int i = 0 ; i < queries.size() ; i++) {
+	//					Record record = records.get(i);
+	//					String facetQuery = queries.get(i);
+	//					if (response.getQueryFacetCount(facetQuery) > 0) {
+	//						recordIdsWithModificationImpacts.add(record.getId());
+	//					}
+	//				}
+	//
+	//
+	//				LogicalSearchCondition condition = getLogicalSearchConditionFor(schemaType, batchIterator.next(),
+	//						transactionRecordIds, references);
+	//				if (searchServices.hasResults(condition)) {
+	//					recordsModificationImpactsInType.add(new ModificationImpact(reindexedMetadatas, condition));
+	//				}
+	//			}
+	//		}
+	//
+	//		return recordsModificationImpactsInType;
+	//	}
+
+	LogicalSearchCondition getLogicalSearchConditionFor(MetadataSchemaType schemaType,
+			List<Record> modifiedRecordsBatch, List<String> transactionRecordIds, List<Metadata> references) {
+		LogicalSearchCondition condition = from(schemaType).whereAny(references).isIn(modifiedRecordsBatch);
+		if (transactionRecordIds != null) {
+			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(transactionRecordIds);
+		}
+
+		return condition;
+	}
+
 	private List<ModificationImpact> findRealImpactsOfPotentialMetadataToReindex(MetadataSchemaType schemaType,
 			RecordsModification recordsModification, List<String> transactionRecordIds,
 			List<ModificationImpact> recordsModificationImpactsInType, List<Metadata> references,
@@ -126,16 +165,6 @@ public class ModificationImpactCalculator {
 		}
 
 		return recordsModificationImpactsInType;
-	}
-
-	LogicalSearchCondition getLogicalSearchConditionFor(MetadataSchemaType schemaType,
-			List<Record> modifiedRecordsBatch, List<String> transactionRecordIds, List<Metadata> references) {
-		LogicalSearchCondition condition = from(schemaType).whereAny(references).isIn(modifiedRecordsBatch);
-		if (transactionRecordIds != null) {
-			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(transactionRecordIds);
-		}
-
-		return condition;
 	}
 
 	void findPotentialMetadataToReindexAndTheirReferencesToAModifiedMetadata(MetadataSchemaType schemaType,
@@ -268,10 +297,14 @@ public class ModificationImpactCalculator {
 
 	boolean isDependencyReferencingAnySchemaMetadataWithCode(ReferenceDependency<?> referenceDependency,
 			String metadataCode) {
-		return referenceDependency.getDependentMetadataCode().contains(metadataCode);
+
+		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataCode);
+
+		return referenceDependency.getDependentMetadataCode().contains(metadataLocalCode);
 	}
 
 	private Iterator<List<Record>> splitModifiedRecordsInBatchOf1000(RecordsModification recordsModification) {
 		return new BatchBuilderIterator<>(recordsModification.getRecords().iterator(), 100);
 	}
+
 }

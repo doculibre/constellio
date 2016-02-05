@@ -1,22 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.controller;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -28,10 +12,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.data.utils.ConsoleLogger;
-import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -41,6 +26,7 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.LoadTest;
@@ -53,11 +39,13 @@ import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocuments
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2CustomSchema;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2DefaultSchema;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
+import com.constellio.sdk.tests.setups.Users;
 
 public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends ConstellioTest {
 
 	TaxonomiesManager taxonomiesManager;
 
+	Users users = new Users();
 	TwoTaxonomiesContainingFolderAndDocumentsSetup schemas =
 			new TwoTaxonomiesContainingFolderAndDocumentsSetup(zeCollection);
 	Taxonomy1FirstSchemaType taxonomy1FirstSchema = schemas.new Taxonomy1FirstSchemaType();
@@ -92,11 +80,14 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
+		users.setUp(getModelLayerFactory().newUserServices());
+		givenCollection(zeCollection).withAllTestUsers();
 		defineSchemasManager().using(schemas);
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-		for (Taxonomy taxonomy : schemas.getTaxonomies()) {
-			taxonomiesManager.addTaxonomy(taxonomy, schemasManager);
-		}
+
+		taxonomiesManager.addTaxonomy(schemas.getTaxo1(), schemasManager);
+		taxonomiesManager.addTaxonomy(schemas.getTaxo2(), schemasManager);
+		taxonomiesManager.setPrincipalTaxonomy(schemas.getTaxo1(), schemasManager);
 
 		records = schemas.givenTaxonomyRecords(recordServices);
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
@@ -160,6 +151,24 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 
 	}
 
+	@LoadTest
+	@Test
+	public void whenAddingAnAuthorizationToAConceptWith1MillionRecordsSystemThenSurvive()
+			throws Exception {
+		final AtomicBoolean lockThreadEnabled = new AtomicBoolean(true);
+
+		int nbFolders = new BatchProcessControllerSetupWithTaxonomies()
+				.add10_10_10_X_HierarchyOfFoldersWith(recordServices, records, folderSchema, 1000);
+		assertThat(countRecordsVisibleByDakota()).isEqualTo(0);
+
+		setAutorisationToUsersOnConcept();
+		lockThreadEnabled.set(false);
+		System.out.println("!!!");
+		System.out.println(">> " + countRecordsVisibleByDakota());
+		assertThat(countRecordsVisibleByDakota()).isEqualTo(nbFolders + 2);
+
+	}
+
 	@SlowTest
 	@Test
 	public void givenAPrincipalTaxonomyIsLogicallyDeletedWhileABatchProcessIsBeingExecutedThenAllLogicallyDeletedAndAllCorrectlyMoved()
@@ -192,10 +201,33 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 	private void moveCategoryAndWaitForBatchProcessesToFinish()
 			throws RecordServicesException, InterruptedException {
 		Record category = recordServices.getDocumentById("zeCollection_taxo1_firstTypeItem2_secondTypeItem1");
+
 		Record newParent = recordServices.getDocumentById("zeCollection_taxo1_firstTypeItem2_firstTypeItem1");
 
 		category.set(taxonomy1SecondSchema.parentOfType1(), newParent);
 		recordServices.updateAsync(category);
+
+		waitForBatchProcess();
+	}
+
+	private void setAutorisationToUsersOnConcept()
+			throws RecordServicesException, InterruptedException {
+		Record category = recordServices.getDocumentById("zeCollection_taxo1_firstTypeItem2_secondTypeItem1");
+
+		Authorization authorization1 = new AuthorizationBuilder(zeCollection).forUsers(users.aliceIn(zeCollection)).on(category)
+				.givingReadWriteAccess();
+		Authorization authorization2 = new AuthorizationBuilder(zeCollection).forUsers(users.bobIn(zeCollection)).on(category)
+				.givingReadWriteAccess();
+		Authorization authorization3 = new AuthorizationBuilder(zeCollection).forUsers(users.charlesIn(zeCollection)).on(category)
+				.givingReadWriteAccess();
+		Authorization authorization4 = new AuthorizationBuilder(zeCollection).forUsers(users.dakotaIn(zeCollection)).on(category)
+				.givingReadWriteAccess();
+
+		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+		authorizationsServices.add(authorization1, User.GOD);
+		authorizationsServices.add(authorization2, User.GOD);
+		authorizationsServices.add(authorization3, User.GOD);
+		authorizationsServices.add(authorization4, User.GOD);
 
 		waitForBatchProcess();
 	}
@@ -276,5 +308,12 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 				.isStartingWithText(path);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		return searchServices.search(query.filteredByStatus(StatusFilter.DELETED)).size();
+	}
+
+	private long countRecordsVisibleByDakota() {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
+		query.filteredWithUser(users.dakotaLIndienIn(zeCollection));
+		return searchServices.getResultsCount(query);
 	}
 }

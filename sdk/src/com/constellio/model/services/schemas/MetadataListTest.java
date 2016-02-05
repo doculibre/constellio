@@ -1,24 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas;
 
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -75,13 +59,48 @@ public class MetadataListTest extends ConstellioTest {
 
 		assertThat(metadataList.nestedList).hasSize(2);
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata1.getDataStoreCode())).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata2.getDataStoreCode())).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
+	}
+
+	@Test
+	public void whenEvaluatingIfContainingAMetadataThenWorkNoMatterIfAMetadataIsFromACustomSchema()
+			throws Exception {
+
+		Metadata defaultMetadata1 = mockMetadata("type1_default_metadata1");
+		Metadata customMetadata1 = mockMetadata("type1_custom_metadata1");
+		doReturn(defaultMetadata1).when(customMetadata1).getInheritance();
+
+		Metadata defaultMetadata2 = mockMetadata("type1_default_metadata2");
+		Metadata customMetadata2 = mockMetadata("type1_custom_metadata2");
+		doReturn(defaultMetadata2).when(customMetadata2).getInheritance();
+
+		Metadata customMetadataWithoutInheritance = mockMetadata("type1_custom_metadataWithoutInheritance");
+
+		Metadata defaultMetadata4 = mockMetadata("type1_default_metadata4");
+		Metadata customMetadata4 = mockMetadata("type1_custom_metadata4");
+		Metadata defaultMetadata1InAnotherType = mockMetadata("type2_default_metadata1");
+		Metadata customMetadata1InAnotherType = mockMetadata("type2_custom_metadata1");
+
+		metadataList.add(defaultMetadata1);
+		metadataList.add(customMetadata2);
+		metadataList.add(customMetadataWithoutInheritance);
+
+		assertThat(metadataList.contains(defaultMetadata1)).isTrue();
+		assertThat(metadataList.contains(customMetadata1)).isTrue();
+		assertThat(metadataList.contains(defaultMetadata2)).isTrue();
+		assertThat(metadataList.contains(customMetadata2)).isTrue();
+		assertThat(metadataList.contains(customMetadataWithoutInheritance)).isTrue();
+
+		assertThat(metadataList.contains(defaultMetadata4)).isFalse();
+		assertThat(metadataList.contains(customMetadata4)).isFalse();
+		assertThat(metadataList.contains(defaultMetadata1InAnotherType)).isFalse();
+		assertThat(metadataList.contains(customMetadata1InAnotherType)).isFalse();
 	}
 
 	@Test
@@ -93,9 +112,9 @@ public class MetadataListTest extends ConstellioTest {
 
 		assertThat(metadataList.nestedList).hasSize(1);
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata1.getDataStoreCode())).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 	}
 
 	@Test
@@ -107,13 +126,13 @@ public class MetadataListTest extends ConstellioTest {
 
 		assertThat(metadataList.nestedList).hasSize(2);
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata1.getDataStoreCode())).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata2.getDataStoreCode())).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
 	}
 
 	@Test
@@ -129,18 +148,18 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata3);
 		assertThat(metadataList.nestedList.get(2)).isEqualTo(metadata4);
 		assertThat(metadataList.nestedList.get(3)).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata1.getDataStoreCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata2.getDataStoreCode())).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata3.getCode())).isEqualTo(metadata3);
-		assertThat(metadataList.codeIndex.get(metadata3.getCode())).isEqualTo(metadata3);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata3.getDataStoreCode())).isEqualTo(metadata3);
-		assertThat(metadataList.codeIndex.get(metadata4.getCode())).isEqualTo(metadata4);
-		assertThat(metadataList.codeIndex.get(metadata4.getCode())).isEqualTo(metadata4);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata4.getDataStoreCode())).isEqualTo(metadata4);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isEqualTo(metadata3);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isEqualTo(metadata3);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata3_s")).isEqualTo(metadata3);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata4")).isEqualTo(metadata4);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata4")).isEqualTo(metadata4);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata4_s")).isEqualTo(metadata4);
 	}
 
 	@Test
@@ -154,12 +173,12 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList).hasSize(2);
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata1.getDataStoreCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata2.getDataStoreCode())).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
 
 	}
 
@@ -191,9 +210,9 @@ public class MetadataListTest extends ConstellioTest {
 		metadataList.add(1, metadata4);
 
 		assertThat(metadataList.nestedList).hasSize(3);
-		assertThat(metadataList.codeIndex.get(metadata4.getCode())).isEqualTo(metadata4);
-		assertThat(metadataList.codeIndex.get(metadata4.getCode())).isEqualTo(metadata4);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata4.getDataStoreCode())).isEqualTo(metadata4);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata4")).isEqualTo(metadata4);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata4")).isEqualTo(metadata4);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata4_s")).isEqualTo(metadata4);
 	}
 
 	@Test
@@ -207,13 +226,17 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList).hasSize(2);
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata1.getCode())).isEqualTo(metadata1);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata1.getDataStoreCode())).isEqualTo(metadata1);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.codeIndex.get(metadata2.getCode())).isEqualTo(metadata2);
-		assertThat(metadataList.datastoreCodeIndex.get(metadata2.getDataStoreCode())).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata1_s")).isEqualTo(metadata1);
 
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.codeIndex.get("type1_default_metadata2")).isEqualTo(metadata2);
+		assertThat(metadataList.datastoreCodeIndex.get("metadata2_s")).isEqualTo(metadata2);
+
+		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isNull();
+		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isNull();
+		assertThat(metadataList.datastoreCodeIndex.get("metadata3_s")).isNull();
 	}
 
 	@Test

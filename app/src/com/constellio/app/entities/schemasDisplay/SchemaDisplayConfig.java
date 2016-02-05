@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.entities.schemasDisplay;
 
 import java.util.ArrayList;
@@ -33,13 +16,16 @@ public class SchemaDisplayConfig {
 
 	private final List<String> searchResultsMetadataCodes;
 
+	private final List<String> tableMetadataCodes;
+
 	public SchemaDisplayConfig(String collection, String schemaCode, List<String> displayMetadataCodes,
-			List<String> formMetadataCodes, List<String> searchResultsMetadataCodes) {
+			List<String> formMetadataCodes, List<String> searchResultsMetadataCodes, List<String> tableMetadataCodes) {
 		this.collection = collection;
 		this.schemaCode = schemaCode;
 		this.displayMetadataCodes = Collections.unmodifiableList(displayMetadataCodes);
 		this.formMetadataCodes = Collections.unmodifiableList(formMetadataCodes);
 		this.searchResultsMetadataCodes = Collections.unmodifiableList(searchResultsMetadataCodes);
+		this.tableMetadataCodes = Collections.unmodifiableList(tableMetadataCodes);
 	}
 
 	public List<String> getDisplayMetadataCodes() {
@@ -54,6 +40,10 @@ public class SchemaDisplayConfig {
 		return searchResultsMetadataCodes;
 	}
 
+	public List<String> getTableMetadataCodes() {
+		return tableMetadataCodes;
+	}
+
 	public String getSchemaCode() {
 		return schemaCode;
 	}
@@ -64,17 +54,28 @@ public class SchemaDisplayConfig {
 
 	public SchemaDisplayConfig withDisplayMetadataCodes(List<String> displayMetadataCodes) {
 		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchResultsMetadataCodes);
+				searchResultsMetadataCodes, tableMetadataCodes);
 	}
 
 	public SchemaDisplayConfig withFormMetadataCodes(List<String> formMetadataCodes) {
 		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchResultsMetadataCodes);
+				searchResultsMetadataCodes, tableMetadataCodes);
 	}
 
 	public SchemaDisplayConfig withSearchResultsMetadataCodes(List<String> searchResultsMetadataCodes) {
 		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchResultsMetadataCodes);
+				searchResultsMetadataCodes, tableMetadataCodes);
+	}
+
+	public SchemaDisplayConfig withTableMetadataCodes(List<String> tableMetadataCodes) {
+		return new SchemaDisplayConfig(collection, schemaCode, displayMetadataCodes, formMetadataCodes,
+				searchResultsMetadataCodes, tableMetadataCodes);
+	}
+
+	public SchemaDisplayConfig withNewSearchResultMetadataCode(String code) {
+		List<String> result = new ArrayList<>(searchResultsMetadataCodes);
+		result.add(code);
+		return withSearchResultsMetadataCodes(result);
 	}
 
 	public SchemaDisplayConfig withNewDisplayMetadataBefore(String metadataCode, String before) {
@@ -89,6 +90,14 @@ public class SchemaDisplayConfig {
 		List<String> formMetadatas = new ArrayList<>();
 		formMetadatas.addAll(this.formMetadataCodes);
 		formMetadatas.add(metadataCode);
+		return withFormMetadataCodes(formMetadatas);
+	}
+
+	public SchemaDisplayConfig withNewFormMetadataBefore(String metadataCode, String before) {
+		int index = formMetadataCodes.indexOf(before);
+		List<String> formMetadatas = new ArrayList<>();
+		formMetadatas.addAll(this.formMetadataCodes);
+		formMetadatas.add(index, metadataCode);
 		return withFormMetadataCodes(formMetadatas);
 	}
 

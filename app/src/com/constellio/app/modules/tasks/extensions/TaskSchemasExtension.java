@@ -1,66 +1,80 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.extensions;
 
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
-import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.structures.EmailAddress;
-import com.constellio.model.extensions.behaviors.RecordExtension;
-import com.constellio.model.extensions.events.records.RecordInCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_ASSIGNEE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_STATUS;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_ASSIGNEE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_STATUS;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_BY;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.joda.time.LocalDate;
+
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
 public class TaskSchemasExtension extends RecordExtension {
+	private static final Logger LOGGER = LogManager.getLogger(TaskSchemasExtension.class);
 	private final TasksSchemasRecordsServices tasksSchema;
 	String collection;
 
 	ModelLayerFactory modelLayerFactory;
 	RecordServices recordServices;
+	UserServices userServices;
+	ConstellioEIMConfigs eimConfigs;
 
 	public TaskSchemasExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.collection = collection;
 		tasksSchema = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = this.modelLayerFactory.newRecordServices();
+		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+		eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 	}
 
 	@Override
@@ -72,7 +86,8 @@ public class TaskSchemasExtension extends RecordExtension {
 	}
 
 	@Override
-	public void recordInModification(RecordInModificationEvent event) {
+	public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskInModification(task, event);
@@ -80,16 +95,17 @@ public class TaskSchemasExtension extends RecordExtension {
 	}
 
 	@Override
-	public void recordInCreation(RecordInCreationEvent event) {
+	public void recordInCreationBeforeValidationAndAutomaticValuesCalculation(
+			RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskInCreation(task, event);
 		}
 	}
 
-	private void taskInCreation(Task task, RecordInCreationEvent event) {
+	private void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		sendEmailToAssignee(task);
 		TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
-
 		updateEndDateAndStartDateIfNecessary(task, currentStatus);
 	}
 
@@ -98,10 +114,14 @@ public class TaskSchemasExtension extends RecordExtension {
 		if (followersIds.isEmpty()) {
 			return;
 		}
-		saveEmailToSend(prepareEmailToSend(task, followersIds, TASK_DELETED));
+		EmailToSend emailToSend = prepareEmailToSend(task, followersIds, TASK_DELETED);
+		saveEmailToSend(emailToSend, task);
 	}
 
-	private void saveEmailToSend(EmailToSend emailToSend) {
+	private void saveEmailToSend(EmailToSend emailToSend, Task task) {
+
+		prepareTaskParameters(emailToSend, task);
+
 		Transaction transaction = new Transaction();
 		transaction.setRecordFlushing(RecordsFlushing.LATER());
 		transaction.add(emailToSend);
@@ -114,21 +134,43 @@ public class TaskSchemasExtension extends RecordExtension {
 	}
 
 	private EmailToSend prepareEmailToSend(Task task, Set<String> followersIds, String templateId) {
-		EmailToSend emailToSend = tasksSchema.newEmailToSend();
+		EmailToSend emailToSend = tasksSchema.newEmailToSend().setTryingCount(0d);
 		List<EmailAddress> followersEmails = getEmails(followersIds);
 		emailToSend.setTo(followersEmails);
 		emailToSend.setSendOn(TimeProvider.getLocalDateTime());
 		emailToSend.setTemplate(templateId);
-
-		List<String> parameters = prepareTaskParameters(task);
-		emailToSend.setParameters(parameters);
 		return emailToSend;
 	}
 
-	private List<String> prepareTaskParameters(Task task) {
-		List<String> parameters = new ArrayList<>();
-		parameters.add(TASK_TITLE_PARAMETER + ":" + task.getTitle());
-		return parameters;
+	private void prepareTaskParameters(EmailToSend emailToSend, Task task) {
+		List<String> newParameters = new ArrayList<>();
+		List<String> parameters = emailToSend.getParameters();
+		newParameters.addAll(parameters);
+
+		String parentTaskTitle = "";
+		String assignerUserName = getUserNameById(task.getAssigner());
+		String assigneeUserName = getUserNameById(task.getAssignee());
+		if (task.getParentTask() != null) {
+			Task parentTask = tasksSchema.getTask(task.getParentTask());
+			parentTaskTitle = parentTask.getTitle();
+		}
+		String status = tasksSchema.getTaskStatus(task.getStatus()).getTitle();
+
+		newParameters.add(TASK_TITLE_PARAMETER + ":" + task.getTitle());
+		newParameters.add(PARENT_TASK_TITLE + ":" + parentTaskTitle);
+		newParameters.add(TASK_ASSIGNED_BY + ":" + assignerUserName);
+		newParameters.add(TASK_ASSIGNED_ON + ":" + task.getAssignedOn());
+		newParameters.add(TASK_ASSIGNED + ":" + assigneeUserName);
+		newParameters.add(TASK_DUE_DATE + ":" + task.getDueDate());
+		newParameters.add(TASK_STATUS + ":" + status);
+		newParameters.add(TASK_DESCRIPTION + ":" + task.getDescription());
+		String constellioURL = eimConfigs.getConstellioUrl();
+		newParameters
+				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + NavigatorConfigurationService.DISPLAY_TASK + "/" + task.getId());
+		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + NavigatorConfigurationService.EDIT_TASK
+				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
+
+		emailToSend.setParameters(newParameters);
 	}
 
 	private List<EmailAddress> getEmails(Set<String> usersIds) {
@@ -142,7 +184,7 @@ public class TaskSchemasExtension extends RecordExtension {
 		return emailAddressesTo;
 	}
 
-	void taskInModification(Task task, RecordInModificationEvent event) {
+	void taskInModification(Task task, RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		if (event.hasModifiedMetadata(Task.STATUS)) {
 			TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 
@@ -158,20 +200,23 @@ public class TaskSchemasExtension extends RecordExtension {
 			String parentId = task.getParentTask();
 			if (StringUtils.isNotBlank(parentId)) {
 				Task parent = tasksSchema.getTask(parentId);
-				sendSubTasksModification(parent);
+				sendSubTasksModification(parent, task);
 			}
 			String previousParent = event.getPreviousValue(Task.PARENT_TASK);
 			if (previousParent != null) {
-				sendSubTasksModification(tasksSchema.getTask(previousParent));
+				sendSubTasksModification(tasksSchema.getTask(previousParent), task);
 			}
 		}
 		if (event.hasModifiedMetadata(Task.ASSIGNEE)) {
 			sendAssigneeModificationEvent(task, event);
+		} else if (event.hasModifiedMetadata(Task.ASSIGNEE_GROUPS_CANDIDATES) || event
+				.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES)) {
+			sendEmailToAssignee(task);
 		}
 		boolean startDateModified = event.hasModifiedMetadata(Task.START_DATE);
-		boolean endDateModified = event.hasModifiedMetadata(Task.DUE_DATE);
-		if (startDateModified || endDateModified) {
-			updateRemindersStatus(task, event, startDateModified, endDateModified);
+		boolean dueDateModified = event.hasModifiedMetadata(Task.DUE_DATE);
+		if (startDateModified || dueDateModified) {
+			updateRemindersStatus(task, startDateModified, dueDateModified);
 		}
 	}
 
@@ -210,22 +255,22 @@ public class TaskSchemasExtension extends RecordExtension {
 		}
 	}
 
-	private List<TaskReminder> updateRemindersStatus(Task task, RecordInModificationEvent event, boolean startDateModified,
-			boolean endDateModified) {
+	List<TaskReminder> updateRemindersStatus(Task task, boolean startDateModified,
+			boolean dueDate) {
 		List<TaskReminder> reminders = task.getReminders();
 		if (reminders == null || reminders.isEmpty()) {
 			return reminders;
 		}
 		for (TaskReminder taskReminder : reminders) {
 			if (taskReminder.getFixedDate() == null && taskReminder.isProcessed()) {
-				if ((startDateModified && taskReminder.isRelativeToStartDate())) {
+				if (startDateModified && taskReminder.isRelativeToStartDate()) {
 					LocalDate newRelativeDate = taskReminder.computeDate(task);
-					if (newRelativeDate.isAfter(task.getStartDate())) {
+					if (newRelativeDate.isAfter(TimeProvider.getLocalDate())) {
 						taskReminder.setProcessed(false);
 					}
-				} else if ((endDateModified && taskReminder.isRelativeToDueDate())) {
+				} else if (dueDate && taskReminder.isRelativeToDueDate()) {
 					LocalDate newRelativeDate = taskReminder.computeDate(task);
-					if (newRelativeDate.isAfter(task.getDueDate())) {
+					if (newRelativeDate.isAfter(TimeProvider.getLocalDate())) {
 						taskReminder.setProcessed(false);
 					}
 				}
@@ -234,35 +279,102 @@ public class TaskSchemasExtension extends RecordExtension {
 		return reminders;
 	}
 
-	private void sendAssigneeModificationEvent(Task task, RecordInModificationEvent event) {
+	private void sendAssigneeModificationEvent(Task task,
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		sendEmailToAssignee(task);
 		Set<String> followersIds = getTaskAssigneeModificationFollowers(task);
 		if (followersIds.isEmpty()) {
 			return;
 		}
 		EmailToSend emailToSend = prepareEmailToSend(task, followersIds, TASK_ASSIGNEE_MODIFIED);
 		List<String> parameters = new ArrayList<>(emailToSend.getParameters());
-		parameters.add(PREVIOUS_ASSIGNEE + ":" + getAssigneeUserName((String) event.getPreviousValue(Task.ASSIGNEE)));
-		parameters.add(ACTUAL_ASSIGNEE + ":" + getAssigneeUserName(task.getAssignee()));
+		parameters.add(PREVIOUS_ASSIGNEE + ":" + getUserNameById((String) event.getPreviousValue(Task.ASSIGNEE)));
+		parameters.add(ACTUAL_ASSIGNEE + ":" + getUserNameById(task.getAssignee()));
 		emailToSend.setParameters(parameters);
-		saveEmailToSend(emailToSend);
+		saveEmailToSend(emailToSend, task);
 	}
 
-	private String getAssigneeUserName(String userId) {
+	private void sendEmailToAssignee(Task task) {
+		Set<EmailAddress> assigneeEmails = getTaskAssigneesEmails(task);
+		if (!assigneeEmails.isEmpty()) {
+			EmailToSend emailToSend = tasksSchema.newEmailToSend().setTryingCount(0d);
+			emailToSend.setTo(new ArrayList<>(assigneeEmails));
+			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
+			emailToSend.setTemplate(TASK_ASSIGNED_TO_YOU);
+
+			List<String> parameters = new ArrayList<>(emailToSend.getParameters());
+			emailToSend.setParameters(parameters);
+			saveEmailToSend(emailToSend, task);
+		}
+	}
+
+	private Set<EmailAddress> getTaskAssigneesEmails(Task task) {
+		Set<EmailAddress> assigneeEmails = new HashSet<>();
+		if (task.getAssignee() != null) {
+			EmailAddress emailAddress = emailAddress(task.getAssignee());
+			if (emailAddress != null) {
+				assigneeEmails.add(emailAddress);
+			}
+		}
+		if (task.getAssigneeUsersCandidates() != null) {
+			for (String userId : task.getAssigneeUsersCandidates()) {
+				EmailAddress emailAddress = emailAddress(userId);
+				if (emailAddress != null) {
+					assigneeEmails.add(emailAddress);
+				}
+			}
+		}
+		if (task.getAssigneeGroupsCandidates() != null) {
+			for (String groupId : task.getAssigneeGroupsCandidates()) {
+				UserServices userServices = modelLayerFactory.newUserServices();
+				try {
+					Group group = tasksSchema.getGroup(groupId);
+					List<UserCredential> groupUsers = userServices.getGlobalGroupActifUsers(group.getCode());
+					for (UserCredential user : groupUsers) {
+						String email = user.getEmail();
+						if (StringUtils.isNotBlank(email)) {
+							assigneeEmails.add(new EmailAddress(user.getTitle(), email));
+						}
+					}
+				} catch (UserServicesRuntimeException_NoSuchGroup e) {
+					LOGGER.warn("Group assigned in task " + task.getTitle() + " does not exist " + groupId);
+				}
+			}
+		}
+		return assigneeEmails;
+	}
+
+	private EmailAddress emailAddress(String userId) {
+		try {
+			User user = tasksSchema.getUser(userId);
+			String email = user.getEmail();
+			if (StringUtils.isNotBlank(email)) {
+				return new EmailAddress(user.getTitle(), email);
+			}
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			LOGGER.warn("User assignee does not exists " + userId);
+		}
+		return null;
+	}
+
+	private String getUserNameById(String userId) {
 		if (StringUtils.isBlank(userId)) {
 			return "";
 		}
 		return tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getUsername();
 	}
 
-	private void sendSubTasksModification(Task task) {
-		Set<String> followersIds = getTaskSubTasksModificationFollowers(task);
+	private void sendSubTasksModification(Task parentTask, Task task) {
+		Set<String> followersIds = getTaskSubTasksModificationFollowers(parentTask);
 		if (followersIds.isEmpty()) {
 			return;
 		}
-		saveEmailToSend(prepareEmailToSend(task, followersIds, TASK_SUB_TASKS_MODIFIED));
+		EmailToSend emailToSend = prepareEmailToSend(task, followersIds, TASK_SUB_TASKS_MODIFIED);
+		saveEmailToSend(emailToSend, task);
 	}
 
-	private void sendStatusModificationToFollowers(Task task, RecordInModificationEvent event) {
+	private void sendStatusModificationToFollowers(Task task,
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		Set<String> followersIds = getTaskStatusModificationFollowers(task);
 		if (followersIds.isEmpty()) {
 			return;
@@ -272,7 +384,7 @@ public class TaskSchemasExtension extends RecordExtension {
 		parameters.add(PREVIOUS_STATUS + ":" + getStatusLabel((String) event.getPreviousValue(Task.STATUS)));
 		parameters.add(ACTUAL_STATUS + ":" + getStatusLabel(task.getStatus()));
 		emailToSend.setParameters(parameters);
-		saveEmailToSend(emailToSend);
+		saveEmailToSend(emailToSend, task);
 	}
 
 	private String getStatusLabel(String statusId) {
@@ -282,12 +394,13 @@ public class TaskSchemasExtension extends RecordExtension {
 		return tasksSchema.getTaskStatus(statusId).getTitle();
 	}
 
-	private void sendTaskCompletedEmail(Task task, RecordInModificationEvent event) {
+	private void sendTaskCompletedEmail(Task task, RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		Set<String> followersIds = getTaskCompetedFollowers(task);
 		if (followersIds.isEmpty()) {
 			return;
 		}
-		saveEmailToSend(prepareEmailToSend(task, followersIds, TASK_COMPLETED));
+		EmailToSend emailToSend = prepareEmailToSend(task, followersIds, TASK_COMPLETED);
+		saveEmailToSend(emailToSend, task);
 	}
 
 	private Set<String> getTaskAssigneeModificationFollowers(Task task) {

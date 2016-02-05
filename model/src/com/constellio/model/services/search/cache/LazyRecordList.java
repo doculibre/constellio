@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search.cache;
 
 import java.util.AbstractList;
@@ -44,14 +27,17 @@ public class LazyRecordList extends AbstractList<Record> {
 
 	private SearchServices searchServices;
 
+	private boolean serializeRecords;
+
 	LazyRecordList(int batchSize, SerializableSearchCache cache, ModelLayerFactory modelLayerFactory,
-			LogicalSearchQuery query) {
+			LogicalSearchQuery query, boolean serializeRecords) {
 		this.batchSize = batchSize;
 		this.recordsCaches = modelLayerFactory.getRecordsCaches();
 		this.cache = cache;
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.query = new LogicalSearchQuery(query);
+		this.serializeRecords = serializeRecords;
 	}
 
 	@Override
@@ -61,7 +47,12 @@ public class LazyRecordList extends AbstractList<Record> {
 			return fetchIndex(index);
 
 		} else {
-			return recordServices.getDocumentById(recordId);
+			if (serializeRecords) {
+				return cache.getCachedRecord(index);
+
+			} else {
+				return recordServices.getDocumentById(recordId);
+			}
 
 		}
 	}
@@ -76,6 +67,9 @@ public class LazyRecordList extends AbstractList<Record> {
 			if (i < speQueryResponse.getRecords().size()) {
 				Record record = speQueryResponse.getRecords().get(i);
 				cache.setRecordId(index + i, record.getId());
+				if (serializeRecords) {
+					cache.setRecord(index + i, record);
+				}
 				recordsToInsert.add(record);
 				if (returnedRecord == null) {
 					returnedRecord = record;

@@ -1,37 +1,27 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui;
 
-import static java.util.Arrays.asList;
+import static com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils.startWebsite;
+import static com.constellio.sdk.tests.TestUtils.asList;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 
+import org.eclipse.jetty.server.Server;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
@@ -61,11 +51,13 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 		givenBackgroundThreadsEnabled();
 		givenTransactionLogIsEnabled();
 		prepareSystem(
-				withZeCollection().withConstellioESModule().withAllTestUsers()
+				withZeCollection().withConstellioESModule().withConstellioRMModule().withRobotsModule().withAllTestUsers()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		users.setUp(getModelLayerFactory().newUserServices());
 
 	}
 
@@ -90,6 +82,211 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
+	}
+
+	@Test
+	public void startWithHttpConnectorFetchingGouvQuebec()
+			throws Exception {
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
+		connectorManager = es.getConnectorManager();
+
+		connectorManager
+				.createConnector(es.newConnectorHttpInstance()
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setSeeds("http://www.servicecanada.gc.ca/")
+						.setDocumentsPerJobs(20)
+						.setNumberOfJobsInParallel(20)
+						.setIncludePatterns(".*"));
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
+	}
+
+	@Test
+	public void startWithHttpConnectorFetchingWikipedia()
+			throws Exception {
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
+		connectorManager = es.getConnectorManager();
+
+		connectorManager
+				.createConnector(es.newConnectorHttpInstance()
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setSeeds("https://fr.wikipedia.org/wiki/Wikipédia:Accueil_principal")
+						.setIncludePatterns("https://fr.wikipedia.org/wiki/"));
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
+	}
+
+	@Test
+	public void startWithThreeConnectors()
+			throws Exception {
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
+		connectorManager = es.getConnectorManager();
+
+		connectorManager
+				.createConnector(es.newConnectorLDAPInstance()
+								.setNumberOfJobsInParallel(15)
+								.setNumberOfJobsInParallel(30)
+								.setUrls(LDAPTestConfig.getUrls())
+								.setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
+								.setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
+								.setPassword(LDAPTestConfig.getPassword())
+								.setCode("ldap")
+								.setTitle("users")
+								.setEnabled(true)
+				);
+
+		connectorManager
+				.createConnector(es.newConnectorHttpInstance()
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setSeeds("https://fr.wikipedia.org/wiki/Wikipédia:Accueil_principal")
+						.setIncludePatterns("https://fr.wikipedia.org/wiki/"));
+
+		String host = SDKPasswords.testSmbServer();
+		String share = SDKPasswords.testSmbShare();
+		String domain = SDKPasswords.testSmbDomain();
+		String username = SDKPasswords.testSmbUsername();
+		String password = SDKPasswords.testSmbPassword();
+
+		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
+
+				.setCode("zeConnectorCode")
+				.setEnabled(true)
+				.setSeeds(asList(host + share))
+				.setUsername(username)
+				.setPassword(password)
+				.setDomain(domain)
+				.setInclusions(Arrays.asList("smb://127.0.0.1/"))
+				.setExclusions(new ArrayList<String>())
+				.setTitle("zeConnectorTitle"));
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
+
+	}
+
+	@Test
+	public void startWithLDAPConnector()
+			throws Exception {
+
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
+		connectorManager = es.getConnectorManager();
+
+		connectorManager
+				.createConnector(es.newConnectorLDAPInstance()
+								.setNumberOfJobsInParallel(15)
+								.setNumberOfJobsInParallel(30)
+								.setUrls(LDAPTestConfig.getUrls())
+								.setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
+								.setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
+								.setPassword(LDAPTestConfig.getPassword())
+								.setCode("ldap")
+								.setTitle("users")
+								.setEnabled(true)
+				);
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
+
+	}
+
+	@Test
+	public void startWithHttpConnectorFetchingLocalWikipedia()
+			throws Exception {
+
+		Server server = startWebsite(new File("/Volumes/Raid 1/wiki-extract/en/"));
+		//Server server = startWebsite(new File("/Users/francisbaril/IdeaProjects/constellio-dev/sdk/sdk-resources/com/constellio/app/modules/es/connectors/http/utils/WebsitesUtils/animalsState1"));
+
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
+		connectorManager = es.getConnectorManager();
+
+		connectorManager
+				.createConnector(es.newConnectorHttpInstance()
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setDocumentsPerJobs(15)
+						.setNumberOfJobsInParallel(30)
+						.setSeeds("http://localhost:4242/index.html"));
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
+
+		//server.stop();
+	}
+
+	@Test
+	public void startWithHttpConnectorFetchingAnimalWebsite()
+			throws Exception {
+
+		Server server = WebsitesUtils.startWebsiteInState1();
+
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
+		connectorManager = es.getConnectorManager();
+
+		connectorManager
+				.createConnector(es.newConnectorHttpInstance()
+						.setCode("wikipedia")
+						.setTitle("Wikipedia")
+						.setEnabled(true)
+						.setSeeds("http://localhost:4242/index.html")
+						.setIncludePatterns("http://localhost:4242/"));
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
+
+		//server.stop();
+	}
+
+	@Test
+	public void withAnSmbConnector()
+			throws Exception {
+
+		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
+		connectorManager = es.getConnectorManager();
+
+		String host = SDKPasswords.testSmbServer();
+		String share = SDKPasswords.testSmbShare();
+		String domain = SDKPasswords.testSmbDomain();
+		String username = SDKPasswords.testSmbUsername();
+		String password = SDKPasswords.testSmbPassword();
+
+		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance()
+
+				.setCode("zeConnectorCode")
+				.setEnabled(true)
+				.setSeeds(asList(host + share))
+				.setUsername(username)
+				.setPassword(password)
+				.setDomain(domain)
+				.setInclusions(Arrays.asList("smb://127.0.0.1/"))
+				.setExclusions(new ArrayList<String>())
+				.setTitle("zeConnectorTitle"));
+
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
+
 	}
 
 	@Test
@@ -163,7 +360,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 						.setTitle("Ze Connector")
 						.setTraversalCode("traversalCode")
 						.setEnabled(true)
-						.setSeeds(asList("http://constellio.com")));
+						.setSeeds("http://constellio.com"));
 
 		anotherConnectorInstace = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
@@ -171,7 +368,7 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 						.setTitle("Another Connector")
 						.setTraversalCode("anotherTraversalCode")
 						.setEnabled(true)
-						.setSeeds(asList("http://constellio.com")));
+						.setSeeds("http://constellio.com"));
 	}
 }
 

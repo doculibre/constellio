@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.users;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -27,6 +10,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +25,7 @@ import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -52,6 +37,9 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.encrypt.EncryptionKeyFactory;
+import com.constellio.model.services.encrypt.EncryptionServices;
+import com.constellio.model.services.factories.ModelLayerFactoryUtils;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
@@ -91,11 +79,14 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	UserCredentialsManager userCredentialsManager;
 	GlobalGroupsManager globalGroupsManager;
 	@Mock UserCredential userWithNoAccessToDeleteCollection;
+	@Mock Factory<EncryptionServices> encryptionServicesFactory;
 	AuthenticationService authenticationService;
+	List<String> msExchDelegateListBL = new ArrayList<>();
 
 	@Before
 	public void setUp()
 			throws Exception {
+
 		givenBackgroundThreadsEnabled();
 		withSpiedServices(ModelLayerConfiguration.class);
 		configure(new ModelLayerConfigurationAlteration() {
@@ -107,33 +98,41 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 				doReturn(oneSecond).when(configuration).getTokenRemovalThreadDelayBetweenChecks();
 			}
 		});
-
-		allCollections = new ArrayList<>();
-		collectionsManager = getAppLayerFactory().getCollectionsManager();
-		userServices = getModelLayerFactory().newUserServices();
-		recordServices = getModelLayerFactory().newRecordServices();
-		searchServices = getModelLayerFactory().newSearchServices();
-		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
-		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
-		authenticationService = getModelLayerFactory().newAuthenticationService();
-
 	}
 
 	@Test
 	public void givenGlobalGroupInACollectionWhenRemovingFromCollectionAndAddingUsersThenOK()
 			throws Exception {
-		givenCollection1();
-		givenCollection2();
+
+		givenCollection1And2();
 		givenHeroesGroup();
 		givenLegendsGroup();
 		//userServices.removeGroupFromCollections();
 	}
 
+	//@Test
+	//@SlowTest
+	public void whenEveryoneGetsInHereThenStillNotLetal()
+			throws Exception {
+
+		givenCollection1And2();
+
+		for (int i = 0; i < 10000; i++) {
+			user = new UserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
+					noCollections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null).withSystemAdminPermission();
+			userServices.addUpdateUserCredential(user);
+		}
+
+		for (int i = 0; i < 10000; i++) {
+			assertThat(userServices.getUser("grimPatron" + i)).isNotNull();
+			//assertThat(userServices.getUserInCollection("grimPatron" + i, zeCollection)).isNotNull();
+		}
+	}
+
 	@Test
 	public void given2GlobalGroupsAnd2CustomGroupsWhenGetAllGroupsThenCanObtainCustomGlobalAndAllGroups()
 			throws Exception {
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 		givenHeroesGroup();
 		givenLegendsGroup();
 		userServices.createCustomGroupInCollectionWithCodeAndName("collection1", "A", "Group A");
@@ -161,6 +160,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCreatingUserThenCredentialObtainable()
 			throws Exception {
+
+		setupAfterCollectionCreation();
 
 		givenUserWith(noGroups, noCollections);
 
@@ -209,8 +210,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserInCollectionWhenRemovingFromCollectionThenHasDisabledStatus()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 		givenUserWith(noGroups, and(collection1, collection2));
 
 		userServices.removeUserFromCollection(user, collection1);
@@ -226,8 +226,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserInCollectionsWhenRemovingHimThenRemoveFromAllCollectionsAndChangeStatus()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 		givenUserWith(noGroups, and(collection1, collection2));
 
 		userServices.removeUserCredentialAndUser(user);
@@ -256,8 +255,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserInCollectionsWhenSetStatusPedingApprovalThenRemoveFromAllCollectionsAndChangeStatus()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 		givenUserWith(noGroups, and(collection1, collection2));
 
 		userServices.setUserCredentialAndUserStatusPendingApproval(user);
@@ -283,8 +281,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserInCollectionsWhenSuspendHimThenRemoveFromAllCollectionsAndChangeStatus()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 		givenUserWith(noGroups, and(collection1, collection2));
 
 		userServices.suspendUserCredentialAndUser(user);
@@ -310,8 +307,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenInactiveUserWhenActiveHimThenActiveInAllCollectionsUserAndChangeStatus()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 		givenUserWith(noGroups, and(collection1, collection2));
 		userServices.removeUserCredentialAndUser(user);
 
@@ -338,8 +334,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenGroupInCollectionWhenRemovingFromCollectionThenRemoveUsersToo()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 		givenLegendsGroupWithAllUsersInCollections(collection1, collection2);
 		givenHeroesGroupWithAllUsersInCollections(collection1, collection2);
 		givenUserWith(asList(legends), and(collection1, collection2));
@@ -376,6 +371,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void whenCreatingGlobalGroupThenObtainable()
 			throws Exception {
 
+		setupAfterCollectionCreation();
 		givenLegendsGroup();
 
 		assertThat(userServices.getGroup(legends).getCode()).isEqualTo(legends);
@@ -396,8 +392,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void whenCreatingCollectionThenAddGlobalGroups()
 			throws Exception {
 
+		setupAfterCollectionCreation();
 		givenLegendsGroup();
-		givenCollection1();
+		collection1 = "collection1";
+		givenCollection(collection1);
 
 		assertThat(userServices.getGroupInCollection(legends, collection1).getCode()).isEqualTo(legends);
 
@@ -407,9 +405,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void whenCreatingUserWithGroupWithAutomaticCollectionMembershipThenInCollection()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
-		givenCollection3();
+		givenCollection1And2And3();
 		givenLegendsGroupWithAllUsersInCollections(collection1);
 		givenHeroesGroup();
 		givenUserWith(groups(legends, heroes), and(collection2));
@@ -422,9 +418,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAutomaticCollectionMembershipToGroupThenAddUsersThenInCollection()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
-		givenCollection3();
+		givenCollection1And2And3();
 		givenLegendsGroup();
 		givenHeroesGroup();
 		givenUserWith(groups(legends, heroes), and(collection2));
@@ -493,8 +487,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void whenSetGroupUserListThenListAndUserNewlyInGroupWithAutomaticMembershipAddedToCollections()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 		givenLegendsGroupWithAllUsersInCollections(collection1);
 		givenHeroesGroup();
 		givenUserWith(noGroups, andNoCollections);
@@ -531,8 +524,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenUserCredentialIsModifiedThenChangesSynchedCorrectly()
 			throws Exception {
 
-		givenCollection1();
-		givenCollection2();
+		givenCollection1And2();
 
 		SchemasRecordsServices collection1Schemas = new SchemasRecordsServices(collection1, getModelLayerFactory());
 
@@ -652,6 +644,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenUserAndPasswordWhenGetTokenThenItsReturned()
 			throws Exception {
+		givenCollection(zeCollection);
+		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
@@ -666,6 +660,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@SlowTest
 	public void givenTokenIsGivenToUserThenExpiresAutomatically()
 			throws Exception {
+		givenCollection(zeCollection);
+		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
@@ -682,23 +678,27 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGeneratingALotOfTokensOnlyKeepLastFive()
 			throws Exception {
+		givenCollection(zeCollection);
+		setupAfterCollectionCreation();
 		givenUserAndPassword();
 
 		for (int i = 0; i < 10; i++) {
 			userServices.generateToken(user.getUsername());
 		}
-		String token1 = userServices.generateToken(user.getUsername());
-		String token2 = userServices.generateToken(user.getUsername());
-		String token3 = userServices.generateToken(user.getUsername());
-		String token4 = userServices.generateToken(user.getUsername());
-		String token5 = userServices.generateToken(user.getUsername());
 
-		assertThat(userServices.getUser(user.getUsername()).getTokensKeys()).containsOnly(token1, token2, token3, token4, token5);
+		List<String> last50Tokens = new ArrayList<>();
+		for (int i = 0; i < 50; i++) {
+			last50Tokens.add(userServices.generateToken(user.getUsername()));
+		}
+
+		assertThat(userServices.getUser(user.getUsername()).getTokensKeys()).containsOnly(last50Tokens.toArray(new String[0]));
 	}
 
 	@Test(expected = UserServicesRuntimeException_InvalidUserNameOrPassword.class)
 	public void givenUserAndPasswordWhenGetTokenThenException()
 			throws Exception {
+
+		setupAfterCollectionCreation();
 
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
@@ -710,6 +710,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenAdminUserWhenRemovingHimThenException()
 			throws Exception {
 
+		setupAfterCollectionCreation();
 		UserCredential admin = userServices.getUserCredential("admin");
 		try {
 			userServices.removeUserCredentialAndUser(admin);
@@ -723,6 +724,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenAdminUserWhenChangeStatusThenException()
 			throws Exception {
 
+		setupAfterCollectionCreation();
 		UserCredential admin = userServices.getUserCredential("admin");
 		admin = admin.withStatus(UserCredentialStatus.DELETED);
 		try {
@@ -737,6 +739,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetServiceKeyByTokenThenReturnIt()
 			throws Exception {
+		givenCollection(zeCollection);
+		setupAfterCollectionCreation();
+
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
@@ -752,6 +757,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenWrongTokenWhenGetServiceKeyByTokenThenException()
 			throws Exception {
+		givenCollection(zeCollection);
+		setupAfterCollectionCreation();
+
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
@@ -768,6 +776,10 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetTokenUserThenReturnUsername()
 			throws Exception {
+
+		givenCollection(zeCollection);
+		setupAfterCollectionCreation();
+
 		givenUserAndPassword();
 		String serviceKey = userServices.giveNewServiceToken(user);
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
@@ -950,17 +962,39 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	private void givenCollection1() {
 		collection1 = "collection1";
-		givenCollection(collection1);
+		prepareSystemWithoutHyperTurbo(withCollection(collection1));
+		setupAfterCollectionCreation();
 	}
 
-	private void givenCollection2() {
+	private void givenCollection1And2() {
+		collection1 = "collection1";
 		collection2 = "collection2";
-		givenCollection(collection2);
+		prepareSystemWithoutHyperTurbo(withCollection(collection1), withCollection(collection2));
+		setupAfterCollectionCreation();
 	}
 
-	private void givenCollection3() {
+	private void givenCollection1And2And3() {
+		collection1 = "collection1";
+		collection2 = "collection2";
+		prepareSystemWithoutHyperTurbo(withCollection(collection1), withCollection(collection2));
 		collection3 = "collection3";
 		givenCollection(collection3);
+		setupAfterCollectionCreation();
+	}
+
+	private void setupAfterCollectionCreation() {
+
+		allCollections = new ArrayList<>();
+		collectionsManager = getAppLayerFactory().getCollectionsManager();
+		userServices = getModelLayerFactory().newUserServices();
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
+		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
+		authenticationService = getModelLayerFactory().newAuthenticationService();
+
+		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
+		ModelLayerFactoryUtils.setApplicationEncryptionKey(getModelLayerFactory(), key);
 	}
 
 	private List<String> groups(String... groups) {
@@ -973,7 +1007,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	private void givenUserAndPassword() {
 		user = new UserCredential(chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(),
-				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain");
+				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(user);
 		authenticationService.changePassword(user.getUsername(), "1qaz2wsx");
 		user = userServices.getUser(user.getUsername());
@@ -981,19 +1015,19 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	private void givenUserWith(List<String> groups, List<String> collections) {
 		user = new UserCredential(chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections,
-				UserCredentialStatus.ACTIVE, "domain").withSystemAdminPermission();
+				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null).withSystemAdminPermission();
 		userServices.addUpdateUserCredential(user);
 	}
 
 	private void givenAnotherUserWith(List<String> groups, List<String> collections) {
 		anotherUser = new UserCredential("gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups,
-				collections, UserCredentialStatus.ACTIVE, "domain");
+				collections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(anotherUser);
 	}
 
 	private void givenAThirdUserWith(List<String> groups, List<String> collections) {
 		thirdUser = new UserCredential("edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups,
-				collections, UserCredentialStatus.ACTIVE, "domain");
+				collections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(thirdUser);
 	}
 

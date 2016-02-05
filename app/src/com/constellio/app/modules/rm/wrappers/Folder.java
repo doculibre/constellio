@@ -1,26 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.wrappers;
 
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -31,9 +13,11 @@ import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.PendingAlert;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class Folder extends RMObject {
@@ -43,6 +27,7 @@ public class Folder extends RMObject {
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String ADMINISTRATIVE_UNIT_ANCESTORS = "administrativeUnitAncestors";
 	public static final String ARCHIVISTIC_STATUS = "archivisticStatus";
+	public static final String PERMISSION_STATUS = "permissionStatus";
 	public static final String UNIFORM_SUBDIVISION = "uniformSubdivision";
 	public static final String UNIFORM_SUBDIVISION_ENTERED = "uniformSubdivisionEntered";
 	public static final String CATEGORY_ENTERED = "categoryEntered";
@@ -83,6 +68,7 @@ public class Folder extends RMObject {
 	public static final String MEDIA_TYPE = "mediaType";
 	public static final String CONTAINER = "container";
 	public static final String TYPE = "type";
+	public static final String FOLDER_TYPE = "folderType";
 	public static final String COMMENTS = "comments";
 	public static final String BORROWED = "borrowed";
 	public static final String BORROW_DATE = "borrowDate";
@@ -450,6 +436,16 @@ public class Folder extends RMObject {
 		return get(ARCHIVISTIC_STATUS);
 	}
 
+	public FolderStatus getPermissionStatus() {
+		FolderStatus status = get(PERMISSION_STATUS);
+		return status != null ? status : getArchivisticStatus();
+	}
+
+	public Folder setPermissionStatus(FolderStatus status) {
+		set(PERMISSION_STATUS, status);
+		return this;
+	}
+
 	public CopyType getCopyStatus() {
 		return get(COPY_STATUS);
 	}
@@ -483,7 +479,7 @@ public class Folder extends RMObject {
 		return get(BORROW_DATE);
 	}
 
-	public Folder setBorrowDate(Boolean borrowDate) {
+	public Folder setBorrowDate(LocalDateTime borrowDate) {
 		set(BORROW_DATE, borrowDate);
 		return this;
 	}
@@ -492,7 +488,7 @@ public class Folder extends RMObject {
 		return get(BORROW_RETURN_DATE);
 	}
 
-	public Folder setBorrowReturnDate(Boolean borrowReturnDate) {
+	public Folder setBorrowReturnDate(LocalDateTime borrowReturnDate) {
 		set(BORROW_RETURN_DATE, borrowReturnDate);
 		return this;
 	}
@@ -501,7 +497,7 @@ public class Folder extends RMObject {
 		return get(BORROW_PREVIEW_RETURN_DATE);
 	}
 
-	public Folder setBorrowPreviewReturnDate(Boolean borrowPreviewReturnDate) {
+	public Folder setBorrowPreviewReturnDate(LocalDate borrowPreviewReturnDate) {
 		set(BORROW_PREVIEW_RETURN_DATE, borrowPreviewReturnDate);
 		return this;
 	}
@@ -537,7 +533,7 @@ public class Folder extends RMObject {
 		return get(BORROWING_TYPE);
 	}
 
-	public Folder setBorrowType(String borrowType) {
+	public Folder setBorrowType(BorrowingType borrowType) {
 		set(BORROWING_TYPE, borrowType);
 		return this;
 	}
@@ -576,6 +572,46 @@ public class Folder extends RMObject {
 
 	public Folder setNextAlertOn(LocalDateTime nextAlertOn) {
 		set(PENDING_ALERTS, nextAlertOn);
+		return this;
+	}
+
+	public Folder setFormCreatedBy(String userId) {
+		set(FORM_CREATED_BY, userId);
+		return this;
+	}
+
+	public Folder setFormCreatedBy(Record user) {
+		set(FORM_CREATED_BY, user);
+		return this;
+	}
+
+	public Folder setFormCreatedBy(User user) {
+		set(FORM_CREATED_BY, user);
+		return this;
+	}
+
+	public Folder setFormCreatedOn(LocalDateTime dateTime) {
+		set(FORM_CREATED_ON, dateTime);
+		return this;
+	}
+
+	public Folder setFormModifiedBy(String userId) {
+		set(FORM_MODIFIED_BY, userId);
+		return this;
+	}
+
+	public Folder setFormModifiedBy(Record user) {
+		set(FORM_MODIFIED_BY, user);
+		return this;
+	}
+
+	public Folder setFormModifiedBy(User user) {
+		set(FORM_MODIFIED_BY, user);
+		return this;
+	}
+
+	public Folder setFormModifiedOn(LocalDateTime dateTime) {
+		set(FORM_MODIFIED_ON, dateTime);
 		return this;
 	}
 }

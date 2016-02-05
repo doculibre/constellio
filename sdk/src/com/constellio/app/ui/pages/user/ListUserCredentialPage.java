@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.user;
 
 import java.util.List;
@@ -40,8 +23,25 @@ public class ListUserCredentialPage extends PageHelper {
 	}
 
 	void navigateToListUserCredentialsPage() {
+
 		driver.navigateTo()
 				.url(NavigatorConfigurationService.USER_LIST);
+		try {
+			getAddButton();
+
+		} catch (Exception e) {
+			driver.printHierarchy();
+			driver.navigateTo()
+					.url(NavigatorConfigurationService.USER_LIST);
+			try {
+				getAddButton();
+
+			} catch (Exception e2) {
+				driver.printHierarchy();
+				driver.navigateTo()
+						.url(NavigatorConfigurationService.USER_LIST);
+			}
+		}
 	}
 
 	public TextFieldWebElement getSearchInput() {
@@ -51,7 +51,12 @@ public class ListUserCredentialPage extends PageHelper {
 	}
 
 	public ButtonWebElement getAddButton() {
-		return getButtonByClassName(AddButton.BUTTON_STYLE, 0);
+		try {
+			return getButtonByClassName(AddButton.BUTTON_STYLE, 0);
+		} catch (RuntimeException e) {
+			driver.printHierarchy();
+			throw e;
+		}
 	}
 
 	public ButtonWebElement getBackButton() {

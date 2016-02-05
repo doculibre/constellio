@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.facet;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -60,6 +43,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -76,12 +61,16 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 	private SchemasDisplayManager schemasDisplayManager;
 	private SchemasRecordsServices schemasRecords;
 	private String collection;
+	private ModelLayerFactory modelLayerFactory;
+	private SessionContext sessionContext;
 
 	public FacetConfigurationPresenterService(ConstellioFactories factories, SessionContext sessionContext) {
 		super(factories, sessionContext);
 		collection = getCollection();
 		schemasRecords = new SchemasRecordsServices(collection, appLayerFactory().getModelLayerFactory());
 		schemasDisplayManager = appLayerFactory().getMetadataSchemasDisplayManager();
+		modelLayerFactory = factories.getModelLayerFactory();
+		this.sessionContext = sessionContext;
 	}
 
 	public MapStringStringStructure getStructureValue(Map<Integer, Map<String, String>> values) {
@@ -217,15 +206,14 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 		return false;
 	}
 
-	public double getNextOrderValue() {
+	public int getNextOrderValue() {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(collection, modelLayerFactory());
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(schemasRecords.facetSchemaType()).returnAll())
 				.sortDesc(schemasRecords.defaultFacet().get(Facet.ORDER));
 
 		List<Record> records = searchServices().search(query);
-		double current = records.get(records.size() - 1).get(schemasRecords.defaultFacet().get(Facet.ORDER));
-		return current + 1;
+		return schemasRecords.wrapFacet(records.get(records.size() - 1)).getOrder() + 1;
 	}
 
 	public Record toRecord(RecordVO recordVO) {
@@ -234,4 +222,33 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 		return schemaPresenterUtils.toRecord(recordVO);
 	}
 
+	public void activate(String id) {
+		toggleActivateDeactivateFacetMetadata(id, true);
+	}
+
+	public void deactivate(String id) {
+		toggleActivateDeactivateFacetMetadata(id, false);
+	}
+
+	private Metadata getFacetMetadata(Record record, String metadataCode) {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(
+				record.getSchemaCode()).getMetadata(metadataCode);
+	}
+
+	private void toggleActivateDeactivateFacetMetadata(String id, boolean isActivate) {
+		Record record = recordServices().getDocumentById(id);
+		Metadata metadata = getFacetMetadata(record, Facet.ACTIVE);
+		record.set(metadata, isActivate);
+		try {
+			recordServices().update(record);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean isActive(RecordVO recordVO) {
+		return recordVO.getMetadataValue(recordVO.getMetadata(Facet.ACTIVE)).getValue() != null ?
+				(Boolean) recordVO.getMetadataValue(recordVO.getMetadata(Facet.ACTIVE)).getValue() :
+				false;
+	}
 }

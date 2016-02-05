@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -38,10 +21,10 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.Can
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.NoSuchMetadata;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 
@@ -65,7 +48,7 @@ public class MetadataSchemaBuilder {
 
 	private MetadataSchemaTypeBuilder schemaTypeBuilder;
 
-	private Set<MetadataBuilder> metadatas;
+	private List<MetadataBuilder> metadatas;
 
 	private boolean undeletable = false;
 
@@ -83,7 +66,7 @@ public class MetadataSchemaBuilder {
 		builder.setCode(schema.getCode());
 		builder.setUndeletable(schema.isUndeletable());
 		builder.label = schema.getLabel();
-		builder.metadatas = new HashSet<MetadataBuilder>();
+		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.inheritDefaultSchema()) {
 				MetadataBuilder inheritance = builder.defaultSchema.getMetadata(metadata.getLocalCode());
@@ -118,7 +101,7 @@ public class MetadataSchemaBuilder {
 		builder.setCollection(defaultSchema.getCollection());
 		builder.setUndeletable(defaultSchema.isUndeletable());
 		builder.setSchemaTypeBuilder(typeBuilder);
-		builder.metadatas = new HashSet<MetadataBuilder>();
+		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata));
 		}
@@ -129,7 +112,7 @@ public class MetadataSchemaBuilder {
 	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
 		builder.setDefaultSchema(defaultSchema);
-		builder.metadatas = new HashSet<MetadataBuilder>();
+		builder.metadatas = new ArrayList<>();
 		builder.setCollection(defaultSchema.getCollection());
 		builder.setLocalCode(localCode);
 		builder.setLabel(localCode);
@@ -152,7 +135,7 @@ public class MetadataSchemaBuilder {
 		builder.setLabel(schemaTypeBuilder.getLabel());
 		builder.setCode(schemaTypeBuilder.getCode() + UNDERSCORE + DEFAULT);
 		builder.setUndeletable(true);
-		builder.metadatas = new HashSet<MetadataBuilder>();
+		builder.metadatas = new ArrayList<>();
 		builder.schemaValidators = new ClassListBuilder<>(RecordValidator.class);
 		if (initialize) {
 			new CommonMetadataBuilder().addCommonMetadataToNewSchema(builder, schemaTypesBuilder);
@@ -206,7 +189,7 @@ public class MetadataSchemaBuilder {
 		return this;
 	}
 
-	public Set<MetadataBuilder> getMetadatas() {
+	public List<MetadataBuilder> getMetadatas() {
 		return metadatas;
 	}
 
@@ -229,12 +212,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	public boolean hasMetadata(String codeOrLocalCode) {
-		try {
-			getMetadata(codeOrLocalCode);
-			return true;
-		} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
-			return false;
-		}
+		return getMetadataOrNull(codeOrLocalCode) != null;
 	}
 
 	public MetadataBuilder getUserMetadata(String localCode) {
@@ -246,21 +224,31 @@ public class MetadataSchemaBuilder {
 		throw new MetadataSchemaBuilderRuntimeException.NoSuchMetadata("USR" + localCode);
 	}
 
-	public MetadataBuilder getMetadata(String codeOrLocalCode) {
+	private MetadataBuilder getMetadataOrNull(String codeOrLocalCode) {
 		String partialCode;
 		if (codeOrLocalCode.split(UNDERSCORE).length == 3) {
 			partialCode = getPartialCode(codeOrLocalCode);
 		} else if (codeOrLocalCode.matches("([a-zA-Z0-9])+")) {
 			partialCode = codeOrLocalCode;
 		} else {
-			throw new MetadataSchemaBuilderRuntimeException.InvalidAttribute(codeOrLocalCode);
+			throw new MetadataSchemaBuilderRuntimeException.InvalidAttribute("codeOrLocalCode", codeOrLocalCode);
 		}
 		for (MetadataBuilder metadataBuilder : getMetadatas()) {
 			if (metadataBuilder.getLocalCode().equals(partialCode)) {
 				return metadataBuilder;
 			}
 		}
-		throw new MetadataSchemaBuilderRuntimeException.NoSuchMetadata(codeOrLocalCode);
+		return null;
+	}
+
+	public MetadataBuilder getMetadata(String codeOrLocalCode) {
+
+		MetadataBuilder metadataBuilder = getMetadataOrNull(codeOrLocalCode);
+		if (metadataBuilder == null) {
+			throw new MetadataSchemaBuilderRuntimeException.NoSuchMetadata(codeOrLocalCode);
+		} else {
+			return metadataBuilder;
+		}
 	}
 
 	public MetadataBuilder get(String code) {
@@ -283,23 +271,20 @@ public class MetadataSchemaBuilder {
 		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadataLocaleCode);
 		validateLocalCode(metadataLocalCode);
 
-		try {
-			MetadataBuilder metadata = getMetadata(metadataLocaleCode);
+		if (hasMetadata(metadataLocalCode)) {
 			throw new MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists(metadataLocaleCode);
-		} catch (NoSuchMetadata e) {
+		}
 
-			LOGGER.debug("No metadata with code {} found, creating one", metadataLocalCode);
-			if (this.getLocalCode().equals(DEFAULT)) {
-				return createDefaultMetadata(metadataLocaleCode);
-			} else {
-				return createCustomMetadata(metadataLocaleCode);
-			}
+		if (this.getLocalCode().equals(DEFAULT)) {
+			return createDefaultMetadata(metadataLocaleCode);
+		} else {
+			return createCustomMetadata(metadataLocaleCode);
 		}
 
 	}
 
-	MetadataSchema buildDefault(DataStoreTypesFactory typesFactory, TaxonomiesManager taxonomiesManager) {
-		List<Metadata> newMetadatas = buildMetadatas(typesFactory, taxonomiesManager);
+	MetadataSchema buildDefault(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+		List<Metadata> newMetadatas = buildMetadatas(typesFactory, modelLayerFactory);
 
 		validateDefault(this);
 
@@ -314,14 +299,15 @@ public class MetadataSchemaBuilder {
 
 		Collections.sort(newMetadatas, SchemaComparators.METADATA_COMPARATOR_BY_ASC_LOCAL_CODE);
 
+		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabel, newMetadatas, this.isUndeletable(),
-				this.schemaValidators.build(), orderAutomaticMetadatas(newMetadatas));
+				inTransactionLog, this.schemaValidators.build(), orderAutomaticMetadatas(newMetadatas));
 	}
 
-	List<Metadata> buildMetadatas(DataStoreTypesFactory typesFactory, TaxonomiesManager taxonomiesManager) {
+	List<Metadata> buildMetadatas(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		List<Metadata> newMetadatas = new ArrayList<>();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
-			newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, taxonomiesManager));
+			newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory));
 		}
 		return newMetadatas;
 	}
@@ -332,7 +318,7 @@ public class MetadataSchemaBuilder {
 
 		try {
 			sortedMetadataCodes = newDependencyUtils()
-					.sortByDependency(automaticMetadatasDependencies, null);
+					.sortByDependency(automaticMetadatasDependencies);
 		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
 			throw new MetadataSchemaBuilderRuntimeException.CyclicDependenciesInMetadata(e);
 		}
@@ -357,7 +343,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	MetadataSchema buildCustom(MetadataSchema defaultSchema, DataStoreTypesFactory typesFactory,
-			TaxonomiesManager taxonomiesManager) {
+			ModelLayerFactory modelLayerFactory) {
 		List<Metadata> newMetadatas = new ArrayList<>();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
 			try {
@@ -365,7 +351,7 @@ public class MetadataSchemaBuilder {
 				newMetadatas.add(metadataBuilder.buildWithInheritance(inheritance));
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				LOGGER.debug("No inheritance found for metadata {}", code, e);
-				newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, taxonomiesManager));
+				newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory));
 			}
 
 		}
@@ -377,8 +363,10 @@ public class MetadataSchemaBuilder {
 
 		Collections.sort(newMetadatas, SchemaComparators.METADATA_COMPARATOR_BY_ASC_LOCAL_CODE);
 
+		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabel, newMetadatas, this.isUndeletable(),
-				this.schemaValidators.build(defaultSchema.getValidators()), orderAutomaticMetadatas(newMetadatas));
+				inTransactionLog, this.schemaValidators.build(defaultSchema.getValidators()),
+				orderAutomaticMetadatas(newMetadatas));
 	}
 
 	public boolean isInheriting() {
@@ -398,7 +386,7 @@ public class MetadataSchemaBuilder {
 	void validateLocalCode(String localCode) {
 		String pattern = "([a-zA-Z0-9])+";
 		if (localCode == null || !localCode.matches(pattern)) {
-			throw new MetadataSchemaBuilderRuntimeException.InvalidAttribute("localCode");
+			throw new MetadataSchemaBuilderRuntimeException.InvalidAttribute("localCode", localCode);
 		}
 	}
 
@@ -457,5 +445,37 @@ public class MetadataSchemaBuilder {
 
 	public void createUniqueCodeMetadata() {
 		createUndeletable("code").setEssential(true).setDefaultRequirement(true).setType(STRING).setUniqueValue(true);
+	}
+
+	public void deleteMetadataWithoutValidation(Metadata metadataToDelete) {
+		try {
+			MetadataBuilder metadataBuilder = getMetadata(metadataToDelete.getLocalCode());
+			metadatas.remove(metadataBuilder);
+			if (metadataBuilder.getCode().contains("_default_")) {
+				deleteInheritedMetadatas(metadataToDelete.getLocalCode());
+			}
+		} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchMetadata e) {
+			//OK
+		} catch (NoSuchMetadata e1) {
+			//OK
+		}
+	}
+
+	private void deleteInheritedMetadatas(String metadataLocalCode) {
+		for (MetadataSchemaBuilder customSchemaBuilder : schemaTypeBuilder.getCustomSchemas()) {
+			MetadataBuilder metadataToDelete = customSchemaBuilder.getMetadata(metadataLocalCode);
+			customSchemaBuilder.deleteInheritedMetadata(metadataToDelete.getLocalCode());
+		}
+	}
+
+	void deleteInheritedMetadata(String localCode) {
+		try {
+			MetadataBuilder metadataToDelete = getMetadata(localCode);
+			metadatas.remove(metadataToDelete);
+		} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchMetadata e) {
+			//OK
+		} catch (NoSuchMetadata e1) {
+			//OK
+		}
 	}
 }

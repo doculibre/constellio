@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.records.wrappers;
 
 import com.constellio.model.entities.records.Record;
@@ -38,6 +21,9 @@ public class Facet extends RecordWrapper {
 	public static final String QUERY_LOCAL_CODE = "query";
 	public static final String FIELD_SCHEMA = SCHEMA_TYPE + "_field";
 	public static final String FIELD_LOCAL_CODE = "field";
+	public static final String ACTIVE = "active";
+	public static final String OPEN_BY_DEFAULT = "openByDefault";
+	public static final String USED_BY_MODULE = "usedByModule";
 
 	public Facet(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -88,8 +74,8 @@ public class Facet extends RecordWrapper {
 	}
 
 	public int getOrder() {
-		Double tmp = get(ORDER);
-		return tmp.intValue();
+		Integer order = getInteger(ORDER);
+		return order == null ? 999 : order;
 	}
 
 	public Facet setTitle(String title) {
@@ -151,6 +137,33 @@ public class Facet extends RecordWrapper {
 			setFieldValuesLabel(new MapStringStringStructure());
 		}
 		getFieldValuesLabel().put(value, label);
+		return this;
+	}
+
+	public Boolean isActive() {
+		return getBooleanWithDefaultValue(ACTIVE, true);
+	}
+
+	public Facet setActive(Boolean active) {
+		set(ACTIVE, active);
+		return this;
+	}
+
+	public Boolean isOpenByDefault() {
+		return get(OPEN_BY_DEFAULT);
+	}
+
+	public Facet setOpenByDefault(Boolean openByDefault) {
+		set(OPEN_BY_DEFAULT, openByDefault);
+		return this;
+	}
+
+	public String getUsedByModule() {
+		return get(USED_BY_MODULE);
+	}
+
+	public Facet setUsedByModule(String usedByModule) {
+		set(USED_BY_MODULE, usedByModule);
 		return this;
 	}
 }

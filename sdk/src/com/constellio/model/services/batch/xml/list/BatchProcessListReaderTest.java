@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.xml.list;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -93,7 +76,7 @@ public class BatchProcessListReaderTest extends ConstellioTest {
 	public void givenAPendingBatchProcessWhenReadThenItIsReturned()
 			throws Exception {
 
-		writer.addBatchProcess("1", "zeUltimateCollection", requestDateTime1, 1000, batchProcessAction);
+		writer.addBatchProcess("1", "zeQuery", "zeUltimateCollection", requestDateTime1, 1000, batchProcessAction);
 
 		BatchProcess batchProcessReturned = reader.read("1");
 
@@ -101,6 +84,7 @@ public class BatchProcessListReaderTest extends ConstellioTest {
 		assertThat(batchProcessReturned.getRequestDateTime()).isEqualTo(requestDateTime1);
 		assertThat(batchProcessReturned.getTotalRecordsCount()).isEqualTo(1000);
 		assertThat(batchProcessReturned.getCollection()).isEqualTo("zeUltimateCollection");
+		assertThat(batchProcessReturned.getQuery()).isEqualTo("zeQuery");
 		assertThat(batchProcessReturned.getHandledRecordsCount()).isEqualTo(0);
 		assertThat(batchProcessReturned.getAction().getClass()).isEqualTo(ReindexMetadatasBatchProcessAction.class);
 	}
@@ -116,7 +100,7 @@ public class BatchProcessListReaderTest extends ConstellioTest {
 	public void givenACurrentBatchProcessWhenReadCurrentThenItIsReturned()
 			throws Exception {
 
-		writer.addBatchProcess("1", "zeUltimateCollection", requestDateTime1, 1000, batchProcessAction);
+		writer.addBatchProcess("1", "zeQuery", "zeUltimateCollection", requestDateTime1, 1000, batchProcessAction);
 		writer.markBatchProcessAsPending("1");
 		writer.startNextBatchProcess(startDateTime);
 
@@ -127,6 +111,7 @@ public class BatchProcessListReaderTest extends ConstellioTest {
 		assertThat(batchProcessReturned.getId()).isEqualTo("1");
 		assertThat(batchProcessReturned.getRequestDateTime()).isEqualTo(requestDateTime1);
 		assertThat(batchProcessReturned.getStartDateTime()).isEqualTo(startDateTime);
+		assertThat(batchProcessReturned.getQuery()).isEqualTo("zeQuery");
 		assertThat(batchProcessReturned.getTotalRecordsCount()).isEqualTo(1000);
 		assertThat(batchProcessReturned.getHandledRecordsCount()).isEqualTo(0);
 		assertThat(batchProcessReturned.getAction().getClass()).isEqualTo(ReindexMetadatasBatchProcessAction.class);
@@ -240,7 +225,7 @@ public class BatchProcessListReaderTest extends ConstellioTest {
 	public void givenAFinishedBatchProcessWith2ErrorsWhenReadFinishedBatchProcessesThenTheyAreReturned()
 			throws Exception {
 
-		writer.addBatchProcess("1", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
+		writer.addBatchProcess("1", "zeQuery", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
 		writer.markBatchProcessAsFinished(batchProcess1, 2);
 
 		List<BatchProcess> batchProcessesReturned = reader.readFinishedBatchProcesses();
@@ -258,13 +243,13 @@ public class BatchProcessListReaderTest extends ConstellioTest {
 	}
 
 	private void givenTwoFinishedTwoPendingAndThreeStandbyBatchProcesses() {
-		writer.addBatchProcess("1", "zeUltimateCollection", requestDateTime1, 2000, batchProcessAction);
-		writer.addBatchProcess("2", "zeUltimateCollection", requestDateTime1, 2000, batchProcessAction);
-		writer.addBatchProcess("3", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
-		writer.addBatchProcess("4", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
-		writer.addBatchProcess("5", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
-		writer.addBatchProcess("6", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
-		writer.addBatchProcess("7", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
+		writer.addBatchProcess("1", "zeQuery1", "zeUltimateCollection", requestDateTime1, 2000, batchProcessAction);
+		writer.addBatchProcess("2", "zeQuery2", "zeUltimateCollection", requestDateTime1, 2000, batchProcessAction);
+		writer.addBatchProcess("3", "zeQuery3", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
+		writer.addBatchProcess("4", "zeQuery4", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
+		writer.addBatchProcess("5", "zeQuery5", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
+		writer.addBatchProcess("6", "zeQuery6", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
+		writer.addBatchProcess("7", "zeQuery7", "zeUltimateCollection", requestDateTime2, 1000, batchProcessAction);
 		writer.markBatchProcessAsPending("1");
 		writer.markBatchProcessAsPending("2");
 		writer.markBatchProcessAsPending("3");

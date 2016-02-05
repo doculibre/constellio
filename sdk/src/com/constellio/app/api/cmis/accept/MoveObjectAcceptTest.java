@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +21,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -62,6 +44,9 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 
 	Session cmisSession;
 
+	String chuckNorrisKey = "chuckNorris-key";
+	String chuckNorrisToken;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -80,10 +65,14 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUserToCollection(users.bob(), zeCollection);
+		userServices.addUpdateUserCredential(
+				userServices.getUserCredential(chuckNorris).withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
-		cmisSession = givenAdminSessionOnZeCollection();
+		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
+				.build();
+
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
 	}
 
@@ -166,12 +155,6 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 				.moveObject(cmisSession.getRepositoryInfo().getId(), objectIdHolder, parentTargetId, record.getId(), null);
 
 		recordServices.refresh(record);
-	}
-
-	private Session givenAdminSessionOnZeCollection()
-			throws RecordServicesException {
-		getModelLayerFactory().newAuthenticationService().changePassword(chuckNorris, "1qaz2wsx");
-		return newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
 	}
 
 	private void assertParentAndPrincipalPath(Record record, String parentTargetId) {

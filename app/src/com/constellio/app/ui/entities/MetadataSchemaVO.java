@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
@@ -23,34 +6,47 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.ui.application.ConstellioUI;
 
 @SuppressWarnings("serial")
 public class MetadataSchemaVO implements Serializable {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataSchemaVO.class);
+
 	final String code;
 	final String collection;
 	final List<MetadataVO> metadatas = new ArrayList<>();
 	final Map<Locale, String> labels;
 	final List<String> formMetadataCodes;
 	final List<String> displayMetadataCodes;
+	final List<String> searchMetadataCodes;
 	final List<String> tableMetadataCodes;
 
 	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels) {
-		this(code, collection, null, null, null, labels);
+		this(code, collection, null, null, null, null, labels);
 	}
 
-	public MetadataSchemaVO(String code, String collection, List<String> formMetadataCodes, List<String> displayMetadataCodes, List<String> tableMetadataCodes, Map<Locale, String> labels) {
+	public MetadataSchemaVO(String code, String collection, List<String> formMetadataCodes, List<String> displayMetadataCodes,
+			List<String> tableMetadataCodes, List<String> searchMetadataCodes, Map<Locale, String> labels) {
 		super();
 		this.code = code;
 		this.collection = collection;
 		this.formMetadataCodes = formMetadataCodes;
 		this.displayMetadataCodes = displayMetadataCodes;
+		this.searchMetadataCodes = searchMetadataCodes;
 		this.tableMetadataCodes = tableMetadataCodes;
 		this.labels = labels;
 	}
 
 	public String getCode() {
 		return code;
+	}
+
+	public String getTypeCode() {
+		return code.split("_")[0];
 	}
 
 	public String getCollection() {
@@ -67,6 +63,10 @@ public class MetadataSchemaVO implements Serializable {
 
 	public final List<String> getTableMetadataCodes() {
 		return tableMetadataCodes;
+	}
+
+	public final List<String> getSearchMetadataCodes() {
+		return searchMetadataCodes;
 	}
 
 	public List<MetadataVO> getMetadatas() {
@@ -112,10 +112,33 @@ public class MetadataSchemaVO implements Serializable {
 			tableMetadatas = new ArrayList<>();
 			for (String tableMetadataCode : tableMetadataCodes) {
 				MetadataVO metadataVO = getMetadata(tableMetadataCode);
-				tableMetadatas.add(metadataVO);
+				if (metadataVO == null) {
+					LOGGER.warn("No such metadata '" + tableMetadataCode + "'");
+				} else {
+					tableMetadatas.add(metadataVO);
+				}
 			}
 		}
 		return tableMetadatas;
+	}
+
+	public List<MetadataVO> getSearchMetadatas() {
+		List<MetadataVO> searchMetadatas;
+		List<String> searchMetadataCodes = getSearchMetadataCodes();
+		if (searchMetadataCodes == null) {
+			searchMetadatas = getMetadatas();
+		} else {
+			searchMetadatas = new ArrayList<>();
+			for (String searchMetadataCode : searchMetadataCodes) {
+				MetadataVO metadataVO = getMetadata(searchMetadataCode);
+				if (metadataVO == null) {
+					LOGGER.warn("No such metadata '" + searchMetadataCode + "'");
+				} else {
+					searchMetadatas.add(metadataVO);
+				}
+			}
+		}
+		return searchMetadatas;
 	}
 
 	public MetadataVO getMetadata(String metadataCode) {

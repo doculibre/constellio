@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es;
 
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
@@ -66,27 +49,29 @@ public class ESNavigationConfiguration implements Serializable {
 	}
 
 	private void configureHomeFragments(NavigationConfig config) {
-		config.add(HomeView.TABS, new RecordTree(TAXONOMIES) {
-			private int defaultTab;
+		if (!config.hasNavigationItem(HomeView.TABS, TAXONOMIES)) {
+			config.add(HomeView.TABS, new RecordTree(TAXONOMIES) {
+				private int defaultTab;
 
-			@Override
-			public List<RecordLazyTreeDataProvider> getDataProviders(ModelLayerFactory modelLayerFactory,
-					SessionContext sessionContext) {
-				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(modelLayerFactory, sessionContext);
-				defaultTab = tabSheet.getDefaultTab();
-				return tabSheet.getDataProviders();
-			}
+				@Override
+				public List<RecordLazyTreeDataProvider> getDataProviders(ModelLayerFactory modelLayerFactory,
+						SessionContext sessionContext) {
+					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(modelLayerFactory, sessionContext);
+					defaultTab = tabSheet.getDefaultTab();
+					return tabSheet.getDataProviders();
+				}
 
-			@Override
-			public int getDefaultTab() {
-				return defaultTab;
-			}
+				@Override
+				public int getDefaultTab() {
+					return defaultTab;
+				}
 
-			@Override
-			public BaseContextMenu getContextMenu() {
-				return new BaseContextMenu();
-			}
+				@Override
+				public BaseContextMenu getContextMenu() {
+					return new BaseContextMenu();
+				}
 
-		});
+			});
+		}
 	}
 }

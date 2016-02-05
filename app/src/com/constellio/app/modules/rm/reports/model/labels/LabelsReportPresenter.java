@@ -1,21 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.model.labels;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +44,7 @@ public class LabelsReportPresenter {
 		labelsReportModel.setLayout(labelTemplate.getLabelsReportLayout());
 		labelsReportModel.setColumnsNumber(labelTemplate.getColumns());
 		labelsReportModel.setRowsNumber(labelTemplate.getLines());
-		labelsReportModel.setPrintBorders(true);
+		//		labelsReportModel.setPrintBorders(true);
 
 		List<LabelsReportLabel> labels = new ArrayList<>();
 
@@ -145,28 +130,134 @@ public class LabelsReportPresenter {
 		MetadataSchemaTypes types = rmSchemasRecordsServices.getTypes();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		String value;
-		if (StringUtils.isNotBlank(fieldInfo.getReferenceMetadataCode())) {
-			Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
-			String referenceId = record.get(metadata);
-			Record referenceRecord = recordServices.getDocumentById(referenceId);
-			Metadata referenceMetadata = types.getMetadata(fieldInfo.getReferenceMetadataCode());
-			Object valueObject = referenceRecord.get(referenceMetadata);
-			value = getStringValue(valueObject, fieldInfo);
+		if (StringUtils.isNotBlank(fieldInfo.getReferenceMetadataCode3())) {
+			Record referenceRecord3 = null;
+			Metadata referenceMetadata3 = null;
+			try {
+				Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
+				String referenceId = record.get(metadata);
+				Record referenceRecord = recordServices.getDocumentById(referenceId);
+				Metadata referenceMetadata = types.getMetadata(fieldInfo.getReferenceMetadataCode());
+
+				Metadata metadata2 = referenceMetadata;
+				String referenceId2 = referenceRecord.get(metadata2);
+				Record referenceRecord2 = recordServices.getDocumentById(referenceId2);
+				Metadata referenceMetadata2 = types.getMetadata(fieldInfo.getReferenceMetadataCode2());
+
+				Metadata metadata3 = referenceMetadata2;
+				String referenceId3 = referenceRecord2.get(metadata3);
+				referenceRecord3 = recordServices.getDocumentById(referenceId3);
+				referenceMetadata3 = types.getMetadata(fieldInfo.getReferenceMetadataCode3());
+				Object valueObject = referenceRecord3.get(referenceMetadata3);
+				value = getStringValue(valueObject, fieldInfo);
+			} catch (Exception e) {
+				Object valueObject = "";
+				value = getStringValue(valueObject, fieldInfo);
+			}
+
+		} else if (StringUtils.isNotBlank(fieldInfo.getReferenceMetadataCode2())) {
+			Record referenceRecord2 = null;
+			Metadata referenceMetadata2 = null;
+			try {
+				Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
+				String referenceId = record.get(metadata);
+				Record referenceRecord = recordServices.getDocumentById(referenceId);
+				Metadata referenceMetadata = types.getMetadata(fieldInfo.getReferenceMetadataCode());
+
+				Metadata metadata2 = referenceMetadata;
+				String referenceId2 = referenceRecord.get(metadata2);
+				referenceRecord2 = recordServices.getDocumentById(referenceId2);
+				referenceMetadata2 = types.getMetadata(fieldInfo.getReferenceMetadataCode2());
+				Object valueObject = referenceRecord2.get(referenceMetadata2);
+				value = getStringValue(valueObject, fieldInfo);
+			} catch (Exception e) {
+				Object valueObject = "";
+				value = getStringValue(valueObject, fieldInfo);
+			}
+
+		} else if (StringUtils.isNotBlank(fieldInfo.getReferenceMetadataCode())) {
+			try {
+				Object valueObject = getReferenceMetadataValue(record, types, recordServices, fieldInfo.getMetadataCode(),
+						fieldInfo.getReferenceMetadataCode());
+				value = getStringValue(valueObject, fieldInfo);
+			} catch (Exception e) {
+				Object valueObject = "";
+				value = getStringValue(valueObject, fieldInfo);
+			}
+
 		} else if (StringUtils.isNotBlank(fieldInfo.getMetadataCode())) {
-			Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
-			Object valueObject = record.get(metadata);
-			value = getStringValue(valueObject, fieldInfo);
+			try {
+				Metadata metadata = types.getMetadata(fieldInfo.getMetadataCode());
+				Object valueObject = record.get(metadata);
+				value = getStringValue(valueObject, fieldInfo);
+			} catch (Exception e) {
+				Object valueObject = "";
+				value = getStringValue(valueObject, fieldInfo);
+			}
 		} else {
 			value = getStringValue("", fieldInfo);
+		}
+		String value2 = "";
+		if (StringUtils.isNotBlank(fieldInfo.getConcatenateReferenceMetadataCode())) {
+			try {
+				Object valueObject = getReferenceMetadataValue(record, types, recordServices,
+						fieldInfo.getConcatenateMetadataCode(),
+						fieldInfo.getConcatenateReferenceMetadataCode());
+				value2 += " " + getStringValue(valueObject, fieldInfo);
+			} catch (Exception e) {
+				Object valueObject = "";
+				value2 = getStringValue(valueObject, fieldInfo);
+			}
+		} else if (StringUtils.isNotBlank(fieldInfo.getConcatenateMetadataCode())) {
+			try {
+				Metadata metadata = types.getMetadata(fieldInfo.getConcatenateMetadataCode());
+				Object valueObject = record.get(metadata);
+				value2 += " " + getStringValue(valueObject, fieldInfo);
+			} catch (Exception e) {
+				Object valueObject = "";
+				value2 = getStringValue(valueObject, fieldInfo);
+			}
+		}
+		if (fieldInfo.isEmpty() && StringUtils.isBlank(value)) {
+			Object valueObject = "";
+			value = getStringValue(valueObject, fieldInfo);
+		} else {
+			if (StringUtils.isNotBlank(fieldInfo.getSeparator()) && StringUtils.isNotBlank(value2)) {
+				value = value + fieldInfo.getSeparator() + value2;
+			} else {
+				value = value + value2;
+			}
+			if (StringUtils.isNotBlank(fieldInfo.getPrefix())) {
+				value = fieldInfo.getPrefix() + value;
+			}
+			if (StringUtils.isNotBlank(fieldInfo.getSuffix())) {
+				value = value + fieldInfo.getSuffix();
+			}
+			if (fieldInfo.isUppercase()) {
+				value = value.toUpperCase();
+			}
 		}
 		value = truncate(value, fieldInfo.getMaxLength());
 		return value;
 	}
 
+	private Object getReferenceMetadataValue(Record record, MetadataSchemaTypes types, RecordServices recordServices,
+			String metadataCode, String referenceMetadataCode) {
+		Metadata metadata = types.getMetadata(metadataCode);
+		String referenceId = record.get(metadata);
+		Record referenceRecord = recordServices.getDocumentById(referenceId);
+		Metadata referenceMetadata = types.getMetadata(referenceMetadataCode);
+		return referenceRecord.get(referenceMetadata);
+	}
+
 	private String getStringValue(Object valueObject, LabelTemplateField fieldInfo) {
 		String value;
 		if (valueObject instanceof EnumWithSmallCode) {
-			value = ((EnumWithSmallCode) valueObject).getCode();
+			if (fieldInfo.isDisplayEnumTitle()) {
+				value = $(valueObject.getClass().getSimpleName() + "." + ((EnumWithSmallCode) valueObject).getCode());
+			} else {
+				value = ((EnumWithSmallCode) valueObject).getCode();
+			}
 		} else if (valueObject instanceof LocalDate || valueObject instanceof LocalDateTime) {
 			if (StringUtils.isNotBlank(fieldInfo.getPattern())) {
 				if (valueObject instanceof LocalDate) {
@@ -178,13 +269,7 @@ public class LabelsReportPresenter {
 				value = valueObject.toString();
 			}
 		} else {
-			value = (String) valueObject;
-		}
-		if (StringUtils.isNotBlank(fieldInfo.getPrefix())) {
-			value = fieldInfo.getPrefix() + value;
-		}
-		if (StringUtils.isNotBlank(fieldInfo.getSuffix())) {
-			value = value + fieldInfo.getSuffix();
+			value = valueObject.toString();
 		}
 		return value;
 	}

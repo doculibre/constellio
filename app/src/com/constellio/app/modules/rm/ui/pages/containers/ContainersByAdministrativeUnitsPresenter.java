@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -34,6 +17,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<ContainersByAdministrativeUnitsView> {
@@ -87,7 +71,9 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(schema(AdministrativeUnit.DEFAULT_SCHEMA))
-						.where(schema(AdministrativeUnit.DEFAULT_SCHEMA).getMetadata(AdministrativeUnit.PARENT)).isNull());
+						.where(schema(AdministrativeUnit.DEFAULT_SCHEMA).getMetadata(AdministrativeUnit.PARENT)).isNull()
+						.andWhere(
+								Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
 			}
 		};
 		return dataProvider;

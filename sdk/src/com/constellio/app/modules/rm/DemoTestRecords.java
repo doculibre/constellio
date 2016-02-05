@@ -1,24 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DESTROY;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
@@ -275,6 +259,7 @@ public class DemoTestRecords {
 	public final String list_14 = nextId();
 	public final String list_15 = nextId();
 	public final String list_16 = nextId();
+	public final String list_17 = nextId();
 
 	private String collection;
 
@@ -924,6 +909,13 @@ public class DemoTestRecords {
 		}
 		transaction.add(zeList16);
 
+		/*Document document_1 = newDocumentWithContent("cv-EmiliePoulain.odt").setFolder(folder_A54);
+		Document document_2 = newDocumentWithContent("guide-dev.pdf").setFolder(folder_A42);
+		transaction.add(document_1);
+		transaction.add(document_2);
+		transaction.add(schemas.newDecommissioningListWithId(list_17)).setTitle("Liste de documents à détruire")
+				.setAdministrativeUnit(unitId_10A).setDecommissioningListType(DOCUMENTS_TO_DESTROY)
+				.setDocuments(asList(document_1.getId(), document_2.getId()));*/
 	}
 
 	private void setupStorageSpace(Transaction transaction) {

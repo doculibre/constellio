@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import java.util.ArrayList;
@@ -24,13 +7,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -40,24 +30,31 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerLogger;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class RecordAutomaticMetadataServices {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordAutomaticMetadataServices.class);
+
+	private final ModelLayerLogger modelLayerLogger;
 	private final MetadataSchemasManager schemasManager;
 	private final TaxonomiesManager taxonomiesManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
 
 	public RecordAutomaticMetadataServices(MetadataSchemasManager schemasManager, TaxonomiesManager taxonomiesManager,
-			SystemConfigurationsManager systemConfigurationsManager) {
+			SystemConfigurationsManager systemConfigurationsManager, ModelLayerLogger modelLayerLogger) {
 		super();
+		this.modelLayerLogger = modelLayerLogger;
 		this.schemasManager = schemasManager;
 		this.taxonomiesManager = taxonomiesManager;
 		this.systemConfigurationsManager = systemConfigurationsManager;
@@ -65,20 +62,20 @@ public class RecordAutomaticMetadataServices {
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
 			TransactionRecordsReindexation reindexation) {
-
-		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getAutomaticMetadatas()) {
-			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation);
+			updateAutomaticMetadata(record, recordProvider, automaticMetadata, reindexation, types);
 		}
 
 	}
 
 	void updateAutomaticMetadata(RecordImpl record, RecordProvider recordProvider, Metadata metadata,
-			TransactionRecordsReindexation reindexation) {
+			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
 		if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
 			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation);
 		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
-			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation);
+			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
 		}
 	}
 
@@ -100,15 +97,28 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	boolean calculatorDependencyModified(RecordImpl record, MetadataValueCalculator<?> calculator) {
+	boolean calculatorDependencyModified(RecordImpl record, MetadataValueCalculator<?> calculator, MetadataSchemaTypes types,
+			Metadata calculatedMetadata) {
 		boolean calculatorDependencyModified = !record.isSaved();
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (dependency == SpecialDependencies.HIERARCHY) {
 				calculatorDependencyModified = true;
+
 			} else if (dependency == SpecialDependencies.IDENTIFIER) {
 				calculatorDependencyModified = true;
+
 			} else if (dependency == SpecialDependencies.PRINCIPAL_TAXONOMY_CODE) {
 				calculatorDependencyModified = true;
+
+			} else if (dependency instanceof DynamicLocalDependency) {
+				DynamicLocalDependency dynamicLocalDependency = (DynamicLocalDependency) dependency;
+				for (Metadata metadata : record.getModifiedMetadatas(types)) {
+					if (new SchemaUtils().isDependentMetadata(calculatedMetadata, metadata, dynamicLocalDependency)) {
+						calculatorDependencyModified = true;
+						break;
+					}
+				}
+
 			} else if (!(dependency instanceof ConfigDependency)) {
 				Metadata localMetadata = getMetadataFromDependency(record, dependency);
 				if (record.isModified(localMetadata)) {
@@ -119,14 +129,17 @@ public class RecordAutomaticMetadataServices {
 		return calculatorDependencyModified;
 	}
 
-	void calculateValueInRecord(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider) {
+	void calculateValueInRecord(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
+			MetadataSchemaTypes types) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 		Map<Dependency, Object> values = new HashMap<>();
-		boolean requiredValuesDefined = addValuesFromDependencies(record, recordProvider, calculator, values);
+		boolean requiredValuesDefined = addValuesFromDependencies(record, metadataWithCalculatedDataEntry, recordProvider,
+				calculator, values, types);
 
 		Object calculatedValue;
 		if (requiredValuesDefined) {
-			calculatedValue = calculator.calculate(new CalculatorParameters(values, record.getCollection()));
+			modelLayerLogger.logCalculatedValue(record, calculator, values);
+			calculatedValue = calculator.calculate(new CalculatorParameters(values, record.getId(), record.getCollection()));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}
@@ -138,8 +151,9 @@ public class RecordAutomaticMetadataServices {
 		return calculatedDataEntry.getCalculator();
 	}
 
-	boolean addValuesFromDependencies(RecordImpl record, RecordProvider recordProvider, MetadataValueCalculator<?> calculator,
-			Map<Dependency, Object> values) {
+	boolean addValuesFromDependencies(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
+			MetadataValueCalculator<?> calculator,
+			Map<Dependency, Object> values, MetadataSchemaTypes types) {
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (dependency instanceof LocalDependency<?>) {
 				if (!addValueForLocalDependency(record, values, dependency)) {
@@ -151,6 +165,9 @@ public class RecordAutomaticMetadataServices {
 					return false;
 				}
 
+			} else if (dependency instanceof DynamicLocalDependency) {
+				addValueForDynamicLocalDependency(record, metadata, values, (DynamicLocalDependency) dependency, types);
+
 			} else if (dependency instanceof ConfigDependency<?>) {
 				ConfigDependency<?> configDependency = (ConfigDependency<?>) dependency;
 				Object configValue = systemConfigurationsManager.getValue(configDependency.getConfiguration());
@@ -161,6 +178,37 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 		return true;
+	}
+
+	private void addValueForDynamicLocalDependency(RecordImpl record, Metadata calculatedMetadata,
+			Map<Dependency, Object> values, DynamicLocalDependency dependency, MetadataSchemaTypes types) {
+
+		Map<String, Object> dynamicDependencyValues = new HashMap<>();
+
+		MetadataList availableMetadatas = new MetadataList();
+		MetadataList availableMetadatasWithValue = new MetadataList();
+		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {
+			if (new SchemaUtils().isDependentMetadata(calculatedMetadata, metadata, dependency)) {
+				availableMetadatas.add(metadata);
+				if (metadata.isMultivalue()) {
+					List<?> metadataValues = record.getList(metadata);
+					dynamicDependencyValues.put(metadata.getLocalCode(), metadataValues);
+					if (!metadataValues.isEmpty()) {
+						availableMetadatasWithValue.add(metadata);
+					}
+				} else {
+					Object metadataValue = record.get(metadata);
+					dynamicDependencyValues.put(metadata.getLocalCode(), metadataValue);
+					if (metadataValue != null) {
+						availableMetadatasWithValue.add(metadata);
+					}
+				}
+			}
+		}
+		MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) calculatedMetadata.getDataEntry()).getCalculator();
+		values.put(dependency, new DynamicDependencyValues(calculator, dynamicDependencyValues, availableMetadatas.unModifiable(),
+				availableMetadatasWithValue.unModifiable()));
+
 	}
 
 	void addValuesFromSpecialDependencies(RecordImpl record, RecordProvider recordProvider,
@@ -222,11 +270,13 @@ public class RecordAutomaticMetadataServices {
 				}
 			}
 			for (String referenceValue : referencesValues) {
-				Record referencedRecord = recordProvider.getRecord(referenceValue);
-				List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
-				paths.addAll(parentPaths);
-				List<String> parentAuthorizations = referencedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
-				authorizations.addAll(parentAuthorizations);
+				if (referenceValue != null) {
+					Record referencedRecord = recordProvider.getRecord(referenceValue);
+					List<String> parentPaths = referencedRecord.getList(Schemas.PATH);
+					paths.addAll(parentPaths);
+					List<String> parentAuthorizations = referencedRecord.getList(Schemas.ALL_AUTHORIZATIONS);
+					authorizations.addAll(parentAuthorizations);
+				}
 			}
 		}
 		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, authorizations);
@@ -240,21 +290,35 @@ public class RecordAutomaticMetadataServices {
 		List<String> referencesValues = (List<String>) record.get(referenceMetadata);
 		List<Record> referencedRecords = new ArrayList<>();
 		for (String referenceValue : referencesValues) {
-			referencedRecords.add(recordProvider.getRecord(referenceValue));
+			if (referenceValue != null) {
+				referencedRecords.add(recordProvider.getRecord(referenceValue));
+			}
 		}
 		List<Object> referencedValues = new ArrayList<>();
+		SortedMap<String, Object> referencedValuesMap = new TreeMap<>();
 		for (Record referencedRecord : referencedRecords) {
 			Metadata dependentMetadata = getDependentMetadataFromDependency(referenceDependency, referencedRecord);
 			Object dependencyValue = referencedRecord.get(dependentMetadata);
 			if (referenceDependency.isRequired() && dependencyValue == null) {
 				return false;
+
+			} else if (referenceDependency.isGroupedByReference()) {
+				referencedValuesMap.put(referencedRecord.getId(), dependencyValue);
+
 			} else if (dependencyValue instanceof List) {
 				referencedValues.addAll((List) dependencyValue);
+
 			} else {
 				referencedValues.add(dependencyValue);
 			}
 		}
-		values.put(referenceDependency, referencedValues);
+
+		if (referenceDependency.isGroupedByReference()) {
+			values.put(referenceDependency, referencedValuesMap);
+		} else {
+			values.put(referenceDependency, referencedValues);
+		}
+
 		return true;
 	}
 
@@ -286,8 +350,9 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	Metadata getDependentMetadataFromDependency(ReferenceDependency<?> referenceDependency, Record referencedRecord) {
-		return schemasManager.getSchemaTypes(referencedRecord.getCollection()).getMetadata(
-				referencedRecord.getSchemaCode() + "_" + referenceDependency.getDependentMetadataCode());
+		MetadataSchema schema = schemasManager.getSchemaTypes(referencedRecord.getCollection())
+				.getSchema(referencedRecord.getSchemaCode());
+		return schema.get(referenceDependency.getDependentMetadataCode());
 	}
 
 	boolean addValueForLocalDependency(RecordImpl record, Map<Dependency, Object> values, Dependency dependency) {
@@ -302,8 +367,8 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	Metadata getMetadataFromDependency(RecordImpl record, Dependency dependency) {
-		return schemasManager.getSchemaTypes(record.getCollection())
-				.getMetadata(record.getSchemaCode() + "_" + dependency.getLocalMetadataCode());
+		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+		return schema.get(dependency.getLocalMetadataCode());
 	}
 
 	void copyValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
@@ -338,13 +403,15 @@ public class RecordAutomaticMetadataServices {
 			Metadata copiedMetadata, List<String> referencedRecordIds) {
 		List<Object> values = new ArrayList<>();
 		for (String referencedRecordId : referencedRecordIds) {
-			Record referencedRecord = recordProvider.getRecord(referencedRecordId);
-			if (copiedMetadata.isMultivalue()) {
-				values.addAll(referencedRecord.getList(copiedMetadata));
-			} else {
-				Object value = referencedRecord.get(copiedMetadata);
-				if (value != null) {
-					values.add(value);
+			if (referencedRecordId != null) {
+				Record referencedRecord = recordProvider.getRecord(referencedRecordId);
+				if (copiedMetadata.isMultivalue()) {
+					values.addAll(referencedRecord.getList(copiedMetadata));
+				} else {
+					Object value = referencedRecord.get(copiedMetadata);
+					if (value != null) {
+						values.add(value);
+					}
 				}
 			}
 
@@ -389,12 +456,13 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	void setCalculatedValuesInRecords(RecordImpl record, Metadata metadataWithCalculatedDataEntry, RecordProvider recordProvider,
-			TransactionRecordsReindexation reindexation) {
+			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
 
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 
-		if (calculatorDependencyModified(record, calculator) || reindexation.isReindexed(metadataWithCalculatedDataEntry)) {
-			calculateValueInRecord(record, metadataWithCalculatedDataEntry, recordProvider);
+		if (calculatorDependencyModified(record, calculator, types, metadataWithCalculatedDataEntry)
+				|| reindexation.isReindexed(metadataWithCalculatedDataEntry)) {
+			calculateValueInRecord(record, metadataWithCalculatedDataEntry, recordProvider, types);
 		}
 	}
 

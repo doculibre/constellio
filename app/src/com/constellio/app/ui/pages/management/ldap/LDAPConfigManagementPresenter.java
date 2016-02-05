@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -24,11 +7,18 @@ import java.util.Set;
 
 import javax.naming.ldap.LdapContext;
 
-import com.constellio.model.conf.ldap.*;
-import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.conf.ldap.EmptyDomainsRuntimeException;
+import com.constellio.model.conf.ldap.EmptyUrlsRuntimeException;
+import com.constellio.model.conf.ldap.InvalidUrlRuntimeException;
+import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.conf.ldap.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
+import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
 import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.entities.CorePermissions;
@@ -46,7 +36,8 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
-		return view.getConstellioFactories().getModelLayerFactory().getLdapConfigurationManager().getLDAPUserSyncConfiguration();
+		return view.getConstellioFactories().getModelLayerFactory().getLdapConfigurationManager()
+				.getLDAPUserSyncConfiguration(true);
 	}
 
 	public void backButtonClick() {
@@ -57,20 +48,20 @@ public class LDAPConfigManagementPresenter extends
 			LDAPUserSyncConfiguration ldapUserSyncConfigurationVO) {
 		LDAPConfigurationManager ldapConfigManager = view.getConstellioFactories().getModelLayerFactory()
 				.getLdapConfigurationManager();
-		try{
+		try {
 			ldapConfigManager.saveLDAPConfiguration(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
 			view.showMessage($("ldap.config.saved"));
-		}catch(TooShortDurationRuntimeException e){
+		} catch (TooShortDurationRuntimeException e) {
 			view.showErrorMessage($("ldap.TooShortDurationRuntimeException"));
-		}catch(EmptyDomainsRuntimeException e){
+		} catch (EmptyDomainsRuntimeException e) {
 			view.showErrorMessage($("ldap.EmptyDomainsRuntimeException"));
-		}catch(EmptyUrlsRuntimeException e){
+		} catch (EmptyUrlsRuntimeException e) {
 			view.showErrorMessage($("ldap.EmptyUrlsRuntimeException"));
-		}catch(LDAPConnectionFailure e){
+		} catch (LDAPConnectionFailure e) {
 			view.showErrorMessage($("ldap.LDAPConnectionFailure") + "\n" + e.getUrl()
-			 +"\n" + e.getUser() +
-			"\n " + StringUtils.join(e.getDomains(), "; "));
-		}catch(InvalidUrlRuntimeException e){
+					+ "\n" + e.getUser() +
+					"\n " + StringUtils.join(e.getDomains(), "; "));
+		} catch (InvalidUrlRuntimeException e) {
 			view.showErrorMessage($("ldap.InvalidUrlRuntimeException") + ": " + e.getUrl());
 		}
 	}
@@ -78,8 +69,9 @@ public class LDAPConfigManagementPresenter extends
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		LDAPServices ldapServices = new LDAPServices();
+		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword());
+				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(), ldapServerConfiguration.getFollowReferences(), activeDirectory);
 		if (ctx == null) {
 			return $("ldap.authentication.fail");
 		} else {
@@ -91,8 +83,9 @@ public class LDAPConfigManagementPresenter extends
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		LDAPServices ldapServices = new LDAPServices();
 		StringBuilder result = new StringBuilder();
+		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword());
+				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(), ldapServerConfiguration.getFollowReferences(), activeDirectory);
 		if (ctx != null) {
 			Set<LDAPGroup> groups = ldapServices.getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
 					ldapUserSyncConfiguration.getGroupFilter());

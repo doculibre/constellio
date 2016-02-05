@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.ui.pages;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
@@ -30,7 +13,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
-import com.constellio.app.modules.tasks.ui.builders.TaskToVoBuilder;
+import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -92,7 +75,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	public void initTaskVO(String id) {
 		Task task = tasksSchemas.getTask(id);
-		taskVO = new TaskVO(new TaskToVoBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
+		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		initSubTaskDataProvider();
 	}
 
@@ -190,7 +173,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
 				.build(defaultSchema(), VIEW_MODE.TABLE, asList(TITLE, ASSIGNEE, DUE_DATE), view.getSessionContext());
 		final String taskId = taskVO.getId();
-		subTaskDataProvider = new RecordVODataProvider(schemaVO, new TaskToVoBuilder(), modelLayerFactory, view.getSessionContext()) {
+		subTaskDataProvider = new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return tasksSearchServices.getDirectSubTasks(taskId, getCurrentUser());

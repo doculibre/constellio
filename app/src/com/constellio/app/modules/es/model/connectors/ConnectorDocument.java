@@ -1,36 +1,27 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.model.connectors;
 
 import static java.util.Arrays.asList;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.es.model.connectors.http.enums.FetchFrequency;
+import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public abstract class ConnectorDocument<T extends ConnectorDocument> extends RecordWrapper {
+
+	public static final String URL = "url";
 
 	public static final String TRAVERSAL_CODE = "traversalCode";
 
@@ -40,10 +31,79 @@ public abstract class ConnectorDocument<T extends ConnectorDocument> extends Rec
 
 	public static final String FETCHED = "fetched";
 
+	public static final String SEARCHABLE = "searchable";
+
+	public static final String FETCHED_DATETIME = "fetchedDateTime";
+
+	public static final String STATUS = "status";
+
+	public static final String MIMETYPE = "mimetype";
+
+	public static final String FETCH_FREQUENCY = "frequency";
+
+	public static final String FETCH_DELAY = "fetchDelay";
+
+	public static final String NEXT_FETCH = "nextFetch";
+
+	public static final String NEVER_FETCH = "neverFetch";
+
+	public static final String ERROR_CODE = "errorCode";
+
+	public static final String ERROR_MESSAGE = "errorMessage";
+
+	public static final String ERROR_STACK_TRACE = "errorStackTrace";
+
+	public static final String ERRORS_COUNT = "errorsCount";
+
+	public static final String LAST_MODIFIED = "lastModified";
+
 	private final KeyListMap<String, Object> properties = new KeyListMap<>();
+
+	private final Map<String, ConnectorField> fieldsDeclarations = new HashMap<>();
 
 	public ConnectorDocument(Record record, MetadataSchemaTypes types, String typeRequirement) {
 		super(record, types, typeRequirement);
+	}
+
+	public int getErrorsCount() {
+		return getInteger(ERRORS_COUNT);
+	}
+
+	public T resetErrorsCount() {
+		set(ERRORS_COUNT, 0);
+
+		return (T) this;
+	}
+
+	public T incrementErrorsCount() {
+
+		Integer errorsCount = getInteger(ERRORS_COUNT);
+
+		if (errorsCount == null) {
+			set(ERRORS_COUNT, 1);
+		} else {
+			set(ERRORS_COUNT, errorsCount + 1);
+		}
+
+		return (T) this;
+	}
+
+	public String getURL() {
+		return getUrl();
+	}
+
+	public String getUrl() {
+		return get(URL);
+	}
+
+	public T setURL(String url) {
+		set(URL, url);
+		return (T) this;
+	}
+
+	public T setUrl(String url) {
+		set(URL, url);
+		return (T) this;
 	}
 
 	public String getConnectorType() {
@@ -129,6 +189,24 @@ public abstract class ConnectorDocument<T extends ConnectorDocument> extends Rec
 		return (T) this;
 	}
 
+	public ConnectorDocumentStatus getStatus() {
+		return get(STATUS);
+	}
+
+	public T setStatus(ConnectorDocumentStatus status) {
+		set(STATUS, status);
+		return (T) this;
+	}
+
+	public String getMimetype() {
+		return get(MIMETYPE);
+	}
+
+	public T setMimetype(String mimetype) {
+		set(MIMETYPE, mimetype);
+		return (T) this;
+	}
+
 	public boolean isFetched() {
 		Boolean fetched = getFetched();
 		return fetched == null || fetched;
@@ -143,6 +221,87 @@ public abstract class ConnectorDocument<T extends ConnectorDocument> extends Rec
 		return (T) this;
 	}
 
+	public boolean isSearchable() {
+		Boolean searchable = getSearchable();
+		return searchable == null || searchable;
+	}
+
+	public Boolean getSearchable() {
+		return get(SEARCHABLE);
+	}
+
+	public T setSearchable(Boolean searchable) {
+		set(SEARCHABLE, searchable);
+		return (T) this;
+	}
+
+	public LocalDateTime getFetchedDateTime() {
+		return get(FETCHED_DATETIME);
+	}
+
+	public T setFetchedDateTime(LocalDateTime fetchedDateTime) {
+		set(FETCHED_DATETIME, fetchedDateTime);
+		return (T) this;
+	}
+
+	public FetchFrequency getFetchFrequency() {
+		return get(FETCH_FREQUENCY);
+	}
+
+	public T setFetchFrequency(FetchFrequency fetchFrequency) {
+		set(FETCH_FREQUENCY, fetchFrequency);
+		return (T) this;
+	}
+
+	public int getFetchDelay() {
+		return getInteger(FETCH_DELAY);
+	}
+
+	public T setFetchDelay(int fetchDelay) {
+		set(FETCH_DELAY, fetchDelay);
+		return (T) this;
+	}
+
+	public LocalDateTime getNextFetch() {
+		return get(NEXT_FETCH);
+	}
+
+	public Boolean getNeverFetch() {
+		return get(NEVER_FETCH);
+	}
+
+	public T setNeverFetch(Boolean nextFetch) {
+		set(NEVER_FETCH, nextFetch);
+		return (T) this;
+	}
+
+	public String getErrorCode() {
+		return get(ERROR_CODE);
+	}
+
+	public T setErrorCode(String errorCode) {
+		set(ERROR_CODE, errorCode);
+		return (T) this;
+	}
+
+	public String getErrorMessage() {
+		return get(ERROR_MESSAGE);
+	}
+
+	public T setErrorMessage(String errorMessage) {
+		set(ERROR_MESSAGE, errorMessage);
+		return (T) this;
+	}
+
+	public String getErrorStackTrace() {
+		return get(ERROR_STACK_TRACE);
+	}
+
+	public T setErrorStackTrace(String errorStackTrace) {
+		set(ERROR_STACK_TRACE, errorStackTrace);
+		return (T) this;
+	}
+
 	public Map<String, List<Object>> getProperties() {
 		return Collections.unmodifiableMap(properties.getNestedMap());
 	}
@@ -152,18 +311,66 @@ public abstract class ConnectorDocument<T extends ConnectorDocument> extends Rec
 		return (T) this;
 	}
 
-	public T addProperty(String key, List<Object> values) {
-		properties.addAll(key, values);
+	public T addBooleanProperty(String key, Boolean value) {
+		addProperty(key, MetadataValueType.BOOLEAN, value);
 		return (T) this;
 	}
 
-	public T addProperty(String key, Object... value) {
+	public T addDateTimeProperty(String key, LocalDateTime value) {
+		addProperty(key, MetadataValueType.DATE_TIME, value);
+		return (T) this;
+	}
+
+	public T addDateProperty(String key, LocalDate value) {
+		addProperty(key, MetadataValueType.DATE, value);
+		return (T) this;
+	}
+
+	public T addStringProperty(String key, String value) {
+		addProperty(key, MetadataValueType.STRING, value);
+		return (T) this;
+	}
+
+	public T addStringProperty(String key, String... values) {
+		addProperty(key, MetadataValueType.STRING, asList(values));
+		return (T) this;
+	}
+
+	public T addStringProperty(String key, List<String> values) {
+		addProperty(key, MetadataValueType.STRING, values == null ? new Object[0] : values.toArray());
+		return (T) this;
+	}
+
+	public T addProperty(String key, MetadataValueType type, List<Object> values) {
+		properties.addAll(key, values);
+		setPropertyTypeDeclaration(key, type);
+		return (T) this;
+	}
+
+	public T addProperty(String key, MetadataValueType type, Object... value) {
 		properties.addAll(key, asList(value));
+		setPropertyTypeDeclaration(key, type);
 		return (T) this;
 	}
 
-	public T add(String key, List<Object> values) {
+	public T add(String key, MetadataValueType type, List<Object> values) {
 		properties.addAll(key, values);
+		setPropertyTypeDeclaration(key, type);
+		return (T) this;
+	}
+
+	void setPropertyTypeDeclaration(String propertyCode, MetadataValueType type) {
+		if (!fieldsDeclarations.containsKey(propertyCode)) {
+			String schemaType = new SchemaUtils().getSchemaTypeCode(getSchemaCode());
+			String fullCode = schemaType + ":" + propertyCode;
+			fieldsDeclarations.put(fullCode, new ConnectorField(fullCode, propertyCode, type));
+		}
+	}
+
+	public T withPropertyLabel(String fieldCode, String fieldLabel) {
+		String schemaType = new SchemaUtils().getSchemaTypeCode(getSchemaCode());
+		String fullCode = schemaType + ":" + fieldCode;
+		fieldsDeclarations.get(fullCode).setLabel(fieldLabel);
 		return (T) this;
 	}
 
@@ -171,5 +378,19 @@ public abstract class ConnectorDocument<T extends ConnectorDocument> extends Rec
 
 	public void clearProperties() {
 		properties.clear();
+		fieldsDeclarations.clear();
+	}
+
+	public LocalDateTime getLastModified() {
+		return get(LAST_MODIFIED);
+	}
+
+	public T setLastModified(LocalDateTime dateTime) {
+		set(LAST_MODIFIED, dateTime);
+		return (T) this;
+	}
+
+	public Map<String, ConnectorField> getFieldsDeclarations() {
+		return fieldsDeclarations;
 	}
 }

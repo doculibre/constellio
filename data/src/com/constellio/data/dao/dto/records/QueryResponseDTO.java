@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.dto.records;
 
 import java.util.List;
@@ -23,6 +6,8 @@ import java.util.Map;
 public class QueryResponseDTO {
 
 	private List<RecordDTO> results;
+
+	private Map<RecordDTO, Map<RecordDTO, Double>> resultsWithMoreLikeThis;
 
 	private int qtime;
 
@@ -37,9 +22,9 @@ public class QueryResponseDTO {
 	private List<String> spellCheckerSuggestions;
 
 	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound, Map<String, List<FacetValue>> fieldFacetValues,
-							Map<String, Map<String, Object>> fieldsStatistics,
+			Map<String, Map<String, Object>> fieldsStatistics,
 			Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
-			List<String> spellCheckerSuggestions) {
+			List<String> spellCheckerSuggestions, Map<RecordDTO, Map<RecordDTO, Double>> resultsWithMoreLikeThis) {
 		this.results = results;
 		this.qtime = qtime;
 		this.numFound = numFound;
@@ -49,10 +34,15 @@ public class QueryResponseDTO {
 		this.highlights = highlights;
 		this.correctlySpelt = correctlySpelt;
 		this.spellCheckerSuggestions = spellCheckerSuggestions;
+		this.resultsWithMoreLikeThis = resultsWithMoreLikeThis;
 	}
 
 	public List<RecordDTO> getResults() {
 		return results;
+	}
+
+	public Map<RecordDTO, Map<RecordDTO, Double>> getResultsWithMoreLikeThis() {
+		return resultsWithMoreLikeThis;
 	}
 
 	public long getQtime() {

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.connectors.smb;
 
 import static com.constellio.app.modules.es.constants.ESTaxonomies.SMB_FOLDERS;
@@ -92,7 +75,8 @@ public class StartApplicationWithSmbRecords2AcceptanceTest extends ConstellioTes
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioESModule().withAllTestUsers().andUsersWithReadAccess(gandalf);
+		prepareSystem(withZeCollection().withConstellioESModule().withAllTestUsers());
+		inCollection(zeCollection).giveReadAccessTo(gandalf);
 		Users users = new Users().setUp(getModelLayerFactory().newUserServices());
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -114,12 +98,12 @@ public class StartApplicationWithSmbRecords2AcceptanceTest extends ConstellioTes
 
 		connectorInstance = connectorManager.createConnector(es.newConnectorSmbInstance().setCode("zeConnector").setEnabled(false)
 				.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
-				.setTraversalCode("zeTraversal"));
+				.setTitle("ze connector").setTraversalCode("zeTraversal"));
 
 		anotherConnectorInstance = connectorManager
 				.createConnector(es.newConnectorSmbInstance().setCode("anotherConnector").setEnabled(false)
 						.setSeeds(asList(share)).setUsername(username).setPassword(password).setDomain(domain)
-						.setTraversalCode("anotherConnectorTraversal"));
+						.setTitle("another connector").setTraversalCode("anotherConnectorTraversal"));
 
 	}
 
@@ -217,25 +201,27 @@ public class StartApplicationWithSmbRecords2AcceptanceTest extends ConstellioTes
 				ConnectorSmbDocument.class
 		));
 
+		newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+		waitUntilICloseTheBrowsers();
 	}
 
-//	@Test
-//	@InDevelopmentTest
-//	public void givenFolderAndDocumentsThenAllAppearsInTaxonomyForAUserWithCollectionReadAccess()
-//			throws Exception {
-//
-//		givenFetchedFoldersAndDocuments();
-//
-//		assertThatVisibleRootRecordsFor(userWithCollectionReadAccess).containsOnly(folderA, folderB);
-//		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderA)
-//				.containsOnly(folderAA, documentA1, documentA2);
-//		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderB).containsOnly(documentB3);
-//		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAA).containsOnly(documentAA4, documentAA5);
-//		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAB).isEmpty();
-//
-//		newWebDriver();
-//		waitUntilICloseTheBrowsers();
-//	}
+	//	@Test
+	//	@InDevelopmentTest
+	//	public void givenFolderAndDocumentsThenAllAppearsInTaxonomyForAUserWithCollectionReadAccess()
+	//			throws Exception {
+	//
+	//		givenFetchedFoldersAndDocuments();
+	//
+	//		assertThatVisibleRootRecordsFor(userWithCollectionReadAccess).containsOnly(folderA, folderB);
+	//		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderA)
+	//				.containsOnly(folderAA, documentA1, documentA2);
+	//		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderB).containsOnly(documentB3);
+	//		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAA).containsOnly(documentAA4, documentAA5);
+	//		assertThatVisibleChildRecordsFor(userWithCollectionReadAccess).in(folderAB).isEmpty();
+	//
+	//		newWebDriver();
+	//		waitUntilICloseTheBrowsers();
+	//	}
 
 	@Test
 	@InDevelopmentTest

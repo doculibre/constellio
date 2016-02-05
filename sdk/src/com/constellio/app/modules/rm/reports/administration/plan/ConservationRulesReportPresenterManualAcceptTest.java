@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.administration.plan;
 
 import static java.util.Arrays.asList;
@@ -27,6 +10,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -65,6 +49,37 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		recordServices = getModelLayerFactory().newRecordServices();
 		presenter = new ConservationRulesReportPresenter(zeCollection, getModelLayerFactory());
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+	}
+
+	@Test
+	public void giveOpenHolderWhenBuildingModelThenGetAppropriateModel()
+			throws Exception {
+		givenConfig(RMConfigs.OPEN_HOLDER, true);
+		RetentionRule rule3 = records.getRule3();
+		recordServices.add(rule3
+				.setAdministrativeUnits(records.getRule1().getAdministrativeUnits())
+				.getWrappedRecord());
+		waitForBatchProcess();
+
+		boolean withAdministrativeUnit = false;
+		presenter = new ConservationRulesReportPresenter(zeCollection, getModelLayerFactory(), withAdministrativeUnit);
+		ConservationRulesReportModel model = presenter.build();
+		assertThat(model.getTitle()).isEqualTo("Liste des règles de conservation");
+
+		List<ConservationRulesReportModel_Rule> modelRules = model.getRules();
+		assertThat(modelRules.size()).isEqualTo(5);
+
+		processRule1(modelRules);
+
+		processRule2(modelRules);
+
+		processNewRule3(modelRules);
+
+		processRule4(modelRules);
+
+		build(new ConservationRulesReportBuilder(model,
+				getModelLayerFactory().getFoldersLocator()));
+
 	}
 
 	@Test
@@ -112,6 +127,32 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_20")).size()).isEqualTo(1);
 		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_20")).get(0));
+
+		build(new ConservationRulesReportBuilder(model,
+				getModelLayerFactory().getFoldersLocator()));
+
+	}
+
+	@Test
+	public void givenNewRetentionRuleInAdministrativeUnitWhenBuildingModelByAdministrativeUnitChosenThenGetAppropriateModel()
+			throws Exception {
+
+		givenNewRetentionRule();
+
+		boolean withAdministrativeUnit = true;
+		presenter = new ConservationRulesReportPresenter(zeCollection, getModelLayerFactory(), withAdministrativeUnit,
+				records.unitId_10);
+		ConservationRulesReportModel model = presenter.build();
+		assertThat(model.getTitle()).isEqualTo("Liste des règles de conservation");
+
+		Map<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> adminUnitRulesMap = model
+				.getRulesByAdministrativeUnitMap();
+		assertThat(adminUnitRulesMap.size()).isEqualTo(1);
+
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).size()).isEqualTo(2);
+		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(0));
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(1).getRuleNumber()).isEqualTo("zeCode");
+		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(1).getTitle()).isEqualTo("zeTitle");
 
 		build(new ConservationRulesReportBuilder(model,
 				getModelLayerFactory().getFoldersLocator()));
@@ -174,6 +215,35 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 		ConservationRulesReportModel_Copy secondaryCopy = rule2.getSecondaryCopy();
 		assertThat(secondaryCopy.getActive()).isEqualTo("2");
+		assertThat(secondaryCopy.getSemiActive()).isEqualTo("0");
+		assertThat(secondaryCopy.getInactive()).isEqualTo("D");
+		assertThat(secondaryCopy.getSupportTypes()).containsOnly("PA", "DM");
+		assertThat(secondaryCopy.getObservations()).isEmpty();
+	}
+
+	private void processNewRule3(List<ConservationRulesReportModel_Rule> modelRules) {
+
+		ConservationRulesReportModel_Rule rule3 = modelRules.get(3);
+		assertThat(rule3.getRuleNumber()).isEqualTo("3");
+		assertThat(rule3.getTitle()).isEqualTo("Rule #3");
+		assertThat(rule3.getDescription()).isEmpty();
+
+		Map<String, String> principalHolders = rule3.getAdministrativeUnits();
+		assertThat(principalHolders).containsOnly(entry("10", "Unité 10"),
+				entry("20", "Unité 20"));
+
+		List<ConservationRulesReportModel_Copy> principalCopies3 = rule3.getPrincipalsCopies();
+		assertThat(principalCopies3.size()).isEqualTo(1);
+
+		ConservationRulesReportModel_Copy principalCopy = principalCopies3.get(0);
+		assertThat(principalCopy.getActive()).isEqualTo("999");
+		assertThat(principalCopy.getSemiActive()).isEqualTo("4");
+		assertThat(principalCopy.getInactive()).isEqualTo("T");
+		assertThat(principalCopy.getSupportTypes()).containsOnly("PA", "DM");
+		assertThat(principalCopy.getObservations()).isEmpty();
+
+		ConservationRulesReportModel_Copy secondaryCopy = rule3.getSecondaryCopy();
+		assertThat(secondaryCopy.getActive()).isEqualTo("1");
 		assertThat(secondaryCopy.getSemiActive()).isEqualTo("0");
 		assertThat(secondaryCopy.getInactive()).isEqualTo("D");
 		assertThat(secondaryCopy.getSupportTypes()).containsOnly("PA", "DM");

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.schemas.display.display;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
@@ -128,7 +111,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		manager.saveSchema(config);
 
 		List<FormMetadataVO> result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(13);
+		assertThat(result).hasSize(14);
 		assertThat(result).containsExactlyElementsOf(formMetadataVOs);
 		assertThat(result.get(0).getCode()).isEqualTo(formMetadataVOs.get(0).getCode());
 		assertThat(result.get(1).getCode()).isEqualTo(formMetadataVOs.get(1).getCode());
@@ -149,7 +132,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		manager.saveSchema(config);
 
 		result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(13);
+		assertThat(result).hasSize(14);
 		assertThat(result).containsExactlyElementsOf(formMetadataVOs);
 		assertThat(result.get(0).getCode()).isEqualTo(formMetadataVOs.get(0).getCode());
 		assertThat(result.get(1).getCode()).isEqualTo(formMetadataVOs.get(1).getCode());

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records.reindexing;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -56,10 +39,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
 
+@SlowTest
 public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime();
@@ -261,8 +246,8 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		transaction.add(new TestRecord(zeSchema, "000042"))
 				.set(zeSchema.metadata(childOfReference), "000666");
 
-		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata(anotherReference), "000042");
+		transaction.add(new TestRecord(zeSchema, "000666"));
+
 		recordServices.execute(transaction);
 
 		makeTheTitleOfZeSchemaRequired();
@@ -338,9 +323,11 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		transaction.add(new TestRecord(zeSchema, "000042"))
 				.set(zeSchema.metadata(childOfReference), "000666");
 
-		transaction.add(new TestRecord(zeSchema, "000666"))
-				.set(zeSchema.metadata(anotherReference), "000042");
+		TestRecord record666 =new TestRecord(zeSchema, "000666");
+				transaction.add(record666);
 		recordServices.execute(transaction);
+
+		recordServices.update(record666.set(zeSchema.metadata(anotherReference), "000042"));
 
 		givenTimeIs(shishOClock.plusHours(1));
 		assertCounterIndexForRecordWithValueAndAncestors("000042", 1, asList("taxo", "000666"));

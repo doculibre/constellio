@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
@@ -41,6 +24,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator1;
@@ -65,12 +49,14 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 	MetadataSchema defaultSchema;
 	MetadataSchema customSchema;
 
+	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock TaxonomiesManager taxonomiesManager;
 
 	@Mock Comparator<Metadata> metadataComparator;
 
 	@Before
 	public void setUp() {
+		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		metadataSchemaTypeBuilder = MetadataSchemaTypeBuilder
 				.createNewSchemaType("zeUltimateCollection", "aSchemaType", typesBuilder);
@@ -454,15 +440,15 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 		Metadata secondMetadata = newMockedMetadataWithCode("m2");
 		List<Metadata> metadatas = asList(firstMetadata, secondMetadata);
 
-		doReturn(metadatas).when(defaultSchemaBuilder).buildMetadatas(typesFactory, taxonomiesManager);
+		doReturn(metadatas).when(defaultSchemaBuilder).buildMetadatas(typesFactory, modelLayerFactory);
 		doReturn(dependencyUtils).when(defaultSchemaBuilder).newDependencyUtils();
 		doReturn(schemaUtils).when(defaultSchemaBuilder).newSchemaUtils();
 
 		when(schemaUtils.calculatedMetadataDependencies(metadatas)).thenReturn(dependencies);
-		when(dependencyUtils.sortByDependency(dependencies, null))
+		when(dependencyUtils.sortByDependency(dependencies))
 				.thenReturn(asList("m2", "m1"));
 
-		MetadataSchema schema = defaultSchemaBuilder.buildDefault(typesFactory, taxonomiesManager);
+		MetadataSchema schema = defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
 
 		assertThat(schema.getAutomaticMetadatas()).containsExactly(secondMetadata, firstMetadata);
 
@@ -482,7 +468,7 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 
 		Map<String, Set<String>> dependencies = mock(Map.class);
 		List<Metadata> metadatas = asList(firstMetadata, secondMetadata);
-		doReturn(metadatas).when(defaultSchemaBuilder).buildMetadatas(typesFactory, taxonomiesManager);
+		doReturn(metadatas).when(defaultSchemaBuilder).buildMetadatas(typesFactory, modelLayerFactory);
 
 		SchemaUtils schemaUtils = mock(SchemaUtils.class);
 		DependencyUtils<String> dependencyUtils = mock(DependencyUtils.class);
@@ -490,10 +476,10 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 		doReturn(schemaUtils).when(defaultSchemaBuilder).newSchemaUtils();
 
 		when(schemaUtils.calculatedMetadataDependencies(metadatas)).thenReturn(dependencies);
-		when(dependencyUtils.sortByDependency(dependencies, null))
+		when(dependencyUtils.sortByDependency(dependencies))
 				.thenThrow(DependencyUtilsRuntimeException.CyclicDependency.class);
 
-		defaultSchemaBuilder.buildDefault(typesFactory, taxonomiesManager);
+		defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
 
 	}
 
@@ -527,13 +513,13 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 	}
 
 	private void build() {
-		defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, taxonomiesManager);
-		customSchema = customSchemaBuilder.buildCustom(defaultSchema, typesFactory, taxonomiesManager);
+		defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
+		customSchema = customSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory);
 	}
 
 	private void buildAndModify() {
-		MetadataSchema defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, taxonomiesManager);
-		MetadataSchema customSchema = customSchemaBuilder.buildCustom(defaultSchema, typesFactory, taxonomiesManager);
+		MetadataSchema defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
+		MetadataSchema customSchema = customSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory);
 		defaultSchemaBuilder = MetadataSchemaBuilder.modifyDefaultSchema(defaultSchema, metadataSchemaTypeBuilder);
 		customSchemaBuilder = MetadataSchemaBuilder.modifySchema(customSchema, metadataSchemaTypeBuilder);
 	}

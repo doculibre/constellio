@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.actions;
 
 import java.util.List;
@@ -25,9 +8,9 @@ import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessAction {
-
 	final Map<String, Object> metadataChangedValues;
 
 	public ChangeValueOfMetadataBatchProcessAction(Map<String, Object> metadataChangedValues) {
@@ -36,10 +19,18 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 
 	@Override
 	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes) {
-		Transaction transaction = new Transaction();
+		SchemaUtils utils = new SchemaUtils();
+		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 		for (Record record : batch) {
+			String schemaCode = record.getSchemaCode();
 			for (Entry<String, Object> entry : metadataChangedValues.entrySet()) {
-				record.set(schemaTypes.getMetadata(entry.getKey()), entry.getValue());
+				String metadataCode = entry.getKey();
+				if (metadataCode.startsWith(utils.getSchemaTypeCode(schemaCode))) {
+					if (!metadataCode.startsWith(schemaCode + "_")) {
+						metadataCode = schemaCode + "_" + utils.getLocalCodeFromMetadataCode(metadataCode);
+					}
+					record.set(schemaTypes.getMetadata(metadataCode), entry.getValue());
+				}
 			}
 		}
 		transaction.addUpdate(batch);

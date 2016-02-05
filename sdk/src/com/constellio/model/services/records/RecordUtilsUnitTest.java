@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +12,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class RecordUtilsUnitTest extends ConstellioTest {
@@ -65,5 +51,31 @@ public class RecordUtilsUnitTest extends ConstellioTest {
 				.containsEntry("type1", Arrays.asList(recordOfCustomSchemaOfType1, recordOfDefaultSchemaOfType1));
 		assertThat(results)
 				.containsEntry("type2", Arrays.asList(recordOfCustomSchemaOfType2, recordOfDefaultSchemaOfType2));
+	}
+
+	@Test
+	public void whenGetMetadataLocalCodeWithoutPrefixThenGetValidValue()
+			throws Exception {
+
+		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
+				Metadata.newDummyMetadata("zeSchema_default", "patate", MetadataValueType.STRING, true)))
+				.isEqualTo("patate");
+
+		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
+				Metadata.newDummyMetadata("zeSchema_default", "USRpatate", MetadataValueType.STRING, true)))
+				.isEqualTo("patate");
+
+		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
+				Metadata.newDummyMetadata("zeSchema_default", "MAPpatate", MetadataValueType.STRING, true)))
+				.isEqualTo("patate");
+
+		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
+				Metadata.newDummyMetadata("zeSchema_default", "USRMAPpatate", MetadataValueType.STRING, true)))
+				.isEqualTo("patate");
+
+		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
+				Metadata.newDummyMetadata("zeSchema_default", "MAPUSRpatate", MetadataValueType.STRING, true)))
+				.isEqualTo("patate");
+
 	}
 }

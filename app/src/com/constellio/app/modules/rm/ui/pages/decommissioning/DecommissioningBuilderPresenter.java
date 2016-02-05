@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -31,6 +14,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSea
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
@@ -43,6 +27,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -51,6 +36,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	private transient LogicalSearchCondition condition;
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
+
 	SearchType searchType;
 	String adminUnitId;
 
@@ -61,7 +47,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	@Override
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
 		searchType = SearchType.valueOf(params);
-		view.setCriteriaSchemaType(Folder.SCHEMA_TYPE);
+		view.setCriteriaSchemaType(getSchemaType());
 		view.addEmptyCriterion();
 		view.addEmptyCriterion();
 		return this;
@@ -69,7 +55,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	@Override
@@ -113,7 +99,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		params.setSearchType(searchType);
 		try {
 			DecommissioningList decommissioningList = decommissioningService.createDecommissioningList(params, getCurrentUser());
-			view.navigateTo().displayDecommissioningList(decommissioningList.getId());
+			if (decommissioningList.getDecommissioningListType().isFolderList()) {
+				view.navigateTo().displayDecommissioningList(decommissioningList.getId());
+			} else {
+				view.navigateTo().displayDocumentDecommissioningList(decommissioningList.getId());
+			}
 		} catch (Exception e) {
 			view.showErrorMessage($("DecommissioningBuilderView.unableToSave"));
 		}
@@ -141,7 +131,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
-		return getMetadataAllowedInAdvancedSearch(Folder.SCHEMA_TYPE);
+		return getMetadataAllowedInAdvancedSearch(getSchemaType());
 	}
 
 	@Override
@@ -156,7 +146,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	@Override
 	public List<MetadataVO> getMetadataAllowedInSort() {
-		return getMetadataAllowedInSort(Folder.SCHEMA_TYPE);
+		return getMetadataAllowedInSort(getSchemaType());
 	}
 
 	@Override
@@ -181,6 +171,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 	}
 
+	private String getSchemaType() {
+		return searchType.isFolderSearch() ? Folder.SCHEMA_TYPE : Document.SCHEMA_TYPE;
+	}
+
 	private LogicalSearchCondition selectByDecommissioningStatus() {
 		return new DecommissioningSearchConditionFactory(view.getCollection(), modelLayerFactory)
 				.bySearchType(searchType, adminUnitId);
@@ -188,7 +182,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
-		return new ConditionBuilder(rmRecordServices().folderSchemaType()).build(criteria);
+		MetadataSchemaType type = searchType.isFolderSearch() ?
+				rmRecordServices().folderSchemaType() : rmRecordServices().documentSchemaType();
+		return new ConditionBuilder(type).build(criteria);
 	}
 
 	private DecommissioningService decommissioningService() {

@@ -1,23 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.users;
 
-import com.constellio.model.entities.security.global.UserCredential;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.collections.IteratorUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -26,9 +13,9 @@ import org.jdom2.filter.Filters;
 import org.jdom2.util.IteratorIterable;
 import org.joda.time.LocalDateTime;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.encrypt.EncryptionServices;
 
 public class UserCredentialsWriter {
 
@@ -50,10 +37,15 @@ public class UserCredentialsWriter {
 	private static final String USERS_CREDENTIALS = "usersCredentials";
 	public static final String STATUS = "status";
 	public static final String DOMAIN = "domain";
+	private static final String MS_EXCH_DELEGATE_LIST_BL = "msExchDelegateListBL";
+	private static final String MS_EXCH_DELEGATE_BL = "msExchDelegateBL";
+	static final String DN = "ldapDN";
 	Document document;
+	Factory<EncryptionServices> encryptionServicesFactory;
 
-	public UserCredentialsWriter(Document document) {
+	public UserCredentialsWriter(Document document, Factory<EncryptionServices> encryptionServicesFactory) {
 		this.document = document;
+		this.encryptionServicesFactory = encryptionServicesFactory;
 	}
 
 	public void createEmptyUserCredentials() {
@@ -75,7 +67,8 @@ public class UserCredentialsWriter {
 	}
 
 	public void removeToken(String token) {
-		List<Element> elementsToRemove = getTokenElementsToRemove(token);
+		String encryptedToken = encryptionServicesFactory.get().encrypt(token);
+		List<Element> elementsToRemove = getTokenElementsToRemove(encryptedToken);
 		for (Element element : elementsToRemove) {
 			element.detach();
 		}
@@ -181,8 +174,9 @@ public class UserCredentialsWriter {
 		Element tokensElement = new Element(TOKENS);
 		if (userCredential.getTokens() != null) {
 			for (Map.Entry<String, LocalDateTime> token : userCredential.getTokens().entrySet()) {
+				String encryptedKey = encryptionServicesFactory.get().encrypt(token.getKey());
 				Element tokenElement = new Element(TOKEN);
-				Element tokenIdElement = new Element(TOKEN_ID).setText(token.getKey());
+				Element tokenIdElement = new Element(TOKEN_ID).setText(encryptedKey);
 				Element tokenEndDateElement = new Element(TOKEN_END_DATE).setText(token.getValue().toString());
 				tokenElement.addContent(tokenIdElement);
 				tokenElement.addContent(tokenEndDateElement);
@@ -196,6 +190,15 @@ public class UserCredentialsWriter {
 		Element serviceKeyElement = new Element(SERVICE_KEY).setText(serviceKey);
 		Element statusElement = new Element(STATUS).setText(userCredential.getStatus().getCode());
 		Element domainElement = new Element(DOMAIN).setText(userCredential.getDomain());
+		Element msExchDelegateListBLElement = new Element(MS_EXCH_DELEGATE_LIST_BL);
+		if (userCredential.getMsExchDelegateListBL() != null) {
+			for (String msExchDelegateBL : userCredential.getMsExchDelegateListBL()) {
+				Element msExchDelegateBLElement = new Element(MS_EXCH_DELEGATE_BL).setText(msExchDelegateBL);
+				msExchDelegateListBLElement.addContent(msExchDelegateBLElement);
+			}
+		}
+		String dn = userCredential.getDn() == null ? "null" : userCredential.getDn();
+		Element dnElement = new Element(DN).setText(dn);
 		Element systemAdminPermissions = new Element(SYSTEM_ADMIN).setText(userCredential.isSystemAdmin() ? "true" : "false");
 		Element userCredentialElement = new Element(USER_CREDENTIAL).setAttribute(USERNAME, userCredential.getUsername());
 		userCredentialElement.addContent(firstNameElement);
@@ -208,6 +211,15 @@ public class UserCredentialsWriter {
 		userCredentialElement.addContent(collectionsElement);
 		userCredentialElement.addContent(statusElement);
 		userCredentialElement.addContent(domainElement);
+		userCredentialElement.addContent(msExchDelegateListBLElement);
+		userCredentialElement.addContent(dnElement);
 		document.getRootElement().addContent(userCredentialElement);
+	}
+
+	public void rewrite(Collection<UserCredential> userCredentials) {
+		document.getRootElement().setAttribute("apiVersion", "2");
+		for (UserCredential userCredential : userCredentials) {
+			addUpdate(userCredential);
+		}
 	}
 }

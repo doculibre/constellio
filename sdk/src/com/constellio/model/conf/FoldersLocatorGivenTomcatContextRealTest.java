@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,7 +32,7 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 	static String givenJavaRootFolderIsTomcatWebappFolder = "givenJavaRootFolderIsTomcatWebappFolder";
 	static File constellioProperties, constellioSetupProperties, tomcatInstallationFolder, conf, importation, bin, webapp,
 			webapps, webinf, deploy, temp, uploadConstellioWar, settings, buildData,
-			i18n_resources, lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail;
+			i18n_resources, lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, crypt;
 	@Rule public TestRule benchmarkRun = new BenchmarkRule();
 	String testCase;
 	FoldersLocator foldersLocator;
@@ -67,7 +50,7 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 	@Test
 	public void __prepareTests__()
 			throws Exception {
-
+		FoldersLocator.invalidateCaches();
 		anotherTemp = null;
 
 		File tomcatInstallationParentFolder = modifyFileSystem().newTempFolder();
@@ -92,6 +75,7 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 		languageProfiles = new File(webinf, "languageProfiles");
 		i18n_resources = new File(webinf, "i18n_resources");
 		dict = new File(webinf, "dict");
+		crypt = new File(conf, "key.txt");
 
 		tomcatInstallationFolder.mkdir();
 		importation.mkdir();
@@ -148,6 +132,11 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 	@Test
 	public void whenGetConstellioWebappFolderThenReturnCorrectFolder() {
 		assertThat(foldersLocator.getConstellioWebappFolder().getName()).contains(webapp.getName());
+	}
+
+	@Test
+	public void whenGetConstellioEncryptionFileThenReturnCorrectFile() {
+		assertThat(foldersLocator.getConstellioEncryptionFile()).is(samePath(crypt));
 	}
 
 	@Test

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
@@ -27,8 +10,8 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.ids;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichNullValuesAreNotWritten;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -40,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.solr.common.params.SolrParams;
@@ -53,6 +37,7 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -65,10 +50,12 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.moreLikeThis.MoreLikeThisClustering;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -77,6 +64,7 @@ import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 
+@SlowTest
 public class SearchServiceAcceptanceTest extends ConstellioTest {
 	private static final LocalDateTime DATE_TIME4 = new LocalDateTime(2003, 7, 15, 22, 40);
 	private static final LocalDateTime DATE_TIME3 = new LocalDateTime(2002, 8, 15, 22, 40);
@@ -87,6 +75,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	private static final LocalDate DATE3 = new LocalDate(2002, 8, 15);
 	private static final LocalDate DATE2 = new LocalDate(2001, 9, 15);
 	private static final LocalDate DATE1 = new LocalDate(2000, 10, 15);
+	LocalDateTime NOW = TimeProvider.getLocalDateTime();
 
 	RecordServices recordServices;
 	SearchServices searchServices;
@@ -119,12 +108,112 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		//givenCollection(zeCollection, Arrays.asList(Language.French.getCode(), Language.English.getCode()));
 		recordServices = getModelLayerFactory().newRecordServices();
 		recordDao = spy(getDataLayerFactory().newRecordDao());
-		searchServices = new SearchServices(recordDao, recordServices);
+		searchServices = new SearchServices(recordDao, getModelLayerFactory());
 
 		transaction = new Transaction();
 		factory = new ConditionTemplateFactory(getModelLayerFactory(), zeCollection);
 	}
 
+	@Test
+	public void givenAListOfDocumentsWhenModifyingOneOfThemAndSearchItThenTheOldVersionIsReturned() throws Exception{
+		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable));
+
+		
+		Record documentA, documentB, documentC, documentCNewVersion;
+		
+		transaction.addUpdate(documentA = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "This is a document A"));
+		transaction.addUpdate(documentB = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "This is an another document without misspelling"));
+		transaction.addUpdate(documentC = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Document with misspelling: this is a frist version of this document."));
+		transaction.addUpdate(documentCNewVersion = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Document without misspelling: this is a second version of this document."));
+		
+		recordServices.execute(transaction);
+		
+		condition = fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(documentCNewVersion);
+
+		//when
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
+		query.setQueryCondition(condition);
+		query.setMoreLikeThis(true);
+		query.addMoreLikeThisField(zeSchema.stringMetadata());
+		
+		Map<Record, Map<Record, Double>> resutls = searchServices.searchWithMoreLikeThis(query);
+		
+		assertThat(resutls).hasSize(1);
+		Map<Record, Double> similarDocs = resutls.entrySet().iterator().next().getValue();
+		
+		List<Record> docsInOrder = new ArrayList<>();
+		for (Entry<Record, Double> record: similarDocs.entrySet()){
+			docsInOrder.add(record.getKey());
+		}
+		
+		assertThat(docsInOrder).containsExactly(documentC, documentB, documentA);
+	}
+	
+	public String createAContentWithWords(Random random, String[] words){
+
+		final int WORD_DOC_CNT = 10;
+		StringBuilder sb = new StringBuilder();
+		
+		for (int i = 0; i < WORD_DOC_CNT; i++){
+			if (sb.length() != 0)
+				sb.append(" ");
+			sb.append(words[random.nextInt(words.length)]);
+		}
+		return sb.toString();
+	}
+	
+	@Test
+	public void givenTwoTopicsWhenSearchingForADocumentThenItsTopicIsAutomaticallyIdentifiedFromSearchResult() throws Exception{
+		//given
+		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
+		String[] politicsWords = new String[]{"party", "democrat", "president", "election", "vote"};
+		String[] sportWords = new String[]{"hockey", "team", "game", "play", "league"};
+		String[][] topics = new String[][]{politicsWords, sportWords};
+		String[] topicNames = new String[]{"POLICTICS", "SPORT"};
+		
+		final int TOPIC_DOC_CNT = 10;
+		Random random = new Random(77655467554l);
+		for (int topicIdx = 0; topicIdx < topicNames.length; topicIdx++){
+			String topicName = topicNames[topicIdx];
+			String[] words = topics[topicIdx];
+			for (int i = 0 ; i < TOPIC_DOC_CNT; i++){
+				transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
+						, createAContentWithWords(random, words)).set(zeSchema.anotherStringMetadata(), topicName));
+			}
+		}
+		
+		int docTopicIdx = 1;
+		Record docToBeClassified;
+		transaction.addUpdate(docToBeClassified = newRecordOfZeSchema().set(
+				zeSchema.stringMetadata(), createAContentWithWords(random, topics[docTopicIdx])));
+		recordServices.execute(transaction);
+
+		//when
+		condition = fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(docToBeClassified);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
+		query.setQueryCondition(condition);
+		query.setMoreLikeThis(true);
+		query.addMoreLikeThisField(zeSchema.stringMetadata());
+		
+		Map<Record, Map<Record, Double>> resutls = searchServices.searchWithMoreLikeThis(query);
+		
+		assertThat(resutls).hasSize(1);
+		assertThat(resutls.entrySet().iterator().next().getValue()).isNotEmpty();
+		//then
+
+		MoreLikeThisClustering facet = new MoreLikeThisClustering(resutls.get(docToBeClassified), new MoreLikeThisClustering.StringConverter<Record>() {
+
+			@Override
+			public String converToString(Record record) {
+				return record.get(zeSchema.anotherStringMetadata());
+			}
+		});
+		
+		String suggestedTopic = facet.getClusterScore().entrySet().iterator().next().getKey(); 
+		assertThat(suggestedTopic).isEqualTo(topicNames[docTopicIdx]);
+	}
+	
 	@Test
 	public void whenSearchingRecordsReturningWithFullValueContainingSpacesAsteriskAndQuestionMarkThenFindResult()
 			throws Exception {
@@ -225,7 +314,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSearchingStatsForNumberMetadataWithMissingValueThenFindResults()
 			throws Exception {
-		defineSchemasManager().using(schema.withANumberMetadata(whichIsSearchable, whichNullValuesAreNotWritten));
+		defineSchemasManager().using(schema.withANumberMetadata(whichIsSearchable));
 		Metadata statsMetadata = zeSchema.numberMetadata();
 		transaction.addUpdate(expectedRecord = newRecordOfZeSchema()
 				.set(statsMetadata, 12.0));
@@ -486,7 +575,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isStartingWithText("Chuck");
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(zeSchema.booleanMetadata()));
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(zeSchema.booleanMetadata()));
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
@@ -514,7 +603,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isStartingWithText("Chuck");
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(zeSchema.stringMetadata()));
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(zeSchema.stringMetadata()));
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
@@ -528,6 +617,68 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(records.get(1).getVersion()).isNotNull();
 		assertThat(records.get(1).getSchemaCode()).isNotNull();
 		assertThat(records.get(1).get(zeSchema.booleanMetadata())).isNull();
+	}
+
+	@Test
+	public void whenSearchingWithPrefereAnalyzedFlagThenUseAnalyzedFields()
+			throws Exception {
+		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+		transaction.addUpdate(record1 = givenARecord("record1")
+				.set(zeSchema.stringMetadata(), "Rien ne sert de jouer aux échecs avec Chuck Norris, il ne connait pas l'échec"));
+		transaction.addUpdate(record2 = givenARecord("record2")
+				.set(zeSchema.stringMetadata(),
+						"Chuck Norris et Superman ont fait un bras de fer, le perdant devait mettre son slip par dessus son pantalon."));
+		transaction.addUpdate(record3 = givenARecord("record3")
+				.set(zeSchema.stringMetadata(), "Chuck Norris a déjà compté jusqu'à l'infini. Deux fois."));
+		transaction.addUpdate(record4 = givenARecord("record4")
+				.set(zeSchema.stringMetadata(),
+						"Certaines personnes portent un pyjama superman. Superman porte un pyjama Chuck Norris.")
+				.set(zeSchema.anotherStringMetadata(),
+						"Dakota l'indien est l'idole de Chuck Norris"));
+		transaction.addUpdate(record5 = givenARecord("record5").set(zeSchema.stringMetadata(), "Chuck Norris"));
+		recordServices.execute(transaction);
+
+		OngoingLogicalSearchConditionWithDataStoreFields whereStringMetadata = from(zeSchema.instance())
+				.where(zeSchema.stringMetadata());
+
+		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris"))))
+				.containsOnly(record5);
+		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Superman"))))
+				.isEmpty();
+		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("superman"))))
+				.isEmpty();
+		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("echec"))))
+				.isEmpty();
+		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("personne"))))
+				.isEmpty();
+		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("idole"))))
+				.isEmpty();
+		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
+				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota"))))
+				.isEmpty();
+
+		assertThat(searchServices
+				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")).setPreferAnalyzedFields(true)))
+				.containsOnly(record1, record2, record3, record4, record5);
+		assertThat(searchServices
+				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Superman")).setPreferAnalyzedFields(true)))
+				.containsOnly(record2, record4);
+		assertThat(searchServices
+				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("superman")).setPreferAnalyzedFields(true)))
+				.containsOnly(record2, record4);
+		assertThat(searchServices
+				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("echec")).setPreferAnalyzedFields(true)))
+				.containsOnly(record1);
+		assertThat(searchServices
+				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("persone")).setPreferAnalyzedFields(true)))
+				.containsOnly(record4);
+		assertThat(searchServices
+				.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("idole")).setPreferAnalyzedFields(true)))
+				.isEmpty();
+		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
+				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota")).setPreferAnalyzedFields(true)))
+				.isEmpty();
 	}
 
 	//Broken multilingual @Test
@@ -695,6 +846,24 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 				}
 			}
 		}
+	}
+
+	@Test
+	public void whenSearchingRecordsWithEncryptedMetadatasThenDecryptedInResultedRecords()
+			throws Exception {
+		defineSchemasManager().using(schema.withAStringMetadata(whichIsEncrypted));
+		transaction.addUpdate(expectedRecord = newRecordOfZeSchema("1").set(zeSchema.stringMetadata(), "Chuck Norris"));
+		transaction.addUpdate(expectedRecord2 = newRecordOfZeSchema("2").set(zeSchema.stringMetadata(), "Chuck Lechat Norris"));
+		recordServices.execute(transaction);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(zeSchema.instance())
+				.where(zeSchema.stringMetadata()).isNot(containingText("Chuck")));
+		query.sortAsc(Schemas.IDENTIFIER);
+		List<Record> records = searchServices.search(query);
+
+		assertThat(records).hasSize(2);
+		assertThat(records.get(0).get(zeSchema.stringMetadata())).isEqualTo("Chuck Norris");
+		assertThat(records.get(1).get(zeSchema.stringMetadata())).isEqualTo("Chuck Lechat Norris");
 	}
 
 	@Test
@@ -1221,6 +1390,45 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(records).containsOnly(expectedRecord, expectedRecord2, expectedRecord3);
 	}
 
+	//
+	@Test
+	public void givenFourRelativesDatesAndNullDateValuesWhenIsNewerThanThenReturnThreeRecords()
+			throws Exception {
+		givenTimeIs(NOW);
+		givenFiveRelativeDatesDateValuesIncludingNullDate();
+
+		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata()).isNewerThan(2.0, MeasuringUnitTime.YEARS);
+		List<Record> records = findRecords(condition);
+
+		assertThat(records).containsOnly(expectedRecord, expectedRecord4);
+	}
+
+	@Test
+	public void givenFourRelativesDatesAndNullDateValuesWhenIsOlderThanThenReturnOneRecords()
+			throws Exception {
+		givenTimeIs(NOW);
+		givenFiveRelativeDatesDateValuesIncludingNullDate();
+
+		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata()).isOlderThan(2.0, MeasuringUnitTime.YEARS);
+		List<Record> records = findRecords(condition);
+
+		assertThat(records).containsOnly(expectedRecord3);
+	}
+
+	@Test
+	public void givenFourRelativesDatesAndNullDateValuesWhenIsOlderLikeThenReturnOneRecords()
+			throws Exception {
+		givenTimeIs(NOW);
+		givenFiveRelativeDatesDateValuesIncludingNullDate();
+
+		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata()).isOldLike(2.0, MeasuringUnitTime.YEARS);
+		List<Record> records = findRecords(condition);
+
+		assertThat(records).containsOnly(expectedRecord2);
+	}
+
+	//
+
 	@Test
 	public void givenNumberValuesIncludingMinIntegerValueWhenIsGreaterThanThenReturnThreeRecords()
 			throws Exception {
@@ -1415,7 +1623,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata()).isEqualTo(new LocalDateTime(Integer.MIN_VALUE));
 		List<Record> records = findRecords(condition);
+		assertThat(records).isEmpty();
 
+		condition = from(zeSchema.instance()).where(zeSchema.dateMetadata()).isNull();
+		records = findRecords(condition);
 		assertThat(records).containsOnly(expectedRecord5);
 	}
 
@@ -1426,7 +1637,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		condition = from(zeSchema.instance()).where(zeSchema.dateTimeMetadata()).isEqualTo(new LocalDateTime(Integer.MIN_VALUE));
 		List<Record> records = findRecords(condition);
+		assertThat(records).isEmpty();
 
+		condition = from(zeSchema.instance()).where(zeSchema.dateTimeMetadata()).isNull();
+		records = findRecords(condition);
 		assertThat(records).containsOnly(expectedRecord5);
 	}
 
@@ -2456,6 +2670,46 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	@SlowTest
+	public void givenRecordsModifiedWhenIteratingOverSearchResultsWithSortOnOtherFieldThenDoesNotAffectIteration()
+			throws RecordServicesException {
+		defineSchemasManager().using(schema.withCodeInZeSchema());
+
+		Transaction transaction = new Transaction();
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		for (int i = 0; i < 10000; i++) {
+			Record record = new TestRecord(schema.zeDefaultSchema(), "" + i);
+			record.set(Schemas.TITLE, "zeTitleInitial");
+			record.set(Schemas.CODE, "" + i);
+			transaction.addUpdate(record);
+		}
+		recordServices.execute(transaction);
+
+		Set<String> ids = new HashSet<>();
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.sortDesc(zeSchema.metadata("code"));
+		query.setCondition(from(schema.zeDefaultSchema()).where(Schemas.TITLE).isStartingWithText("zeTitle"));
+		Iterator<Record> records = searchServices.recordsIteratorKeepingOrder(query, 25);
+
+		int i = 0;
+		while (records.hasNext()) {
+
+			Record record = records.next();
+			ids.add(record.getId());
+			if (i % 10 == 0) {
+
+				record.set(Schemas.TITLE, "zeTitleModified");
+				recordServices.update(record);
+			}
+			System.out.println(++i);
+		}
+
+		assertThat(ids).hasSize(10000);
+
+	}
+
 	private void givenSchemasInDiferentsCollections()
 			throws Exception {
 
@@ -2564,6 +2818,25 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 				expectedRecord3 = new TestRecord(zeSchema, "date3Record").set(zeSchema.dateMetadata(), DATE3));
 		transaction.addUpdate(
 				expectedRecord4 = new TestRecord(zeSchema, "date4Record").set(zeSchema.dateMetadata(), DATE4));
+		recordServices.execute(transaction);
+	}
+
+	private void givenFiveRelativeDatesDateValuesIncludingNullDate()
+			throws Exception {
+		defineSchemasManager().using(schema.withADateMetadata());
+		transaction.addUpdate(expectedRecord5 = new TestRecord(zeSchema, "recordWithNullDate"));
+		transaction.addUpdate(
+				expectedRecord = new TestRecord(zeSchema, "date1Record")
+						.set(zeSchema.dateMetadata(), NOW.toLocalDate().minusYears(1)));
+		transaction.addUpdate(
+				expectedRecord2 = new TestRecord(zeSchema, "date2Record")
+						.set(zeSchema.dateMetadata(), NOW.toLocalDate().minusYears(2)));
+		transaction.addUpdate(
+				expectedRecord3 = new TestRecord(zeSchema, "date3Record")
+						.set(zeSchema.dateMetadata(), NOW.toLocalDate().minusYears(4)));
+		transaction.addUpdate(
+				expectedRecord4 = new TestRecord(zeSchema, "date4Record")
+						.set(zeSchema.dateMetadata(), NOW.toLocalDate().plusYears(1)));
 		recordServices.execute(transaction);
 	}
 
@@ -2690,6 +2963,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 	private Record newRecordOfZeSchema() {
 		return recordServices.newRecordWithSchema(zeSchema.instance());
+	}
+
+	private Record newRecordOfZeSchema(String id) {
+		return recordServices.newRecordWithSchema(zeSchema.instance(), id);
 	}
 
 	private Record newRecordOfAnotherSchema() {

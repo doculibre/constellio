@@ -1,24 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -84,7 +68,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void forParams(String params) {
 		Record record = getRecord(params);
 		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
-		view.setRecordVO(documentVO);
+		view.setDocumentVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		User user = getCurrentUser();
@@ -130,12 +114,12 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 					|| ObjectUtils.notEqual(checkoutUserId, currentCheckoutUserId)
 					|| ObjectUtils.notEqual(length, currentLength)) {
 				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY);
-				view.setRecordVO(documentVO);
+				view.setDocumentVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();
 			}
 		} catch (NoSuchRecordWithId e) {
-			view.navigateTo().home();
+			view.invalidate();
 		}
 	}
 
@@ -273,5 +257,15 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void taskClicked(RecordVO taskVO) {
 		view.navigateTo().displayTask(taskVO.getId());
+	}
+
+	public void addToCartRequested() {
+		presenterUtils.addToCartRequested();
+	}
+
+	public InputStream getSignatureInputStream(String certificate, String password) {
+		// TODO: Sign the file
+		ContentVersionVO content = presenterUtils.getDocumentVO().getContent();
+		return modelLayerFactory.getContentManager().getContentInputStream(content.getHash(), content.getFileName());
 	}
 }

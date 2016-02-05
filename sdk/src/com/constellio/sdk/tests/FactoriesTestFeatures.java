@@ -1,25 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static com.constellio.model.services.search.services.ElevationServiceImpl.ELEVATE_FILE_NAME;
 import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
 import java.io.File;
@@ -29,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.chemistry.opencmis.server.support.query.CmisQlExtParser.value_expression_return;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -40,15 +24,14 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
-import com.constellio.app.services.extensions.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
@@ -60,13 +43,21 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.io.concurrent.data.DataWithVersion;
+import com.constellio.data.io.concurrent.data.DataWrapper;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.search.Elevations;
+import com.constellio.model.services.search.ElevationsView;
+import com.constellio.model.services.search.services.ElevationServiceImpl;
+import com.constellio.sdk.FakeEncryptionServices;
 
 public class FactoriesTestFeatures {
 
+	private boolean fakeEncryptionServices;
+	private boolean useSDKPluginFolder;
 	private boolean instanciated = false;
 	private boolean backgroundThreadsEnabled = false;
 	private List<String> loggingOfRecords = new ArrayList<>();
@@ -96,10 +87,9 @@ public class FactoriesTestFeatures {
 		if (instanciated) {
 			factoriesInstance = getConstellioFactories();
 			DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
-
 			for (BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
-				deleteServerRecords(server.getName(), server.getNestedSolrServer(), server.getSolrFileSystem(),
-						server.getNestedSolrServer());
+				deleteServerRecords(server);
+				cleanElevateFile(server);
 			}
 
 			if (ContentDaoType.HADOOP == conf.getContentDaoType()) {
@@ -115,6 +105,15 @@ public class FactoriesTestFeatures {
 		ConstellioFactories.clear();
 		factoriesInstance = null;
 
+	}
+
+	private void cleanElevateFile(BigVaultServer server) {
+		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
+		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
+		DataWrapper<Elevations> elevationView = new ElevationsView()
+				.setData(new Elevations());
+		readData.setDataFromView(elevationView);
+		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
 	}
 
 	private void deleteFromZooKeeper(String address) {
@@ -150,11 +149,11 @@ public class FactoriesTestFeatures {
 		}
 	}
 
-	private void deleteServerRecords(String serverName, SolrClient solrServer, AtomicFileSystem configManager,
-			SolrClient adminServer) {
+	private void deleteServerRecords(BigVaultServer server) {
 
-		BigVaultServer vaultServer = new BigVaultServer(serverName, solrServer, configManager, adminServer,
-				BigVaultLogger.disabled(), new DataLayerSystemExtensions());
+		BigVaultServer vaultServer = server.clone();
+		vaultServer.disableLogger();
+		vaultServer.setExtensions(new DataLayerSystemExtensions());
 
 		ModifiableSolrParams allRecordsSolrParams = new ModifiableSolrParams();
 		allRecordsSolrParams.set("q", "*:*");
@@ -204,39 +203,44 @@ public class FactoriesTestFeatures {
 				@Override
 				public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 
-					if (spiedClasses.isEmpty() && !dummyPasswords) {
-						return modelLayerFactory;
-					} else {
-						ModelLayerFactory spiedModelLayerFactory = spy(modelLayerFactory);
-
-						if (dummyPasswords) {
-							doAnswer(new Answer() {
-								@Override
-								public Object answer(InvocationOnMock invocation)
-										throws Throwable {
-									Object value = invocation.callRealMethod();
-
-									List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
-									StringBuilder passwordFileContent = new StringBuilder();
-									for (UserCredential user : users) {
-										passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
-									}
-									File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
-											.getSettingsFileSystemBaseFolder();
-									File authenticationFile = new File(settingsFolder, "authentification.properties");
-									try {
-										FileUtils.write(authenticationFile, passwordFileContent.toString());
-									} catch (IOException e) {
-										throw new RuntimeException(e);
-									}
-
-									return value;
+					if (dummyPasswords) {
+						modelLayerFactory.add(new StatefulService() {
+							@Override
+							public void initialize() {
+								List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
+								StringBuilder passwordFileContent = new StringBuilder();
+								for (UserCredential user : users) {
+									passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
 								}
-							}).when(spiedModelLayerFactory).initialize();
+								File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
+										.getSettingsFileSystemBaseFolder();
+								File authenticationFile = new File(settingsFolder, "authentification.properties");
+								try {
+									FileUtils.write(authenticationFile, passwordFileContent.toString());
+								} catch (IOException e) {
+									throw new RuntimeException(e);
+								}
+							}
+
+							@Override
+							public void close() {
+
+							}
+						});
+						if (fakeEncryptionServices) {
+							try {
+								modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
+							} catch (Exception e) {
+								throw new RuntimeException(e);
+							}
 						}
-						return spiedModelLayerFactory;
 					}
 
+					if (spiedClasses.isEmpty()) {
+						return modelLayerFactory;
+					} else {
+						return spy(modelLayerFactory);
+					}
 				}
 
 				@Override
@@ -270,6 +274,12 @@ public class FactoriesTestFeatures {
 
 			File configManagerFolder = fileSystemTestFeatures.newTempFolderWithName("configManagerFolder");
 			File contentFolder = fileSystemTestFeatures.newTempFolderWithName("contentFolder");
+			File pluginsFolder;
+			if(useSDKPluginFolder){
+				pluginsFolder = new SDKFoldersLocator().getPluginsJarsFolder();
+			}else{
+				pluginsFolder = fileSystemTestFeatures.newTempFolderWithName("plugins");
+			}
 
 			decorator.setDataLayerConfigurationAlterations(dataLayerConfigurationAlterations);
 			decorator.setModelLayerConfigurationAlterations(modelLayerConfigurationAlterations);
@@ -279,6 +289,7 @@ public class FactoriesTestFeatures {
 			decorator.setConfigManagerFolder(configManagerFolder);
 			decorator.setAppTempFolder(fileSystemTestFeatures.newTempFolderWithName("appTempFolder"));
 			decorator.setContentFolder(contentFolder);
+			decorator.setPluginsFolder(pluginsFolder);
 			decorator.setSystemLanguage(systemLanguage);
 
 			if (initialState != null) {
@@ -286,7 +297,7 @@ public class FactoriesTestFeatures {
 					File tempFolder = fileSystemTestFeatures.newTempFolder();
 					try {
 						SaveStateFeature
-								.loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder, dummyPasswords);
+								.loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder, pluginsFolder, dummyPasswords);
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
@@ -316,7 +327,7 @@ public class FactoriesTestFeatures {
 
 		factoriesInstance = ConstellioFactories.getInstance(propertyFile, decorator);
 
-		factoriesInstance.getDataLayerFactory().getExtensions().getSystemWideExtensions().transactionLogExtensions
+		factoriesInstance.getDataLayerFactory().getExtensions().getSystemWideExtensions().getTransactionLogExtensions()
 				.add(new TransactionLogExtension() {
 					@Override
 					public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(String field, String schema,
@@ -399,4 +410,15 @@ public class FactoriesTestFeatures {
 	public void givenBackgroundThreadsEnabled() {
 		backgroundThreadsEnabled = true;
 	}
+
+	public FactoriesTestFeatures withFakeEncryptionServices() {
+		fakeEncryptionServices = true;
+		return this;
+	}
+
+	public FactoriesTestFeatures withSDKPluginFolder() {
+		useSDKPluginFolder = true;
+		return this;
+	}
+
 }

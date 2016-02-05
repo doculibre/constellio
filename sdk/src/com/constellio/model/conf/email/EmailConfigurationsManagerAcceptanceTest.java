@@ -1,31 +1,15 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf.email;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.model.services.emails.SmtpServerTestConfig;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class EmailConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
@@ -70,7 +54,7 @@ public class EmailConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
             @Override
             public String getDefaultSenderEmail() {
-                return SDKPasswords.testEmailAccount();
+                return SDKPasswords.testSMTPUsername();
             }
         };
 
@@ -87,14 +71,16 @@ public class EmailConfigurationsManagerAcceptanceTest extends ConstellioTest {
         manager.addEmailServerConfiguration(validConfig1, "collection1");
         manager.addEmailServerConfiguration(validConfig2, "collection2");
 
-        EmailServerConfiguration loadedConfig1 = manager.getEmailConfiguration("collection1");
+        EmailServerConfiguration loadedConfig1 = manager.getEmailConfiguration("collection1", true);
         assertThat(loadedConfig1.getPassword()).isEqualTo(validConfig1.getPassword());
         assertThat(loadedConfig1.getUsername()).isEqualTo(validConfig1.getUsername());
         assertThat(loadedConfig1.getProperties().size()).isEqualTo(validConfig1.getProperties().size());
         for(String key : validConfig1.getProperties().keySet()){
             assertThat(loadedConfig1.getProperties().get(key)).isEqualTo(validConfig1.getProperties().get(key));
         }
-        assertThat(manager.getEmailConfiguration("collection2").getUsername()).isEqualTo(validConfig2.getUsername());
+        EmailServerConfiguration collection2Config = manager.getEmailConfiguration("collection2", true);
+        assertThat(collection2Config.getUsername()).isEqualTo(validConfig2.getUsername());
+        assertThat(collection2Config.getPassword()).isEqualTo(validConfig2.getPassword());
     }
 
     @Test
@@ -109,8 +95,8 @@ public class EmailConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
         manager.deleteEmailServerConfiguration("collection1");
 
-        assertThat(manager.getEmailConfiguration("collection1")).isNull();
-        assertThat(manager.getEmailConfiguration("collection2").getPassword()).isEqualTo(validConfig2.getPassword());
+        assertThat(manager.getEmailConfiguration("collection1", false)).isNull();
+        assertThat(manager.getEmailConfiguration("collection2", true).getPassword()).isEqualTo(validConfig2.getPassword());
     }
 
     @Test
@@ -120,9 +106,9 @@ public class EmailConfigurationsManagerAcceptanceTest extends ConstellioTest {
         givenCollection("collection1");
 
         manager.addEmailServerConfiguration(validConfig1, "collection1");
-        manager.updateEmailServerConfiguration(validConfig2, "collection1");
+        manager.updateEmailServerConfiguration(validConfig2, "collection1", true);
 
-        EmailServerConfiguration loadedConfig2 = manager.getEmailConfiguration("collection1");
+        EmailServerConfiguration loadedConfig2 = manager.getEmailConfiguration("collection1", true);
         assertThat(loadedConfig2.getPassword()).isEqualTo(validConfig2.getPassword());
         assertThat(loadedConfig2.getUsername()).isEqualTo(validConfig2.getUsername());
         assertThat(loadedConfig2.getDefaultSenderEmail()).isEmpty();
@@ -139,9 +125,9 @@ public class EmailConfigurationsManagerAcceptanceTest extends ConstellioTest {
         givenCollection("collection1");
 
         manager.addEmailServerConfiguration(validConfig1, "collection1");
-        manager.updateEmailServerConfiguration(validConfig3, "collection1");
+        manager.updateEmailServerConfiguration(validConfig3, "collection1", true);
 
-        EmailServerConfiguration loadedConfig2 = manager.getEmailConfiguration("collection1");
+        EmailServerConfiguration loadedConfig2 = manager.getEmailConfiguration("collection1", true);
         assertThat(loadedConfig2.getPassword()).isEqualTo(validConfig3.getPassword());
         assertThat(loadedConfig2.getUsername()).isEqualTo(validConfig3.getUsername());
         assertThat(loadedConfig2.getDefaultSenderEmail()).isEqualTo(validConfig3.getDefaultSenderEmail());

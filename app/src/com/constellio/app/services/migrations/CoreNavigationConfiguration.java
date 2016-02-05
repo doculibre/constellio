@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.migrations;
 
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
@@ -42,6 +25,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String CONFIG = "config";
 	public static final String CONFIG_ICON = "images/icons/config/configuration.png";
 	public static final String LDAP_CONFIG = "ldapConfig";
+	public static final String PLUGIN_CONFIG = "pluginConfig";
 	public static final String LDAP_CONFIG_ICON = "images/icons/config/address_book3.png";
 	public static final String GROUPS = "groups";
 	public static final String GROUPS_ICON = "images/icons/config/group.png";
@@ -55,6 +39,10 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String IMPORT_USERS_ICON = "images/icons/config/import-users.png";
 	public static final String EXPORT = "export";
 	public static final String EXPORT_ICONS = "images/icons/config/export.png";
+	public static final String IMPORT_AUTHORIZATIONS = "importAuthorizations";
+	public static final String IMPORT_GROUPS = "importGroups";
+	public static final String IMPORT_AUTHORIZATIONS_ICON = "images/icons/config/import-authorizations.png";
+	public static final String IMPORT_GROUPS_ICON = "images/icons/config/import-groups.png";
 	public static final String BIG_DATA = "bigData";
 	public static final String BIG_DATA_ICON = "images/icons/config/big-data.png";
 	public static final String UPDATE_CENTER = "updateCenter";
@@ -85,6 +73,10 @@ public class CoreNavigationConfiguration implements Serializable {
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String RECORDS_MANAGEMENT = "recordsManagement";
+	public static final String SEARCH_BOOST_BY_METADATA = "searchBoostByMetadata";
+	public static final String SEARCH_BOOST_BY_METADATA_ICON = "images/icons/config/boost-metadata-search.png";
+	public static final String SEARCH_BOOST_BY_QUERY = "searchBoostByQuery";
+	public static final String SEARCH_BOOST_BY_QUERY_ICON = "images/icons/config/boost-text-search.png";
 
 	public void configureNavigation(NavigationConfig config) {
 		configureSystemAdmin(config);
@@ -105,6 +97,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION));
 			}
 		});
+
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(LDAP_CONFIG, LDAP_CONFIG_ICON) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
@@ -153,7 +146,18 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS));
 			}
 		});
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Inactive(MODULES, MODULES_ICON));
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(MODULES, MODULES_ICON) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.pluginManagement();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION));
+			}
+		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(IMPORT_USERS, IMPORT_USERS_ICON) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
@@ -164,6 +168,18 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
 				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS));
+			}
+		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(IMPORT_GROUPS, IMPORT_GROUPS_ICON) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.importGroups();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(EXPORT, EXPORT_ICONS) {
@@ -273,7 +289,17 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(user.has(CorePermissions.MANAGE_EMAIL_SERVER).globally());
 			}
 		});
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Inactive(DATA_EXTRACTOR, DATA_EXTRACTOR_ICON));
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(DATA_EXTRACTOR, DATA_EXTRACTOR_ICON) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.listMetadataExtractors();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return visibleIf(user.has(CorePermissions.MANAGE_METADATAEXTRACTOR).globally());
+			}
+		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(IMPORT_RECORDS, IMPORT_RECORDS_ICON) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
@@ -294,6 +320,41 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally());
+			}
+		});
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(IMPORT_AUTHORIZATIONS, IMPORT_AUTHORIZATIONS_ICON) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.importAuthorizations();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
+			}
+		});
+		config.add(AdminView.COLLECTION_SECTION,
+				new NavigationItem.Active(SEARCH_BOOST_BY_METADATA, SEARCH_BOOST_BY_METADATA_ICON) {
+					@Override
+					public void activate(ConstellioNavigator navigateTo) {
+						navigateTo.searchBoostByMetadatas();
+					}
+
+					@Override
+					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+						return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+					}
+				});
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_BOOST_BY_QUERY, SEARCH_BOOST_BY_QUERY_ICON) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.searchBoostByQuerys();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Inactive(TRASH_BIN, TRASH_BIN_ICON));

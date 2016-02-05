@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import static org.junit.Assert.fail;
@@ -32,11 +15,15 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.io.streamFactories.StreamFactory;
 
 public class StreamsTestFeatures {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(StreamsTestFeatures.class);
 
 	public static final String SDK_STREAM = "SDK Stream";
 	List<Closeable> closeableThatMustBeClosed = new ArrayList<Closeable>();
@@ -52,6 +39,15 @@ public class StreamsTestFeatures {
 	//			openedThreadsAtStartup.add(thread.getId());
 	//		}
 	//	}
+
+	public void beforeTest(SkipTestsRule skipTestsRule) {
+		if (skipTestsRule == null || skipTestsRule.getCurrentTestClass() == null) {
+			OpenedResourcesWatcher.openingStackHeader = "Where the resource was opened : ";
+		} else {
+			String testName = skipTestsRule.getCurrentTestClass().getSimpleName() + "." + skipTestsRule.getCurrentTestName();
+			OpenedResourcesWatcher.openingStackHeader = "Where the resource was opened (in test '" + testName + "') : s";
+		}
+	}
 
 	public void afterTest() {
 
@@ -95,10 +91,14 @@ public class StreamsTestFeatures {
 					while (thread.isAlive()) {
 						StringBuilder message = new StringBuilder();
 						message.append("Waiting for thread '" + thread.toString() + "' / '" + thread.getName() + "' to stop");
+
+						message.append("\n" + OpenedResourcesWatcher.getOpeningStackTraceOf(entry.getKey()));
+						message.append("\n");
+						message.append("Current thread stack trace : ");
 						for (StackTraceElement element : thread.getStackTrace()) {
 							message.append("\n\t" + element.toString());
 						}
-						System.out.println(message);
+						LOGGER.info(message.toString());
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {

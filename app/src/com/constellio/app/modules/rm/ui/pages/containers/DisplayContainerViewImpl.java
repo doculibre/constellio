@@ -1,66 +1,63 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayContainerView, RecordSelector {
-
-	private DisplayContainerPresenter presenter;
+	private final DisplayContainerPresenter presenter;
 
 	public DisplayContainerViewImpl() {
 		presenter = new DisplayContainerPresenter(this);
 	}
 
 	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		presenter.forContainerId(event.getParameters());
+	}
+
+	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
+		layout.setWidth("100%");
+		layout.setSpacing(true);
 
-		RecordVO container = presenter.getContainer(event.getParameters());
+		RecordVO container = presenter.getContainer();
 		layout.addComponent(new RecordDisplay(container));
 
 		try {
@@ -72,11 +69,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			layout.addComponent(new ContainerRatioPanel($("RecordInContainerWithoutLinearMeasure")));
 		}
 
-		final String containerId = event.getParameters();
-
-		presenter.setContainerId(containerId);
-
-		layout.addComponent(buildFoldersTable(event.getParameters()));
+		layout.addComponent(buildFoldersTable(presenter.getFolders()));
 
 		return layout;
 	}
@@ -91,28 +84,27 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		};
 	}
 
-	private Component buildFoldersTable(final String containerId) {
-		RecordVOLazyContainer recordVOLazyContainer = new RecordVOLazyContainer(presenter.getFoldersDataProvider(containerId));
-		ButtonsContainer buttonsContainer = new ButtonsContainer(recordVOLazyContainer, "buttons");
-		buttonsContainer.addButton(new ContainerButton() {
+	private Component buildFoldersTable(final RecordVODataProvider provider) {
+		RecordVOLazyContainer folders = new RecordVOLazyContainer(provider);
+		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(folders, "buttons");
+		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						Integer index = (Integer) itemId;
-						RecordVO entity = presenter.getFoldersDataProvider(containerId).getRecordVO(index);
+						RecordVO entity = provider.getRecordVO(index);
 						presenter.displayFolderButtonClicked(entity);
 					}
 				};
 			}
 		});
 
-		RecordVOTable table = new RecordVOTable($("DisplayContainerView.foldersTableTitle"), buttonsContainer);
+		RecordVOTable table = new RecordVOTable($("DisplayContainerView.foldersTableTitle"), container);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
-		//		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
-		table.setPageLength(table.getItemIds().size());
+		table.setPageLength(provider.size());
 
 		return table;
 	}
@@ -124,29 +116,44 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
+		List<Button> buttons = super.buildActionMenuButtons(event);
 
-		Button editContainer = new BaseButton($("DisplayContainerView.edit")) {
+		Button edit = new EditButton($("DisplayContainerView.edit")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.editContainer();
 			}
-
 		};
+		buttons.add(edit);
 
-		ReportButton printBordereau = new ReportButton("Reports.ContainerRecordReport", presenter);
-		printBordereau.setCaption($("DisplayContainerView.slip"));
-		printBordereau.setStyleName(ValoTheme.BUTTON_LINK);
-		printBordereau.setEnabled(presenter.isPrintReportEnable());
+		Button slip = new ReportButton("Reports.ContainerRecordReport", presenter);
+		slip.setCaption($("DisplayContainerView.slip"));
+		slip.setStyleName(ValoTheme.BUTTON_LINK);
+		slip.setEnabled(presenter.canPrintReports());
+		buttons.add(slip);
 
-		ContainerLabelsButton labelsButton = new ContainerLabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
+		Button labels = new ContainerLabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
 				presenter.getTemplates());
-		labelsButton.setEnabled(presenter.isPrintReportEnable());
+		labels.setEnabled(presenter.canPrintReports());
+		buttons.add(labels);
 
-		actionMenuButtons.add(editContainer);
-		actionMenuButtons.add(printBordereau);
-		actionMenuButtons.add(labelsButton);
-		return actionMenuButtons;
+		Button empty = new ConfirmDialogButton($("DisplayContainerView.empty")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("DisplayContainerView.confirmEmpty");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.emptyButtonClicked();
+			}
+		};
+		ComponentState state = presenter.getEmptyButtonState();
+		empty.setVisible(state.isVisible());
+		empty.setEnabled(state.isEnabled());
+		buttons.add(empty);
+
+		return buttons;
 	}
 
 	@Override

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.users;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDateTime;
@@ -47,6 +31,7 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 	UserPhotosServices services;
 	UserCredentialsManager userCredentialsManager;
 	ZipService zipService;
+	List<String> msExchDelegateListBL = new ArrayList<>();
 
 	@Before
 	public void setUp()
@@ -56,7 +41,7 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 		services = getModelLayerFactory().newUserPhotosServices();
 
 		UserCredential user = new UserCredential("zeUser", "ze", "user", "ze.user@gmail.com", new ArrayList<String>(),
-				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain");
+				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
 		userCredentialsManager.addUpdate(user);
 		zipService = getIOLayerFactory().newZipService();

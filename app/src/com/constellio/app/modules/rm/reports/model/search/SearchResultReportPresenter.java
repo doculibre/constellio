@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.model.search;
 
 import java.util.ArrayList;
@@ -95,16 +78,17 @@ public class SearchResultReportPresenter {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		LogicalSearchCondition newCondition = searchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isIn(selectedRecords);
 		LogicalSearchQuery newSearchQuery = searchQuery.setCondition(newCondition)
-				.setReturnedMetadatas(new ReturnedMetadatasFilter(orderedEnabledReportedMetadataList));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList));
 		return searchServices.query(newSearchQuery).getRecords();
 	}
 
 	private List<Record> getAllSchemaTypeRecords(int index, ModelLayerFactory modelLayerFactory,
 			List<Metadata> orderedEnabledReportedMetadataList) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		ReturnedMetadatasFilter returnMetadata = new ReturnedMetadatasFilter(orderedEnabledReportedMetadataList);
+		ReturnedMetadatasFilter returnMetadata = ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList);
 		LogicalSearchQuery newSearchQuery = searchQuery
-				.setReturnedMetadatas(new ReturnedMetadatasFilter(orderedEnabledReportedMetadataList)).setStartRow(index)
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList))
+				.setStartRow(index)
 				.setNumberOfRows(BATCH_SIZE);
 		return searchServices.query(new LogicalSearchQuery(newSearchQuery).setReturnedMetadatas(returnMetadata)).getRecords();
 	}

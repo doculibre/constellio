@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
@@ -65,6 +48,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLo
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -80,6 +64,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
@@ -87,12 +72,15 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
 import com.constellio.model.services.records.RecordServicesRuntimeException.UserCannotReadDocument;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.extractions.RecordPopulateServices;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -124,6 +112,9 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock ContentManager contentManager;
 	@Mock RecordModificationImpactHandler recordModificationImpactHandler;
 	@Mock CollectionsListManager collectionsListManager;
+	@Mock RecordPopulateServices recordPopulateServices;
+	@Mock Factory<EncryptionServices> encryptionServiceFactory;
+
 	ModelLayerExtensions extensions = new ModelLayerExtensions();
 
 	long firstVersion = anInteger();
@@ -223,6 +214,8 @@ public class RecordServicesTest extends ConstellioTest {
 						uniqueIdGenerator, recordsCaches));
 		doNothing().when(recordServices).sleep(anyLong());
 
+		doReturn(recordPopulateServices).when(modelFactory).newRecordPopulateServices();
+
 		when(newFirstRecordVersion.getId()).thenReturn(firstRecordId);
 		when(newSecondRecordVersion.getId()).thenReturn(secondRecordId);
 		when(newFirstRecordVersion.getSchemaCode()).thenReturn(zeSchema.code());
@@ -277,7 +270,7 @@ public class RecordServicesTest extends ConstellioTest {
 		anotherRecordWithATitleAndStringMetadataValue.set(zeSchema.title(), anotherTitle);
 		anotherRecordWithATitleAndStringMetadataValue.set(zeSchema.stringMetadata(), anotherStringMetadata);
 
-		reindexedMetadata = new TransactionRecordsReindexation(Arrays.asList(firstReindexedMetadata, secondReindexedMetadata));
+		reindexedMetadata = new TransactionRecordsReindexation(new MetadataList(firstReindexedMetadata, secondReindexedMetadata));
 
 		when(firstRecordConditionRecord1.getSchemaCode()).thenReturn(schemas.anotherDefaultSchemaCode());
 		when(firstRecordConditionRecord2.getSchemaCode()).thenReturn(schemas.anotherDefaultSchemaCode());
@@ -706,10 +699,11 @@ public class RecordServicesTest extends ConstellioTest {
 		LogicalSearchCondition thirdRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(thirdRecordId)
 				.andWhere(Schemas.VERSION).isNotEqual(thirdRecordVersion);
 
-		assertThat(condition.getSolrQuery()).isEqualTo(
+		SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null);
+		assertThat(condition.getSolrQuery(params)).isEqualTo(
 				LogicalSearchQueryOperators.fromAllSchemasIn(condition.getCollection())
 						.whereAnyCondition(Arrays.asList(firstRecordCondition, secondRecordCondition, thirdRecordCondition))
-						.getSolrQuery());
+						.getSolrQuery(params));
 	}
 
 	@Test(expected = RecordServicesException.UnresolvableOptimisticLockingConflict.class)
@@ -1050,4 +1044,5 @@ public class RecordServicesTest extends ConstellioTest {
 		recordServices.flush();
 
 	}
+
 }

@@ -1,21 +1,16 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.model.managers;
+
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -26,20 +21,10 @@ import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 	private LocalDate now = LocalDate.now();
@@ -54,14 +39,14 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 	private List<EmailAddress> allAssigneeUsersAddresses;
 	private TaskReminder reminderAfterNow;
 	private TaskReminder reminderBeforeNow;
+	private TaskReminder reminderNow;
 	private RecordServices recordServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
+		prepareSystem(withZeCollection().withTasksModule().withAllTest(users));
 		givenTimeIs(now);
-		givenCollection(zeCollection).withTaskModule().withAllTestUsers();
-		users.setUp(getModelLayerFactory().newUserServices());
 
 		schemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		manager = schemas.getTaskReminderEmailManager();
@@ -90,12 +75,13 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 
 		reminderBeforeNow = new TaskReminder().setFixedDate(now.minusDays(1));
 		reminderAfterNow = new TaskReminder().setFixedDate(now.plusDays(1));
+		reminderNow = new TaskReminder().setFixedDate(now);
 
 		allAssigneeUsersAddresses = asList(aliceEmailAddress, chuckEmailAddress);
 		allAssigneeGroupsAddresses = asList(aliceEmailAddress, bobEmailAddress);
 		allAssigneesAddresses = asList(aliceEmailAddress, chuckEmailAddress, bobEmailAddress);
 		zeTask = schemas.newTask()
-				.setReminders(asList(reminderBeforeNow, reminderAfterNow))
+				.setReminders(asList(reminderBeforeNow, reminderAfterNow, reminderNow))
 				.setAssigneeGroupsCandidates(asList(aliceAndBobGroupId))
 				.setAssigneeUsersCandidates(
 						asList(users.aliceIn(zeCollection).getId(), users.chuckNorrisIn(zeCollection).getId()));
@@ -118,7 +104,7 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		zeTask = schemas.getTask(zeTask.getId());
 		assertThat(zeTask.getNextReminderOn()).isNull();
 		manager.generateReminderEmails();
-		assertNoEmailToSendCreated();
+		assertThat(getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount()).isEqualTo(0);
 	}
 
 	@Test
@@ -131,7 +117,7 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 				.setAssigneeGroupsCandidates(new ArrayList<String>())
 				.setAssigneeUsersCandidates(new ArrayList<String>()));
 		manager.generateReminderEmails();
-		assertNoEmailToSendCreated();
+		assertThat(getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount()).isEqualTo(0);
 	}
 
 	@Test
@@ -142,7 +128,7 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		assertThat(zeTask.getAssigneeGroupsCandidates()).isEqualTo(new ArrayList<String>());
 		assertThat(zeTask.getAssigneeUsersCandidates()).isEqualTo(new ArrayList<String>());
 		manager.generateReminderEmails();
-		assertNoEmailToSendCreated();
+		assertThat(getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount()).isEqualTo(0);
 	}
 
 	@Test
@@ -158,8 +144,20 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		zeTask = saveAndReload(zeTask.setReminders(asList(reminderAfterNow)));
 		assertThat(zeTask.getNextReminderOn()).isEqualTo(reminderAfterNow.getFixedDate());
 		manager.generateReminderEmails();
-		assertNoEmailToSendCreated();
+		assertThat(getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount()).isEqualTo(0);
+	}
 
+	@Test
+	public void givenTaskWithValidNextReminderOnButRemindersProcessedThenNoReminderEmailGenerated()
+			throws Exception {
+		List<TaskReminder> processedReminders = zeTask.getReminders();
+		for (TaskReminder taskReminder : processedReminders) {
+			taskReminder.setProcessed(true);
+		}
+		zeTask = saveAndReload(zeTask.setAssigneeUsersCandidates(new ArrayList<String>()).setReminders(processedReminders));
+		assertThat(zeTask.getAssigneeUsersCandidates()).isEqualTo(new ArrayList<String>());
+		manager.generateReminderEmails();
+		assertThat(getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount()).isEqualTo(0);
 	}
 
 	@Test
@@ -177,11 +175,13 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 		manager.generateReminderEmails();
 		zeTask = schemas.getTask(zeTask.getId());
 		List<TaskReminder> reminders = zeTask.getReminders();
-		assertThat(reminders.size()).isEqualTo(2);
+		assertThat(reminders.size()).isEqualTo(3);
 		reminderBeforeNow = reminders.get(0);
 		assertThat(reminderBeforeNow.isProcessed()).isTrue();
 		reminderAfterNow = reminders.get(1);
 		assertThat(reminderAfterNow.isProcessed()).isFalse();
+		reminderNow = reminders.get(2);
+		assertThat(reminderBeforeNow.isProcessed()).isTrue();
 		assertThat(zeTask.getNextReminderOn()).isEqualTo(now.plusDays(1));
 	}
 
@@ -210,22 +210,26 @@ public class TaskReminderEmailManagerAcceptanceTest extends ConstellioTest {
 				.setTitle("task2");
 		recordServices.add(task2);
 		manager.generateReminderEmails();
-		assertThat(searchServices.getResultsCount(from(schemas.emailToSend()).returnAll())).isEqualTo(2);
+		assertThat(getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount()).isEqualTo(2);
 	}
 
-	private void assertNoEmailToSendCreated() {
-		assertThat(searchServices.getResultsCount(from(schemas.emailToSend()).returnAll()))
-				.isEqualTo(0);
+	private Long getEmailToSendWithTemplateIdDifferentFromAssignedToYouCount() {
+		LogicalSearchCondition condition = from(schemas.emailToSend())
+				.where(schemas.emailToSend().getMetadata(EmailToSend.TEMPLATE)).isNotEqual(TASK_ASSIGNED_TO_YOU);
+		return searchServices.getResultsCount(condition);
 	}
 
 	private void assertValidEmailToSendCreated(List<EmailAddress> expectedToEmails) {
+		LogicalSearchCondition condition = from(schemas.emailToSend())
+				.where(schemas.emailToSend().getMetadata(EmailToSend.TEMPLATE)).isNotEqual(TASK_ASSIGNED_TO_YOU);
 		EmailToSend emailToSend = schemas
-				.wrapEmailToSend(searchServices.searchSingleResult(from(schemas.emailToSend()).returnAll()));
+				.wrapEmailToSend(searchServices.searchSingleResult(condition));
 		assertThat(emailToSend.getTo().size()).isEqualTo(expectedToEmails.size());
 		assertThat(emailToSend.getTo()).containsAll(expectedToEmails);
 		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_REMINDER);
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn().toLocalDate()).isEqualTo(now);
+		assertThat(emailToSend.getSubject()).isNull();
 	}
 
 }

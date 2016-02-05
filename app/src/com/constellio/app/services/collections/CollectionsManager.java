@@ -1,31 +1,18 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.collections;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotCreateCollectionRecord;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotMigrateCollection;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotRemoveCollection;
@@ -36,6 +23,7 @@ import com.constellio.app.services.collections.CollectionsManagerRuntimeExceptio
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidLanguage;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefulService;
@@ -75,15 +63,18 @@ public class CollectionsManager implements StatefulService {
 
 	private final DataLayerFactory dataLayerFactory;
 
+	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
+
 	private Map<String, List<String>> collectionLanguagesCache = new HashMap<>();
 
 	public CollectionsManager(ModelLayerFactory modelLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
-			Delayed<MigrationServices> migrationServicesDelayed) {
+			Delayed<MigrationServices> migrationServicesDelayed, SystemGlobalConfigsManager systemGlobalConfigsManager) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.constellioModulesManager = constellioModulesManager;
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.migrationServicesDelayed = migrationServicesDelayed;
+		this.systemGlobalConfigsManager = systemGlobalConfigsManager;
 	}
 
 	@Override
@@ -99,11 +90,11 @@ public class CollectionsManager implements StatefulService {
 		modelLayerFactory.newUserServices().addGlobalGroupsInCollection(code);
 	}
 
-	Record createCollectionRecordWithCode(String code, List<String> languages) {
+	Record createCollectionRecordWithCode(String code, String name, List<String> languages) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		Record record = recordServices.newRecordWithSchema(collectionSchema(code));
 		record.set(collectionCodeMetadata(code), code);
-		record.set(collectionNameMetadata(code), code);
+		record.set(collectionNameMetadata(code), name);
 		record.set(collectionLanguages(code), languages);
 		try {
 			recordServices.add(record);
@@ -111,6 +102,10 @@ public class CollectionsManager implements StatefulService {
 		} catch (RecordServicesException e) {
 			throw new CollectionsManagerRuntimeException_CannotCreateCollectionRecord(code, e);
 		}
+	}
+
+	Record createCollectionRecordWithCode(String code, List<String> languages) {
+		return createCollectionRecordWithCode(code, code, languages);
 	}
 
 	MetadataSchema collectionSchema(String collection) {
@@ -137,6 +132,7 @@ public class CollectionsManager implements StatefulService {
 		modelLayerFactory.getRolesManager().createCollectionRole(code);
 		modelLayerFactory.getWorkflowsConfigManager().createCollectionWorkflows(code);
 		modelLayerFactory.getWorkflowExecutionIndexManager().createCollectionWorkflowsExecutionIndex(code);
+		modelLayerFactory.getSearchBoostManager().createCollectionSearchBoost(code);
 	}
 
 	public Collection getCollection(String code) {
@@ -231,13 +227,35 @@ public class CollectionsManager implements StatefulService {
 		// No finalization required.
 	}
 
+	public Record createCollectionInCurrentVersion(String code, String name, List<String> languages) {
+		return createCollectionInVersion(code, name, languages, null);
+	}
+
 	public Record createCollectionInCurrentVersion(String code, List<String> languages) {
 		return createCollectionInVersion(code, languages, null);
 	}
 
 	public Record createCollectionInVersion(String code, List<String> languages, String version) {
+		return createCollectionInVersion(code, code, languages, version);
+	}
+
+	public Record createCollectionInVersion(String code, String name, List<String> languages, String version) {
+		prepareCollectionCreationAndGetInvalidModules(code, name, languages, version);
+		return crateCollectionAfterPrepare(code, name, languages);
+	}
+
+	private Record crateCollectionAfterPrepare(String code, String name, List<String> languages) {
+		Record collectionRecord = createCollectionRecordWithCode(code, name, languages);
+		addGlobalGroupsInCollection(code);
+		initializeCollection(code);
+		return collectionRecord;
+	}
+
+	private Set<String> prepareCollectionCreationAndGetInvalidModules(String code, String name,
+			List<String> languages, String version) {
 		validateCode(code);
 
+		boolean reindexingRequired = systemGlobalConfigsManager.isReindexingRequired();
 		if (collectionsListManager.getCollections().contains(code)) {
 			throw new CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists(code);
 		}
@@ -256,15 +274,15 @@ public class CollectionsManager implements StatefulService {
 
 		createCollectionConfigs(code);
 		collectionsListManager.addCollection(code, languages);
+		Set<String> returnList = new HashSet<>();
 		try {
-			migrationServicesDelayed.get().migrate(code, version);
+			returnList.addAll(migrationServicesDelayed.get().migrate(code, version));
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new CollectionsManagerRuntimeException_CannotMigrateCollection(code, version, optimisticLockingConfiguration);
+		} finally {
+			systemGlobalConfigsManager.setReindexingRequired(reindexingRequired);
 		}
-		Record collectionRecord = createCollectionRecordWithCode(code, languages);
-		addGlobalGroupsInCollection(code);
-		initializeCollection(code);
-		return collectionRecord;
+		return returnList;
 	}
 
 	private void validateCode(String code) {
@@ -274,12 +292,13 @@ public class CollectionsManager implements StatefulService {
 		}
 	}
 
-	public void initializeCollections() {
-
+	public Set<String> initializeCollectionsAndGetInvalidModules() {
+		Set<String> returnList = new HashSet<>();
 		for (String collection : getCollectionCodes()) {
-			constellioModulesManager.startModules(collection);
+			returnList.addAll(constellioModulesManager.startModules(collection));
 			initializeCollection(collection);
 		}
+		return returnList;
 	}
 
 	void initializeCollection(String collection) {
@@ -288,6 +307,7 @@ public class CollectionsManager implements StatefulService {
 		cache.configureCache(CacheConfig.permanentCache(core.userSchemaType()));
 		cache.configureCache(CacheConfig.permanentCache(core.groupSchemaType()));
 		cache.configureCache(CacheConfig.permanentCache(core.collectionSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(core.facetSchemaType()));
 
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);

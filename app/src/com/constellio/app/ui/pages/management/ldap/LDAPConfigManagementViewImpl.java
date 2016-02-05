@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.ldap;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -41,6 +24,7 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
 
     private Button saveButton;
     private CheckBox ldapAuthenticationActive;
+    private CheckBox followReferences;
     private DurationPanel durationField;
 
     private Field directoryTypeField;
@@ -84,7 +68,7 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
             @Override
             protected void buttonClick(ClickEvent event) {
                 testAuthentication.setVisible(true);
-                LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(urlsField.getValues(), domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue());
+                LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(urlsField.getValues(), domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue(), followReferences.getValue());
                 LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(userField.getValue().toString(), passwordField.getValue().toString(),
                         getUserFilter(), getGroupsFilter(),
                         durationField.getDuration(), groupsField.getValues(), usersField.getValues());
@@ -97,7 +81,7 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
         saveButton = new BaseButton($("save")) {
             @Override
             protected void buttonClick(ClickEvent event) {
-                LDAPServerConfiguration ldapServerConfigurationVO = new LDAPServerConfiguration(urlsField.getValues(), domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue());
+                LDAPServerConfiguration ldapServerConfigurationVO = new LDAPServerConfiguration(urlsField.getValues(), domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue(), followReferences.getValue());
                 LDAPUserSyncConfiguration ldapUserSyncConfigurationVO = new LDAPUserSyncConfiguration(userField.getValue().toString(), passwordField.getValue().toString(),
                         getUserFilter(), getGroupsFilter(),
                         durationField.getDuration(), groupsField.getValues(), usersField.getValues(), collectionsComponent.getSelectedCollections());
@@ -131,6 +115,9 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
         ldapAuthenticationActive = new CheckBox($("ldap.authentication.active"));
         ldapAuthenticationActive.setValue(ldapServerConfiguration.getLdapAuthenticationActive());
         layout.addComponent(ldapAuthenticationActive);
+        followReferences = new CheckBox($("ldap.authentication.followReferences"));
+        followReferences.setValue(ldapServerConfiguration.getFollowReferences());
+        layout.addComponent(followReferences);
         LDAPDirectoryType directoryType = ldapServerConfiguration.getDirectoryType();
         directoryTypeField = createEnumField(directoryType, LDAPDirectoryType.class.getEnumConstants());
         directoryTypeField.setCaption($("ldap.serverConfiguration.directoryType"));

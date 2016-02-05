@@ -1,28 +1,14 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
-import com.constellio.app.modules.rm.ui.components.content.DownloadDocumentContentVersionLinkImpl;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.vaadin.ui.Component;
 
 public class RMDownloadContentVersionLinkExtension implements DownloadContentVersionLinkExtension {
@@ -30,13 +16,26 @@ public class RMDownloadContentVersionLinkExtension implements DownloadContentVer
 	@Override
 	public Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption) {
 		Component downloadLink;
+		if (!isDocumentOrUserDocument(recordVO)) {
+			// Do not enable agent for non-rm entities
+			return null;
+		}
+
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
 			downloadLink = new ConstellioAgentLink(agentURL, contentVersionVO, caption);
 		} else {
-			downloadLink = new DownloadDocumentContentVersionLinkImpl(recordVO, contentVersionVO, caption);
+			downloadLink = new DownloadContentVersionLink(contentVersionVO, caption);
 		}
 		return downloadLink;
 	}
 
+	private boolean isDocumentOrUserDocument(RecordVO recordVO) {
+		String schemaType = getSchemaType(recordVO.getSchema());
+		return Document.SCHEMA_TYPE.equals(schemaType) || UserDocument.SCHEMA_TYPE.equals(schemaType);
+	}
+
+	private String getSchemaType(MetadataSchemaVO schema) {
+		return schema.getCode().split("_")[0];
+	}
 }

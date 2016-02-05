@@ -1,31 +1,17 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.builders.administration.plan;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Map.Entry;
 
 import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
@@ -49,6 +35,7 @@ public class ClassificationPlanReportBuilder implements ReportBuilder {
 	public static final float MARGIN_RIGHT = 0f;
 	public static final float MARGIN_TOP = 70f;
 	public static final float MARGIN_BOTTOM = 20f;
+	public static final int ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE = INITIAL_FONT_SIZE + 2;
 
 	private ClassificationPlanReportModel model;
 	private PdfTableUtils pdfTableUtils;
@@ -76,7 +63,7 @@ public class ClassificationPlanReportBuilder implements ReportBuilder {
 			document.open();
 			document.add(createReport(writer));
 			document.close();
-		} catch (DocumentException e){
+		} catch (DocumentException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -85,13 +72,20 @@ public class ClassificationPlanReportBuilder implements ReportBuilder {
 			throws BadElementException, IOException {
 		PageEvent pageEvent = new PageEvent(foldersLocator);
 
-		pageEvent.setTitle($("ClassificationPlanReport.Title"));
+		String title;
+		if (model.isByAdministrativeUnit()) {
+			title = "ClassificationPlanByAdministrativeUnitReport.Title";
+		} else if (model.isDetailed()) {
+			title = "ClassificationPlanReport.Title";
+		} else {
+			title = "ClassificationPlanReport.Title";
+		}
+		pageEvent.setTitle($(title));
 		pageEvent.setLogo("constellio-logo.png");
 		pageEvent.setFooter(TimeProvider.getLocalDateTime().toString("yyyy-MM-dd HH:mm"));
 
 		writer.setPageEvent(pageEvent);
 	}
-
 
 	private PdfPTable createReport(PdfWriter writer) {
 		PdfPTable table = new PdfPTable(1);
@@ -100,11 +94,32 @@ public class ClassificationPlanReportBuilder implements ReportBuilder {
 		table.setWidthPercentage(TABLE_WIDTH_PERCENTAGE);
 		table.setExtendLastRow(true);
 
-		for (ClassificationPlanReportModel_Category category : model.getRootCategories()) {
-			int level = INITIAL_LEVEL;
-			int fontSize = INITIAL_FONT_SIZE;
-			float rowHeight = PdfTableUtils.ROW_HEIGHT;
-			createSubTable(table, category, level, fontSize, rowHeight);
+		if (model.isByAdministrativeUnit()) {
+			pdfTableUtils.addEmptyRows(table, 4, table.getDefaultCell().getHeight());
+			for (Entry<AdministrativeUnit, List<ClassificationPlanReportModel_Category>> adminUnitCategoriesEntry : model
+					.getCategoriesByAdministrativeUnitMap().entrySet()) {
+				PdfPTable subTable = new PdfPTable(COLUMN_NUMBER);
+				subTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+				String codeTitle =
+						adminUnitCategoriesEntry.getKey().getCode() + " - " + adminUnitCategoriesEntry.getKey().getTitle();
+				pdfTableUtils
+						.addCenterPhraseRow(subTable, codeTitle, INITIAL_FONT_SIZE + 2);
+				table.addCell(subTable);
+				pdfTableUtils.addEmptyRows(table, 1, table.getDefaultCell().getHeight());
+				for (ClassificationPlanReportModel_Category category : adminUnitCategoriesEntry.getValue()) {
+					int level = INITIAL_LEVEL;
+					int fontSize = INITIAL_FONT_SIZE;
+					float rowHeight = PdfTableUtils.ROW_HEIGHT;
+					createSubTable(table, category, level, fontSize, rowHeight);
+				}
+			}
+		} else {
+			for (ClassificationPlanReportModel_Category category : model.getRootCategories()) {
+				int level = INITIAL_LEVEL;
+				int fontSize = INITIAL_FONT_SIZE;
+				float rowHeight = PdfTableUtils.ROW_HEIGHT;
+				createSubTable(table, category, level, fontSize, rowHeight);
+			}
 		}
 		return table;
 	}
@@ -117,22 +132,44 @@ public class ClassificationPlanReportBuilder implements ReportBuilder {
 		int colspan = COLUMN_NUMBER - level;
 		pdfTableUtils.addEmptyCells(subTable, level, rowHeight);
 		String codeLabel = category.getCode() + " - " + category.getLabel();
-		pdfTableUtils.addPhraseRow(subTable, codeLabel, fontSize, colspan);
+		pdfTableUtils.addLeftPhraseRow(subTable, codeLabel, fontSize, colspan);
 		pdfTableUtils.addEmptyCells(subTable, level, rowHeight);
-		level = increaseLevel(level);
-		fontSize = decreaseFontSize(level, fontSize);
-		rowHeight = decreaseRowHeight(level, rowHeight);
+		int newlevel = increaseLevel(level);
+		int newfontSize = decreaseFontSize(level, fontSize);
+		float newRowHeight = decreaseRowHeight(level, rowHeight);
 		if (model.isDetailed()) {
 			if (category.getDescription() != null) {
-				pdfTableUtils.addPhraseRow(subTable, category.getDescription(), fontSize, colspan);
+				pdfTableUtils.addLeftPhraseRow(subTable, category.getDescription(), fontSize, colspan);
 			}
+		}
+
+		if (model.isByAdministrativeUnit()) {
+			pdfTableUtils.addEmptyRows(subTable, 1, rowHeight);
+			pdfTableUtils.addEmptyCells(subTable, level, rowHeight);
+			pdfTableUtils.addLeftPhraseRow(subTable, $("ClassificationPlanReport.keywords"), fontSize, colspan);
+			for (String keyword : category.getKeywords()) {
+				pdfTableUtils.addEmptyCells(subTable, level, rowHeight);
+				pdfTableUtils.addLeftPhraseRow(subTable, keyword.toUpperCase(), fontSize, colspan);
+
+			}
+			pdfTableUtils.addEmptyRows(subTable, 1, rowHeight);
+			pdfTableUtils.addEmptyCells(subTable, level, rowHeight);
+			pdfTableUtils.addLeftPhraseCell(subTable, $("ClassificationPlanReport.retentionRules"), fontSize, colspan);
+			pdfTableUtils.addEmptyCells(subTable, level, rowHeight);
+			pdfTableUtils
+					.addLeftPhraseCell(subTable, category.getRetentionRules().toString().replaceFirst("\\[", "").replace("]", ""),
+							fontSize,
+							colspan);
 		}
 
 		table.addCell(subTable);
 
-		for (ClassificationPlanReportModel_Category subCategory : category.getCategories()) {
-			createSubTable(table, subCategory, level, fontSize, rowHeight);
+		if (!model.isByAdministrativeUnit()) {
+			for (ClassificationPlanReportModel_Category subCategory : category.getCategories()) {
+				createSubTable(table, subCategory, newlevel, newfontSize, newRowHeight);
+			}
 		}
+		pdfTableUtils.addEmptyRows(subTable, 1, newRowHeight);
 	}
 
 	private float decreaseRowHeight(int level, float rowHeight) {

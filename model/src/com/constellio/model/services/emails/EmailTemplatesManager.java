@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.emails;
 
 import java.io.IOException;
@@ -28,6 +11,7 @@ import org.apache.commons.io.IOUtils;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
@@ -79,7 +63,7 @@ public class EmailTemplatesManager implements StatefulService {
 		}
 	}
 
-	public void addCollectionTemplate(String templateId, String collection, InputStream templateStream)
+	void addCollectionTemplate(String templateId, String collection, InputStream templateStream)
 			throws IOException, ConfigManagerException.OptimisticLockingConfiguration {
 
 		CloseableStreamFactory<InputStream> streamFactory = ioServices.copyToReusableStreamFactory(templateStream);
@@ -115,6 +99,10 @@ public class EmailTemplatesManager implements StatefulService {
 		if (templates.getTemplate(templateId) == null) {
 			String collectionConfigPath = getConfigPath(collection, templateId);
 			TextConfiguration templateText = configManager.getText(collectionConfigPath);
+			if (templateText == null) {
+				throw new RuntimeException("Invalid template" + templateId + " in collection " + collection + ", given path "
+						+ collectionConfigPath);
+			}
 			templates.putTemplate(templateId, templateText.getText());
 		}
 	}
@@ -123,8 +111,20 @@ public class EmailTemplatesManager implements StatefulService {
 		return "/" + collection + EMAIL_TEMPLATES_CONFIGS + templateId;
 	}
 
+	public void replaceCollectionTemplate(String templateId, String collection, InputStream templateInputStream)
+			throws IOException, OptimisticLockingConfiguration {
+		String path = getConfigPath(collection, templateId);
+		configManager.delete(path);
+		addCollectionTemplate(templateId, collection, templateInputStream);
+	}
+
+	private String getCollectionLanguage(String collection) {
+		return collectionsListManager.getCollectionLanguages(collection).get(0);
+	}
+
 	private class CollectionTemplates extends HashMap<String, String> {
 		public String getTemplate(String templateId) {
+
 			return get(templateId);
 		}
 

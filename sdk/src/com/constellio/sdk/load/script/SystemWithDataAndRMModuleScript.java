@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.load.script;
 
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
@@ -30,11 +13,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import demo.DemoInitScript;
 
 import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -50,6 +35,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BigFileEntry;
 import com.constellio.data.utils.BigFileFolderIterator;
+import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -72,6 +58,8 @@ import com.constellio.sdk.load.script.utils.LinkableIdsList;
 import com.constellio.sdk.load.script.utils.LinkableRecordsList;
 
 public class SystemWithDataAndRMModuleScript implements DemoInitScript {
+
+	static int documentsBatch = 100;
 
 	File bigFilesFolder;
 	int subFoldersPerFolder = 0;
@@ -219,7 +207,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 		modelLayerFactory.newRecordServices().update(collectionRecord.set(Schemas.TITLE, title));
 
 		//SETUP MODULES
-		appLayerFactory.getModulesManager().enableModule(collection, new ConstellioRMModule());
+		appLayerFactory.getModulesManager().enableValidModuleAndGetInvalidOnes(collection, new ConstellioRMModule());
 
 	}
 
@@ -267,34 +255,107 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 
 		RecordServices recordServices = rm.getModelLayerFactory().newRecordServices();
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions();
-		options.withRecordsPerBatch(10);
+		options.withRecordsPerBatch(1000);
+		options.withNumberOfThreads(4);
 		BulkRecordTransactionHandler transactionHandler = new BulkRecordTransactionHandler(recordServices, "addDocuments",
 				options);
 
-		ContentManager contentManager = rm.getModelLayerFactory().getContentManager();
-		for (int i = 0; i < numberOfDocuments; i++) {
-			BigFileEntry entry = contentIterator.next();
-			InputStream in = new ByteArrayInputStream(entry.getBytes());
-			ContentVersionDataSummary contentVersionDataSummary;
-			try {
-				contentVersionDataSummary = contentManager.upload(in);
-			} finally {
-				IOUtils.closeQuietly(in);
-			}
-
-			Document document = rm.newDocument()
-					.setFolder(folderIds.next())
-					.setTitle(entry.getFileName())
-					.setContent(contentManager.createMajor(admin, entry.getFileName(), contentVersionDataSummary));
-
-			Record documentRecord = document.getWrappedRecord();
-			transactionHandler.append(documentRecord);
-			transactionHandler.append(eventFactory.newRecordEvent(documentRecord, users.next(), VIEW).getWrappedRecord());
-			transactionHandler.append(eventFactory.newRecordEvent(documentRecord, users.next(), VIEW).getWrappedRecord());
-			transactionHandler.append(eventFactory.newRecordEvent(documentRecord, users.next(), VIEW).getWrappedRecord());
-
+		ThreadList<DocumentSavehread> threadList = new ThreadList<>();
+		AtomicInteger addedCount = new AtomicInteger();
+		for(int i = 0 ; i < 10 ; i++) {
+			threadList.addAndStart(new DocumentSavehread(addedCount, numberOfDocuments, contentIterator, rm, folderIds, users, transactionHandler));
 		}
+		try {
+			threadList.joinAll();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+
 		transactionHandler.closeAndJoin();
+	}
+
+	private class DocumentSavehread extends Thread {
+
+		private int requiredCount;
+		private AtomicInteger addedCount = new AtomicInteger();
+
+		private BigFileFolderIterator bigFileFolderIterator;
+
+		private RMSchemasRecordsServices rm ;
+
+		private LinkableIdsList folderIds;
+		private LinkableRecordsList<User> users;
+
+		private ContentManager contentManager;
+
+		private BulkRecordTransactionHandler transactionHandler;
+
+		private EventFactory eventFactory;
+		private User admin;
+
+
+		public DocumentSavehread(AtomicInteger addedCount, int requiredCount, BigFileFolderIterator bigFileFolderIterator, RMSchemasRecordsServices rm, LinkableIdsList folderIds, LinkableRecordsList<User> users, BulkRecordTransactionHandler transactionHandler) {
+			this.addedCount = addedCount;
+			this.requiredCount = requiredCount;
+			this.bigFileFolderIterator = bigFileFolderIterator;
+			this.rm = rm;
+			this.folderIds =folderIds;
+			this.users = users;
+			this.transactionHandler = transactionHandler;
+			this.contentManager = rm.getModelLayerFactory().getContentManager();
+
+			this.eventFactory = new EventFactory(rm.getModelLayerFactory());
+			this.admin = rm.getModelLayerFactory().newUserServices().getUserInCollection("admin", rm.getCollection());
+		}
+
+
+
+		@Override
+		public void run() {
+			while(addedCount.get() < requiredCount) {
+				List<BigFileEntry> entries = new ArrayList<>();
+				Folder  folder = rm.getFolder(folderIds.next());
+				User createdBy = users.next();
+				synchronized (bigFileFolderIterator) {
+					for(int i = 0 ; i < documentsBatch ; i++) {
+						entries.add(bigFileFolderIterator.next());
+					}
+				}
+
+				List<Record> records = new ArrayList<>();
+				for(int i = 0 ; i < documentsBatch ; i++) {
+
+					BigFileEntry entry = contentIterator.next();
+					InputStream in = new ByteArrayInputStream(entry.getBytes());
+					ContentVersionDataSummary contentVersionDataSummary;
+					try {
+						contentVersionDataSummary = contentManager.upload(in, false, true, null);
+					} finally {
+						IOUtils.closeQuietly(in);
+					}
+
+					Document document = rm.newDocument()
+							.setFolder(folder)
+							.setFormCreatedBy(createdBy)
+							.setFormCreatedOn(new LocalDateTime())
+							.setTitle(entry.getFileName())
+							.setContent(contentManager.createMajor(createdBy, entry.getFileName(), contentVersionDataSummary));
+					records.add(document.getWrappedRecord());
+
+					Record documentRecord = document.getWrappedRecord();
+					records.add(eventFactory.newRecordEvent(documentRecord, users.next(), VIEW).getWrappedRecord());
+					records.add(eventFactory.newRecordEvent(documentRecord, users.next(), VIEW).getWrappedRecord());
+					records.add(eventFactory.newRecordEvent(documentRecord, users.next(), VIEW).getWrappedRecord());
+				}
+
+				List<Record> dependOn = asList(folder.getWrappedRecord());
+
+				transactionHandler.append(records, dependOn);
+
+				addedCount.addAndGet(documentsBatch);
+			}
+		}
 	}
 
 	private LinkableIdsList createFolders(RMSchemasRecordsServices rm, String ruleId, LinkableIdsList categoriesIds,

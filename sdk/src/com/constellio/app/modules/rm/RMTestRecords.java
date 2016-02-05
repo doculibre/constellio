@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.modules.rm.constants.RMRoles.MANAGER;
@@ -22,6 +5,9 @@ import static com.constellio.app.modules.rm.constants.RMRoles.RGD;
 import static com.constellio.app.modules.rm.constants.RMRoles.USER;
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DESTROY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_TRANSFER;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
@@ -49,6 +35,7 @@ import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
@@ -133,12 +120,15 @@ public class RMTestRecords {
 	public final String documentTypeId_6 = "documentTypeId_6";
 	public final String documentTypeId_7 = "documentTypeId_7";
 	public final String documentTypeId_8 = "documentTypeId_8";
+	public final String documentTypeId_9 = "documentTypeId_9";
+	public final String documentTypeId_10 = "documentTypeId_10";
 
 	public final String ruleId_1 = "ruleId_1";
 	public final String ruleId_2 = "ruleId_2";
 	public final String ruleId_3 = "ruleId_3";
 	public final String ruleId_4 = "ruleId_4";
 	public final String ruleId_5 = "ruleId_5";
+	public final String ruleId_6 = "ruleId_6";
 
 	public final String storageSpaceId_S01 = "S01";
 	public final String storageSpaceId_S01_01 = "S01-01";
@@ -286,6 +276,17 @@ public class RMTestRecords {
 	public final String document_B33 = "doc_B33";
 	public final String document_A79 = "doc_A79";
 
+	public final String folder_A01_documentWithSameCopy = "doc_A01_same_copy";
+	public final String folder_A01_documentWithDifferentCopy = "A02";
+	public final String folder_A02_documentWithSameCopy = "A03";
+	public final String folder_A02_documentWithDifferentCopy = "A04";
+	public final String folder_A03_documentWithDifferentCopy = "A05";
+	public final String folder_A03_documentWithSameCopy = "A06";
+	//	public final String folder_A04_documentWithSameCopy = "A07";
+	//	public final String folder_A04_documentWithSameCopy = "A08";
+	//	public final String folder_A05_documentWithSameCopy = "A09";
+	//	public final String folder_A05_documentWithSameCopy = "A10";
+
 	public final String list_01 = "list01";
 	public final String list_02 = "list02";
 	public final String list_03 = "list03";
@@ -312,6 +313,14 @@ public class RMTestRecords {
 	public final String list_24 = "list24";
 	public final String list_25 = "list25";
 	public final String list_26 = "list26";
+
+	public final String list_30 = "list30";
+	public final String list_31 = "list31";
+	public final String list_32 = "list32";
+	public final String list_33 = "list33";
+	public final String list_34 = "list34";
+	public final String list_35 = "list35";
+	public final String list_36 = "list36";
 
 	private String collection;
 	private RMSchemasRecordsServices rm;
@@ -348,7 +357,7 @@ public class RMTestRecords {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> userRecords = searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.userSchemaType()).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(rm.userUsername())));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(rm.userUsername())));
 
 		for (User user : rm.wrapUsers(userRecords)) {
 			if (user.getUsername().equals("admin")) {
@@ -547,6 +556,8 @@ public class RMTestRecords {
 		transaction.add(rm.newDocumentTypeWithId(documentTypeId_7).setCode("7").setTitle("Notes de réunion"));
 		transaction.add(rm.newDocumentTypeWithId(documentTypeId_8).setCode("8")
 				.setTitle("Dossiers des administrateurs : affirmations solennelles, serments de discrétion"));
+		transaction.add(rm.newDocumentTypeWithId(documentTypeId_9).setCode("9").setTitle("Contrat"));
+		transaction.add(rm.newDocumentTypeWithId(documentTypeId_10).setCode("10").setTitle("Procès-verbal"));
 	}
 
 	private void waitForBatchProcesses(BatchProcessesManager batchProcessesManager) {
@@ -763,55 +774,11 @@ public class RMTestRecords {
 
 		rule5.setCopyRetentionRules(asList(principal888_5_C_rule5, secondary888_0_D_rule5));
 
-		String r1_rule5 =
-				"R1:\n" +
-						"Valeur administrative" +
-						"Le conseil d’administration (CA) est responsable de la marche des affaires de l’organisme et prend des décisions à cet effet, tel que décrit dans le Règlement intérieur de l’OACIQ (art. 111).\n\n"
-						+
-						"Pour ce faire, les documents nécessaires à la bonne marche d’une réunion du conseil d’administration, selon les règles et procédures édictées par le Règlement intérieur, sont rassemblés, communiqués aux administrateurs et conservés dans un dossier. Ces documents permettent de documenter les points à discuter, les décisions à prendre et l’état d’avancement des sujets à l’étude1.\n\n"
-						+
-						"Chacune des séances doit faire l’objet d’un procès-verbal (art. 110 du Règlement intérieur). Les procès-verbaux sont régulièrement consultés pour connaître ou se référer aux décisions du CA. Par ailleurs, les documents transmis avant ou déposés lors de la séance aident à comprendre le procès-verbal qui peut y référer.\n\n"
-						+
-						"De plus, certaines résolutions sont transmises pour le suivi des dossiers ou suite à une demande particulière. Ces résolutions sont classées au dossier pertinent tenu par le service concerné.\n\n"
-						+
-						"Conseil d’administration\n\n" +
-						"Les dossiers des réunions peuvent être consultés pour répondre à une demande d’information ou une demande d’accès déposée en vertu de la Loi sur l’accès.\n\n"
-						+
-						"Les documents contenus aux dossiers de séances du conseil d’administration sont considérés comme des documents essentiels parce qu’ils rendent compte des décisions importantes de l’organisme.\n\n"
-						+
-						"Valeur de preuve\n\n" +
-						"Les documents rendent compte du suivi des procédures décrites au Règlement intérieur de l’OACIQ et de la validité des réunions du conseil.\n\n"
-						+
-						"Le procès-verbal atteste des décisions prises par le conseil et de ce fait, de la légalité des actions de l’organisme qui en découlent. Il peut être présenté comme preuve à cet effet dans un litige2.\n\n"
-						+
-						"Les documents attestent de l’application de la Loi sur le courtage immobilier, du Règlement intérieur de l’OACIQ (art. 116, 117 et 124), de la bonne gouvernance de l’organisme et peuvent être consultés à ce sujet lors d’une inspection par le ministre des Finances.\n\n";
+		String r1_rule5 = "R1:\nValeur administrative \n\n";
 
-		String r2_rule5 =
-				"R2:\n" +
-						"Valeur administrative\n\n" +
-						"Les dossiers des réunions peuvent être consultés pour répondre à une demande d’information ou une demande d’accès déposée en vertu de la Loi sur l’accès aux documents et sur la protection des renseignements personnels (LRQ, c A-2.1).\n\n"
-						+
-						"Les procès-verbaux sont régulièrement consultés pour connaître ou se référer aux décisions du CA. Par ailleurs, les documents transmis avant ou déposés lors de la séance aident à comprendre le procès-verbal qui peut y référer.\n\n"
-						+
-						"Valeur de preuve\n\n" +
-						"Les documents rendent compte du suivi des procédures décrites au Règlement intérieur de l’OACIQ et de la validité des réunions du conseil.\n\n"
-						+
-						"Le procès-verbal atteste des décisions prises par le conseil et de ce fait, de la légalité des actions de l’organisme. Il peut être présenté comme preuve à cet effet dans un litige3.\n\n"
-						+
-						"Les documents attestent de l’application de la Loi sur le courtage immobilier, du Règlement intérieur de l’OACIQ, de la bonne gouvernance de l’organisme et peuvent être consultés à ce sujet lors d’une inspection par le ministre des Finances (art. 113 et 114 de la Loi sur le courtage\n\n"
-						+
-						"immobilier).\n\n";
+		String r2_rule5 = "R2:\nValeur administrative\n\nLes dossiers des réunions peuvent être consultés pour répondre à une demande d’information.\n\nValeur de preuve\n\n";
 
-		String r3_rule5 =
-				"R3:\n" +
-						"Valeur historique\n\n" +
-						"Le dossier de réunion, et plus particulièrement le procès-verbal de la réunion, recense tous les événements qui ont marqué l’existence de l’organisation et témoigne des réflexions et des décisions du conseil. De plus, les documents afférents qui y sont conservés permettent également de mieux comprendre les résolutions et les discussions mentionnées au procès-verbal. Ainsi, le dossier de réunion informe sur l’évolution de l’organisme.\n\n"
-						+
-						"Toutefois, pour se conformer à la Loi sur l’accès aux documents (art. 73), les renseignements personnels contenus aux documents afférents devront être retirés.\n\n"
-						+
-						"N.B. Les documents afférents sont conservés au dossier de séance bien que leur conservation soit déjà assurée par l’application de leur propre règle de conservation. Il a été constaté qu’il pouvait être ardu de retrouver les documents présentés au CA dans leur dossier respectif en raison d’une application inégale des outils de gestion documentaire au cours des dernières années. Ainsi, la conservation du dossier de séance complet assure l’accès aux documents tels que présentés au CA.\n\n"
-						+
-						"Une révision de la règle dans cinq ans pourra permettre de réévaluer la pertinence de conserver les documents afférents de façon permanente.\n\n";
+		String r3_rule5 = "R3:\nValeur historique\n\nLe dossier de réunion\n\n";
 
 		rule5.setCopyRulesComment(asList(r1_rule5, r2_rule5, r3_rule5));
 
@@ -980,7 +947,7 @@ public class RMTestRecords {
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_TRANSFER).setFolderDetailsFor(folder_A(25, 27));
 
-		transaction.add(rm.newDecommissioningListWithId(list_07)).setTitle("Liste analogique à détruire")
+		transaction.add(rm.newDecommissioningListWithId(list_07)).setTitle("Liste analogique à détruire 2")
 				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_DESTROY).setFolderDetailsFor(folder_A(54, 56));
 
@@ -1091,7 +1058,7 @@ public class RMTestRecords {
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setFolderDetailsFor(folder_A(1, 3))
-				.setApprovalRequest(dakota_managerInA_userInB).setApprovalRequestDate(new LocalDate());
+				.setApprovalRequest(admin_userIdWithAllAccess).setApprovalRequestDate(new LocalDate());
 
 		DecomListValidation validationDakota = new DecomListValidation(dakota_managerInA_userInB, new LocalDate().minusDays(1))
 				.setValidationDate(new LocalDate());
@@ -1101,7 +1068,7 @@ public class RMTestRecords {
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setFolderDetailsFor(folder_A(1, 3))
-				.setApprovalRequest(dakota_managerInA_userInB).setApprovalRequestDate(new LocalDate())
+				.setApprovalRequest(chuckNorris).setApprovalRequestDate(new LocalDate())
 				.setApprovalUser(getAdmin()).setApprovalDate(new LocalDate())
 				.setValidations(asList(validationDakota, validationBob));
 
@@ -1109,9 +1076,164 @@ public class RMTestRecords {
 				.setAdministrativeUnit(unitId_10a)
 				.setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(FOLDERS_TO_CLOSE).setFolderDetailsFor(folder_A(1, 3))
-				.setApprovalRequest(gandalf_managerInABC).setApprovalRequestDate(new LocalDate())
+				.setApprovalRequest(chuckNorris).setApprovalRequestDate(new LocalDate())
 				.addValidationRequest(dakota_managerInA_userInB, new LocalDate())
 				.addValidationRequest(bob_userInAC, new LocalDate());
+	}
+
+	public RMTestRecords withDocumentDecommissioningLists() {
+
+		//contrat
+		CopyRetentionRule principal1_2_C = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "2-0-C")
+				.setDocumentTypeId(documentTypeId_9);
+
+		//proces-verbal
+		CopyRetentionRule principal1_2_D = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "1-2-D")
+				.setDocumentTypeId(documentTypeId_10);
+
+		CopyRetentionRule principal5_5_C = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "5-5-C");
+		CopyRetentionRule secondary5_5_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "5-5-D");
+
+		Transaction transaction = new Transaction();
+
+		transaction.add(rm.newRetentionRuleWithId(ruleId_6)).setCode("6").setTitle("Rule #6")
+				.setScope(RetentionRuleScope.DOCUMENTS)
+				.setAdministrativeUnits(asList(unitId_10, unitId_20)).setApproved(true)
+				.setDocumentCopyRetentionRules(asList(principal1_2_C, principal1_2_D))
+				.setPrincipalDefaultDocumentCopyRetentionRule(principal5_5_C)
+				.setSecondaryDefaultDocumentCopyRetentionRule(secondary5_5_D);
+
+		Category categoryX = rm.getCategory(categoryId_X);
+		List<String> retentionRules = new ArrayList<>(categoryX.getRententionRules());
+		retentionRules.add(ruleId_6);
+		transaction.add(categoryX.setRetentionRules(retentionRules));
+
+		createDocumentsAndReturnThoseWhithDifferentCopyForEach(transaction, folder_A(1, 27));
+		createDocumentsAndReturnThoseWhithDifferentCopyForEach(transaction, folder_A(42, 59));
+		createDocumentsAndReturnThoseWhithDifferentCopyForEach(transaction, folder_A(79, 96));
+
+		//transférée
+		transaction.add(rm.newDecommissioningListWithId(list_30)).setTitle("Liste de transfert de documents traîtées")
+				.setAdministrativeUnit(unitId_10a)
+				.setDecommissioningListType(DOCUMENTS_TO_TRANSFER).setProcessingUser(dakota_managerInA_userInB)
+				.setProcessingDate(date(2012, 5, 5)).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setDocuments(documentsWhithDifferentCopyForEach(folder_A(45, 49)));
+
+		// à transférer
+		transaction.add(rm.newDecommissioningListWithId(list_31))
+				.setTitle("Liste de transfert de documents").setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setAdministrativeUnit(unitId_10a).setDecommissioningListType(DOCUMENTS_TO_TRANSFER)
+				.setDocuments(documentsWhithDifferentCopyForEach(folder_A(22, 24)));
+
+		// ------------
+		// versée
+		transaction.add(rm.newDecommissioningListWithId(list_32)).setTitle("Liste de versement de documents traîtées")
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setDecommissioningListType(DOCUMENTS_TO_DEPOSIT).setProcessingUser(dakota_managerInA_userInB)
+				.setProcessingDate(date(2012, 5, 5))
+				.setDocuments(documentsWhithDifferentCopyForEach(folder_A(79, 93)));
+
+		//semi-actif à verser
+		transaction.add(rm.newDecommissioningListWithId(list_33))
+				.setTitle("Liste de versement de documents semi-actifs").setAdministrativeUnit(unitId_10a)
+				.setDecommissioningListType(DOCUMENTS_TO_DEPOSIT)
+				.setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setContainerDetailsFor(containerId_bac11)
+				.setDocuments(documentsWhithDifferentCopyForEach(folder_A(48, 50)));
+
+		// actif à verser
+		transaction.add(rm.newDecommissioningListWithId(list_34)).setTitle("Liste de versement de documents semi-actifs")
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setDecommissioningListType(DOCUMENTS_TO_DEPOSIT)
+				.setDocuments(documentsWhithDifferentCopyForEach(folder_A(19, 21)));
+
+		// ------------
+		// actif à détruire
+		transaction.add(rm.newDecommissioningListWithId(list_35)).setTitle("Liste de destruction de documents actifs")
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.ACTIVE)
+				.setDecommissioningListType(DOCUMENTS_TO_DESTROY)
+				.setDocuments(documentsWhithDifferentCopyForEach(folder_A(19, 21)));
+
+		// semi-actif à détruire
+		transaction.add(rm.newDecommissioningListWithId(list_36)).setTitle("Liste de destruction de documents semi-actifs")
+				.setAdministrativeUnit(unitId_10a).setOriginArchivisticStatus(OriginStatus.SEMI_ACTIVE)
+				.setDecommissioningListType(DOCUMENTS_TO_DESTROY)
+				.setDocuments(documentsWhithDifferentCopyForEach(folder_A(54, 56)));
+
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+
+		return this;
+	}
+
+	private List<String> createDocumentsAndReturnThoseWhithDifferentCopyForEach(Transaction transaction, String... folders) {
+
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		User user = users.adminIn(collection);
+
+		ContentVersionDataSummary contractVersion = upload("contrat.docx");
+		Content contractContent = contentManager.createMinor(user, "contrat.docx", contractVersion);
+		ContentVersionDataSummary procesVersion = upload("proces.docx");
+		Content procesContent = contentManager.createMinor(user, "proces.docx", procesVersion);
+
+		List<String> returnedIds = new ArrayList<>();
+
+		for (String folderId : folders) {
+			Folder folder = rm.getFolder(folderId);
+
+			String paperSameCopyId = folder + "_paperDocumentWithSameCopy";
+			String paperContractDifferentCopyId = folder + "_paperContractWithDifferentCopy";
+			String paperProcesDifferentCopyId = folder + "_paperProcesWithDifferentCopy";
+			returnedIds.add(paperContractDifferentCopyId);
+			returnedIds.add(paperProcesDifferentCopyId);
+			transaction.add(rm.newDocumentWithId(paperContractDifferentCopyId).setFolder(folder).setType(documentTypeId_9)
+					.setTitle(folder.getTitle() + " - Document contrat analogique avec un autre exemplaire"));
+			transaction.add(rm.newDocumentWithId(paperProcesDifferentCopyId).setFolder(folder).setType(documentTypeId_10)
+					.setTitle(folder.getTitle() + " - Document procès verbal analogique avec un autre exemplaire"));
+			transaction.add(rm.newDocumentWithId(paperSameCopyId).setFolder(folder)
+					.setTitle(folder.getTitle() + " - Document analogique avec le même exemplaire"));
+
+			String numericContractDifferentCopyId = folder + "_numericContractWithDifferentCopy";
+			String numericProcesDifferentCopyId = folder + "_numericProcesWithDifferentCopy";
+			String numericSameCopyId = folder + "_numericDocumentWithSameCopy";
+			returnedIds.add(numericContractDifferentCopyId);
+			returnedIds.add(numericProcesDifferentCopyId);
+
+			transaction.add(rm.newDocumentWithId(numericContractDifferentCopyId).setFolder(folder).setType(documentTypeId_9)
+					.setContent(contractContent)
+					.setTitle(folder.getTitle() + " - Document contrat numérique avec un autre exemplaire"));
+			transaction.add(rm.newDocumentWithId(numericProcesDifferentCopyId).setFolder(folder).setType(documentTypeId_10)
+					.setContent(procesContent)
+					.setTitle(folder.getTitle() + " - Document procès verbal numérique avec un autre exemplaire"));
+			transaction.add(rm.newDocumentWithId(numericSameCopyId).setFolder(folder)
+					.setContent(procesContent).setTitle(folder.getTitle() + " - Document numérique avec le même exemplaire"));
+		}
+
+		return returnedIds;
+	}
+
+	private List<String> documentsWhithDifferentCopyForEach(String... folders) {
+
+		List<String> returnedIds = new ArrayList<>();
+
+		for (String folderId : folders) {
+			Folder folder = rm.getFolder(folderId);
+
+			String paperContractDifferentCopyId = folder + "_paperContractWithDifferentCopy";
+			String paperProcesDifferentCopyId = folder + "_paperProcesWithDifferentCopy";
+			returnedIds.add(paperContractDifferentCopyId);
+			returnedIds.add(paperProcesDifferentCopyId);
+
+			String numericContractDifferentCopyId = folder + "_numericContractWithDifferentCopy";
+			String numericProcesDifferentCopyId = folder + "_numericProcesWithDifferentCopy";
+			returnedIds.add(numericContractDifferentCopyId);
+			returnedIds.add(numericProcesDifferentCopyId);
+		}
+
+		return returnedIds;
 	}
 
 	private void setupStorageSpace(Transaction transaction) {
@@ -1131,10 +1253,8 @@ public class RMTestRecords {
 				rm.newStorageSpaceWithId(storageSpaceId_S02_01).setCode(storageSpaceId_S02_01)
 						.setTitle("Tablette 1").setParentStorageSpace(storageSpaceId_S02)).setDecommissioningType(
 				TRANSFERT_TO_SEMI_ACTIVE);
-		transaction.add(
-				rm.newStorageSpaceWithId(storageSpaceId_S02_02).setCode(storageSpaceId_S02_02)
-						.setTitle("Tablette 2").setParentStorageSpace(storageSpaceId_S02)).setDecommissioningType(
-				DEPOSIT);
+		transaction.add(rm.newStorageSpaceWithId(storageSpaceId_S02_02).setCode(storageSpaceId_S02_02).setTitle("Tablette 2")
+				.setParentStorageSpace(storageSpaceId_S02)).setDecommissioningType(DEPOSIT);
 	}
 
 	private void setupContainerTypes(Transaction transaction) {
@@ -2242,6 +2362,34 @@ public class RMTestRecords {
 		return rm.getDecommissioningList(list_26);
 	}
 
+	public DecommissioningList getList30() {
+		return rm.getDecommissioningList(list_30);
+	}
+
+	public DecommissioningList getList31() {
+		return rm.getDecommissioningList(list_31);
+	}
+
+	public DecommissioningList getList32() {
+		return rm.getDecommissioningList(list_32);
+	}
+
+	public DecommissioningList getList33() {
+		return rm.getDecommissioningList(list_33);
+	}
+
+	public DecommissioningList getList34() {
+		return rm.getDecommissioningList(list_34);
+	}
+
+	public DecommissioningList getList35() {
+		return rm.getDecommissioningList(list_35);
+	}
+
+	public DecommissioningList getList36() {
+		return rm.getDecommissioningList(list_36);
+	}
+
 	public VariableRetentionPeriod getVariableRetentionPeriod_42() {
 		return rm.getVariableRetentionPeriodWithCode("42");
 	}
@@ -2707,11 +2855,55 @@ public class RMTestRecords {
 		List<String> ids = new ArrayList<>();
 		for (int i = from; i <= to; i++) {
 
+			String folderId;
 			if (i < 10) {
-				ids.add("A0" + i);
+				folderId = "A0" + i;
 			} else {
-				ids.add("A" + i);
+				folderId = "A" + i;
 			}
+
+			ids.add(folderId);
+
+		}
+
+		return ids.toArray(new String[0]);
+	}
+
+	public String[] decommissionnableContractsInFolder_A(int from, int to) {
+
+		List<String> ids = new ArrayList<>();
+		for (int i = from; i <= to; i++) {
+
+			String folderId;
+			if (i < 10) {
+				folderId = "A0" + i;
+			} else {
+				folderId = "A" + i;
+			}
+
+			ids.add(folderId + "_paperContractWithDifferentCopy");
+			ids.add(folderId + "_numericContractWithDifferentCopy");
+
+		}
+
+		return ids.toArray(new String[0]);
+	}
+
+	public String[] decommissionnableProcesInFolder_A(int from, int to) {
+
+		List<String> ids = new ArrayList<>();
+		for (int i = from; i <= to; i++) {
+
+			String folderId;
+			if (i < 10) {
+				folderId = "A0" + i;
+			} else {
+				folderId = "A" + i;
+			}
+
+			ids.add(folderId + "_paperProcesWithDifferentCopy");
+			ids.add(folderId + "_numericProcesWithDifferentCopy");
+
 		}
 
 		return ids.toArray(new String[0]);

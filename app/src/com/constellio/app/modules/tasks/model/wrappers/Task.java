@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.model.wrappers;
 
 import java.util.List;
@@ -23,6 +6,7 @@ import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -57,6 +41,20 @@ public class Task extends RecordWrapper {
 
 	public Task(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
+	}
+
+	public String getType() {
+		return get(TYPE);
+	}
+	
+	public Task setType(String type) {
+		set(TYPE, type);
+		return this;
+	}
+	
+	public Task setType(TaskType type) {
+		set(TYPE, type);
+		return this;
 	}
 
 	public String getAssignee() {
@@ -130,12 +128,12 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public Content getContent() {
+	public List<Content> getContent() {
 		return get(CONTENT);
 	}
 
-	public Task setContent(Content content) {
-		set(CONTENT, content);
+	public Task setContent(List<Content> contents) {
+		set(CONTENT, contents);
 		return this;
 	}
 
@@ -178,7 +176,7 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
-	public RecordWrapper setEndDate(LocalDate endDate) {
+	public Task setEndDate(LocalDate endDate) {
 		set(END_DATE, endDate);
 		return this;
 	}

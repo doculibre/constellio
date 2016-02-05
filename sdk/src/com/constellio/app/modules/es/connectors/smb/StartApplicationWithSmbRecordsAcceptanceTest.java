@@ -1,30 +1,11 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.connectors.smb;
 
 import static com.constellio.app.modules.es.constants.ESTaxonomies.SMB_FOLDERS;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 import org.assertj.core.api.ListAssert;
 import org.junit.Before;
-import org.junit.Test;
 
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ConnectorManager;
@@ -36,7 +17,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -73,9 +53,9 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 	public void setUp()
 			throws Exception {
 		givenBackgroundThreadsEnabled();
-		givenCollection(zeCollection).withConstellioESModule()
-				.withAllTestUsers()
-				.andUsersWithReadAccess(gandalf);
+		prepareSystem(withZeCollection().withConstellioESModule().withAllTestUsers());
+		inCollection(zeCollection).giveReadAccessTo(gandalf);
+
 		Users users = new Users().setUp(getModelLayerFactory().newUserServices())
 				.withPasswords(getModelLayerFactory().getPasswordFileAuthenticationService());
 
@@ -142,47 +122,48 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 				.setTitle("New Smb Connector"));
 	}
 
-//	@Test
-//	@InDevelopmentTest
-//	public void givenAShareWhenTraversingThenAddUpdateDeleteContent()
-//			throws Exception {
-//
-//		createConnector("zeConnector");
-//
-//		newWebDriver();
-//		waitUntilICloseTheBrowsers();
-//	}
+	//	@Test
+	//	@InDevelopmentTest
+	//	public void givenAShareWhenTraversingThenAddUpdateDeleteContent()
+	//			throws Exception {
+	//
+	//		createConnector("zeConnector");
+	//
+	//		newWebDriver();
+	//		waitUntilICloseTheBrowsers();
+	//	}
 
-//	@Test
-//	@InDevelopmentTest
-//	public void givenABigShareWhenTraversingThenAddUpdateDeleteContent()
-//			throws Exception {
-//		share = "smb://192.168.1.208/shareBig/";
-//		createConnector("zeConnector");
-//
-//		newWebDriver();
-//		waitUntilICloseTheBrowsers();
-//	}
-//
-//	@Test
-//	@InDevelopmentTest
-//	public void given2ConnectorsWhenRunningThenThereIsNoConflict()
-//			throws Exception {
-//
-//		createConnector("zeConnector");
-//
-//		share = "smb://192.168.1.208/shareBig/";
-//		createConnector("zeOtherConnector");
-//
-//		newWebDriver();
-//		waitUntilICloseTheBrowsers();
-//	}
-//
-//	@Test
-//	@InDevelopmentTest
-//	public void whenModifyingConfigurationThenTraversalUsesNewConfiguration() {
-//		fail("To implement!");
-//	}
+
+	//	@Test
+	//	@InDevelopmentTest
+	//	public void givenABigShareWhenTraversingThenAddUpdateDeleteContent()
+	//			throws Exception {
+	//		share = "smb://192.168.1.208/shareBig/";
+	//		createConnector("zeConnector");
+	//
+	//		newWebDriver();
+	//		waitUntilICloseTheBrowsers();
+	//	}
+	//
+	//	@Test
+	//	@InDevelopmentTest
+	//	public void given2ConnectorsWhenRunningThenThereIsNoConflict()
+	//			throws Exception {
+	//
+	//		createConnector("zeConnector");
+	//
+	//		share = "smb://192.168.1.208/shareBig/";
+	//		createConnector("zeOtherConnector");
+	//
+	//		newWebDriver();
+	//		waitUntilICloseTheBrowsers();
+	//	}
+	//
+	//	@Test
+	//	@InDevelopmentTest
+	//	public void whenModifyingConfigurationThenTraversalUsesNewConfiguration() {
+	//		fail("To implement!");
+	//	}
 
 	private ChildRecordAssertPreparator assertThatVisibleChildRecordsFor(User user) {
 		return new ChildRecordAssertPreparator(user);
@@ -190,7 +171,8 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 
 	private ListAssert<Object> assertThatVisibleRootRecordsFor(User user) {
 		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
-		return assertThat(taxonomiesSearchServices.getVisibleRootConcept(user, zeCollection, SMB_FOLDERS, defaultOptions)).extracting("id");
+		return assertThat(taxonomiesSearchServices.getVisibleRootConcept(user, zeCollection, SMB_FOLDERS, defaultOptions))
+				.extracting("id");
 	}
 
 	private class ChildRecordAssertPreparator {
@@ -204,7 +186,8 @@ public class StartApplicationWithSmbRecordsAcceptanceTest extends ConstellioTest
 			Record record = getModelLayerFactory().newRecordServices()
 					.getDocumentById(recordId);
 			TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
-			return assertThat(taxonomiesSearchServices.getVisibleChildConcept(user, SMB_FOLDERS, record, defaultOptions)).extracting("id");
+			return assertThat(taxonomiesSearchServices.getVisibleChildConcept(user, SMB_FOLDERS, record, defaultOptions))
+					.extracting("id");
 		}
 	}
 

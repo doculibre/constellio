@@ -1,21 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.schemas;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -37,10 +22,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTypeView, ClickListener {
-
 	ListSchemaTypePresenter presenter;
 	public static final String TYPE_TABLE = "types";
 
@@ -130,7 +112,7 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 
 		Table table = new Table($("ListSchemaTypeView.tableTitle", typeContainer.size()), typeContainer);
 		table.setSizeFull();
-		table.setPageLength(table.size());
+		table.setPageLength(Math.min(15, typeContainer.size()));
 		table.setColumnHeader("buttons", "");
 		table.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
 		table.setColumnExpandRatio("caption", 1);
@@ -143,6 +125,7 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 				presenter.editButtonClicked(entity);
 			}
 		});
+		table.setSortContainerPropertyId(SchemaTypeVOLazyContainer.LABEL);
 
 		return table;
 	}

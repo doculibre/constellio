@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.rm;
 
 import static org.apache.chemistry.opencmis.commons.enums.PropertyType.DATETIME;
@@ -36,12 +19,18 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.model.services.security.authentification.AuthenticationService;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class RMModuleTypesAcceptTest extends ConstellioTest {
 
 	Session cmisSession;
+
+	Users users = new Users();
+	UserServices userServices;
+	String chuckNorrisKey = "chuckNorris-key";
+	String chuckNorrisToken;
 
 	@Before
 	public void setUp()
@@ -50,46 +39,51 @@ public class RMModuleTypesAcceptTest extends ConstellioTest {
 				withZeCollection().withAllTestUsers().withConstellioRMModule()
 		);
 
-		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
-		authenticationService.changePassword(chuckNorris, "1qaz2wsx");
+		userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
 
+		userServices.addUpdateUserCredential(
+				userServices.getUserCredential(chuckNorris).withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+		chuckNorrisToken = userServices.generateToken(chuckNorris);
+		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
+		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
+				.build();
 	}
 
 	@Test
 	public void validateFolderType()
 			throws Exception {
-		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
 
 		ObjectType baseFolderType = cmisSession.getTypeDefinition("cmis:folder");
 		Iterator<ObjectType> iterator = baseFolderType.getChildren().iterator();
 
 		Map<String, PropertyDefinition<?>> folderTypeMetadatas = getFolderType("folder_default").getPropertyDefinitions();
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.OPENING_DATE))
+		assertThat(folderTypeMetadatas.get(Folder.OPENING_DATE))
 				.has(propertyType(DATETIME)).has(updatability(READWRITE));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.ACTUAL_TRANSFER_DATE))
+		assertThat(folderTypeMetadatas.get(Folder.ACTUAL_TRANSFER_DATE))
 				.has(propertyType(DATETIME)).has(updatability(READWRITE));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.RETENTION_RULE_ENTERED))
+		assertThat(folderTypeMetadatas.get(Folder.RETENTION_RULE_ENTERED))
 				.has(propertyType(STRING)).has(updatability(READWRITE));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.CATEGORY_ENTERED))
+		assertThat(folderTypeMetadatas.get(Folder.CATEGORY_ENTERED))
 				.has(propertyType(STRING)).has(updatability(READWRITE));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.ADMINISTRATIVE_UNIT_ENTERED))
+		assertThat(folderTypeMetadatas.get(Folder.ADMINISTRATIVE_UNIT_ENTERED))
 				.has(propertyType(STRING)).has(updatability(READWRITE));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.FILING_SPACE_ENTERED))
+		assertThat(folderTypeMetadatas.get(Folder.FILING_SPACE_ENTERED))
 				.has(propertyType(STRING)).has(updatability(READWRITE));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.COPY_STATUS_ENTERED))
+		assertThat(folderTypeMetadatas.get(Folder.COPY_STATUS_ENTERED))
 				.has(propertyType(STRING)).has(updatability(READWRITE));
 
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.EXPECTED_TRANSFER_DATE))
+		assertThat(folderTypeMetadatas.get(Folder.EXPECTED_TRANSFER_DATE))
 				.has(propertyType(DATETIME)).has(updatability(READONLY));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.RETENTION_RULE))
+		assertThat(folderTypeMetadatas.get(Folder.RETENTION_RULE))
 				.has(propertyType(STRING)).has(updatability(READONLY));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.CATEGORY))
+		assertThat(folderTypeMetadatas.get(Folder.CATEGORY))
 				.has(propertyType(STRING)).has(updatability(READONLY));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.ADMINISTRATIVE_UNIT))
+		assertThat(folderTypeMetadatas.get(Folder.ADMINISTRATIVE_UNIT))
 				.has(propertyType(STRING)).has(updatability(READONLY));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.FILING_SPACE))
+		assertThat(folderTypeMetadatas.get(Folder.FILING_SPACE))
 				.has(propertyType(STRING)).has(updatability(READONLY));
-		assertThat(folderTypeMetadatas.get("folder_default_" + Folder.COPY_STATUS))
+		assertThat(folderTypeMetadatas.get(Folder.COPY_STATUS))
 				.has(propertyType(STRING)).has(updatability(READONLY));
 
 	}

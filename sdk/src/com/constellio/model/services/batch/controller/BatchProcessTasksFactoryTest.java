@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +14,9 @@ import org.mockito.Mock;
 
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -39,6 +24,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class BatchProcessTasksFactoryTest extends ConstellioTest {
 
+	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock MetadataSchemasManager schemasManager;
 	@Mock MetadataSchemaTypes schemaTypes;
 	@Mock BatchProcessAction action;
@@ -59,9 +45,9 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 
 	@Mock TaskList taskList;
 
-	List<String> recordIds = new ArrayList<>();
-	String record1 = "record1";
-	String record2 = "record2";
+	List<Record> records = new ArrayList<>();
+	@Mock Record record1;
+	@Mock Record record2;
 
 	List<String> errorsList = new ArrayList<>();
 
@@ -70,9 +56,16 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 	@Before
 	public void setUp() {
 
+		when(record1.getId()).thenReturn("record1");
+		when(record2.getId()).thenReturn("record2");
+
+		when(modelLayerFactory.newRecordServices()).thenReturn(recordServices);
+		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(schemasManager);
+		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
+
 		tasksFactory = spy(new BatchProcessTasksFactory(recordServices, searchServices, taskList));
-		recordIds.add(record1);
-		recordIds.add(record2);
+		records.add(record1);
+		records.add(record2);
 		tasks.add(aTask);
 		tasks.add(anotherTask);
 
@@ -82,7 +75,7 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 
 	@Test
 	public void whenCreatingReindexationTasksThenTasksCreated() {
-		tasks = tasksFactory.createBatchProcessTasks(aBatchProcess, recordIds, errorsList, numberOfRecordsPerTask,
+		tasks = tasksFactory.createBatchProcessTasks(aBatchProcess, records, errorsList, numberOfRecordsPerTask,
 				schemasManager);
 
 		assertThat(tasks).isNotEmpty();
@@ -90,7 +83,7 @@ public class BatchProcessTasksFactoryTest extends ConstellioTest {
 
 	@Test
 	public void whenCreatingTasksThenRightNumberOfTasksCreated() {
-		tasks = tasksFactory.createBatchProcessTasks(aBatchProcess, recordIds, errorsList, 1, schemasManager);
+		tasks = tasksFactory.createBatchProcessTasks(aBatchProcess, records, errorsList, 1, schemasManager);
 
 		assertThat(tasks).hasSize(2);
 	}

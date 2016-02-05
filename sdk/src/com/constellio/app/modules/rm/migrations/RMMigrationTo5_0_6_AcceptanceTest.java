@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.migrations;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +17,9 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
+@SlowTest
 public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
 	@Test
@@ -126,7 +111,8 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 	private void givenSystemAtVersion5_0_5() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder, "given_system_in_5.0.5_with_rm_module__with_test_records_and_root_linkable.zip");
+		File state = new File(statesFolder + File.separator + "olds",
+				"given_system_in_5.0.5_with_rm_module__with_test_records_and_root_linkable.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}
@@ -134,7 +120,8 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 	private void givenSystemAtVersion5_0_5_withRootLinkable() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder, "given_system_in_5.0.5_with_rm_module__with_test_records.zip");
+		File state = new File(statesFolder + File.separator + "olds",
+				"given_system_in_5.0.5_with_rm_module__with_test_records.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}

@@ -1,32 +1,29 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.conf;
+
+import static com.constellio.data.conf.SolrServerType.HTTP;
 
 import java.io.File;
 import java.util.Map;
 
+import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
+
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
+
+	public static final String ZKHOST = "dao.records.cloud.zkHost";
+
+	public static final String RECORD_TYPE = "dao.records.type";
 
 	private File defaultTempFolder;
 
 	private File defaultFileSystemBaseFolder;
+
+	private boolean backgroundThreadsEnable = true;
+
+	private Boolean secondTransactionLogEnabled;
+
 
 	public PropertiesDataLayerConfiguration(Map<String, String> configs, File defaultTempFolder,
 			File defaultFileSystemBaseFolder, File constellioProperties) {
@@ -36,7 +33,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	public SolrServerType getRecordsDaoSolrServerType() {
-		return (SolrServerType) getRequiredEnum("dao.records.type", SolrServerType.class);
+		return (SolrServerType) getRequiredEnum(RECORD_TYPE, SolrServerType.class);
 	}
 
 	public String getRecordsDaoHttpSolrServerUrl() {
@@ -44,7 +41,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	public String getRecordsDaoCloudSolrServerZKHost() {
-		return getRequiredString("dao.records.cloud.zkHost");
+		return getRequiredString(ZKHOST);
 	}
 
 	public boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled() {
@@ -81,6 +78,9 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public boolean isSecondTransactionLogEnabled() {
+		if (secondTransactionLogEnabled != null) {
+			return secondTransactionLogEnabled;
+		}
 		return getBoolean("secondTransactionLog.enabled", false);
 	}
 
@@ -119,7 +119,41 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public boolean isBackgroundThreadsEnabled() {
-		return true;
+		return backgroundThreadsEnable;
+	}
+
+	@Override
+	public void setBackgroundThreadsEnabled(boolean backgroundThreadsEnabled) {
+		this.backgroundThreadsEnable = backgroundThreadsEnabled;
+	}
+
+	@Override
+	public SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter() {
+		return new SecondTransactionLogReplayFilter() {
+
+			@Override
+			public boolean isReplayingAdd(String id, String schema, SolrInputDocument solrInputDocument) {
+				return true;
+			}
+
+			@Override
+			public boolean isReplayingUpdate(String id, SolrInputDocument solrInputDocument) {
+				return true;
+			}
+		};
+	}
+
+
+	@Override
+	public void setSecondTransactionLogFolderEnabled(boolean enable) {
+		this.secondTransactionLogEnabled = enable;
+	}
+
+	@Override
+	public boolean isLocalHttpSolrServer() {
+		return getRecordsDaoSolrServerType().equals(HTTP) &&
+				(getRecordsDaoHttpSolrServerUrl().contains("localhost") || getRecordsDaoHttpSolrServerUrl()
+						.contains("127.0.0.1"));
 	}
 
 }

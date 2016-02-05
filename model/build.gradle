@@ -1,6 +1,5 @@
 dependencies {
     compile project(":data")
-    compile project(":connector-api")
     compile "org.jsoup:jsoup:1.7.2"
     compile "com.cybozu.labs:langdetect:1.1-20120112"
     compile "net.sourceforge.jexcelapi:jxl:2.6.12"
@@ -24,5 +23,5 @@ eclipse {
 
 jar {
     baseName = 'core-model'
-    version = '5.1.0.0'
+    version = '5.2'
 }

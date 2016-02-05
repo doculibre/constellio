@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import java.util.ArrayList;
@@ -27,6 +10,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.threads.ConstellioThread;
@@ -36,8 +22,12 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_Interrupted;
+import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class BulkRecordTransactionHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(BulkRecordTransactionHandler.class);
 
 	AtomicLong sequence = new AtomicLong();
 
@@ -177,6 +167,8 @@ public class BulkRecordTransactionHandler {
 									availableWorkers.incrementAndGet();
 									completedTasksCounter.incrementAndGet();
 
+								} else {
+									Thread.sleep(1000);
 								}
 
 							} catch (InterruptedException e) {
@@ -188,17 +180,27 @@ public class BulkRecordTransactionHandler {
 					} catch (Throwable t) {
 						t.printStackTrace();
 					}
-					System.out.println("Thread " + Thread.currentThread().getName() + " has ended");
+					LOGGER.info("Thread " + Thread.currentThread().getName() + " has ended");
 				}
 
 				private void handle(BulkRecordTransactionHandlerTask task) {
 					try {
 						Transaction transaction = new Transaction(task.records);
+						RecordsCache cache = recordServices.getRecordsCaches().getCache(transaction.getCollection());
 						for (Record referencedRecord : task.referencedRecords.values()) {
 							transaction.addReferencedRecord(referencedRecord);
 						}
 						transaction.setOptions(new RecordUpdateOptions(options.transactionOptions));
-						transaction.setRecordFlushing(RecordsFlushing.LATER());
+
+						RecordsFlushing flushing = RecordsFlushing.WITHIN_MINUTES(5);
+						for (Record record : task.records) {
+							String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+							if (cache.isConfigured(schemaType)) {
+								flushing = RecordsFlushing.NOW();
+							}
+						}
+
+						transaction.setRecordFlushing(flushing);
 						transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
 						switch (options.recordModificationImpactHandling) {
@@ -233,7 +235,7 @@ public class BulkRecordTransactionHandler {
 
 	void logProgression() {
 		if (options.showProgressionInConsole) {
-			System.out.println("Progression > " + progression.get() + " / " + total.get());
+			LOGGER.info("Progression > " + progression.get() + " / " + total.get());
 		}
 	}
 

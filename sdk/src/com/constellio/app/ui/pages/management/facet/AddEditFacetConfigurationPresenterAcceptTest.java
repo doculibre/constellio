@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.facet;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,7 +61,7 @@ public class AddEditFacetConfigurationPresenterAcceptTest extends ConstellioTest
 		newValues.put("zeLabel2", "zeValue2");
 		facet.setFieldValuesLabel(newValues);
 		facet.setPages(20);
-		facet.setFieldDataStoreCode("");
+		facet.setFieldDataStoreCode("code_s");
 
 		presenter.saveButtonClicked(getVOForRecord(facet.getWrappedRecord()));
 
@@ -86,7 +69,7 @@ public class AddEditFacetConfigurationPresenterAcceptTest extends ConstellioTest
 		Facet loadFacet = new Facet(record, facet.getMetadataSchemaTypes());
 
 		assertThat(loadFacet.getElementPerPage()).isEqualTo(facet.getElementPerPage());
-		assertThat(loadFacet.getOrder()).isEqualTo(1);
+		assertThat(loadFacet.getOrder()).isEqualTo(facet.getOrder());
 		assertThat(loadFacet.getPages()).isEqualTo(facet.getPages());
 	}
 
@@ -102,7 +85,7 @@ public class AddEditFacetConfigurationPresenterAcceptTest extends ConstellioTest
 		facet.setElementPerPage(2);
 		facet.setFacetType(type);
 		facet.setTitle("zeFacet");
-		facet.setFieldDataStoreCode("");
+		facet.setFieldDataStoreCode("code_s");
 
 		RecordVO facetToSave = new RecordToVOBuilder().build(facet.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 

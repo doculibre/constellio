@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.bigVault.solr;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.LATER;
@@ -52,16 +35,17 @@ import org.mockito.Mockito;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
+import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BigVaultServerUnitTest extends ConstellioTest {
 	@Mock DataLayerSystemExtensions extensions;
-	@Mock SolrClient adminServer;
 	@Mock AtomicFileSystem solrFileSystem;
 	@Mock SolrParams solrParams;
 	@Mock SolrClient server;
+	@Mock SolrServerFactory solrServerFactory;
 	@Mock SolrInputDocument doc1, doc2, doc3, doc4, doc5, doc6, doc7, doc8, doc9, doc10, doc11;
 	@Mock List<String> deletedDocs1, deletedDocs2, deletedDocs3, deleteQueriesStrings;
 	@Mock List<SolrInputDocument> addedDocs, modifiedDocs;
@@ -76,8 +60,10 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 
 	@Before
 	public void setUp() {
-		bigVaultServer = spy(
-				new BigVaultServer("Test", server, solrFileSystem, adminServer, BigVaultLogger.disabled(), extensions));
+		String serverName = "Test";
+		when(solrServerFactory.getConfigFileSystem(serverName)).thenReturn(solrFileSystem);
+		when(solrServerFactory.newSolrServer(serverName)).thenReturn(server);
+		bigVaultServer = spy(new BigVaultServer(serverName, BigVaultLogger.disabled(), solrServerFactory, extensions));
 		when(emptyQueryResults.size()).thenReturn(0);
 		when(twoElementsQueryResults.size()).thenReturn(2);
 	}
@@ -111,7 +97,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		inOrder.verify(bigVaultServer).add(t3);
 		inOrder.verify(bigVaultServer).add(t4);
 	}
-
+	
 	@Test(expected = BigVaultException.NonUniqueResult.class)
 	public void givenNonUniqueResultsWhenQuerySingleResultThenThrowNonUniqueResultException()
 			throws Exception {
@@ -119,7 +105,7 @@ public class BigVaultServerUnitTest extends ConstellioTest {
 		when(theQueryResponse.getResults()).thenReturn(twoElementsQueryResults);
 
 		bigVaultServer.querySingleResult(solrParams);
-	}
+	} 
 
 	@Test(expected = BigVaultException.NoResult.class)
 	public void givenNoResultWhenQuerySingleResultThenThrowNoResultException()

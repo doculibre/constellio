@@ -1,25 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search.query;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
@@ -30,35 +15,43 @@ public class ReturnedMetadatasFilter {
 
 	private boolean includeLargeText;
 
-	private List<Metadata> acceptedFields;
+	private Set<String> acceptedFields;
 
 	public ReturnedMetadatasFilter(boolean includeParsedContent, boolean includeLargeText) {
 		this.includeParsedContent = includeParsedContent;
 		this.includeLargeText = includeLargeText;
 	}
 
-	public ReturnedMetadatasFilter(List<Metadata> acceptedFields) {
+	public ReturnedMetadatasFilter(Set<String> acceptedFields) {
 		this.acceptedFields = acceptedFields;
 	}
 
 	public static ReturnedMetadatasFilter idVersionSchema() {
-		return ReturnedMetadatasFilter.onlyFields(new ArrayList<Metadata>());
+		return ReturnedMetadatasFilter.onlyMetadatas(new ArrayList<Metadata>());
 	}
 
 	public static ReturnedMetadatasFilter idVersionSchemaTitle() {
-		return ReturnedMetadatasFilter.onlyFields(Arrays.asList(Schemas.TITLE));
+		return ReturnedMetadatasFilter.onlyMetadatas(Arrays.asList(Schemas.TITLE));
 	}
 
 	public static ReturnedMetadatasFilter idVersionSchemaTitlePath() {
-		return ReturnedMetadatasFilter.onlyFields(Arrays.asList(Schemas.TITLE, Schemas.PATH));
+		return ReturnedMetadatasFilter.onlyMetadatas(Arrays.asList(Schemas.TITLE, Schemas.PATH));
 	}
 
-	public static ReturnedMetadatasFilter onlyFields(Metadata... metadatas) {
-		return ReturnedMetadatasFilter.onlyFields(Arrays.asList(metadatas));
+	public static ReturnedMetadatasFilter onlyMetadatas(Metadata... metadatas) {
+		return ReturnedMetadatasFilter.onlyMetadatas(Arrays.asList(metadatas));
 	}
 
-	public static ReturnedMetadatasFilter onlyFields(List<Metadata> metadatas) {
-		return new ReturnedMetadatasFilter(metadatas);
+	public static ReturnedMetadatasFilter onlyFields(Set<String> fields) {
+		return new ReturnedMetadatasFilter(fields);
+	}
+
+	public static ReturnedMetadatasFilter onlyMetadatas(List<Metadata> metadatas) {
+		Set<String> datastorecodes = new HashSet<>();
+		for (Metadata metadata : metadatas) {
+			datastorecodes.add(metadata.getDataStoreCode());
+		}
+		return new ReturnedMetadatasFilter(datastorecodes);
 	}
 
 	public static ReturnedMetadatasFilter allExceptContentAndLargeText() {
@@ -77,16 +70,20 @@ public class ReturnedMetadatasFilter {
 		return includeParsedContent;
 	}
 
-	public List<Metadata> getAcceptedFields() {
+	public Set<String> getAcceptedFields() {
 		return acceptedFields;
 	}
 
-	public ReturnedMetadatasFilter withIncludedField(Metadata metadata) {
+	public ReturnedMetadatasFilter withIncludedMetadata(Metadata metadata) {
+		return withIncludedField(metadata.getDataStoreCode());
+	}
+
+	public ReturnedMetadatasFilter withIncludedField(String field) {
 		if (this.acceptedFields == null) {
 			return this;
 		} else {
-			List<Metadata> acceptedFields = new ArrayList<>(this.acceptedFields);
-			acceptedFields.add(metadata);
+			Set<String> acceptedFields = new HashSet<>(this.acceptedFields);
+			acceptedFields.add(field);
 			return new ReturnedMetadatasFilter(acceptedFields);
 		}
 	}

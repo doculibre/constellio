@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -22,7 +5,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
@@ -156,8 +138,7 @@ public class SchemasRecordsServices {
 	}
 
 	public Event newEvent() {
-		String id = UUIDV1Generator.newRandomId();
-		return new Event(new RecordImpl(Event.DEFAULT_SCHEMA, collection, id), getTypes());
+		return new Event(create(defaultSchema(Event.SCHEMA_TYPE)), getTypes());
 	}
 
 	//EmailToSend
@@ -170,8 +151,7 @@ public class SchemasRecordsServices {
 	}
 
 	public EmailToSend newEmailToSend() {
-		String id = UUIDV1Generator.newRandomId();
-		return new EmailToSend(new RecordImpl(EmailToSend.DEFAULT_SCHEMA, collection, id), getTypes());
+		return new EmailToSend(create(defaultSchema(EmailToSend.SCHEMA_TYPE)), getTypes());
 	}
 
 	//Groups
@@ -223,6 +203,14 @@ public class SchemasRecordsServices {
 		return getTypes().getSchema(Facet.DEFAULT_SCHEMA);
 	}
 
+	public Metadata facetOrder() {
+		return defaultFacet().getMetadata(Facet.ORDER);
+	}
+
+	public Metadata facetActive() {
+		return defaultFacet().getMetadata(Facet.ACTIVE);
+	}
+
 	public MetadataSchema facetQuerySchema() {
 		return getTypes().getSchema(Facet.QUERY_SCHEMA);
 	}
@@ -243,6 +231,10 @@ public class SchemasRecordsServices {
 		return new Facet(create(facetQuerySchema()), getTypes()).setFacetType(FacetType.QUERY);
 	}
 
+	public Facet newFacetDefault() {
+		return new Facet(create(defaultFacet()), getTypes()).setFacetType(null);
+	}
+
 	public Facet getFacet(String id) {
 		return new Facet(get(id), getTypes());
 	}
@@ -259,6 +251,12 @@ public class SchemasRecordsServices {
 		return wrappers;
 	}
 
+	//Collection
+
+	public Collection wrapCollection(Record record) {
+		return new Collection(record, getTypes());
+	}
+
 	//Users
 
 	public MetadataSchema userSchema() {
@@ -271,6 +269,10 @@ public class SchemasRecordsServices {
 
 	public Metadata userUsername() {
 		return userSchema().getMetadata(User.USERNAME);
+	}
+
+	public Metadata userEmail() {
+		return userSchema().getMetadata(User.EMAIL);
 	}
 
 	public User wrapUser(Record record) {
@@ -309,12 +311,24 @@ public class SchemasRecordsServices {
 		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
 	}
 
-	public abstract class SchemaTypeShortcuts {
+	public class SchemaTypeShortcuts extends AbstractSchemaTypeShortcuts {
+
+		protected SchemaTypeShortcuts(String schemaCode) {
+			super(schemaCode);
+		}
+
+		@Override
+		protected MetadataSchemaTypes types() {
+			return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		}
+	}
+
+	public static abstract class AbstractSchemaTypeShortcuts {
 
 		String schemaTypeCode;
 		String schemaCode;
 
-		protected SchemaTypeShortcuts(String schemaCode) {
+		protected AbstractSchemaTypeShortcuts(String schemaCode) {
 			this.schemaCode = schemaCode;
 			this.schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
 		}
@@ -326,6 +340,8 @@ public class SchemasRecordsServices {
 		public MetadataSchema schema() {
 			return types().getSchema(schemaCode);
 		}
+
+		protected abstract MetadataSchemaTypes types();
 
 		public Metadata title() {
 			return metadata(Schemas.TITLE.getLocalCode());
@@ -355,9 +371,9 @@ public class SchemasRecordsServices {
 			return schema().getMetadata(schemaCode + "_" + code);
 		}
 
-		MetadataSchemaTypes types() {
+/*		MetadataSchemaTypes types() {
 			return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		}
+		}*/
 
 	}
 

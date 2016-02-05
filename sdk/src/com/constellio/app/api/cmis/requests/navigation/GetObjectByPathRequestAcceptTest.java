@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.requests.navigation;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +34,9 @@ public class GetObjectByPathRequestAcceptTest extends ConstellioTest {
 
 	Session cmisSession;
 
+	String chuckNorrisKey = "chuckNorris-key";
+	String chuckNorrisToken;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -69,6 +55,9 @@ public class GetObjectByPathRequestAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
+		userServices.addUpdateUserCredential(
+				userServices.getUserCredential(chuckNorris).withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = givenAdminSessionOnZeCollection();
 	}
@@ -94,8 +83,8 @@ public class GetObjectByPathRequestAcceptTest extends ConstellioTest {
 	public void givenRecordPathThenReturnTheRecordObject()
 			throws Exception {
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true).getWrappedRecord());
-		CmisObject objectData = cmisSession.getObjectByPath("/taxo_taxo1/taxo1_fond1/taxo1_category2");
-		assertThat(objectData).has(property("cmis:path", "/taxo1/taxo1_fond1/taxo1_category2"));
+		CmisObject objectData = cmisSession.getObjectByPath("/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2");
+		assertThat(objectData).has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2"));
 	}
 
 	private Condition<? super CmisObject> property(final String key, final String value) {
@@ -109,7 +98,7 @@ public class GetObjectByPathRequestAcceptTest extends ConstellioTest {
 
 	private Session givenAdminSessionOnZeCollection()
 			throws RecordServicesException {
-		getModelLayerFactory().newAuthenticationService().changePassword(chuckNorris, "1qaz2wsx");
-		return newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
+		return newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
+				.build();
 	}
 }

@@ -1,21 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,8 +15,11 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.CannotDeleteSchema;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaTypeSinceItHasRecords;
+import com.constellio.model.services.search.SearchServices;
 
 public class MetadataSchemaTypeBuilder {
 
@@ -43,6 +31,7 @@ public class MetadataSchemaTypeBuilder {
 	private String collection;
 	private String label;
 	private boolean security = true;
+	private boolean inTransactionLog = true;
 	private MetadataSchemaBuilder defaultSchema;
 	private Set<MetadataSchemaBuilder> customSchemas = new HashSet<MetadataSchemaBuilder>();
 	private Boolean undeletable = false;
@@ -74,6 +63,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.undeletable = schemaType.isUndeletable();
 		builder.defaultSchema = MetadataSchemaBuilder.modifyDefaultSchema(schemaType.getDefaultSchema(), builder);
 		builder.security = schemaType.hasSecurity();
+		builder.inTransactionLog = schemaType.isInTransactionLog();
 		builder.customSchemas = new HashSet<MetadataSchemaBuilder>();
 		for (MetadataSchema schema : schemaType.getSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
@@ -144,12 +134,12 @@ public class MetadataSchemaTypeBuilder {
 		return customSchema;
 	}
 
-	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, TaxonomiesManager taxonomiesManager) {
-		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, taxonomiesManager);
+	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, modelLayerFactory);
 
 		List<MetadataSchema> schemas = new ArrayList<MetadataSchema>();
 		for (MetadataSchemaBuilder metadataSchemaBuilder : this.customSchemas) {
-			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, typesFactory, taxonomiesManager));
+			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory));
 		}
 
 		if (StringUtils.isBlank(label)) {
@@ -157,7 +147,7 @@ public class MetadataSchemaTypeBuilder {
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
-		return new MetadataSchemaType(code, collection, label, schemas, defaultSchema, undeletable, security);
+		return new MetadataSchemaType(code, collection, label, schemas, defaultSchema, undeletable, security, inTransactionLog);
 	}
 
 	public MetadataBuilder getMetadata(String metadataCode) {
@@ -235,4 +225,31 @@ public class MetadataSchemaTypeBuilder {
 		return security;
 	}
 
+	public MetadataSchemaTypeBuilder setInTransactionLog(boolean inTransactionLog) {
+		this.inTransactionLog = inTransactionLog;
+		return this;
+	}
+
+	public boolean isInTransactionLog() {
+		return inTransactionLog;
+	}
+
+	public boolean hasSchema(String schema) {
+		try {
+			getSchema(schema);
+			return true;
+		} catch (MetadataSchemaTypeBuilderRuntimeException.NoSuchSchema e) {
+			return false;
+		}
+	}
+
+	public void deleteSchema(MetadataSchema schema, SearchServices searchServices) {
+		if (searchServices.hasResults(from(schema).returnAll())) {
+			throw new CannotDeleteSchemaTypeSinceItHasRecords(schema.getCode());
+		} else if (DEFAULT.equals(schema.getLocalCode())) {
+			throw new CannotDeleteSchema(schema.getCode());
+		} else {
+			customSchemas.remove(getSchema(schema.getLocalCode()));
+		}
+	}
 }

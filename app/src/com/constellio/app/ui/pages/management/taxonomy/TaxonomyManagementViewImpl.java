@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.taxonomy;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -38,12 +21,14 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.taxonomy.TaxonomyBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -51,7 +36,9 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.TaxonomyConceptsWithChildrenCountContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
@@ -63,14 +50,17 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 public class TaxonomyManagementViewImpl extends BaseViewImpl implements TaxonomyManagementView {
 
 	VerticalLayout layout;
+	private HorizontalLayout searchLayout;
 	private TaxonomyManagementPresenter presenter;
 	public static final String STYLE_NAME = "display-taxonomy";
 	private TabSheet tabSheet;
@@ -110,6 +100,9 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		tabSheet = new TabSheet();
 		tabComponents = new HashMap<>();
 
+		buildSearchTaxonomies();
+		mainLayout.addComponents(searchLayout);
+
 		List<TaxonomyManagementClassifiedType> classifiedTypes = presenter.getClassifiedTypes();
 
 		for (TaxonomyManagementClassifiedType classifiedType : classifiedTypes) {
@@ -121,6 +114,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		taxonomyDisplayLayout.setSpacing(true);
 
 		if (presenter.conceptId != null) {
+			searchLayout.setVisible(false);
 			if (!classifiedTypes.isEmpty()) {
 				Component additionalInfo = buildAdditionalInformation();
 				if (additionalInfo != null) {
@@ -146,6 +140,28 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		}
 
 		return mainLayout;
+	}
+
+	private void buildSearchTaxonomies() {
+		searchLayout = new HorizontalLayout();
+		final TextField searchField = new BaseTextField();
+		Button searchButton = new SearchButton();
+		searchField.focus();
+		searchButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.searchConcept(searchField.getValue());
+			}
+		});
+		searchLayout.addComponents(searchField, searchButton);
+
+		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
+			@Override
+			public void onEnterKeyPressed() {
+				presenter.searchConcept(searchField.getValue());
+			}
+		};
+		onEnterHandler.installOn(searchField);
 	}
 
 	private Component buildAdditionalInformation() {
@@ -183,6 +199,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	private Component buildRootConceptsTables() {
+
 		layout = new VerticalLayout();
 		for (final RecordVODataProvider dataProvider : presenter.getDataProviders()) {
 			Container recordsContainer = new RecordVOLazyContainer(dataProvider);
@@ -242,14 +259,15 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			// TODO Implement deleteLogically for taxonomy concepts
 			recordsContainer = buttonsContainer;
 
-			Table table = new Table($("TaxonomyManagementView.tableTitle", dataProvider.getSchema().getCode()), recordsContainer);
+			Table table = new Table($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
 			table.setWidth("100%");
 			table.setId("childrenTable");
 			table.setColumnHeader("buttons", "");
 			table.setColumnHeader("taxonomyChildrenCount", $("TaxonomyManagementView.childrenCount"));
 			table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 			table.setColumnWidth("buttons", 120);
-			table.setPageLength(table.getItemIds().size());
+			table.setColumnExpandRatio(dataProvider.getSchema().getCode() + "_" + Schemas.TITLE_CODE, 1.0f);
+			table.setPageLength(Math.min(15, dataProvider.size()));
 			setDefaultOrderBy(presenter.getDefaultOrderField(), dataProvider, table);
 			table.sort();
 
@@ -279,6 +297,20 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.manageRoleAuthorizationsButtonClicked();
+				}
+			});
+		}
+		if (presenter.getCurrentConcept() != null) {
+			actionMenuButtons.add(new EditButton($("TaxonomyManagementView.edit")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.editButtonClicked(presenter.getCurrentConcept());
+				}
+			});
+			actionMenuButtons.add(new DeleteButton($("TaxonomyManagementView.delete")) {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.deleteButtonClicked(presenter.getCurrentConcept());
 				}
 			});
 		}

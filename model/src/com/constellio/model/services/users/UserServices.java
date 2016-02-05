@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
@@ -678,6 +661,19 @@ public class UserServices {
 		return token;
 	}
 
+	public String generateToken(String username, String unitTime, int duration) {
+		String token = UUID.randomUUID().toString();
+		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
+		if (unitTime.equals("hours")) {
+			tokens.put(token, TimeProvider.getLocalDateTime().plusHours(duration));
+		} else {
+			tokens.put(token, TimeProvider.getLocalDateTime().plusDays(duration));
+		}
+		UserCredential userCredential = getUser(username).withTokens(tokens);
+		userCredentialsManager.addUpdate(userCredential);
+		return token;
+	}
+
 	void validateAdminIsActive(UserCredential userCredential) {
 		if (userCredential.getUsername().equals(ADMIN) && userCredential.getStatus() != UserCredentialStatus.ACTIVE) {
 			throw new UserServicesRuntimeException_CannotRemoveAdmin();
@@ -759,5 +755,18 @@ public class UserServices {
 			}
 		}
 		return usersInCollection;
+	}
+
+	public boolean isAuthenticated(String userServiceKey, String userToken) {
+		if (userToken == null || userServiceKey == null) {
+			return false;
+		} else {
+			try {
+				String tokenServiceKey = getServiceKeyByToken(userToken);
+				return tokenServiceKey != null && tokenServiceKey.equals(userServiceKey);
+			} catch (UserServicesRuntimeException_InvalidToken e) {
+				return false;
+			}
+		}
 	}
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.xml.list;
 
 import java.util.ArrayList;
@@ -35,6 +18,7 @@ import com.constellio.model.utils.ParametrizedInstanceUtils;
 public class BatchProcessListWriter {
 
 	private static final String ID = "id";
+	private static final String QUERY = "query";
 	private static final String ERRORS = "errors";
 	private static final String REQUEST_DATE_TIME = "requestDateTime";
 	private static final String ACTION = "action";
@@ -60,18 +44,20 @@ public class BatchProcessListWriter {
 		document.getRootElement().addContent(new Element(PENDING_BATCH_PROCESSES));
 	}
 
-	public void addBatchProcess(String id, String collection, LocalDateTime requestDateTime, int recordsCount,
+	public void addBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime, int recordsCount,
 			BatchProcessAction batchProcessAction) {
 		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
 
 		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
 		Element recordsCountElement = new Element(RECORDS_COUNT).setText(String.valueOf(recordsCount));
 		Element collectionElement = new Element(COLLECTION).setText(collection);
+		Element queryElement = new Element(QUERY).setText(query);
 
 		Element batchProcess = new Element(BATCH_PROCESS).setAttribute(ID, id);
 		batchProcess.addContent(requestDateTimeElement);
 		batchProcess.addContent(recordsCountElement);
 		batchProcess.addContent(actionElement);
+		batchProcess.addContent(queryElement);
 		batchProcess.addContent(collectionElement);
 
 		Element pendingBatchProcessesElement = document.getRootElement().getChild(STANDBY_BATCH_PROCESSES).detach();

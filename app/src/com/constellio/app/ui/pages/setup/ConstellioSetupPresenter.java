@@ -1,42 +1,30 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.setup;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_CannotSelectBothRMandES;
+import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_CannotLoadSaveState;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_MustSelectAtLeastOneModule;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule;
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.modules.Module;
+import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
@@ -51,6 +39,10 @@ import com.constellio.model.services.users.UserServices;
 
 public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView> {
 
+	private static final String TEMP_UNZIP_FOLDER = "ConstellioSetupPresenter-TempUnzipFolder";
+
+	private static final Logger LOGGER = LogManager.getLogger(ConstellioSetupPresenter.class);
+
 	private ConstellioSetupView view;
 
 	private UserToVOBuilder userToVOBuilder = new UserToVOBuilder();
@@ -61,7 +53,13 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 		ConstellioFactories factories = view.getConstellioFactories();
 		ConstellioModulesManager modulesManager = factories.getAppLayerFactory().getModulesManager();
-		List<? extends Module> installedModules = modulesManager.getAllModules();
+		List<Module> installedModules = new ArrayList<>();
+
+		for (Module module : modulesManager.getBuiltinModules()) {
+			if (!module.isComplementary()) {
+				installedModules.add(module);
+			}
+		}
 
 		List<String> localeCodes = i18n.getSupportedLanguages();
 
@@ -92,18 +90,15 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 	public void saveRequested(String setupLocaleCode, List<String> modules, String collectionTitle, String collectionCode,
 			String adminPassword)
 			throws ConstellioSetupPresenterException {
-		if (modules.contains("rm") && modules.contains("es")) {
-			throw new ConstellioSetupPresenterException_CannotSelectBothRMandES();
-		} else if (modules.isEmpty()) {
+		if (modules.isEmpty()) {
 			throw new ConstellioSetupPresenterException_MustSelectAtLeastOneModule();
-		} else if(modules.size() == 1 && modules.contains("tasks")) {
+		} else if (modules.size() == 1 && modules.contains("tasks")) {
 			throw new ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule();
 		}
 		view.showMessage($("ConstellioSetupView.setupInProgress"));
-		
+
 		ConstellioFactories factories = view.getConstellioFactories();
-		
-		
+
 		setSystemLanguage(setupLocaleCode);
 		Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
 				collectionCode, Arrays.asList(setupLocaleCode));
@@ -116,10 +111,15 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		List<String> roles = new ArrayList<>();
 		for (String moduleCode : modules) {
 			Module module = modulesManager.getInstalledModule(moduleCode);
-			modulesManager.installModule(module, factories.getModelLayerFactory().getCollectionsListManager());
-			modulesManager.enableModule(collectionCode, module);
-			roles.addAll(module.getRolesForCreator());
-			((InstallableModule) module).addDemoData(collectionCode, appLayerFactory);
+			modulesManager.installValidModuleAndGetInvalidOnes(module,
+					factories.getModelLayerFactory().getCollectionsListManager());
+			modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module);
+			roles.addAll(PluginUtil.getRolesForCreator(module));
+			try {
+				((InstallableModule) module).addDemoData(collectionCode, appLayerFactory);
+			} catch (Throwable e) {
+				LOGGER.error("Error when adding demo data of module " + module.getId() + " in collection " + collection, e);
+			}
 		}
 
 		ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
@@ -141,17 +141,67 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			throw new RuntimeException(e);
 		}
 
-		UserVO userVO = userToVOBuilder.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY);
-		SessionContext sessionContext = view.getSessionContext();
-		sessionContext.setCurrentCollection(collectionCode);
-		sessionContext.setCurrentLocale(new Locale(setupLocaleCode));
-		sessionContext.setCurrentUser(userVO);
+		// TODO Vincent fix session context creation
+		//		UserVO userVO = userToVOBuilder.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY);
+		//		SessionContext sessionContext = view.getSessionContext();
+		//		sessionContext.setCurrentCollection(collectionCode);
+		//		sessionContext.setCurrentLocale(new Locale(setupLocaleCode));
+		//		sessionContext.setCurrentUser(userVO);
 
 		view.updateUI();
 	}
 
 	public void setSystemLanguage(String languageCode) {
 		modelLayerFactory.getConfiguration().setMainDataLanguage(languageCode);
+	}
+
+	public void loadSaveStateRequested(File saveStateFile)
+			throws ConstellioSetupPresenterException {
+		try {
+			File tempFolder = createTempFolder();
+
+			try {
+				extractSaveState(saveStateFile, tempFolder);
+				copyExtractedFiles(tempFolder);
+				loadTransactionLog();
+				view.updateUI();
+
+			} finally {
+				modelLayerFactory.getIOServicesFactory().newIOServices().deleteQuietly(tempFolder);
+			}
+		} catch (Throwable t) {
+			throw new ConstellioSetupPresenterException_CannotLoadSaveState();
+		}
+	}
+
+	private File createTempFolder() {
+		return modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder(TEMP_UNZIP_FOLDER);
+	}
+
+	private void copyExtractedFiles(File tempFolder) {
+		DataLayerConfiguration dataLayerConfiguration = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration();
+		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+		File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
+		File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
+
+		ioServices.deleteDirectoryWithoutExpectableIOException(settingsFolder);
+		ioServices.deleteDirectoryWithoutExpectableIOException(contentsFolder);
+
+		File settingsFolderInSaveState = new File(tempFolder, "settings");
+		File contentsFolderInSaveState = new File(tempFolder, "content");
+
+		ioServices.moveFolder(settingsFolderInSaveState, settingsFolder);
+		ioServices.moveFolder(contentsFolderInSaveState, contentsFolder);
+	}
+
+	private void extractSaveState(File saveStateFile, File tempFolder)
+			throws ZipServiceException {
+		modelLayerFactory.getIOServicesFactory().newZipService().unzip(saveStateFile, tempFolder);
+	}
+
+	private void loadTransactionLog()
+			throws AppManagementServiceException {
+		appLayerFactory.newApplicationService().restart();
 	}
 
 }

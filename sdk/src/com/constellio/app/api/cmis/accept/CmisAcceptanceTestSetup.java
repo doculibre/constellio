@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.accept;
 
 import java.util.ArrayList;
@@ -107,6 +90,7 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		folderType.getDefaultSchema().create("taxonomy2")
 				.defineTaxonomyRelationshipToSchemas(administrativeUnit.getCustomSchema("classificationStation"));
 		folderType.getDefaultSchema().create("linkToOtherFolders").setMultivalue(true).defineReferencesTo(folderType);
+		folderType.getDefaultSchema().create("numberMeta").setType(MetadataValueType.NUMBER);
 
 	}
 
@@ -354,6 +338,10 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 			return getMetadata(code() + "_taxonomy1");
 		}
 
+		public Metadata numberMeta() {
+			return getMetadata(code() + "_numberMeta");
+		}
+
 		public Metadata taxonomy2() {
 			return getMetadata(code() + "_taxonomy2");
 		}
@@ -498,17 +486,18 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 
 			String prefix = collection.equals("zeCollection") ? "" : "anotherCollection_";
 
-			records.add(taxo1_fond1 = addFondRecord(transaction, prefix + "taxo1_fond1", null));
-			records.add(taxo1_fond1_1 = addFondRecord(transaction, prefix + "taxo1_fond1_1", taxo1_fond1));
-			records.add(taxo1_category1 = addCategoryRecord(transaction, prefix + "taxo1_category1", taxo1_fond1_1, null));
-			records.add(taxo1_category2 = addCategoryRecord(transaction, prefix + "taxo1_category2", taxo1_fond1, null));
-			records.add(taxo1_category2_1 = addCategoryRecord(transaction, prefix + "taxo1_category2_1", null, taxo1_category2));
+			records.add(taxo1_fond1 = addFondRecord(transaction, prefix + "zetaxo1_fond1", null));
+			records.add(taxo1_fond1_1 = addFondRecord(transaction, prefix + "zetaxo1_fond1_1", taxo1_fond1));
+			records.add(taxo1_category1 = addCategoryRecord(transaction, prefix + "zetaxo1_category1", taxo1_fond1_1, null));
+			records.add(taxo1_category2 = addCategoryRecord(transaction, prefix + "zetaxo1_category2", taxo1_fond1, null));
+			records.add(
+					taxo1_category2_1 = addCategoryRecord(transaction, prefix + "zetaxo1_category2_1", null, taxo1_category2));
 
-			records.add(taxo2_unit1 = addUnitRecord(transaction, prefix + "taxo2_unit1", null));
-			records.add(taxo2_unit1_1 = addUnitRecord(transaction, prefix + "taxo2_unit1_1", taxo2_unit1));
-			records.add(taxo2_station1 = addStationRecord(transaction, prefix + "taxo2_station1", taxo2_unit1_1));
-			records.add(taxo2_station2 = addStationRecord(transaction, prefix + "taxo2_station2", taxo2_unit1));
-			records.add(taxo2_station2_1 = addStationRecord(transaction, prefix + "taxo2_station2_1", taxo2_station2));
+			records.add(taxo2_unit1 = addUnitRecord(transaction, prefix + "zetaxo2_unit1", null));
+			records.add(taxo2_unit1_1 = addUnitRecord(transaction, prefix + "zetaxo2_unit1_1", taxo2_unit1));
+			records.add(taxo2_station1 = addStationRecord(transaction, prefix + "zetaxo2_station1", taxo2_unit1_1));
+			records.add(taxo2_station2 = addStationRecord(transaction, prefix + "zetaxo2_station2", taxo2_unit1));
+			records.add(taxo2_station2_1 = addStationRecord(transaction, prefix + "zetaxo2_station2_1", taxo2_station2));
 
 			records.add(folder1 = addFolderRecord(transaction, prefix + "folder1", null, taxo1_category1, taxo2_station2));
 			records.add(folder2 = addFolderRecord(transaction, prefix + "folder2", null, taxo1_category1, taxo2_station2_1));

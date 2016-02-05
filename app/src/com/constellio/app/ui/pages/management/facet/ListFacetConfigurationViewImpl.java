@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.facet;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -25,8 +8,10 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisableButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.EnableButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -45,6 +30,7 @@ import com.vaadin.ui.VerticalLayout;
 public class ListFacetConfigurationViewImpl extends BaseViewImpl implements ListFacetConfigurationView {
 	private ListFacetConfigurationPresenter presenter;
 	private RecordVOTable listFacet;
+	private VerticalLayout mainLayout;
 
 	public ListFacetConfigurationViewImpl() {
 		presenter = new ListFacetConfigurationPresenter(this);
@@ -57,7 +43,7 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 		listFacet = valuesTable();
@@ -125,6 +111,39 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
+				Integer index = (Integer) itemId;
+				final RecordVO entity = dataProvider.getRecordVO(index);
+				Button activateButton = new EnableButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.activate(entity);
+					}
+				};
+				activateButton.setVisible(!presenter.isActive(entity));
+				return activateButton;
+			}
+		});
+
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				Integer index = (Integer) itemId;
+				final RecordVO entity = dataProvider.getRecordVO(index);
+				Button deactivateButton = new DisableButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deactivate(entity);
+					}
+				};
+
+				deactivateButton.setVisible(presenter.isActive(entity));
+				return deactivateButton;
+			}
+		});
+
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -137,7 +156,8 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 		});
 
 		recordsContainer = buttonsContainer;
-		RecordVOTable table = new RecordVOTable($("ListFacetConfiguration.tableTitle", dataProvider.getSchema().getLabel(getSessionContext().getCurrentLocale())), recordsContainer, false);
+		RecordVOTable table = new RecordVOTable(
+				$("ListFacetConfiguration.tableTitle", dataProvider.size()), recordsContainer, false);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
 		table.setColumnHeader(Facet.TITLE, $("title"));
@@ -145,14 +165,20 @@ public class ListFacetConfigurationViewImpl extends BaseViewImpl implements List
 		table.setColumnHeader(Facet.ORDER_RESULT, $("elementPerPage"));
 		table.setColumnHeader(Facet.ORDER, $("facerOrder"));
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
-		table.setColumnWidth("buttons", 120);
-		table.setPageLength(table.getItemIds().size());
-		table.setCaption(table.getPageLength() + " " + table.getCaption());
+		table.setColumnWidth("buttons", 160);
+		table.setPageLength(Math.min(15, dataProvider.size()));
 
 		return table;
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+	}
+
+	@Override
+	public void refreshTable() {
+		RecordVOTable newListFacet = valuesTable();
+		mainLayout.replaceComponent(listFacet, newListFacet);
+		listFacet = newListFacet;
 	}
 }

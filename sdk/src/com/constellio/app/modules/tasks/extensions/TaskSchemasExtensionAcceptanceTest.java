@@ -1,22 +1,23 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.extensions;
 
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_BY;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.START_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -25,12 +26,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -40,22 +41,23 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 	private TaskSchemasExtension taskSchemasExtension;
 
 	Users users = new Users();
 	RecordServices recordServices;
+	UserServices userServices;
+	ConstellioEIMConfigs eimConfigs;
+	String constellioUrl;
 	private LocalDateTime now = LocalDateTime.now();
 	private Task zeTask;
 	private Task validParentTaskFollowingSubTasks;
@@ -79,14 +81,16 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		givenTimeIs(now);
-		givenCollection(zeCollection).withTaskModule().withAllTestUsers();
-		users.setUp(getModelLayerFactory().newUserServices());
+		prepareSystem(withZeCollection().withTasksModule().withAllTest(users));
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		emailToSendSchema = tasksSchemas.emailToSend();
 		taskSchemasExtension = new TaskSchemasExtension(zeCollection, getAppLayerFactory());
+		userServices = getModelLayerFactory().newUserServices();
+		eimConfigs = new ConstellioEIMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
+		constellioUrl = eimConfigs.getConstellioUrl();
 		initTasks();
 
 	}
@@ -127,11 +131,10 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		recordServices.add(zeTask.setStatus(FIN()));
 		recordServices.flush();
-		EmailToSend emailToSend = getEmailToSend();
+		EmailToSend emailToSend = getEmailToSendNotHavingAssignedToYouTemplateId();
 		assertThat(emailToSend).isNotNull();
-		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_COMPLETED);
-		assertThat(emailToSend.getParameters().get(0))
-				.isEqualTo(TasksEmailTemplates.TASK_TITLE_PARAMETER + ":" + zeTask.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(TASK_COMPLETED);
+		assertThatParametersAreOk(zeTask, emailToSend);
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(now);
 		assertThat(emailToSend.getTo().size()).isEqualTo(1);
@@ -248,7 +251,7 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask);
 		recordServices.flush();
 		assertThat(tasksSchemas.getTask(newTask.getId()).getEndDate()).isEqualTo(now.toLocalDate());
-		assertThat(getEmailToSend()).isNull();
+		assertThat(getEmailToSendNotHavingAssignedToYouTemplateId()).isNull();
 	}
 
 	@Test
@@ -266,11 +269,10 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		recordServices.add(zeTask.setStatus(INP()));
 		recordServices.flush();
-		EmailToSend emailToSend = getEmailToSend();
+		EmailToSend emailToSend = getEmailToSendNotHavingAssignedToYouTemplateId();
 		assertThat(emailToSend).isNotNull();
-		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_STATUS_MODIFIED);
-		assertThat(emailToSend.getParameters().get(0))
-				.isEqualTo(TasksEmailTemplates.TASK_TITLE_PARAMETER + ":" + zeTask.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(TASK_STATUS_MODIFIED);
+		assertThatParametersAreOk(zeTask, emailToSend);
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(now);
 		assertThat(emailToSend.getTo().size()).isEqualTo(1);
@@ -286,13 +288,14 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 						.setParentTask(validParentTaskFollowingSubTasks.getId())
 						.setTaskFollowers(zeFollowers)
 		);
+
 		recordServices.add(newTask.setParentTask((String) null));
 		recordServices.flush();
-		EmailToSend emailToSend = getEmailToSend();
+		EmailToSend emailToSend = getEmailToSendNotHavingAssignedToYouTemplateId();
 		assertThat(emailToSend).isNotNull();
-		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED);
-		assertThat(emailToSend.getParameters().get(0))
-				.isEqualTo(TasksEmailTemplates.TASK_TITLE_PARAMETER + ":" + validParentTaskFollowingSubTasks.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(TASK_SUB_TASKS_MODIFIED);
+		assertThatParametersAreOk(newTask, emailToSend);
+
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(now);
 		assertThat(emailToSend.getTo().size()).isEqualTo(1);
@@ -305,11 +308,10 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		recordServices.add(zeTask.setParentTask((String) null));
 		recordServices.flush();
-		EmailToSend emailToSend = getEmailToSend();
+		EmailToSend emailToSend = getEmailToSendNotHavingAssignedToYouTemplateId();
 		assertThat(emailToSend).isNotNull();
-		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED);
-		assertThat(emailToSend.getParameters().get(0))
-				.isEqualTo(TasksEmailTemplates.TASK_TITLE_PARAMETER + ":" + validParentTaskFollowingSubTasks.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(TASK_SUB_TASKS_MODIFIED);
+		assertThatParametersAreOk(zeTask, emailToSend);
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(now);
 		assertThat(emailToSend.getTo().size()).isEqualTo(1);
@@ -323,11 +325,10 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		String aliceId = users.aliceIn(zeCollection).getId();
 		recordServices.add(zeTask.setAssignee(aliceId));
 		recordServices.flush();
-		EmailToSend emailToSend = getEmailToSend();
+		EmailToSend emailToSend = getEmailToSendNotHavingAssignedToYouTemplateId();
 		assertThat(emailToSend).isNotNull();
-		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED);
-		assertThat(emailToSend.getParameters().get(0))
-				.isEqualTo(TasksEmailTemplates.TASK_TITLE_PARAMETER + ":" + zeTask.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(TASK_ASSIGNEE_MODIFIED);
+		assertThatParametersAreOk(zeTask, emailToSend);
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(now);
 		assertThat(emailToSend.getTo().size()).isEqualTo(1);
@@ -340,7 +341,7 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		recordServices.add(zeTask.setAssignationDate(now.toLocalDate()));
 		recordServices.flush();
-		assertThat(getEmailToSend()).isNull();
+		assertThat(getEmailToSendNotHavingAssignedToYouTemplateId()).isNull();
 	}
 
 	@Test
@@ -349,18 +350,20 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		String aliceId = users.aliceIn(zeCollection).getId();
 		recordServices.add(zeTask.setAssignee(aliceId).setTaskFollowers(new ArrayList<TaskFollower>()));
 		recordServices.flush();
-		assertThat(getEmailToSend()).isNull();
+		assertThat(getEmailToSendNotHavingAssignedToYouTemplateId(
+
+		))
+				.isNull();
 	}
 
 	@Test
 	public void givenTaskDeletedLogicallyThenValidEmailToSendCreated() {
 		recordServices.logicallyDelete(zeTask.getWrappedRecord(), null);
 		recordServices.flush();
-		EmailToSend emailToSend = getEmailToSend();
+		EmailToSend emailToSend = getEmailToSendNotHavingAssignedToYouTemplateId();
 		assertThat(emailToSend).isNotNull();
-		assertThat(emailToSend.getTemplate()).isEqualTo(TasksEmailTemplates.TASK_DELETED);
-		assertThat(emailToSend.getParameters().get(0))
-				.isEqualTo(TasksEmailTemplates.TASK_TITLE_PARAMETER + ":" + zeTask.getTitle());
+		assertThat(emailToSend.getTemplate()).isEqualTo(TASK_DELETED);
+		assertThatParametersAreOk(zeTask, emailToSend);
 		assertThat(emailToSend.getFrom()).isNull();
 		assertThat(emailToSend.getSendOn()).isEqualTo(now);
 		assertThat(emailToSend.getTo().size()).isEqualTo(1);
@@ -374,7 +377,7 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeTask);
 		recordServices.flush();
 		taskSchemasExtension.sendDeletionEventToFollowers(zeTask);
-		assertThat(getEmailToSend()).isNull();
+		assertThat(getEmailToSendNotHavingAssignedToYouTemplateId()).isNull();
 	}
 
 	@Test
@@ -421,7 +424,7 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask);
 		newTask = reloadTask(newTask.getId());
 		assertThat(newTask.getStartDate()).isEqualTo(now.toLocalDate());
-		assertThat(getEmailToSend()).isNull();
+		assertThat(getEmailToSendNotHavingAssignedToYouTemplateId()).isNull();
 	}
 
 	@Test
@@ -452,7 +455,7 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask.setStatus(INP()));
 		newTask = reloadTask(newTask.getId());
 		assertThat(newTask.getStartDate()).isEqualTo(now.toLocalDate());
-		assertThat(getEmailToSend()).isNull();
+		assertThat(getEmailToSendNotHavingAssignedToYouTemplateId()).isNull();
 	}
 
 	@Test
@@ -491,15 +494,15 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 
 	private List<TaskReminder> initReminders() {
 		List<TaskReminder> reminders = new ArrayList<>();
-		processedReminderWithRelativeDateBeforeStartDate_0 = new TaskReminder().setRelativeDateMetadataCode(Task.START_DATE)
+		processedReminderWithRelativeDateBeforeStartDate_0 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
 				.setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(1).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateBeforeStartDate_0);
 
-		processedReminderWithRelativeDateAfterStartDate_1 = new TaskReminder().setRelativeDateMetadataCode(Task.START_DATE)
-				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(1).setProcessed(true);
+		processedReminderWithRelativeDateAfterStartDate_1 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
+				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(3).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateAfterStartDate_1);
 
-		processedReminderWithRelativeDateEqualsStartDate_2 = new TaskReminder().setRelativeDateMetadataCode(Task.START_DATE)
+		processedReminderWithRelativeDateEqualsStartDate_2 = new TaskReminder().setRelativeDateMetadataCode(START_DATE)
 				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(0).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateEqualsStartDate_2);
 
@@ -514,8 +517,10 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		return reminders;
 	}
 
-	private EmailToSend getEmailToSend() {
-		LogicalSearchCondition condition = from(emailToSendSchema).returnAll();
+	private EmailToSend getEmailToSendNotHavingAssignedToYouTemplateId() {
+		LogicalSearchCondition condition = from(emailToSendSchema)
+				.where(tasksSchemas.emailToSend().getMetadata(EmailToSend.TEMPLATE))
+				.isNotEqual(TASK_ASSIGNED_TO_YOU);
 		Record emailRecord = searchServices.searchSingleResult(condition);
 		if (emailRecord != null) {
 			return tasksSchemas.wrapEmailToSend(emailRecord);
@@ -552,5 +557,39 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 
 	public String STB() {
 		return tasksSchemas.getTaskStatusWithCode(STANDBY_CODE).getId();
+	}
+
+	private void assertThatParametersAreOk(Task task, EmailToSend emailToSend) {
+
+		String parentTaskTitle = "";
+		String assignerUserName = getUserNameById(task.getAssigner());
+		String assigneeUserName = getUserNameById(task.getAssignee());
+		if (task.getParentTask() != null) {
+			Task parentTask = tasksSchemas.getTask(task.getParentTask());
+			parentTaskTitle = parentTask.getTitle();
+		}
+		String status = tasksSchemas.getTaskStatus(task.getStatus()).getTitle();
+
+		assertThat(emailToSend.getParameters()).contains(
+				TASK_TITLE_PARAMETER + ":" + task.getTitle(),
+				PARENT_TASK_TITLE + ":" + parentTaskTitle,
+				TASK_ASSIGNED_BY + ":" + assignerUserName,
+				TASK_ASSIGNED_ON + ":" + task.getAssignedOn(),
+				TASK_ASSIGNED + ":" + assigneeUserName,
+				TASK_DUE_DATE + ":" + task.getDueDate(),
+				TASK_STATUS + ":" + status,
+				TASK_DESCRIPTION + ":" + task.getDescription(),
+				DISPLAY_TASK + ":" + constellioUrl + "#!displayTask/" + task.getId(),
+				COMPLETE_TASK + ":" + constellioUrl + "#!editTask/completeTask%253Dtrue%253Bid%253D" + task.getId()
+
+		);
+		assertThat(emailToSend.getSubject()).isNull();
+	}
+
+	private String getUserNameById(String userId) {
+		if (StringUtils.isBlank(userId)) {
+			return "";
+		}
+		return tasksSchemas.wrapUser(recordServices.getDocumentById(userId)).getUsername();
 	}
 }

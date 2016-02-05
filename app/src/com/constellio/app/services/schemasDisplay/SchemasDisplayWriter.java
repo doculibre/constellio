@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemasDisplay;
 
 import java.util.ArrayList;
@@ -46,6 +29,7 @@ public class SchemasDisplayWriter {
 	private static final String SCHEMA_CODE = "SchemaCode";
 	private static final String FORM_METADATA_CODES = "FormMetadataCodes";
 	private static final String SEARCH_RESULTS_METADATA_CODES = "SearchResultsMetadataCodes";
+	private static final String TABLE_METADATA_CODES = "TableMetadataCodes";
 	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
 	private static final String INPUT_TYPE = "InputType";
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
@@ -179,6 +163,8 @@ public class SchemasDisplayWriter {
 		process(config, schemaDisplayConfigsElement, FORM_METADATA_CODES, config.getFormMetadataCodes());
 		process(config, schemaDisplayConfigsElement, SEARCH_RESULTS_METADATA_CODES,
 				config.getSearchResultsMetadataCodes());
+		process(config, schemaDisplayConfigsElement, TABLE_METADATA_CODES,
+				config.getTableMetadataCodes());
 	}
 
 	private void process(SchemaDisplayConfig config, Element schemaDisplayConfigsElement, String metadataCodeName,
@@ -186,7 +172,7 @@ public class SchemasDisplayWriter {
 		Element metadataCodesElement = getOrCreateElementFromParent(schemaDisplayConfigsElement, metadataCodeName);
 
 		for (String metadataCode : metadataCodes) {
-			Element formMetadataCodeElement = getOrCreateElementFromParent(metadataCodesElement, metadataCode);
+			getOrCreateElementFromParent(metadataCodesElement, metadataCode);
 		}
 		removeInvalidStringsFromElement(metadataCodes, metadataCodesElement);
 	}

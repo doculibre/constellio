@@ -1,25 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.transactionLog;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.STOP;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -33,18 +15,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -58,26 +35,22 @@ import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator;
-import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
+import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CannotParseLogCommand;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized;
+import com.constellio.data.dao.services.transactionLog.replay.TransactionLogReplayServices;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.KeyListMap;
-import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.TimeProvider;
 
 public class XMLSecondTransactionLogManager implements SecondTransactionLogManager {
@@ -87,14 +60,13 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	static final String MERGE_LOGS_ACTION = XMLSecondTransactionLogManager.class.getSimpleName() + "_mergeLogs";
 	static final String BIG_LOG_TEMP_FILE = XMLSecondTransactionLogManager.class.getSimpleName() + "_bigLogTempFile";
 	static final String READ_LOG = XMLSecondTransactionLogManager.class.getSimpleName() + "_readLog";
-	static final String READ_LOG_FOR_REPLAY = XMLSecondTransactionLogManager.class.getSimpleName() + "_readLogForReplay";
+
 	static final String READ_TEMP_BIG_LOG = XMLSecondTransactionLogManager.class.getSimpleName() + "_readBigLog";
 	static final String WRITE_TEMP_BIG_LOG = XMLSecondTransactionLogManager.class.getSimpleName() + "_readBigLog";
 
 	static final String RECOVERY_FOLDER = XMLSecondTransactionLogManager.class.getSimpleName() + "_recoveryFolder";
 	static final String RECOVERED_TLOG_INPUT = XMLSecondTransactionLogManager.class.getSimpleName() + "_recoveredTLogInput";
 	static final String RECOVERED_TLOG_OUTPUT = XMLSecondTransactionLogManager.class.getSimpleName() + "_recoveredTLogOutput";
-	static final String RECOVERED_TLOG_REPLAY = XMLSecondTransactionLogManager.class.getSimpleName() + "_recoveredTLogReplay";
 
 	private DataLayerConfiguration configuration;
 
@@ -162,7 +134,8 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 			List<File> tLogs = recoverTransactionLogs(recoveryFolder);
 			if (!tLogs.isEmpty()) {
 				clearSolrCollection();
-				replayTransactionLogs(tLogs);
+				new TransactionLogReplayServices(newReadWriteServices(), bigVaultServer, dataLayerLogger)
+						.replayTransactionLogs(tLogs);
 			}
 
 		} finally {
@@ -216,271 +189,8 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	}
 
-	private void replayTransactionLogs(List<File> tLogs) {
-		BigVaultLogAddUpdater addUpdater = new BigVaultLogAddUpdater(bigVaultServer, dataLayerLogger);
-		for (File tLog : tLogs) {
-			LOGGER.info("Replaying tlog '" + tLog.getName() + "'");
-			replayTransactionLog(tLog, addUpdater);
-		}
-		addUpdater.close();
-	}
-
-	private void replayTransactionLog(File tLog, BigVaultLogAddUpdater addUpdater) {
-		//		String fileContent = ioServices.readFileToStringWithoutExpectableIOException(tLog);
-		//		fileContent = fileContent.replace("\r\n", "__LINEBREAK__");
-		//		StringTokenizer lines = new StringTokenizer(fileContent, "\n");
-		Iterator<String> linesIterator = newLinesIterator(tLog);
-
-		Iterator<BigVaultServerTransaction> operationsIterator = newTransactionsIterator(tLog.getName(), linesIterator);
-
-		while (operationsIterator.hasNext()) {
-			addUpdater.add(operationsIterator.next());
-		}
-
-	}
-
-	Iterator<String> newLinesIterator(File tLog) {
-
-		final BufferedReader tLogBufferedReader = ioServices.newBufferedFileReader(tLog, READ_LOG_FOR_REPLAY);
-		return new LazyIterator<String>() {
-
-			@Override
-			protected String getNextOrNull() {
-
-				String nextLine = null;
-				try {
-					nextLine = getNextLine();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-
-				if (nextLine == null) {
-					ioServices.closeQuietly(tLogBufferedReader);
-				}
-
-				return nextLine;
-			}
-
-			char[] buffer = new char[1];
-			char carriageReturnChar = '\r';
-			char lineFeedChar = '\n';
-
-			private String getNextLine()
-					throws IOException {
-				StringBuilder stringBuilder = new StringBuilder();
-
-				boolean wasCarriageReturn = false;
-				int response;
-				while (1 == (response = tLogBufferedReader.read(buffer))) {
-					if (buffer[0] == carriageReturnChar) {
-						wasCarriageReturn = true;
-
-					} else if (buffer[0] == lineFeedChar && wasCarriageReturn) {
-						stringBuilder.append("__LINEBREAK__");
-
-					} else if (buffer[0] == lineFeedChar) {
-						break;
-
-					} else {
-						wasCarriageReturn = false;
-						stringBuilder.append(buffer[0]);
-					}
-				}
-				if (response != 1 && stringBuilder.length() == 0) {
-					return null;
-				}
-				return stringBuilder.toString();
-			}
-		};
-	}
-
-	private Iterator<BigVaultServerTransaction> newTransactionsIterator(final String fileName, Iterator<String> linesIterator) {
-
-		final Iterator<List<String>> transactionLinesIterator = newTransactionsLinesIterator(linesIterator);
-
-		return new LazyIterator<BigVaultServerTransaction>() {
-			@Override
-			protected BigVaultServerTransaction getNextOrNull() {
-				if (!transactionLinesIterator.hasNext()) {
-					return null;
-				}
-				BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW());
-
-				List<String> currentAddUpdateLines = new ArrayList<>();
-				for (String line : transactionLinesIterator.next()) {
-					if (isFirstLineOfOperation(line) && !currentAddUpdateLines.isEmpty()) {
-						addOperationToTransaction(fileName, transaction, currentAddUpdateLines);
-						currentAddUpdateLines.clear();
-					}
-					currentAddUpdateLines.add(line);
-				}
-
-				if (!currentAddUpdateLines.isEmpty()) {
-					addOperationToTransaction(fileName, transaction, currentAddUpdateLines);
-				}
-
-				return transaction;
-			}
-
-		};
-	}
-
-	private void addOperationToTransaction(String fileName, BigVaultServerTransaction transaction,
-			List<String> currentAddUpdateLines) {
-		String firstLine = currentAddUpdateLines.get(0);
-
-		if (firstLine.startsWith("addUpdate ")) {
-
-			String[] firstLineParts = firstLine.split(" ");
-			String id = firstLineParts[1];
-			String version = firstLineParts[2];
-			KeyListMap<String, Object> fieldValues = new KeyListMap<>();
-
-			for (int i = 1; i < currentAddUpdateLines.size(); i++) {
-				try {
-					String line = currentAddUpdateLines.get(i);
-					int indexOfEqualSign = line.indexOf("=");
-					String field = line.substring(0, indexOfEqualSign);
-					String value = line.substring(indexOfEqualSign + 1);
-					Object convertedValue = convertValueForLogReplay(field, value);
-
-					fieldValues.add(field, convertedValue);
-				} catch (RuntimeException e) {
-					throw new SecondTransactionLogRuntimeException_CannotParseLogCommand(currentAddUpdateLines, fileName, e);
-				}
-			}
-			SolrInputDocument document = buildAddUpdateDocument(id, fieldValues);
-			if (version.equals("-1")) {
-				transaction.getNewDocuments().add(document);
-			} else {
-				transaction.getUpdatedDocuments().add(document);
-			}
-
-		} else if (firstLine.startsWith("delete ")) {
-			int index = firstLine.indexOf(" ");
-			List<String> ids = Arrays.asList(firstLine.substring(index).split(" "));
-			transaction.getDeletedRecords().addAll(ids);
-
-		} else if (firstLine.startsWith("deletequery ")) {
-			int index = firstLine.indexOf(" ");
-			String query = firstLine.substring(index);
-			transaction.getDeletedQueries().add(query);
-		}
-
-	}
-
-	private SolrInputDocument buildAddUpdateDocument(String id, KeyListMap<String, Object> fieldValues) {
-		SolrInputDocument inputDocument = new ConstellioSolrInputDocument();
-		inputDocument.setField("id", id);
-		for (Map.Entry<String, List<Object>> entry : fieldValues.getMapEntries()) {
-			String fieldName = entry.getKey();
-			String atomicOperation = null;
-			int indexOfSpace = fieldName.indexOf(" ");
-			if (indexOfSpace != -1) {
-				atomicOperation = fieldName.substring(0, indexOfSpace);
-				fieldName = fieldName.substring(indexOfSpace + 1);
-			}
-			Object value = entry.getValue();
-			if (!SolrUtils.isMultivalue(fieldName)) {
-				value = entry.getValue().get(0);
-			}
-			if (atomicOperation != null) {
-				Map<String, Object> setValue = new HashMap<>();
-				setValue.put(atomicOperation, value);
-				inputDocument.setField(fieldName, setValue);
-			} else {
-				inputDocument.setField(fieldName, value);
-			}
-		}
-		return inputDocument;
-	}
-
-	private Iterator<List<String>> newTransactionsLinesIterator(final Iterator<String> linesIterator) {
-
-		return new LazyIterator<List<String>>() {
-
-			@Override
-			protected List<String> getNextOrNull() {
-				List<String> currentLines = new ArrayList<>();
-
-				while (linesIterator.hasNext()) {
-					String line = linesIterator.next();
-					if (line != null && line.startsWith("__LINEBREAK__")) {
-						int lastLineIndex = currentLines.size() - 1;
-						String lastLine = currentLines.get(lastLineIndex);
-						currentLines.set(lastLineIndex, lastLine + line);
-
-					} else if (line != null && (!isFirstLineOfTransaction(line) || currentLines.isEmpty())) {
-						currentLines.add(line);
-
-					} else {
-						break;
-					}
-				}
-
-				return currentLines.isEmpty() ? null : currentLines;
-			}
-		};
-	}
-
-	private Object convertValueForLogReplay(String field, String value) {
-
-		//		if (value == null || value.isEmpty()) {
-		//			return SolrUtils.NULL_STRING;
-		//		}
-
-		//		} else if (field.endsWith("da") || field.endsWith("das")) {
-		//			if (value.contains("T")) {
-		//				LocalDateTime dateTime = new LocalDateTime(value.replace("Z", ""));
-		//				return dateTime;
-		//			} else {
-		//				return new LocalDate(value.replace("Z", ""));
-		//			}
-		//
-		//		} else if (field.endsWith("dt") || field.endsWith("dts")) {
-		//			return new LocalDateTime(value.replace("Z", ""));
-		//
-		//		}
-
-		return value.replace("__LINEBREAK__", "\n");
-	}
-
-	private boolean isFirstLineOfOperation(String line) {
-		return line.startsWith("addUpdate ") || line.startsWith("delete ") || line.startsWith("deletequery ");
-	}
-
-	private boolean isFirstLineOfTransaction(String line) {
-		return line.startsWith("--transaction--");
-	}
-
-	private List<File> recoverTransactionLogs(File tlogsFolder) {
-		List<String> tlogs = contentDao.getFolderContents("/tlogs");
-		List<File> tlogsFiles = new ArrayList<>();
-
-		Collections.sort(tlogs);
-
-		for (String tlog : tlogs) {
-
-			InputStream inputStream;
-			try {
-				inputStream = contentDao.getContentInputStream(tlog, RECOVERED_TLOG_INPUT);
-			} catch (ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
-				throw new RuntimeException(contentDaoException_noSuchContent);
-			}
-			File tLogFile = new File(tlogsFolder, tlog);
-			ioServices.touch(tLogFile);
-			OutputStream outputStream = ioServices.newBufferedFileOutputStreamWithoutExpectableFileNotFoundException(
-					tLogFile, RECOVERED_TLOG_OUTPUT);
-			tlogsFiles.add(tLogFile);
-
-			try {
-				ioServices.copyAndClose(inputStream, outputStream);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		return tlogsFiles;
+	TransactionLogReadWriteServices newReadWriteServices() {
+		return new TransactionLogReadWriteServices(ioServices, configuration, dataLayerSystemExtensions);
 	}
 
 	private Runnable newRegroupAndMoveInVaultRunnable() {
@@ -505,128 +215,6 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	@Override
 	public void close() {
 
-	}
-
-	private String toLogEntry(BigVaultServerTransaction transaction) {
-
-		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
-
-		for (SolrInputDocument solrDocument : transaction.getNewDocuments()) {
-			appendAddUpdateSolrDocument(stringBuilder, solrDocument);
-		}
-		for (SolrInputDocument solrDocument : transaction.getUpdatedDocuments()) {
-			appendAddUpdateSolrDocument(stringBuilder, solrDocument);
-		}
-		appendDeletedRecords(stringBuilder, transaction.getDeletedRecords());
-		for (String deletedByQuery : transaction.getDeletedQueries()) {
-			appendDeletedByQuery(stringBuilder, deletedByQuery);
-		}
-
-		return stringBuilder.toString();
-	}
-
-	private void appendDeletedByQuery(StringBuilder stringBuilder, String deletedByQuery) {
-		stringBuilder.append("deletequery " + deletedByQuery + "\n");
-	}
-
-	private String correct(Object value) {
-		if (value == null) {
-			return SolrUtils.NULL_STRING;
-
-		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
-			return value.toString().replace("Z", "");
-
-		} else {
-			return value.toString().replace("\n", "__LINEBREAK__");
-		}
-	}
-
-	private void appendDeletedRecords(StringBuilder stringBuilder, List<String> deletedDocumentIds) {
-		if (!deletedDocumentIds.isEmpty()) {
-			stringBuilder.append("delete");
-			for (String deletedDocumentId : deletedDocumentIds) {
-				stringBuilder.append(" ");
-				stringBuilder.append(deletedDocumentId);
-			}
-			stringBuilder.append("\n");
-		}
-	}
-
-	private void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrInputDocument document) {
-		String id = (String) document.getFieldValue("id");
-		Object version = document.getFieldValue("_version_");
-		String schema_s = (String) document.getFieldValue("schema_s");
-		String collection_s = (String) document.getFieldValue("collection_s");
-		stringBuilder.append("addUpdate ");
-		stringBuilder.append(id);
-		stringBuilder.append(" ");
-		stringBuilder.append(version == null ? "-1" : version);
-		stringBuilder.append("\n");
-		for (String name : document.getFieldNames()) {
-			if (!name.equals("id") && !name.equals("_version_") && isLogged(name, schema_s, collection_s)) {
-				Collection<Object> value = removeEmptyStrings(document.getFieldValues(name));
-
-				if (value.isEmpty()) {
-					appendValue(stringBuilder, name, "");
-				} else {
-					for (Object item : value) {
-
-						String fieldLogName = name;
-						if (item instanceof Map) {
-							Map<String, Object> mapItemValue = ((Map<String, Object>) item);
-							String firstKey = mapItemValue.keySet().iterator().next();
-							Object mapValue = mapItemValue.get(firstKey);
-							fieldLogName = firstKey + " " + name;
-
-							if (mapValue instanceof Collection) {
-								Collection<Object> mapValueList = removeEmptyStrings((Collection) mapValue);
-								if (mapValueList.isEmpty()) {
-									appendValue(stringBuilder, fieldLogName, "");
-								} else {
-									for (Object mapValueListItem : mapValueList) {
-										appendValue(stringBuilder, fieldLogName, mapValueListItem);
-									}
-								}
-							} else {
-								appendValue(stringBuilder, fieldLogName, mapValue);
-							}
-
-						} else {
-							appendValue(stringBuilder, fieldLogName, item);
-						}
-
-					}
-				}
-			}
-		}
-	}
-
-	private boolean isLogged(String name, String schema, String collection) {
-		boolean defaultValue =
-				!name.endsWith("content_txt_fr") && !name.endsWith("content_txt_en") && !name.endsWith("contents_txt_fr") && !name
-						.endsWith("contents_txt_en");
-		return dataLayerSystemExtensions.isDocumentFieldLoggedInTransactionLog(name, schema, collection, defaultValue);
-	}
-
-	private Collection<Object> removeEmptyStrings(Collection collection) {
-		List<Object> values = new ArrayList<>();
-
-		for (Object item : collection) {
-			if (!"".equals(item)) {
-				values.add(item);
-			}
-		}
-
-		return values;
-	}
-
-	private void appendValue(StringBuilder stringBuilder, String fieldLogName, Object item) {
-		//if (!"".equals(item)) {
-		stringBuilder.append(fieldLogName);
-		stringBuilder.append("=");
-		stringBuilder.append(correct(item));
-		stringBuilder.append("\n");
-		//}
 	}
 
 	public File getFlushedFolder() {
@@ -657,7 +245,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		File file = new File(getUnflushedFolder(), transactionId);
 
 		try {
-			ioServices.replaceFileContent(file, toLogEntry(transaction));
+			ioServices.replaceFileContent(file, newReadWriteServices().toLogEntry(transaction));
 		} catch (IOException e) {
 			exceptionOccured = true;
 			throw new RuntimeException(e);
@@ -705,6 +293,11 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	boolean isCommitted(File file, RecordDao recordDao) {
 		List<String> lines = readFileToLines(file);
 		//Skip line 0 which is the --transaction-- header
+
+		if (lines.size() < 2) {
+			return false;
+		}
+
 		String firstLine = lines.get(1);
 		String[] firstLineParts = firstLine.split(" ");
 
@@ -854,6 +447,43 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		}
 	}
 
+	private List<File> recoverTransactionLogs(File tlogsFolder) {
+		List<String> tlogs = contentDao.getFolderContents("/tlogs");
+		Collections.sort(tlogs);
+
+		List<File> tlogsFiles = new ArrayList<>();
+		if (contentDao instanceof FileSystemContentDao) {
+			File tlogsFolderInVault = ((FileSystemContentDao) contentDao).getFolder("tlogs").getParentFile();
+			for (String tlog : tlogs) {
+				tlogsFiles.add(new File(tlogsFolderInVault, tlog));
+			}
+			return tlogsFiles;
+		}
+
+		for (String tlog : tlogs) {
+
+			InputStream inputStream;
+			try {
+				inputStream = contentDao.getContentInputStream(tlog, RECOVERED_TLOG_INPUT);
+			} catch (ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
+				throw new RuntimeException(contentDaoException_noSuchContent);
+			}
+			File tLogFile = new File(tlogsFolder, tlog);
+			ioServices.touch(tLogFile);
+			OutputStream outputStream = ioServices.newBufferedFileOutputStreamWithoutExpectableFileNotFoundException(
+					tLogFile, RECOVERED_TLOG_OUTPUT);
+			tlogsFiles.add(tLogFile);
+
+			try {
+				ioServices.copyAndClose(inputStream, outputStream);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		return tlogsFiles;
+	}
+
 	private void copyTransactionLogInRegroupedLogsFile(File transactionFile, OutputStream tempFileOutputStream)
 			throws IOException {
 
@@ -881,52 +511,6 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 	private void ensureNoExceptionOccured() {
 		if (exceptionOccured) {
 			throw new SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException();
-		}
-	}
-
-	private static class BigVaultLogAddUpdater {
-
-		BigVaultServer server;
-
-		DataLayerLogger dataLayerLogger;
-
-		BigVaultServerTransactionCombinator combinator;
-
-		private BigVaultLogAddUpdater(BigVaultServer server, DataLayerLogger dataLayerLogger) {
-			this.server = server;
-			this.dataLayerLogger = dataLayerLogger;
-			this.combinator = new BigVaultServerTransactionCombinator();
-		}
-
-		int merged = 0;
-		int notMerged = 0;
-		int writes = 0;
-
-		private void add(BigVaultServerTransaction newTransaction) {
-			if (combinator.canCombineWith(newTransaction)) {
-				combinator.combineWith(newTransaction);
-
-			} else {
-				write(combinator.combineAndClean());
-				combinator.combineWith(newTransaction);
-			}
-		}
-
-		private void write(BigVaultServerTransaction transaction) {
-			try {
-				dataLayerLogger.logTransaction(transaction);
-				LOGGER.info("Replaying transactions - write #" + (++writes));
-				server.addAll(transaction);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		public void close() {
-
-			if (combinator.hasData()) {
-				write(combinator.combineAndClean());
-			}
 		}
 	}
 

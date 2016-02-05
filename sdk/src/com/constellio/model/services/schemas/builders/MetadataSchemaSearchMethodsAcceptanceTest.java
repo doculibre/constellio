@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +23,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
 @RunWith(Parameterized.class)
@@ -56,7 +38,6 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 
 	MetadataSchemaTypesBuilder typesBuilder;
 	MetadataSchemaTypes types;
-	TaxonomiesManager taxonomiesManager;
 
 	public MetadataSchemaSearchMethodsAcceptanceTest(String testCase) {
 		this.testCase = testCase;
@@ -77,7 +58,6 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 
-		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		typesBuilder = MetadataSchemaTypesBuilder.modify(manager.getSchemaTypes("zeCollection"));
 
 		MetadataSchemaTypeBuilder type1Builder = typesBuilder.getOrCreateNewSchemaType("type1").setLabel("type1");
@@ -101,7 +81,7 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 		MetadataBuilder type2Schema2Metadata1Builder = newMetadata(type2Schema2Builder, "customMetadata21");
 		MetadataBuilder type2Schema2Metadata2Builder = newMetadata(type2Schema2Builder, "customMetadata22");
 
-		types = typesBuilder.build(typesFactory, taxonomiesManager);
+		types = typesBuilder.build(typesFactory, getModelLayerFactory());
 
 		if (testCase.equals(givenBuilderObtainedFromManager) || testCase.equals(givenFinalEnityObtainedFromManager)) {
 			manager.saveUpdateSchemaTypes(typesBuilder);

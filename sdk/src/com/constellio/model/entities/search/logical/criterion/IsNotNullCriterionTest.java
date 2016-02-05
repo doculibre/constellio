@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.search.logical.criterion;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,21 +38,21 @@ public class IsNotNullCriterionTest extends ConstellioTest {
 
 	@Test
 	public void givenTextMetadataWhenGettingSolrQueryThenQueryIsCorrect() {
-		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("(*:* -textMetadata_s:\"__NULL__\")");
+		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo("(textMetadata_s:*)");
 	}
 
 	@Test
 	public void givenBooleanMetadataWhenGettingSolrQueryThenQueryIsCorrect() {
-		assertThat(criterion.getSolrQuery(booleanMetadata)).isEqualTo("(*:* -booleanMetadata_b:\"__NULL__\")");
+		assertThat(criterion.getSolrQuery(booleanMetadata)).isEqualTo("(booleanMetadata_b:*)");
 	}
 
 	@Test
 	public void givenDateMetadataWhenGettingSolrQueryThenQueryIsCorrect() {
-		assertThat(criterion.getSolrQuery(dateMetadata)).isEqualTo("(*:* -dateMetadata_dt:\"4242-06-06T06:42:42.666Z\")");
+		assertThat(criterion.getSolrQuery(dateMetadata)).isEqualTo("(dateMetadata_dt:*)");
 	}
 
 	@Test
 	public void givenNumberMetadataWhenGettingSolrQueryThenQueryIsCorrect() {
-		assertThat(criterion.getSolrQuery(numberMetadata)).isEqualTo("(*:* -numberMetadata_d:\"" + Integer.MIN_VALUE + "\")");
+		assertThat(criterion.getSolrQuery(numberMetadata)).isEqualTo("(numberMetadata_d:*)");
 	}
 }

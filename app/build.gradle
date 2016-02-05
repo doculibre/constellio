@@ -1,11 +1,13 @@
-apply from: 'http://plugins.jasoft.fi/vaadin.plugin?version=0.9.7'
+plugins {
+    id "fi.jasoft.plugin.vaadin" version "0.10.5"
+}
 
 vaadin {
-    version '7.3.9'
+    version '7.6.1'
     addon.title = "constellio"
 
     widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
-    manageWidgetset true
+    manageWidgetset false
 
     debug true
     debugPort 8000
@@ -18,18 +20,20 @@ vaadin {
 
     jvmArgs()
 
-    //mainSourceSet sourceSets.main.allJava
+    mainSourceSet sourceSets.main.allJava
 
-    vaadin.plugin.themesDirectory 'VAADIN/themes/constellio'
-    vaadin.plugin.themeAutoRecompile true
-    vaadin.plugin.useClassPathJar false
+    plugin.themesDirectory 'WebContent/VAADIN/themes/constellio'
+    plugin.themeAutoRecompile true
+    plugin.useClassPathJar false
+    plugin.logToConsole = true
 }
 
 dependencies {
     compile project(":data")
     compile project(":model")
 
-
+    compile "org.jsoup:jsoup:1.8.3"
+    compile "net.sourceforge.htmlunit:htmlunit:2.18"
     compile "com.cybozu.labs:langdetect:1.1-20120112"
     compile "org.glassfish:javax.json:1.0.4"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:2.13"
@@ -40,19 +44,8 @@ dependencies {
     compile "org.jdom:jdom:2.0.2"
     compile "org.apache.poi:poi-ooxml:3.10-FINAL"
     compile "org.apache.poi:poi:3.10-FINAL"
-    compile "jspf:jspf.core:1.0.2"
-    compile "com.vaadin:vaadin-shared:7.3.9"
-    compile "com.vaadin:vaadin-client:7.3.9"
-    compile "com.vaadin:vaadin-server:7.3.9"
-    compile "com.vaadin:vaadin-themes:7.3.9"
-    compile "com.vaadin:vaadin-client-compiled:7.3.9"
-    compile "com.vaadin:vaadin-client-compiler:7.3.9"
-    compile "com.vaadin:vaadin-themes:7.3.9"
-    compile "com.vaadin:vaadin-sass-compiler:0.9.11"
+    compile "jspf:jspf.core:1.0.0"
     compile "javax.servlet:javax.servlet-api:3.1.0"
-    compile "org.vaadin.addons:actionbuttontextfield:1.0.2"
-    compile "org.vaadin.addons:googleanalyticstracker:2.1.0"
-    compile "org.vaadin.addon:confirmdialog:2.1.2"
     compile "org.peimari:maddon:1.20"
     compile "commons-io:commons-io:2.4"
     compile "org.apache.solr:solr-solrj:5.0.0"
@@ -68,15 +61,31 @@ dependencies {
     compile "org.vaadin.addons:dom:0.1.0"
     compile "org.vaadin.addons:listbuilder:0.7.3.v7"
     compile "org.vaadin.addons:contextmenu:4.5"
+    compile "org.vaadin.addons:actionbuttontextfield:1.0.2"
+    compile "org.vaadin.addons:googleanalyticstracker:2.1.0"
+    compile "org.vaadin.addon:confirmdialog:2.1.2"
+    compile "com.vaadin:vaadin-shared:7.6.1"
+    compile "com.vaadin:vaadin-client:7.6.1"
+    compile "com.vaadin:vaadin-server:7.6.1"
+    compile "com.vaadin:vaadin-themes:7.6.1"
+    compile "com.vaadin:vaadin-client-compiled:7.6.1"
+    compile "com.vaadin:vaadin-client-compiler:7.6.1"
+    compile "com.vaadin:vaadin-themes:7.6.1"
+    compile "com.vaadin:vaadin-sass-compiler:0.9.11"
     compile "com.google.code.gson:gson:1.7.2"
     compile files("libs/jcifs_gcm_322.jar")
     compile files("libs/vaadin-breadcrumb-1.7.3.jar")
-
+    compile "juh:juh:3.2.1"
+    compile "jurt:jurt:3.2.1"
+    compile "ridl:ridl:3.2.1"
+    compile "unoil:unoil:3.2.1"
+    compile "org.mockito:mockito-all:1.10.8"
+    compile files("libs/vaadin-mediaelementjs-player-1.2.6.jar")
 }
 
 war {
     baseName = "constellio-app"
-    version = "5.1.0.0"
+    version = "5.2"
 
     webInf {
         from 'WebContent/'
@@ -104,5 +113,11 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '5.1.0.0'
+    version = '5.2'
+}
+
+configurations.archives.artifacts.with { archives ->
+    archives.removeAll {
+        it.classifier in ['javadoc', 'sources']
+    }
 }

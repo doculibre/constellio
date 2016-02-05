@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -62,6 +45,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private static final String STYLE_VISIBLE = "valo-menu-visible";
 	public static final String STYLE_USER_SETTINGS = "user-settings";
 
+	private boolean signOutLinkVisible;
+
 	private ConstellioMenuPresenter presenter;
 
 	private MenuItem userSettingsItem;
@@ -95,6 +80,20 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		this.collections = collections;
 	}
 
+	protected void toggleMenuVisibility() {
+		Component compositionRoot = getCompositionRoot();
+		if (compositionRoot.getStyleName().contains(STYLE_VISIBLE)) {
+			compositionRoot.removeStyleName(STYLE_VISIBLE);
+		} else {
+			compositionRoot.addStyleName(STYLE_VISIBLE);
+		}
+	}
+
+	@Override
+	public void setSignOutLinkVisible(boolean logoutLinkVisible) {
+		this.signOutLinkVisible = logoutLinkVisible;
+	}
+
 	private Component buildContent() {
 		menuContent = new CssLayout();
 		menuContent.addStyleName("sidebar");
@@ -122,7 +121,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 			SessionContext sessionContext = getSessionContext();
 			String currentCollection = sessionContext.getCurrentCollection();
-			MenuItem collectionSubMenu = collectionMenu.addItem($("ConstellioMenu.collection"), null);
+			MenuItem collectionSubMenu = collectionMenu.addItem(
+					$("ConstellioMenu.collection", presenter.getCollectionCaption(currentCollection)), null);
 			for (final String collection : collections) {
 				String collectionCaption = presenter.getCollectionCaption(collection);
 				MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {
@@ -160,11 +160,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		valoMenuToggleButton = new Button("Menu", new ClickListener() {
 			@Override
 			public void buttonClick(final ClickEvent event) {
-				if (getCompositionRoot().getStyleName().contains(STYLE_VISIBLE)) {
-					getCompositionRoot().removeStyleName(STYLE_VISIBLE);
-				} else {
-					getCompositionRoot().addStyleName(STYLE_VISIBLE);
-				}
+				toggleMenuVisibility();
 			}
 		});
 		valoMenuToggleButton.setIcon(FontAwesome.LIST);
@@ -183,6 +179,13 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
 			Button menuButton = mainMenuButton.getButton();
+			menuButton.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					toggleMenuVisibility();
+				}
+			});
+
 			Class<? extends MenuViewGroup> menuViewGroupClass = mainMenuButton.getMenuViewGroup();
 
 			Component mainMenuItemComponent = menuButton;
@@ -276,13 +279,15 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//				presenter.preferencesButtonClicked();
 		//			}
 		//		});
-		userSettingsItem.addSeparator();
-		userSettingsItem.addItem($("ConstellioMenu.signOut"), new Command() {
-			@Override
-			public void menuSelected(final MenuItem selectedItem) {
-				presenter.signOutButtonClicked();
-			}
-		}).setStyleName("disconnect-item");
+		if (signOutLinkVisible) {
+			userSettingsItem.addSeparator();
+			userSettingsItem.addItem($("ConstellioMenu.signOut"), new Command() {
+				@Override
+				public void menuSelected(final MenuItem selectedItem) {
+					presenter.signOutButtonClicked();
+				}
+			}).setStyleName("disconnect-item");
+		}
 	}
 
 	public MenuItem getUserSettingsItem() {

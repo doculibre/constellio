@@ -1,27 +1,12 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.migrations;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +16,7 @@ import com.constellio.app.entities.modules.Migration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
-import com.constellio.app.services.extensions.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -86,8 +71,12 @@ public class MigrationServices {
 		ConstellioModulesManagerImpl modulesManager = getModulesManager();
 		List<Migration> migrations = new ArrayList<>();
 
-		List<InstallableModule> modules = new ArrayList<>(modulesManager.getEnabledModules(collection));
-		for (InstallableModule installableModule : modulesManager.getRequiredDependentModulesToInstall(collection)) {
+		List<InstallableModule> enabledModules, requiredDependentModules;
+		enabledModules = modulesManager.getEnabledModules(collection);
+		requiredDependentModules = modulesManager.getRequiredDependentModulesToInstall(collection);
+		List<InstallableModule> modules = new ArrayList<>(enabledModules);
+
+		for (InstallableModule installableModule : requiredDependentModules) {
 
 			if (!modulesManager.isInstalled(installableModule)) {
 				modulesManager.markAsInstalled(installableModule,
@@ -100,7 +89,7 @@ public class MigrationServices {
 		}
 
 		for (InstallableModule module : modules) {
-			for (MigrationScript script : module.getMigrationScripts()) {
+			for (MigrationScript script : getMigrationScripts(module)) {
 				migrations.add(new Migration(collection, module.getId(), script));
 			}
 		}
@@ -113,18 +102,30 @@ public class MigrationServices {
 		return migrations;
 	}
 
-	public void migrate(String toVersion)
+	private List<MigrationScript> getMigrationScripts(InstallableModule module) {
+		List<MigrationScript> returnList = new ArrayList<>();
+		try {
+			returnList = module.getMigrationScripts();
+		} catch (Throwable e) {
+			LOGGER.warn("Error when trying get module " + module.getId() + " migration scripts");
+		}
+		return returnList;
+	}
+
+	public Set<String> migrate(String toVersion)
 			throws OptimisticLockingConfiguration {
+		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
 
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
 		for (String collection : collections) {
-			migrate(collection, toVersion);
+			modulesNotMigratedCorrectly.addAll(migrate(collection, toVersion));
 		}
+		return modulesNotMigratedCorrectly;
 	}
 
-	public void migrate(String collection, String toVersion)
+	private Set<String> migrateModules(String collection, String toVersion)
 			throws OptimisticLockingConfiguration {
-
+		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
 		List<Migration> migrations = getAllMigrationsFor(collection);
 
 		List<Migration> filteredMigrations = filterRunnedMigration(collection, migrations);
@@ -138,10 +139,30 @@ public class MigrationServices {
 					ensureSchemasHaveCommonMetadata(collection);
 					firstMigration = false;
 				}
-
-				migrate(migration);
+				boolean exceptionWhenMigrating = migrateWithoutException(migration, collection);
+				if (exceptionWhenMigrating) {
+					modulesNotMigratedCorrectly.add(migration.getMigrationId());
+				}
 			}
 		}
+		return modulesNotMigratedCorrectly;
+	}
+
+	private boolean migrateWithoutException(Migration migration, String collection) {
+		boolean exceptionWhenMigrating = false;
+		try {
+			migrate(migration);
+		} catch (Throwable e) {
+			constellioPluginManager
+					.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
+			exceptionWhenMigrating = true;
+		}
+		return exceptionWhenMigrating;
+	}
+
+	public Set<String> migrate(String collection, String toVersion)
+			throws OptimisticLockingConfiguration {
+		return migrateModules(collection, toVersion);
 	}
 
 	List<Migration> filterRunnedMigration(String collection, List<Migration> migrations) {
@@ -240,4 +261,18 @@ public class MigrationServices {
 		return constellioModulesManager;
 	}
 
+	public static class InvalidPluginModule extends Exception {
+		final private List<InstallableModule> invalidModules;
+
+		public InvalidPluginModule(InstallableModule... invalidModules) {
+			this.invalidModules = new ArrayList<>();
+			for (InstallableModule invalidModule : invalidModules) {
+				this.invalidModules.add(invalidModule);
+			}
+		}
+
+		public List<InstallableModule> getInvalidModules() {
+			return invalidModules;
+		}
+	}
 }

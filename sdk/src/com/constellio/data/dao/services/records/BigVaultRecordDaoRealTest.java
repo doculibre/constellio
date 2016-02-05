@@ -1,26 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.records;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asStringObjectMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.data.MapEntry.entry;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
@@ -30,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
@@ -199,7 +185,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 			throws Exception {
 		RecordDTO record = newRecordWithSingleReference("idOfNonExistentIndex");
 		recordDao.execute(new TransactionDTO(UUID.randomUUID().toString(), RecordsFlushing.NOW, Arrays.asList(record),
-				new ArrayList<RecordDeltaDTO>(), new ArrayList<RecordDTO>(), new ArrayList<SolrParams>(), true));
+				new ArrayList<RecordDeltaDTO>(), new ArrayList<RecordDTO>(), new ArrayList<SolrParams>(), true, false));
 		assertEquals(record.getFields().get("title_s"), recordDao.get(record.getId()).getFields().get("title_s"));
 	}
 
@@ -463,12 +449,13 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		fields.put("field_dt", aDateTime);
 		fields.put("field_dts", Arrays.asList(aDateTime, anotherDateTime));
 		fields.put("fields_dts", Arrays.asList(aDateTime, anotherDateTime));
-		fields.put("fields3_dts", new ArrayList<>());
+		fields.put("fields3_dts", null);
 		fields.put("fields4_dts", Arrays.asList(null, null));
 		fields.put("fields5_dts", Arrays.asList(null, aDateTime));
 
 		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
 
+		fields.put("fields4_dts", null);
 		assertSameFields(record, fields);
 	}
 
@@ -499,12 +486,13 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		fields.put("field2_da", null);
 		fields.put("field_das", Arrays.asList(aDate, anotherDate));
 		fields.put("fields_das", Arrays.asList(aDate, anotherDate));
-		fields.put("fields3_das", new ArrayList<>());
+		fields.put("fields3_das", null);
 		fields.put("fields4_das", Arrays.asList(null, null));
 		fields.put("fields5_das", Arrays.asList(null, aDate));
 
 		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
 
+		fields.put("fields4_das", null);
 		assertSameFields(record, fields);
 	}
 
@@ -522,7 +510,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		fields.put("field2_da", null);
 		fields.put("field_das", Arrays.asList(date1, date2, date3, date4));
 		fields.put("fields_das", Arrays.asList(date1, date2, date3, date4));
-		fields.put("fields3_das", new ArrayList<>());
+		fields.put("fields3_das", null);
 
 		RecordDTO record = saveRecordWithFieldsAndLoadItFromStore(fields);
 
@@ -595,8 +583,8 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 
 		assertThat(record.getFields().get("field_s")).isNull();
 		assertThat(record.getFields().get("fields_s")).isNull();
-		assertThat(record.getFields().get("field2_ss")).isEqualTo(new ArrayList<>());
-		assertThat(record.getFields().get("field3_ss")).isEqualTo(asList("value"));
+		assertThat(record.getFields().get("field2_ss")).isNull();
+		assertThat(record.getFields().get("field3_ss")).isEqualTo(Arrays.asList("value", null));
 	}
 
 	@Test
@@ -617,12 +605,44 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 			throws Exception {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("field_t", "1");
+		fields.put("field2_t", null);
 		fields.put("field_txt", Arrays.asList("2"));
 		fields.put("fields_txt", Arrays.asList("2", "3"));
 
 		RecordDTO record = updateRecordWithFieldsAndLoadItFromStore(fields);
 
 		assertSameFields(record, fields);
+	}
+
+	@Test
+	public void whenLoadingARecordWith__NULL__InTextFieldsThenConsideredAsNull()
+			throws Exception {
+
+		SolrInputDocument solrInputDocument = new SolrInputDocument();
+		solrInputDocument.setField("id", "zeId");
+		solrInputDocument.setField("field1_t", "__NULL__");
+		solrInputDocument.setField("field2_t", asList("__NULL__"));
+		solrInputDocument.setField("field3_txt", "__NULL__");
+		solrInputDocument.setField("field4_txt", asList("__NULL__"));
+		solrInputDocument.setField("field5_t", "value1");
+		solrInputDocument.setField("field6_txt", asList("value2", "value3"));
+
+		SolrClient solrClient = recordDao.getBigVaultServer().getNestedSolrServer();
+		solrClient.add(solrInputDocument);
+		solrClient.commit();
+
+		RecordDTO record = recordDao.get("zeId");
+
+		assertThat(record.getFields())
+				.doesNotContainKey("field1_t")
+				.doesNotContainKey("field2_t")
+				.doesNotContainKey("field3_txt")
+				.doesNotContainKey("field4_txt")
+				.contains(
+						entry("id", "zeId"),
+						entry("field5_t", "value1"),
+						entry("field6_txt", asList("value2", "value3"))
+				);
 	}
 
 	@Test
@@ -729,18 +749,22 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	}
 
 	private void assertSameFields(RecordDTO record, Map<String, Object> fields) {
+		int size = 0;
 		for (Map.Entry<String, Object> entry : fields.entrySet()) {
 			Object expected = entry.getValue();
 			Object was = record.getFields().get(entry.getKey());
 
 			assertThat(was).describedAs("Field " + entry.getKey()).isEqualTo(expected);
+			if (expected != null) {
+				size++;
+			}
 		}
 		Map<String, Object> recordFieldsWithoutSysS = new HashMap<>(record.getFields());
 		recordFieldsWithoutSysS.remove("sys_s");
 		recordFieldsWithoutSysS.remove("id");
 		recordFieldsWithoutSysS.remove("_version_");
 		recordFieldsWithoutSysS.remove("collection_s");
-		assertThat(recordFieldsWithoutSysS.size()).isEqualTo(fields.size());
+		assertThat(recordFieldsWithoutSysS.size()).isEqualTo(size);
 	}
 
 	private RecordDTO saveRecordWithFieldsAndLoadItFromStore(Map<String, Object> fields)
@@ -803,7 +827,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		modifiedFields.put("aField_d", 42.0);
 		recordDTO = updateFieldsAndGetNewRecordDTO(recordDTO, modifiedFields);
 
-		assertThat(recordDTO.getFields()).containsEntry(savedMetadataFieldName, null).containsEntry("aField_d", 42.0);
+		assertThat(recordDTO.getFields()).doesNotContainKey(savedMetadataFieldName).containsEntry("aField_d", 42.0);
 	}
 
 	@Test

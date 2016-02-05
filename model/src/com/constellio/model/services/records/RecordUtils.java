@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import java.util.ArrayList;
@@ -30,8 +13,10 @@ import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.DependencyUtils;
 
@@ -114,7 +99,7 @@ public class RecordUtils {
 			String parentDependencyId = record.getNonNullValueIn(referenceMetadatas);
 			dependencyMap.put(record.getId(), Collections.singleton(parentDependencyId));
 		}
-		List<String> sortedIds = new DependencyUtils<String>().sortByDependency(dependencyMap, null);
+		List<String> sortedIds = new DependencyUtils<String>().sortByDependency(dependencyMap);
 		Map<String, Record> idRecordMap = toIdRecordMap(unsortedRecords);
 		for (String recordId : sortedIds) {
 			sortedRecords.add(idRecordMap.get(recordId));
@@ -198,4 +183,41 @@ public class RecordUtils {
 		}
 		return null;
 	}
+
+	public static List<Record> unwrap(List<? extends RecordWrapper> recordWrappers) {
+		List<Record> records = new ArrayList<>();
+		for (RecordWrapper recordWrapper : recordWrappers) {
+			records.add(recordWrapper.getWrappedRecord());
+		}
+		return records;
+	}
+
+	public static void copyMetadatas(RecordWrapper source, RecordWrapper destination) {
+		copyMetadatas(source.getWrappedRecord(), destination.getWrappedRecord(), source.getMetadataSchemaTypes());
+	}
+
+	public static void copyMetadatas(Record source, Record destination, MetadataSchemaTypes types) {
+		MetadataSchema sourceRecordSchema = types.getSchema(source.getSchemaCode());
+		MetadataSchema destinationRecordSchema = types.getSchema(destination.getSchemaCode());
+
+		for (Metadata sourceMetadata : sourceRecordSchema.getMetadatas()) {
+
+			String sourceMetadataLocalCode = SchemaUtils.getMetadataLocalCodeWithoutPrefix(sourceMetadata);
+
+			for (Metadata destinationMetadata : destinationRecordSchema.getMetadatas()) {
+				String destMetadataLocalCode = SchemaUtils.getMetadataLocalCodeWithoutPrefix(destinationMetadata);
+				if (sourceMetadataLocalCode.equals(destMetadataLocalCode)) {
+					Object value = source.get(sourceMetadata);
+					if (destinationMetadata.getDataEntry().getType() == DataEntryType.MANUAL
+							&& destinationMetadata.getType() == sourceMetadata.getType()
+							&& destinationMetadata.isMultivalue() == sourceMetadata.isMultivalue()
+							&& value != null) {
+
+						destination.set(destinationMetadata, value);
+					}
+				}
+			}
+		}
+	}
+
 }

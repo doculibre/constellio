@@ -1,22 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.accept;
 
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -47,7 +32,6 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -94,6 +78,8 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 	private String docx1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
 	private String docx2Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
 
+	private String aliceToken, bobToken;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -104,22 +90,23 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, Arrays.asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy, metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
 		getModelLayerFactory().newUserServices().addUpdateUserCredential(
-				new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
-						Arrays.asList(zeCollection), UserCredentialStatus.ACTIVE, null));
+				new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection),
+						ACTIVE, null, Arrays.asList(""), null).withServiceKey("bob-key").withSystemAdminPermission());
 
-		getModelLayerFactory().newUserServices().addUpdateUserCredential(
-				new UserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
-						Arrays.asList(zeCollection), UserCredentialStatus.ACTIVE, null));
+		getModelLayerFactory().newUserServices().addUpdateUserCredential(new UserCredential("alice", "alice", "wonderland",
+				"alice@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE, null, Arrays.asList(""), null)
+				.withServiceKey("alice-key")
+				.withSystemAdminPermission());
 
 		alice = getModelLayerFactory().newUserServices().getUserInCollection("alice", zeCollection);
 		bob = getModelLayerFactory().newUserServices().getUserInCollection("bob", zeCollection);
-		getModelLayerFactory().newAuthenticationService().changePassword("alice", "1qaz2wsx");
-		getModelLayerFactory().newAuthenticationService().changePassword("bob", "1qaz2wsx");
+		aliceToken = getModelLayerFactory().newUserServices().generateToken("alice");
+		bobToken = getModelLayerFactory().newUserServices().generateToken("bob");
 
 		aliceId = alice.getId();
 		bobId = bob.getId();
@@ -710,7 +697,9 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	private Session sessionFor(User user) {
+		UserCredential userCredential = getModelLayerFactory().newUserServices().getUserCredential(user.getUsername());
 		currentUserId = user.getUsername();
-		return newCmisSessionBuilder().authenticatedBy(user.getUsername(), "1qaz2wsx").onCollection(zeCollection).build();
+		String token = user.getUsername().equals("alice") ? aliceToken : bobToken;
+		return newCmisSessionBuilder().authenticatedBy(userCredential.getServiceKey(), token).onCollection(zeCollection).build();
 	}
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.transactionLog;
 
 import static java.util.Arrays.asList;
@@ -30,6 +13,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +44,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
@@ -67,6 +52,7 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRunti
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogHasAlreadyBeenInitialized;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_TransactionLogIsNotInitialized;
+import com.constellio.data.dao.services.transactionLog.reader1.ReaderLinesIteratorV1;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.threads.BackgroundThreadsManager;
@@ -392,6 +378,19 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenUnflushedTransactionFileIsEmptyThenDeleted()
+			throws Exception {
+
+		when(recordDao.getCurrentVersion("zeRecord")).thenReturn(-1L);
+
+		File file = new File(transactionLog.getUnflushedFolder(), UUIDV1Generator.newRandomId());
+		FileUtils.touch(file);
+
+		assertThat(transactionLog.isCommitted(file, recordDao)).isFalse();
+
+	}
+
+	@Test
 	public void givenFirstChangeOfTransactionWasRecordAddAndRecordDoesNotExistThenNotCommitted()
 			throws Exception {
 
@@ -639,7 +638,8 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		stringBuilder.append("line3__LINEBREAK__end");
 
 		File file = newTempFileWithContent("zeFile", stringBuilder.toString());
-		Iterator<String> lineIterator = transactionLog.newLinesIterator(file);
+		BufferedReader tLogBufferedReader = ioServices.newBufferedFileReader(file, SDK_STREAM);
+		Iterator<String> lineIterator = new ReaderLinesIteratorV1(ioServices, tLogBufferedReader);
 
 		assertThat(lineIterator.next()).isEqualTo("line1");
 		assertThat(lineIterator.next()).isEqualTo("line2\\nend");
@@ -660,7 +660,8 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		stringBuilder.append("line5__LINEBREAK__end");
 
 		File file = newTempFileWithContent("zeFile", stringBuilder.toString());
-		Iterator<String> lineIterator = transactionLog.newLinesIterator(file);
+		BufferedReader tLogBufferedReader = ioServices.newBufferedFileReader(file, SDK_STREAM);
+		Iterator<String> lineIterator = new ReaderLinesIteratorV1(ioServices, tLogBufferedReader);
 
 		assertThat(lineIterator.next()).isEqualTo("line1");
 		assertThat(lineIterator.next()).isEqualTo("line2\\nend");

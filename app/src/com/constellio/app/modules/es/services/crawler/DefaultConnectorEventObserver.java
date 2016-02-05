@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.services.crawler;
 
 import static java.util.Arrays.asList;
@@ -30,20 +13,26 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ConnectorsUtils;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.es.services.mapping.ConnectorField;
+import com.constellio.app.modules.es.services.mapping.ConnectorMappingService;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.BulkRecordTransactionHandler;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerOptions;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 
 public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(ConnectorCrawler.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(DefaultConnectorEventObserver.class);
 
 	UserServices userServices;
 
@@ -53,7 +42,11 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 
 	String resourceName;
 
-	//BulkRecordTransactionHandler handler;
+	BulkRecordTransactionHandler handler;
+
+	ConnectorMappingService mappingService;
+
+	Map<String, Map<String, ConnectorField>> fieldsDeclarationPerConnectorId = new HashMap<>();
 
 	public DefaultConnectorEventObserver(ESSchemasRecordsServices es, ConnectorLogger connectorLogger, String resourceName) {
 		this.es = es;
@@ -61,7 +54,8 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		this.resourceName = resourceName;
 		this.userServices = es.getModelLayerFactory().newUserServices();
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions();
-		//this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);
+		this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);
+		this.mappingService = new ConnectorMappingService(es);
 	}
 
 	@Override
@@ -73,17 +67,24 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	public void addUpdateEvents(List<ConnectorDocument> documents) {
 		List<Record> documentRecords = new ArrayList<>();
 		for (ConnectorDocument document : documents) {
-			if (document.isFetched()) {
-				LOGGER.info("**** Received fetched document '" + document.getWrappedRecord().getIdTitle() + "'");
-			} else {
-				LOGGER.info("**** Received document to fetch  : '" + document.getId() + "'");
-			}
-			applyMappedPropertiesToMetadata(document);
+			//			if (document.isFetched()) {
+			//				LOGGER.info("**** Received fetched document '" + document.getWrappedRecord().getIdTitle() + "'");
+			//			} else {
+			//				LOGGER.info("**** Received document to fetch  : '" + document.getId() + "'");
+			//			}
+			Map<String, ConnectorField> fieldDeclarations = applyMappedPropertiesToMetadata(document);
+			addFieldDeclarations(document.getConnector(), fieldDeclarations);
 			documentRecords.add(document.getWrappedRecord());
 		}
 
 		Transaction transaction = new Transaction(documentRecords);
-		transaction.setRecordFlushing(RecordsFlushing.LATER());
+		boolean flushNow = false;
+		for (Record record : documentRecords) {
+			if (flushNow || es.getModelLayerFactory().getRecordsCaches().getCache(record.getCollection())
+					.getCacheConfigOf(record.getSchemaCode()) != null)
+				flushNow = true;
+		}
+		transaction.setRecordFlushing(flushNow ? RecordsFlushing.NOW : RecordsFlushing.LATER());
 
 		try {
 			es.getRecordServices().execute(transaction);
@@ -92,14 +93,76 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		}
 	}
 
-	void applyMappedPropertiesToMetadata(ConnectorDocument document) {
-		Map mapping = es.getConnectorManager().getConnectorInstance(document.getConnector()).getPropertiesMapping();
-		if (mapping != null) {
-			ConnectorDocumentPreparator preparator = new ConnectorDocumentPreparator(mapping, document.getSchema());
-			preparator.applyProperties(document);
+	private synchronized void addFieldDeclarations(String connectorId,
+			Map<String, ConnectorField> fieldDeclarations) {
+
+		Map<String, ConnectorField> connectorFields = fieldsDeclarationPerConnectorId.get(connectorId);
+		if (connectorFields == null) {
+			connectorFields = new HashMap<>();
+			this.fieldsDeclarationPerConnectorId.put(connectorId, connectorFields);
 		}
 
+		for (ConnectorField connectorField : fieldDeclarations.values()) {
+			if (!connectorFields.containsKey(connectorField.getId())) {
+				connectorFields.put(connectorField.getId(), connectorField);
+			}
+		}
+
+	}
+
+	@Override
+	public void push(List<ConnectorDocument> documents) {
+		List<Record> documentRecords = new ArrayList<>();
+		for (ConnectorDocument document : documents) {
+			//			if (document.isFetched()) {
+			//				LOGGER.info("**** Received fetched document '" + document.getWrappedRecord().getIdTitle() + "'");
+			//			} else {
+			//				LOGGER.info("**** Received document to fetch  : '" + document.getId() + "'");
+			//			}
+			Map<String, ConnectorField> fieldDeclarations = applyMappedPropertiesToMetadata(document);
+			addFieldDeclarations(document.getConnector(), fieldDeclarations);
+			documentRecords.add(document.getWrappedRecord());
+		}
+
+		Transaction transaction = new Transaction(documentRecords);
+		boolean flushNow = false;
+		for (Record record : documentRecords) {
+			if (flushNow || es.getModelLayerFactory().getRecordsCaches().getCache(record.getCollection())
+					.getCacheConfigOf(record.getSchemaCode()) != null)
+				flushNow = true;
+		}
+		List<Record> records = new RecordUtils().unwrap(documents);
+
+		handler.append(records);
+	}
+
+	Map<String, ConnectorField> applyMappedPropertiesToMetadata(ConnectorDocument<?> document) {
+		ConnectorInstance instance = es.getConnectorInstance(document.getConnector());
+		String connectorDocumentSchemaType = new SchemaUtils().getSchemaTypeCode(document.getSchemaCode());
+		Map<String, List<String>> mapping = mappingService.getMapping(instance, connectorDocumentSchemaType);
+
+		for (Map.Entry<String, List<String>> entry : mapping.entrySet()) {
+			List<Object> values = new ArrayList<>();
+
+			for (String field : entry.getValue()) {
+				String id = field.split(":")[1];
+				Object fieldValues = document.getProperties().get(id);
+				if (fieldValues != null) {
+					if (fieldValues instanceof List) {
+						values.addAll((List) fieldValues);
+					} else {
+						values.add(fieldValues);
+					}
+				}
+			}
+			document.set(entry.getKey(), values);
+		}
+
+		Map<String, ConnectorField> fields = new HashMap<>(document.getFieldsDeclarations());
+
 		document.clearProperties();
+
+		return fields;
 	}
 
 	@Override
@@ -109,7 +172,45 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 
 	@Override
 	public void close() {
-		//handler.closeAndJoin();
+		handler.closeAndJoin();
+		saveNewDeclaredFields();
+	}
+
+	private void saveNewDeclaredFields() {
+		Transaction modifiedConnectorInstancesTransaction = new Transaction();
+		for (Map.Entry<String, Map<String, ConnectorField>> entry : fieldsDeclarationPerConnectorId.entrySet()) {
+			ConnectorInstance<?> instance = es.getConnectorInstance(entry.getKey());
+			Map<String, ConnectorField> declaredFields = entry.getValue();
+			List<ConnectorField> connectorFields = new ArrayList<>(instance.getAvailableFields());
+			boolean newField = false;
+			for (ConnectorField connectorField : declaredFields.values()) {
+				if (!hasDeclaredFieldsWithCode(connectorFields, connectorField.getId())) {
+					connectorFields.add(connectorField);
+					newField = true;
+				}
+			}
+
+			if (newField) {
+				instance.setAvailableFields(connectorFields);
+				modifiedConnectorInstancesTransaction.add(instance);
+			}
+
+		}
+		try {
+			es.getModelLayerFactory().newRecordServices().execute(modifiedConnectorInstancesTransaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+		fieldsDeclarationPerConnectorId.clear();
+	}
+
+	private boolean hasDeclaredFieldsWithCode(List<ConnectorField> availableFields, String id) {
+		for (ConnectorField field : availableFields) {
+			if (id != null && id.equals(field.getId())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -128,6 +229,9 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 
 	@Override
 	public void flush() {
+		handler.pushCurrent();
+		handler.barrier();
 		es.getRecordServices().flush();
+		saveNewDeclaredFields();
 	}
 }

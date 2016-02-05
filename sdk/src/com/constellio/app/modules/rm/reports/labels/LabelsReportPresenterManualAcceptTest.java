@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.labels;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.jdom2.Document;
 import org.jdom2.input.SAXBuilder;
 import org.junit.Before;
@@ -44,6 +28,7 @@ import com.constellio.app.reports.builders.administration.plan.ReportBuilderTest
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.model.services.records.RecordServices;
 
+@SlowTest
 public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
 	private String[] labelReportFieldsToCheck = { "value" };
 
@@ -71,7 +56,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 	}
 
 	@Test
-	public void givenFolderA01WhenBuildingLeftFolderModelThenGetLeftFolderModel() {
+	public void givenFolderA01WhenBuildingLeftFolder5159ModelThenGetLeftFolderModel() {
 		List<String> folderIds = new ArrayList<>();
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
@@ -82,18 +67,18 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
 
-		assertThat(model.isPrintBorders()).isTrue();
+		assertThat(model.isPrintBorders()).isFalse();
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(1);
 
 		LabelsReportLabel label = model.getLabelsReportLabels().get(0);
 
-		checkFolderA01LeftFolderModel(label.getFields());
+		checkFolderA01LeftFolder5159Model(label.getFields());
 
 	}
 
-	private void checkFolderA01LeftFolderModel(List<LabelsReportField> fields) {
-		assertThat(fields.size()).isEqualTo(6);
+	private void checkFolderA01LeftFolder5159Model(List<LabelsReportField> fields) {
+		assertThat(fields.size()).isEqualTo(5);
 		LabelsReportField categoryCodeField = fields.get(0);
 		LabelsReportField referenceCategoryCodeField = getReferenceField("X110");
 		assertThat(categoryCodeField).isEqualToComparingOnlyGivenFields(referenceCategoryCodeField,
@@ -109,13 +94,14 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportField referenceTitleField = getReferenceField("Abeille");
 		assertThat(titleField).isEqualToComparingOnlyGivenFields(referenceTitleField, labelReportFieldsToCheck);
 
-		LabelsReportField copyStatusCodeField = fields.get(4);
+		LabelsReportField copyStatusCodeField = fields.get(3);
 		LabelsReportField referenceCopyStatusCodeField = getReferenceField("P");
 		assertThat(copyStatusCodeField).isEqualToComparingOnlyGivenFields(referenceCopyStatusCodeField,
 				labelReportFieldsToCheck);
 
+		LabelsReportField openDateField = fields.get(4);
 		LabelsReportField referenceOpenDateField = getReferenceField("2000-10-04");
-		assertThat(referenceOpenDateField).isEqualToComparingOnlyGivenFields(referenceOpenDateField,
+		assertThat(openDateField).isEqualToComparingOnlyGivenFields(referenceOpenDateField,
 				labelReportFieldsToCheck);
 	}
 
@@ -128,7 +114,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 	}
 
 	@Test
-	public void givenFolderA01WhenBuildingRightFolderModelThenGetRightFolderModel() {
+	public void givenFolderA01WhenBuildingRightFolder5159ModelThenGetRightFolderModel() {
 		List<String> folderIds = new ArrayList<>();
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
@@ -139,18 +125,18 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLayout()).isEqualTo(LabelsReportLayout.AVERY_5159);
 
-		assertThat(model.isPrintBorders()).isTrue();
+		assertThat(model.isPrintBorders()).isFalse();
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(1);
 
 		LabelsReportLabel label = model.getLabelsReportLabels().get(0);
 
-		checkFolderA01RightFolderModel(label.getFields());
+		checkFolderA01RightFolder5159Model(label.getFields());
 
 	}
 
-	private void checkFolderA01RightFolderModel(List<LabelsReportField> fields) {
-		assertThat(fields.size()).isEqualTo(6);
+	private void checkFolderA01RightFolder5159Model(List<LabelsReportField> fields) {
+		assertThat(fields.size()).isEqualTo(5);
 		LabelsReportField idField = fields.get(0);
 		LabelsReportField referenceIdField = getReferenceField("A01");
 		assertThat(idField).isEqualToComparingOnlyGivenFields(referenceIdField, labelReportFieldsToCheck);
@@ -166,14 +152,45 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportField referenceTitleField = getReferenceField("Abeille");
 		assertThat(titleField).isEqualToComparingOnlyGivenFields(referenceTitleField, labelReportFieldsToCheck);
 
-		LabelsReportField copyStatusCodeField = fields.get(4);
+		LabelsReportField copyStatusCodeField = fields.get(3);
 		LabelsReportField referenceCopyStatusCodeField = getReferenceField("P");
 		assertThat(copyStatusCodeField).isEqualToComparingOnlyGivenFields(referenceCopyStatusCodeField,
 				labelReportFieldsToCheck);
 
+		LabelsReportField openDateField = fields.get(4);
 		LabelsReportField referenceOpenDateField = getReferenceField("2000-10-04");
-		assertThat(referenceOpenDateField).isEqualToComparingOnlyGivenFields(referenceOpenDateField,
+		assertThat(openDateField).isEqualToComparingOnlyGivenFields(referenceOpenDateField,
 				labelReportFieldsToCheck);
+	}
+
+	@Test
+	public void given1StickerWhenBuildingRight5161ModelThenGetAppropriateModel() {
+		List<String> folderIds = new ArrayList<>();
+		folderIds.addAll(Arrays.asList("A01"));
+		int startPosition = 1;
+		int copies = 1;
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(1);
+
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
+		model.setPrintBorders(true);
+
+		build(new LabelsReportBuilder(model));
+
+	}
+
+	@Test
+	public void given1StickerWhenBuildingLeft5161ModelThenGetAppropriateModel() {
+		List<String> folderIds = new ArrayList<>();
+		folderIds.addAll(Arrays.asList("A01"));
+		int startPosition = 1;
+		int copies = 1;
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(4);
+
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
+		model.setPrintBorders(true);
+
+		build(new LabelsReportBuilder(model));
+
 	}
 
 	@Test
@@ -416,7 +433,8 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 	@Test
 	public void givenSpecialTemplateThenOk()
 			throws Exception {
-		givenSpecialTemplate();
+		String filename = "special.xml";
+		givenFileNameTemplate(filename);
 		List<String> folderIds = new ArrayList<>();
 		folderIds.addAll(Arrays.asList("C30"));
 		String title =
@@ -441,11 +459,66 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		build(new LabelsReportBuilder(model));
 	}
 
-	private void givenSpecialTemplate()
+	@Test
+	public void givenAnotherSpecialTemplateThenOk()
+			throws Exception {
+		String filename = "special2.xml";
+		givenFileNameTemplate(filename);
+		List<String> folderIds = new ArrayList<>();
+		folderIds.addAll(Arrays.asList("C30"));
+		String title =
+				"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+		Folder folder30 = records.getFolder_C30()
+				.setTitle(title).setUniformSubdivisionEntered(records.subdivId_1);
+		Category category = records.getCategory_X110().setCode("S4 100").setTitle("Demande d'enquête");
+
+		recordServices.update(folder30.getWrappedRecord());
+		recordServices.update(category.getWrappedRecord());
+		recordServices.flush();
+
+		int startPosition = 1;
+		int copies = 10;
+		LabelTemplate labelTemplate = labelTemplateManager.getLabelTemplate("special2.xml");
+
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
+		model.setPrintBorders(true);
+
+		build(new LabelsReportBuilder(model));
+	}
+
+	@Test
+	public void givenSpecial3TemplateThenOk()
+			throws Exception {
+
+		String filename = "special3.xml";
+		givenFileNameTemplate(filename);
+		List<String> folderIds = new ArrayList<>();
+		folderIds.addAll(Arrays.asList("C30"));
+		String title =
+				"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+		Folder folder30 = records.getFolder_C30()
+				.setTitle(title)
+				.setUniformSubdivisionEntered(records.subdivId_1);
+		Category category = records.getCategory_X110().setCode("S4 100").setTitle("Demande d'enquête");
+
+		recordServices.update(folder30.getWrappedRecord());
+		recordServices.update(category.getWrappedRecord());
+		recordServices.flush();
+
+		int startPosition = 1;
+		int copies = 14;
+		LabelTemplate labelTemplate = labelTemplateManager.getLabelTemplate("special3.xml");
+
+		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
+		model.setPrintBorders(true);
+
+		build(new LabelsReportBuilder(model));
+	}
+
+	private void givenFileNameTemplate(String filename)
 			throws Exception {
 		ConfigManager configManager = getDataLayerFactory().getConfigManager();
 
-		String filename = "special.xml";
 		String path = LABELS_TEMPLATES_FOLDER + "/" + filename;
 		SAXBuilder saxBuilder = new SAXBuilder();
 		Document document = saxBuilder.build(getTestResourceFile(filename));

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import static java.util.Arrays.asList;
@@ -38,6 +21,7 @@ public class SaveStateFeature {
 	FileSystemTestFeatures fileSystemTestFeatures;
 	FactoriesTestFeatures factoriesTestFeatures;
 	String afterTestSaveTitle;
+	File afterTestSaveFile;
 
 	public SaveStateFeature(FactoriesTestFeatures factoriesTestFeatures, FileSystemTestFeatures fileSystemTestFeatures) {
 		this.factoriesTestFeatures = factoriesTestFeatures;
@@ -64,6 +48,7 @@ public class SaveStateFeature {
 
 		FileUtils.copyDirectory(settingsFolder, tempSettingsFolder);
 		FileUtils.copyDirectory(contentFolder, tempContentFolder);
+		//plugins are not saved during tests since we have to restart system
 
 		List<File> files = asList(tempSettingsFolder, tempContentFolder);
 
@@ -82,26 +67,37 @@ public class SaveStateFeature {
 
 		File tempUnzipContentFolder = new File(tempUnzipFolder, "content");
 		File tempUnzipSettingsFolder = new File(tempUnzipFolder, "settings");
+		File tempUnzipPluginsFolder = new File(tempUnzipFolder, "plugins");
 		File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
 		File contentFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
+		File pluginFolder = factoriesTestFeatures.newAppServicesFactory().getAppLayerConfiguration().getPluginsFolder();
 
 		FileUtils.copyDirectory(tempUnzipSettingsFolder, settingsFolder);
 		FileUtils.copyDirectory(tempUnzipContentFolder, contentFolder);
+		if (tempUnzipPluginsFolder.exists()) {
+			FileUtils.copyDirectory(tempUnzipPluginsFolder, pluginFolder);
+		}
 
 		dataLayerFactory.getSecondTransactionLogManager().destroyAndRebuildSolrCollection();
 	}
 
-	public static void loadStateFrom(File file, File tempFolder, File settingsFolder, File contentFolder, boolean resetPasswords)
+	public static void loadStateFrom(File file, File tempFolder, File settingsFolder, File contentFolder, File pluginsFolder,
+			boolean resetPasswords)
 			throws Exception {
 
-		File tempUnzipFolder = new File(tempFolder, "tempUnzipFolder");
-		tempUnzipFolder.mkdirs();
+		File folder;
+		if (!file.isDirectory()) {
+			folder = new File(tempFolder, "tempUnzipFolder");
+			folder.mkdirs();
+			IOServices ioServices = new IOServices(tempFolder);
+			new ZipService(ioServices).unzip(file, folder);
+		} else {
+			folder = file;
+		}
 
-		IOServices ioServices = new IOServices(tempFolder);
-		new ZipService(ioServices).unzip(file, tempUnzipFolder);
-
-		File tempUnzipContentFolder = new File(tempUnzipFolder, "content");
-		File tempUnzipSettingsFolder = new File(tempUnzipFolder, "settings");
+		File tempUnzipContentFolder = new File(folder, "content");
+		File tempUnzipSettingsFolder = new File(folder, "settings");
+		File tempUnzipPluginsFolder = new File(folder, "plugins");
 
 		if (resetPasswords) {
 			File authenticationFile = new File(tempUnzipSettingsFolder, "authentification.properties");
@@ -126,11 +122,18 @@ public class SaveStateFeature {
 
 		FileUtils.copyDirectory(tempUnzipSettingsFolder, settingsFolder);
 		FileUtils.copyDirectory(tempUnzipContentFolder, contentFolder);
+		if (tempUnzipPluginsFolder.exists()) {
+			FileUtils.copyDirectory(tempUnzipPluginsFolder, pluginsFolder);
+		}
 
 	}
 
 	public void saveStateAfterTestWithTitle(String title) {
 		this.afterTestSaveTitle = title;
+	}
+
+	public void saveStateAfterTestInFile(File file) {
+		this.afterTestSaveFile = file;
 	}
 
 	public void afterTest() {
@@ -159,20 +162,27 @@ public class SaveStateFeature {
 		}
 		String modulesStr = StringUtils.join(moduleIds, ",");
 
-		String name = "given_system_in_" + version + "_with_" + modulesStr + "_module";
-		if (modulesStr.contains(",")) {
-			name += "s";
-		}
+		File file;
+		if (afterTestSaveFile == null) {
+			String name;
 
-		if (title != null) {
-			name = name + "__" + title;
-		}
+			name = "given_system_in_" + version + "_with_" + modulesStr + "_module";
+			if (modulesStr.contains(",")) {
+				name += "s";
+			}
 
-		File file = new File(new SDKFoldersLocator().getInitialStatesFolder(), name + ".zip");
+			if (title != null) {
+				name = name + "__" + title;
+			}
+
+			file = new File(new SDKFoldersLocator().getInitialStatesFolder(), name + ".zip");
+		} else {
+			file = afterTestSaveFile;
+		}
 		if (file.exists()) {
 			file.delete();
 		}
 		saveCurrentStateTo(file);
-
+		System.out.println("Savestate saved in '" + file.getAbsolutePath() + "'");
 	}
 }

@@ -1,24 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +17,10 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportBuilderFactory;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -51,6 +40,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -134,7 +124,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
-		BatchProcess process = manager.add(selectedRecordIds, view.getCollection(), action);
+		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(selectedRecordIds);
+		BatchProcess process = manager.addBatchProcessInStandby(condition, action);
 		manager.markAsPending(process);
 	}
 
@@ -217,8 +208,30 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		} catch (UnknownReportRuntimeException e) {
 			/**/
 			return new SearchResultReportBuilderFactory(modelLayerFactory, view.getSelectedRecordIds(), view.getSchemaType(),
-					collection,
-					reportTitle, getCurrentUser(), getSearchQuery());
+					collection, reportTitle, getCurrentUser(), getSearchQuery());
+		}
+	}
+
+	public void addToCartRequested(List<String> recordIds) {
+		// TODO: Create an extension for this
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		Cart cart = rm.getOrCreateUserCart(getCurrentUser());
+		switch (schemaTypeCode) {
+		case Folder.SCHEMA_TYPE:
+			cart.addFolders(recordIds);
+			break;
+		case Document.SCHEMA_TYPE:
+			cart.addDocuments(recordIds);
+			break;
+		case ContainerRecord.SCHEMA_TYPE:
+			cart.addContainers(recordIds);
+			break;
+		}
+		try {
+			recordServices().add(cart);
+			view.showMessage($("SearchView.addedToCart"));
+		} catch (RecordServicesException e) {
+			view.showErrorMessage($(e));
 		}
 	}
 

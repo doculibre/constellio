@@ -1,23 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records.cache;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,9 +12,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_CacheAlreadyConfigured;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
+import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 
 public class RecordsCacheImpl implements RecordsCache {
 
@@ -81,34 +70,117 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public Record insert(Record record) {
+	public void insertQueryResults(LogicalSearchQuery query, List<Record> records) {
 
-		if (record == null || record.isDirty() || !record.isSaved()) {
-			return record;
+		PermanentCache cache = getCacheFor(query);
+		if (cache != null) {
+			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
+
+			List<String> recordIds = new ArrayList<>();
+			for (Record record : records) {
+				recordIds.add(record.getId());
+				insert(record);
+			}
+
+			cache.queryResults.put(signature.toStringSignature(), recordIds);
+		}
+	}
+
+	PermanentCache getCacheFor(LogicalSearchQuery query) {
+		LogicalSearchCondition condition = query.getCondition();
+		DataStoreFilters filters = condition.getFilters();
+		if (filters instanceof SchemaFilters) {
+			SchemaFilters schemaFilters = (SchemaFilters) filters;
+
+			if (schemaFilters.getSchemaTypeFilter() != null
+					&& hasNoUnsupportedFeatureOrFilter(query)) {
+				CacheConfig cacheConfig = getCacheConfigOf(schemaFilters.getSchemaTypeFilter().getCode());
+				if (cacheConfig != null && cacheConfig.isPermanent()) {
+					return permanentCaches.get(cacheConfig.getSchemaType());
+				}
+			}
+
+		}
+		return null;
+	}
+
+	private boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
+		return query.getFacetFilters().toSolrFilterQueries().isEmpty()
+				&& query.getFieldBoosts().isEmpty()
+				&& query.getQueryBoosts().isEmpty()
+				&& query.getStartRow() == 0
+				&& query.getNumberOfRows() == 10000000
+				&& query.getStatisticFields().isEmpty()
+				&& !query.isPreferAnalyzedFields()
+				&& query.getResultsProjection() == null
+				&& query.getFieldFacets().isEmpty()
+				&& query.getQueryFacets().isEmpty()
+				&& query.getReturnedMetadatas().isFullyLoaded()
+				&& query.getUserFilter() == null
+				&& !query.isHighlighting();
+	}
+
+	@Override
+	public List<Record> getQueryResults(LogicalSearchQuery query) {
+		List<Record> cachedResults = null;
+		PermanentCache cache = getCacheFor(query);
+		if (cache != null) {
+			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
+
+			List<String> recordIds = cache.queryResults.get(signature.toStringSignature());
+			if (recordIds != null) {
+				cachedResults = new ArrayList<>();
+
+				for (String recordId : recordIds) {
+					cachedResults.add(get(recordId));
+				}
+				cachedResults = Collections.unmodifiableList(cachedResults);
+			}
+
 		}
 
-		if (!record.isFullyLoaded()) {
-			invalidate(record.getId());
-			return record;
+		return cachedResults;
+	}
+
+	@Override
+	public Record insert(Record insertedRecord) {
+
+		if (insertedRecord == null || insertedRecord.isDirty() || !insertedRecord.isSaved()) {
+			return insertedRecord;
 		}
 
-		CacheConfig cacheConfig = getCacheConfigOf(record.getSchemaCode());
+		if (!insertedRecord.isFullyLoaded()) {
+			invalidate(insertedRecord.getId());
+			return insertedRecord;
+		}
+
+		Record recordCopy = insertedRecord.getCopyOfOriginalRecord();
+
+		CacheConfig cacheConfig = getCacheConfigOf(recordCopy.getSchemaCode());
 		if (cacheConfig != null) {
 			Record previousRecord = null;
 
 			synchronized (this) {
-				RecordHolder holder = cacheById.get(record.getId());
+				RecordHolder holder = cacheById.get(recordCopy.getId());
 				if (holder != null) {
 					previousRecord = holder.record;
-					insertRecordIntoAnAlreadyExistingHolder(record, cacheConfig, holder);
+
+					insertRecordIntoAnAlreadyExistingHolder(recordCopy, cacheConfig, holder);
+					if (cacheConfig.isPermanent() && (previousRecord == null || previousRecord.getVersion() != recordCopy
+							.getVersion())) {
+						permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+					}
 				} else {
-					holder = insertRecordIntoAnANewHolder(record, cacheConfig);
+					holder = insertRecordIntoAnANewHolder(recordCopy, cacheConfig);
+					if (cacheConfig.isPermanent()) {
+						permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+					}
 				}
 				this.recordByMetadataCache.get(cacheConfig.getSchemaType()).insert(previousRecord, holder);
 			}
 
 		}
-		return record;
+		return insertedRecord;
 	}
 
 	private RecordHolder insertRecordIntoAnANewHolder(Record record, CacheConfig cacheConfig) {
@@ -163,6 +235,9 @@ public class RecordsCacheImpl implements RecordsCache {
 				recordByMetadataCache.get(cacheConfig.getSchemaType()).invalidate(holder.record);
 				holder.invalidate();
 
+				if (cacheConfig.isPermanent()) {
+					permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+				}
 			}
 		}
 
@@ -183,7 +258,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			throw new RecordsCacheImplRuntimeException_InvalidSchemaTypeCode(cacheConfig.getSchemaType());
 		}
 		if (cachedTypes.containsKey(cacheConfig.getSchemaType())) {
-			throw new RecordsCacheImplRuntimeException_CacheAlreadyConfigured(cacheConfig.getSchemaType());
+			removeCache(cacheConfig.getSchemaType());
 		}
 
 		cachedTypes.put(cacheConfig.getSchemaType(), cacheConfig);
@@ -242,7 +317,11 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	@Override
 	public boolean isConfigured(MetadataSchemaType type) {
-		return cachedTypes.containsKey(type.getCode());
+		return isConfigured(type.getCode());
+	}
+
+	public boolean isConfigured(String typeCode) {
+		return cachedTypes.containsKey(typeCode);
 	}
 
 	static class VolatileCache {
@@ -253,28 +332,30 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		int recordsInCache;
 
-		private VolatileCache(int maxSize) {
+		VolatileCache(int maxSize) {
 			this.maxSize = maxSize;
 		}
 
-		public void insert(RecordHolder holder) {
+		void insert(RecordHolder holder) {
 			holder.volatileCacheOccurences = 1;
 			holders.add(holder);
 			recordsInCache++;
 		}
 
-		public void hit(RecordHolder holder) {
-			holder.volatileCacheOccurences++;
-			holders.add(holder);
+		void hit(RecordHolder holder) {
+			if (holder.volatileCacheOccurences <= 2) {
+				holder.volatileCacheOccurences++;
+				holders.add(holder);
+			}
 		}
 
-		public void releaseFor(int qty) {
+		void releaseFor(int qty) {
 			while (recordsInCache + qty > maxSize) {
 				releaseNext();
 			}
 		}
 
-		private void releaseNext() {
+		void releaseNext() {
 			RecordHolder recordHolder = holders.removeFirst();
 			if (recordHolder.volatileCacheOccurences > 1) {
 				recordHolder.volatileCacheOccurences--;
@@ -285,7 +366,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			}
 		}
 
-		public void invalidateAll() {
+		void invalidateAll() {
 			this.recordsInCache = 0;
 			for (RecordHolder holder : holders) {
 				holder.invalidate();
@@ -297,16 +378,18 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	static class PermanentCache {
 
+		Map<String, List<String>> queryResults = new HashMap<>();
 		LinkedList<RecordHolder> holders = new LinkedList<>();
 
-		public void insert(RecordHolder holder) {
+		void insert(RecordHolder holder) {
 			holders.add(holder);
 		}
 
-		public void invalidateAll() {
+		void invalidateAll() {
 			for (RecordHolder holder : holders) {
 				holder.invalidate();
 			}
+			queryResults.clear();
 		}
 
 	}
@@ -316,14 +399,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		Map<String, Map<String, RecordHolder>> map = new HashMap<>();
 		Map<String, Metadata> supportedMetadatas = new HashMap<>();
 
-		public RecordByMetadataCache(CacheConfig cacheConfig) {
+		RecordByMetadataCache(CacheConfig cacheConfig) {
 			for (Metadata indexedMetadata : cacheConfig.getIndexes()) {
 				supportedMetadatas.put(indexedMetadata.getLocalCode(), indexedMetadata);
 				map.put(indexedMetadata.getLocalCode(), new HashMap<String, RecordHolder>());
 			}
 		}
 
-		public Record getByMetadata(String localCode, String value) {
+		Record getByMetadata(String localCode, String value) {
 			Map<String, RecordHolder> metadataMap = map.get(localCode);
 			RecordHolder recordHolder = null;
 			if (metadataMap != null) {
@@ -332,7 +415,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			return recordHolder == null ? null : recordHolder.record;
 		}
 
-		public void insert(Record previousRecord, RecordHolder recordHolder) {
+		void insert(Record previousRecord, RecordHolder recordHolder) {
 
 			for (Metadata supportedMetadata : supportedMetadatas.values()) {
 				String value = null;
@@ -353,7 +436,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			}
 		}
 
-		public void invalidate(Record record) {
+		void invalidate(Record record) {
 			for (Metadata supportedMetadata : supportedMetadatas.values()) {
 				String value = record.get(supportedMetadata);
 
@@ -370,19 +453,19 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		private int volatileCacheOccurences;
 
-		private RecordHolder(Record record) {
+		RecordHolder(Record record) {
 			set(record);
 		}
 
-		public Record getCopy() {
+		Record getCopy() {
 			Record copy = record;
 			if (copy != null) {
-				copy.getCopyOfOriginalRecord();
+				copy = copy.getCopyOfOriginalRecord();
 			}
 			return copy;
 		}
 
-		public void set(Record record) {
+		void set(Record record) {
 			Boolean logicallyDeletedStatus = record.get(Schemas.LOGICALLY_DELETED_STATUS);
 			if (logicallyDeletedStatus == null || !logicallyDeletedStatus) {
 				this.record = record.getCopyOfOriginalRecord();
@@ -391,7 +474,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			}
 		}
 
-		public void invalidate() {
+		void invalidate() {
 			this.record = null;
 		}
 

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.controller;
 
 import static org.mockito.Matchers.any;
@@ -34,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
@@ -55,8 +39,8 @@ public class CreateSubTaskModificationImpactHandlerTest extends ConstellioTest {
 	@Mock ModificationImpact anotherModificationImpact;
 	CreateSubTaskModificationImpactHandler handler;
 
-	@Mock List<String> firstBatch;
-	@Mock List<String> secondBatch;
+	@Mock List<Record> firstBatch;
+	@Mock List<Record> secondBatch;
 
 	@Mock List<Metadata> reindexedMetadatas;
 	@Mock List<String> reindexedMetadatasCodes;
@@ -102,8 +86,8 @@ public class CreateSubTaskModificationImpactHandlerTest extends ConstellioTest {
 
 		doNothing().when(handler).createSubTask(any(List.class), any(List.class));
 
-		Iterator<List<String>> iterator = Arrays.asList(firstBatch, secondBatch).iterator();
-		doReturn(iterator).when(handler).getBatchOfIdsIterator(modificationImpact);
+		Iterator<List<Record>> iterator = Arrays.asList(firstBatch, secondBatch).iterator();
+		doReturn(iterator).when(handler).getBatchsIterator(modificationImpact);
 
 		handler.handleModificationImpact(modificationImpact);
 
@@ -115,7 +99,7 @@ public class CreateSubTaskModificationImpactHandlerTest extends ConstellioTest {
 	public void whenCreateSubTaskThenAddTask()
 			throws Exception {
 
-		handler.createSubTask(new ArrayList<String>(), new ArrayList<String>());
+		handler.createSubTask(new ArrayList<Record>(), new ArrayList<String>());
 
 		verify(taskList).addSubTask(any(BatchProcessTask.class));
 	}

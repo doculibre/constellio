@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 
 package com.constellio.app.ui.pages.search.criteria;
 
@@ -29,8 +12,10 @@ import org.junit.Test;
 
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
+import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
 import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.CriterionTestRecord;
 import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestEnum;
+import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class CriterionFactoryAcceptanceTest extends ConstellioTest {
@@ -101,7 +86,7 @@ public class CriterionFactoryAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenACriterionWithDateMetadataWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
 			throws ConditionException {
-		Criterion savedCriterion = dateCriterion();
+		Criterion savedCriterion = betweenDateCriterion();
 		String serializedCriterion = factory.toString(savedCriterion);
 		Criterion restoredCriterion = factory.build(serializedCriterion);
 		String reserializedCriterion = factory.toString(restoredCriterion);
@@ -120,6 +105,73 @@ public class CriterionFactoryAcceptanceTest extends ConstellioTest {
 		assertThat(serializedCriterion).isEqualTo(reserializedCriterion);
 	}
 
+	@Test
+	public void givenRelativeCriteriaEqualDateWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
+			throws ConditionException {
+		Criterion savedCriterion = relativeCriterionEqualDate();
+		String serializedCriterion = factory.toString(savedCriterion);
+		Criterion restoredCriterion = factory.build(serializedCriterion);
+		String reserializedCriterion = factory.toString(restoredCriterion);
+		assertThat(savedCriterion).isEqualToComparingFieldByField(restoredCriterion);
+		assertThat(serializedCriterion).isEqualTo(reserializedCriterion);
+	}
+
+	@Test
+	public void givenRelativeCriteriaEqualDateTimeWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
+			throws ConditionException {
+		Criterion savedCriterion = relativeCriterionEqualDate();
+		String serializedCriterion = factory.toString(savedCriterion);
+		Criterion restoredCriterion = factory.build(serializedCriterion);
+		String reserializedCriterion = factory.toString(restoredCriterion);
+		assertThat(savedCriterion).isEqualToComparingFieldByField(restoredCriterion);
+		assertThat(serializedCriterion).isEqualTo(reserializedCriterion);
+	}
+
+	@Test
+	public void givenRelativeCriteriaTodayWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
+			throws ConditionException {
+		Criterion savedCriterion = relativeCriterionTodayDate();
+		String serializedCriterion = factory.toString(savedCriterion);
+		Criterion restoredCriterion = factory.build(serializedCriterion);
+		String reserializedCriterion = factory.toString(restoredCriterion);
+		assertThat(savedCriterion).isEqualToComparingFieldByField(restoredCriterion);
+		assertThat(serializedCriterion).isEqualTo(reserializedCriterion);
+	}
+
+	@Test
+	public void givenRelativeCriteriaPastWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
+			throws ConditionException {
+		Criterion savedCriterion = relativeCriterionPastDate();
+		String serializedCriterion = factory.toString(savedCriterion);
+		Criterion restoredCriterion = factory.build(serializedCriterion);
+		String reserializedCriterion = factory.toString(restoredCriterion);
+		assertThat(savedCriterion).isEqualToComparingFieldByField(restoredCriterion);
+		assertThat(serializedCriterion).isEqualTo(reserializedCriterion);
+	}
+
+	@Test
+	public void givenRelativeCriteriaFutureWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
+			throws ConditionException {
+		Criterion savedCriterion = relativeCriterionFutureDate();
+		String serializedCriterion = factory.toString(savedCriterion);
+		Criterion restoredCriterion = factory.build(serializedCriterion);
+		String reserializedCriterion = factory.toString(restoredCriterion);
+		assertThat(savedCriterion).isEqualToComparingFieldByField(restoredCriterion);
+		assertThat(serializedCriterion).isEqualTo(reserializedCriterion);
+	}
+
+	@Test
+	public void givenRelativeCriteriaBetweenWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
+			throws ConditionException {
+		Criterion savedCriterion = relativeCriterionBetweenDate();
+		String serializedCriterion = factory.toString(savedCriterion);
+		Criterion restoredCriterion = factory.build(serializedCriterion);
+		String reserializedCriterion = factory.toString(restoredCriterion);
+		assertThat(savedCriterion).isEqualToComparingFieldByField(restoredCriterion);
+		assertThat(serializedCriterion).isEqualTo(reserializedCriterion);
+	}
+	//
+
 	private List<Criterion> complexCriterion() {
 		// (criterionTestRecord_default_aString CONTAINS "string value" AND
 		// NOT criterionTestRecord_aDouble > 42.42) OR
@@ -130,7 +182,7 @@ public class CriterionFactoryAcceptanceTest extends ConstellioTest {
 		complex.add(criterion1());
 		complex.add(criterion2());
 		complex.add(criterion3());
-		complex.add(dateCriterion());
+		complex.add(betweenDateCriterion());
 		complex.add(criterion4());
 		return complex;
 	}
@@ -206,7 +258,7 @@ public class CriterionFactoryAcceptanceTest extends ConstellioTest {
 		return criterion;
 	}
 
-	private Criterion dateCriterion() {
+	private Criterion betweenDateCriterion() {
 		// criterionTestRecord_default_aDate BETWEEN(2015-01-01, 2015-01-31)
 		Criterion criterion = new Criterion(shortcuts.code());
 		criterion.setMetadata(shortcuts.aDate().getCode(), shortcuts.aDate().getType(), null);
@@ -224,6 +276,66 @@ public class CriterionFactoryAcceptanceTest extends ConstellioTest {
 		criterion.setSearchOperator(SearchOperator.EQUALS);
 		criterion.setValue(TestEnum.VALUE1);
 		criterion.setEnumClassName(TestEnum.class.getName());
+		return criterion;
+	}
+
+	private Criterion relativeCriterionEqualDate() {
+		Criterion criterion = new Criterion(shortcuts.code());
+		criterion.setMetadata(shortcuts.aDate().getCode(), shortcuts.aDate().getType(), null);
+		criterion.setSearchOperator(SearchOperator.EQUALS);
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.EQUALS);
+		criterion.setRelativeCriteria(relativeCriteria);
+		criterion.setValue(DATE_VALUE);
+		return criterion;
+	}
+
+	private Criterion relativeCriterionTodayDate() {
+		Criterion criterion = new Criterion(shortcuts.code());
+		criterion.setMetadata(shortcuts.aDate().getCode(), shortcuts.aDate().getType(), null);
+		criterion.setSearchOperator(SearchOperator.GREATER_THAN);
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
+		criterion.setRelativeCriteria(relativeCriteria);
+		return criterion;
+	}
+
+	private Criterion relativeCriterionPastDate() {
+		Criterion criterion = new Criterion(shortcuts.code());
+		criterion.setMetadata(shortcuts.aDate().getCode(), shortcuts.aDate().getType(), null);
+		criterion.setSearchOperator(SearchOperator.GREATER_THAN);
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.PAST);
+		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
+		criterion.setRelativeCriteria(relativeCriteria);
+		criterion.setValue(2.0);
+		return criterion;
+	}
+
+	private Criterion relativeCriterionFutureDate() {
+		Criterion criterion = new Criterion(shortcuts.code());
+		criterion.setMetadata(shortcuts.aDate().getCode(), shortcuts.aDate().getType(), null);
+		criterion.setSearchOperator(SearchOperator.GREATER_THAN);
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.FUTURE);
+		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
+		criterion.setRelativeCriteria(relativeCriteria);
+		criterion.setValue(2.0);
+		return criterion;
+	}
+
+	private Criterion relativeCriterionBetweenDate() {
+		Criterion criterion = new Criterion(shortcuts.code());
+		criterion.setMetadata(shortcuts.aDate().getCode(), shortcuts.aDate().getType(), null);
+		criterion.setSearchOperator(SearchOperator.BETWEEN);
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.PAST);
+		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
+		relativeCriteria.setEndRelativeSearchOperator(RelativeSearchOperator.FUTURE);
+		relativeCriteria.setEndMeasuringUnitTime(MeasuringUnitTime.DAYS);
+		criterion.setRelativeCriteria(relativeCriteria);
+		criterion.setValue(2.0);
+		criterion.setEndValue(2.0);
 		return criterion;
 	}
 }

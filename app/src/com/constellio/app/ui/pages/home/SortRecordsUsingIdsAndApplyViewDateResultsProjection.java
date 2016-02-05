@@ -1,25 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.home;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +30,11 @@ public class SortRecordsUsingIdsAndApplyViewDateResultsProjection implements Res
 	public SPEQueryResponse project(LogicalSearchQuery query, SPEQueryResponse originalResponse) {
 		final List<Record> records = new ArrayList<>(originalResponse.getRecords());
 
+		for (Record record : records) {
+			LocalDateTime view = eventsViewDateTimes.get(record.getId());
+			record.set(Schemas.MODIFIED_ON, view);
+		}
+
 		Collections.sort(records, new Comparator<Record>() {
 			@Override
 			public int compare(Record r1, Record r2) {
@@ -55,11 +44,6 @@ public class SortRecordsUsingIdsAndApplyViewDateResultsProjection implements Res
 			}
 		});
 
-		for (Record record : records) {
-			LocalDateTime view = eventsViewDateTimes.get(record.getId());
-			record.set(Schemas.MODIFIED_ON, view);
-		}
-
-		return new SPEQueryResponse(records);
+		return new SPEQueryResponse(records, new HashMap<Record, Map<Record, Double>>());
 	}
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.bigVault.solr;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
@@ -32,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
 
-import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -67,7 +49,7 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		givenDisabledAfterTestValidations();
-		DataLayerFactory daosFactory = getDataLayerFactory();
+//		DataLayerFactory daosFactory = getDataLayerFactory();
 		setupSolrServers();
 		//vaultServer = daosFactory.getRecordsVaultServer();
 		//anotherVaultServer = new BigVaultServer(vaultServer.getNestedSolrServer(), BigVaultLogger.disabled());
@@ -135,17 +117,14 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 
 	private void setupSolrServers() {
 
-		DataLayerSystemExtensions extensions = new DataLayerSystemExtensions();
+//		DataLayerSystemExtensions extensions = new DataLayerSystemExtensions();
 		DataLayerFactory daosFactory = (DataLayerFactory) getDataLayerFactory();
 		BigVaultServer recordsVaultServer = daosFactory.getRecordsVaultServer();
-		SolrClient solrServer = recordsVaultServer.getNestedSolrServer();
-		vaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(),
-				recordsVaultServer.getAdminServer(), BigVaultLogger.disabled(), extensions);
-		anotherVaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(),
-				recordsVaultServer.getAdminServer(), BigVaultLogger.disabled(), extensions);
-		aThirdVaultServer = new BigVaultServer(recordsVaultServer.getName(), solrServer, recordsVaultServer.getSolrFileSystem(),
-				recordsVaultServer.getAdminServer(), BigVaultLogger.disabled(), extensions);
-	}
+		
+		vaultServer = recordsVaultServer.clone();
+		anotherVaultServer = recordsVaultServer.clone();
+		aThirdVaultServer = recordsVaultServer.clone();
+	} 
 
 	@Test
 	public void testDeathStarInvulnerability()

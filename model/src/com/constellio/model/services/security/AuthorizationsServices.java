@@ -1,25 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.security;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
 import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords;
@@ -56,6 +41,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -106,12 +92,12 @@ public class AuthorizationsServices {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
 		}
 		List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
-		List<String> grantedOnRecords = findAllRecordsWithAuthorizations(authDetails, grantedToPrincipals);
+		List<String> grantedOnRecords = findAllRecordIdsWithAuthorizations(authDetails);
 		return new Authorization(authDetails, grantedToPrincipals, grantedOnRecords);
 	}
 
 	private List<Record> getAuthorizationGrantedOnRecords(Authorization authorization) {
-		List<String> recordIds = authorization.getGrantedOnRecords();
+		List<String> recordIds = withoutDuplicatesAndNulls(authorization.getGrantedOnRecords());
 		if (recordIds.isEmpty()) {
 			throw new CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
 		}
@@ -283,7 +269,7 @@ public class AuthorizationsServices {
 	}
 
 	private List<Record> getAuthorizationGrantedToPrincipals(Authorization authorization) {
-		List<String> principalIds = withoutDuplicates(authorization.getGrantedToPrincipals());
+		List<String> principalIds = withoutDuplicatesAndNulls(authorization.getGrantedToPrincipals());
 		if (principalIds.isEmpty() && !authorization.getDetail().isSynced()) {
 			throw new CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
 		}
@@ -527,7 +513,10 @@ public class AuthorizationsServices {
 		}
 
 		try {
-			manager.remove(manager.get(collection, authorizationId));
+			AuthorizationDetails details = manager.get(collection, authorizationId);
+			if (details != null) {
+				manager.remove(details);
+			}
 		} catch (NoSuchAuthorizationWithId e) {
 			//No problemo
 		}
@@ -620,7 +609,7 @@ public class AuthorizationsServices {
 			AuthorizationDetails authDetails = manager.get(record.getCollection(), authId);
 			if (authDetails != null) {
 				List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
-				List<String> grantedOnRecords = findAllRecordsWithAuthorizations(authDetails, grantedToPrincipals);
+				List<String> grantedOnRecords = findAllRecordIdsWithAuthorizations(authDetails);
 				authorizations.add(new Authorization(authDetails, grantedToPrincipals, grantedOnRecords));
 			} else {
 				LOGGER.error("Missing authorization '" + authId + "'");
@@ -629,17 +618,48 @@ public class AuthorizationsServices {
 		return authorizations;
 	}
 
-	private List<String> findAllRecordsWithAuthorizations(AuthorizationDetails authDetails, List<String> grantedToPrincipals) {
-		List<String> records = new ArrayList<>();
+	private List<String> findAllRecordIdsWithAuthorizations(AuthorizationDetails authDetails) {
+		return new RecordUtils().toIdList(findAllRecordsWithAuthorizations(authDetails));
+	}
+
+	private List<Record> findAllRecordsWithAuthorizations(AuthorizationDetails authDetails) {
+		List<Record> records = new ArrayList<>();
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(fromAllSchemasIn(authDetails.getCollection()).where(Schemas.AUTHORIZATIONS)
-				.isContaining(asList(authDetails.getId())).andWhere(Schemas.IDENTIFIER).isNotIn(grantedToPrincipals));
-		records.addAll(searchServices.searchRecordIds(query));
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(authDetails.getCollection());
+		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType(User.SCHEMA_TYPE);
+		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType(Group.SCHEMA_TYPE);
+
+		query.setCondition(fromAllSchemasExcept(asList(userSchemaType, groupSchemaType)).where(Schemas.AUTHORIZATIONS)
+				.isContaining(asList(authDetails.getId())));
+		records.addAll(searchServices.search(query));
 		return records;
 	}
 
 	private List<String> findAllPrincipalIdsWithAuthorization(AuthorizationDetails authDetails) {
 		List<String> principals = new ArrayList<>();
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(authDetails.getCollection());
+		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType(User.SCHEMA_TYPE);
+		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType(Group.SCHEMA_TYPE);
+
+		List<Record> allUsers = searchServices.cachedSearch(new LogicalSearchQuery(from(userSchemaType).returnAll()));
+		List<Record> allGroups = searchServices.cachedSearch(new LogicalSearchQuery(from(groupSchemaType).returnAll()));
+
+		if (principals != null) {
+			for (Record user : allUsers) {
+
+				if (user != null && user.getList(Schemas.AUTHORIZATIONS).contains(authDetails.getId())) {
+					principals.add(user.getId());
+				}
+			}
+			for (Record group : allGroups) {
+				if (group != null && group.getList(Schemas.AUTHORIZATIONS).contains(authDetails.getId())) {
+					principals.add(group.getId());
+				}
+			}
+		}
+
 		//		LogicalSearchQuery query = new LogicalSearchQuery();
 		//		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(authDetails.getCollection());
 		//		MetadataSchemaType userSchemaType = schemaTypes.getSchemaType("user");
@@ -648,9 +668,9 @@ public class AuthorizationsServices {
 		//		MetadataSchemaType groupSchemaType = schemaTypes.getSchemaType("group");
 		//		query.setCondition(from(groupSchemaType).where(Schemas.AUTHORIZATIONS).isContaining(asList(authDetails.getId())));
 		//		principals.addAll(searchServices.searchRecordIds(query));
-		for (Record record : findAllPrincipalsWithAuthorization(authDetails)) {
-			principals.add(record.getId());
-		}
+		//		for (Record record : findAllPrincipalsWithAuthorization(authDetails)) {
+		//			principals.add(record.getId());
+		//		}
 		return principals;
 	}
 
@@ -857,4 +877,11 @@ public class AuthorizationsServices {
 		}
 	}
 
+	public String getAuthorizationIdByIdWithoutPrefix(String collection, String idWithoutPrefix) {
+		AuthorizationDetails authDetails = manager.getByIdWithoutPrefix(collection, idWithoutPrefix);
+		if (authDetails == null) {
+			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(idWithoutPrefix);
+		}
+		return authDetails.getId();
+	}
 }

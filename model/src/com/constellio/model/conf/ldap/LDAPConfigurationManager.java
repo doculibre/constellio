@@ -1,274 +1,333 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf.ldap;
 
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.PropertiesAlteration;
-import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
-import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
-import com.constellio.model.conf.ldap.services.LDAPServices;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.sync.LDAPFastBind;
-import com.constellio.model.services.users.sync.RuntimeNamingException;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.Duration;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
-
-import javax.naming.NamingException;
-import javax.naming.ldap.LdapContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.Duration;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
+
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.PropertiesAlteration;
+import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
+import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.services.encrypt.EncryptionServices;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.sync.LDAPFastBind;
+import com.constellio.model.services.users.sync.RuntimeNamingException;
+
 public class LDAPConfigurationManager implements StatefulService {
-    private static final String LDAP_CONFIGS = "ldapConfigs.properties";
-    private static final long MIN_DURATION = 1000 * 60 * 10;//10mns
-    private final ModelLayerFactory modelLayerFactory;
-    LDAPUserSyncConfiguration userSyncConfiguration;
-    LDAPServerConfiguration serverConfiguration;
-    ConfigManager configManager;
+	private static final String LDAP_CONFIGS = "ldapConfigs.properties";
+	public static final long MIN_DURATION = 1000 * 60 * 10;//10mns
+	private final ModelLayerFactory modelLayerFactory;
+	LDAPUserSyncConfiguration userSyncConfiguration;
+	LDAPServerConfiguration serverConfiguration;
+	EncryptionServices encryptionServices;
+	ConfigManager configManager;
 
-    public LDAPConfigurationManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager) {
-        this.configManager = configManager;
-        this.modelLayerFactory = modelLayerFactory;
-        configManager.createPropertiesDocumentIfInexistent(LDAP_CONFIGS, new PropertiesAlteration() {
-            @Override
-            public void alter(Map<String, String> properties) {
-                //Default values
-            }
-        });
+	public LDAPConfigurationManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager) {
+		this.configManager = configManager;
+		this.modelLayerFactory = modelLayerFactory;
+		configManager.createPropertiesDocumentIfInexistent(LDAP_CONFIGS, new PropertiesAlteration() {
+			@Override
+			public void alter(Map<String, String> properties) {
+				//Default values
+			}
+		});
+	}
 
-    }
+	@Override
+	public void initialize() {
 
-    @Override
-    public void initialize() {
-        this.userSyncConfiguration = getLDAPUserSyncConfiguration();
-        this.serverConfiguration = getLDAPServerConfiguration();
-    }
+	}
 
-    @Override
-    public void close() {
+	@Override
+	public void close() {
 
-    }
+	}
 
-    public void saveLDAPConfiguration(final LDAPServerConfiguration ldapServerConfiguration, final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-        validateLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+	public void saveLDAPConfiguration(final LDAPServerConfiguration ldapServerConfiguration,
+			final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration, true);
+	}
 
-        configManager.updateProperties(LDAP_CONFIGS, new PropertiesAlteration() {
-            @Override
-            public void alter(Map<String, String> properties) {
-                properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
-                properties.put("ldap.serverConfiguration.domains.sharpSV", joinWithSharp(ldapServerConfiguration.getDomains()));
-                if (ldapServerConfiguration.getDirectoryType() != null) {
-                    properties.put("ldap.serverConfiguration.directoryType", ldapServerConfiguration.getDirectoryType().getCode());
-                }
-                if (ldapServerConfiguration.getLdapAuthenticationActive()) {
-                    properties.put("ldap.authentication.active", "" + ldapServerConfiguration.getLdapAuthenticationActive());
-                } else {
-                    properties.put("ldap.authentication.active", "" + false);
-                }
+	public void saveLDAPConfiguration(final LDAPServerConfiguration ldapServerConfiguration,
+			final LDAPUserSyncConfiguration ldapUserSyncConfiguration, boolean validateBeforeSave) {
+		if (validateBeforeSave) {
+			validateLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+		}
 
-                properties.put("ldap.syncConfiguration.user.login", ldapUserSyncConfiguration.getUser());
-                properties.put("ldap.syncConfiguration.user.password", ldapUserSyncConfiguration.getPassword());
-                properties.put("ldap.syncConfiguration.groupsBaseContextList.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getGroupBaseContextList()));
-                properties.put("ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList()));
-                properties.put("ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", joinWithSharp(ldapUserSyncConfiguration.getSelectedCollectionsCodes()));
+		configManager.updateProperties(LDAP_CONFIGS, new PropertiesAlteration() {
+			@Override
+			public void alter(Map<String, String> properties) {
+				properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
+				properties.put("ldap.serverConfiguration.domains.sharpSV", joinWithSharp(ldapServerConfiguration.getDomains()));
+				if (ldapServerConfiguration.getDirectoryType() != null) {
+					properties
+							.put("ldap.serverConfiguration.directoryType", ldapServerConfiguration.getDirectoryType().getCode());
+				}
+				if (ldapServerConfiguration.getLdapAuthenticationActive()) {
+					properties.put("ldap.authentication.active", "" + ldapServerConfiguration.getLdapAuthenticationActive());
+				} else {
+					properties.put("ldap.authentication.active", "" + false);
+				}
 
-                if (ldapUserSyncConfiguration.getUsersFilterAcceptanceRegex() != null) {
-                    properties.put("ldap.syncConfiguration.userFilter.acceptedRegex", ldapUserSyncConfiguration.getUsersFilterAcceptanceRegex());
-                }
-                if (ldapUserSyncConfiguration.getUsersFilterRejectionRegex() != null) {
-                    properties.put("ldap.syncConfiguration.userFilter.rejectedRegex", ldapUserSyncConfiguration.getUsersFilterRejectionRegex());
-                }
-                if (ldapUserSyncConfiguration.getGroupsFilterAcceptanceRegex() != null) {
-                    properties.put("ldap.syncConfiguration.groupFilter.acceptedRegex", ldapUserSyncConfiguration.getGroupsFilterAcceptanceRegex());
-                }
-                if (ldapUserSyncConfiguration.getGroupsFilterRejectionRegex() != null) {
-                    properties.put("ldap.syncConfiguration.groupFilter.rejectedRegex", ldapUserSyncConfiguration.getGroupsFilterRejectionRegex());
-                }
-                if (ldapUserSyncConfiguration.getDurationBetweenExecution() != null) {
-                    if (ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() >= MIN_DURATION) {
-                        properties.put("ldap.syncConfiguration.durationBetweenExecution", format(ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis()) + "");
-                    } else {
-                        //FIXME
-                        //throw TOOShortDuration();
-                    }
-                }
-            }
-        });
-        modelLayerFactory.getLdapAuthenticationService().reloadServiceConfiguration();
-        modelLayerFactory.getLdapUserSyncManager().reloadLDAPUserSynchConfiguration();
-    }
+				if (ldapServerConfiguration.getFollowReferences()) {
+					properties.put("ldap.serverConfiguration.followReferences", "" + true);
+				} else {
+					properties.put("ldap.serverConfiguration.followReferences", "" + false);
+				}
 
-    private String format(long millis) {
-        //format (\\d*d)(\\d*h)(\\d*mn) (d == day)
-        long seconds = millis/1000;
-        long mns = seconds/60;
-        long hours = mns/60;
-        mns = mns%60;
-        long days = hours/24;
-        hours = hours%24;
-        return days + "d" + hours + "h" + mns + "mn";
-    }
+				properties.put("ldap.syncConfiguration.user.login", ldapUserSyncConfiguration.getUser());
+				String password = ldapUserSyncConfiguration.getPassword();
+				String encryptedPassword = password;
+				if (StringUtils.isNotBlank(password)) {
+					encryptedPassword = modelLayerFactory.newEncryptionServices().encrypt(password);
 
-    private String joinWithSharp(List<String> list) {
-        return StringUtils.join(list, "#");
-    }
+				}
+				properties.put("ldap.syncConfiguration.user.password", encryptedPassword);
+				properties.put("ldap.syncConfiguration.groupsBaseContextList.sharpSV",
+						joinWithSharp(ldapUserSyncConfiguration.getGroupBaseContextList()));
+				properties.put("ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV",
+						joinWithSharp(ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList()));
+				properties.put("ldap.syncConfiguration.selectedCollectionsCodes.sharpSV",
+						joinWithSharp(ldapUserSyncConfiguration.getSelectedCollectionsCodes()));
 
-    private void validateLDAPConfiguration(LDAPServerConfiguration configs, LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-        Boolean authenticationActive = configs.getLdapAuthenticationActive();
-        if(authenticationActive){
-            for(String url : configs.getUrls()){
-                try{
-                    LDAPFastBind fastBind = new LDAPFastBind(url);
-                    fastBind.close();
-                }catch(RuntimeNamingException e){
-                    throw new InvalidUrlRuntimeException(url, e.getMessage());
-                }
-            }
-            if(configs.getDomains() == null || configs.getDomains().isEmpty()){
-                throw new EmptyDomainsRuntimeException();
-            }
-            if(configs.getUrls() == null || configs.getUrls().isEmpty()){
-                throw new EmptyUrlsRuntimeException();
-            }
-            if(ldapUserSyncConfiguration.getDurationBetweenExecution()!= null && ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() != 0l){
-                if(ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() < MIN_DURATION){
-                    throw new TooShortDurationRuntimeException(ldapUserSyncConfiguration.getDurationBetweenExecution());
-                }
-                LDAPServices ldapServices = new LDAPServices();
-                for(String url : configs.getUrls()){
-                    ldapServices.connectToLDAP(configs.getDomains(), url, ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword());
-                }
-            }
-        }
-    }
+				if (ldapUserSyncConfiguration.getUsersFilterAcceptanceRegex() != null) {
+					properties.put("ldap.syncConfiguration.userFilter.acceptedRegex",
+							ldapUserSyncConfiguration.getUsersFilterAcceptanceRegex());
+				}
+				if (ldapUserSyncConfiguration.getUsersFilterRejectionRegex() != null) {
+					properties.put("ldap.syncConfiguration.userFilter.rejectedRegex",
+							ldapUserSyncConfiguration.getUsersFilterRejectionRegex());
+				}
+				if (ldapUserSyncConfiguration.getGroupsFilterAcceptanceRegex() != null) {
+					properties.put("ldap.syncConfiguration.groupFilter.acceptedRegex",
+							ldapUserSyncConfiguration.getGroupsFilterAcceptanceRegex());
+				}
+				if (ldapUserSyncConfiguration.getGroupsFilterRejectionRegex() != null) {
+					properties.put("ldap.syncConfiguration.groupFilter.rejectedRegex",
+							ldapUserSyncConfiguration.getGroupsFilterRejectionRegex());
+				}
+				if (ldapUserSyncConfiguration.getDurationBetweenExecution() != null) {
+					long durationInMilli = ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis();
+					if (durationInMilli >= MIN_DURATION) {
+						properties.put("ldap.syncConfiguration.durationBetweenExecution",
+								format(durationInMilli) + "");
+					} else if (durationInMilli == 0l) {
+						properties.remove("ldap.syncConfiguration.durationBetweenExecution");
+					} else {
+						throw new TooShortDurationRuntimeException(ldapUserSyncConfiguration.getDurationBetweenExecution());
+					}
+				}
+			}
+		});
+		modelLayerFactory.getLdapAuthenticationService().reloadServiceConfiguration();
+		modelLayerFactory.getLdapUserSyncManager().reloadLDAPUserSynchConfiguration();
+	}
 
-    public LDAPServerConfiguration getLDAPServerConfiguration() {
-        Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
+	/*private void init(boolean decryptPassword) {
+		if (!decryptPassword) {
+			this.userSyncConfiguration = getLDAPUserSyncConfiguration(false);
+			this.serverConfiguration = getLDAPServerConfiguration();
+		}
+		if (this.encryptionServices != null) {
+			return;
+		}
+		try {
+			this.encryptionServices = modelLayerFactory.newEncryptionServices();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (InvalidKeySpecException e) {
+			throw new RuntimeException(e);
+		}
+		this.userSyncConfiguration = getLDAPUserSyncConfiguration(true);
+		this.serverConfiguration = getLDAPServerConfiguration();
+	}*/
 
-        List<String> urls = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.urls.sharpSV", new ArrayList<String>());
-        List<String> domains = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.domains.sharpSV",
-                new ArrayList<String>());
-        LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
+	private String format(long millis) {
+		//format (\\d*d)(\\d*h)(\\d*mn) (d == day)
+		long seconds = millis / 1000;
+		long mns = seconds / 60;
+		long hours = mns / 60;
+		mns = mns % 60;
+		long days = hours / 24;
+		hours = hours % 24;
+		return days + "d" + hours + "h" + mns + "mn";
+	}
 
-        Boolean active = getBooleanValue(configs, "ldap.authentication.active", false);
+	private String joinWithSharp(List<String> list) {
+		return StringUtils.join(list, "#");
+	}
 
-        return new LDAPServerConfiguration(urls, domains, directoryType, active);
+	private void validateLDAPConfiguration(LDAPServerConfiguration configs, LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		Boolean authenticationActive = configs.getLdapAuthenticationActive();
+		if (authenticationActive) {
+			boolean activeDirectory = configs.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
+			for (String url : configs.getUrls()) {
+				try {
+					LDAPFastBind fastBind = new LDAPFastBind(url, configs.getFollowReferences(), activeDirectory);
+					fastBind.close();
+				} catch (RuntimeNamingException e) {
+					throw new InvalidUrlRuntimeException(url, e.getMessage());
+				}
+			}
+			if (configs.getDomains() == null || configs.getDomains().isEmpty()) {
+				throw new EmptyDomainsRuntimeException();
+			}
+			if (configs.getUrls() == null || configs.getUrls().isEmpty()) {
+				throw new EmptyUrlsRuntimeException();
+			}
+			if (ldapUserSyncConfiguration.getDurationBetweenExecution() != null
+					&& ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() != 0l) {
+				if (ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() < MIN_DURATION) {
+					throw new TooShortDurationRuntimeException(ldapUserSyncConfiguration.getDurationBetweenExecution());
+				}
+				LDAPServices ldapServices = new LDAPServices();
+				for (String url : configs.getUrls()) {
+					ldapServices.connectToLDAP(configs.getDomains(), url, ldapUserSyncConfiguration.getUser(),
+							ldapUserSyncConfiguration.getPassword(), configs.getFollowReferences(), activeDirectory);
+				}
+			}
+		}
+	}
 
-    }
+	public LDAPServerConfiguration getLDAPServerConfiguration() {
+		Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
 
-    public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
-        Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
-        String user = getString(configs, "ldap.syncConfiguration.user.login", null);
-        List<String> groupBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.syncConfiguration.groupsBaseContextList.sharpSV",
-                new ArrayList<String>());
-        List<String> usersWithoutGroupsBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
-                "ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV", new ArrayList<String>());
-        String password = getString(configs, "ldap.syncConfiguration.user.password", "");
-        RegexFilter userFilter = newRegexFilter(configs, "ldap.syncConfiguration.userFilter.acceptedRegex", "ldap.syncConfiguration.userFilter.rejectedRegex");
-        RegexFilter groupFilter = newRegexFilter(configs, "ldap.syncConfiguration.groupFilter.acceptedRegex", "ldap.syncConfiguration.groupFilter.rejectedRegex");
-        Duration durationBetweenExecution = newDuration(configs, "ldap.syncConfiguration.durationBetweenExecution");
+		List<String> urls = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.urls.sharpSV",
+				new ArrayList<String>());
+		List<String> domains = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.domains.sharpSV",
+				new ArrayList<String>());
+		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
 
-        List<String> selectedCollections = getSharpSeparatedValuesWithoutBlanks(configs,
-                "ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", new ArrayList<String>());
-        return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution, groupBaseContextList, usersWithoutGroupsBaseContextList, selectedCollections);
-    }
+		Boolean active = getBooleanValue(configs, "ldap.authentication.active", false);
 
-    public boolean isLDAPAuthentication() {
-        Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
-        return getBooleanValue(configs, "ldap.authentication.active", false);
-    }
+		Boolean followReferences = getBooleanValue(configs, "ldap.serverConfiguration.followReferences", false);
 
-    private boolean getBooleanValue(Map<String, String> configs, String key, boolean defaultValue) {
-        String returnValueAsString = getString(configs, key, defaultValue + "");
-        if(!returnValueAsString.toLowerCase().matches("true|false")){
-            throw new PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_NotABooleanValue(key,
-                    returnValueAsString);
-        }
-        return Boolean.valueOf(returnValueAsString);
-    }
+		return new LDAPServerConfiguration(urls, domains, directoryType, active, followReferences);
 
-    private String getString(Map<String, String> configs, String key, String defaultValue) {
-        String value = configs.get(key);
-        return value == null ? defaultValue : value;
-    }
+	}
 
-    private LDAPDirectoryType getLDAPDirectoryType(Map<String, String> configs) {
-        String directoryTypeString = getString(configs, "ldap.serverConfiguration.directoryType", LDAPDirectoryType.ACTIVE_DIRECTORY.getCode()).toLowerCase();
-        if(StringUtils.isBlank(directoryTypeString) ||
-                directoryTypeString.equals(LDAPDirectoryType.ACTIVE_DIRECTORY.getCode().toLowerCase())){
-            return LDAPDirectoryType.ACTIVE_DIRECTORY;
-        }else if (directoryTypeString.equals(LDAPDirectoryType.E_DIRECTORY.getCode().toLowerCase())){
-            return LDAPDirectoryType.E_DIRECTORY;
-        }else {
-            throw new PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidLdapType(directoryTypeString);
-        }
-    }
+	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
+		return getLDAPUserSyncConfiguration(true);
+	}
 
-    private List<String> getSharpSeparatedValuesWithoutBlanks(Map<String, String> configs, String key, ArrayList<String> defaultValues) {
-        String allValuesString = getString(configs, key, "");
-        String[] allVales = StringUtils.split(allValuesString, "#");
-        if (allVales.length == 0){
-            return defaultValues;
-        }else {
-            List<String> returnValues = new ArrayList<>();
-            for(String currentValue: allVales){
-                returnValues.add(currentValue.trim());
-            }
-            return returnValues;
-        }
-    }
+	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(boolean decryptPassword) {
+		Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
+		String user = getString(configs, "ldap.syncConfiguration.user.login", null);
+		List<String> groupBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
+				"ldap.syncConfiguration.groupsBaseContextList.sharpSV",
+				new ArrayList<String>());
+		List<String> usersWithoutGroupsBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
+				"ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV", new ArrayList<String>());
+		String password = getString(configs, "ldap.syncConfiguration.user.password", "");
+		if (decryptPassword) {
+			if (encryptionServices == null) {
+				encryptionServices = modelLayerFactory.newEncryptionServices();
 
-    private Duration newDuration(Map<String, String> configs, String key) {
-        String durationString = getString(configs, key, null);
-        if(durationString != null){
-            //format (\\d*d)(\\d*h)(\\d*mn) (d == day)
-            PeriodFormatter formatter = new PeriodFormatterBuilder()
-                    .appendDays()
-                    .appendLiteral("d")
-                    .appendHours()
-                    .appendLiteral("h")
-                    .appendMinutes()
-                    .appendLiteral("mn")
-                    .toFormatter();
-            Duration duration = formatter.parsePeriod(durationString).toStandardDuration();
-            return duration;
-        }
-        return null;
-    }
+			}
+			password = encryptionServices.decrypt(password);
+		}
+		RegexFilter userFilter = newRegexFilter(configs, "ldap.syncConfiguration.userFilter.acceptedRegex",
+				"ldap.syncConfiguration.userFilter.rejectedRegex");
+		RegexFilter groupFilter = newRegexFilter(configs, "ldap.syncConfiguration.groupFilter.acceptedRegex",
+				"ldap.syncConfiguration.groupFilter.rejectedRegex");
+		Duration durationBetweenExecution = newDuration(configs, "ldap.syncConfiguration.durationBetweenExecution");
 
-    private RegexFilter newRegexFilter(Map<String, String> configs, String acceptedRegexKey, String rejectedRegexkey) {
-        String acceptedRegex= getString(configs, acceptedRegexKey, null);
-        String rejectedRegex= getString(configs, rejectedRegexkey, null);
+		List<String> selectedCollections = getSharpSeparatedValuesWithoutBlanks(configs,
+				"ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", new ArrayList<String>());
+		return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution,
+				groupBaseContextList, usersWithoutGroupsBaseContextList, selectedCollections);
+	}
 
-        try{
-            return new RegexFilter(acceptedRegex, rejectedRegex);
-        }catch(PatternSyntaxException e){
-            throw new PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidRegex(acceptedRegex + " or " + rejectedRegex);
-        }
-    }
+	public boolean isLDAPAuthentication() {
+		Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
+		return getBooleanValue(configs, "ldap.authentication.active", false);
+	}
 
-    public Boolean idUsersSynchActivated() {
-        LDAPUserSyncConfiguration config = getLDAPUserSyncConfiguration();
-        return config!=null && config.getDurationBetweenExecution() !=null;
-    }
+	private boolean getBooleanValue(Map<String, String> configs, String key, boolean defaultValue) {
+		String returnValueAsString = getString(configs, key, defaultValue + "");
+		if (!returnValueAsString.toLowerCase().matches("true|false")) {
+			throw new PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_NotABooleanValue(
+					key,
+					returnValueAsString);
+		}
+		return Boolean.valueOf(returnValueAsString);
+	}
+
+	private String getString(Map<String, String> configs, String key, String defaultValue) {
+		String value = configs.get(key);
+		return value == null ? defaultValue : value;
+	}
+
+	private LDAPDirectoryType getLDAPDirectoryType(Map<String, String> configs) {
+		String directoryTypeString = getString(configs, "ldap.serverConfiguration.directoryType",
+				LDAPDirectoryType.ACTIVE_DIRECTORY.getCode()).toLowerCase();
+		if (StringUtils.isBlank(directoryTypeString) ||
+				directoryTypeString.equals(LDAPDirectoryType.ACTIVE_DIRECTORY.getCode().toLowerCase())) {
+			return LDAPDirectoryType.ACTIVE_DIRECTORY;
+		} else if (directoryTypeString.equals(LDAPDirectoryType.E_DIRECTORY.getCode().toLowerCase())) {
+			return LDAPDirectoryType.E_DIRECTORY;
+		} else {
+			throw new PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidLdapType(
+					directoryTypeString);
+		}
+	}
+
+	private List<String> getSharpSeparatedValuesWithoutBlanks(Map<String, String> configs, String key,
+			ArrayList<String> defaultValues) {
+		String allValuesString = getString(configs, key, "");
+		String[] allVales = StringUtils.split(allValuesString, "#");
+		if (allVales.length == 0) {
+			return defaultValues;
+		} else {
+			List<String> returnValues = new ArrayList<>();
+			for (String currentValue : allVales) {
+				returnValues.add(currentValue.trim());
+			}
+			return returnValues;
+		}
+	}
+
+	private Duration newDuration(Map<String, String> configs, String key) {
+		String durationString = getString(configs, key, null);
+		if (durationString != null) {
+			//format (\\d*d)(\\d*h)(\\d*mn) (d == day)
+			PeriodFormatter formatter = new PeriodFormatterBuilder()
+					.appendDays()
+					.appendLiteral("d")
+					.appendHours()
+					.appendLiteral("h")
+					.appendMinutes()
+					.appendLiteral("mn")
+					.toFormatter();
+			Duration duration = formatter.parsePeriod(durationString).toStandardDuration();
+			return duration;
+		}
+		return null;
+	}
+
+	private RegexFilter newRegexFilter(Map<String, String> configs, String acceptedRegexKey, String rejectedRegexKey) {
+		String acceptedRegex = getString(configs, acceptedRegexKey, null);
+		String rejectedRegex = getString(configs, rejectedRegexKey, null);
+
+		try {
+			return new RegexFilter(acceptedRegex, rejectedRegex);
+		} catch (PatternSyntaxException e) {
+			throw new PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidRegex(
+					acceptedRegex + " or " + rejectedRegex);
+		}
+	}
+
+	public Boolean idUsersSynchActivated() {
+		LDAPUserSyncConfiguration config = getLDAPUserSyncConfiguration(false);
+		return config != null && config.getDurationBetweenExecution() != null;
+	}
 }

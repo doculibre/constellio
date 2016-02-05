@@ -1,36 +1,28 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.load;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.List;
 
-import demo.DemoUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
 
+import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.start.ApplicationStarter;
+import com.constellio.app.utils.ScriptsUtils;
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.sdk.load.script.SystemWithDataAndRMModuleScript;
 import com.constellio.sdk.load.script.preparators.AdministrativeUnitTaxonomyPreparator;
 import com.constellio.sdk.load.script.preparators.CategoriesTaxonomyPreparator;
 import com.constellio.sdk.load.script.preparators.DefaultUsersPreparator;
-import com.constellio.sdk.tests.TestPagesComponentsExtensions;
 
 public class LoadSetup_SystemWithDataAndRMModuleMain {
 
@@ -41,26 +33,68 @@ public class LoadSetup_SystemWithDataAndRMModuleMain {
 	public static void main(String[] argv)
 			throws Exception {
 
-		//		DemoUtils.clearData();
-
-		DemoUtils.printConfiguration();
-
 		SystemWithDataAndRMModuleScript script = new SystemWithDataAndRMModuleScript();
-		script.setBigFilesFolder(new File("/Users/francisbaril/Workspaces/wiki-200000"));
-		script.setNumberOfRootFolders(50000);
-		//script.setNumberOfRootFolders(500);
-		script.setSubFoldersPerFolder(10);
-		script.setSubSubFoldersPerFolder(1);
-		script.setNumberOfDocuments(250000);
+		script.setBigFilesFolder(new File("/Volumes/Raid1/wiki-extract/bigfiles"));
+		//script.setNumberOfRootFolders(1);
+		script.setNumberOfRootFolders(500);
+		script.setSubFoldersPerFolder(50);
+		script.setSubSubFoldersPerFolder(40);
+		script.setNumberOfDocuments(10_000_000);
 		script.setCollections(COLLECTIONS);
 		script.setUserPreparator(new DefaultUsersPreparator(COLLECTIONS, NUMBER_OF_USERS, NUMBER_OF_GROUPS));
 		script.setAdministrativeUnitsTaxonomy(new AdministrativeUnitTaxonomyPreparator());
 		script.setCategoriesTaxonomy(new CategoriesTaxonomyPreparator());
-		DemoUtils.startDemoOn(8080, script);
+		startWith(script, 7070);
 		System.out.println("FINISHED!!!!");
 
-		AppLayerFactory factory = ConstellioFactories.getInstance().getAppLayerFactory();
-		factory.getExtensions().getSystemWideExtensions().pagesComponentsExtensions = new TestPagesComponentsExtensions(factory);
+		AppLayerFactory factory = ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads();
+
+		//factory.getExtensions().getSystemWideExtensions().pagesComponentsExtensions = new TestPagesComponentsExtensions(factory);
+	}
+
+	private static void startWith(SystemWithDataAndRMModuleScript initScript, int port) throws Exception {
+		File configFile = new FoldersLocator().getConstellioProperties();
+
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "*:*");
+
+		AppLayerFactory appLayerFactory= ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads();
+		DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
+		dataLayerFactory.newRecordDao().execute(new TransactionDTO(RecordsFlushing.NOW()).withDeletedByQueries(params));
+
+		DataLayerConfiguration dataLayerConfiguration = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration();
+		boolean initialized = false;//dataLayerConfiguration.getSettingsFileSystemBaseFolder().exists();
+
+		ConstellioPluginManager pluginManager = appLayerFactory.getPluginManager();
+		ConstellioModulesManager modulesManager = appLayerFactory.getModulesManager();
+		for (InstallableModule module : initScript.getModules()) {
+			if (!modulesManager.isInstalled(module)) {
+				modulesManager.installValidModuleAndGetInvalidOnes(module,
+						appLayerFactory.getModelLayerFactory().getCollectionsListManager());
+			}
+		}
+
+		if (!initialized) {
+			initScript.setup(appLayerFactory, appLayerFactory.getModelLayerFactory());
+		}
+
+		ApplicationStarter.startApplication(false, getWebContentDir(), port);
+	}
+
+	private static File getWebContentDir() {
+		File webContent = new FoldersLocator().getAppProjectWebContent();
+
+		assertThat(webContent).exists().isDirectory();
+
+		File webInf = new File(webContent, "WEB-INF");
+		assertThat(webInf).exists().isDirectory();
+		assertThat(new File(webInf, "web.xml")).exists();
+		assertThat(new File(webInf, "sun-jaxws.xml")).exists();
+
+		File cmis11 = new File(webInf, "cmis11");
+		assertThat(cmis11).exists().isDirectory();
+		assertThat(cmis11.listFiles()).isNotEmpty();
+		return webContent;
 	}
 
 }

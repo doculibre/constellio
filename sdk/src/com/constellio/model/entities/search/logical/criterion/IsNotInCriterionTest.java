@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.search.logical.criterion;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +13,6 @@ import org.mockito.Mock;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.search.query.logical.criteria.CriteriaUtils;
 import com.constellio.model.services.search.query.logical.criteria.IsNotInCriterion;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -86,7 +68,7 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(numberValue12));
 
 		assertThat(criterion.getSolrQuery(numberMetadata)).isEqualTo(
-				"*:* -numberMetadata:\"12\" -numberMetadata:\"" + Integer.MIN_VALUE + "\"");
+				"(*:* -numberMetadata:\"12\" ) AND (numberMetadata:*)");
 	}
 
 	@Test
@@ -95,8 +77,7 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(numberValue12, numberValue100, numberValueNegative1));
 
 		assertThat(criterion.getSolrQuery(numberMetadata)).isEqualTo(
-				"*:* -numberMetadata:\"12\" -numberMetadata:\"100\" -numberMetadata:\"-1\" -numberMetadata:\""
-						+ Integer.MIN_VALUE + "\"");
+				"(*:* -numberMetadata:\"12\" -numberMetadata:\"100\" -numberMetadata:\"-1\" ) AND (numberMetadata:*)");
 	}
 
 	@Test
@@ -107,7 +88,7 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(record1, record2));
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"*:* -textMetadata:\"id1\" -textMetadata:\"id2\" -textMetadata:\"__NULL__\"");
+				"(*:* -textMetadata:\"id1\" -textMetadata:\"id2\" ) AND (textMetadata:*)");
 	}
 
 	@Test
@@ -116,7 +97,7 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(textValue, textValue2));
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"*:* -textMetadata:\"text\\ value\" -textMetadata:\"text\\ value2\" -textMetadata:\"__NULL__\"");
+				"(*:* -textMetadata:\"text\\ value\" -textMetadata:\"text\\ value2\" ) AND (textMetadata:*)");
 	}
 
 	@Test
@@ -125,8 +106,8 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(date, date2));
 
 		assertThat(criterion.getSolrQuery(dateMetadata)).isEqualTo(
-				"*:* -dateTimeMetadata:\"" + date + "Z\" -dateTimeMetadata:\"" + date2
-						+ "Z\" -dateTimeMetadata:\"" + CriteriaUtils.getNullDateValue() + "\"");
+				"(*:* -dateTimeMetadata:\"" + date + "Z\" -dateTimeMetadata:\"" + date2
+						+ "Z\" ) AND (dateTimeMetadata:*)");
 	}
 
 	@Test
@@ -177,7 +158,7 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(value));
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"*:* -textMetadata:\"value\\ with\\ spaces\" -textMetadata:\"__NULL__\"");
+				"(*:* -textMetadata:\"value\\ with\\ spaces\" ) AND (textMetadata:*)");
 	}
 
 	@Test
@@ -188,7 +169,7 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(value));
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"*:* -textMetadata:\"value\\*with\\*asterisks\\*\" -textMetadata:\"__NULL__\"");
+				"(*:* -textMetadata:\"value\\*with\\*asterisks\\*\" ) AND (textMetadata:*)");
 	}
 
 	@Test
@@ -199,6 +180,6 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(value));
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"*:* -textMetadata:\"value\\?with\\?wildcards\\?\" -textMetadata:\"__NULL__\"");
+				"(*:* -textMetadata:\"value\\?with\\?wildcards\\?\" ) AND (textMetadata:*)");
 	}
 }

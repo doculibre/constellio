@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.schemaRecords;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +13,10 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.OverrideMode;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
@@ -38,6 +25,14 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 
 public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
+
+	public static final String FOLDER_TYPE_LINKED_SCHEMA = FolderType.DEFAULT_SCHEMA + "_" + FolderType.LINKED_SCHEMA;
+	public static final String DOCUMENT_TYPE_LINKED_SCHEMA = DocumentType.DEFAULT_SCHEMA + "_" + DocumentType.LINKED_SCHEMA;
+	public static final String CONTAINER_TYPE_LINKED_SCHEMA =
+			ContainerRecordType.DEFAULT_SCHEMA + "_" + ContainerRecordType.LINKED_SCHEMA;
+	public static final String STORAGE_SPACE_LINKED_SCHEMA =
+			StorageSpaceType.DEFAULT_SCHEMA + "_" + StorageSpaceType.LINKED_SCHEMA;
+
 	@Mock AddEditSchemaRecordView view;
 	AddEditSchemaRecordPresenter presenter;
 
@@ -60,9 +55,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 	public void givenFolderTypeThenReturnFolderCustomSchemas()
 			throws Exception {
 		givenCustomSchemasFor(Folder.SCHEMA_TYPE);
-		assertThat(presenter.getOverride(AddEditSchemaRecordPresenter.FOLDER_TYPE_LINKED_SCHEMA))
+		assertThat(presenter.getOverride(FOLDER_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
-		assertThat(presenter.getChoices(AddEditSchemaRecordPresenter.FOLDER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
+		assertThat(presenter.getChoices(FOLDER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
 				.contains(
 						Tuple.tuple(Folder.SCHEMA_TYPE + "_custom1", Folder.SCHEMA_TYPE + " custom 1"),
 						Tuple.tuple(Folder.SCHEMA_TYPE + "_custom2", Folder.SCHEMA_TYPE + " custom 2"));
@@ -72,9 +67,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 	public void givenDocumentTypeThenReturnDocumentCustomSchemas()
 			throws Exception {
 		givenCustomSchemasFor(Document.SCHEMA_TYPE);
-		assertThat(presenter.getOverride(AddEditSchemaRecordPresenter.DOCUMENT_TYPE_LINKED_SCHEMA))
+		assertThat(presenter.getOverride(DOCUMENT_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
-		assertThat(presenter.getChoices(AddEditSchemaRecordPresenter.DOCUMENT_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
+		assertThat(presenter.getChoices(DOCUMENT_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
 				.contains(
 						Tuple.tuple(Document.SCHEMA_TYPE + "_custom1", Document.SCHEMA_TYPE + " custom 1"),
 						Tuple.tuple(Document.SCHEMA_TYPE + "_custom2", Document.SCHEMA_TYPE + " custom 2"));
@@ -84,9 +79,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 	public void givenContainerRecordTypeThenReturnContainerRecordCustomSchemas()
 			throws Exception {
 		givenCustomSchemasFor(ContainerRecord.SCHEMA_TYPE);
-		assertThat(presenter.getOverride(AddEditSchemaRecordPresenter.CONTAINER_TYPE_LINKED_SCHEMA))
+		assertThat(presenter.getOverride(CONTAINER_TYPE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
-		assertThat(presenter.getChoices(AddEditSchemaRecordPresenter.CONTAINER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
+		assertThat(presenter.getChoices(CONTAINER_TYPE_LINKED_SCHEMA)).extracting("value", "caption")
 				.contains(
 						Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom1", ContainerRecord.SCHEMA_TYPE + " custom 1"),
 						Tuple.tuple(ContainerRecord.SCHEMA_TYPE + "_custom2", ContainerRecord.SCHEMA_TYPE + " custom 2"));
@@ -96,9 +91,9 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 	public void givenStorageSpaceTypeThenReturnStorageSpaceCustomSchemas()
 			throws Exception {
 		givenCustomSchemasFor(StorageSpace.SCHEMA_TYPE);
-		assertThat(presenter.getOverride(AddEditSchemaRecordPresenter.STORAGE_SPACE_LINKED_SCHEMA))
+		assertThat(presenter.getOverride(STORAGE_SPACE_LINKED_SCHEMA))
 				.isEqualTo(OverrideMode.DROPDOWN);
-		assertThat(presenter.getChoices(AddEditSchemaRecordPresenter.STORAGE_SPACE_LINKED_SCHEMA)).extracting("value", "caption")
+		assertThat(presenter.getChoices(STORAGE_SPACE_LINKED_SCHEMA)).extracting("value", "caption")
 				.contains(
 						Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom1", StorageSpace.SCHEMA_TYPE + " custom 1"),
 						Tuple.tuple(StorageSpace.SCHEMA_TYPE + "_custom2", StorageSpace.SCHEMA_TYPE + " custom 2"));

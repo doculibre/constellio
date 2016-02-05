@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.search;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
@@ -585,8 +568,8 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	private void givenZeCollectionMultilingualAndAnotherCollectionSingleLingualAndUnsearchableContentAndMultivalueStringMetadataMetadatas()
 			throws Exception {
 
-		givenCollection(zeCollection, asList("fr", "en"));
-		givenCollection(anotherCollection, asList("fr"));
+		givenSpecialCollection(zeCollection, asList("fr", "en"));
+		givenSpecialCollection(anotherCollection, asList("fr"));
 		setupUsers();
 		aliceInZeCollection = users.aliceIn(zeCollection);
 		aliceInAnotherCollection = users.aliceIn(anotherCollection);
@@ -598,8 +581,8 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	private void givenZeCollectionMultilingualAndAnotherCollectionSingleLingualAndSearchableContentAndMultivalueStringMetadataMetadatas()
 			throws Exception {
 
-		givenCollection(zeCollection, asList("fr", "en"));
-		givenCollection(anotherCollection, asList("fr"));
+		givenSpecialCollection(zeCollection, asList("fr", "en"));
+		givenSpecialCollection(anotherCollection, asList("fr"));
 		setupUsers();
 		aliceInZeCollection = users.aliceIn(zeCollection);
 		aliceInAnotherCollection = users.aliceIn(anotherCollection);
@@ -614,8 +597,10 @@ public class MultilingualFreeTextSearchBrokenAcceptTest extends ConstellioTest {
 	private void givenBothCollectionBilingualAndSearchableContentAndMultivalueStringMetadataMetadatas()
 			throws Exception {
 
-		givenCollection(zeCollection, asList("fr", "en"));
-		givenCollection(anotherCollection, asList("fr", "en"));
+		prepareSystem(withZeCollection(), withCollection(anotherCollection));
+
+		givenSpecialCollection(zeCollection, asList("fr", "en"));
+		givenSpecialCollection(anotherCollection, asList("fr", "en"));
 		setupUsers();
 		aliceInZeCollection = users.aliceIn(zeCollection);
 		aliceInAnotherCollection = users.aliceIn(anotherCollection);

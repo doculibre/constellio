@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -28,6 +11,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToUtilConverter;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
@@ -37,6 +21,10 @@ import com.constellio.app.ui.framework.components.fields.lookup.PathLookupField;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
+import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.converter.StringToDoubleConverter;
@@ -49,8 +37,10 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 
 public class AdvancedSearchCriteriaComponent extends Table {
 	public static final String LEFT_PARENS_FIELD = "leftParensField";
@@ -89,9 +79,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		refreshRowCache();
 	}
 
-	public void addEmptyCriterion() {
+	public AdvancedSearchCriteriaComponent addEmptyCriterion() {
 		addItem(new Criterion(schemaType));
 		setPageLength(size());
+		return this;
 	}
 
 	public List<Criterion> getSearchCriteria() {
@@ -107,6 +98,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 	public void setSearchCriteria(List<Criterion> criteria) {
 		container.removeAllItems();
 		container.addAll(criteria);
+		setPageLength(criteria.size());
 	}
 
 	public static class MetadataFieldGenerator implements ColumnGenerator {
@@ -193,8 +185,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildReferenceValueComponent(final Criterion criterion) {
+
 			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
 			final LookupRecordField value = new LookupRecordField(metadata.getAllowedReferences().getAllowedSchemaType());
+			value.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			value.setWidth("100%");
 			value.setValue((String) criterion.getValue());
 			value.addValueChangeListener(new ValueChangeListener() {
@@ -203,7 +197,30 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setValue(value.getValue());
 				}
 			});
-			return value;
+
+			//
+			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
+			operator.setNullSelectionAllowed(false);
+			operator.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					SearchOperator newOperator = (SearchOperator) operator.getValue();
+					if (newOperator != null) {
+						criterion.setSearchOperator(newOperator);
+						value.setVisible(
+								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
+					} else {
+						value.setVisible(true);
+					}
+				}
+			});
+			HorizontalLayout component = new HorizontalLayout(operator, value);
+			component.setComponentAlignment(value, Alignment.MIDDLE_RIGHT);
+			component.setExpandRatio(value, 1);
+			component.setWidth("100%");
+			component.setSpacing(true);
+
+			return component;
 		}
 
 		private Component buildStringValueComponent(final Criterion criterion) {
@@ -226,7 +243,26 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 
-			HorizontalLayout component = new HorizontalLayout(value, exact);
+			final SearchOperator searchOperator = criterion.getSearchOperator();
+			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
+			operator.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					SearchOperator newOperator = (SearchOperator) operator.getValue();
+					if (newOperator != null) {
+						criterion.setSearchOperator(newOperator);
+						value.setVisible(
+								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
+						exact.setVisible(
+								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
+					} else {
+						criterion.setSearchOperator(searchOperator);
+						value.setVisible(true);
+						exact.setVisible(true);
+					}
+				}
+			});
+			HorizontalLayout component = new HorizontalLayout(operator, value, exact);
 			component.setComponentAlignment(exact, Alignment.MIDDLE_RIGHT);
 			component.setExpandRatio(value, 1);
 			component.setWidth("100%");
@@ -246,7 +282,12 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 
-			return lookup;
+			HorizontalLayout component = new HorizontalLayout(lookup);
+			component.setExpandRatio(lookup, 1);
+			component.setWidth("100%");
+			component.setSpacing(true);
+
+			return component;
 		}
 
 		private Component buildBooleanValueComponent(final Criterion criterion) {
@@ -255,6 +296,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			operator.setItemCaption(SearchOperator.IS_TRUE, $("AdvancedSearchView.isTrue"));
 			operator.addItem(SearchOperator.IS_FALSE);
 			operator.setItemCaption(SearchOperator.IS_FALSE, $("AdvancedSearchView.isFalse"));
+			addIsEmptyIsNotEmpty(criterion, operator);
 			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 			operator.setNullSelectionAllowed(false);
 			operator.setValue(criterion.getSearchOperator());
@@ -267,14 +309,45 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			return operator;
 		}
 
+		private ComboBox buildIsEmptyIsNotEmptyComponent(final Criterion criterion) {
+			final ComboBox operator = new ComboBox();
+			addIsEmptyIsNotEmpty(criterion, operator);
+			operator.setWidth("100px");
+			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+			operator.setNullSelectionAllowed(true);
+			operator.setValue(criterion.getSearchOperator());
+			operator.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					criterion.setSearchOperator((SearchOperator) operator.getValue());
+				}
+			});
+
+			return operator;
+		}
+
+		private void addIsEmptyIsNotEmpty(final Criterion criterion, final ComboBox operator) {
+
+			Object defaultValue = criterion.getSearchOperator() != null ? criterion.getSearchOperator() : SearchOperator.EQUALS;
+
+			operator.addItem(SearchOperator.EQUALS);
+			operator.setItemCaption(SearchOperator.EQUALS, "=");
+			operator.addItem(SearchOperator.IS_NULL);
+			operator.setItemCaption(SearchOperator.IS_NULL, $("AdvancedSearchView.isEmpty"));
+			operator.addItem(SearchOperator.IS_NOT_NULL);
+			operator.setItemCaption(SearchOperator.IS_NOT_NULL, $("AdvancedSearchView.isNotEmpty"));
+			operator.setValue(defaultValue);
+		}
+
 		private Component buildEnumValueComponent(final Criterion criterion) {
-			Class<? extends Enum<?>> enumClass = null;
+			Class<?> enumClass;
 			try {
-				enumClass = (Class<? extends Enum<?>>) Class.forName(criterion.getEnumClassName());
+				enumClass = Class.forName(criterion.getEnumClassName());
 			} catch (ClassNotFoundException e) {
 				throw new RuntimeException(e);
 			}
-			final ComboBox value = new EnumWithSmallCodeComboBox((Class) enumClass);
+			@SuppressWarnings("unchecked")
+			final ComboBox value = new EnumWithSmallCodeComboBox<>((Class<? extends EnumWithSmallCode>) enumClass);
 			value.setWidth("100%");
 			value.setNullSelectionAllowed(false);
 			value.setValue(criterion.getValue());
@@ -284,45 +357,51 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setValue(value.getValue());
 				}
 			});
-			return value;
-		}
 
-		private Component buildDateValueComponent(final Criterion criterion) {
-			// We only want to display a date, but we need a full datetime, so we cannot use a JodaDateField here
-			final DateField date = new BaseDateField();
-			date.setConverter(new JodaDateTimeToUtilConverter());
-			date.setConvertedValue(criterion.getValue());
-			date.addValueChangeListener(new ValueChangeListener() {
+			final SearchOperator searchOperator = criterion.getSearchOperator();
+			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
+			operator.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setValue(trimToMidnight((LocalDateTime) date.getConvertedValue()));
+					SearchOperator newOperator = (SearchOperator) operator.getValue();
+					if (newOperator != null) {
+						criterion.setSearchOperator(newOperator);
+						value.setVisible(
+								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
+					} else {
+						criterion.setSearchOperator(searchOperator);
+						value.setVisible(true);
+					}
 				}
 			});
-
-			final DateField endDate = new BaseDateField();
-			endDate.setConverter(new JodaDateTimeToUtilConverter());
-			endDate.setConvertedValue(criterion.getValue());
-			endDate.setVisible(SearchOperator.BETWEEN.equals(criterion.getSearchOperator()));
-			endDate.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setEndValue(expandToBeforeMidnight((LocalDateTime) endDate.getConvertedValue()));
-				}
-			});
-
-			ComboBox operator = buildComparisonComboBox(criterion, endDate);
-
-			HorizontalLayout component = new HorizontalLayout(operator, date, endDate);
-			component.setExpandRatio(date, 1);
-			component.setExpandRatio(endDate, 1);
+			HorizontalLayout component = new HorizontalLayout(operator, value);
+			component.setComponentAlignment(value, Alignment.MIDDLE_RIGHT);
+			component.setExpandRatio(value, 1);
 			component.setWidth("100%");
 			component.setSpacing(true);
 
 			return component;
 		}
 
+		private Component buildDateValueComponent(final Criterion criterion) {
+			// We only want to display a date, but we need a full datetime, so we cannot use a JodaDateField here
+			Component relativeSearchComponent = buildRelativeSearchComboBox(criterion, false);
+			Component endRelativeSearchComponent = buildRelativeSearchComboBox(criterion, true);
+			ComboBox operator = buildComparisonComboBox(criterion, relativeSearchComponent, endRelativeSearchComponent);
+
+			HorizontalLayout horizontalLayout = new HorizontalLayout();
+			horizontalLayout.setSpacing(true);
+			horizontalLayout.addComponents(operator, relativeSearchComponent);
+
+			VerticalLayout verticalLayout = new VerticalLayout(horizontalLayout, endRelativeSearchComponent);
+			verticalLayout.setSpacing(true);
+
+			return verticalLayout;
+		}
+
 		private Component buildNumberValueComponent(final Criterion criterion) {
 			final TextField value = new TextField();
+			value.setWidth("100px");
 			value.setNullRepresentation("");
 			value.setConverter(new StringToDoubleConverter());
 			value.setConvertedValue(criterion.getValue());
@@ -332,8 +411,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setValue(value.getConvertedValue());
 				}
 			});
+			value.setVisible(true);
 
 			final TextField endValue = new TextField();
+			endValue.setWidth("100px");
 			endValue.setNullRepresentation("");
 			endValue.setConverter(new StringToDoubleConverter());
 			endValue.setConvertedValue(criterion.getValue());
@@ -344,20 +425,31 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 
-			ComboBox operator = buildComparisonComboBox(criterion, endValue);
+			final Label label = new Label($("and"));
+			label.setWidth("100px");
+			HorizontalLayout horizontalLayoutLabel = new HorizontalLayout();
+			horizontalLayoutLabel.addComponent(label);
+			horizontalLayoutLabel.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
 
-			HorizontalLayout component = new HorizontalLayout(operator, value, endValue);
-			component.setExpandRatio(value, 1);
-			component.setExpandRatio(endValue, 1);
-			component.setWidth("100%");
+			HorizontalLayout horizontalLayout = new HorizontalLayout();
+			horizontalLayout.setSpacing(true);
+			horizontalLayout.addComponents(horizontalLayoutLabel, endValue);
+
+			ComboBox operator = buildComparisonComboBox(criterion, value, horizontalLayout);
+
+			HorizontalLayout component = new HorizontalLayout(operator, value, horizontalLayout);
 			component.setSpacing(true);
 
 			return component;
 		}
 
-		private ComboBox buildComparisonComboBox(final Criterion criterion, final Component endValue) {
+		private ComboBox buildComparisonComboBox(final Criterion criterion, final Component firstComponent,
+				final Component endComponent) {
+
+			Object defaultValue = criterion.getSearchOperator() != null ? criterion.getSearchOperator() : SearchOperator.EQUALS;
+
 			final ComboBox operator = new ComboBox();
-			operator.setWidth("100px");
+			operator.setWidth("150px");
 			operator.addItem(SearchOperator.EQUALS);
 			operator.setItemCaption(SearchOperator.EQUALS, "=");
 			operator.addItem(SearchOperator.LESSER_THAN);
@@ -366,19 +458,192 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			operator.setItemCaption(SearchOperator.GREATER_THAN, ">");
 			operator.addItem(SearchOperator.BETWEEN);
 			operator.setItemCaption(SearchOperator.BETWEEN, $("AdvancedSearchView.between"));
+			addIsEmptyIsNotEmpty(criterion, operator);
 			operator.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
-			operator.setValue(criterion.getSearchOperator());
+			operator.setValue(defaultValue);
 			operator.setNullSelectionAllowed(false);
 			operator.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					SearchOperator newOperator = (SearchOperator) operator.getValue();
-					criterion.setSearchOperator(newOperator);
-					endValue.setVisible(newOperator.equals(SearchOperator.BETWEEN));
+					configureVisibility(operator, criterion, firstComponent, endComponent);
 				}
 			});
-			endValue.setVisible(SearchOperator.BETWEEN.equals(criterion.getSearchOperator()));
+			configureVisibility(operator, criterion, firstComponent, endComponent);
 			return operator;
+		}
+
+		private void configureVisibility(ComboBox operator, Criterion criterion, Component firstComponent,
+				Component endComponent) {
+			SearchOperator newOperator = (SearchOperator) operator.getValue();
+			criterion.setSearchOperator(newOperator);
+			criterion.getRelativeCriteria();
+			if (firstComponent != null) {
+				if (newOperator.equals(SearchOperator.IS_NULL) || newOperator.equals(SearchOperator.IS_NOT_NULL)) {
+					firstComponent.setVisible(false);
+					endComponent.setVisible(false);
+				} else if (newOperator.equals(SearchOperator.BETWEEN)) {
+					firstComponent.setVisible(true);
+					endComponent.setVisible(true);
+
+				} else {
+					firstComponent.setVisible(true);
+					endComponent.setVisible(false);
+				}
+			}
+		}
+
+		private Component buildRelativeSearchComboBox(final Criterion criterion, final boolean isEndValue) {
+
+			Object value;
+			final MeasuringUnitTime measuringUnitTimeValue;
+			if (!isEndValue) {
+				value = criterion.getValue();
+				measuringUnitTimeValue = criterion.getRelativeCriteria().getMeasuringUnitTime();
+			} else {
+				value = criterion.getEndValue();
+				measuringUnitTimeValue = criterion.getRelativeCriteria().getEndMeasuringUnitTime();
+			}
+
+			final DateField date = new BaseDateField();
+			date.setWidth("150px");
+			date.setConverter(new JodaDateTimeToUtilConverter());
+			try {
+				date.setConvertedValue(value);
+			} catch (Exception e) {
+			}
+			date.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					if (!isEndValue) {
+						criterion.setValue(expandToBeforeMidnight((LocalDateTime) date.getConvertedValue()));
+					} else {
+						criterion.setEndValue(expandToBeforeMidnight((LocalDateTime) date.getConvertedValue()));
+					}
+
+				}
+			});
+
+			final TextField textValue = new TextField();
+			textValue.setWidth("100px");
+			textValue.setNullRepresentation("");
+			textValue.setConverter(new StringToDoubleConverter());
+			try {
+				textValue.setConvertedValue(value);
+			} catch (Exception e) {
+			}
+			textValue.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					if (!isEndValue) {
+						criterion.setValue(textValue.getConvertedValue());
+					} else {
+						criterion.setEndValue(textValue.getConvertedValue());
+					}
+				}
+			});
+
+			final ComboBox measuringTimeField = new ComboBox();
+			measuringTimeField.setWidth("150px");
+			measuringTimeField.addItem(MeasuringUnitTime.DAYS);
+			measuringTimeField.setItemCaption(MeasuringUnitTime.DAYS, $("MeasuringUnitTime.D"));
+			measuringTimeField.addItem(MeasuringUnitTime.WEEKS);
+			measuringTimeField.setItemCaption(MeasuringUnitTime.WEEKS, $("MeasuringUnitTime.W"));
+			measuringTimeField.addItem(MeasuringUnitTime.MONTHS);
+			measuringTimeField.setItemCaption(MeasuringUnitTime.MONTHS, $("MeasuringUnitTime.M"));
+			measuringTimeField.addItem(MeasuringUnitTime.YEARS);
+			measuringTimeField.setItemCaption(MeasuringUnitTime.YEARS, $("MeasuringUnitTime.Y"));
+			measuringTimeField.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					MeasuringUnitTime measuringUnitTime = (MeasuringUnitTime) measuringTimeField.getValue();
+					if (!isEndValue) {
+						criterion.getRelativeCriteria().setMeasuringUnitTime(measuringUnitTime);
+					} else {
+						criterion.getRelativeCriteria().setEndMeasuringUnitTime(measuringUnitTime);
+					}
+				}
+			});
+			measuringTimeField.setValue(measuringUnitTimeValue);
+
+			Object defaultRelativeSearchOperatorValue;
+			if (isEndValue) {
+				defaultRelativeSearchOperatorValue = criterion.getRelativeCriteria().getEndRelativeSearchOperator() != null ?
+						criterion.getRelativeCriteria().getEndRelativeSearchOperator() :
+						RelativeSearchOperator.EQUALS;
+			} else {
+				defaultRelativeSearchOperatorValue = criterion.getRelativeCriteria().getRelativeSearchOperator() != null ?
+						criterion.getRelativeCriteria().getRelativeSearchOperator() :
+						RelativeSearchOperator.EQUALS;
+			}
+			final ComboBox relativeSearchOperatorCombo = new ComboBox();
+			relativeSearchOperatorCombo.setWidth("150px");
+			relativeSearchOperatorCombo.addItem(RelativeSearchOperator.EQUALS);
+			relativeSearchOperatorCombo.setItemCaption(RelativeSearchOperator.EQUALS,
+					$("AdvancedSearchView.relativeSearchOperatorCombo.equals"));
+			relativeSearchOperatorCombo.addItem(RelativeSearchOperator.TODAY);
+			relativeSearchOperatorCombo.setItemCaption(RelativeSearchOperator.TODAY,
+					$("AdvancedSearchView.relativeSearchOperatorCombo.today"));
+			relativeSearchOperatorCombo.addItem(RelativeSearchOperator.PAST);
+			relativeSearchOperatorCombo.setItemCaption(RelativeSearchOperator.PAST,
+					$("AdvancedSearchView.relativeSearchOperatorCombo.past"));
+			relativeSearchOperatorCombo.addItem(RelativeSearchOperator.FUTURE);
+			relativeSearchOperatorCombo.setItemCaption(RelativeSearchOperator.FUTURE,
+					$("AdvancedSearchView.relativeSearchOperatorCombo.future"));
+			relativeSearchOperatorCombo.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+			relativeSearchOperatorCombo.setValue(defaultRelativeSearchOperatorValue);
+			relativeSearchOperatorCombo.setNullSelectionAllowed(false);
+			relativeSearchOperatorCombo.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					configureVisibility(relativeSearchOperatorCombo, date, textValue, isEndValue, criterion, measuringTimeField);
+				}
+			});
+
+			final Label label = new Label($("and"));
+			label.setWidth("150px");
+			HorizontalLayout horizontalLayoutLabel = new HorizontalLayout();
+			horizontalLayoutLabel.addComponent(label);
+			horizontalLayoutLabel.setComponentAlignment(label, Alignment.MIDDLE_CENTER);
+			horizontalLayoutLabel.setVisible(isEndValue);
+
+			HorizontalLayout component = new HorizontalLayout(horizontalLayoutLabel, relativeSearchOperatorCombo, date, textValue,
+					measuringTimeField);
+			component.setComponentAlignment(horizontalLayoutLabel, Alignment.MIDDLE_CENTER);
+			component.setSpacing(true);
+			component.setVisible(!isEndValue);
+
+			configureVisibility(relativeSearchOperatorCombo, date, textValue, isEndValue, criterion, measuringTimeField);
+
+			return component;
+		}
+
+		private void configureVisibility(ComboBox relativeSearchOperatorCombo, DateField date, TextField textValue,
+				boolean isEndValue, Criterion criterion, ComboBox measuringTimeField) {
+			RelativeSearchOperator newRelativeSearchOperator = (RelativeSearchOperator) relativeSearchOperatorCombo
+					.getValue();
+			if (newRelativeSearchOperator.equals(RelativeSearchOperator.EQUALS)) {
+				date.setVisible(true);
+				textValue.setVisible(false);
+			} else if (newRelativeSearchOperator.equals(RelativeSearchOperator.TODAY)) {
+				date.setVisible(false);
+				textValue.setVisible(false);
+				if (!isEndValue) {
+					LocalDateTime ldt = TimeProvider.getLocalDateTime();
+					criterion.setValue(ldt);
+				} else {
+					LocalDateTime ldt = TimeProvider.getLocalDateTime();
+					criterion.setEndValue(ldt);
+				}
+			} else {
+				date.setVisible(false);
+				textValue.setVisible(true);
+			}
+			measuringTimeField.setVisible(textValue.isVisible());
+			if (!isEndValue) {
+				criterion.getRelativeCriteria().setRelativeSearchOperator(newRelativeSearchOperator);
+			} else {
+				criterion.getRelativeCriteria().setEndRelativeSearchOperator(newRelativeSearchOperator);
+			}
 		}
 
 		private LocalDateTime trimToMidnight(LocalDateTime date) {

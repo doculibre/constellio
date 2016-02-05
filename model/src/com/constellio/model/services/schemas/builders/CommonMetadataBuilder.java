@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import java.util.HashMap;
@@ -47,6 +30,10 @@ public class CommonMetadataBuilder {
 	public static final String DETACHED_AUTHORIZATIONS = "detachedauthorizations";
 	public static final String ALL_AUTHORIZATIONS = "allauthorizations";
 	public static final String TOKENS = "tokens";
+	public static final String DENY_TOKENS = "denyTokens";
+	public static final String SHARE_TOKENS = "shareTokens";
+	public static final String SHARE_DENY_TOKENS = "shareDenyTokens";
+	public static final String MANUAL_TOKENS = "manualTokens";
 	public static final String LOGICALLY_DELETED = "deleted";
 	public static final String PRINCIPAL_PATH = "principalpath";
 	public static final String PATH_PARTS = "pathParts";
@@ -57,8 +44,9 @@ public class CommonMetadataBuilder {
 	public static final String TITLE = "title";
 	public static final String FOLLOWERS = "followers";
 	public static final String LEGACY_ID = "legacyIdentifier";
+	public static final String SEARCHABLE = "searchable";
 	public static final String VISIBLE_IN_TREES = "visibleInTrees";
-	public static final String MANUAL_TOKENS = "manualTokens";
+	public static final String MARKED_FOR_PREVIEW_CONVERSION = "markedForPreviewConversion";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -153,6 +141,7 @@ public class CommonMetadataBuilder {
 						.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 			}
 		});
+
 		metadata.put(TOKENS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
@@ -160,11 +149,42 @@ public class CommonMetadataBuilder {
 						.defineDataEntry().asCalculated(TokensCalculator2.class);
 			}
 		});
+		metadata.put(DENY_TOKENS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				defineTokenMetadata(schema, DENY_TOKENS);
+			}
+		});
+		metadata.put(SHARE_TOKENS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				defineTokenMetadata(schema, SHARE_TOKENS);
+			}
+		});
+		metadata.put(SHARE_DENY_TOKENS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				defineTokenMetadata(schema, SHARE_DENY_TOKENS);
+			}
+		});
+		metadata.put(MANUAL_TOKENS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				defineTokenMetadata(schema, MANUAL_TOKENS);
+			}
+		});
 
 		metadata.put(LOGICALLY_DELETED, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				schema.createSystemReserved(LOGICALLY_DELETED).setType(MetadataValueType.BOOLEAN);
+			}
+		});
+
+		metadata.put(SEARCHABLE, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				schema.createSystemReserved(SEARCHABLE).setType(MetadataValueType.BOOLEAN);
 			}
 		});
 
@@ -228,20 +248,20 @@ public class CommonMetadataBuilder {
 			}
 		});
 
-		metadata.put(MANUAL_TOKENS, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(MANUAL_TOKENS).setType(MetadataValueType.STRING).setMultivalue(true)
-						.defineValidators().add(ManualTokenValidator.class);
-			}
-		});
-
 		metadata.put(VISIBLE_IN_TREES, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				schema.createSystemReserved(VISIBLE_IN_TREES).setType(MetadataValueType.BOOLEAN);
 			}
 		});
+
+		metadata.put(MARKED_FOR_PREVIEW_CONVERSION, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				schema.createSystemReserved(MARKED_FOR_PREVIEW_CONVERSION).setType(MetadataValueType.BOOLEAN);
+			}
+		});
+
 	}
 
 	public void addCommonMetadataToAllExistingSchemas(MetadataSchemaTypesBuilder types) {
@@ -262,6 +282,11 @@ public class CommonMetadataBuilder {
 		for (MetadataCreator creator : metadata.values()) {
 			creator.define(schema, types);
 		}
+	}
+
+	private void defineTokenMetadata(MetadataSchemaBuilder schema, String code) {
+		schema.createSystemReserved(code).setType(MetadataValueType.STRING).setMultivalue(true)
+				.defineValidators().add(ManualTokenValidator.class);
 	}
 
 	private boolean isCollectionUserOrGroupSchema(MetadataSchemaBuilder schema) {

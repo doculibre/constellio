@@ -1,25 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.model.labelTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
@@ -39,6 +23,8 @@ public class LabelTemplateReader {
 
 	private static final String METADATA_CODE_FIELD = "metadataCode";
 	private static final String REFERENCE_METADATA_CODE_FIELD = "referenceMetadataCode";
+	private static final String REFERENCE_METADATA_CODE2_FIELD = "referenceMetadataCode2";
+	private static final String REFERENCE_METADATA_CODE3_FIELD = "referenceMetadataCode3";
 	private static final String X_FIELD = "x";
 	private static final String Y_FIELD = "y";
 	private static final String WIDTH_FIELD = "width";
@@ -53,6 +39,12 @@ public class LabelTemplateReader {
 	public static final String PATTERN = "pattern";
 	public static final String ITALIC = "italic";
 	public static final String BOLD = "bold";
+	public static final String CONCATENATE_METADATA_CODE = "concatenateMetadataCode";
+	public static final String CONCATENATE_REFERENCE_METADATA_CODE = "concatenateReferenceMetadataCode";
+	public static final String UPPERCASE = "uppercase";
+	public static final String SEPARATOR = "separator";
+	public static final String EMPTY = "empty";
+	public static final String DISPLAY_ENUM_TITLE = "displayEnumTitle";
 
 	Document document;
 
@@ -80,6 +72,8 @@ public class LabelTemplateReader {
 		for (Element fieldElement : labelTemplateElement.getChildren(FIELD)) {
 			String metadataCode = fieldElement.getChildText(METADATA_CODE_FIELD);
 			String referenceMetadataCode = fieldElement.getChildText(REFERENCE_METADATA_CODE_FIELD);
+			String referenceMetadataCode2 = fieldElement.getChildText(REFERENCE_METADATA_CODE2_FIELD);
+			String referenceMetadataCode3 = fieldElement.getChildText(REFERENCE_METADATA_CODE3_FIELD);
 			int x = Integer.valueOf(fieldElement.getChildText(X_FIELD));
 			int y = Integer.valueOf(fieldElement.getChildText(Y_FIELD));
 			int width = Integer.valueOf(fieldElement.getChildText(WIDTH_FIELD));
@@ -99,9 +93,28 @@ public class LabelTemplateReader {
 			String suffix = fieldElement.getChildText(SUFFIX);
 			String pattern = fieldElement.getChildText(PATTERN);
 
-			LabelTemplateField labelTemplateField = new LabelTemplateField(metadataCode, referenceMetadataCode, x, y, width,
-					height, fontName, fontSize, bold, italic, maxLength, labelTemplateFieldHorizontalAlignment,
-					labelTemplateFieldVerticalAlignment, prefix, suffix, pattern);
+			String concatenateMetadataCode = fieldElement.getChildText(CONCATENATE_METADATA_CODE);
+			String concatenateReferenceMetadataCode = fieldElement.getChildText(CONCATENATE_REFERENCE_METADATA_CODE);
+			boolean uppercase = Boolean.valueOf(fieldElement.getChildText(UPPERCASE));
+			String separator = fieldElement.getChildText(SEPARATOR);
+			boolean empty = Boolean.valueOf(fieldElement.getChildText(EMPTY));
+			boolean displayEnumTitle = Boolean.valueOf(fieldElement.getChildText(DISPLAY_ENUM_TITLE));
+
+			LabelTemplateField labelTemplateField;
+			if (StringUtils.isBlank(referenceMetadataCode2) && StringUtils.isBlank(concatenateMetadataCode) && StringUtils
+					.isBlank(fieldElement.getChildText(UPPERCASE)) && StringUtils.isBlank(fieldElement.getChildText(EMPTY))) {
+				labelTemplateField = new LabelTemplateField(metadataCode, referenceMetadataCode, x, y, width,
+						height, fontName, fontSize, bold, italic, maxLength, labelTemplateFieldHorizontalAlignment,
+						labelTemplateFieldVerticalAlignment, prefix, suffix, pattern);
+			} else {
+				labelTemplateField = new LabelTemplateField(metadataCode, referenceMetadataCode, referenceMetadataCode2,
+						referenceMetadataCode3, x, y,
+						width,
+						height, fontName, fontSize, bold, italic, maxLength, labelTemplateFieldHorizontalAlignment,
+						labelTemplateFieldVerticalAlignment, prefix, suffix, pattern, concatenateMetadataCode,
+						concatenateReferenceMetadataCode, uppercase, separator, empty);
+			}
+			labelTemplateField.setDisplayEnumTitle(displayEnumTitle);
 			labelTemplateFields.add(labelTemplateField);
 		}
 		labelTemplate = new LabelTemplate(key, name, layout, schemaType, columns, lines, labelTemplateFields);

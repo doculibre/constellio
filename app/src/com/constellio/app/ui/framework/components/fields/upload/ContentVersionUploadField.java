@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.components.fields.upload;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -28,14 +11,14 @@ import com.constellio.app.ui.framework.components.converters.TempFileUploadToCon
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ContentVersionUploadField extends BaseUploadField {
-	
+
 	private boolean majorVersionFieldVisible = true;
-	
+
 	public ContentVersionUploadField() {
 		this(false);
 	}
@@ -55,11 +38,11 @@ public class ContentVersionUploadField extends BaseUploadField {
 		ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
 		return new ContentVersionCaption(contentVersionVO);
 	}
-	
+
 	protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
 		return majorVersionFieldVisible && contentVersionVO.getHash() == null;
-	} 
-	
+	}
+
 	public final boolean isMajorVersionFieldVisible() {
 		return majorVersionFieldVisible;
 	}
@@ -97,23 +80,23 @@ public class ContentVersionUploadField extends BaseUploadField {
 			validate((ContentVersionVO) convertedValue);
 		}
 	}
-	
+
 	private void validate(ContentVersionVO contentVersionVO) throws InvalidValueException {
 		if (isMajorVersionField(contentVersionVO) && contentVersionVO.getHash() == null && contentVersionVO.isMajorVersion() == null) {
 			throw new InvalidValueException($("ContentVersionUploadField.majorVersion"));
 		}
 	}
-	
-	class ContentVersionCaption extends HorizontalLayout {
-		
+
+	class ContentVersionCaption extends VerticalLayout {
+
 		private Component captionComponent;
-		
+
 		private OptionGroup majorVersionField;
-		
+
 		private ContentVersionCaption(ContentVersionVO contentVersionVO) {
 			setSpacing(true);
-			
-			captionComponent = new DownloadContentVersionLink(contentVersionVO); 
+
+			captionComponent = new DownloadContentVersionLink(contentVersionVO);
 
 			majorVersionField = new OptionGroup();
 			majorVersionField.setVisible(isMajorVersionField(contentVersionVO));
@@ -126,15 +109,15 @@ public class ContentVersionUploadField extends BaseUploadField {
 			majorVersionField.setRequired(true);
 			majorVersionField.setImmediate(true);
 			majorVersionField.setPropertyDataSource(new NestedMethodProperty<Boolean>(contentVersionVO, "majorVersion"));
-			
+
 			addComponent(captionComponent);
 			addComponent(majorVersionField);
 		}
-		
+
 		private void setMajorVersionFieldVisible(boolean visible) {
 			majorVersionField.setVisible(visible);
 		}
-		
+
 	}
-	
+
 }

@@ -1,23 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.components.document;
 
-import static com.constellio.app.modules.rm.wrappers.Document.*;
+import static com.constellio.app.modules.rm.wrappers.Document.CONTENT;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
+import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +10,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.ui.components.RMMetadataFieldFactory;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentFieldImpl;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolderFieldImpl;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeFieldLookupImpl;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -32,15 +18,25 @@ import com.vaadin.ui.Field;
 
 public class DocumentFieldFactory extends RMMetadataFieldFactory {
 
+	private String folderId;
+	private String currentType;
+
+	public DocumentFieldFactory(String folderId, String currentType) {
+		this.folderId = folderId;
+		this.currentType = currentType;
+	}
+
 	@Override
 	public Field<?> build(MetadataVO metadata) {
 		Field<?> field;
 		String metadataCode = metadata.getCode();
 		String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 		if (TYPE.equals(metadataCode) || TYPE.equals(metadataCodeWithoutPrefix)) {
-			field = new DocumentTypeFieldLookupImpl();
-		} else if (CONTENT.equals(metadataCode) || CONTENT.equals(metadataCodeWithoutPrefix)) {	
+			field = new DocumentTypeFieldLookupImpl(folderId, currentType);
+		} else if (CONTENT.equals(metadataCode) || CONTENT.equals(metadataCodeWithoutPrefix)) {
 			field = new DocumentContentFieldImpl();
+		} else if (FOLDER.equals(metadataCode) || FOLDER.equals(metadataCodeWithoutPrefix)) {
+			field = new DocumentFolderFieldImpl();
 		} else {
 			field = super.build(metadata);
 		}

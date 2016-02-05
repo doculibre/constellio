@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -33,6 +16,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -54,6 +38,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 			+ metadataCode;
 	String expectedDefaultSchemaMetadataCompleteCode = CODE_SCHEMA_TYPE + UNDERSCORE + DEFAULT + UNDERSCORE + metadataCode;
 
+	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock TaxonomiesManager taxonomiesManager;
 
 	MetadataSchemaTypeBuilder schemaTypeBuilder;
@@ -64,6 +49,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 
 	@Before
 	public void setup() {
+		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType("zeUltimateCollection", CODE_SCHEMA_TYPE, typesBuilder)
 				.setLabel("aLabel");
@@ -234,6 +220,54 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenInTransactionLogNotDefinedWhenBuildingThenSetToTrue()
+			throws Exception {
+		build();
+
+		assertThat(schemaType.isInTransactionLog()).isTrue();
+	}
+
+	@Test
+	public void givenInTransactionLogDefinedToFalseWhenBuildingThenSaved()
+			throws Exception {
+		schemaTypeBuilder.setInTransactionLog(false);
+
+		build();
+
+		assertThat(schemaType.isInTransactionLog()).isFalse();
+	}
+
+	@Test
+	public void givenInTransactionLogDefinedToFalseWhenModifyingThenSaved()
+			throws Exception {
+		schemaTypeBuilder.setInTransactionLog(false);
+
+		buildAndModify();
+
+		assertThat(schemaTypeBuilder.isInTransactionLog()).isFalse();
+	}
+
+	@Test
+	public void givenInTransactionLogDefinedToTrueWhenBuildingThenSaved()
+			throws Exception {
+		schemaTypeBuilder.setInTransactionLog(true);
+
+		build();
+
+		assertThat(schemaType.isInTransactionLog()).isTrue();
+	}
+
+	@Test
+	public void givenInTransactionLogStatusDefinedToTrueWhenModifyingThenSaved()
+			throws Exception {
+		schemaTypeBuilder.setInTransactionLog(true);
+
+		buildAndModify();
+
+		assertThat(schemaTypeBuilder.isInTransactionLog()).isTrue();
+	}
+
+	@Test
 	public void givenDefaultSchemaWithAMetadataWhenBuildingThenDefaultSchemaBuilt()
 			throws Exception {
 		schemaTypeBuilder.getDefaultSchema().create(metadataCode).setType(STRING);
@@ -352,11 +386,11 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	}
 
 	private void build() {
-		schemaType = schemaTypeBuilder.build(typesFactory, taxonomiesManager);
+		schemaType = schemaTypeBuilder.build(typesFactory, modelLayerFactory);
 	}
 
 	private void buildAndModify() {
-		MetadataSchemaType schemaType = schemaTypeBuilder.build(typesFactory, taxonomiesManager);
+		MetadataSchemaType schemaType = schemaTypeBuilder.build(typesFactory, modelLayerFactory);
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.modifySchemaType(schemaType);
 	}
 

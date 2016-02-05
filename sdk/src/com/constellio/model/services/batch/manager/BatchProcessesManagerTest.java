@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.manager;
 
 import static com.constellio.model.services.batch.manager.BatchProcessesManager.BATCH_PROCESS_LIST_PATH;
@@ -53,11 +36,15 @@ import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessPart;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
-import com.constellio.model.services.batch.xml.detail.BatchProcessWriter;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
+import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.CollectionFilters;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BatchProcessesManagerTest extends ConstellioTest {
@@ -68,7 +55,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	String secondRecordId = aString();
 	List<String> zeNextPartRecords = asList(firstRecordId, secondRecordId);
 	String thirdRecordId = aString();
-	List<String> recordIds = asList(firstRecordId, secondRecordId, thirdRecordId);
+	//List<String> recordIds = asList(firstRecordId, secondRecordId, thirdRecordId);
 	List<String> zePreviousPartRecords = asList(thirdRecordId);
 	String firstReindexedFieldCode = aString();
 	String secondReindexedFieldCode = aString();
@@ -82,15 +69,13 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Mock BatchProcess aBatchProcess;
 	@Mock Document aBatchProcessDocument;
 	@Mock XMLConfiguration aBatchProcessConfiguration;
-	@Mock BatchProcessReader aBatchProcessReader;
-	@Mock BatchProcessWriter aBatchProcessWriter;
+	//@Mock BatchProcessReader aBatchProcessReader;
 	String anotherBatchProcessPath = "/batchProcesses/anotherBatchProcess.xml";
 	String anotherBatchProcessId = "anotherBatchProcess";
 	@Mock BatchProcess anotherBatchProcess;
 	@Mock Document anotherBatchProcessDocument;
 	@Mock XMLConfiguration anotherBatchProcessConfiguration;
 	@Mock BatchProcessReader anotherBatchProcessReader;
-	@Mock BatchProcessWriter anotherBatchProcessWriter;
 	@Mock RecordServices recordServices;
 	@Mock ConfigManager configManager;
 	@Mock List<BatchProcess> batchProcesses;
@@ -107,13 +92,20 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	List<String> emptyNextPartRecords = new ArrayList<>();
 	@Mock BatchProcessPart zeNextPart;
 	@Mock BatchProcessPart zePreviousPart;
+	@Mock CollectionsListManager collectionsListManager;
 
 	@Mock BatchProcessesListUpdatedEventListener firstListener;
 	@Mock BatchProcessesListUpdatedEventListener secondListener;
 
+	@Mock LogicalSearchCondition condition;
+
 	@Before
 	public void setUp()
 			throws Exception {
+		when(aBatchProcess.getQuery()).thenReturn("zeQuery");
+		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, false));
+		when(condition.getSolrQuery(any(SolrQueryBuilderParams.class))).thenReturn("zeQuery");
+		when(condition.getCollection()).thenReturn(zeCollection);
 
 		when(aBatchProcess.getId()).thenReturn(aBatchProcessId);
 		when(anotherBatchProcess.getId()).thenReturn(anotherBatchProcessId);
@@ -133,17 +125,17 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		when(anotherBatchProcessConfiguration.getHash()).thenReturn(initialHash);
 		when(configManager.getXML(anotherBatchProcessPath)).thenReturn(anotherBatchProcessConfiguration);
 
+		when(searchServices.getLanguage(any(LogicalSearchQuery.class))).thenReturn("en");
+		when(searchServices.addSolrModifiableParams(any(LogicalSearchQuery.class))).thenCallRealMethod();
 	}
 
 	private void createManager() {
-		manager = spy(new BatchProcessesManager(zeComputer, theWantedPartSize, recordServices, searchServices, configManager));
+		manager = spy(new BatchProcessesManager(searchServices, configManager));
 		doReturn(currentDate).doReturn(newCurrentDate).when(manager).getCurrentTime();
 		doReturn(batchProcessListReader).when(manager).newBatchProcessListReader(any(Document.class));
 		doReturn(batchProcessListWriter).when(manager).newBatchProcessListWriter(any(Document.class));
-		doReturn(aBatchProcessReader).when(manager).newBatchProcessReader(aBatchProcessDocument);
-		doReturn(aBatchProcessWriter).when(manager).newBatchProcessWriter(aBatchProcessDocument);
+		//doReturn(aBatchProcessReader).when(manager).newBatchProcessReader(aBatchProcessDocument);
 		doReturn(anotherBatchProcessReader).when(manager).newBatchProcessReader(anotherBatchProcessDocument);
-		doReturn(anotherBatchProcessWriter).when(manager).newBatchProcessWriter(anotherBatchProcessDocument);
 		doNothing().when(manager).deleteFinishedWithoutErrors();
 	}
 
@@ -198,6 +190,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 			throws Exception {
 		createManager();
 		givenExistingBatchProcessList();
+
 		when(batchProcessListReader.read(aBatchProcessId)).thenReturn(aBatchProcess);
 
 		BatchProcess returnedBatchProcess = manager.get(aBatchProcessId);
@@ -244,42 +237,24 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 	@Test
 	public void whenAddingBatchProcessThenAddToBatchProcessListAndCreateItsOwnXmlFile()
 			throws Exception {
+		String solrQuery = "(*:*) AND ((*:* -type_s:index)) AND (collection_s:zeCollection) AND (zeQuery)";
 		createManager();
 		givenExistingBatchProcessList();
 		doReturn(addBatchProcessDocumentAlteration).when(manager)
-				.newAddBatchProcessDocumentAlteration(aBatchProcessId, "zeCollection",
-						currentDate, 3, action);
+				.newAddBatchProcessDocumentAlteration(aBatchProcessId, solrQuery, "zeCollection",
+						currentDate, 42, action);
 		doReturn(aBatchProcessDocument).when(manager).newDocument();
 		doReturn(aBatchProcessId).when(manager).newBatchProcessId();
 		when(batchProcessListReader.read(aBatchProcessId)).thenReturn(aBatchProcess);
-
-		BatchProcess returnedBatchProcess = manager.add(recordIds, "zeCollection", action);
+		when(searchServices.getResultsCount(condition)).thenReturn(42L);
+		BatchProcess returnedBatchProcess = manager.addBatchProcessInStandby(condition, action);
 
 		assertThat(returnedBatchProcess).isEqualTo(aBatchProcess);
-		InOrder inOrder = Mockito.inOrder(manager, configManager, aBatchProcessWriter, batchProcessListReader);
-		inOrder.verify(manager).newDocument();
-		inOrder.verify(manager).newBatchProcessWriter(aBatchProcessDocument);
-		inOrder.verify(aBatchProcessWriter).newBatchProcess(aBatchProcessId, currentDate, recordIds);
+		InOrder inOrder = Mockito.inOrder(manager, configManager, batchProcessListReader);
+		inOrder.verify(manager)
+				.newAddBatchProcessDocumentAlteration(aBatchProcessId, solrQuery, "zeCollection", currentDate, 42, action);
 		inOrder.verify(configManager).updateXML(BATCH_PROCESS_LIST_PATH, addBatchProcessDocumentAlteration);
 		inOrder.verify(batchProcessListReader).read(aBatchProcessId);
-
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void whenGetRecordsWithErrorOFBatchProcessThenReturnIdsListSavedInTheBatchSchemaFile()
-			throws Exception {
-		createManager();
-		givenExistingBatchProcessList();
-
-		List<String> recordsWithError = mock(List.class);
-
-		doReturn(aBatchProcessConfiguration).when(manager).getExistingXMLConfiguration(aBatchProcessId);
-		when(aBatchProcessReader.getRecordsWithError()).thenReturn(recordsWithError);
-
-		List<String> returnedRecordsWithError = manager.getRecordsWithError(aBatchProcess);
-
-		assertThat(returnedRecordsWithError).isEqualTo(recordsWithError);
 
 	}
 
@@ -353,139 +328,139 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		assertThat(returnedBatchProcess).isEqualTo(BatchProcessListReader.NO_CURRENT_BATCH_PROCESS);
 		verify(batchProcessListWriter, never()).startNextBatchProcess(any(LocalDateTime.class));
 	}
-
-	@Test
-	public void givenOptimisticLockingWhenGettingBatchProcessPartThenRetry()
-			throws Exception {
-		createManager();
-		doThrow(ConfigManagerException.OptimisticLockingConfiguration.class)
-				.doThrow(ConfigManagerException.OptimisticLockingConfiguration.class).doReturn(zeNextPart).when(manager)
-				.getBatchProcessPartWithPossibleOptimisticLocking();
-
-		BatchProcessPart nextPartReturned = manager.getCurrentBatchProcessPart();
-
-		assertThat(nextPartReturned).isSameAs(zeNextPart);
-		InOrder inOrder = inOrder(manager);
-		inOrder.verify(manager).getCurrentBatchProcessPart();
-		inOrder.verify(manager).getBatchProcessPartWithPossibleOptimisticLocking();
-		inOrder.verify(manager).getCurrentBatchProcessPart();
-		inOrder.verify(manager).getBatchProcessPartWithPossibleOptimisticLocking();
-		inOrder.verify(manager).getCurrentBatchProcessPart();
-		inOrder.verify(manager).getBatchProcessPartWithPossibleOptimisticLocking();
-	}
-
-	@Test
-	public void whenGetBatchProcessPartThenGetCurrentBatchProcessAndReserveNextRecords()
-			throws Exception {
-		createManager();
-		givenExistingBatchProcessList();
-		doReturn(aBatchProcess).when(manager).getCurrentBatchProcess();
-		when(aBatchProcessWriter.assignBatchProcessPartTo(zeComputer, theWantedPartSize)).thenReturn(zeNextPartRecords);
-
-		BatchProcessPart part = manager.getBatchProcessPartWithPossibleOptimisticLocking();
-
-		assertThat(part.getBatchProcess()).isSameAs(aBatchProcess);
-		assertThat(part.getRecordIds()).isSameAs(zeNextPartRecords);
-		verify(configManager).update(aBatchProcessPath, initialHash, aBatchProcessDocument);
-	}
-
-	@Test
-	public void givenNoCurrentBatchProcessWhenGetBatchProcessPartThenReturnNull()
-			throws Exception {
-		createManager();
-		givenExistingBatchProcessList();
-		doReturn(BatchProcessListReader.NO_CURRENT_BATCH_PROCESS).when(manager).getCurrentBatchProcess();
-
-		BatchProcessPart part = manager.getBatchProcessPartWithPossibleOptimisticLocking();
-
-		assertThat(part).isNull();
-	}
-
-	@Test
-	public void givenCurrentBatchProcessWithoutRemainingRecordsWhenGetBatchProcessPartThenReturnNull()
-			throws Exception {
-		createManager();
-		givenExistingBatchProcessList();
-		doReturn(aBatchProcess).when(manager).getCurrentBatchProcess();
-		when(aBatchProcessWriter.assignBatchProcessPartTo(zeComputer, theWantedPartSize)).thenReturn(emptyNextPartRecords);
-
-		BatchProcessPart part = manager.getBatchProcessPartWithPossibleOptimisticLocking();
-
-		assertThat(part).isNull();
-		verify(configManager, never()).update(aBatchProcessPath, initialHash, aBatchProcessDocument);
-	}
-
-	@Test
-	public void givenOptimisticLockingWhenMarkBatchProcessPartAsFinishedAndGetAnotherPartThenRetry()
-			throws Exception {
-		createManager();
-		doThrow(ConfigManagerException.OptimisticLockingConfiguration.class)
-				.doThrow(ConfigManagerException.OptimisticLockingConfiguration.class).doReturn(zeNextPart).when(manager)
-				.markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(zePreviousPart, theErrorsList);
-
-		BatchProcessPart nextPartReturned = manager
-				.markBatchProcessPartAsFinishedAndGetAnotherPart(zePreviousPart, theErrorsList);
-
-		assertThat(nextPartReturned).isSameAs(zeNextPart);
-
-		InOrder inOrder = inOrder(manager);
-		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPart(zePreviousPart, theErrorsList);
-		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(zePreviousPart,
-				theErrorsList);
-		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPart(zePreviousPart, theErrorsList);
-		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(zePreviousPart,
-				theErrorsList);
-		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPart(zePreviousPart, theErrorsList);
-		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(zePreviousPart,
-				theErrorsList);
-	}
-
-	@Test
-	public void whenMarkBatchProcessPartAsFinishedAndGetAnotherPartThenGetCurrentBatchProcessAndReserveNextRecords()
-			throws Exception {
-		createManager();
-		DocumentAlteration incrementProgression = mock(DocumentAlteration.class);
-
-		doReturn(incrementProgression).when(manager).newIncrementProgressionDocumentAlteration(aBatchProcess, 3, 0);
-		BatchProcessPart previousPart = new BatchProcessPart(aBatchProcess, recordIds);
-
-		givenExistingBatchProcessList();
-		doReturn(aBatchProcess).when(manager).getCurrentBatchProcess();
-		when(aBatchProcessWriter.assignBatchProcessPartTo(zeComputer, theWantedPartSize)).thenReturn(zeNextPartRecords);
-
-		BatchProcessPart part = manager.markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(
-				previousPart, theErrorsList);
-
-		assertThat(part.getBatchProcess()).isSameAs(aBatchProcess);
-		assertThat(part.getRecordIds()).isSameAs(zeNextPartRecords);
-		InOrder inOrder = inOrder(configManager, aBatchProcessWriter);
-		inOrder.verify(aBatchProcessWriter).markHasDone(zeComputer, theErrorsList);
-		inOrder.verify(aBatchProcessWriter).assignBatchProcessPartTo(zeComputer, theWantedPartSize);
-		inOrder.verify(configManager).update(aBatchProcessPath, initialHash, aBatchProcessDocument);
-		inOrder.verify(configManager).updateXML(BATCH_PROCESS_LIST_PATH, incrementProgression);
-		verify(manager).newIncrementProgressionDocumentAlteration(aBatchProcess, 3, 0);
-	}
-
-	@Test
-	public void givenCurrentBatchProcessWithoutRemainingRecordsWhenMarkBatchProcessPartAsFinishedAndGetAnotherPartThenReturnNull()
-			throws Exception {
-		createManager();
-		BatchProcessPart previousPart = new BatchProcessPart(aBatchProcess, recordIds);
-
-		givenExistingBatchProcessList();
-		doReturn(aBatchProcess).when(manager).getCurrentBatchProcess();
-		when(aBatchProcessWriter.assignBatchProcessPartTo(zeComputer, theWantedPartSize)).thenReturn(emptyNextPartRecords);
-
-		BatchProcessPart part = manager.markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(
-				previousPart, theErrorsList);
-
-		assertThat(part).isNull();
-		InOrder inOrder = inOrder(configManager, aBatchProcessWriter);
-		inOrder.verify(aBatchProcessWriter).markHasDone(zeComputer, theErrorsList);
-		inOrder.verify(aBatchProcessWriter).assignBatchProcessPartTo(zeComputer, theWantedPartSize);
-		inOrder.verify(configManager).update(aBatchProcessPath, initialHash, aBatchProcessDocument);
-		verify(manager).newIncrementProgressionDocumentAlteration(aBatchProcess, 3, 0);
-	}
+	//
+	//	@Test
+	//	public void givenOptimisticLockingWhenGettingBatchProcessPartThenRetry()
+	//			throws Exception {
+	//		createManager();
+	//		doThrow(ConfigManagerException.OptimisticLockingConfiguration.class)
+	//				.doThrow(ConfigManagerException.OptimisticLockingConfiguration.class).doReturn(zeNextPart).when(manager)
+	//				.getBatchProcessPartWithPossibleOptimisticLocking();
+	//
+	//		BatchProcessPart nextPartReturned = manager.getCurrentBatchProcessPart();
+	//
+	//		assertThat(nextPartReturned).isSameAs(zeNextPart);
+	//		InOrder inOrder = inOrder(manager);
+	//		inOrder.verify(manager).getCurrentBatchProcessPart();
+	//		inOrder.verify(manager).getBatchProcessPartWithPossibleOptimisticLocking();
+	//		inOrder.verify(manager).getCurrentBatchProcessPart();
+	//		inOrder.verify(manager).getBatchProcessPartWithPossibleOptimisticLocking();
+	//		inOrder.verify(manager).getCurrentBatchProcessPart();
+	//		inOrder.verify(manager).getBatchProcessPartWithPossibleOptimisticLocking();
+	//	}
+	//
+	//	@Test
+	//	public void whenGetBatchProcessPartThenGetCurrentBatchProcessAndReserveNextRecords()
+	//			throws Exception {
+	//		createManager();
+	//		givenExistingBatchProcessList();
+	//		doReturn(aBatchProcess).when(manager).getCurrentBatchProcess();
+	//		when(aBatchProcessWriter.assignBatchProcessPartTo(zeComputer, theWantedPartSize)).thenReturn(zeNextPartRecords);
+	//
+	//		BatchProcessPart part = manager.getBatchProcessPartWithPossibleOptimisticLocking();
+	//
+	//		assertThat(part.getBatchProcess()).isSameAs(aBatchProcess);
+	//		assertThat(part.getRecordIds()).isSameAs(zeNextPartRecords);
+	//		verify(configManager).update(aBatchProcessPath, initialHash, aBatchProcessDocument);
+	//	}
+	//
+	//	@Test
+	//	public void givenNoCurrentBatchProcessWhenGetBatchProcessPartThenReturnNull()
+	//			throws Exception {
+	//		createManager();
+	//		givenExistingBatchProcessList();
+	//		doReturn(BatchProcessListReader.NO_CURRENT_BATCH_PROCESS).when(manager).getCurrentBatchProcess();
+	//
+	//		BatchProcessPart part = manager.getBatchProcessPartWithPossibleOptimisticLocking();
+	//
+	//		assertThat(part).isNull();
+	//	}
+	//
+	//	@Test
+	//	public void givenCurrentBatchProcessWithoutRemainingRecordsWhenGetBatchProcessPartThenReturnNull()
+	//			throws Exception {
+	//		createManager();
+	//		givenExistingBatchProcessList();
+	//		doReturn(aBatchProcess).when(manager).getCurrentBatchProcess();
+	//		when(aBatchProcessWriter.assignBatchProcessPartTo(zeComputer, theWantedPartSize)).thenReturn(emptyNextPartRecords);
+	//
+	//		BatchProcessPart part = manager.getBatchProcessPartWithPossibleOptimisticLocking();
+	//
+	//		assertThat(part).isNull();
+	//		verify(configManager, never()).update(aBatchProcessPath, initialHash, aBatchProcessDocument);
+	//	}
+	//
+	//	@Test
+	//	public void givenOptimisticLockingWhenMarkBatchProcessPartAsFinishedAndGetAnotherPartThenRetry()
+	//			throws Exception {
+	//		createManager();
+	//		doThrow(ConfigManagerException.OptimisticLockingConfiguration.class)
+	//				.doThrow(ConfigManagerException.OptimisticLockingConfiguration.class).doReturn(zeNextPart).when(manager)
+	//				.markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(zePreviousPart, theErrorsList);
+	//
+	//		BatchProcessPart nextPartReturned = manager
+	//				.markBatchProcessPartAsFinishedAndGetAnotherPart(zePreviousPart, theErrorsList);
+	//
+	//		assertThat(nextPartReturned).isSameAs(zeNextPart);
+	//
+	//		InOrder inOrder = inOrder(manager);
+	//		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPart(zePreviousPart, theErrorsList);
+	//		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(zePreviousPart,
+	//				theErrorsList);
+	//		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPart(zePreviousPart, theErrorsList);
+	//		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(zePreviousPart,
+	//				theErrorsList);
+	//		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPart(zePreviousPart, theErrorsList);
+	//		inOrder.verify(manager).markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(zePreviousPart,
+	//				theErrorsList);
+	//	}
+	//
+	//	@Test
+	//	public void whenMarkBatchProcessPartAsFinishedAndGetAnotherPartThenGetCurrentBatchProcessAndReserveNextRecords()
+	//			throws Exception {
+	//		createManager();
+	//		DocumentAlteration incrementProgression = mock(DocumentAlteration.class);
+	//
+	//		doReturn(incrementProgression).when(manager).newIncrementProgressionDocumentAlteration(aBatchProcess, 3, 0);
+	//		BatchProcessPart previousPart = new BatchProcessPart(aBatchProcess, recordIds);
+	//
+	//		givenExistingBatchProcessList();
+	//		doReturn(aBatchProcess).when(manager).getCurrentBatchProcess();
+	//		when(aBatchProcessWriter.assignBatchProcessPartTo(zeComputer, theWantedPartSize)).thenReturn(zeNextPartRecords);
+	//
+	//		BatchProcessPart part = manager.markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(
+	//				previousPart, theErrorsList);
+	//
+	//		assertThat(part.getBatchProcess()).isSameAs(aBatchProcess);
+	//		assertThat(part.getRecordIds()).isSameAs(zeNextPartRecords);
+	//		InOrder inOrder = inOrder(configManager, aBatchProcessWriter);
+	//		inOrder.verify(aBatchProcessWriter).markHasDone(zeComputer, theErrorsList);
+	//		inOrder.verify(aBatchProcessWriter).assignBatchProcessPartTo(zeComputer, theWantedPartSize);
+	//		inOrder.verify(configManager).update(aBatchProcessPath, initialHash, aBatchProcessDocument);
+	//		inOrder.verify(configManager).updateXML(BATCH_PROCESS_LIST_PATH, incrementProgression);
+	//		verify(manager).newIncrementProgressionDocumentAlteration(aBatchProcess, 3, 0);
+	//	}
+	//
+	//	@Test
+	//	public void givenCurrentBatchProcessWithoutRemainingRecordsWhenMarkBatchProcessPartAsFinishedAndGetAnotherPartThenReturnNull()
+	//			throws Exception {
+	//		createManager();
+	//		BatchProcessPart previousPart = new BatchProcessPart(aBatchProcess, recordIds);
+	//
+	//		givenExistingBatchProcessList();
+	//		doReturn(aBatchProcess).when(manager).getCurrentBatchProcess();
+	//		when(aBatchProcessWriter.assignBatchProcessPartTo(zeComputer, theWantedPartSize)).thenReturn(emptyNextPartRecords);
+	//
+	//		BatchProcessPart part = manager.markBatchProcessPartAsFinishedAndGetAnotherPartWithPossibleOptimisticLocking(
+	//				previousPart, theErrorsList);
+	//
+	//		assertThat(part).isNull();
+	//		InOrder inOrder = inOrder(configManager, aBatchProcessWriter);
+	//		inOrder.verify(aBatchProcessWriter).markHasDone(zeComputer, theErrorsList);
+	//		inOrder.verify(aBatchProcessWriter).assignBatchProcessPartTo(zeComputer, theWantedPartSize);
+	//		inOrder.verify(configManager).update(aBatchProcessPath, initialHash, aBatchProcessDocument);
+	//		verify(manager).newIncrementProgressionDocumentAlteration(aBatchProcess, 3, 0);
+	//	}
 
 	@Test
 	public void whenBatchProcessesListUpdatedThenNotifyAllListeners()
@@ -522,16 +497,14 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 
 		final AtomicInteger markAllStandbyAsPending = new AtomicInteger();
 
-		BatchProcessesManager manager = spy(
-				new BatchProcessesManager(zeComputer, theWantedPartSize, recordServices, searchServices,
-						configManager) {
+		BatchProcessesManager manager = spy(new BatchProcessesManager(searchServices, configManager) {
 
-					@Override
-					public void markAllStandbyAsPending() {
-						markAllStandbyAsPending.incrementAndGet();
-					}
+			@Override
+			public void markAllStandbyAsPending() {
+				markAllStandbyAsPending.incrementAndGet();
+			}
 
-				});
+		});
 
 		doNothing().when(manager).deleteFinishedWithoutErrors();
 

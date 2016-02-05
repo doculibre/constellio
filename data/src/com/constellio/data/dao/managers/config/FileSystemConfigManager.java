@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.managers.config;
 
 import java.io.File;
@@ -31,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 
+import org.apache.commons.io.FileUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -113,18 +97,15 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	public synchronized void add(String path, InputStream newBinaryStream) {
 		validateFileNonExistance(path);
 		LOGGER.debug("add inputstream => " + path);
+
 		File binFile = createFoldersAndFiles(path);
 
-		OutputStream outputStream = null;
 		try {
-			outputStream = ioServices.newFileOutputStream(binFile, ADD_BINARY_FILE);
-			ioServices.copy(newBinaryStream, outputStream);
+			ioServices.replaceFileContent(binFile, newBinaryStream);
+
 		} catch (IOException e) {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("copy binary to file", e);
-		} finally {
-			ioServices.closeQuietly(outputStream);
 		}
-
 	}
 
 	File createFoldersAndFiles(String path) {
@@ -140,18 +121,21 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		LOGGER.debug("add properties => " + path);
 
 		File propertiesFile = createFoldersAndFiles(path);
+		File tempPropertiesFile = ioServices.getAtomicWriteTempFileFor(propertiesFile);
 
 		Properties properties = mapToProperties(newProperties);
 
 		OutputStream outputStream = null;
 		try {
-			outputStream = ioServices.newFileOutputStream(propertiesFile, ADD_PROPERTIES_FILE);
+			outputStream = ioServices.newFileOutputStream(tempPropertiesFile, ADD_PROPERTIES_FILE);
 			PropertyFileUtils.store(properties, outputStream);
 		} catch (IOException e) {
+			ioServices.deleteQuietly(tempPropertiesFile);
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("store properties", e);
 		} finally {
 			ioServices.closeQuietly(outputStream);
 		}
+		ioServices.moveFile(tempPropertiesFile, propertiesFile);
 	}
 
 	Properties newProperties() {
@@ -163,6 +147,19 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		LOGGER.debug("delete document => " + path);
 		cache.remove(path);
 		new File(configFolder, path).delete();
+	}
+
+	@Override
+	public synchronized void deleteFolder(String path) {
+		LOGGER.debug("delete folder => " + path);
+		// TODO Remove from cache? Are folders in cache??
+		File folderToDelete = new File(configFolder, path);
+		try {
+			FileUtils.deleteDirectory(folderToDelete);
+		} catch (IOException e) {
+			// TODO Proper exception
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -193,6 +190,12 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	public synchronized boolean exist(String path) {
 		File file = new File(configFolder, path);
 		return file.exists() && file.isFile();
+	}
+
+	@Override
+	public synchronized boolean folderExist(String path) {
+		File file = new File(configFolder, path);
+		return file.exists() && file.isDirectory();
 	}
 
 	@Override
@@ -300,20 +303,22 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	private XMLConfiguration readXML(String path)
 			throws NoSuchConfiguration {
 		String fileContent = readFile(path);
-
+		String hash;
+		try {
+			hash = hashService.getHashFromString(fileContent);
+		} catch (HashingServiceException e) {
+			throw new ConfigManagerRuntimeException.CannotHashTheFile(path, e);
+		}
 		Document doc = getDocumentFromFile(new File(configFolder, path));
 		String version = readVersion(doc);
 		if (version.equals(NO_VERSION)) {
-			try {
-				version = hashService.getHashFromString(fileContent);
-				XMLConfiguration config = new XMLConfiguration(version, doc);
-				cache.put(path, config);
-				return config;
-			} catch (HashingServiceException e) {
-				throw new ConfigManagerRuntimeException.CannotHashTheFile(path, e);
-			}
+
+			XMLConfiguration config = new XMLConfiguration(hash, hash, doc);
+			cache.put(path, config);
+			return config;
+
 		} else {
-			return new XMLConfiguration(version, doc);
+			return new XMLConfiguration(version, hash, doc);
 		}
 	}
 
@@ -395,14 +400,10 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 
 		validateHash(path, version, expectedVersion);
 
-		OutputStream outputStream = null;
 		try {
-			outputStream = ioServices.newFileOutputStream(new File(configFolder, path), UPDATE_BINARY_FILE);
-			ioServices.copy(newBinaryStream, outputStream);
+			ioServices.replaceFileContent(new File(configFolder, path), newBinaryStream);
 		} catch (IOException e) {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("copy binary stream to file", e);
-		} finally {
-			ioServices.closeQuietly(outputStream);
 		}
 
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
@@ -417,6 +418,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		validateFileExistance(path);
 
 		File propertiesFile = new File(configFolder, path);
+		File tempPropertiesFile = ioServices.getAtomicWriteTempFileFor(propertiesFile);
 
 		Properties properties = mapToProperties(newProperties);
 
@@ -426,13 +428,16 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		validateHash(path, version, expectedVersion);
 		OutputStream outputStream = null;
 		try {
-			outputStream = ioServices.newFileOutputStream(propertiesFile, UPDATE_PROPERTIES_FILE);
+			outputStream = ioServices.newFileOutputStream(tempPropertiesFile, UPDATE_PROPERTIES_FILE);
 			PropertyFileUtils.store(properties, outputStream);
 		} catch (IOException e) {
+			ioServices.deleteQuietly(tempPropertiesFile);
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("Write to properties file", e);
 		} finally {
 			ioServices.closeQuietly(outputStream);
 		}
+
+		ioServices.moveFile(tempPropertiesFile, propertiesFile);
 
 		for (ConfigUpdatedEventListener listener : updatedConfigEventListeners.get(path)) {
 			listener.onConfigUpdated(path);

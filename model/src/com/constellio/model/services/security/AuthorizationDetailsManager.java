@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.security;
 
 import java.util.ArrayList;
@@ -55,7 +38,7 @@ public class AuthorizationDetailsManager
 
 	protected OneXMLConfigPerCollectionManager<Map<String, AuthorizationDetails>> newOneXMLConfigPerCollectionManager() {
 		return new OneXMLConfigPerCollectionManager<>(configManager, collectionsListManager, AUTHORIZATIONS_CONFIG,
-				xmlConfigReader(), this);
+				xmlConfigReader(), this, newCreateEmptyDocumentDocumentAlteration());
 	}
 
 	@Override
@@ -68,14 +51,8 @@ public class AuthorizationDetailsManager
 	}
 
 	public void createCollectionAuthorizationDetail(String collection) {
-		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
-			@Override
-			public void alter(Document document) {
-				AuthorizationDetailsWriter writer = newAuthorizationWriter(document);
-				writer.createEmptyAuthorizations();
-			}
-		};
-		oneXMLConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
+
+		oneXMLConfigPerCollectionManager.createCollectionFile(collection, newCreateEmptyDocumentDocumentAlteration());
 	}
 
 	public void add(AuthorizationDetails authorizationDetails) {
@@ -181,6 +158,16 @@ public class AuthorizationDetailsManager
 		return new AuthorizationDetailsReader(document);
 	}
 
+	private DocumentAlteration newCreateEmptyDocumentDocumentAlteration() {
+		return new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				AuthorizationDetailsWriter writer = newAuthorizationWriter(document);
+				writer.createEmptyAuthorizations();
+			}
+		};
+	}
+
 	private XMLConfigReader<Map<String, AuthorizationDetails>> xmlConfigReader() {
 		return new XMLConfigReader<Map<String, AuthorizationDetails>>() {
 			@Override
@@ -193,5 +180,15 @@ public class AuthorizationDetailsManager
 	@Override
 	public void onValueModified(String collection, Map<String, AuthorizationDetails> newValue) {
 
+	}
+
+	public AuthorizationDetails getByIdWithoutPrefix(String collection, String idWithoutPrefix) {
+		Map<String, AuthorizationDetails> collectionDetails = getAuthorizationsDetails(collection);
+		for (String currentId : collectionDetails.keySet()) {
+			if (currentId.endsWith("_" + idWithoutPrefix)) {
+				return collectionDetails.get(currentId);
+			}
+		}
+		return null;
 	}
 }

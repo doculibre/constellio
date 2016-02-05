@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemasDisplay;
 
 import static java.util.Arrays.asList;
@@ -23,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jdom2.Document;
 
@@ -67,6 +51,14 @@ public class SchemasDisplayManager
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.metadataSchemasManager = metadataSchemasManager;
+	}
+
+	public Set<String> getReturnedFieldsForSearch(String collection) {
+		return getCacheForCollection(collection).getReturnedFieldsForSearch(metadataSchemasManager);
+	}
+
+	public Set<String> getReturnedFieldsForTable(String collection) {
+		return getCacheForCollection(collection).getReturnedFieldsForTable(metadataSchemasManager);
 	}
 
 	public void execute(final SchemaDisplayManagerTransaction transaction) {
@@ -273,7 +265,8 @@ public class SchemasDisplayManager
 		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
 		List<MetadataValueType> restrictedTypes = asList(MetadataValueType.CONTENT, MetadataValueType.STRUCTURE);
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
-			if ("id".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered") && !restrictedTypes
+			if ("id" .equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
+					&& !restrictedTypes
 					.contains(metadata.getType()) && !metadata
 					.isSystemReserved())) {
 				transaction.getModifiedMetadatas().add(

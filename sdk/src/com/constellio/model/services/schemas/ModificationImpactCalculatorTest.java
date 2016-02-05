@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -368,11 +351,8 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 		List dependencies = new ArrayList<>();
 		dependencies.add(ReferenceDependency.toAString("zeType_default_ref", "anotherType_default_title"));
 		dependencies.add(ReferenceDependency.toAString("zeType_default_ref2", "anotherType_default_title"));
-		dependencies
-				.add(ReferenceDependency
-						.toAString("zeType_default_ref1", "anotherType_default_unmodifiedField"));
-		dependencies.add(ReferenceDependency
-				.toAString("zeType_default_refToDifferentSchema", "notTheSameType_default_title"));
+		dependencies.add(ReferenceDependency.toAString("zeType_default_ref1", "anotherType_default_unmodifiedField"));
+		dependencies.add(ReferenceDependency.toAString("zeType_default_refToDifferentSchema", "notTheSameType_default_title"));
 		dependencies.add(LocalDependency.toAString("notImportant"));
 		when(calculator.getDependencies()).thenReturn(dependencies);
 
@@ -388,8 +368,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 		dependencies.add(ReferenceDependency.toAString("zeType_default_ref", "anotherType_default_title"));
 		dependencies.add(ReferenceDependency.toAString("zeType_default_ref2", "anotherType_default_title"));
 		dependencies.add(ReferenceDependency.toAString("zeType_default_ref1", "anotherType_default_unmodifiedField"));
-		dependencies.add(ReferenceDependency
-				.toAString("zeType_default_refToDifferentSchema", "notTheSameType_default_title"));
+		dependencies.add(ReferenceDependency.toAString("zeType_default_refToDifferentSchema", "notTheSameType_default_title"));
 		dependencies.add(LocalDependency.toAString("notImportant"));
 		when(calculator.getDependencies()).thenReturn(dependencies);
 

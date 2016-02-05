@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.builders;
 
 import java.io.Serializable;
@@ -72,11 +55,12 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(collection, code);
-		
+
 		List<String> formMetadataCodes = new ArrayList<>();
 		List<String> displayMetadataCodes = new ArrayList<>();
+		List<String> searchMetadataCodes = new ArrayList<>();
 		List<String> tableMetadataCodes = new ArrayList<>();
-		
+
 		if (viewMode == VIEW_MODE.FORM) {
 			if (metadataCodes != null) {
 				formMetadataCodes.addAll(metadataCodes);
@@ -84,7 +68,8 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
 			}
 			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
-			tableMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
+			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
+			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else if (viewMode == VIEW_MODE.DISPLAY) {
 			if (metadataCodes != null) {
 				displayMetadataCodes.addAll(metadataCodes);
@@ -92,36 +77,48 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
 			}
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
-			tableMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
+			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
+			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else if (viewMode == VIEW_MODE.TABLE) {
 			if (metadataCodes != null) {
 				tableMetadataCodes.addAll(metadataCodes);
 			} else {
-				tableMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
+				tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 			}
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
 			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
+			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
+		} else if (viewMode == VIEW_MODE.SEARCH) {
+			if (metadataCodes != null) {
+				searchMetadataCodes.addAll(metadataCodes);
+			} else {
+				searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
+			}
+			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
+			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
+			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else {
 			throw new IllegalArgumentException("Invalid view mode : " + viewMode);
 		}
 
 		MetadataToVOBuilder metadataToVOBuilder = newMetadataToVOBuilder();
-		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, formMetadataCodes, displayMetadataCodes, tableMetadataCodes, labels);
+		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, formMetadataCodes, displayMetadataCodes,
+				tableMetadataCodes, searchMetadataCodes, labels);
 		for (Metadata metadata : schema.getMetadatas()) {
-//			String metadataCode = metadata.getCode();
-//			boolean systemReserved = metadata.isSystemReserved();
-//			boolean ignored;
-//			if (viewMode == VIEW_MODE.FORM) {
-//				ignored = systemReserved;
-//			} else if (!systemReserved) {
-//				ignored = false;
-//			} else {
-//				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
-//				ignored = !DISPLAYED_SYSTEM_RESERVED_METADATA_CODES.contains(metadataCodeWithoutPrefix);
-//			}
-//			if (!ignored && metadata.isEnabled()) {
-				metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
-//			}
+			//			String metadataCode = metadata.getCode();
+			//			boolean systemReserved = metadata.isSystemReserved();
+			//			boolean ignored;
+			//			if (viewMode == VIEW_MODE.FORM) {
+			//				ignored = systemReserved;
+			//			} else if (!systemReserved) {
+			//				ignored = false;
+			//			} else {
+			//				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
+			//				ignored = !DISPLAYED_SYSTEM_RESERVED_METADATA_CODES.contains(metadataCodeWithoutPrefix);
+			//			}
+			//			if (!ignored && metadata.isEnabled()) {
+			metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
+			//			}
 		}
 
 		return schemaVO;

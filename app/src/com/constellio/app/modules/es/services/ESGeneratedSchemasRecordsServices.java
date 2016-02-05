@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.services;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -27,6 +10,8 @@ import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
@@ -49,13 +34,11 @@ public class ESGeneratedSchemasRecordsServices extends SchemasRecordsServices {
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
-
-
-public ConnectorHttpDocument wrapConnectorHttpDocument(Record record) {
-	return record == null ? null : new ConnectorHttpDocument(record, getTypes());
-}
+	public ConnectorHttpDocument wrapConnectorHttpDocument(Record record) {
+		return record == null ? null : new ConnectorHttpDocument(record, getTypes());
+	}
 
 public List<ConnectorHttpDocument> wrapConnectorHttpDocuments(List<Record> records) {
 	List<ConnectorHttpDocument> wrapped = new ArrayList<>();
@@ -103,8 +86,8 @@ public class SchemaTypeShortcuts_connectorHttpDocument_default extends SchemaTyp
 		super(schemaCode);
 }
 
-	public Metadata baseURI() {
-		return metadata("baseURI");
+	public Metadata charset() {
+		return metadata("charset");
 	}
 
 	public Metadata connector() {
@@ -115,12 +98,92 @@ public class SchemaTypeShortcuts_connectorHttpDocument_default extends SchemaTyp
 		return metadata("connectorType");
 	}
 
+	public Metadata contentType() {
+		return metadata("contentType");
+	}
+
+	public Metadata copyOf() {
+		return metadata("copyOf");
+	}
+
+	public Metadata digest() {
+		return metadata("digest");
+	}
+
+	public Metadata downloadTime() {
+		return metadata("downloadTime");
+	}
+
+	public Metadata errorCode() {
+		return metadata("errorCode");
+	}
+
+	public Metadata errorMessage() {
+		return metadata("errorMessage");
+	}
+
+	public Metadata errorStackTrace() {
+		return metadata("errorStackTrace");
+	}
+
+	public Metadata errorsCount() {
+		return metadata("errorsCount");
+	}
+
+	public Metadata fetchDelay() {
+		return metadata("fetchDelay");
+	}
+
 	public Metadata fetched() {
 		return metadata("fetched");
 	}
 
+	public Metadata fetchedDateTime() {
+		return metadata("fetchedDateTime");
+	}
+
+	public Metadata frequency() {
+		return metadata("frequency");
+	}
+
+	public Metadata inlinks() {
+		return metadata("inlinks");
+	}
+
+	public Metadata level() {
+		return metadata("level");
+	}
+
+	public Metadata neverFetch() {
+		return metadata("neverFetch");
+	}
+
+	public Metadata nextFetch() {
+		return metadata("nextFetch");
+	}
+
+	public Metadata onDemand() {
+		return metadata("onDemand");
+	}
+
+	public Metadata outlinks() {
+		return metadata("outlinks");
+	}
+
 	public Metadata parsedContent() {
 		return metadata("parsedContent");
+	}
+
+	public Metadata priority() {
+		return metadata("priority");
+	}
+
+	public Metadata searchable() {
+		return metadata("searchable");
+	}
+
+	public Metadata status() {
+		return metadata("status");
 	}
 
 	public Metadata url() {
@@ -181,6 +244,10 @@ public class SchemaTypeShortcuts_connectorInstance_default extends SchemaTypeSho
 		super(schemaCode);
 }
 
+	public Metadata availableFields() {
+		return metadata("availableFields");
+	}
+
 	public Metadata code() {
 		return metadata("code");
 	}
@@ -193,6 +260,10 @@ public class SchemaTypeShortcuts_connectorInstance_default extends SchemaTypeSho
 		return metadata("enabled");
 	}
 
+	public Metadata lastTraversalOn() {
+		return metadata("lastTraversalOn");
+	}
+
 	public Metadata propertiesMapping() {
 		return metadata("propertiesMapping");
 	}
@@ -200,10 +271,15 @@ public class SchemaTypeShortcuts_connectorInstance_default extends SchemaTypeSho
 	public Metadata traversalCode() {
 		return metadata("traversalCode");
 	}
-}
-public ConnectorHttpInstance wrapConnectorHttpInstance(Record record) {
-	return record == null ? null : new ConnectorHttpInstance(record, getTypes());
-}
+
+		public Metadata traversalSchedule() {
+			return metadata("traversalSchedule");
+		}
+	}
+
+	public ConnectorHttpInstance wrapConnectorHttpInstance(Record record) {
+		return record == null ? null : new ConnectorHttpInstance(record, getTypes());
+	}
 
 public List<ConnectorHttpInstance> wrapConnectorHttpInstances(List<Record> records) {
 	List<ConnectorHttpInstance> wrapped = new ArrayList<>();
@@ -255,17 +331,212 @@ public class SchemaTypeShortcuts_connectorInstance_http extends SchemaTypeShortc
 		super(schemaCode);
 }
 
+	public Metadata authenticationScheme() {
+		return metadata("authenticationScheme");
+	}
+
+	public Metadata daysBeforeRefetching() {
+		return metadata("daysBeforeRefetching");
+	}
+
+	public Metadata documentsPerJobs() {
+		return metadata("documentsPerJobs");
+	}
+
+	public Metadata domain() {
+		return metadata("domain");
+	}
+
+	public Metadata excludePatterns() {
+		return metadata("excludePatterns");
+	}
+
+	public Metadata includePatterns() {
+		return metadata("includePatterns");
+	}
+
+	public Metadata jobsInParallel() {
+		return metadata("jobsInParallel");
+	}
+
+	public Metadata maxLevel() {
+		return metadata("maxLevel");
+	}
+
 	public Metadata onDemands() {
 		return metadata("onDemands");
+	}
+
+	public Metadata password() {
+		return metadata("password");
 	}
 
 	public Metadata seeds() {
 		return metadata("seeds");
 	}
+
+	public Metadata username() {
+		return metadata("username");
+	}
 }
-public ConnectorSmbInstance wrapConnectorSmbInstance(Record record) {
-	return record == null ? null : new ConnectorSmbInstance(record, getTypes());
+public ConnectorLDAPInstance wrapConnectorLDAPInstance(Record record) {
+	return record == null ? null : new ConnectorLDAPInstance(record, getTypes());
 }
+
+public List<ConnectorLDAPInstance> wrapConnectorLDAPInstances(List<Record> records) {
+	List<ConnectorLDAPInstance> wrapped = new ArrayList<>();
+	for (Record record : records) {
+		wrapped.add(new ConnectorLDAPInstance(record, getTypes()));
+	}
+
+	return wrapped;
+}
+
+public List<ConnectorLDAPInstance> searchConnectorLDAPInstances(LogicalSearchQuery query) {
+	return wrapConnectorLDAPInstances(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+}
+
+public List<ConnectorLDAPInstance> searchConnectorLDAPInstances(LogicalSearchCondition condition) {
+	MetadataSchemaType type = connectorInstance.schemaType();
+	LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+	return wrapConnectorLDAPInstances(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+}
+
+public ConnectorLDAPInstance getConnectorLDAPInstance(String id) {
+	return wrapConnectorLDAPInstance(get(id));
+}
+
+public List<ConnectorLDAPInstance> getConnectorLDAPInstances(List<String> ids) {
+	return wrapConnectorLDAPInstances(get(ids));
+}
+
+public ConnectorLDAPInstance getConnectorLDAPInstanceWithCode(String code) {
+	return wrapConnectorLDAPInstance(getByCode(connectorInstance.schemaType(), code));
+}
+
+public ConnectorLDAPInstance getConnectorLDAPInstanceWithLegacyId(String legacyId) {
+	return wrapConnectorLDAPInstance(getByLegacyId(connectorInstance.schemaType(),  legacyId));
+}
+
+public ConnectorLDAPInstance newConnectorLDAPInstance() {
+	return wrapConnectorLDAPInstance(create(connectorInstance_ldap.schema()));
+}
+
+public ConnectorLDAPInstance newConnectorLDAPInstanceWithId(String id) {
+	return wrapConnectorLDAPInstance(create(connectorInstance_ldap.schema(), id));
+}
+
+public final SchemaTypeShortcuts_connectorInstance_ldap connectorInstance_ldap
+	 = new SchemaTypeShortcuts_connectorInstance_ldap("connectorInstance_ldap");
+public class SchemaTypeShortcuts_connectorInstance_ldap extends SchemaTypeShortcuts_connectorInstance_default {
+	protected SchemaTypeShortcuts_connectorInstance_ldap(String schemaCode) {
+		super(schemaCode);
+}
+
+	public Metadata address() {
+		return metadata("address");
+	}
+
+	public Metadata company() {
+		return metadata("company");
+	}
+
+	public Metadata connectionUsername() {
+		return metadata("connectionUsername");
+	}
+
+	public Metadata department() {
+		return metadata("department");
+	}
+
+	public Metadata directoryType() {
+		return metadata("directoryType");
+	}
+
+	public Metadata displayName() {
+		return metadata("displayName");
+	}
+
+	public Metadata dn() {
+		return metadata("dn");
+	}
+
+	public Metadata documentsPerJob() {
+		return metadata("documentsPerJob");
+	}
+
+	public Metadata email() {
+		return metadata("email");
+	}
+
+	public Metadata excludeRegex() {
+		return metadata("excludeRegex");
+	}
+
+	public Metadata fetchComputers() {
+		return metadata("fetchComputers");
+	}
+
+	public Metadata fetchGroups() {
+		return metadata("fetchGroups");
+	}
+
+	public Metadata fetchUsers() {
+		return metadata("fetchUsers");
+	}
+
+	public Metadata firstName() {
+		return metadata("firstName");
+	}
+
+	public Metadata followReferences() {
+		return metadata("followReferences");
+	}
+
+	public Metadata includeRegex() {
+		return metadata("includeRegex");
+	}
+
+	public Metadata jobTitle() {
+		return metadata("jobTitle");
+	}
+
+	public Metadata jobsInParallel() {
+		return metadata("jobsInParallel");
+	}
+
+	public Metadata lastName() {
+		return metadata("lastName");
+	}
+
+	public Metadata manager() {
+		return metadata("manager");
+	}
+
+	public Metadata password() {
+		return metadata("password");
+	}
+
+	public Metadata telephone() {
+		return metadata("telephone");
+	}
+
+	public Metadata url() {
+		return metadata("url");
+	}
+
+	public Metadata username() {
+		return metadata("username");
+	}
+
+		public Metadata usersBaseContextList() {
+			return metadata("usersBaseContextList");
+		}
+	}
+
+	public ConnectorSmbInstance wrapConnectorSmbInstance(Record record) {
+		return record == null ? null : new ConnectorSmbInstance(record, getTypes());
+	}
 
 public List<ConnectorSmbInstance> wrapConnectorSmbInstances(List<Record> records) {
 	List<ConnectorSmbInstance> wrapped = new ArrayList<>();
@@ -333,6 +604,10 @@ public class SchemaTypeShortcuts_connectorInstance_smb extends SchemaTypeShortcu
 		return metadata("password");
 	}
 
+	public Metadata resumeUrl() {
+		return metadata("resumeUrl");
+	}
+
 	public Metadata smbSeeds() {
 		return metadata("smbSeeds");
 	}
@@ -341,9 +616,172 @@ public class SchemaTypeShortcuts_connectorInstance_smb extends SchemaTypeShortcu
 		return metadata("username");
 	}
 }
-public ConnectorSmbDocument wrapConnectorSmbDocument(Record record) {
-	return record == null ? null : new ConnectorSmbDocument(record, getTypes());
+public ConnectorLDAPUserDocument wrapConnectorLDAPUserDocument(Record record) {
+	return record == null ? null : new ConnectorLDAPUserDocument(record, getTypes());
 }
+
+public List<ConnectorLDAPUserDocument> wrapConnectorLDAPUserDocuments(List<Record> records) {
+	List<ConnectorLDAPUserDocument> wrapped = new ArrayList<>();
+	for (Record record : records) {
+		wrapped.add(new ConnectorLDAPUserDocument(record, getTypes()));
+	}
+
+	return wrapped;
+}
+
+public List<ConnectorLDAPUserDocument> searchConnectorLDAPUserDocuments(LogicalSearchQuery query) {
+	return wrapConnectorLDAPUserDocuments(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+}
+
+public List<ConnectorLDAPUserDocument> searchConnectorLDAPUserDocuments(LogicalSearchCondition condition) {
+	MetadataSchemaType type = connectorLdapUserDocument.schemaType();
+	LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+	return wrapConnectorLDAPUserDocuments(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+}
+
+public ConnectorLDAPUserDocument getConnectorLDAPUserDocument(String id) {
+	return wrapConnectorLDAPUserDocument(get(id));
+}
+
+public List<ConnectorLDAPUserDocument> getConnectorLDAPUserDocuments(List<String> ids) {
+	return wrapConnectorLDAPUserDocuments(get(ids));
+}
+
+public ConnectorLDAPUserDocument getConnectorLDAPUserDocumentWithLegacyId(String legacyId) {
+	return wrapConnectorLDAPUserDocument(getByLegacyId(connectorLdapUserDocument.schemaType(),  legacyId));
+}
+
+public ConnectorLDAPUserDocument newConnectorLDAPUserDocument() {
+	return wrapConnectorLDAPUserDocument(create(connectorLdapUserDocument.schema()));
+}
+
+public ConnectorLDAPUserDocument newConnectorLDAPUserDocumentWithId(String id) {
+	return wrapConnectorLDAPUserDocument(create(connectorLdapUserDocument.schema(), id));
+}
+
+public final SchemaTypeShortcuts_connectorLdapUserDocument_default connectorLdapUserDocument
+	 = new SchemaTypeShortcuts_connectorLdapUserDocument_default("connectorLdapUserDocument_default");
+public class SchemaTypeShortcuts_connectorLdapUserDocument_default extends SchemaTypeShortcuts {
+	protected SchemaTypeShortcuts_connectorLdapUserDocument_default(String schemaCode) {
+		super(schemaCode);
+}
+
+	public Metadata address() {
+		return metadata("address");
+	}
+
+	public Metadata company() {
+		return metadata("company");
+	}
+
+	public Metadata connector() {
+		return metadata("connector");
+	}
+
+	public Metadata connectorType() {
+		return metadata("connectorType");
+	}
+
+	public Metadata department() {
+		return metadata("department");
+	}
+
+	public Metadata displayName() {
+		return metadata("displayName");
+	}
+
+	public Metadata distinguishedName() {
+		return metadata("distinguishedName");
+	}
+
+	public Metadata email() {
+		return metadata("email");
+	}
+
+	public Metadata enabled() {
+		return metadata("enabled");
+	}
+
+	public Metadata errorCode() {
+		return metadata("errorCode");
+	}
+
+	public Metadata errorMessage() {
+		return metadata("errorMessage");
+	}
+
+	public Metadata errorStackTrace() {
+		return metadata("errorStackTrace");
+	}
+
+	public Metadata errorsCount() {
+		return metadata("errorsCount");
+	}
+
+	public Metadata fetchDelay() {
+		return metadata("fetchDelay");
+	}
+
+	public Metadata fetched() {
+		return metadata("fetched");
+	}
+
+	public Metadata fetchedDateTime() {
+		return metadata("fetchedDateTime");
+	}
+
+	public Metadata firstName() {
+		return metadata("firstName");
+	}
+
+	public Metadata frequency() {
+		return metadata("frequency");
+	}
+
+	public Metadata lastName() {
+		return metadata("lastName");
+	}
+
+	public Metadata manager() {
+		return metadata("manager");
+	}
+
+	public Metadata neverFetch() {
+		return metadata("neverFetch");
+	}
+
+	public Metadata nextFetch() {
+		return metadata("nextFetch");
+	}
+
+	public Metadata searchable() {
+		return metadata("searchable");
+	}
+
+	public Metadata status() {
+		return metadata("status");
+	}
+
+	public Metadata telephone() {
+		return metadata("telephone");
+	}
+
+	public Metadata url() {
+		return metadata("url");
+	}
+
+	public Metadata username() {
+		return metadata("username");
+	}
+
+		public Metadata workTitle() {
+			return metadata("workTitle");
+		}
+	}
+
+	public ConnectorSmbDocument wrapConnectorSmbDocument(Record record) {
+		return record == null ? null : new ConnectorSmbDocument(record, getTypes());
+	}
 
 public List<ConnectorSmbDocument> wrapConnectorSmbDocuments(List<Record> records) {
 	List<ConnectorSmbDocument> wrapped = new ArrayList<>();
@@ -407,12 +845,16 @@ public class SchemaTypeShortcuts_connectorSmbDocument_default extends SchemaType
 		return metadata("language");
 	}
 
-	public Metadata lastFetched() {
-		return metadata("lastFetched");
+	public Metadata lastFetchAttempt() {
+		return metadata("lastFetchAttempt");
 	}
 
-	public Metadata lastFetchedStatus() {
-		return metadata("lastFetchedStatus");
+	public Metadata lastFetchAttemptDetails() {
+		return metadata("lastFetchAttemptDetails");
+	}
+
+	public Metadata lastFetchAttemptStatus() {
+		return metadata("lastFetchAttemptStatus");
 	}
 
 	public Metadata lastModified() {
@@ -497,8 +939,8 @@ public class SchemaTypeShortcuts_connectorSmbFolder_default extends SchemaTypeSh
 		return metadata("connectorType");
 	}
 
-	public Metadata lastFetched() {
-		return metadata("lastFetched");
+	public Metadata lastFetchAttempt() {
+		return metadata("lastFetchAttempt");
 	}
 
 	public Metadata lastFetchedStatus() {
@@ -575,8 +1017,8 @@ public class SchemaTypeShortcuts_connectorType_default extends SchemaTypeShortcu
 		return metadata("connectorClassName");
 	}
 
-	public Metadata defaultAvailableProperties() {
-		return metadata("defaultAvailableProperties");
+	public Metadata defaultAvailableFields() {
+		return metadata("defaultAvailableFields");
 	}
 
 	public Metadata linkedSchema() {
@@ -586,5 +1028,4 @@ public class SchemaTypeShortcuts_connectorType_default extends SchemaTypeShortcu
 /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
 /** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
-
 }

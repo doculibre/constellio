@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.model;
 
 import java.util.ArrayList;
@@ -25,31 +8,25 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class CopyRetentionRule implements ModifiableStructure {
-
 	String code;
-
 	CopyType copyType;
-
 	List<String> mediumTypeIds = new ArrayList<>();
-
 	String contentTypesComment;
-
 	RetentionPeriod activeRetentionPeriod = RetentionPeriod.ZERO;
-
 	String activeRetentionComment;
-
 	RetentionPeriod semiActiveRetentionPeriod = RetentionPeriod.ZERO;
-
 	String semiActiveRetentionComment;
-
 	DisposalType inactiveDisposalType;
-
 	String inactiveDisposalComment;
-
+	String documentTypeId;
+	String semiActiveDateMetadata;
+	String activeDateMetadata;
 	boolean dirty;
 
 	public String getCode() {
@@ -160,6 +137,36 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return this;
 	}
 
+	public String getDocumentTypeId() {
+		return documentTypeId;
+	}
+
+	public CopyRetentionRule setDocumentTypeId(String documentTypeId) {
+		dirty = true;
+		this.documentTypeId = documentTypeId;
+		return this;
+	}
+
+	public String getSemiActiveDateMetadata() {
+		return semiActiveDateMetadata;
+	}
+
+	public CopyRetentionRule setSemiActiveDateMetadata(String semiActiveDateMetadata) {
+		this.dirty = true;
+		this.semiActiveDateMetadata = semiActiveDateMetadata;
+		return this;
+	}
+
+	public String getActiveDateMetadata() {
+		return activeDateMetadata;
+	}
+
+	public CopyRetentionRule setActiveDateMetadata(String activeDateMetadata) {
+		this.dirty = true;
+		this.activeDateMetadata = activeDateMetadata;
+		return this;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -251,4 +258,11 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return inactiveDisposalType != null && inactiveDisposalType == DisposalType.SORT;
 	}
 
+	public CopyRetentionRuleInRule in(RetentionRule rule, Category category) {
+		return new CopyRetentionRuleInRule(rule.getId(), category.getId(), category.getLevel(), this);
+	}
+
+	public CopyRetentionRuleInRule in(String ruleId, String category, int categoryLevel) {
+		return new CopyRetentionRuleInRule(ruleId, category, categoryLevel, this);
+	}
 }

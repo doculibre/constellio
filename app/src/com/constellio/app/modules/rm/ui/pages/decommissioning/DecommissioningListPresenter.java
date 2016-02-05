@@ -1,23 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +10,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportViewImpl;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -39,6 +24,8 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.components.ReportPresenter;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -46,7 +33,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 
-public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView> {
+public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView> implements ReportPresenter {
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient DecommissioningService decommissioningService;
 	private transient DecommissioningList decommissioningList;
@@ -393,5 +380,60 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean isValidationRequestedForCurrentUser() {
 		return decommissioningService().isValidationRequestedFor(decommissioningList(), getCurrentUser());
+	}
+
+	@Override
+	public List<String> getSupportedReports() {
+		return asList($("Reports.DecommissioningList"));
+	}
+
+	@Override
+	public ReportBuilderFactory getReport(String report) {
+
+		if (report.equals("Reports.DecommissioningList")) {
+			return new DecommissioningListReportViewImpl(recordId);
+		} else {//Reports.documentsCertificate //Reports.foldersCertificate
+			throw new RuntimeException("BUG: Unknown report: " + report);
+		}
+	}
+
+	public boolean isDocumentsCertificateButtonVisible() {
+		return decommissioningList().getDocumentsReportContent() != null;
+	}
+
+	public boolean isFoldersCertificateButtonVisible() {
+		return decommissioningList().getFoldersReportContent() != null;
+	}
+
+	public String getDocumentsReportContentId() {
+		if (decommissioningList().getDocumentsReportContent() != null) {
+			return decommissioningList().getDocumentsReportContent().getCurrentVersion().getHash();
+		} else {
+			return null;
+		}
+	}
+
+	public String getDocumentsReportContentName() {
+		if (decommissioningList().getDocumentsReportContent() != null) {
+			return decommissioningList().getDocumentsReportContent().getCurrentVersion().getFilename();
+		} else {
+			return null;
+		}
+	}
+
+	public String getFoldersReportContentId() {
+		if (decommissioningList().getFoldersReportContent() != null) {
+			return decommissioningList().getFoldersReportContent().getCurrentVersion().getHash();
+		} else {
+			return null;
+		}
+	}
+
+	public String getFoldersReportContentName() {
+		if (decommissioningList().getFoldersReportContent() != null) {
+			return decommissioningList().getFoldersReportContent().getCurrentVersion().getFilename();
+		} else {
+			return null;
+		}
 	}
 }

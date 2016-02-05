@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -37,7 +20,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
+@SlowTest
 public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 	public static String STATE = "given_system_in_5.0.3_with_rm_module__with_test_records";
 
@@ -91,7 +76,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 	private void givenSystemAtVersion5_0_3() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder, STATE + ".zip");
+		File state = new File(statesFolder + File.separator + "olds", STATE + ".zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}

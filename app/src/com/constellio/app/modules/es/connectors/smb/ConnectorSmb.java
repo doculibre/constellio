@@ -1,47 +1,49 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.connectors.smb;
 
 import static java.util.Arrays.asList;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
 
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDelete;
+import com.constellio.app.modules.es.connectors.smb.config.SmbRetrievalConfiguration;
+import com.constellio.app.modules.es.connectors.smb.config.SmbSchemaDisplayConfiguration;
+import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbDocumentOrFolderUpdater;
+import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
+import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl;
+import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
+import com.constellio.app.modules.es.connectors.smb.jobs.SmbNullJob;
+import com.constellio.app.modules.es.connectors.smb.queue.SmbJobQueue;
+import com.constellio.app.modules.es.connectors.smb.queue.SmbJobQueueSortedImpl;
+import com.constellio.app.modules.es.connectors.smb.security.Credentials;
+import com.constellio.app.modules.es.connectors.smb.service.SmbFileFactory;
+import com.constellio.app.modules.es.connectors.smb.service.SmbFileFactoryImpl;
+import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
+import com.constellio.app.modules.es.connectors.smb.service.SmbService;
+import com.constellio.app.modules.es.connectors.smb.service.SmbServiceSimpleImpl;
+import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
+import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class ConnectorSmb extends Connector {
 
@@ -49,228 +51,166 @@ public class ConnectorSmb extends Connector {
 	static final String RESUME_OF_TRAVERSAL = "Resume of traversal";
 	static final String END_OF_TRAVERSAL = "End of traversal";
 
-	private static final int MAX_DOCUMENTS_PER_GET_JOBS_CALL = 100;
+	private static final int MAX_JOBS_PER_GET_JOBS_CALL = 100;
 
-	ConnectorSmbInstance connectorInstance;
-	ConnectorSmbUtils smbUtils;
+	private ConnectorSmbInstance connectorInstance;
+	private ConnectorSmbUtils smbUtils;
+	private SmbSchemaDisplayConfiguration schemaDisplayConfig;
+	private SmbJobQueue jobsQueue;
+	private SmbService smbService;
+	private SmbJobFactory smbJobFactory;
+	private SmbRecordService smbRecordService;
+	private SmbDocumentOrFolderUpdater updater;
+	private SmbUrlComparator urlComparator;
+
+	public ConnectorSmb() {
+		urlComparator = new SmbUrlComparator();
+	}
+
+	public ConnectorSmb(SmbService smbService) {
+		this.smbService = smbService;
+		urlComparator = new SmbUrlComparator();
+	}
 
 	@Override
 	protected void initialize(Record instanceRecord) {
 		this.connectorInstance = getEs().wrapConnectorSmbInstance(instanceRecord);
-		this.smbUtils = new ConnectorSmbUtils(getEs());
+		this.smbUtils = new ConnectorSmbUtils();
+		schemaDisplayConfig = new SmbSchemaDisplayConfiguration(getEs(), connectorInstance);
+		schemaDisplayConfig.setupMetadatasDisplay();
+		jobsQueue = new SmbJobQueueSortedImpl();
 
-		setupMetadatasDisplay();
-	}
+		Credentials credentials = new Credentials(connectorInstance.getDomain(), connectorInstance.getUsername(),
+				connectorInstance.getPassword());
 
-	private void setupMetadatasDisplay() {
-		// TODO Benoit. Update only once / if needed
-		SchemasDisplayManager manager = getEs().getMetadataSchemasDisplayManager();
+		SmbRetrievalConfiguration smbRetrievalConfiguration = new SmbRetrievalConfiguration(connectorInstance.getSeeds(),
+				connectorInstance.getInclusions(),
+				connectorInstance.getExclusions());
 
-		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
-
-		// Connector SMB Config/Instance
-		SchemaDisplayConfig schemaFormFolderTypeConfig = order(connectorInstance.getCollection(), getEs().getAppLayerFactory(), "form",
-				manager.getSchema(getEs().getCollection(), getEs().getConnectorSmbDocumentSchemaCode(connectorInstance)), ConnectorDocument.TITLE,
-				ConnectorSmbDocument.URL, ConnectorSmbDocument.PARENT);
-
-		SchemaDisplayConfig schemaDisplayFolderTypeConfig = order(connectorInstance.getCollection(), getEs().getAppLayerFactory(), "display",
-				manager.getSchema(getEs().getCollection(), getEs().getConnectorSmbDocumentSchemaCode(connectorInstance)), ConnectorDocument.TITLE,
-				ConnectorSmbDocument.URL, ConnectorSmbDocument.PARENT);
-
-		transaction.add(schemaDisplayFolderTypeConfig.withFormMetadataCodes(schemaFormFolderTypeConfig.getFormMetadataCodes()));
-
-		manager.execute(transaction);
-
-		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(connectorInstance.getCollection());
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.URL)
-				.afterMetadata(ConnectorDocument.TITLE);
-
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.PARENT)
-				.afterMetadata(ConnectorSmbDocument.URL);
-
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.EXTENSION)
-				.afterMetadata(ConnectorSmbDocument.PARENT);
-
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.LANGUAGE)
-				.afterMetadata(ConnectorSmbDocument.EXTENSION);
-
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.SIZE)
-				.afterMetadata(ConnectorSmbDocument.LANGUAGE);
-
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.LAST_MODIFIED)
-				.afterMetadata(ConnectorSmbDocument.SIZE);
-
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT)
-				.afterMetadata(ConnectorSmbDocument.LAST_MODIFIED);
-
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS)
-				.afterMetadata(ConnectorSmbDocument.LAST_FETCH_ATTEMPT);
-
-		transactionBuilder.in(ConnectorSmbDocument.SCHEMA_TYPE)
-				.addToSearchResult(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_DETAILS)
-				.afterMetadata(ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS);
-
-		manager.execute(transactionBuilder.build());
-	}
-
-	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type, SchemaDisplayConfig schema, String... localCodes) {
-
-		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory()
-				.getMetadataSchemasManager()
-				.getSchemaTypes(collection);
-
-		List<String> visibleMetadataCodes = new ArrayList<>();
-		for (String localCode : localCodes) {
-			visibleMetadataCodes.add(schema.getSchemaCode() + "_" + localCode);
+		if (smbService == null) {
+			smbService = new SmbServiceSimpleImpl(credentials, smbRetrievalConfiguration, smbUtils, logger, es);
 		}
-		List<String> metadataCodes = new ArrayList<>();
-		metadataCodes.addAll(visibleMetadataCodes);
-		List<String> otherMetadatas = new ArrayList<>();
-		List<String> retrievedMetadataCodes;
-		if ("form".equals(type)) {
-			retrievedMetadataCodes = schema.getFormMetadataCodes();
-		} else {
-			retrievedMetadataCodes = schema.getDisplayMetadataCodes();
-		}
-		for (String retrievedMetadataCode : retrievedMetadataCodes) {
-			int index = visibleMetadataCodes.indexOf(retrievedMetadataCode);
-			if (index != -1) {
-				metadataCodes.set(index, retrievedMetadataCode);
-			} else if (!schemaTypes.getMetadata(retrievedMetadataCode)
-					.isSystemReserved()) {
-				otherMetadatas.add(retrievedMetadataCode);
-			}
-		}
-		SchemaDisplayConfig newSchema;
-		if ("form".equals(type)) {
-			metadataCodes.addAll(otherMetadatas);
-			newSchema = schema.withFormMetadataCodes(metadataCodes);
-
-			SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-			for (String invisible : otherMetadatas) {
-				manager.saveMetadata(manager.getMetadata(collection, invisible)
-						.withInputType(MetadataInputType.HIDDEN));
-			}
-		} else {
-			newSchema = schema.withDisplayMetadataCodes(metadataCodes);
-		}
-
-		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-		manager.saveMetadata(manager.getMetadata(collection, getEs().getConnectorSmbDocumentSchemaCode(connectorInstance),
-				ConnectorSmbDocument.LAST_FETCH_ATTEMPT_STATUS)
-				.withVisibleInAdvancedSearchStatus(true));
-		return newSchema;
-	}
-
-	@Override
-	public List<String> fetchTokens(String username) {
-		// TODO Benoit
-		return new ArrayList<>();
+		smbRecordService = new SmbRecordService(es, connectorInstance);
+		updater = new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService);
+		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService,
+				updater);
 	}
 
 	@Override
 	public void start() {
-		getLogger().info(START_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(), new LinkedHashMap<String, String>());
-		addUpdateSeeds();
+		getLogger().info(START_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
+				new LinkedHashMap<String, String>());
+		jobsQueue.clear();
+		String resumeUrl = connectorInstance.getResumeUrl();
+		smbJobFactory.updateResumeUrl(resumeUrl);
+		queueSeeds();
 	}
 
-	private void addUpdateSeeds() {
-		List<ConnectorDocument> documents = processSeeds();
-		eventObserver.addUpdateEvents(documents);
-	}
-
-	private List<ConnectorDocument> processSeeds() {
-		List<ConnectorDocument> documents = new ArrayList<>();
-
-		for (String url : connectorInstance.getSeeds()) {
-			if (smbUtils.isAccepted(url, connectorInstance)) {
-				List<ConnectorDocument<?>> existingDocumentsOrFolders = smbUtils.getExistingDocumentsOrFoldersWithUrl(url, connectorInstance);
-
-				if (existingDocumentsOrFolders.isEmpty()) {
-					ConnectorDocument newDocumentOrFolder = newUnfetchedDocumentOrFolder(url);
-					newDocumentOrFolder.setManualTokens(Record.PUBLIC_TOKEN);
-					documents.add(newDocumentOrFolder);
-				} else {
-					ConnectorDocument<?> existingRecord = existingDocumentsOrFolders.get(0);
-					documents.add(existingRecord.setFetched(false));
-				}
+	private void queueSeeds() {
+		List<String> sortedSeeds = new ArrayList(connectorInstance.getSeeds());
+		Collections.sort(sortedSeeds, urlComparator);
+		for (String seed : sortedSeeds) {
+			ConnectorJob smbDispatchJob = smbJobFactory.get(SmbJobCategory.SEED, seed, "");
+			if (smbDispatchJob != SmbNullJob.getInstance(this)) {
+				queueJob(smbDispatchJob);
 			}
 		}
-		return documents;
-	}
-
-	private ConnectorDocument<?> newUnfetchedDocumentOrFolder(String url) {
-		if (StringUtils.endsWith(url, "/")) {
-			return getEs().newConnectorSmbFolder(connectorInstance)
-					.setUrl(url)
-					.setFetched(false);
-		} else {
-			return getEs().newConnectorSmbDocument(connectorInstance)
-					.setUrl(url)
-					.setFetched(false);
-		}
-
 	}
 
 	@Override
 	public void resume() {
-		getLogger().info(START_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(), new LinkedHashMap<String, String>());
+		getLogger().info(RESUME_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
+				new LinkedHashMap<String, String>());
+		jobsQueue.clear();
+		String resumeUrl = connectorInstance.getResumeUrl();
+		smbJobFactory.updateResumeUrl(resumeUrl);
+		queueSeeds();
+	}
 
-		addUpdateSeeds();
+	@Override
+	public void stop() {
+		try {
+			es.getRecordServices()
+					.update(connectorInstance.setResumeUrl(""));
+		} catch (Exception e) {
+			logger.errorUnexpected(e);
+		}
+	}
+
+	@Override
+	public List<String> fetchTokens(String username) {
+		// Ne pas modifier cette méthode!
+		return new ArrayList<>();
+	}
+
+	@Override
+	public void afterJobs(List<ConnectorJob> jobs) {
+	}
+
+	@Override
+	public List<String> getReportMetadatas(String reportMode) {
+		if (ConnectorReportView.INDEXATION.equals(reportMode)) {
+			return Arrays.asList(ConnectorSmbDocument.URL, ConnectorSmbDocument.FETCHED_DATETIME);
+		} else if (ConnectorReportView.ERRORS.equals(reportMode)) {
+			return Arrays.asList(ConnectorSmbDocument.URL, ConnectorSmbDocument.ERROR_CODE, ConnectorSmbDocument.ERROR_MESSAGE,
+					ConnectorSmbDocument.FETCHED_DATETIME);
+		}
+		return new ArrayList<>();
+	}
+
+	@Override
+	public String getMainConnectorDocumentType() {
+		return ConnectorSmbDocument.SCHEMA_TYPE;
+	}
+
+	@Override
+	public void onAllDocumentsDeleted() {
+		// TODO Pat delete config folder for this connector.
 	}
 
 	@Override
 	public List<ConnectorJob> getJobs() {
-		eventObserver.flush();
-
-		List<ConnectorDocument<?>> documentsToFetch = getDocumentsToFetch();
-
 		List<ConnectorJob> jobs = new ArrayList<>();
 
-		if (!documentsToFetch.isEmpty()) {
-
-			Iterator<List<ConnectorDocument<?>>> documentBatchsIterator = new BatchBuilderIterator<>(documentsToFetch.iterator(),
-					MAX_DOCUMENTS_PER_GET_JOBS_CALL);
-
-			while (documentBatchsIterator.hasNext()) {
-				jobs.add(new SmbFetchJob(this, documentBatchsIterator.next(), connectorInstance, eventObserver, getEs(), getLogger()));
-			}
-			// TODO Benoit. Check if we want to log the jobs in a given getJobs()
-		} else {
-			changeTraversalCodeToMarkEndOfTraversal();
+		while (!jobsQueue.isEmpty() && jobs.size() < MAX_JOBS_PER_GET_JOBS_CALL) {
+			ConnectorJob queuedJob = jobsQueue.poll();
+			jobs.add(queuedJob);
 		}
 
+		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
+			List<String> urlsOfDocumentsToDelete = smbRecordService.getRecordsWithDifferentTraversalCode();
+			// Delete jobs are currently not limited to MAX_JOBS_PER_GET_JOBS_CALL
+			for (String url : urlsOfDocumentsToDelete) {
+				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, url, "");
+				if (deleteJob != SmbNullJob.getInstance(this)) {
+					jobs.add(deleteJob);
+				}
+			}
+
+			changeTraversalCodeToMarkEndOfTraversal();
+			smbJobFactory.reset();
+			queueSeeds();
+		}
 		return jobs;
 	}
 
-	private List<ConnectorDocument<?>> getDocumentsToFetch() {
-		List<ConnectorDocument<?>> documentsToFetch = getEs().searchConnectorDocuments(getEs().connectorDocumentsToFetchQuery(connectorInstance)
-				.setNumberOfRows(MAX_DOCUMENTS_PER_GET_JOBS_CALL));
-
-		return documentsToFetch;
+	public void queueJob(ConnectorJob job) {
+		logger.debug("Queueing job : ", job.toString(), new LinkedHashMap<String, String>());
+		jobsQueue.add(job);
 	}
 
 	private void changeTraversalCodeToMarkEndOfTraversal() {
-		// Delete record that are different form old traversal code
-
 		String oldTraversalCode = connectorInstance.getTraversalCode();
 		String newTraversalCode = UUID.randomUUID()
 				.toString();
 
 		connectorInstance.setTraversalCode(newTraversalCode);
-		getEs().getRecordServices()
-				.flush();
+		connectorInstance.setResumeUrl("");
+		smbJobFactory.updateResumeUrl("");
 
-		getLogger().info(END_OF_TRAVERSAL, "TraversalCode : " + oldTraversalCode + " -> " + newTraversalCode, new LinkedHashMap<String, String>());
-
+		getLogger().info(END_OF_TRAVERSAL,
+				"Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
+				new LinkedHashMap<String, String>());
 	}
 
 	@Override
@@ -278,4 +218,61 @@ public class ConnectorSmb extends Connector {
 		return asList(ConnectorSmbDocument.SCHEMA_TYPE, ConnectorSmbFolder.SCHEMA_TYPE);
 	}
 
+	public void setEs(ESSchemasRecordsServices es) {
+		this.es = es;
+	}
+
+	private ConnectorSmbUtils getSmbUtils() {
+		return smbUtils;
+	}
+
+	public InputStream getInputStream(ConnectorSmbDocument document, String resourceName) {
+		SmbFile smbFile = getSmbFile(document);
+		try {
+			InputStream is = smbFile.getInputStream();
+			return es.getIOServices().newBufferedInputStream(is, resourceName);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void deleteFile(ConnectorDocument document) {
+		SmbFile smbFile = getSmbFile(document);
+		try {
+			smbFile.delete();
+			es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD);
+		} catch (SmbException e) {
+			throw new ConnectorSmbRuntimeException_CannotDelete(document, e);
+		}
+	}
+
+	public boolean exists(ConnectorDocument document) {
+		SmbFile smbFile = getSmbFile(document);
+		try {
+			return smbFile.exists();
+		} catch (SmbException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private SmbFile getSmbFile(ConnectorDocument document) {
+		SmbFileFactory smbFactory = new SmbFileFactoryImpl();
+
+		String connectorId = document.getConnector();
+		if (es == null) {
+			throw new IllegalStateException("Must call setEs(es) before getInputStream()");
+		}
+
+		ConnectorSmbInstance connectorInstance = es
+				.getConnectorSmbInstance(connectorId);
+
+		NtlmPasswordAuthentication auth = new NtlmPasswordAuthentication(
+				connectorInstance.getDomain(), connectorInstance.getUsername(),
+				connectorInstance.getPassword());
+		try {
+			return smbFactory.getSmbFile(document.getURL(), auth);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

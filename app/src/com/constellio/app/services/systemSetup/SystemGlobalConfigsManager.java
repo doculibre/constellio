@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.systemSetup;
 
 import java.util.Map;
@@ -27,6 +10,8 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	final static String SYSTEM_GLOBAL_PROPERTIES = "/globalProperties";
 	final static String MARKED_FOR_REINDEXING = "markedForReindexing";
+	final static String REINDEXING_REQUIRED = "reindexingRequired";
+	final static String RESTART_REQUIRED = "restartRequired";
 	final static String IS_SYSTEM_SETTED_UP = "systemSettedUp";
 	final static String MAIN_DATA_LANGUAGE = "mainLanguage";
 	final static String TOKEN_DURATION = "tokenDuration";
@@ -82,6 +67,22 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	public void setMarkedForReindexing(boolean value) {
 		setProperty(MARKED_FOR_REINDEXING, value ? "true" : "false");
+	}
+
+	public boolean isReindexingRequired() {
+		return "true".equals(getGlobalProperties().get(REINDEXING_REQUIRED));
+	}
+
+	public void setReindexingRequired(boolean value) {
+		setProperty(REINDEXING_REQUIRED, value ? "true" : "false");
+	}
+
+	public boolean isRestartRequired() {
+		return "true".equals(getGlobalProperties().get(RESTART_REQUIRED));
+	}
+
+	public void setRestartRequired(boolean value) {
+		setProperty(RESTART_REQUIRED, value ? "true" : "false");
 	}
 
 	private Map<String, String> getGlobalProperties() {

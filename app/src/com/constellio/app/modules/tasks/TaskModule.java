@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks;
 
 import java.util.ArrayList;
@@ -25,9 +8,14 @@ import java.util.Map;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
+import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
 import com.constellio.app.modules.tasks.extensions.TaskSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_0_7;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_2;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_3;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -43,7 +31,9 @@ public class TaskModule implements InstallableModule {
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
 		return Arrays.asList(
-				(MigrationScript) new TasksMigrationTo5_0_7());
+				(MigrationScript) new TasksMigrationTo5_0_7(),
+				new TasksMigrationTo5_1_2(),
+				new TasksMigrationTo5_1_3());
 	}
 
 	@Override
@@ -54,7 +44,15 @@ public class TaskModule implements InstallableModule {
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
 		registerManagers(collection, appLayerFactory);
+		setupAppLayerExtensions(collection, appLayerFactory);
 		setupModelLayerExtensions(collection, appLayerFactory);
+
+	}
+
+	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		extensions.recordAppExtensions.add(new TaskRecordAppExtension(collection, appLayerFactory));
+		extensions.recordNavigationExtensions.add(new TaskRecordNavigationExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -78,6 +76,11 @@ public class TaskModule implements InstallableModule {
 	@Override
 	public void addDemoData(String collection, AppLayerFactory appLayerFactory) {
 		// Tasks provide no demo data for now
+	}
+
+	@Override
+	public boolean isComplementary() {
+		return false;
 	}
 
 	@Override

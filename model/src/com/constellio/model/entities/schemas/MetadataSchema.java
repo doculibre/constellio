@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.schemas;
 
 import java.util.ArrayList;
@@ -49,17 +32,21 @@ public class MetadataSchema {
 
 	private final Boolean undeletable;
 
+	private final boolean inTransactionLog;
+
 	private final Set<RecordValidator> schemaValidators;
 
 	private final Map<String, Metadata> indexByAtomicCode;
 
 	public MetadataSchema(String localCode, String code, String collection, String label, List<Metadata> metadatas,
-			Boolean undeletable, Set<RecordValidator> schemaValidators, List<Metadata> automaticMetadatas) {
+			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
+			List<Metadata> automaticMetadatas) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
 		this.collection = collection;
 		this.label = label;
+		this.inTransactionLog = inTransactionLog;
 		this.metadatas = new MetadataList(metadatas).unModifiable();
 		this.undeletable = undeletable;
 		this.schemaValidators = schemaValidators;
@@ -143,12 +130,12 @@ public class MetadataSchema {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators");
 	}
 
 	@Override
@@ -168,4 +155,7 @@ public class MetadataSchema {
 		return indexByAtomicCode;
 	}
 
+	public boolean isInTransactionLog() {
+		return inTransactionLog;
+	}
 }

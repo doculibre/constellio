@@ -2,18 +2,42 @@ include "data",
         "model",
         "app",
         "custom",
-        "sdk",
-        "connector-api",
-        "connector-cmis",
-        "client",
-        "importation"
+        "sdk"
+
+if (new File("../constellio-plugins").exists()) {
+    // Add new plugins below with the right name
+    include "plugins",
+            "plugins:sdk",
+            "plugins:importation",
+            "plugins:constellioESSModule",
+            "plugins:villeDeQuebec",
+            "plugins:oaciq",
+            "plugins:constellioExchangeConnector",
+            "plugins:irmModule",
+            "plugins:manualUpdates",
+            "plugins:routingActionModule",
+            "plugins:agent",
+            "plugins:constellioSharepointConnector"
+}
 
 project(":data").projectDir = file("./data")
 project(":model").projectDir = file("./model")
 project(":app").projectDir = file("./app")
 project(":custom").projectDir = file("./custom")
 project(":sdk").projectDir = file("./sdk")
-project(":connector-api").projectDir = file("./connectors/connector-api")
-project(":connector-cmis").projectDir = file("./connectors/connector-cmis")
-project(":client").projectDir = file("./client")
-project(":importation").projectDir = file("./importation")
+
+if (new File("../constellio-plugins").exists()) {
+    // Add new plugins below with the right folder
+    project(":plugins").projectDir = file("../constellio-plugins")
+    project(":plugins:sdk").projectDir = file("../constellio-plugins/sdk")
+    project(":plugins:importation").projectDir = file("../constellio-plugins/importation")
+    project(":plugins:constellioESSModule").projectDir = file("../constellio-plugins/constellioESSModule")
+    project(":plugins:villeDeQuebec").projectDir = file("../constellio-plugins/villeDeQuebec")
+    project(":plugins:oaciq").projectDir = file("../constellio-plugins/oaciq")
+    project(":plugins:constellioExchangeConnector").projectDir = file("../constellio-plugins/constellioExchangeConnector")
+    project(":plugins:irmModule").projectDir = file("../constellio-plugins/irmModule")
+    project(":plugins:manualUpdates").projectDir = file("../constellio-plugins/manualUpdates")
+    project(":plugins:routingActionModule").projectDir = file("../constellio-plugins/routingActionModule")
+    project(":plugins:agent").projectDir = file("../constellio-plugins/agent")
+    project(":plugins:constellioSharepointConnector").projectDir = file("../constellio-plugins/constellioSharepointConnector")
+}

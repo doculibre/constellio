@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
@@ -35,6 +18,7 @@ import org.junit.runners.model.Statement;
 import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.annotations.LoadTest;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
@@ -56,6 +40,7 @@ public class SkipTestsRule implements TestRule {
 	boolean skipAllTests;
 	boolean skipImportTests;
 	boolean skipTestsWithGradle;
+	boolean skipInternetTest;
 	private boolean inDevelopmentTest;
 	private boolean mainTest;
 	private List<String> whiteList;
@@ -88,6 +73,7 @@ public class SkipTestsRule implements TestRule {
 			this.skipImportTests = skipAllTests || !"false".equals(properties.get("skip.importtests"));
 			this.skipReal = skipAllTests || "true".equals(properties.get("skip.realtests"));
 			this.skipLoad = skipAllTests || "true".equals(properties.get("skip.loadtests"));
+			this.skipInternetTest = skipAllTests || "true".equals(properties.get("skip.internettests"));
 			this.skipInDevelopment = skipAllTests || "true".equals(properties.get("skip.indevelopment")) || "true"
 					.equals(properties.get("skip.indevelopmenttests"));
 			this.skipDriver = skipAllTests || "true".equals(properties.get("skip.drivertests"));
@@ -125,6 +111,7 @@ public class SkipTestsRule implements TestRule {
 		SlowTest slowTest = testClass.getAnnotation(SlowTest.class);
 		LoadTest loadTest = testClass.getAnnotation(LoadTest.class);
 		UiTest uiTest = testClass.getAnnotation(UiTest.class);
+		InternetTest internetTest = testClass.getAnnotation(InternetTest.class);
 		DriverTest driverTest = testClass.getAnnotation(DriverTest.class);
 		PerformanceTest performanceTest = testClass.getAnnotation(PerformanceTest.class);
 		InDevelopmentTest inDevelopmentTestAnnotation = testClass.getAnnotation(InDevelopmentTest.class);
@@ -188,6 +175,9 @@ public class SkipTestsRule implements TestRule {
 			return true;
 
 		} else if (!testClassDirectlyTargetted && driverTest != null && skipDriver) {
+			return true;
+
+		} else if (!testClassDirectlyTargetted && internetTest != null && skipInternetTest) {
 			return true;
 
 		} else if (!testClassDirectlyTargetted && slowTest != null && skipSlow) {

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.components.folder;
 
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DEPOSIT_DATE;
@@ -28,6 +11,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.CONTAINER;
 import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.LINEAR_SIZE;
+import static com.constellio.app.modules.rm.wrappers.Folder.OPENING_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.PARENT_FOLDER;
 import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.TYPE;
@@ -45,6 +29,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeFieldImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
@@ -57,6 +42,11 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.vaadin.ui.Field;
 
 public class FolderFieldFactory extends RMMetadataFieldFactory {
+	private final String collection;
+
+	public FolderFieldFactory(String collection) {
+		this.collection = collection;
+	}
 
 	@Override
 	public Field<?> build(MetadataVO metadata) {
@@ -84,7 +74,7 @@ public class FolderFieldFactory extends RMMetadataFieldFactory {
 				.equals(metadataCodeWithoutPrefix)) {
 			field = new FolderUniformSubdivisionFieldImpl();
 		} else if (RETENTION_RULE_ENTERED.equals(metadataCode) || RETENTION_RULE_ENTERED.equals(metadataCodeWithoutPrefix)) {
-			field = new FolderRetentionRuleFieldImpl();
+			field = new FolderRetentionRuleFieldImpl(collection);
 		} else if (COPY_STATUS_ENTERED.equals(metadataCode) || COPY_STATUS_ENTERED.equals(metadataCodeWithoutPrefix)) {
 			field = new FolderCopyStatusEnteredFieldImpl();
 		} else if (ACTUAL_TRANSFER_DATE.equals(metadataCode) || ACTUAL_TRANSFER_DATE.equals(metadataCodeWithoutPrefix)) {
@@ -106,6 +96,9 @@ public class FolderFieldFactory extends RMMetadataFieldFactory {
 		} else if (BORROWING_TYPE.equals(metadataCode) || BORROWING_TYPE
 				.equals(metadataCodeWithoutPrefix)) {
 			field = new FolderBorrpwingTypeFieldImpl();
+		} else if (OPENING_DATE.equals(metadataCode) || OPENING_DATE
+				.equals(metadataCodeWithoutPrefix)) {
+			field = new FolderOpeningDateFieldImpl();
 		} else {
 			field = super.build(metadata);
 		}

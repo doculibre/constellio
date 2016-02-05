@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.components.display;
 
 import java.util.List;
@@ -22,6 +5,11 @@ import java.util.List;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.records.RecordNavigationExtension;
+import com.constellio.app.extensions.records.params.NavigationParams;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
@@ -29,7 +17,6 @@ import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuH
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.RecordVOToCaptionConverter;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
-import com.constellio.app.ui.framework.navigation.RecordNavigationHandler;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -37,6 +24,8 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
@@ -55,18 +44,33 @@ public class ReferenceDisplay extends Button {
 			setIcon(icon);
 		}
 		setCaption(caption);
-		init(recordVO.getId());
+		init(recordVO);
 	}
 
 	public ReferenceDisplay(String recordId) {
 		this.recordId = recordId;
 		String caption = new RecordIdToCaptionConverter().convertToPresentation(recordId, String.class, getLocale());
-		Resource icon = FileIconUtils.getIconForRecordId(recordId);
-		if (icon != null) {
-			setIcon(icon);
+		if (recordId != null) {
+			Resource icon = FileIconUtils.getIconForRecordId(recordId);
+			if (icon != null) {
+				setIcon(icon);
+			}
 		}
 		setCaption(caption);
 		init(recordId);
+	}
+
+	private void init(RecordVO recordVO) {
+		setSizeFull();
+		addStyleName(STYLE_NAME);
+		addStyleName(ValoTheme.BUTTON_LINK);
+		setEnabled(false);
+		prepareLink();
+
+		String niceTitle = recordVO.getNiceTitle();
+		if (niceTitle != null) {
+			addExtension(new NiceTitle(this, niceTitle));
+		}
 	}
 
 	private void init(String recordId) {
@@ -74,7 +78,7 @@ public class ReferenceDisplay extends Button {
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_LINK);
 		setEnabled(false);
-		addClickListener();
+		prepareLink();
 		//		addContextMenu();
 
 		if (recordId != null) {
@@ -87,6 +91,7 @@ public class ReferenceDisplay extends Button {
 			String niceTitle = getNiceTitle(recordServices.getDocumentById(recordId), types);
 			addExtension(new NiceTitle(this, niceTitle));
 		}
+
 	}
 
 	protected String getNiceTitle(Record record, MetadataSchemaTypes types) {
@@ -99,30 +104,29 @@ public class ReferenceDisplay extends Button {
 		return description;
 	}
 
-	protected void addClickListener() {
-		ClickListener clickListener = null;
-		List<RecordNavigationHandler> recordNavigationHandlers = ConstellioUI.getCurrent().getRecordNavigationHandlers();
-		for (final RecordNavigationHandler recordNavigationHandler : recordNavigationHandlers) {
-			if (recordId != null && recordNavigationHandler.isViewForRecordId(recordId)) {
-				clickListener = new ClickListener() {
-					@Override
-					public void buttonClick(ClickEvent event) {
-						recordNavigationHandler.navigateToView(recordId);
-					}
-				};
-				break;
-			} else if (recordVO != null && recordNavigationHandler.isView(recordVO)) {
-				clickListener = new ClickListener() {
-					@Override
-					public void buttonClick(ClickEvent event) {
-						recordNavigationHandler.navigateToView(recordVO);
-					}
-				};
-				break;
-			}
+	protected void prepareLink() {
+		final ConstellioUI ui = ConstellioUI.getCurrent();
+		String collection = ui.getSessionContext().getCurrentCollection();
+		AppLayerFactory appLayerFactory = ui.getConstellioFactories().getAppLayerFactory();
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		List<RecordNavigationExtension> recordNavigationExtensions = extensions.recordNavigationExtensions.getExtensions();
+
+		NavigationParams navigationParams = null;
+		if (recordVO != null) {
+			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordVO.getSchema().getCode());
+			navigationParams = new NavigationParams(ui.navigateTo(), recordVO, schemaTypeCode, Page.getCurrent(),
+					this);
+		} else if (recordId != null) {
+			Record record = recordServices.getDocumentById(recordId);
+			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+			navigationParams = new NavigationParams(ui.navigateTo(), recordId, schemaTypeCode, Page.getCurrent(),
+					this);
 		}
-		if (clickListener != null) {
-			addClickListener(clickListener);
+		if (navigationParams != null) {
+			for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
+				recordNavigationExtension.prepareLinkToView(navigationParams);
+			}
 		}
 	}
 
@@ -151,11 +155,4 @@ public class ReferenceDisplay extends Button {
 			});
 		}
 	}
-
-	@Override
-	public void addClickListener(ClickListener listener) {
-		setEnabled(true);
-		super.addClickListener(listener);
-	}
-
 }

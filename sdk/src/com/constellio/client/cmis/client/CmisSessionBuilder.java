@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.client.cmis.client;
 
 import java.security.cert.X509Certificate;
@@ -35,10 +18,9 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 public class CmisSessionBuilder {
 
 	private String appUrl;
-	private String user;
-	private String password;
+	private String serviceKey;
+	private String token;
 	private String collection;
-	private String loginAs;
 	private boolean cacheEnabled = false;
 
 	public static CmisSessionBuilder forAppUrl(String appUrl) {
@@ -47,11 +29,11 @@ public class CmisSessionBuilder {
 		return builder;
 	}
 
-	public static CmisSessionBuilder forLogin(String appUrl, String user, String password, String collection) {
+	public static CmisSessionBuilder forLogin(String appUrl, String serviceKey, String token, String collection) {
 		CmisSessionBuilder builder = new CmisSessionBuilder();
 		builder.appUrl = appUrl.replace("/atom", "");
-		builder.user = user;
-		builder.password = password;
+		builder.serviceKey = serviceKey;
+		builder.token = token;
 		builder.collection = collection;
 		return builder;
 	}
@@ -87,19 +69,15 @@ public class CmisSessionBuilder {
 	}
 
 	public Session build() {
-		if (user == null || appUrl == null || password == null || collection == null) {
-			throw new RuntimeException("user, appUrl, password and collection parameters required");
+		if (serviceKey == null || appUrl == null || token == null || collection == null) {
+			throw new RuntimeException("serviceKey, appUrl, token and collection parameters required");
 		}
 		SessionFactory factory = SessionFactoryImpl.newInstance();
 		Map<String, String> parameter = new HashMap<String, String>();
 
-		// user credentials
-		if (loginAs == null) {
-			parameter.put(SessionParameter.USER, user);
-		} else {
-			parameter.put(SessionParameter.USER, user + "=>" + loginAs);
-		}
-		parameter.put(SessionParameter.PASSWORD, password);
+		// serviceKey credentials
+		parameter.put(SessionParameter.USER, serviceKey);
+		parameter.put(SessionParameter.PASSWORD, token);
 
 		// connection settings
 		parameter.put(SessionParameter.ATOMPUB_URL, appUrl + (appUrl.endsWith("/") ? "" : "/") + "atom");
@@ -116,14 +94,9 @@ public class CmisSessionBuilder {
 		return session;
 	}
 
-	public CmisSessionBuilder authenticatedBy(String user, String password) {
-		this.user = user;
-		this.password = password;
-		return this;
-	}
-
-	public CmisSessionBuilder logedAs(String loginAs) {
-		this.loginAs = loginAs;
+	public CmisSessionBuilder authenticatedBy(String serviceKey, String token) {
+		this.serviceKey = serviceKey;
+		this.token = token;
 		return this;
 	}
 

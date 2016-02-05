@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.collections;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -23,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,11 +16,13 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CannotSelectBothRMandES;
+import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeCodeChangeForbidden;
+import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeShouldNotContainDash;
+import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeUnAvailable;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_MustSelectAtLeastOneModule;
-import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_TasksCannotBeTheOnlySelectedModule;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.modules.Module;
+import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
@@ -83,16 +69,18 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	public CollectionVO getCollectionVO() {
 		if (actionEdit) {
 			return new CollectionVO(
-					code, collectionRecord.getTitle(), collectionRecord.getLanguages().get(0), getInstalledModules());
+					code, collectionRecord.getName(), collectionRecord.getLanguages().get(0), getEnabledModules(code));
 		} else {
 			return new CollectionVO();
 		}
 	}
 
-	private List<String> getInstalledModules() {
+	List<String> getEnabledModules(String code) {
 		List<String> modules = new ArrayList<>();
 		for (Module module : modulesManager.getEnabledModules(code)) {
-			modules.add(module.getId());
+			if (!module.isComplementary()) {
+				modules.add(module.getId());
+			}
 		}
 		return modules;
 	}
@@ -100,7 +88,9 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	public List<String> getAvailableModules() {
 		List<String> modules = new ArrayList<>();
 		for (Module module : modulesManager.getAllModules()) {
-			modules.add(module.getId());
+			if (!module.isComplementary()) {
+				modules.add(module.getId());
+			}
 		}
 		return modules;
 	}
@@ -108,65 +98,93 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	public void saveButtonClicked(CollectionVO entity)
 			throws AddEditCollectionPresenterException {
 		String code = entity.getCode();
+		validateCode(code);
+		validateModules(entity.getModules());
 		if (!getActionEdit()) {
-			if (collectionsListManager.getCollections().contains(code)) {
-				view.showErrorMessage($("AddEditCollectionView.codeNonAvailable"));
-				return;
+			Set<String> invalidModules = createCollection(entity);
+			if (invalidModules.isEmpty()) {
+				view.showMessage($("AddEditCollectionPresenter.addConfirmation"));
 			} else {
-				createCollection(code, entity.getModules());
+				view.showMessage($("AddEditCollectionPresenter.addConfirmationWithInvalidModules" + StringUtils
+						.join(invalidModules, "\n")));
 			}
 		} else {
-			if (!getCode().equals(code)) {
-				view.showErrorMessage($("AddEditCollectionView.codeChangeForbidden"));
-				return;
+			Set<String> invalidModules = updateCollection(entity);
+			if (invalidModules.isEmpty()) {
+				view.showMessage($("AddEditCollectionPresenter.updateConfirmation"));
+			} else {
+				view.showMessage($("AddEditCollectionPresenter.updateConfirmationWithInvalidModules" + StringUtils
+						.join(invalidModules, "\n")));
 			}
-			updateCollection(entity);
 		}
-		view.showMessage($("AddEditCollectionPresenter.addConfirmation"));
 		navigateToBackPage();
 	}
 
-	private void updateCollection(CollectionVO entity) {
-		String collectionTitle = entity.getName();
+	private void validateModules(Set<String> modules)
+			throws AddEditCollectionPresenterException {
+		if (modules == null || modules.isEmpty()) {
+			throw new AddEditCollectionPresenterException_MustSelectAtLeastOneModule();
+		}
+	}
+
+	private void validateCode(String code)
+			throws AddEditCollectionPresenterException {
+		if (code.contains("-")) {
+			throw new AddEditCollectionPresenterException_CodeShouldNotContainDash();
+		}
+		if (getActionEdit()) {
+			if (!getCode().equals(code)) {
+				throw new AddEditCollectionPresenterException_CodeCodeChangeForbidden();
+			}
+		} else {
+			if (collectionsListManager.getCollections().contains(code)) {
+				throw new AddEditCollectionPresenterException_CodeUnAvailable();
+			}
+		}
+	}
+
+	Set<String> updateCollection(CollectionVO entity) {
+		String collectionName = entity.getName();
 		try {
-			recordServices().update(collectionRecord.setTitle(collectionTitle));
+			recordServices().update(collectionRecord.setName(collectionName));
+			return updateCollectionModules(collectionRecord.getWrappedRecord(), entity.getCode(), entity.getModules());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private Record createCollection(String code, Set<String> modules)
+	Set<String> createCollection(CollectionVO entity)
 			throws AddEditCollectionPresenterException {
-		if (modules.contains("rm") && modules.contains("es")) {
-			throw new AddEditCollectionPresenterException_CannotSelectBothRMandES();
-		} else if (modules.isEmpty()) {
-			throw new AddEditCollectionPresenterException_MustSelectAtLeastOneModule();
-		} else if (modules.size() == 1 && modules.contains("tasks")) {
-			throw new AddEditCollectionPresenterException_TasksCannotBeTheOnlySelectedModule();
-		}
+		Set<String> modules = entity.getModules();
+		String collectionCode = entity.getCode();
+		String collectionName = entity.getName();
 		String language = modelLayerFactory.getConfiguration().getMainDataLanguage();
-		Record newCollectionRecord = collectionsManager.createCollectionInCurrentVersion(code, Arrays.asList(language));
-		List<String> roles = new ArrayList<>();
-		for (String moduleCode : modules) {
-			Module module = modulesManager.getInstalledModule(moduleCode);
-			if (!modulesManager.isInstalled(module)) {
-				modulesManager.installModule(module, collectionsListManager);
-			}
-			modulesManager.enableModule(code, module);
-			roles.addAll(module.getRolesForCreator());
-		}
+		Record record = collectionsManager
+				.createCollectionInCurrentVersion(collectionCode, collectionName, Arrays.asList(language));
+		return updateCollectionModules(record, collectionCode, modules);
+	}
 
+	Set<String> updateCollectionModules(Record collectionRecord, String collectionCode, Set<String> modules) {
+		List<String> roles = new ArrayList<>();
+		Set<String> invalidModules = new HashSet<>();
+		for (String currentModule : modules) {
+			Module module = modulesManager.getInstalledModule(currentModule);
+			if (!modulesManager.isInstalled(module)) {
+				invalidModules.addAll(modulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager));
+			}
+			invalidModules.addAll(modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module));
+			roles.addAll(PluginUtil.getRolesForCreator(module));
+		}
 		UserServices userServices = modelLayerFactory.newUserServices();
 		UserCredential currentUser = userServices.getUser(getCurrentUser().getUsername());
-		userServices.addUserToCollection(currentUser, newCollectionRecord.getId());
-		User user = userServices.getUserInCollection(currentUser.getUsername(), code);
+		userServices.addUserToCollection(currentUser, collectionRecord.getId());
+		User user = userServices.getUserInCollection(currentUser.getUsername(), collectionCode);
 		try {
 			recordServices().update(user.setUserRoles(roles).setCollectionAllAccess(true));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
-
-		return newCollectionRecord;
+		return invalidModules;
 	}
 
 	public void cancelButtonClicked() {
@@ -204,7 +222,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 
 	public String getModuleCaption(String moduleId) {
 		StringBuilder moduleCaption = new StringBuilder($("ConstellioModule." + moduleId));
-		List<String> dependencies = getModuleDependencies(moduleId);
+		/*List<String> dependencies = getModuleDependencies(moduleId);
 		if (!dependencies.isEmpty()) {
 			moduleCaption.append(" (");
 			for (int i = 0; i < dependencies.size() - 1; i++) {
@@ -212,11 +230,16 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 				moduleCaption.append($("ConstellioModule." + moduleDependency) + ", ");
 			}
 			moduleCaption.append($("ConstellioModule." + dependencies.get(dependencies.size() - 1)) + ")");
-		}
+		}*/
 		return moduleCaption.toString();
 	}
 
 	private List<String> getModuleDependencies(String moduleId) {
-		return modulesManager.getInstalledModule(moduleId).getDependencies();
+		Module module = modulesManager.getInstalledModule(moduleId);
+		return PluginUtil.getDependencies(module);
+	}
+
+	public boolean isModuleSelected(String moduleId, CollectionVO collectionVO) {
+		return collectionVO.getModules().contains(moduleId);
 	}
 }

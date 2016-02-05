@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas;
 
 import static com.constellio.data.utils.LangUtils.compareStrings;
@@ -69,7 +52,8 @@ public class MetadataList implements List<Metadata> {
 	@Override
 	public boolean contains(Object o) {
 		if (o instanceof Metadata) {
-			return codeIndex.containsKey(((Metadata) o).getCode());
+			String code = codeOf((Metadata) o);
+			return codeIndex.containsKey(code);
 		} else {
 			return false;
 		}
@@ -271,6 +255,39 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList onlyPopulatedByStyles() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (!metadata.getPopulateConfigs().getStyles().isEmpty()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyPopulated() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+
+			if (!metadata.getPopulateConfigs().getProperties().isEmpty() ||
+					!metadata.getPopulateConfigs().getStyles().isEmpty() ||
+					!metadata.getPopulateConfigs().getRegexes().isEmpty()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyPopulatedByProperties() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (!metadata.getPopulateConfigs().getProperties().isEmpty()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlyNonParentReferences() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -291,6 +308,17 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList onlyParentReferenceToSchemaType(String typeCode) {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isChildOfRelationship()
+					&& metadata.getAllowedReferences().getTypeWithAllowedSchemas().equals(typeCode)) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlyTaxonomyReferences() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -305,6 +333,16 @@ public class MetadataList implements List<Metadata> {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (filter.isReturned(metadata)) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlySearchable() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isSearchable()) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
@@ -345,13 +383,13 @@ public class MetadataList implements List<Metadata> {
 
 	private void addToIndex(Metadata metadata) {
 		localCodeIndex.put(metadata.getLocalCode(), metadata);
-		codeIndex.put(metadata.getCode(), metadata);
+		codeIndex.put(codeOf(metadata), metadata);
 		datastoreCodeIndex.put(metadata.getDataStoreCode(), metadata);
 	}
 
 	private void removeFromIndex(Metadata metadata) {
 		localCodeIndex.remove(metadata.getLocalCode());
-		codeIndex.remove(metadata.getCode());
+		codeIndex.remove(codeOf(metadata));
 		datastoreCodeIndex.remove(metadata.getDataStoreCode());
 	}
 
@@ -364,7 +402,7 @@ public class MetadataList implements List<Metadata> {
 	private void setIndexes(int index, Metadata element) {
 		removeFromIndex(nestedList.get(index));
 		localCodeIndex.put(element.getLocalCode(), element);
-		codeIndex.put(element.getCode(), element);
+		codeIndex.put(codeOf(element), element);
 		datastoreCodeIndex.put(element.getDataStoreCode(), element);
 	}
 
@@ -409,6 +447,16 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList onlyNotSystemReserved() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (!metadata.isSystemReserved()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlySchemaAutocomplete() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -438,7 +486,7 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
-	public List<Metadata> onlyWithDefaultValue() {
+	public MetadataList onlyWithDefaultValue() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.getDefaultValue() != null) {
@@ -471,5 +519,19 @@ public class MetadataList implements List<Metadata> {
 		List<Metadata> filteredMetadatasList = new ArrayList<>(nestedList);
 		Collections.sort(filteredMetadatasList, comparator);
 		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	private String codeOf(Metadata metadata) {
+		String code = metadata.getCode();
+		if (metadata.getInheritance() == null) {
+			return metadata.getCode();
+		} else {
+			String[] parts = SchemaUtils.underscoreSplitWithCache(code);
+			return parts[0] + "_default_" + parts[2];
+		}
+	}
+
+	public boolean containsMetadataWithLocalCode(String localCode) {
+		return localCodeIndex.containsKey(localCode);
 	}
 }

@@ -1,24 +1,4 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
@@ -56,17 +36,52 @@ public class PdfTableUtils {
 		}
 	}
 
-	public void addPhraseRow(PdfPTable table, String phrase, int fontSize, int colspan) {
-		addPhraseCell(table, phrase, fontSize, colspan);
+	public void addCenterPhraseRow(PdfPTable table, String phrase, int fontSize) {
+		addCenterPhraseCell(table, phrase, fontSize, table.getNumberOfColumns());
 		table.completeRow();
 	}
 
-	public void addPhraseCell(PdfPTable table, String text, int fontSize, int colspan) {
+	public void addCenterPhraseCellWithFont(PdfPTable table, String text, Font font) {
+		Phrase pdfPhrase = new Phrase(text, font);
+		PdfPCell cell = new PdfPCell(pdfPhrase);
+		cell.setBorder(Rectangle.NO_BORDER);
+		cell.setColspan(table.getNumberOfColumns());
+		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+		table.addCell(cell);
+	}
+
+	public void addCenterPhraseCell(PdfPTable table, String text, int fontSize, int colspan) {
+		Phrase pdfPhrase = newPhrase(text, fontSize);
+		PdfPCell cell = new PdfPCell(pdfPhrase);
+		cell.setBorder(Rectangle.NO_BORDER);
+		cell.setColspan(colspan);
+		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+		table.addCell(cell);
+	}
+
+	public void addLeftPhraseRow(PdfPTable table, String phrase, int fontSize, int colspan) {
+		addLeftPhraseCell(table, phrase, fontSize, colspan);
+		table.completeRow();
+	}
+
+	public void addLeftPhraseCell(PdfPTable table, String text, int fontSize, int colspan) {
 		Phrase pdfPhrase = newPhrase(text, fontSize);
 		PdfPCell cell = new PdfPCell(pdfPhrase);
 		cell.setBorder(Rectangle.NO_BORDER);
 		cell.setColspan(colspan);
 		cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+		table.addCell(cell);
+	}
+
+	public void addLeftPhraseCell(PdfPTable table, String text, int fontSize, int colspan, boolean border) {
+		Phrase pdfPhrase = newPhrase(text, fontSize);
+		PdfPCell cell = new PdfPCell(pdfPhrase);
+		cell.setBorder(Rectangle.NO_BORDER);
+		cell.setColspan(colspan);
+		cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+		if (border) {
+			cell.setBorder(Rectangle.BOX);
+		}
 		table.addCell(cell);
 	}
 

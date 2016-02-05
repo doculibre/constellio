@@ -1,24 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.records;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -36,15 +20,18 @@ public class ParsedContent {
 
 	private Map<String, String> normalizedPropertyNames;
 	private Map<String, Object> properties;
+	private Map<String, List<String>> styles;
 	private long length;
 
-	public ParsedContent(String parsedContent, String language, String mimeType, long length, Map<String, Object> properties) {
+	public ParsedContent(String parsedContent, String language, String mimeType, long length, Map<String, Object> properties,
+			Map<String, List<String>> styles) {
 		this.parsedContent = parsedContent;
 		this.language = language;
 		this.mimeType = mimeType;
 		this.length = length;
 		this.properties = Collections.unmodifiableMap(properties);
 		this.normalizedPropertyNames = normalizePropertyNames(properties);
+		this.styles = Collections.unmodifiableMap(styles);
 	}
 
 	private Map<String, String> normalizePropertyNames(Map<String, Object> properties) {
@@ -63,7 +50,9 @@ public class ParsedContent {
 	}
 
 	public static ParsedContent unparsable(String mimeType, long length) {
-		return new ParsedContent("", Language.UNKNOWN.getCode(), mimeType, length, new HashMap<String, Object>());
+		Map<String, Object> emptyPropertiesMap = Collections.emptyMap();
+		Map<String, List<String>> emptyStylesMap = Collections.emptyMap();
+		return new ParsedContent("", Language.UNKNOWN.getCode(), mimeType, length, emptyPropertiesMap, emptyStylesMap);
 	}
 
 	public String getParsedContent() {
@@ -92,6 +81,10 @@ public class ParsedContent {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
+	public Map<String, List<String>> getStyles() {
+		return styles;
+	}
+
 	public long getLength() {
 		return length;
 	}
@@ -103,5 +96,13 @@ public class ParsedContent {
 	public Object getNormalizedProperty(String normalizedProperty) {
 		String property = normalizedPropertyNames.get(normalizedProperty.toLowerCase());
 		return property == null ? null : properties.get(property);
+	}
+
+	public String getMimetypeWithoutCharset() {
+		if (mimeType != null && mimeType.indexOf(";") != -1) {
+			return mimeType.substring(0, mimeType.indexOf(";"));
+		} else {
+			return mimeType;
+		}
 	}
 }

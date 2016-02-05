@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemasDisplay;
 
 import static java.util.Arrays.asList;
@@ -60,7 +43,7 @@ public class OngoingAddMetadatasToSchemas {
 		});
 	}
 
-	public void afterMetadata(final String afterMetadata) {
+	public SchemaTypesDisplayTransactionBuilder afterMetadata(final String afterMetadata) {
 		transaction.updateAllSchemas(schemaType.getCode(), new SchemaDisplayAlteration() {
 			@Override
 			public SchemaDisplayConfig alter(SchemaDisplayConfig schemaDisplayConfig) {
@@ -80,13 +63,14 @@ public class OngoingAddMetadatasToSchemas {
 			}
 
 		});
+		return transaction;
 	}
 
-	public void beforeMetadata(final String beforeMetadata) {
-		beforeMetadatas(asList(beforeMetadata));
+	public SchemaTypesDisplayTransactionBuilder beforeMetadata(final String beforeMetadata) {
+		return beforeMetadatas(asList(beforeMetadata));
 	}
 
-	public void beforeMetadatas(final List<String> beforeMetadatas) {
+	public SchemaTypesDisplayTransactionBuilder beforeMetadatas(final List<String> beforeMetadatas) {
 		transaction.updateAllSchemas(schemaType.getCode(), new SchemaDisplayAlteration() {
 			@Override
 			public SchemaDisplayConfig alter(SchemaDisplayConfig schemaDisplayConfig) {
@@ -115,9 +99,10 @@ public class OngoingAddMetadatasToSchemas {
 			}
 
 		});
+		return transaction;
 	}
 
-	public void atTheEnd() {
+	public SchemaTypesDisplayTransactionBuilder atTheEnd() {
 		transaction.updateAllSchemas(schemaType.getCode(), new SchemaDisplayAlteration() {
 			@Override
 			public SchemaDisplayConfig alter(SchemaDisplayConfig schemaDisplayConfig) {
@@ -131,9 +116,10 @@ public class OngoingAddMetadatasToSchemas {
 			}
 
 		});
+		return transaction;
 	}
 
-	public void atFirstPosition() {
+	public SchemaTypesDisplayTransactionBuilder atFirstPosition() {
 		transaction.updateAllSchemas(schemaType.getCode(), new SchemaDisplayAlteration() {
 			@Override
 			public SchemaDisplayConfig alter(SchemaDisplayConfig schemaDisplayConfig) {
@@ -147,6 +133,7 @@ public class OngoingAddMetadatasToSchemas {
 			}
 
 		});
+		return transaction;
 	}
 
 	private List<String> getMetadataCodesFor(String schemaCode) {

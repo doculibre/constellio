@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.extensions;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -37,8 +20,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
@@ -117,7 +100,8 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCreatingARecordThenListenersCalled()
 			throws Exception {
-		ArgumentCaptor<RecordInCreationEvent> recordInCreationArgs = ArgumentCaptor.forClass(RecordInCreationEvent.class);
+		ArgumentCaptor<RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent> recordInCreationArgs = ArgumentCaptor
+				.forClass(RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent.class);
 		ArgumentCaptor<RecordCreationEvent> recordCreatedArgs = ArgumentCaptor.forClass(RecordCreationEvent.class);
 		Record record1 = new TestRecord(zeSchema, "newZeSchemaRecord").set(TITLE, "My first record");
 		Record record2 = new TestRecord(anotherSchema, "newOtherSchemaRecord").set(TITLE, "My second record");
@@ -125,10 +109,14 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
 		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
 
-		inOrder.verify(recordExtension1).recordInCreation(recordInCreationArgs.capture());
-		inOrder.verify(recordExtension2).recordInCreation(recordInCreationArgs.capture());
-		inOrder.verify(recordExtension1).recordInCreation(recordInCreationArgs.capture());
-		inOrder.verify(recordExtension2).recordInCreation(recordInCreationArgs.capture());
+		inOrder.verify(recordExtension1).recordInCreationBeforeValidationAndAutomaticValuesCalculation(
+				recordInCreationArgs.capture());
+		inOrder.verify(recordExtension2).recordInCreationBeforeValidationAndAutomaticValuesCalculation(
+				recordInCreationArgs.capture());
+		inOrder.verify(recordExtension1).recordInCreationBeforeValidationAndAutomaticValuesCalculation(
+				recordInCreationArgs.capture());
+		inOrder.verify(recordExtension2).recordInCreationBeforeValidationAndAutomaticValuesCalculation(
+				recordInCreationArgs.capture());
 
 		inOrder.verify(recordExtension1).recordCreated(recordCreatedArgs.capture());
 		inOrder.verify(recordExtension2).recordCreated(recordCreatedArgs.capture());
@@ -150,8 +138,8 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenModifyingARecordThenListenersCalled()
 			throws Exception {
-		ArgumentCaptor<RecordInModificationEvent> recordInModificationArgs = ArgumentCaptor
-				.forClass(RecordInModificationEvent.class);
+		ArgumentCaptor<RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent> recordInModificationArgs = ArgumentCaptor
+				.forClass(RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent.class);
 		ArgumentCaptor<RecordModificationEvent> recordModifiedArgs = ArgumentCaptor.forClass(RecordModificationEvent.class);
 		existingZeSchemaRecord.set(Schemas.TITLE, "new title");
 		existingAnotherSchemaRecord.set(Schemas.TITLE, "an other new title");
@@ -159,10 +147,14 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
 		InOrder inOrder = inOrder(recordExtension1, recordExtension2);
 
-		inOrder.verify(recordExtension1).recordInModification(recordInModificationArgs.capture());
-		inOrder.verify(recordExtension2).recordInModification(recordInModificationArgs.capture());
-		inOrder.verify(recordExtension1).recordInModification(recordInModificationArgs.capture());
-		inOrder.verify(recordExtension2).recordInModification(recordInModificationArgs.capture());
+		inOrder.verify(recordExtension1).recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+				recordInModificationArgs.capture());
+		inOrder.verify(recordExtension2).recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+				recordInModificationArgs.capture());
+		inOrder.verify(recordExtension1).recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+				recordInModificationArgs.capture());
+		inOrder.verify(recordExtension2).recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+				recordInModificationArgs.capture());
 
 		inOrder.verify(recordExtension1).recordModified(recordModifiedArgs.capture());
 		inOrder.verify(recordExtension2).recordModified(recordModifiedArgs.capture());

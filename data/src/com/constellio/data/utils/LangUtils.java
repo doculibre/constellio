@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.utils;
 
 import java.util.ArrayList;
@@ -29,8 +12,19 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.LocalDate;
 
 public class LangUtils {
+
+	public static LocalDate max(LocalDate date1, LocalDate date2) {
+		if (date1 == null) {
+			return date2;
+		}
+		if (date2 == null) {
+			return date1;
+		}
+		return date1.isBefore(date2) ? date2 : date1;
+	}
 
 	public static <V> boolean containsAny(Collection<V> firstCollection, Collection<V> secondCollection) {
 
@@ -138,8 +132,14 @@ public class LangUtils {
 		return !Boolean.TRUE.equals(value);
 	}
 
-	public static List<String> withoutDuplicates(List<String> value) {
+	public static <T> List<T> withoutDuplicates(List<T> value) {
 		return new ArrayList<>(new HashSet<>(value));
+	}
+
+	public static List<String> withoutDuplicatesAndNulls(List<String> value) {
+		List<String> values = new ArrayList<>(new HashSet<>(value));
+		values.remove(null);
+		return values;
 	}
 
 	public static <T> List<T> withoutNulls(List<T> items) {

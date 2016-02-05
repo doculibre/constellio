@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.bigVault;
 
 import java.util.List;
@@ -29,7 +12,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LazyIterator;
 
-public abstract class LazyResultsIterator<T> extends LazyIterator<T> {
+public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements SearchResponseIterator<T> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LazyResultsIterator.class);
 
@@ -40,14 +23,22 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> {
 	private int currentStart = -1;
 	private int currentBatchIndex = 0;
 	private List<RecordDTO> currentBatch;
-	private long lastNumFound;
-	private String lastId = null;
+	private long currentNumFound = -1;
+	protected String lastId = null;
 
 	public LazyResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength) {
 		this.recordDao = recordDao;
 		this.solrParams = new ModifiableSolrParams(solrParams);
 		this.solrParams.set("rows", intervalsLength);
 		this.intervalsLength = intervalsLength;
+	}
+
+	@Override
+	public long getNumFound() {
+		if (currentNumFound == -1) {
+			hasNext();
+		}
+		return currentNumFound;
 	}
 
 	public abstract T convert(RecordDTO recordDTO);
@@ -77,14 +68,15 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> {
 	void loadNextBatch() {
 		ModifiableSolrParams params = new ModifiableSolrParams(this.solrParams);
 		params.set("sort", "id asc");
+		params.set("start", 0);
 		if (lastId != null) {
-			params.add("start", "" + currentStart);
+			//params.add("start", "" + currentStart);
 			params.add("fq", "id:{" + lastId + " TO *}");
 		}
 		//params.set("start", currentStart);
 		QueryResponseDTO responseDTO = recordDao.query(params);
 		currentBatch = responseDTO.getResults();
-		lastNumFound = responseDTO.getNumFound();
+		currentNumFound = responseDTO.getNumFound();
 		currentBatchIndex = 0;
 
 	}

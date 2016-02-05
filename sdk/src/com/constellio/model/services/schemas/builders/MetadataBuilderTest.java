@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import static org.mockito.Matchers.anyString;
@@ -28,6 +11,7 @@ import org.mockito.Mock;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -46,6 +30,7 @@ public class MetadataBuilderTest extends ConstellioTest {
 
 	@Mock MetadataSchemaTypesBuilder typesBuilder;
 	@Mock TaxonomiesManager taxonomiesManager;
+	@Mock ModelLayerFactory modelLayerFactory;
 	DataStoreTypesFactory typesFactory = new FakeDataStoreTypeFactory();
 	MetadataBuilder metadataWithInheritanceBuilder, metadataWithoutInheritanceBuilder, inheritedMetadataBuilder;
 	MetadataBuilder anotherSchemaMetadataBuilder, referenceOtherSchemaMetadataBuilder;
@@ -60,6 +45,7 @@ public class MetadataBuilderTest extends ConstellioTest {
 
 	@Before
 	public void setup() {
+		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(COLLECTION, "codeSchema", typesBuilder);
 		schemaBuilder = schemaTypeBuilder.getDefaultSchema();
@@ -84,13 +70,13 @@ public class MetadataBuilderTest extends ConstellioTest {
 	}
 
 	protected void build() {
-		metadataWithoutInheritance = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, taxonomiesManager);
+		metadataWithoutInheritance = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory);
 		inheritedMetadata = metadataWithoutInheritance;
 		metadataWithInheritance = metadataWithInheritanceBuilder.buildWithInheritance(inheritedMetadata);
 	}
 
 	protected void buildAndModify() {
-		Metadata inheritedMetadata = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, taxonomiesManager);
+		Metadata inheritedMetadata = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory);
 		Metadata metadataWithInheritance = metadataWithInheritanceBuilder.buildWithInheritance(inheritedMetadata);
 		metadataWithoutInheritanceBuilder = MetadataBuilder.modifyMetadataWithoutInheritance(inheritedMetadata);
 		inheritedMetadataBuilder = metadataWithoutInheritanceBuilder;

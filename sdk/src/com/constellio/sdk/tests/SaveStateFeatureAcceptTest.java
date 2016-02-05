@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import static java.util.Arrays.asList;
@@ -32,7 +15,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.constellio.app.services.extensions.plugins.InvalidJarsTest;
+import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
+import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class SaveStateFeatureAcceptTest extends ConstellioTest {
 
@@ -42,6 +29,7 @@ public class SaveStateFeatureAcceptTest extends ConstellioTest {
 	public TemporaryFolder folder = new TemporaryFolder();
 
 	@Test
+	@SlowTest
 	public void givenInCurrentVersionWhenSavingStateTwiceThenSameResult()
 			throws Exception {
 
@@ -70,6 +58,43 @@ public class SaveStateFeatureAcceptTest extends ConstellioTest {
 
 		System.out.println(folder.getRoot().getAbsolutePath());
 
+	}
+
+	@Test
+	@SlowTest
+	public void givenStateWithPluginsWhenLoadStateThenJarPluginsLoadedCorrectly()
+			throws Exception {
+		givenDisabledAfterTestValidations();
+		givenTransactionLogIsEnabled();
+		givenTimeIs(DUMMY_LOCAL_DATE);
+		givenCollection(zeCollection).withConstellioRMModule();
+		//new SystemStateExporter().exportSystemToFile();
+		File stateWithPlugins = getSaveStateWithPluginjars();
+		File pluginFolder = getAppLayerFactory().getAppLayerConfiguration().getPluginsFolder();
+		removeFilesFromFolder(pluginFolder);
+
+		getSaveStateFeature().loadStateFrom(stateWithPlugins);
+
+		InvalidJarsTest.assertThatJarsLoadedCorrectly(pluginFolder);
+	}
+
+	private void removeFilesFromFolder(File folder) {
+		for (File file : folder.listFiles()) {
+			if (file.isDirectory()) {
+				removeFilesFromFolder(file);
+			} else {
+				FileUtils.deleteQuietly(file);
+			}
+		}
+	}
+
+	private File getSaveStateWithPluginjars()
+			throws IOException {
+		InvalidJarsTest.loadJarsToPluginsFolder(getAppLayerFactory().getAppLayerConfiguration().getPluginsFolder());
+		File stateWithPlugins = folder.newFile("state1.zip");
+		SystemStateExportParams params = new SystemStateExportParams().setExportPluginJars(true);
+		new SystemStateExporter(getAppLayerFactory()).exportSystemToFile(stateWithPlugins, params);
+		return stateWithPlugins;
 	}
 
 	private void assertThatStatesAreEqual(File state1, File state2)

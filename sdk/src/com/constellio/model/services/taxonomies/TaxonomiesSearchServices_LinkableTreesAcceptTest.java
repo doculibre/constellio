@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.taxonomies;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
@@ -32,6 +15,7 @@ import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -186,18 +170,18 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_X100))
 				.has(itemsWithChildren(records.categoryId_X100));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(linkable(records.folder_A18))
 				.has(itemsWithChildren());
 
@@ -213,17 +197,17 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10a))
 				.has(itemsWithChildren(records.unitId_10a));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10a)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.folder_A18, records.folder_A08))
 				.has(resultsInOrder(records.folder_A08, records.folder_A18))
 				.has(noItemsWithChildren());
@@ -242,17 +226,17 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, withWriteAccess)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10, withWriteAccess)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10a))
 				.has(itemsWithChildren(records.unitId_10a));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10a, withWriteAccess)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.folder_A18, records.folder_A08))
 				.has(resultsInOrder(records.folder_A08, records.folder_A18))
 				.has(noItemsWithChildren());
@@ -269,27 +253,26 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_X))
 				.has(unlinkable(records.categoryId_Z))
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_X100, records.categoryId_X13))
 				.has(resultsInOrder(records.categoryId_X100, records.categoryId_X13))
 				.has(itemsWithChildren(records.categoryId_X100));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_X110, records.categoryId_X120))
 				.has(resultsInOrder(records.categoryId_X110, records.categoryId_X120))
 				.has(noItemsWithChildren());
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_X110)
 				.is(empty());
-
 	}
 
 	@Test
@@ -355,26 +338,26 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenUserHasReadAccessTo(subFolder.getId());
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_Z));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_Z100))
 				.has(itemsWithChildren(records.categoryId_Z100));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_Z120))
 				.has(itemsWithChildren(records.categoryId_Z120));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z120)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.folder_A20));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(linkable(subFolder.getId()))
 				.has(noItemsWithChildren());
 
@@ -396,22 +379,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, withWriteAccess)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_Z));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(subFolder1.getId(), subFolder2.getId()))
 				.has(noItemsWithChildren());
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A20, withWriteAccess)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(linkable(subFolder2.getId()))
 				.has(noItemsWithChildren());
 
@@ -427,22 +410,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenUserHasReadAccessTo(subFolder.getId());
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10a))
 				.has(itemsWithChildren(records.unitId_10a));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10a)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.folder_A20))
 				.has(itemsWithChildren(records.folder_A20));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.folder_A20)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(linkable(subFolder.getId()))
 				.has(noItemsWithChildren());
 
@@ -457,24 +440,24 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenUserHasReadAccessTo(records.unitId_12);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_X))
 				.has(itemsWithChildren(records.categoryId_X));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_X100))
 				.has(itemsWithChildren(records.categoryId_X100));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)
-				.has(numFound(5))
+				.has(numFoundAndListSize(5))
 				.has(unlinkable(records.categoryId_X110, records.categoryId_X120))
 				.has(linkable(records.folder_B06, records.folder_B32, records.folder_B52))
 				.has(resultsInOrder("categoryId_X110", "categoryId_X120", "B52", "B06", "B32"))
 				.has(itemsWithChildren("categoryId_X110", "categoryId_X120"));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X110)
-				.has(numFound(4))
+				.has(numFoundAndListSize(4))
 				.has(linkable(records.folder_B02, records.folder_B04, records.folder_B30, records.folder_B50))
 				.has(resultsInOrder(records.folder_B02, records.folder_B04, records.folder_B30, records.folder_B50))
 				.has(noItemsWithChildren());
@@ -490,22 +473,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenUserHasReadAccessTo(records.unitId_12);
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_12))
 				.has(itemsWithChildren(records.unitId_12));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_12b))
 				.has(itemsWithChildren(records.unitId_12b));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12b)
-				.has(numFound(10))
+				.has(numFoundAndListSize(10))
 				.has(linkable(records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08, records.folder_B30,
 						records.folder_B32, records.folder_B34, records.folder_B50, records.folder_B52, records.folder_B54))
 				.has(resultsInOrder("B52", "B02", "B04", "B06", "B08", "B54", "B30", "B32", "B34", "B50"))
@@ -523,14 +506,14 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		givenUserHasReadAccessTo(records.unitId_12);
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_X))
 				.has(unlinkable(records.categoryId_Z))
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
-				.has(numFound(4))
+				.has(numFoundAndListSize(4))
 				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200))
 				.has(linkable(records.categoryId_ZE42, records.categoryId_Z999))
 				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
@@ -538,13 +521,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(itemsWithChildren(records.categoryId_Z100));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_Z110, records.categoryId_Z120))
 				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(itemsWithChildren(records.categoryId_Z110));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z110)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_Z111))
 				.has(linkable(records.categoryId_Z112))
 				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
@@ -556,23 +539,75 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	@Test
+	public void givenUserHaveAuthorizationsOnAnAdministrativeUnitThenAllCategoriesTreeVisibleForCategorySelectionWithInterval()
+			throws Exception {
+
+		givenUserHasReadAccessTo(records.unitId_12);
+
+		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_X))
+				.has(unlinkable(records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
+				.has(numFoundAndListSize(4))
+				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200))
+				.has(linkable(records.categoryId_ZE42, records.categoryId_Z999))
+				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
+						records.categoryId_ZE42))
+				.has(itemsWithChildren(records.categoryId_Z100));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_Z110, records.categoryId_Z120))
+				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z110));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z110)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_Z111))
+				.has(linkable(records.categoryId_Z112))
+				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
+				.has(noItemsWithChildren());
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z112)
+				.is(empty());
+
+		// This test fails because numFound does not match the number of records in interval.
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z110,
+				new TaxonomiesSearchOptions().setStartRow(0).setRows(1))
+				.has(resultsInOrder(records.categoryId_Z111))
+				.has(noItemsWithChildren())
+				.has(numFound(2)).has(listSize(1));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z110,
+				new TaxonomiesSearchOptions().setStartRow(1).setRows(1))
+				.has(resultsInOrder(records.categoryId_Z112))
+				.has(noItemsWithChildren())
+				.has(numFound(2)).has(listSize(1));
+
+	}
+
+	@Test
 	public void givenUserHaveAuthorizationsOnAnAdministrativeUnitThenValidTreeForUnitSelectionUsingUnitTaxonomy()
 			throws Exception {
 
 		givenUserHasReadAccessTo(records.unitId_12);
 
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_10)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(linkable(records.unitId_12))
 				.has(itemsWithChildren(records.unitId_12));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_12)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.unitId_12b, records.unitId_12c))
 				.has(resultsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(noItemsWithChildren());
@@ -591,17 +626,17 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, withWriteAccess)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_10, withWriteAccess)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(linkable(records.unitId_12))
 				.has(itemsWithChildren(records.unitId_12));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_12, withWriteAccess)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.unitId_12b, records.unitId_12c))
 				.has(resultsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(noItemsWithChildren());
@@ -619,7 +654,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
@@ -628,7 +663,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.is(empty());
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_X100))
 				.has(itemsWithChildren(records.categoryId_X100));
 
@@ -656,13 +691,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, withWriteAccess)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X, withWriteAccess)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.categoryId_X100))
 				.has(itemsWithChildren(records.categoryId_X100));
 
@@ -680,13 +715,171 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	@Test
+	public void givenUserHaveSiteWriteAccessAndFoldersDeletedForAllTreeVisibleForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, withWriteAccess)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X, withWriteAccess)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X100));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100, withWriteAccess)
+				.has(unlinkable(records.categoryId_X110, records.categoryId_X120))
+				.has(numFoundAndListSize(17))
+				.has(linkable("A16", "A17", "A18", "A48", "A49", "A50", "A85", "A86", "A87", "B06", "B32", "B52", "C06", "C32",
+						"C52"))
+				.has(resultsInOrder("categoryId_X110", "categoryId_X120", "B52", "A16", "A17", "A18", "C06", "B06", "A48", "A49",
+						"A50", "C32", "A85", "B32", "A86", "A87", "C52"))
+				.has(itemsWithChildren("categoryId_X110", "categoryId_X120"));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.folder_A18, withWriteAccess)
+				.is(empty());
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(records.getFolder_A16().getWrappedRecord(), User.GOD);
+
+		// This test fails because numFound does not match the number of records in interval.
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100,
+				withWriteAccess.setStartRow(0).setRows(6))
+				.has(unlinkable(records.categoryId_X110, records.categoryId_X120))
+				.has(resultsInOrder("categoryId_X110", "categoryId_X120", "B52", "A17", "A18", "C06"))
+				.has(itemsWithChildren("categoryId_X110", "categoryId_X120"))
+				.has(numFound(16)).has(listSize(6));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100,
+				withWriteAccess.setStartRow(6).setRows(6))
+				.has(resultsInOrder("B06", "A48", "A49", "A50", "C32", "A85"))
+				.has(numFound(16)).has(listSize(6));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_X100,
+				withWriteAccess.setStartRow(12).setRows(6))
+				.has(resultsInOrder("B32", "A86", "A87", "C52"))
+				.has(numFound(16)).has(listSize(4));
+
+	}
+
+	@Test
+	public void givenPlethoraOfRootCategoriesInARubricThenValidGetRootResponse()
+			throws Exception {
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+
+		Transaction transaction = new Transaction();
+		for (int i = 1; i <= 300; i++) {
+			String code = (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
+			Category category = transaction.add(rm.newCategoryWithId("category_" + i)).setCode(code)
+					.setTitle("Category #" + code);
+			transaction.add(rm.newFolder().setTitle("A folder")
+					.setCategoryEntered(category)
+					.setRetentionRuleEntered(records.ruleId_1)
+					.setAdministrativeUnitEntered(records.unitId_10a)
+					.setOpenDate(new LocalDate(2014, 11, 1)));
+		}
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, withWriteAccess.setStartRow(0).setRows(20))
+				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16", "category_17", "category_18", "category_19", "category_20"))
+				.has(numFound(25)).has(listSize(20));
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, withWriteAccess.setStartRow(10).setRows(20))
+				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(50)).has(listSize(20));
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, withWriteAccess.setStartRow(0).setRows(30))
+				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
+						"category_7", "category_8", "category_9", "category_10", "category_11", "category_12", "category_13",
+						"category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(50)).has(listSize(30));
+	}
+
+	@Test
+	public void givenPlethoraOfFoldersInARubricThenValidGetChildrenResponse()
+			throws Exception {
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
+				withWriteAccess.setStartRow(0).setRows(20))
+				.has(numFound(0)).has(listSize(0));
+
+		Transaction transaction = new Transaction();
+		for (int i = 1; i <= 300; i++) {
+			String title = "Folder #" + (i < 100 ? "0" : "") + (i < 10 ? "0" : "") + i;
+			transaction.add(rm.newFolderWithId("zeFolder" + i).setTitle(title)
+					.setCategoryEntered(records.categoryId_Z999)
+					.setRetentionRuleEntered(records.ruleId_1)
+					.setAdministrativeUnitEntered(records.unitId_10a)
+					.setOpenDate(new LocalDate(2014, 11, 1)));
+		}
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
+				withWriteAccess.setStartRow(0).setRows(20))
+				.has(resultsInOrder("zeFolder1", "zeFolder2", "zeFolder3", "zeFolder4", "zeFolder5", "zeFolder6",
+						"zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11", "zeFolder12", "zeFolder13",
+						"zeFolder14", "zeFolder15", "zeFolder16", "zeFolder17", "zeFolder18", "zeFolder19", "zeFolder20"))
+				.has(numFound(25)).has(listSize(20));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
+				withWriteAccess.setStartRow(0).setRows(25))
+				.has(resultsInOrder("zeFolder1", "zeFolder2", "zeFolder3", "zeFolder4", "zeFolder5", "zeFolder6",
+						"zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11", "zeFolder12", "zeFolder13",
+						"zeFolder14", "zeFolder15", "zeFolder16", "zeFolder17", "zeFolder18", "zeFolder19", "zeFolder20",
+						"zeFolder21", "zeFolder22", "zeFolder23", "zeFolder24", "zeFolder25"))
+				.has(numFound(50)).has(listSize(25));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
+				withWriteAccess.setStartRow(20).setRows(20))
+				.has(numFound(50)).has(listSize(20));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
+				withWriteAccess.setStartRow(20).setRows(40))
+				.has(numFound(75)).has(listSize(40));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
+				withWriteAccess.setStartRow(260).setRows(40))
+				.has(numFound(300)).has(listSize(40));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(withoutFilters, records.categoryId_Z999,
+				withWriteAccess.setStartRow(260).setRows(40))
+				.has(resultsInOrder("zeFolder261", "zeFolder262", "zeFolder263", "zeFolder264", "zeFolder265", "zeFolder266",
+						"zeFolder267", "zeFolder268", "zeFolder269", "zeFolder270", "zeFolder271", "zeFolder272",
+						"zeFolder273",
+						"zeFolder274", "zeFolder275", "zeFolder276", "zeFolder277", "zeFolder278", "zeFolder279",
+						"zeFolder280",
+						"zeFolder281", "zeFolder282", "zeFolder283", "zeFolder284", "zeFolder285", "zeFolder286",
+						"zeFolder287",
+						"zeFolder288", "zeFolder289", "zeFolder290", "zeFolder291", "zeFolder292", "zeFolder293",
+						"zeFolder294",
+						"zeFolder295", "zeFolder296", "zeFolder297", "zeFolder298", "zeFolder299", "zeFolder300"))
+				.has(numFound(300)).has(listSize(40));
+	}
+
+	@Test
 	public void givenUserHaveSiteReadAccessForAllTreeVisibleForFolderSelectionUsingUnitTaxonomy()
 			throws Exception {
 
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.unitId_10, records.unitId_30))
 				.has(resultsInOrder(records.unitId_10, records.unitId_30))
 				.has(itemsWithChildren(records.unitId_10, records.unitId_30));
@@ -701,13 +894,14 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(noItemsWithChildren());
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12)
-				.has(numFound(1))
+				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_12b))
 				.has(itemsWithChildren(records.unitId_12b));
 
 		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12b)
-				.has(numFound(10))
-				.has(linkable(records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08, records.folder_B30,
+				.has(numFoundAndListSize(10))
+				.has(linkable(records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08,
+						records.folder_B30,
 						records.folder_B32, records.folder_B34, records.folder_B50, records.folder_B52, records.folder_B54))
 				.has(resultsInOrder("B52", "B02", "B04", "B06", "B08", "B54", "B30", "B32", "B34", "B50"))
 				.has(noItemsWithChildren());
@@ -718,18 +912,77 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	@Test
+	public void givenUserHaveSiteReadAccessAndFoldersDeletedForAllTreeVisibleForFolderSelectionUsingUnitTaxonomy()
+			throws Exception {
+
+		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
+
+		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters)
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.unitId_10, records.unitId_30))
+				.has(resultsInOrder(records.unitId_10, records.unitId_30))
+				.has(itemsWithChildren(records.unitId_10, records.unitId_30));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10)
+				.has(unlinkable(records.unitId_11, records.unitId_12, records.unitId_10a))
+				.has(resultsInOrder(records.unitId_10a, records.unitId_11, records.unitId_12))
+				.has(itemsWithChildren(records.unitId_10a, records.unitId_11, records.unitId_12));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_10a)
+				.has(linkable(records.folder_A42, records.folder_A43, records.folder_A44))
+				.has(noItemsWithChildren());
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.unitId_12b))
+				.has(itemsWithChildren(records.unitId_12b));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12b)
+				.has(numFoundAndListSize(10))
+				.has(linkable(records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08,
+						records.folder_B30,
+						records.folder_B32, records.folder_B34, records.folder_B50, records.folder_B52, records.folder_B54))
+				.has(resultsInOrder("B52", "B02", "B04", "B06", "B08", "B54", "B30", "B32", "B34", "B50"))
+				.has(noItemsWithChildren());
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.folder_B02)
+				.is(empty());
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(records.getFolder_B08().getWrappedRecord(), User.GOD);
+
+		// This test fails because numFound does not match the number of records in interval.
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12b, new TaxonomiesSearchOptions()
+				.setStartRow(0).setRows(4))
+				.has(resultsInOrder("B52", "B02", "B04", "B06"))
+				.has(noItemsWithChildren())
+				.has(numFound(9)).has(listSize(4));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12b, new TaxonomiesSearchOptions()
+				.setStartRow(4).setRows(4))
+				.has(resultsInOrder("B54", "B30", "B32", "B34"))
+				.has(noItemsWithChildren())
+				.has(numFound(9)).has(listSize(4));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(withoutFilters, records.unitId_12b,
+				new TaxonomiesSearchOptions().setStartRow(8).setRows(4))
+				.has(resultsInOrder("B50"))
+				.has(noItemsWithChildren())
+				.has(numFound(9)).has(listSize(1));
+	}
+
+	@Test
 	public void givenUserHaveSiteReadAccessForAllTreeVisibleForCategorySelectionUsingPlanTaxonomy()
 			throws Exception {
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_X))
 				.has(unlinkable(records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
-				.has(numFound(4))
+				.has(numFoundAndListSize(4))
 				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200))
 				.has(linkable(records.categoryId_ZE42, records.categoryId_Z999))
 				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
@@ -737,7 +990,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(itemsWithChildren(records.categoryId_Z100));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_Z110, records.categoryId_Z120))
 				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(itemsWithChildren(records.categoryId_Z110));
@@ -754,7 +1007,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters)
-				.has(numFound(3))
+				.has(numFoundAndListSize(3))
 				.has(linkable(records.unitId_10, records.unitId_20, records.unitId_30))
 				.has(resultsInOrder(records.unitId_10, records.unitId_20, records.unitId_30))
 				.has(itemsWithChildren(records.unitId_10, records.unitId_20, records.unitId_30));
@@ -762,7 +1015,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.is(empty());
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_10)
-				.has(numFound(3))
+				.has(numFoundAndListSize(3))
 				.has(linkable(records.unitId_11, records.unitId_12, records.unitId_10a))
 				.has(resultsInOrder(records.unitId_10a, records.unitId_11, records.unitId_12))
 				.has(itemsWithChildren(records.unitId_11, records.unitId_12));
@@ -771,7 +1024,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.is(empty());
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_12)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.unitId_12b, records.unitId_12c))
 				.has(resultsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(noItemsWithChildren());
@@ -788,19 +1041,19 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, withWriteAccess)
-				.has(numFound(3))
+				.has(numFoundAndListSize(3))
 				.has(linkable(records.unitId_10, records.unitId_20, records.unitId_30))
 				.has(resultsInOrder(records.unitId_10, records.unitId_20, records.unitId_30))
 				.has(itemsWithChildren(records.unitId_10, records.unitId_20, records.unitId_30));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_10, withWriteAccess)
-				.has(numFound(3))
+				.has(numFoundAndListSize(3))
 				.has(linkable(records.unitId_11, records.unitId_12, records.unitId_10a))
 				.has(resultsInOrder(records.unitId_10a, records.unitId_11, records.unitId_12))
 				.has(itemsWithChildren(records.unitId_11, records.unitId_12));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withoutFilters, records.unitId_12, withWriteAccess)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.unitId_12b, records.unitId_12c))
 				.has(resultsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(noItemsWithChildren());
@@ -820,13 +1073,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 
 		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
 				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z)
-				.has(numFound(4))
+				.has(numFoundAndListSize(4))
 				.has(linkable(records.categoryId_ZE42))
 				.has(unlinkable(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999))
 				.has(resultsInOrder(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
@@ -834,14 +1087,14 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(itemsWithChildren(records.categoryId_Z100));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z100)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_Z110))
 				.has(unlinkable(records.categoryId_Z120))
 				.has(resultsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(itemsWithChildren(records.categoryId_Z110));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_Z110)
-				.has(numFound(2))
+				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_Z111, records.categoryId_Z112))
 				.has(resultsInOrder(records.categoryId_Z111, records.categoryId_Z112))
 				.has(noItemsWithChildren());
@@ -857,11 +1110,31 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		return numFound(0);
 	}
 
+	private Condition<? super LinkableTaxonomySearchResponse> numFoundAndListSize(final int expectedCount) {
+		return new Condition<LinkableTaxonomySearchResponse>() {
+			@Override
+			public boolean matches(LinkableTaxonomySearchResponse value) {
+				assertThat(value.getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+				assertThat(value.getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
+				return true;
+			}
+		};
+	}
+
 	private Condition<? super LinkableTaxonomySearchResponse> numFound(final int expectedCount) {
 		return new Condition<LinkableTaxonomySearchResponse>() {
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponse value) {
 				assertThat(value.getNumFound()).describedAs("NumFound").isEqualTo(expectedCount);
+				return true;
+			}
+		};
+	}
+
+	private Condition<? super LinkableTaxonomySearchResponse> listSize(final int expectedCount) {
+		return new Condition<LinkableTaxonomySearchResponse>() {
+			@Override
+			public boolean matches(LinkableTaxonomySearchResponse value) {
 				assertThat(value.getRecords().size()).describedAs("records list size").isEqualTo(expectedCount);
 				return true;
 			}

@@ -1,23 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.calculators.dependencies;
 
 import java.util.List;
+import java.util.SortedMap;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.LocalDate;
@@ -37,6 +21,8 @@ public class ReferenceDependency<T> implements Dependency {
 
 	final MetadataValueType returnType;
 
+	final boolean groupedByReference;
+
 	private ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, MetadataValueType returnType) {
 		super();
 		this.referenceMetadataCode = referenceMetadataCode;
@@ -44,58 +30,74 @@ public class ReferenceDependency<T> implements Dependency {
 		this.required = false;
 		this.multivalue = false;
 		this.returnType = returnType;
+		this.groupedByReference = false;
 	}
 
 	private ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, boolean required, boolean multivalue,
-			MetadataValueType returnType) {
+			MetadataValueType returnType, boolean groupedByReference) {
 		super();
 		this.referenceMetadataCode = referenceMetadataCode;
 		this.dependentMetadataCode = dependentMetadataCode;
 		this.required = required;
 		this.multivalue = multivalue;
 		this.returnType = returnType;
+		this.groupedByReference = groupedByReference;
+	}
+
+	public boolean isGroupedByReference() {
+		return groupedByReference;
 	}
 
 	public <Z> ReferenceDependency<Z> whichIsRequired() {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, true, multivalue, returnType);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, true, multivalue, returnType,
+				groupedByReference);
+	}
+
+	public <Z> ReferenceDependency<SortedMap<String, List<Z>>> whichAreReferencedMultiValueGroupedByReference() {
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType, true);
+	}
+
+	public <Z> ReferenceDependency<SortedMap<String, Z>> whichAreReferencedSingleValueGroupedByReference() {
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType, true);
 	}
 
 	public <Z> ReferenceDependency<List<Z>> whichIsMultivalue() {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, required, true, returnType,
+				groupedByReference);
 	}
 
 	//@formatter:off
 
-		public static ReferenceDependency<String> toAnEnum(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.ENUM);
+		public static <Z> ReferenceDependency<Z> toAnEnum(String referenceMetadataCode, String dependentMetadataCode) {
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.ENUM, false);
 	}
 
 	public static ReferenceDependency<String> toAString(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.STRING);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.STRING, false);
 	}
 
 	public static ReferenceDependency<String> toAReference(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.REFERENCE);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.REFERENCE, false);
 	}
 
 	public static ReferenceDependency<Boolean> toABoolean(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.BOOLEAN);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.BOOLEAN, false);
 	}
 
 	public static ReferenceDependency<Double> toANumber(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.NUMBER);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.NUMBER, false);
 	}
 
 	public static ReferenceDependency<LocalDate> toADate(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE, false);
 	}
 
 	public static ReferenceDependency<LocalDateTime> toADateTime(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE_TIME);
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.DATE_TIME, false);
 	}
 
-	public static ReferenceDependency<?> toAStructure(String referenceMetadataCode, String dependentMetadataCode) {
-		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.STRUCTURE);
+	public static <T> ReferenceDependency<T> toAStructure(String referenceMetadataCode, String dependentMetadataCode) {
+		return new ReferenceDependency<>(referenceMetadataCode, dependentMetadataCode, false, false, MetadataValueType.STRUCTURE, false);
 	}
 
 

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.rm;
 
 import static org.apache.chemistry.opencmis.commons.enums.VersioningState.MAJOR;
@@ -71,8 +54,8 @@ public class RMCmisExemplesMain {
 		//-- Create a document (considered as a Folder by CMIS)
 		Map<String, Object> documentProperties = new HashMap<>();
 		documentProperties.put(PropertyIds.OBJECT_TYPE_ID, "document_default");
-		documentProperties.put("document_default_title", title);
-		documentProperties.put("document_default_folder", savedInFolder);
+		documentProperties.put("title", title);
+		documentProperties.put("folder", savedInFolder);
 		ObjectId newDocumentId = session.createFolder(documentProperties, savedInFolderObjectId);
 
 		//

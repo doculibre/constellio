@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -54,37 +37,6 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		service = new DecommissioningService(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
-	}
-
-	@Test
-	public void whenGetUserAdministrativeUnitsThenValidValues()
-			throws Exception {
-
-		assertThat(service.getAdministrativeUnitsForUser(records.getBob_userInAC()))
-				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
-						records.unitId_12b, records.unitId_12c, records.unitId_30, records.unitId_30c);
-
-		assertThat(service.getAdministrativeUnitsForUser(records.getCharles_userInA()))
-				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
-						records.unitId_12b, records.unitId_12c);
-
-		assertThat(service.getAdministrativeUnitsForUser(records.getDakota_managerInA_userInB()))
-				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
-						records.unitId_12b, records.unitId_12c);
-
-		assertThat(service.getAdministrativeUnitsForUser(records.getEdouard_managerInB_userInC()))
-				.containsOnly(records.unitId_30, records.unitId_30c, records.unitId_11, records.unitId_11b, records.unitId_12,
-						records.unitId_12b,
-						records.unitId_12c);
-
-		assertThat(service.getAdministrativeUnitsForUser(records.getGandalf_managerInABC()))
-				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
-						records.unitId_12b, records.unitId_12c, records.unitId_30, records.unitId_30c);
-
-		assertThat(service.getAdministrativeUnitsForUser(records.getChuckNorris()))
-				.containsOnly(records.unitId_10, records.unitId_10a, records.unitId_11, records.unitId_11b, records.unitId_12,
-						records.unitId_12b, records.unitId_12c,
-						records.unitId_20, records.unitId_20d, records.unitId_20e, records.unitId_30, records.unitId_30c);
 	}
 
 	@Test
@@ -255,7 +207,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenCopyRuleTypeNOTAlwaysModifiableWhenDeterminingIfCopyTypeVisibleThenAlwaysTrue() {
+	public void givenCopyRuleTypeNOTAlwaysModifiableWhenDeterminingIfCopyTypeVisibleThenNotAlwaysTrue() {
 		givenConfig(RMConfigs.COPY_RULE_TYPE_ALWAYS_MODIFIABLE, false);
 
 		assertThat(service.isCopyStatusInputPossible(records.getFolder_A04())).isFalse();

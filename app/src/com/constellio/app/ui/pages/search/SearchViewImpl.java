@@ -1,24 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -28,9 +12,11 @@ import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportSelector;
+import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
@@ -38,10 +24,12 @@ import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -52,14 +40,20 @@ import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseViewImpl implements SearchView, RecordSelector {
-	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
+	public static final String FACET_BOX_STYLE = "facet-box";
+	public static final String FACET_TITLE_STYLE = "facet-title";
+	public static final String SORT_BOX_STYLE = "sort-box";
+	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
 
 	protected T presenter;
@@ -134,7 +128,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	protected abstract Component buildSearchUI();
 
 	protected Component buildSummary(SearchResultTable results) {
-		return results.createSummary(buildSavedSearchButton(), new ReportSelector(presenter));
+		List<Component> actions = Arrays.asList(
+				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
+				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
+		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return results.createSummary(actions, zipButton);
 	}
 
 	private Component buildResultsUI() {
@@ -207,9 +206,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	private Component buildSortComponent() {
 		Label sortBy = new Label($("SearchView.sortBy"));
 		sortBy.addStyleName(ValoTheme.LABEL_BOLD);
+		sortBy.addStyleName(SORT_TITLE_STYLE);
 
 		final ComboBox criterion = new ComboBox();
 		criterion.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+		criterion.setWidth("100%");
 
 		@SuppressWarnings("unchecked") List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
 		for (MetadataVO metadata : sortableMetadata) {
@@ -238,9 +239,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		criterion.addValueChangeListener(listener);
 		order.addValueChangeListener(listener);
 
-		VerticalLayout layout = new VerticalLayout(sortBy, criterion, order);
-		layout.setSizeUndefined();
-		layout.setSpacing(true);
+		VerticalLayout inner = new VerticalLayout(criterion, order);
+		inner.setWidth("100%");
+		inner.addStyleName("sort-box-content");
+
+		VerticalLayout layout = new VerticalLayout(sortBy, inner);
+		layout.setWidth("95%");
+		layout.addStyleName(SORT_BOX_STYLE);
 
 		return layout;
 	}
@@ -257,46 +262,97 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 
 	}
 
-	private Component buildFacetComponent(FacetVO facet, Set<String> selectedFacetValues) {
+	private Component buildFacetComponent(final FacetVO facet, Set<String> selectedFacetValues) {
+		CheckBox deselect = new CheckBox();
+		deselect.setValue(!selectedFacetValues.isEmpty());
+		deselect.setEnabled(!selectedFacetValues.isEmpty());
+		deselect.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				presenter.facetDeselected(facet.getId());
+			}
+		});
+
 		Label title = new Label(facet.getLabel());
 		title.addStyleName(ValoTheme.LABEL_BOLD);
-		VerticalLayout layout = new VerticalLayout(title);
-		layout.setSizeUndefined();
 
-		for (FacetValueVO facetValue : facet.getValues()) {
-			CheckBox checkBox = new CheckBox();
+		final Button toggle = new Button(facet.isOpen() ? "—" : "+");
+		toggle.addStyleName(ValoTheme.BUTTON_TINY);
+		toggle.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+
+		HorizontalLayout captionBar = new HorizontalLayout(deselect, title, toggle);
+		captionBar.setComponentAlignment(deselect, Alignment.MIDDLE_LEFT);
+		captionBar.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
+		captionBar.setComponentAlignment(toggle, Alignment.MIDDLE_RIGHT);
+		captionBar.setExpandRatio(title, 1);
+		captionBar.setWidth("100%");
+		captionBar.addStyleName(FACET_TITLE_STYLE);
+
+		VerticalLayout layout = new VerticalLayout(captionBar);
+		layout.setWidth("95%");
+
+		final Table table = new Table();
+		table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+		table.addContainerProperty("value", Component.class, null);
+		table.setWidth("100%");
+
+		List<FacetValueVO> values = facet.getValues();
+		for (final FacetValueVO facetValue : values) {
+			final CheckBox checkBox = new CheckBox();
 			if (selectedFacetValues.contains(facetValue.getValue())) {
 				checkBox.setValue(true);
 			}
-			checkBox.addValueChangeListener(new Selector(facetValue));
+			checkBox.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					if (checkBox.getValue()) {
+						presenter.facetValueSelected(facetValue.getFacetId(), facetValue.getValue());
+					} else {
+						presenter.facetValueDeselected(facetValue.getFacetId(), facetValue.getValue());
+					}
+				}
+			});
 
 			String caption = facetValue.getLabel();
 			caption += " (" + facetValue.getCount() + ")";
 			checkBox.setCaption(caption);
 
-			layout.addComponent(checkBox);
+			@SuppressWarnings("unchecked")
+			Property<Component> value = (Property<Component>) table.addItem(checkBox).getItemProperty("value");
+			value.setValue(checkBox);
 		}
 
-		layout.setVisible(layout.getComponentCount() > 1);
+		table.setPageLength(Math.min(facet.getValuesPerPage(), values.size()));
+		table.setVisible(facet.isOpen());
+
+		toggle.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				if (toggle.getCaption().equals("+")) {
+					toggle.setCaption("—");
+					table.setVisible(true);
+					presenter.facetOpened(facet.getId());
+				} else {
+					toggle.setCaption("+");
+					table.setVisible(false);
+					presenter.facetClosed(facet.getId());
+				}
+			}
+		});
+
+		layout.addComponent(table);
+		layout.setVisible(!facet.getValues().isEmpty());
 		layout.addStyleName(FACET_BOX_STYLE);
 		return layout;
 	}
 
-	private class Selector implements ValueChangeListener {
-		private final FacetValueVO facetValue;
-
-		public Selector(FacetValueVO facetValue) {
-			this.facetValue = facetValue;
-		}
-
-		@Override
-		public void valueChange(ValueChangeEvent event) {
-			if ((boolean) event.getProperty().getValue()) {
-				presenter.facetValueSelected(facetValue.getFacetId(), facetValue.getValue());
-			} else {
-				presenter.facetValueDeselected(facetValue.getFacetId(), facetValue.getValue());
+	protected Button buildSelectAllButton() {
+		return new LinkButton($("SearchView.selectCurrentPage")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				results.selectCurrentPage();
 			}
-		}
+		};
 	}
 
 	protected Button buildSavedSearchButton() {

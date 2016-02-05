@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.records;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -35,16 +18,22 @@ public class ContentVersion {
 
 	private final String lastModifiedBy;
 
+	private final String comment;
+
 	private final LocalDateTime lastModificationDateTime;
 
 	public ContentVersion(ContentVersionDataSummary contentVersionDataSummary, String filename, String version,
-			String lastModifiedBy,
-			LocalDateTime lastModificationDateTime) {
+			String lastModifiedBy, LocalDateTime lastModificationDateTime, String comment) {
 		this.contentVersionDataSummary = contentVersionDataSummary;
 		this.filename = filename;
 		this.version = version;
 		this.lastModifiedBy = lastModifiedBy;
 		this.lastModificationDateTime = lastModificationDateTime;
+		this.comment = comment;
+	}
+
+	public String getComment() {
+		return comment;
 	}
 
 	public String getHash() {
@@ -82,11 +71,18 @@ public class ContentVersion {
 	}
 
 	public final ContentVersion withFilename(String newFilename) {
-		return new ContentVersion(contentVersionDataSummary, newFilename, version, lastModifiedBy, lastModificationDateTime);
+		return new ContentVersion(contentVersionDataSummary, newFilename, version, lastModifiedBy, lastModificationDateTime,
+				comment);
 	}
 
 	public ContentVersion withVersion(String newVersion) {
-		return new ContentVersion(contentVersionDataSummary, filename, newVersion, lastModifiedBy, lastModificationDateTime);
+		return new ContentVersion(contentVersionDataSummary, filename, newVersion, lastModifiedBy, lastModificationDateTime,
+				comment);
+	}
+
+	public ContentVersion withComment(String comment) {
+		return new ContentVersion(contentVersionDataSummary, filename, version, lastModifiedBy, lastModificationDateTime,
+				comment);
 	}
 
 	public String getModifiedBy() {
@@ -114,5 +110,10 @@ public class ContentVersion {
 
 	public boolean hasSameHash(ContentVersion otherVersion) {
 		return LangUtils.areNullableEqual(contentVersionDataSummary.getHash(), otherVersion.getHash());
+	}
+
+	public ContentVersion withModificationDatetime(LocalDateTime modificationDatetime) {
+		return new ContentVersion(contentVersionDataSummary, filename, version, lastModifiedBy, modificationDatetime,
+				comment);
 	}
 }

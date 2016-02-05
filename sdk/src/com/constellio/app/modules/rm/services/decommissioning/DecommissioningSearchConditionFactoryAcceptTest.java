@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
@@ -27,6 +10,7 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
@@ -48,7 +32,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -239,7 +223,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
 				.contains(records.folder_A(42, 47)).contains(records.folder_A(51, 56)).hasSize(12);
 
-		givenTimeIs(new LocalDate(2010, 11, 05));
+		givenTimeIs(new LocalDate(2010, 11, 5));
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
 				.contains(records.folder_A(42, 47)).contains(records.folder_A(51, 56)).hasSize(12);
 
@@ -255,6 +239,144 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_30c))
 				.containsOnlyOnce(records.folder_C30, records.folder_C31, records.folder_C32, records.folder_C33,
 						records.folder_C34);
+	}
+
+	@Test
+	public void whenSearchingDocumentSemiActiveToDestructionThenObtainsValidResults()
+			throws Exception {
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		waitForBatchProcess();
+
+		givenTimeIs(new LocalDate(2100, 11, 5));
+		assertThatResultsOf(factory.documentSemiActiveToDestroy(records.unitId_10a))
+				.contains(records.decommissionnableProcesInFolder_A(42, 44))
+				.contains(records.decommissionnableProcesInFolder_A(48, 50))
+				.contains(records.decommissionnableProcesInFolder_A(54, 59)).hasSize(24);
+
+		givenTimeIs(new LocalDate(2007, 10, 31));
+		assertThatResultsOf(factory.documentSemiActiveToDestroy(records.unitId_10a))
+				.contains(records.decommissionnableProcesInFolder_A(48, 50)).hasSize(6);
+
+		givenTimeIs(new LocalDate(2007, 10, 30));
+		assertThatResultsOf(factory.documentSemiActiveToDestroy(records.unitId_10a))
+				.contains(records.decommissionnableProcesInFolder_A(48, 49)).hasSize(4);
+	}
+
+	@Test
+	public void whenSearchingDocumentActiveToDestructionThenObtainsValidResults()
+			throws Exception {
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		waitForBatchProcess();
+
+		givenTimeIs(new LocalDate(2100, 11, 5));
+		assertThatResultsOf(factory.documentActiveToDestroy(records.unitId_10a))
+				.contains(records.decommissionnableProcesInFolder_A(1, 6))
+				.contains(records.decommissionnableProcesInFolder_A(10, 12))
+				.contains(records.decommissionnableProcesInFolder_A(16, 18))
+				.contains(records.decommissionnableProcesInFolder_A(22, 27)).hasSize(36);
+
+		givenTimeIs(new LocalDate(2005, 10, 31));
+		assertThatResultsOf(factory.documentActiveToDestroy(records.unitId_10a))
+				.contains(records.decommissionnableProcesInFolder_A(4, 6))
+				.contains(records.decommissionnableProcesInFolder_A(10, 12))
+				.contains(records.decommissionnableProcesInFolder_A(16, 18))
+				.contains(records.decommissionnableProcesInFolder_A(22, 23))
+				.contains(records.decommissionnableProcesInFolder_A(25, 26)).hasSize(26);
+
+		givenTimeIs(new LocalDate(2005, 10, 30));
+		assertThatResultsOf(factory.documentActiveToDestroy(records.unitId_10a))
+				.contains(records.decommissionnableProcesInFolder_A(10, 11))
+				.contains(records.decommissionnableProcesInFolder_A(16, 17)).hasSize(8);
+
+	}
+
+	@Test
+	public void whenSearchingDocumentSemiActiveToConservationThenObtainsValidResults()
+			throws Exception {
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		waitForBatchProcess();
+
+		givenTimeIs(new LocalDate(2100, 11, 5));
+		assertThatResultsOf(factory.documentSemiActiveToDeposit(records.unitId_10a))
+				.contains(records.decommissionnableContractsInFolder_A(42, 44))
+				.contains(records.decommissionnableContractsInFolder_A(48, 50))
+				.contains(records.decommissionnableContractsInFolder_A(54, 59)).hasSize(24);
+
+		givenTimeIs(new LocalDate(2005, 10, 31));
+		assertThatResultsOf(factory.documentSemiActiveToDeposit(records.unitId_10a))
+				.contains(records.decommissionnableContractsInFolder_A(48, 50)).hasSize(6);
+
+		givenTimeIs(new LocalDate(2005, 10, 30));
+		assertThatResultsOf(factory.documentSemiActiveToDeposit(records.unitId_10a))
+				.contains(records.decommissionnableContractsInFolder_A(48, 49)).hasSize(4);
+
+	}
+
+	@Test
+	public void whenSearchingDocumentActiveToConservationThenObtainsValidResults()
+			throws Exception {
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		waitForBatchProcess();
+
+		givenTimeIs(new LocalDate(2100, 11, 5));
+		assertThatResultsOf(factory.documentActiveToDeposit(records.unitId_10a))
+				.contains(records.decommissionnableContractsInFolder_A(1, 6))
+				.contains(records.decommissionnableContractsInFolder_A(10, 12))
+				.contains(records.decommissionnableContractsInFolder_A(16, 18))
+				.contains(records.decommissionnableContractsInFolder_A(22, 27)).hasSize(36);
+
+		givenTimeIs(new LocalDate(2005, 10, 31));
+		assertThatResultsOf(factory.documentActiveToDeposit(records.unitId_10a))
+				.contains(records.decommissionnableContractsInFolder_A(4, 6))
+				.contains(records.decommissionnableContractsInFolder_A(10, 12))
+				.contains(records.decommissionnableContractsInFolder_A(16, 18))
+				.contains(records.decommissionnableContractsInFolder_A(22, 27)).hasSize(30);
+
+		givenTimeIs(new LocalDate(2005, 10, 30));
+		assertThatResultsOf(factory.documentActiveToDeposit(records.unitId_10a))
+				.contains(records.decommissionnableContractsInFolder_A(4, 6))
+				.contains(records.decommissionnableContractsInFolder_A(10, 12))
+				.contains(records.decommissionnableContractsInFolder_A(16, 18))
+				.contains(records.decommissionnableContractsInFolder_A(22, 23))
+				.contains(records.decommissionnableContractsInFolder_A(25, 26)).hasSize(26);
+
+	}
+
+	@Test
+	public void whenSearchingDocumentActiveToTransferThenObtainsValidResults()
+			throws Exception {
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		waitForBatchProcess();
+
+		givenTimeIs(new LocalDate(2100, 11, 5));
+		assertThatResultsOf(factory.documentTransfer(records.unitId_10a))
+				.contains(records.decommissionnableProcesInFolder_A(1, 3))
+				.contains(records.decommissionnableContractsInFolder_A(1, 6))
+				.contains(records.decommissionnableProcesInFolder_A(10, 12))
+				.contains(records.decommissionnableContractsInFolder_A(10, 12))
+				.contains(records.decommissionnableContractsInFolder_A(16, 18))
+				.contains(records.decommissionnableProcesInFolder_A(22, 27))
+				.contains(records.decommissionnableContractsInFolder_A(22, 27)).hasSize(60);
+
+		givenTimeIs(new LocalDate(2005, 10, 31));
+		assertThatResultsOf(factory.documentTransfer(records.unitId_10a))
+				.contains(records.decommissionnableContractsInFolder_A(4, 6))
+				.contains(records.decommissionnableProcesInFolder_A(10, 12))
+				.contains(records.decommissionnableContractsInFolder_A(10, 12))
+				.contains(records.decommissionnableContractsInFolder_A(16, 18))
+				.contains(records.decommissionnableProcesInFolder_A(22, 27))
+				.contains(records.decommissionnableContractsInFolder_A(22, 27)).hasSize(48);
+
 	}
 
 	@Test

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.user;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -28,9 +11,11 @@ import org.vaadin.dialogs.ConfirmDialog;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.TableStringFilter;
@@ -42,15 +27,22 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.vaadin.data.Container;
+import com.vaadin.event.FieldEvents.TextChangeEvent;
+import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public class DisplayUserCredentialViewImpl extends BaseViewImpl implements DisplayUserCredentialView {
@@ -116,7 +108,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 	@Override
 	protected String getTitle() {
-		return $("DisplayUserCredentialView.viewTitle");
+		return $("DisplayUserCredentialView.viewTitle", userCredentialVO.getUsername());
 	}
 
 	@Override
@@ -194,7 +186,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		addUsersGlobalGroupButtons(globalGroupVODataProvider, buttonsContainer);
 		container = buttonsContainer;
-		String title = "DisplayUserCredentialView.listUsersGroups";
+		String title = $("DisplayUserCredentialView.listUsersGroups", userCredentialVO.getUsername());
 		return buildTable(container, title);
 	}
 
@@ -223,7 +215,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 			}
 		});
 		container = buttonsContainer;
-		String title = "DisplayUserCredentialView.listGroups";
+		String title = $("DisplayUserCredentialView.listGroups");
 		return buildTable(container, title);
 	}
 
@@ -306,6 +298,10 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		} else {
 			editButton.setEnabled(presenter.canAddOrModify());
 		}
+
+		Button serviceKeyTokenButton = buildServiceKeyAndTokenButton();
+		actionMenuButtons.add(serviceKeyTokenButton);
+
 		return actionMenuButtons;
 	}
 
@@ -329,7 +325,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 	private Table buildTable(Container container, String title) {
 
-		Table table = new Table($(title), container);
+		Table table = new Table(title, container);
 		int tableSize = batchSize;
 		if (tableSize > table.getItemIds().size()) {
 			tableSize = table.getItemIds().size();
@@ -341,5 +337,113 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		table.setColumnHeader(PROPERTY_BUTTONS, "");
 		table.setColumnWidth(PROPERTY_BUTTONS, 120);
 		return table;
+	}
+
+	private Button buildServiceKeyAndTokenButton() {
+		return new WindowButton($("DisplayUserCredentialView.generateTokenButton"),
+				$("DisplayUserCredentialView.generateToken")) {
+			@Override
+			protected Component buildWindowContent() {
+
+				//				final BaseIntegerField durationField = new BaseIntegerField($("DisplayUserCredentialView.Duration"));
+				final TextField durationField = new TextField($("DisplayUserCredentialView.Duration"));
+
+				final ComboBox unitTimeCombobox = new ComboBox();
+				unitTimeCombobox.setNullSelectionAllowed(false);
+				unitTimeCombobox.setCaption($("DisplayUserCredentialView.unitTime"));
+				unitTimeCombobox.addItem("hours");
+				unitTimeCombobox.setItemCaption("hours", $("DisplayUserCredentialView.hours"));
+				unitTimeCombobox.setValue("hours");
+				unitTimeCombobox.addItem("days");
+				unitTimeCombobox.setItemCaption("days", $("DisplayUserCredentialView.days"));
+
+				HorizontalLayout horizontalLayoutFields = new HorizontalLayout();
+				horizontalLayoutFields.setSpacing(true);
+				horizontalLayoutFields.addComponents(durationField, unitTimeCombobox);
+
+				//
+				final Label label = new Label($("DisplayUserCredentialView.serviceKey"));
+				final Label labelValue = new Label(presenter.getServiceKey(userCredentialVO.getUsername()));
+				final HorizontalLayout horizontalLayoutServiceKey = new HorizontalLayout();
+				horizontalLayoutServiceKey.setSpacing(true);
+				horizontalLayoutServiceKey.addComponents(label, labelValue);
+
+				final Label tokenLabel = new Label($("DisplayUserCredentialView.token"));
+				final Label tokenValue = new Label();
+				final HorizontalLayout horizontalLayoutToken = new HorizontalLayout();
+				horizontalLayoutToken.setSpacing(true);
+				horizontalLayoutToken.addComponents(tokenLabel, tokenValue);
+
+				final Link linkTest = new Link($("DisplayUserCredentialView.test"), new ExternalResource(""));
+				linkTest.setTargetName("_blank");
+
+				final VerticalLayout verticalLayoutGenerateValues = new VerticalLayout();
+				verticalLayoutGenerateValues
+						.addComponents(horizontalLayoutServiceKey, horizontalLayoutToken, linkTest);
+				verticalLayoutGenerateValues.setSpacing(true);
+				verticalLayoutGenerateValues.setVisible(false);
+
+				final BaseButton generateTokenButton = new BaseButton($("DisplayUserCredentialView.generateToken")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						int durationValue;
+						try {
+							if (durationField.getValue() != null) {
+								durationValue = Integer.valueOf(durationField.getValue());
+								String serviceKey = presenter.getServiceKey(userCredentialVO.getUsername());
+								labelValue.setValue(serviceKey);
+								String token = presenter
+										.generateToken(userCredentialVO.getUsername(), (String) unitTimeCombobox.getValue(),
+												durationValue);
+								tokenValue.setValue(token);
+								String baseurl =
+										getUI().getPage().getLocation().getHost() + ":" + getUI().getPage().getLocation()
+												.getPort()
+												+ getUI().getPage().getLocation().getPath();
+								String linkValue =
+										"http://" + baseurl + "select?token=" + token + "&serviceKey=" + serviceKey
+												+ "&fq=-type_s:index" + "&q=*:*";
+								linkTest.setResource(new ExternalResource(linkValue));
+
+								verticalLayoutGenerateValues.setVisible(true);
+							}
+						} catch (Exception e) {
+						}
+					}
+				};
+				generateTokenButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				generateTokenButton.setEnabled(false);
+
+				durationField.addTextChangeListener(new TextChangeListener() {
+					@Override
+					public void textChange(TextChangeEvent event) {
+						enableOrDisableButton(event.getText(), generateTokenButton);
+					}
+				});
+
+				//
+				VerticalLayout mainVerticalLayout = new VerticalLayout();
+				mainVerticalLayout
+						.addComponents(horizontalLayoutFields, generateTokenButton, verticalLayoutGenerateValues);
+				mainVerticalLayout.setSpacing(true);
+
+				return mainVerticalLayout;
+			}
+		};
+	}
+
+	private void enableOrDisableButton(String value, BaseButton generateTokenButton) {
+		boolean enable = false;
+		if (value != null) {
+			int durationValue;
+			try {
+				durationValue = Integer.valueOf(value);
+				if (durationValue > 0) {
+					enable = true;
+				}
+			} catch (NumberFormatException e) {
+			}
+		}
+		generateTokenButton.setEnabled(enable);
 	}
 }

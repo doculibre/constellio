@@ -1,27 +1,12 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.model;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVATE_DEPOSITED;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,8 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -42,12 +27,26 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 
 public class FolderAcceptanceTest extends ConstellioTest {
 
@@ -170,6 +169,27 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenFolderWithFormCreatedModifiedByOnInfosThenPersisted()
+			throws RecordServicesException {
+
+		LocalDateTime dateTime1 = new LocalDateTime().plusDays(1);
+		LocalDateTime dateTime2 = dateTime1.plusDays(2);
+
+		Folder folder = saveAndLoad(folderWithSingleCopyRule(principal("888-0-D", PA))
+				.setOpenDate(november4_2009)
+				.setCloseDateEntered(december12_2009)
+				.setFormCreatedBy(records.getBob_userInAC().getId())
+				.setFormCreatedOn(dateTime1)
+				.setFormModifiedBy(records.getCharles_userInA().getId())
+				.setFormModifiedOn(dateTime2));
+
+		assertThat(folder.getFormCreatedBy()).isEqualTo(records.getBob_userInAC().getId());
+		assertThat(folder.getFormCreatedOn()).isEqualTo(dateTime1);
+		assertThat(folder.getFormModifiedBy()).isEqualTo(records.getCharles_userInA().getId());
+		assertThat(folder.getFormModifiedOn()).isEqualTo(dateTime2);
+	}
+
+	@Test
 	public void givenFolderWithoutTransferDispoalAndDestructionDatesThenActive()
 			throws RecordServicesException {
 		Folder folder = saveAndLoad(folderWithSingleCopyRule(principal("888-0-D", PA))
@@ -215,7 +235,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		assertThat(folder.getOpenDate()).isEqualTo(november4_2009);
 		assertThat(folder.getCloseDateEntered()).isEqualTo(december12_2009);
-		assertThat(folder.getArchivisticStatus()).isEqualTo(INACTIVATE_DEPOSITED);
+		assertThat(folder.getArchivisticStatus()).isEqualTo(INACTIVE_DEPOSITED);
 		assertThat(folder.getActualTransferDate()).isEqualTo(january12_2010);
 		assertThat(folder.getActualDepositDate()).isEqualTo(february16_2012);
 		assertThat(folder.getActualDestructionDate()).isNull();
@@ -247,11 +267,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
-		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_WEEK, 90);
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 0);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
-		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLEPERIOD, 0);
-		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
 
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("2-2-C", PA), principal("5-5-D", MD),
 				secondary("1-0-D", MD, PA));
@@ -282,6 +302,75 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenCustomFolderWhenModifyTaxonomyWithCopiedMetadatasThenReindexed()
+			throws Exception {
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("customFolder");
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("zeCalculatedMetadata").setType(STRING)
+						.defineDataEntry().asCalculated(ZeCategoryCodeCalculator.class);
+			}
+		});
+
+		FolderType folderType = rm.newFolderType().setCode("ze type").setTitle("ze type").setLinkedSchema("customFolder");
+		recordServices.add(folderType);
+
+		Folder folder = rm.newFolderWithType(folderType)
+				.setTitle("Ze custom folder")
+				.setOpenDate(new LocalDate())
+				.setAdministrativeUnitEntered(records.unitId_10a)
+				.setCategoryEntered(records.categoryId_X13)
+				.setRetentionRuleEntered(records.ruleId_1);
+		recordServices.add(folder);
+
+		assertThatRecord(rm.getFolder(folder.getId()))
+				.hasMetadata(Folder.CATEGORY_CODE, "X13")
+				.hasMetadata("zeCalculatedMetadata", "Ze ultimate X13");
+
+		recordServices.update(rm.getCategoryWithCode("X13").setCode("X-13"));
+		waitForBatchProcess();
+
+		assertThatRecord(rm.getFolder(folder.getId()))
+				.hasMetadata(Folder.CATEGORY_CODE, "X-13")
+				.hasMetadata("zeCalculatedMetadata", "Ze ultimate X-13");
+
+	}
+
+	public static class ZeCategoryCodeCalculator implements MetadataValueCalculator<String> {
+
+		ReferenceDependency<String> codeParam = ReferenceDependency.toAString(Folder.CATEGORY, Category.CODE);
+
+		@Override
+		public String calculate(CalculatorParameters parameters) {
+			String code = parameters.get(codeParam);
+			return "Ze ultimate " + code;
+		}
+
+		@Override
+		public String getDefaultValue() {
+			return null;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return STRING;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return TestUtils.asList(codeParam);
+		}
+	}
+
+	@Test
 	//Tested on IntelliGID 4!
 	public void givenPrincipalFolderWithTwoMediumTypesAndYearEndInSufficientPeriodThenHasValidCalculedDates()
 			throws Exception {
@@ -289,11 +378,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
-		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_WEEK, 60);
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 0);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
-		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLEPERIOD, 0);
-		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
 
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("5-5-D", MD), principal("2-2-C", PA),
 				secondary("1-0-D", MD, PA));
@@ -328,11 +417,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
-		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_WEEK, 90);
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 0);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
-		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLEPERIOD, 0);
-		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
 
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("888-0-D", PA));
@@ -370,11 +459,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
-		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_WEEK, 90);
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 0);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
-		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLEPERIOD, 0);
-		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
@@ -409,11 +498,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
-		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_WEEK, 90);
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 10);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 20);
-		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLEPERIOD, 30);
-		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 40);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 40);
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
@@ -447,11 +536,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
-		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_WEEK, 30);
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 30);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 20);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 10);
-		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLEPERIOD, 30);
-		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 40);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 40);
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("3-3-T", PA), principal("888-888-D", MD),
 				secondary("999-0-D", PA));
 
@@ -487,11 +576,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
 		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
-		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_WEEK, 90);
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, -1);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, -1);
-		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLEPERIOD, -1);
-		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, -1);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, -1);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, -1);
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
@@ -557,6 +646,66 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().add(folder);
 
 		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
+	}
+
+	@Test
+	public void whenModifyingActualDatesThenStatusIsUpdated()
+			throws Exception {
+
+		final AtomicInteger folderStatusAddCounter = new AtomicInteger();
+		final AtomicInteger folderStatusUpdateCounter = new AtomicInteger();
+
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
+				if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
+
+					folderStatusAddCounter.incrementAndGet();
+
+				}
+			}
+
+			@Override
+			public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
+				if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
+
+					if (event.hasModifiedMetadata(Folder.ARCHIVISTIC_STATUS)) {
+						folderStatusUpdateCounter.incrementAndGet();
+					}
+
+				}
+			}
+		});
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setTitle("Ze folder");
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setOpenDate(february2_2015);
+		folder.setMediumTypes(MD, PA);
+		getModelLayerFactory().newRecordServices().add(folder);
+		assertThat(folderStatusAddCounter.get()).isEqualTo(1);
+		assertThat(folderStatusUpdateCounter.get()).isEqualTo(0);
+
+		folder.setActualTransferDate(february11_2015);
+		getModelLayerFactory().newRecordServices().update(folder);
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
+		assertThat(folderStatusUpdateCounter.get()).isEqualTo(1);
+
+		folder.setActualTransferDate(null);
+		getModelLayerFactory().newRecordServices().update(folder);
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+		assertThat(folderStatusUpdateCounter.get()).isEqualTo(2);
+
+		folder.setActualTransferDate(february11_2015);
+		folder.setActualDepositDate(february11_2015);
+		getModelLayerFactory().newRecordServices().update(folder);
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DEPOSITED);
+		assertThat(folderStatusAddCounter.get()).isEqualTo(1);
+		assertThat(folderStatusUpdateCounter.get()).isEqualTo(3);
 	}
 
 	// -------------------------------------------------------------------------

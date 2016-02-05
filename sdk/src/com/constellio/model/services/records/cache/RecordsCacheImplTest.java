@@ -1,22 +1,11 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records.cache;
 
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.SEARCH_FIELD;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,22 +13,38 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
+import org.assertj.core.api.ListAssert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_CacheAlreadyConfigured;
+import com.constellio.model.services.records.cache.RecordsCacheImpl.RecordHolder;
 import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeException.RecordsCacheImplRuntimeException_InvalidSchemaTypeCode;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.entities.SearchBoost;
+import com.constellio.model.services.search.query.ResultsProjection;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class RecordsCacheImplTest extends ConstellioTest {
+
+	@Mock User user;
+	@Mock SearchBoost searchBoost;
+	@Mock ResultsProjection resultsProjection;
 
 	boolean givenDisabledRecordDuplications = false;
 	Metadata zeTypeCodeMetadata, anotherTypeCodeMetadata, anotherTypeLegacyIdMetadata;
@@ -57,6 +62,33 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		zeTypeCodeMetadata = mockManualMetadata("zeType_default_code", MetadataValueType.STRING);
 		anotherTypeCodeMetadata = mockManualMetadata("anotherType_default_code", MetadataValueType.STRING);
 		anotherTypeLegacyIdMetadata = mockManualMetadata("anotherType_default_legacyId", MetadataValueType.STRING);
+	}
+
+	@Test
+	public void whenInsertingAPrevisoulyAddedRecordInAFullVolatileCacheThenInserted()
+			throws Exception {
+		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
+
+		Record record1 = cache.insert(newRecord(zeType, 1));
+		Record record2 = cache.insert(newRecord(zeType, 2));
+		Record record3 = cache.insert(newRecord(zeType, 3));
+		Record record4 = cache.insert(newRecord(zeType, 4));
+		Record record5 = cache.insert(newRecord(zeType, 5));
+
+		cache.insert(record1);
+		cache.insert(record2);
+		cache.insert(record3);
+		cache.insert(record4);
+		cache.insert(record5);
+
+		assertThatRecords("3", "4", "5").areInCache();
+		assertThatRecords("1", "2").areNotInCache();
+
+		cache.insert(record1);
+
+		assertThatRecords("1", "4", "5").areInCache();
+		assertThatRecords("2", "3").areNotInCache();
+		assertThat(cache.get("1")).isNotNull();
 	}
 
 	@Test
@@ -81,12 +113,14 @@ public class RecordsCacheImplTest extends ConstellioTest {
 
 	}
 
-	@Test(expected = RecordsCacheImplRuntimeException_CacheAlreadyConfigured.class)
-	public void whenConfigureCacheThatIsAlreadyConfiguredThenIllegalArgumentException()
+	@Test
+	public void whenConfigureCacheThatIsAlreadyConfiguredThenReconfigure()
 			throws Exception {
 
 		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
-		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.volatileCache(zeType, 100, withoutIndexByMetadata));
+
+		assertThat(cache.getCacheConfigOf(zeType).isVolatile()).isTrue();
 
 	}
 
@@ -201,6 +235,36 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		assertThatRecords("1", "5", "6").areInCache();
 		assertThatRecords("2", "3", "4").areNotInCache();
 
+	}
+
+	@Test
+	@SlowTest
+	public void givenVolatileCacheWhenTopRecordIsHitThenNotConsideredHasAHit()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.volatileCache(zeType, 3, withoutIndexByMetadata));
+
+		cache.insert(newRecord(zeType, 1));
+		cache.insert(newRecord(zeType, 2));
+		cache.insert(newRecord(zeType, 3));
+
+		for (int i = 0; i < 20000; i++) {
+			cache.get("1");
+			cache.get("2");
+		}
+
+		cache.insert(newRecord(zeType, 4));
+		assertThatRecords("1", "2", "4").areInCache();
+		assertThatRecord("3").isNotInCache();
+
+		cache.insert(newRecord(zeType, 5));
+		assertThatRecords("2", "5").areInCache();
+		assertThatRecords("1", "3").areNotInCache();
+
+		cache.insert(newRecord(zeType, 6));
+		assertThatRecords("4", "5", "6").areInCache();
+		assertThatRecords("1", "2", "3").areNotInCache();
+		assertThat(cache.volatileCaches.get(zeType).holders.size()).isEqualTo(3);
 	}
 
 	@Test
@@ -615,6 +679,439 @@ public class RecordsCacheImplTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenGetCachedSearchResultForQueryThenOnlyGetCachedSearchResultsForSameQueryOfPermanentCache()
+			throws Exception {
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.volatileCache(anotherType, 3, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(anotherType()).returnAll()), asList(anotherTypeRecord1, anotherTypeRecord2));
+		cache.insertQueryResults(query(from(zeType()).returnAll()), asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value1")), asList(zeTypeRecord4, zeTypeRecord6));
+		cache.insertQueryResults(query(fromAllSchemasIn(zeCollection).returnAll()),
+				asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+
+		//List<Record> records = cache.getQueryResults(from(zeType()).returnAll()));
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+		assertThatQueryResults(from(zeType()).where(SEARCH_FIELD).isEqualTo("value1")).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value2")), new ArrayList<Record>());
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isEmpty();
+	}
+
+	@Test
+	public void whenGetCachedSearchResultForQueryThenOnlyCacheQueriesWithoutUnsupportedFiltersAndFeatures()
+			throws Exception {
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.volatileCache(anotherType, 3, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		LogicalSearchCondition condition = from(zeType()).returnAll();
+
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).setNumberOfRows(1), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).setStartRow(4), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).setPreferAnalyzedFields(true), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).setHighlighting(true), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).setResultsProjection(resultsProjection), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).setQueryBoosts(asList(searchBoost)), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).setFieldBoosts(asList(searchBoost)), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).addFieldFacet("field_s"), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).addQueryFacet("queries", "field_s:*"), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).computeStatsOnField("field_s"), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).filteredWithUser(user), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).filteredWithUserDelete(user), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).filteredWithUserWrite(user), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition).setReturnedMetadatas(idVersionSchema()), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		LogicalSearchQuery query = query(condition);
+		query.getFacetFilters().selectedFieldFacetValue("field_s", "value");
+		cache.insertQueryResults(query, asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(0);
+
+		cache.insertQueryResults(query(condition), asList(zeTypeRecord4));
+		assertThat(cache.permanentCaches.get(zeType).queryResults).hasSize(1);
+	}
+
+	@Test
+	public void whenCacheQueryResultsThenBasedOnSort()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()).sortAsc(IDENTIFIER),
+				asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).returnAll()).sortDesc(IDENTIFIER),
+				asList(zeTypeRecord6, zeTypeRecord5, zeTypeRecord4));
+		cache.insertQueryResults(query(from(zeType()).returnAll()).sortAsc(TITLE).sortAsc(IDENTIFIER),
+				asList(zeTypeRecord5, zeTypeRecord4, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).returnAll()).sortAsc(TITLE).sortDesc(IDENTIFIER),
+				asList(zeTypeRecord5, zeTypeRecord6, zeTypeRecord4));
+
+		assertThatQueryResults(query(from(zeType()).returnAll()).sortAsc(IDENTIFIER))
+				.containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(query(from(zeType()).returnAll()).sortDesc(IDENTIFIER))
+				.containsExactly(zeTypeRecord6, zeTypeRecord5, zeTypeRecord4);
+		assertThatQueryResults(query(from(zeType()).returnAll()).sortAsc(TITLE).sortAsc(IDENTIFIER))
+				.containsExactly(zeTypeRecord5, zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(query(from(zeType()).returnAll()).sortAsc(TITLE).sortDesc(IDENTIFIER))
+				.containsExactly(zeTypeRecord5, zeTypeRecord6, zeTypeRecord4);
+	}
+
+	@Test
+	public void whenCacheQueryResultsThenBasedOnFreeTextSearch()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()).setFreeTextQuery("a"),
+				asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).returnAll()).setFreeTextQuery("b"),
+				asList(zeTypeRecord6, zeTypeRecord4));
+		cache.insertQueryResults(query(from(zeType()).returnAll()).setFreeTextQuery("c"),
+				asList(zeTypeRecord5, zeTypeRecord4));
+		cache.insertQueryResults(query(from(zeType()).returnAll()).setFreeTextQuery("d"),
+				asList(zeTypeRecord4));
+
+		assertThatQueryResults(query(from(zeType()).returnAll()).setFreeTextQuery("a"))
+				.containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(query(from(zeType()).returnAll()).setFreeTextQuery("b"))
+				.containsExactly(zeTypeRecord6, zeTypeRecord4);
+		assertThatQueryResults(query(from(zeType()).returnAll()).setFreeTextQuery("c"))
+				.containsExactly(zeTypeRecord5, zeTypeRecord4);
+		assertThatQueryResults(query(from(zeType()).returnAll()).setFreeTextQuery("d"))
+				.containsExactly(zeTypeRecord4);
+	}
+
+	@Test
+	public void whenCacheQueryResultsThenBasedOnStatusFilter()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		cache.insert(asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()).filteredByStatus(StatusFilter.ACTIVES),
+				asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).returnAll()).filteredByStatus(StatusFilter.ALL),
+				asList(zeTypeRecord6, zeTypeRecord4));
+		cache.insertQueryResults(query(from(zeType()).returnAll()).filteredByStatus(StatusFilter.DELETED),
+				asList(zeTypeRecord5, zeTypeRecord4));
+
+		assertThatQueryResults(query(from(zeType()).returnAll()).filteredByStatus(StatusFilter.ACTIVES))
+				.containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(query(from(zeType()).returnAll()).filteredByStatus(StatusFilter.ALL))
+				.containsExactly(zeTypeRecord6, zeTypeRecord4);
+		assertThatQueryResults(query(from(zeType()).returnAll()).filteredByStatus(StatusFilter.DELETED))
+				.containsExactly(zeTypeRecord5, zeTypeRecord4);
+		assertThatQueryResults(query(from(zeType()).returnAll()))
+				.containsExactly(zeTypeRecord6, zeTypeRecord4);
+	}
+
+	@Test
+	public void givenCachedSearchResultsOfAQueryWhenInsertARecordWithDifferentVersionThenAllQueriesInvalidated()
+			throws Exception {
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		Record zeTypeRecord5_v2 = newRecord(zeType, 5, 2);
+		Record anotherTypeRecord2_v2 = newRecord(anotherType, 2, 2);
+
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()), asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value1")), asList(zeTypeRecord4, zeTypeRecord6));
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Inserting a record from another schema - no impacts
+		cache.insert(anotherTypeRecord2);
+		cache.insert(anotherTypeRecord2_v2);
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Inserting a record from the schema with same version - no impact
+		cache.insert(zeTypeRecord5);
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Inserting a record from the schema with different version - all queries invalidated
+		cache.insert(zeTypeRecord5_v2);
+
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+	}
+
+	@Test
+	public void givenCachedSearchResultsOfAQueryWhenInvalidateARecordThenAllQueriesInvalidated()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		Record zeTypeRecord5_v2 = newRecord(zeType, 5, 2);
+		Record anotherTypeRecord2_v2 = newRecord(anotherType, 2, 2);
+
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()), asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value1")), asList(zeTypeRecord4, zeTypeRecord6));
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Invalidate a record from another schema - queries of ze schema not invalidated
+		cache.invalidate(anotherTypeRecord2.getId());
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Invalidate a record from ze schema - queries of ze schema invalidated
+		cache.invalidate(zeTypeRecord4.getId());
+
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+	}
+
+	@Test
+	public void givenCachedSearchResultsOfAQueryWhenInvalidateAllRecordsOfTypeThenAllQueriesInvalidated()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()), asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value1")), asList(zeTypeRecord4, zeTypeRecord6));
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Invalidate a record from another schema - queries of ze schema not invalidated
+		cache.invalidateRecordsOfType(anotherType);
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Invalidate a record from ze schema - queries of ze schema invalidated
+		cache.invalidateRecordsOfType(zeType);
+
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+	}
+
+	@Test
+	public void givenCachedSearchResultsOfAQueryWhenInvalidateAllThenAllQueriesInvalidated()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()), asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value1")), asList(zeTypeRecord4, zeTypeRecord6));
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Invalidate a record from another schema - queries of ze schema not invalidated
+		cache.invalidateAll();
+
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+	}
+
+	@Test
+	public void givenCachedSearchResultsOfAQueryWhenInsertANewRecordThenAllQueriesInvalidated()
+			throws Exception {
+
+		cache.configureCache(CacheConfig.permanentCache(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCache(anotherType, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()), asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value1")), asList(zeTypeRecord4, zeTypeRecord6));
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Invalidate a record from another schema - queries of ze schema not invalidated
+		cache.insert(newRecord(anotherType, 7));
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Invalidate a record from ze schema - queries of ze schema invalidated
+		cache.insert(newRecord(zeType, 8));
+
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+	}
+
+	@Test
 	public void givenCacheWithMetadataIndexesThenCanFindRecordsWithThem()
 			throws Exception {
 
@@ -750,6 +1247,9 @@ public class RecordsCacheImplTest extends ConstellioTest {
 			for (String id : ids) {
 				boolean isCached = cache.isCached(id);
 				assertThat(isCached).describedAs("Record with id '" + id + "' is expected to be in cache").isTrue();
+				RecordHolder holder = cache.cacheById.get(id);
+				assertThat(holder).describedAs("Record holder of '" + id + "'").isNotNull();
+				assertThat(holder.getCopy()).describedAs("Cache record of '" + id + "'").isNotNull();
 			}
 		}
 
@@ -793,11 +1293,62 @@ public class RecordsCacheImplTest extends ConstellioTest {
 				if (givenDisabledRecordDuplications) {
 					return record;
 				} else {
-					return newRecord(schemaType, id, version);
+					boolean dirty = record.isDirty();
+					boolean fullyLoaded = record.isFullyLoaded();
+					boolean saved = record.isSaved();
+					Boolean logicallyDeleted = record.get(Schemas.LOGICALLY_DELETED_STATUS);
+					Record recordCopy = newRecord(schemaType, id, version);
+					when(recordCopy.isDirty()).thenReturn(dirty);
+					when(recordCopy.isFullyLoaded()).thenReturn(fullyLoaded);
+					when(recordCopy.isSaved()).thenReturn(saved);
+					when(recordCopy.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(logicallyDeleted);
+					return recordCopy;
 				}
 			}
 		});
 		return record;
+	}
+
+	private MetadataSchemaType zeType() {
+		MetadataSchemaType type = Mockito.mock(MetadataSchemaType.class);
+		when(type.getCode()).thenReturn(zeType);
+		return type;
+	}
+
+	private MetadataSchemaType anotherType() {
+		MetadataSchemaType type = Mockito.mock(MetadataSchemaType.class);
+		when(type.getCode()).thenReturn(anotherType);
+		return type;
+	}
+
+	private LogicalSearchQuery query(LogicalSearchCondition condition) {
+		return new LogicalSearchQuery(condition);
+	}
+
+	private ListAssert<Record> assertThatQueryResults(LogicalSearchCondition condition) {
+		return assertThatQueryResults(query(condition));
+	}
+
+	private ListAssert<Record> assertThatQueryResults(LogicalSearchQuery query) {
+		Comparator<Record> idVersionSchemaRecordComparator = new Comparator<Record>() {
+			@Override
+			public int compare(Record o1, Record o2) {
+				String id1 = o1.getId();
+				String id2 = o2.getId();
+				String schemaCode1 = o1.getSchemaCode();
+				String schemaCode2 = o2.getSchemaCode();
+				long version1 = o1.getVersion();
+				long version2 = o2.getVersion();
+
+				if (id1.equals(id2) && schemaCode1.equals(schemaCode2) && version1 == version2) {
+					return 0;
+				} else {
+					return 1;
+				}
+			}
+		};
+		return assertThat(cache.getQueryResults(query)).usingElementComparator(
+				idVersionSchemaRecordComparator);
 	}
 
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
@@ -29,9 +12,9 @@ import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichNullValuesAreNotWritten;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -43,6 +26,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,20 +40,33 @@ import org.junit.runners.MethodSorters;
 import org.mockito.ArgumentCaptor;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.encrypt.EncryptionKeyFactory;
+import com.constellio.model.services.factories.ModelLayerFactoryUtils;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordServicesAcceptanceTest extends ConstellioTest {
@@ -91,6 +88,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	LocalDateTime shishOClock = new LocalDateTime();
 	LocalDateTime tockOClock = new LocalDateTime();
 	private RecordServicesImpl recordServices;
+	RecordDao recordDao;
 
 	@Before
 	public void setup()
@@ -102,6 +100,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
 		thirdSchema = schemas.new ThirdSchemaMetadatas();
 		record = new TestRecord(zeSchema, "zeUltimateRecord");
+		recordDao = getDataLayerFactory().newRecordDao();
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
@@ -473,6 +472,62 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenEncryptedMetadataThenDecryptedInRecordAndEncryptedInSolr()
+			throws Exception {
+		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
+		ModelLayerFactoryUtils.setApplicationEncryptionKey(getModelLayerFactory(), key);
+
+		defineSchemasManager()
+				.using(schemas.withATitle().withAStringMetadata(whichIsEncrypted)
+						.withAnotherStringMetadata(whichIsEncrypted, whichIsMultivalue));
+
+		assertThat(getModelLayerFactory().newEncryptionServices()).isNotNull();
+
+		recordServices.add(record
+				.set(zeSchema.title(), "neverEncryptedValue")
+				.set(zeSchema.stringMetadata(), "decryptedValue1")
+				.set(zeSchema.anotherStringMetadata(), asList("decryptedValue2", "decryptedValue3")));
+
+		assertThat(record.get(zeSchema.title())).isEqualTo("neverEncryptedValue");
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("decryptedValue1");
+		assertThat(record.get(zeSchema.anotherStringMetadata())).isEqualTo(asList("decryptedValue2", "decryptedValue3"));
+
+		record = recordServices.getDocumentById(record.getId());
+		assertThat(record.get(zeSchema.title())).isEqualTo("neverEncryptedValue");
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("decryptedValue1");
+		assertThat(record.get(zeSchema.anotherStringMetadata())).isEqualTo(asList("decryptedValue2", "decryptedValue3"));
+
+		RecordDTO recordDTO = recordDao.get(record.getId());
+		assertThat(recordDTO.getFields().get(zeSchema.title().getDataStoreCode())).isEqualTo("neverEncryptedValue");
+		assertThat(recordDTO.getFields().get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo("AN1Qletvk4b6cysfpDjWUg==");
+		assertThat(recordDTO.getFields().get(zeSchema.anotherStringMetadata().getDataStoreCode()))
+				.isEqualTo(asList("2xz/K3dNfajma8DJQVMBnQ==", "0d6Amw6w/rOUYwTrjNK4LQ=="));
+
+		record.set(zeSchema.stringMetadata(), "decryptedValue2")
+				.set(zeSchema.anotherStringMetadata(), asList("decryptedValue3", "decryptedValue4"));
+		assertThat(record.get(zeSchema.title())).isEqualTo("neverEncryptedValue");
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("decryptedValue2");
+		assertThat(record.get(zeSchema.anotherStringMetadata())).isEqualTo(asList("decryptedValue3", "decryptedValue4"));
+
+		recordServices.update(record);
+
+		assertThat(record.get(zeSchema.title())).isEqualTo("neverEncryptedValue");
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("decryptedValue2");
+		assertThat(record.get(zeSchema.anotherStringMetadata())).isEqualTo(asList("decryptedValue3", "decryptedValue4"));
+		record = recordServices.getDocumentById(record.getId());
+		assertThat(record.get(zeSchema.title())).isEqualTo("neverEncryptedValue");
+		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("decryptedValue2");
+		assertThat(record.get(zeSchema.anotherStringMetadata())).isEqualTo(asList("decryptedValue3", "decryptedValue4"));
+
+		recordDTO = recordDao.get(record.getId());
+		assertThat(recordDTO.getFields().get(zeSchema.title().getDataStoreCode())).isEqualTo("neverEncryptedValue");
+		assertThat(recordDTO.getFields().get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo("2xz/K3dNfajma8DJQVMBnQ==");
+		assertThat(recordDTO.getFields().get(zeSchema.anotherStringMetadata().getDataStoreCode()))
+				.isEqualTo(asList("0d6Amw6w/rOUYwTrjNK4LQ==", "bLMsWh344pykcDFxbBvrvg=="));
+
+	}
+
+	@Test
 	public void givenModificationImpactWhenUpdatingRecordThenHandledInSameTransaction()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAMetadataCopiedInAnotherSchema());
@@ -672,70 +727,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenNullValuesNotWrittenThenCanAddUpdateStringMetadata()
-			throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata(whichNullValuesAreNotWritten));
-		RecordImpl record = saveZeSchemaRecordAndReload();
-		assertThat(record.get(zeSchema.stringMetadata())).isNull();
-		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.stringMetadata().getDataStoreCode());
-
-		record = updateAndReload(record.set(zeSchema.stringMetadata(), "ze value"));
-		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo("ze value");
-
-		record = updateAndReload(record.set(zeSchema.stringMetadata(), null));
-		assertThat(record.get(zeSchema.stringMetadata())).isNull();
-		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.stringMetadata().getDataStoreCode());
-	}
-
-	@Test
-	public void givenNullValuesNotWrittenThenCanAddUpdateMultivalueStringMetadata()
-			throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata(whichIsMultivalue, whichNullValuesAreNotWritten));
-		RecordImpl record = saveZeSchemaRecordAndReload();
-		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo(new ArrayList<>());
-		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.stringMetadata().getDataStoreCode());
-
-		record = updateAndReload(record.set(zeSchema.stringMetadata(), asList("ze value 1", "ze value 2")));
-		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo(asList("ze value 1", "ze value 2"));
-
-		record = updateAndReload(record.set(zeSchema.stringMetadata(), null));
-		assertThat(record.get(zeSchema.stringMetadata())).isEqualTo(new ArrayList<>());
-		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.stringMetadata().getDataStoreCode());
-	}
-
-	@Test
-	public void givenNullValuesNotWrittenThenCanAddUpdateNumberMetadata()
-			throws Exception {
-		defineSchemasManager().using(schemas.withANumberMetadata(whichNullValuesAreNotWritten));
-		RecordImpl record = saveZeSchemaRecordAndReload();
-		assertThat(record.get(zeSchema.numberMetadata())).isNull();
-		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.numberMetadata().getDataStoreCode());
-
-		record = updateAndReload(record.set(zeSchema.numberMetadata(), 42.0));
-		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(42.0);
-
-		record = updateAndReload(record.set(zeSchema.numberMetadata(), null));
-		assertThat(record.get(zeSchema.numberMetadata())).isNull();
-		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.numberMetadata().getDataStoreCode());
-	}
-
-	@Test
-	public void givenNullValuesNotWrittenThenCanAddUpdateBooleanMetadata()
-			throws Exception {
-		defineSchemasManager().using(schemas.withABooleanMetadata(whichNullValuesAreNotWritten));
-		RecordImpl record = saveZeSchemaRecordAndReload();
-		assertThat(record.get(zeSchema.booleanMetadata())).isNull();
-		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.booleanMetadata().getDataStoreCode());
-
-		record = updateAndReload(record.set(zeSchema.booleanMetadata(), true));
-		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(true);
-
-		record = updateAndReload(record.set(zeSchema.booleanMetadata(), null));
-		assertThat(record.get(zeSchema.booleanMetadata())).isNull();
-		assertThat(record.getRecordDTO().getFields()).doesNotContainKey(zeSchema.booleanMetadata().getDataStoreCode());
-	}
-
-	@Test
 	public void givenUnmodifiableMetadataThenCanSetValueButCannotUpdateIt()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAStringMetadata(whichIsUnmodifiable));
@@ -864,6 +855,111 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices.executeHandlingImpactsAsync(
 				newTransactionWithNRecords(10001).setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION));
+	}
+
+	@Test
+	public void whenUpdateARecordAReferenceToANewRecord()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema());
+
+		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(Schemas.TITLE, "New record saved in transaction 1");
+		recordServices.add(anotherSchemaRecord);
+
+		Record zeSchemaRecord = new TestRecord(zeSchema).set(Schemas.TITLE, "New record saved in transaction 2");
+		anotherSchemaRecord.set(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema"), zeSchemaRecord.getId());
+
+		recordServices.execute(new Transaction(anotherSchemaRecord, zeSchemaRecord));
+
+	}
+
+	@Test
+	public void whenUpdateARecordAReferenceListToANewRecord()
+			throws Exception {
+		defineSchemasManager().using(schemas.with(metadataFromAnotherSchemaToZeSchema()));
+
+		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(Schemas.TITLE, "New record saved in transaction 1");
+		recordServices.add(anotherSchemaRecord);
+
+		Record zeSchemaRecord = new TestRecord(zeSchema).set(Schemas.TITLE, "New record saved in transaction 2");
+		anotherSchemaRecord.set(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema"), asList(zeSchemaRecord.getId()));
+
+		recordServices.execute(new Transaction(anotherSchemaRecord, zeSchemaRecord));
+
+	}
+
+	private MetadataSchemaTypesConfigurator metadataFromAnotherSchemaToZeSchema() {
+		return new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				MetadataSchemaTypeBuilder zeSchemaTypeBuilder = schemaTypes.getSchemaType(zeSchema.typeCode());
+				schemaTypes.getSchema(anotherSchema.code()).create("referenceFromAnotherSchemaToZeSchema")
+						.defineReferencesTo(zeSchemaTypeBuilder).setMultivalue(true);
+			}
+		};
+	}
+
+	@Test
+	public void whenUpdateARecordWithAnAutomaticReferenceListToANewRecord()
+			throws Exception {
+		defineSchemasManager().using(schemas.with(
+				aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt()));
+
+		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(Schemas.TITLE, "New record saved in transaction 1");
+		recordServices.add(anotherSchemaRecord);
+
+		Record zeSchemaRecord = new TestRecord(zeSchema).set(Schemas.TITLE, "New record saved in transaction 2");
+		anotherSchemaRecord.set(anotherSchema.metadata("aStringMetadata"), zeSchemaRecord.getId());
+
+		recordServices.execute(new Transaction(anotherSchemaRecord, zeSchemaRecord));
+
+	}
+
+	private MetadataSchemaTypesConfigurator aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt() {
+		return new MetadataSchemaTypesConfigurator() {
+
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				MetadataSchemaBuilder anotherSchemaBuilder = schemaTypes.getSchema(anotherSchema.code());
+				MetadataSchemaTypeBuilder zeSchemaTypeBuilder = schemaTypes.getSchemaType(zeSchema.typeCode());
+
+				anotherSchemaBuilder.create("aStringMetadata").setType(MetadataValueType.STRING);
+				anotherSchemaBuilder.create("aCalculatedMetadataToAReference").setType(MetadataValueType.REFERENCE)
+						.setMultivalue(true)
+						.defineReferencesTo(zeSchemaTypeBuilder)
+						.defineDataEntry().asCalculated(RecordServicesAcceptanceTestCalculator.class);
+			}
+		};
+	}
+
+	public static class RecordServicesAcceptanceTestCalculator implements MetadataValueCalculator<List<String>> {
+
+		LocalDependency<String> aStringMetadataParam = LocalDependency.toAString("aStringMetadata");
+
+		@Override
+		public List<String> calculate(CalculatorParameters parameters) {
+			String aStringMetadata = parameters.get(aStringMetadataParam);
+			return aStringMetadata == null ? null : Arrays.asList(aStringMetadata);
+		}
+
+		@Override
+		public List<String> getDefaultValue() {
+			return null;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return MetadataValueType.REFERENCE;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return true;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return asList(aStringMetadataParam);
+		}
 	}
 
 	private Record anotherSchemaRecordLinkedTo(Record record) {

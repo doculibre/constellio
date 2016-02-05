@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.schemas;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -34,11 +17,12 @@ public class InheritedMetadataBehaviors {
 	final boolean searchable;
 	final boolean schemaAutocomplete;
 	final boolean essential;
-	final boolean writeNullValues;
+	final boolean encrypted;
+	final boolean essentialInSummary;
 
 	public InheritedMetadataBehaviors(boolean undeletable, boolean multivalue, boolean systemReserved, boolean unmodifiable,
 			boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship, boolean sortable,
-			boolean searchable, boolean schemaAutocomplete, boolean essential, boolean writeNullValues) {
+			boolean searchable, boolean schemaAutocomplete, boolean essential, boolean encrypted, boolean essentialInSummary) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -50,11 +34,8 @@ public class InheritedMetadataBehaviors {
 		this.searchable = searchable;
 		this.schemaAutocomplete = schemaAutocomplete;
 		this.essential = essential;
-		this.writeNullValues = writeNullValues;
-	}
-
-	public boolean isWriteNullValues() {
-		return writeNullValues;
+		this.encrypted = encrypted;
+		this.essentialInSummary = essentialInSummary;
 	}
 
 	public boolean isUndeletable() {
@@ -63,6 +44,10 @@ public class InheritedMetadataBehaviors {
 
 	public boolean isMultivalue() {
 		return multivalue;
+	}
+
+	public boolean isEssentialInSummary() {
+		return essentialInSummary;
 	}
 
 	@Override
@@ -109,5 +94,9 @@ public class InheritedMetadataBehaviors {
 
 	public boolean isEssential() {
 		return essential;
+	}
+
+	public boolean isEncrypted() {
+		return encrypted;
 	}
 }

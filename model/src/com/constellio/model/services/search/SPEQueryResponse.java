@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search;
 
 import java.util.ArrayList;
@@ -41,10 +24,12 @@ public class SPEQueryResponse {
 
 	private final List<Record> records;
 
+	private final Map<Record, Map<Record, Double>> recordsWithMoreLikeThis;
+
 	private final boolean correctlySpelt;
 	private final List<String> spellcheckerSuggestions;
 
-	public SPEQueryResponse(List<Record> records) {
+	public SPEQueryResponse(List<Record> records, Map<Record, Map<Record, Double>> recordsWithMoreLikeThis) {
 		this.fieldFacetValues = new HashMap<>();
 		this.statisticsValues = new HashMap<>();
 		this.queryFacetsValues = new HashMap<>();
@@ -54,13 +39,14 @@ public class SPEQueryResponse {
 		this.highlights = new HashMap<>();
 		this.correctlySpelt = true;
 		this.spellcheckerSuggestions = new ArrayList<>();
+		this.recordsWithMoreLikeThis = recordsWithMoreLikeThis;
 	}
 
 	public SPEQueryResponse(
 			Map<String, List<FacetValue>> fieldFacetValues, Map<String, Map<String, Object>> statisticsValues,
 			Map<String, Integer> queryFacetsValues, long qtime,
 			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
-			List<String> spellcheckerSuggestions) {
+			List<String> spellcheckerSuggestions, Map<Record, Map<Record, Double>> recordsWithMoreLikeThis) {
 		this.fieldFacetValues = fieldFacetValues;
 		this.statisticsValues = statisticsValues;
 		this.queryFacetsValues = queryFacetsValues;
@@ -70,6 +56,7 @@ public class SPEQueryResponse {
 		this.highlights = highlights;
 		this.correctlySpelt = correctlySpelt;
 		this.spellcheckerSuggestions = spellcheckerSuggestions;
+		this.recordsWithMoreLikeThis = recordsWithMoreLikeThis;
 	}
 
 	public List<FacetValue> getFieldFacetValues(String metadata) {
@@ -139,13 +126,13 @@ public class SPEQueryResponse {
 	public SPEQueryResponse withModifiedRecordList(List<Record> records) {
 		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null,
 				correctlySpelt,
-				spellcheckerSuggestions);
+				spellcheckerSuggestions, recordsWithMoreLikeThis);
 	}
 
 	public SPEQueryResponse withNumFound(int numFound) {
 		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null,
 				correctlySpelt,
-				spellcheckerSuggestions);
+				spellcheckerSuggestions, recordsWithMoreLikeThis);
 	}
 
 	public Map<String, Map<String, List<String>>> getHighlights() {
@@ -166,5 +153,9 @@ public class SPEQueryResponse {
 		} else {
 			return highlights.get(recordId);
 		}
+	}
+
+	public Map<Record, Map<Record, Double>> getRecordsWithMoreLikeThis() {
+		return recordsWithMoreLikeThis;
 	}
 }

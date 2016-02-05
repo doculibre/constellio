@@ -1,62 +1,66 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.connectors.http;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.jsoup.nodes.Element;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.auth.AuthScope;
 
-import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtils.FetchedDocumentContent;
+import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+import com.constellio.app.modules.es.model.connectors.AuthenticationScheme;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
-import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.app.modules.es.services.mapping.ConnectorField;
+import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.parser.FileParser;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 
 public class ConnectorHttp extends Connector {
 
-	public static final String FIELD_MIMETYPE = "mimetype";
+	private ConnectorHttpContext context;
 
-	private static final int DOCUMENTS_PER_JOBS = 5;
-	private static final int JOBS_IN_PARALLEL = 5;
+	ConfigManager configManager;
 
-	ConnectorHttpInstance connectorInstance;
+	String connectorId;
+
+	ConnectorHttpContextServices contextServices;
 
 	@Override
 	public void initialize(Record instanceRecord) {
-		this.connectorInstance = es.wrapConnectorHttpInstance(instanceRecord);
+		this.connectorId = instanceRecord.getId();
+		this.configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
+		this.contextServices = new ConnectorHttpContextServices(es);
+	}
+
+	public HttpURLFetchingService newFetchingService() {
+		int timeout = 60_000;
+		ConnectorHttpInstance connectorInstance = getConnectorInstance();
+		DefaultCredentialsProvider credentialProvider = new DefaultCredentialsProvider();
+		AuthScope authScope = new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT);
+		if (AuthenticationScheme.NTLM.equals(connectorInstance.getAuthenticationScheme())) {
+			String username = connectorInstance.getUsername();
+			String password = connectorInstance.getPasssword();
+			String domain = connectorInstance.getDomain();
+
+			//FIXME
+			//Credentials credentials = new NTCredentials(username, password, "contellio", domain);
+			credentialProvider.addNTLMCredentials(username, password, null, -1, null, domain);
+		}
+		return new HttpURLFetchingService(timeout, credentialProvider);
 	}
 
 	@Override
@@ -69,147 +73,151 @@ public class ConnectorHttp extends Connector {
 		return asList(ConnectorHttpDocument.SCHEMA_TYPE);
 	}
 
-	private ConnectorHttpDocument newUnfetchedURLDocument(String url) {
-		return es.newConnectorHttpDocument(connectorInstance).setURL(url).setFetched(false);
+	public ConnectorHttpDocument newUnfetchedURLDocument(String url, int level) {
+		return getEs().newConnectorHttpDocument(getConnectorInstance()).setURL(url).setFetched(false).setSearchable(false)
+				.setLevel(level);
+	}
+
+	private ConnectorHttpInstance getConnectorInstance() {
+		return es.getConnectorHttpInstance(connectorId);
 	}
 
 	public void start() {
-		List<ConnectorDocument> documents = new ArrayList<>();
-		for (String url : connectorInstance.getSeeds()) {
-			documents.add(newUnfetchedURLDocument(url));
+		try {
+			context = contextServices.createContext(connectorId);
+
+		} catch (ConfigurationAlreadyExists e) {
+			contextServices.deleteContext(connectorId);
+			context = contextServices.createContext(connectorId);
 		}
-		for (String url : connectorInstance.getOnDemands()) {
-			documents.add(newUnfetchedURLDocument(url));
+
+		ConnectorHttpInstance connectorInstance = getConnectorInstance();
+		List<ConnectorDocument> documents = new ArrayList<>();
+		Set<String> urls = new HashSet<>();
+		urls.addAll(connectorInstance.getSeedsList());
+		urls.removeAll(connectorInstance.getOnDemandsList());
+		for (String url : urls) {
+			documents.add(newUnfetchedURLDocument(url, 0));
+			context.markAsFetched(url);
+
 		}
 		eventObserver.addUpdateEvents(documents);
+		es.getRecordServices().flush();
+	}
+
+	private List<ConnectorHttpDocument> getOnDemandDocuments() {
+
+		List<ConnectorHttpDocument> documents = new ArrayList<>();
+		for (String url : getConnectorInstance().getOnDemandsList()) {
+			if (context.isNewUrl(url)) {
+				documents.add(newUnfetchedURLDocument(url, 0));
+				context.markAsFetched(url);
+			} else {
+				documents.add(es.getConnectorHttpDocumentByUrl(url));
+			}
+		}
+		return documents;
+	}
+
+	private void removeOnDemandUrls() {
+		ConnectorHttpInstance connectorInstance = getConnectorInstance();
+		if (StringUtils.isNotBlank(connectorInstance.getOnDemands())) {
+			connectorInstance.setOnDemands(null);
+			try {
+				es.getRecordServices().update(connectorInstance);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	@Override
+	public void stop() {
+
+	}
+
+	@Override
+	public void afterJobs(List<ConnectorJob> jobs) {
+		contextServices.save(context);
 	}
 
 	public void resume() {
-		List<ConnectorDocument> documents = new ArrayList<>();
-		for (String url : connectorInstance.getOnDemands()) {
-			documents.add(newUnfetchedURLDocument(url));
+		context = contextServices.loadContext(connectorId);
+
+		es.getRecordServices().flush();
+	}
+
+	@Override
+	public List<String> getReportMetadatas(String reportMode) {
+		if (ConnectorReportView.INDEXATION.equals(reportMode)) {
+			return Arrays.asList(ConnectorHttpDocument.URL, ConnectorHttpDocument.DOWNLOAD_TIME,
+					ConnectorHttpDocument.FETCHED_DATETIME);
+		} else if (ConnectorReportView.ERRORS.equals(reportMode)) {
+			return Arrays.asList(ConnectorHttpDocument.URL, ConnectorHttpDocument.ERROR_CODE, ConnectorHttpDocument.ERROR_MESSAGE,
+					ConnectorHttpDocument.FETCHED_DATETIME, ConnectorHttpDocument.COPY_OF);
 		}
-		eventObserver.addUpdateEvents(documents);
+		return new ArrayList<>();
+	}
+
+	@Override
+	public String getMainConnectorDocumentType() {
+		return ConnectorHttpDocument.SCHEMA_TYPE;
+	}
+
+	@Override
+	public void onAllDocumentsDeleted() {
+		String configFolderPath = "connectors/http/" + connectorId + "/";
+		ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
+		if (configManager.folderExist(configFolderPath)) {
+			configManager.deleteFolder(configFolderPath);
+		}
 	}
 
 	@Override
 	public synchronized List<ConnectorJob> getJobs() {
-
-		LogicalSearchQuery query = es.connectorDocumentsToFetchQuery(connectorInstance);
-		query.setNumberOfRows(JOBS_IN_PARALLEL * DOCUMENTS_PER_JOBS);
-
-		List<ConnectorJob> jobs = new ArrayList<>();
-		List<ConnectorHttpDocument> documentsToFetch = es.searchConnectorHttpDocuments(query);
-		Iterator<List<ConnectorHttpDocument>> documentBatchsIterator = new BatchBuilderIterator<>(
-				documentsToFetch.iterator(), DOCUMENTS_PER_JOBS);
-
-		while (documentBatchsIterator.hasNext()) {
-			jobs.add(new FetchJob(this, documentBatchsIterator.next()));
+		ConnectorHttpInstance connectorInstance = getConnectorInstance();
+		for (String url : connectorInstance.getSeedsList()) {
+			if (context.isNewUrl(url)) {
+				try {
+					es.getRecordServices().add(newUnfetchedURLDocument(url, 0).getWrappedRecord());
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+				context.markAsFetched(url);
+			}
 		}
 
+		es.getRecordServices().refresh(connectorInstance);
+		List<ConnectorHttpDocument> onDemands = getOnDemandDocuments();
+
+		LogicalSearchQuery query = es.connectorDocumentsToFetchQuery(connectorInstance);
+
+		query.clearSort();
+		query.sortAsc(es.connectorHttpDocument.fetched());
+		query.sortAsc(es.connectorHttpDocument.level());
+		query.setNumberOfRows(connectorInstance.getNumberOfJobsInParallel() * connectorInstance.getDocumentsPerJobs());
+
+		List<ConnectorJob> jobs = new ArrayList<>();
+		List<ConnectorHttpDocument> documentsToFetch = new ArrayList<>();
+		documentsToFetch.addAll(onDemands);
+		documentsToFetch.addAll(es.searchConnectorHttpDocuments(query));
+		Iterator<List<ConnectorHttpDocument>> documentBatchsIterator = new BatchBuilderIterator<>(documentsToFetch.iterator(),
+				connectorInstance.getDocumentsPerJobs());
+
+		while (documentBatchsIterator.hasNext()) {
+			jobs.add(new ConnectorHttpFetchJob(this, connectorInstance, documentBatchsIterator.next(), context, logger));
+		}
+
+		if (!onDemands.isEmpty()) {
+			removeOnDemandUrls();
+		}
 		return jobs;
 	}
 
-	private class FetchJob extends ConnectorJob {
-
-		private final List<ConnectorHttpDocument> documents;
-
-		public FetchJob(Connector connector, List<ConnectorHttpDocument> documents) {
-			super(connector, "fetch");
-			this.documents = documents;
-		}
-
-		@Override
-		public void execute(Connector connector) {
-			User user = es.getModelLayerFactory().newUserServices()
-					.getUserInCollection("admin", connectorInstance.getCollection());
-			ContentManager contentManager = es.getContentManager();
-			IOServices ioServices = es.getIOServices();
-			for (ConnectorHttpDocument httpDocument : documents) {
-				ensureNotStopped();
-				setJobStep("Fetching " + httpDocument.getURL());
-
-				InputStream inputStream = null;
-				try {
-
-					FetchedDocumentContent fetchedDocumentContent = ConnectorHttpUtils.fetch(httpDocument.getURL());
-
-					inputStream = fetchedDocumentContent.newInputStream(ioServices);
-					List<ConnectorDocument> savedDocuments = new ArrayList<>();
-
-					FileParser fileParser = es.getModelLayerFactory().newFileParser();
-					ParsedContent parsedContent = fileParser.parse(inputStream, fetchedDocumentContent.getContentLength());
-
-					Set<String> urlsToFetch = new HashSet<>();
-					for (Element element : fetchedDocumentContent.getDocument().getElementsByTag("a")) {
-						String href = element.attr("href");
-						if (href != null && !href.equals("#") && isNotBlank(href)) {
-							String url = ConnectorHttpUtils.toAbsoluteHRef(httpDocument.getURL(), href);
-							if (isFetched(url) && isNewUrl(url)) {
-								urlsToFetch.add(url);
-							}
-						}
-					}
-
-					for (String urlToFetch : urlsToFetch) {
-						logInfo("Adding URL to fetch : " + urlToFetch);
-						savedDocuments.add(newUnfetchedURLDocument(urlToFetch));
-					}
-
-					// Until we manage security properly, all HttpDocuments will be public:
-					httpDocument.setManualTokens(Record.PUBLIC_TOKEN);
-
-					savedDocuments.add(httpDocument
-							.setFetched(true)
-							.setBaseURI(fetchedDocumentContent.baseUri())
-							.setTitle(fetchedDocumentContent.getTitle())
-							.setParsedContent(parsedContent.getParsedContent())
-							.addProperty(FIELD_MIMETYPE, parsedContent.getMimeType()));
-
-					eventObserver.addUpdateEvents(savedDocuments);
-
-				} catch (Exception e) {
-					logError(e);
-
-				} finally {
-					ioServices.closeQuietly(inputStream);
-				}
-			}
-		}
-
-		private boolean isNewUrl(String href) {
-			boolean isNew = !es.getSearchServices().hasResults(
-					from(es.connectorHttpDocument.schemaType()).where(es.connectorHttpDocument.url()).isEqualTo(href));
-
-			//logInfo(href + (isNew ? " is a new URL" : " is not a new URL"));
-			return isNew;
-		}
-
-		private boolean isFetched(String href) {
-			//TODO Use white/black regex instead
-			boolean fetched = false;
-			for (String seed : connectorInstance.getSeeds()) {
-				if (href.startsWith(seed)) {
-					fetched = true;
-				}
-			}
-			//TODO Use white/black regex instead
-
-			fetched &= !href.contains("wp-content");
-
-			//There is two http: in the url
-			fetched &= href.indexOf("http", 1) == -1;
-
-			//TODO
-			fetched &= !href.contains("#") && !href.contains("javascript") && !href.contains("..") && !href.contains("@");
-
-			if (!fetched) {
-				//logInfo("URL '" + href + "' is excluded");
-			}
-
-			return fetched;
-		}
-
+	@Override
+	public List<ConnectorField> getDefaultConnectorFields() {
+		List<ConnectorField> defaultConnectorFields = new ArrayList<>();
+		defaultConnectorFields.add(new ConnectorField());
+		return defaultConnectorFields;
 	}
-
 }

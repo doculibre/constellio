@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.acceptation.components;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,7 +86,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenLocaleThenDisplayedCaptionInSameLanguage() {
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "testmetadata1");
 
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(metadata1Value), VIEW_MODE.DISPLAY);
@@ -125,7 +108,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenDateMetadataThenDisplayedWithCorrectCaptionAndPattern() {
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.DATE_TIME, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, new LocalDateTime(2015, 2, 15, 0, 0));
 
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(metadata1Value), VIEW_MODE.DISPLAY);
@@ -141,7 +124,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenNullMetadataThenConsideredInvisible() {
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, null);
 
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(metadata1Value), VIEW_MODE.DISPLAY);
@@ -156,7 +139,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenANumberIdMetadataThenDisplayedWithoutZeroBeforeTheNumber() {
 		MetadataVO metadata1 = new MetadataVO("metadata_default_id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "000000000304050670");
 
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(metadata1Value), VIEW_MODE.DISPLAY);
@@ -172,7 +155,7 @@ public class RecordDisplayAcceptanceTest extends ConstellioTest {
 	public void givenANotNumberIdMetadataThenTheId() {
 		MetadataVO metadata1 = new MetadataVO("metadata_default_id", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "00000C0670");
 
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(metadata1Value), VIEW_MODE.DISPLAY);

@@ -1,27 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.data;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -42,11 +23,12 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public abstract class SearchResultVODataProvider implements DataProvider {
 
-	private static int DEFAULT_PAGE_SIZE = 50;
+	private static int DEFAULT_PAGE_SIZE = 10;
 
 	transient LogicalSearchQuery query;
+	transient boolean serializeRecords;
 	transient Integer size = null;
-	transient Map<Integer, SearchResultVO> cache;
+	//transient Map<Integer, SearchResultVO> cache;
 	protected transient ModelLayerFactory modelLayerFactory;
 	SerializableSearchCache queryCache = new SerializableSearchCache();
 	private transient SessionContext sessionContext;
@@ -71,7 +53,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		this.sessionContext = sessionContext;
 		this.modelLayerFactory = modelLayerFactory;
 		query = getQuery();
-		cache = new HashMap<>();
+		serializeRecords = !query.getReturnedMetadatas().isFullyLoaded();
 	}
 
 	public void addDataRefreshListener(DataRefreshListener dataRefreshListener) {
@@ -88,17 +70,12 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 
 	public void fireDataRefreshEvent() {
 		size = null;
-		cache.clear();
 		for (DataRefreshListener dataRefreshListener : dataRefreshListeners) {
 			dataRefreshListener.dataRefresh();
 		}
 	}
 
 	public SearchResultVO getSearchResultVO(int index) {
-		SearchResultVO searchResultVO = cache.get(index);
-		if (searchResultVO != null) {
-			return searchResultVO;
-		}
 		List<SearchResultVO> found = listSearchResultVOs(index, 1);
 		SearchResultVO result = found.size() > 0 ? found.get(0) : null;
 
@@ -111,7 +88,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	}
 
 	public int size() {
-		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		if (size == null) {
 			size = searchServices.search(query, DEFAULT_PAGE_SIZE).size();
 		}
@@ -128,15 +105,14 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	}
 
 	public List<SearchResultVO> listSearchResultVOs(int startIndex, int numberOfItems) {
-		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
 		SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
 		List<Record> records = response.getRecords();
 		for (int i = 0; i < Math.min(numberOfItems, records.size()); i++) {
-			RecordVO recordVO = voBuilder.build(records.get(startIndex + i), VIEW_MODE.TABLE, sessionContext);
+			RecordVO recordVO = voBuilder.build(records.get(startIndex + i), VIEW_MODE.SEARCH, sessionContext);
 			SearchResultVO searchResultVO = new SearchResultVO(recordVO, response.getHighlighting(recordVO.getId()));
 			results.add(searchResultVO);
-			cache.put(i, searchResultVO);
 		}
 		return results;
 	}

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.events;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -27,6 +10,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class EventCategoriesViewImpl extends BaseViewImpl implements EventCategoriesView {
@@ -60,78 +44,68 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		CssLayout mainLayout = new CssLayout();
-		mainLayout.addStyleName("view-group");
+		CssLayout layout = new CssLayout();
 
 		Button systemUsageLink = newSystemUsageLink();
 		systemUsageLink.addStyleName(SYSTEM_USAGE_LINK_BUTTON);
-		mainLayout.addComponent(systemUsageLink);
+		layout.addComponent(systemUsageLink);
 
 		Button usersAndGroupsLink = newUsersAndGroupsAddOrRemoveLink();
 		usersAndGroupsLink.addStyleName(USERS_AND_GROUPS_LINK_BUTTON);
-		mainLayout.addComponent(usersAndGroupsLink);
+		layout.addComponent(usersAndGroupsLink);
 
 		Button recordsCreationLink = newRecordsCreationLink();
 		recordsCreationLink.addStyleName(RECORDS_CREATION_LINK_BUTTON);
-		mainLayout.addComponent(recordsCreationLink);
+		layout.addComponent(recordsCreationLink);
 
 		Button recordsModificationLink = newRecordsModificationLink();
 		recordsModificationLink.addStyleName(RECORDS_MODIFICATION_LINK_BUTTON);
-		mainLayout.addComponent(recordsModificationLink);
+		layout.addComponent(recordsModificationLink);
 
 		Button recordsDeletionLink = newRecordsDeletionLink();
 		recordsDeletionLink.addStyleName(RECORDS_DELETION_LINK_BUTTON);
-		mainLayout.addComponent(recordsDeletionLink);
+		layout.addComponent(recordsDeletionLink);
 
 		Button currentlyBorrowedDocumentsLink = newCurrentlyBorrowedDocumentsLink();
 		currentlyBorrowedDocumentsLink.addStyleName(CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON);
-		mainLayout.addComponent(currentlyBorrowedDocumentsLink);
-
-		//		Button currentlyBorrowedFoldersLink = newCurrentlyBorrowedFoldersLink();
-		//		currentlyBorrowedDocumentsLink.addStyleName("currentlyBorrowedFoldersLinkButton");
-		//		mainLayout.addComponent(currentlyBorrowedFoldersLink);
+		layout.addComponent(currentlyBorrowedDocumentsLink);
 
 		Button borrowedDocumentsLink = newBorrowedOrReturnedDocumentsEventsLink();
 		borrowedDocumentsLink.addStyleName(BORROWED_DOCUMENTS_LINK_BUTTON);
-		mainLayout.addComponent(borrowedDocumentsLink);
-
-		//		Button borrowedFoldersLink = newBorrowedOrReturnedFoldersEventsLink();
-		//		page.addComponent(borrowedFoldersLink);
-
-		//		Button borrowedContainersLink = newBorrowedOrReturnedContainersEventsLink();
-		//		page.addComponent(borrowedContainersLink);
+		layout.addComponent(borrowedDocumentsLink);
 
 		Button filingSpaceEventsLink = newByFilingSpaceEventsLink();
 		filingSpaceEventsLink.addStyleName(FILING_SPACE_EVENTS_LINK_BUTTON);
-		mainLayout.addComponent(filingSpaceEventsLink);
+		layout.addComponent(filingSpaceEventsLink);
 
 		Button byFolderEventsLink = newByFolderEventsLink();
 		byFolderEventsLink.addStyleName(BY_FOLDER_EVENTS_LINK_BUTTON);
-		mainLayout.addComponent(byFolderEventsLink);
+		layout.addComponent(byFolderEventsLink);
 
 		Button byUserEventsLink = newByUserEventsLink();
 		byUserEventsLink.addStyleName(BY_USER_EVENTS_LINK_BUTTON);
-		mainLayout.addComponent(byUserEventsLink);
-
-		//		Button connectedUsersLink = newConnectedUsersLink();
-		//		page.addComponent(connectedUsersLink);
+		layout.addComponent(byUserEventsLink);
 
 		Button decommissioningEventsLink = newDecommissioningEventsLink();
 		decommissioningEventsLink.addStyleName(DECOMMISSIONING_EVENTS_LINK_BUTTON);
-		mainLayout.addComponent(decommissioningEventsLink);
+		layout.addComponent(decommissioningEventsLink);
 
 		if (agentEventsVisible) {
 			Button agentEventsLink = newAgentEventsLink();
 			agentEventsLink.addStyleName(AGENT_EVENTS_LINK_BUTTON);
-			mainLayout.addComponent(agentEventsLink);
+			layout.addComponent(agentEventsLink);
 		}
 
 		if (presenter.isTaskModuleInstalled()) {
 			Button tasksEventsLink = newTasksEventsLink();
 			tasksEventsLink.addStyleName(AGENT_EVENTS_LINK_BUTTON);
-			mainLayout.addComponent(tasksEventsLink);
+			layout.addComponent(tasksEventsLink);
 		}
-		return mainLayout;
+
+		VerticalLayout container = new VerticalLayout(layout);
+		container.addStyleName("view-group");
+
+		return container;
 	}
 
 	@Override

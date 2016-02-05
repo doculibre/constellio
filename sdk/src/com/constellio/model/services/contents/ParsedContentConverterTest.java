@@ -1,32 +1,16 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.contents;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import javax.ws.rs.HEAD;
 
 import org.junit.Test;
 
 import com.constellio.model.entities.records.ParsedContent;
-import com.constellio.sdk.tests.TestUtils;
 
 public class ParsedContentConverterTest {
 
@@ -39,12 +23,17 @@ public class ParsedContentConverterTest {
 		String mime = "oldText";
 		long length = 666;
 
-		Map<String, Object> properties = TestUtils.asStringObjectMap("k1\n", "v1=", "k2\n\r", "v2");
-		//Mettre des listes pour voir
+		Map<String, List<String>> styles = new HashMap<>();
+		styles.put("style1\n", asList("value1=", "value2\nvalue2b"));
+		styles.put("style2\n\r", asList("value3:", "value4\""));
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put("k1\n", "v1=");
+		properties.put("k2\n\r", "v2");
 
 		ParsedContentConverter converter = new ParsedContentConverter();
 
-		ParsedContent parsedContent = new ParsedContent(content, lang, mime, length, properties);
+		ParsedContent parsedContent = new ParsedContent(content, lang, mime, length, properties, styles);
 		String parsedContentAsString = converter.convertToString(parsedContent);
 		ParsedContent parsedContent2 = converter.convertToParsedContent(parsedContentAsString);
 		String parsedContentAsString2 = converter.convertToString(parsedContent2);
@@ -53,7 +42,14 @@ public class ParsedContentConverterTest {
 		assertThat(parsedContent2.getMimeType()).isEqualTo(mime);
 		assertThat(parsedContent2.getLength()).isEqualTo(length);
 		assertThat(parsedContent2.getParsedContent()).isEqualTo(content);
-		assertThat(parsedContent2.getProperties()).hasSize(2).containsEntry("k1\n", "v1=").containsEntry("k2\n\r", "v2");
+		assertThat(parsedContent2.getProperties()).containsOnly(
+				entry("k1\n", "v1="),
+				entry("k2\n\r", "v2"));
+
+		assertThat(parsedContent2.getStyles()).containsOnly(
+				entry("style1\n", asList("value1=", "value2\nvalue2b")),
+				entry("style2\n\r", asList("value3:", "value4\"")));
+
 		assertThat(parsedContentAsString2).isEqualTo(parsedContentAsString);
 
 	}

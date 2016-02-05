@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
@@ -22,10 +5,12 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 
@@ -38,7 +23,6 @@ import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -46,6 +30,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -63,6 +48,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
@@ -101,12 +87,20 @@ public class DecommissioningService {
 				.setOriginArchivisticStatus(
 						params.getSearchType().isFromSemiActive() ? OriginStatus.SEMI_ACTIVE : OriginStatus.ACTIVE);
 
-		if (params.getSearchType().isFromSemiActive()) {
-			List<ContainerRecord> containers = getContainersOfFolders(params.getSelectedFolderIds());
-			decommissioningList.setFolderDetailsFrom(getFoldersInContainers(containers));
+		List<String> recordIds = params.getSelectedRecordIds();
+		if (decommissioningList.getDecommissioningListType().isDocumentList()) {
+			decommissioningList.setDocuments(recordIds);
+		} else if (params.getSearchType().isFromSemiActive()) {
+			List<ContainerRecord> containers = getContainersOfFolders(recordIds);
+			List<Folder> folders = getFolders(recordIds);
+			if (!configs.areMixedContainersAllowed()) {
+				folders.addAll(getFoldersInContainers(containers));
+				folders = LangUtils.withoutDuplicates(folders);
+			}
+			decommissioningList.setFolderDetailsFrom(folders);
 			decommissioningList.setContainerDetailsFrom(containers);
 		} else {
-			decommissioningList.setFolderDetailsFor(params.getSelectedFolderIds());
+			decommissioningList.setFolderDetailsFor(recordIds);
 		}
 
 		try {
@@ -141,11 +135,47 @@ public class DecommissioningService {
 	}
 
 	public boolean isProcessable(DecommissioningList decommissioningList, User user) {
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList) &&
-				decommissioningList.isUnprocessed() &&
+		return decommissioningList.getDecommissioningListType().isFolderList() ?
+				isFolderListProcessable(decommissioningList, user) :
+				isDocumentListProcessable(decommissioningList, user);
+	}
+
+	private boolean isFolderListProcessable(DecommissioningList decommissioningList, User user) {
+		return decommissioningList.isUnprocessed() &&
 				areAllFoldersProcessable(decommissioningList) &&
-				decommissioningList.getStatus() == DecomListStatus.APPROVED &&
+				isApprovedOrDoesNotNeedApproval(decommissioningList) &&
 				securityService().canProcess(decommissioningList, user);
+	}
+
+	private boolean isDocumentListProcessable(DecommissioningList decommissioningList, User user) {
+		return decommissioningList.isUnprocessed() && securityService().canProcess(decommissioningList, user);
+	}
+
+	private boolean isApprovedOrDoesNotNeedApproval(DecommissioningList decommissioningList) {
+		switch (decommissioningList.getStatus()) {
+		case APPROVED:
+			return true;
+		case IN_APPROVAL:
+		case IN_VALIDATION:
+			return false;
+		}
+		if (decommissioningList.getDecommissioningListType().isClosing()) {
+			return !configs.isApprovalRequiredForClosing();
+		}
+		if (decommissioningList.getDecommissioningListType().isTransfert()) {
+			return !configs.isApprovalRequiredForTransfer();
+		}
+		if (decommissioningList.getDecommissioningListType().isDeposit()) {
+			return decommissioningList.isFromActive() ?
+					!configs.isApprovalRequiredForDepositOfActive() :
+					!configs.isApprovalRequiredForDepositOfSemiActive();
+		}
+		if (decommissioningList.getDecommissioningListType().isDestroyal()) {
+			return decommissioningList.isFromActive() ?
+					!configs.isApprovalRequiredForDestructionOfActive() :
+					!configs.isApprovalRequiredForDestructionOfSemiActive();
+		}
+		return false;
 	}
 
 	public boolean isApprovalRequestPossible(DecommissioningList decommissioningList, User user) {
@@ -196,12 +226,7 @@ public class DecommissioningService {
 	}
 
 	public void approveList(DecommissioningList decommissioningList, User user) {
-		decommissioningList.setApprovalDate(TimeProvider.getLocalDate()).setApprovalUser(user);
-		try {
-			recordServices.add(decommissioningList, user);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
+		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
 	}
 
 	public void approvalRequest(DecommissioningList decommissioningList, User approvalUser)
@@ -229,7 +254,6 @@ public class DecommissioningService {
 					.setSendOn(TimeProvider.getLocalDateTime())
 					.setParameters(parameters)
 					.setTemplate(templateID)
-							//.setFrom(new EmailAddress(user.getTitle(), user.getEmail()))
 					.setTo(toAddresses)
 					.setTryingCount(0d);
 
@@ -272,8 +296,25 @@ public class DecommissioningService {
 	}
 
 	public void decommission(DecommissioningList decommissioningList, User user) {
-		decommissioner(decommissioningList)
-				.process(decommissioningList, user, TimeProvider.getLocalDate());
+		decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
+	}
+
+	public void recycleContainer(ContainerRecord container, User user) {
+		Transaction transaction = new Transaction().setUser(user);
+		for (Folder folder : getFoldersInContainers(container)) {
+			transaction.add(folder.setContainer((String) null));
+		}
+		transaction.add(prepareToRecycle(container));
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			// TODO: Proper exception
+			throw new RuntimeException(e);
+		}
+	}
+
+	public ContainerRecord prepareToRecycle(ContainerRecord container) {
+		return container.setRealTransferDate(null).setRealDepositDate(null).setFull(false).setFillRatioEntered(0.0);
 	}
 
 	Decommissioner decommissioner(DecommissioningList decommissioningList) {
@@ -331,9 +372,18 @@ public class DecommissioningService {
 		return rm.wrapContainerRecords(recordServices.getRecordsById(collection, new ArrayList<>(containerIds)));
 	}
 
+	private List<Folder> getFoldersInContainers(ContainerRecord... containers) {
+		return getFoldersInContainers(Arrays.asList(containers));
+	}
+
 	private List<Folder> getFoldersInContainers(List<ContainerRecord> containers) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(rm.folderSchemaType()).where(rm.folderContainer()).isIn(containers));
+		return rm.wrapFolders(searchServices.search(query));
+	}
+
+	private List<Folder> getFolders(List<String> folderIds) {
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(folderIds));
 		return rm.wrapFolders(searchServices.search(query));
 	}
 
@@ -365,11 +415,6 @@ public class DecommissioningService {
 		return searchServices.hasResults(condition);
 	}
 
-	public List<AdministrativeUnit> getAllAdminUnitHierarchyOf(String administrativeUnitId) {
-		Record record = rm.getAdministrativeUnit(administrativeUnitId).getWrappedRecord();
-		return rm.wrapAdministrativeUnits(taxonomiesSearchServices.getAllConceptHierarchyOf(adminUnitsTaxonomy(), record));
-	}
-
 	public List<String> getAllAdminUnitIdsHierarchyOf(String administrativeUnitId) {
 		Record record = rm.getAdministrativeUnit(administrativeUnitId).getWrappedRecord();
 		return taxonomiesSearchServices.getAllConceptIdsHierarchyOf(adminUnitsTaxonomy(), record);
@@ -391,7 +436,8 @@ public class DecommissioningService {
 	}
 
 	public List<String> getAdministrativeUnitsForUser(User user) {
-		return taxonomiesSearchServices.getAllPrincipalConceptIdsAvailableTo(adminUnitsTaxonomy(), user, StatusFilter.ACTIVES);
+		return modelLayerFactory.newAuthorizationsServices()
+				.getConceptsForWhichUserHasPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, user);
 	}
 
 	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId) {
@@ -424,18 +470,67 @@ public class DecommissioningService {
 	}
 
 	public boolean isCopyStatusInputPossible(Folder folder) {
+		return isCopyStatusInputPossible(folder, null);
+	}
+
+	public boolean isCopyStatusInputPossible(Folder folder, User folderCreator) {
 		boolean hasPrimaries = true;
+		boolean hasAdminUnits = true;
 		boolean isResponsibleAdministrativeUnits = false;
 
 		recordServices.recalculate(folder);
 
+		RetentionRule rule = null;
 		if (folder.getRetentionRule() != null) {
-			RetentionRule rule = rm.getRetentionRule(folder.getRetentionRule());
+			rule = rm.getRetentionRule(folder.getRetentionRule());
+			hasAdminUnits = !rule.getAdministrativeUnits().isEmpty();
 			hasPrimaries = !rule.getPrincipalCopies().isEmpty();
 			isResponsibleAdministrativeUnits = rule.isResponsibleAdministrativeUnits();
 		}
+		if (!hasPrimaries) {
+			return false;
+		}
+		if (configs.isCopyRuleTypeAlwaysModifiable()) {
+			return true;
+		} else {
+			if (hasAdminUnits && isResponsibleAdministrativeUnits) {
+				if (folder.getWrappedRecord().isSaved()) {
+					//folder modification
+					return true;
+				} else {
+					//folder creation
+					if (configs.isOpenHolder()) {
+						List<String> creatorAdminUnits = getUserAdminUnits(folderCreator);
+						Set<String> ruleUnitsAndSubUnits = getRuleHierarchyUnits(rule);
+						return CollectionUtils.intersection(creatorAdminUnits, ruleUnitsAndSubUnits).isEmpty();
+					}
+				}
+			}
+		}
+		return isResponsibleAdministrativeUnits;
+	}
 
-		return configs.isCopyRuleTypeAlwaysModifiable() ? hasPrimaries : hasPrimaries && isResponsibleAdministrativeUnits;
+	private Set<String> getRuleHierarchyUnits(RetentionRule rule) {
+		Set<String> returnSet = new HashSet<>();
+		Taxonomy principalTaxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(
+				rule.getCollection());
+		for (String unit : rule.getAdministrativeUnits()) {
+			List<String> currentUnits = taxonomiesSearchServices
+					.getAllConceptIdsHierarchyOf(principalTaxonomy, rm.getAdministrativeUnit(unit).getWrappedRecord());
+			returnSet.addAll(currentUnits);
+		}
+		return returnSet;
+	}
+
+	private List<String> getUserAdminUnits(User user) {
+		List<String> returnList = new ArrayList<>();
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rm.administrativeUnitSchema()).returnAll();
+		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
+				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
+		for (Record record : results) {
+			returnList.add(record.getId());
+		}
+		return returnList;
 	}
 
 	public boolean isTransferDateInputPossibleForUser(Folder folder, User user) {
@@ -586,7 +681,7 @@ public class DecommissioningService {
 	private List<Record> getFoldersInContainer(ContainerRecord container, Metadata... metadatas) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(rm.folderSchemaType()).where(rm.folderContainer()).isEqualTo(container))
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(metadatas));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
 		return searchServices.search(query);
 	}
 
@@ -635,3 +730,4 @@ public class DecommissioningService {
 		return new DecommissioningSecurityService(collection, modelLayerFactory);
 	}
 }
+

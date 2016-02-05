@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.builders.object;
 
 import java.util.ArrayList;
@@ -29,6 +12,9 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -37,6 +23,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class RecordBuilder {
@@ -45,12 +32,14 @@ public class RecordBuilder {
 
 	private final CallContext context;
 
+	private final AppLayerFactory appLayerFactory;
 	private final ModelLayerFactory modelLayerFactory;
 
-	public RecordBuilder(Properties properties, CallContext context, ModelLayerFactory modelLayerFactory) {
+	public RecordBuilder(Properties properties, CallContext context, AppLayerFactory appLayerFactory) {
 		this.properties = properties;
 		this.context = context;
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 	}
 
 	public void setMetadataFromProperties(Record record) {
@@ -62,10 +51,20 @@ public class RecordBuilder {
 				setMetadataFromProperty(record, metadata);
 			}
 		}
+
+		callExtensions(record, properties, context);
 	}
 
-	public void setMetadataFromProperty(Record newRecord, Metadata metadata) {
-		PropertyData<?> propertyData = properties.getProperties().get(metadata.getCode());
+	private void callExtensions(Record record, Properties properties, CallContext context) {
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(record);
+		extensions
+				.buildConstellioRecordFromCmisObject(new BuildConstellioRecordFromCmisObjectParams(record, properties, context));
+	}
+
+	private void setMetadataFromProperty(Record newRecord, Metadata metadata) {
+		String metadataCode = metadata.getCode();
+		String propertyCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadataCode);
+		PropertyData<?> propertyData = properties.getProperties().get(propertyCode);
 		if (propertyData != null) {
 			if (metadata.isMultivalue()) {
 				setMultivalueMetadata(newRecord, metadata, propertyData);

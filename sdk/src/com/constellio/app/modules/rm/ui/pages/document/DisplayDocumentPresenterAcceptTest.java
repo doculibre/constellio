@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -24,12 +7,12 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -38,8 +21,6 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -48,9 +29,11 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.setups.Users;
 
 public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
+	Users users = new Users();
 	@Mock DisplayDocumentView displayDocumentView;
 	@Mock ConstellioNavigator navigator;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
@@ -68,9 +51,10 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(rmRecords)
-						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent().withEvents()
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
+		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);
 
 		schemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -145,6 +129,17 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenCheckedOutDocumentWhenCreatePDFAThenItIsNotVisible()
+			throws Exception {
+
+		assertThat(rmRecords.getDocumentWithContent_A19().getContent().getHistoryVersions()).hasSize(1);
+
+		presenter.forParams(rmRecords.document_A19);
+		presenter.checkOutButtonClicked();
+		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isFalse();
+	}
+
+	@Test
 	public void givenNoCheckoutDocumentThenAlertButtonIsNotVisible()
 			throws Exception {
 
@@ -168,10 +163,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 
-		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
-		sessionContext.setCurrentLocale(Locale.FRENCH);
-		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView);
+		connectAsBob();
 		presenter.forParams(rmRecords.document_A19);
 
 		assertThat(presenter.presenterUtils.getAlertWhenAvailableButtonState().isVisible()).isTrue();
@@ -183,13 +175,20 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
 		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
+		presenter.alertWhenAvailableClicked();
 
+		connectAsBob();
+		presenter.forParams(rmRecords.document_A19);
+		presenter.alertWhenAvailableClicked();
+
+		connectAsAlice();
 		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
 
 		Document document = rmRecords.getDocumentWithContent_A19();
-		assertThat(document.getAlertUsersWhenAvailable()).hasSize(1);
-		assertThat(document.getAlertUsersWhenAvailable().get(0)).isEqualTo(rmRecords.getChuckNorris().getId());
+		assertThat(document.getAlertUsersWhenAvailable()).containsOnly(
+				rmRecords.getBob_userInAC().getId(),
+				rmRecords.getAlice().getId());
 	}
 
 	@Test
@@ -204,10 +203,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
 
-		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
-		sessionContext.setCurrentLocale(Locale.FRENCH);
-		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView);
+		connectAsBob();
 		presenter.forParams(rmRecords.document_A19);
 
 		presenter.alertWhenAvailableClicked();
@@ -215,9 +211,21 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		presenter.alertWhenAvailableClicked();
 
 		Document document = rmRecords.getDocumentWithContent_A19();
-		assertThat(document.getAlertUsersWhenAvailable()).hasSize(2);
-		assertThat(document.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getChuckNorris().getId(),
-				rmRecords.getBob_userInAC().getId());
+		assertThat(document.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getBob_userInAC().getId());
+	}
+
+	private void connectAsBob() {
+		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
+		presenter = new DisplayDocumentPresenter(displayDocumentView);
+	}
+
+	private void connectAsAlice() {
+		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
+		presenter = new DisplayDocumentPresenter(displayDocumentView);
 	}
 
 	@Test
@@ -228,35 +236,28 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 
+		givenTimeIs(shishOClock);
+		connectAsBob();
 		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
 
-		givenTimeIs(shishOClock);
 		presenter.forParams(rmRecords.document_A19);
 		Content content = rmRecords.getDocumentWithContent_A19().getContent().checkIn();
 		Document document = rmRecords.getDocumentWithContent_A19().setContent(content);
 		recordServices.update(document.getWrappedRecord());
 		recordServices.flush();
 
-		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
-				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SUBJECT);
-		Metadata sendOnMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
-				.getMetadata(EmailToSend.DEFAULT_SCHEMA + "_" + EmailToSend.SEND_ON);
-		User chuck = rmRecords.getChuckNorris();
 		Document documentWithContentA19 = rmRecords.getDocumentWithContent_A19();
-		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
-				.where(subjectMetadata).isContainingText(documentWithContentA19.getTitle())
-				.andWhere(sendOnMetadata).is(shishOClock);
+		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE)).returnAll();
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
-		System.out.println(query.getQuery());
 		List<Record> emailToSendRecords = searchServices.search(query);
 
 		assertThat(emailToSendRecords).hasSize(1);
 		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
 		assertThat(emailToSend.getTo()).hasSize(1);
-		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(chuck.getTitle());
-		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(chuck.getEmail());
+		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
+		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
 		assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est disponible " + documentWithContentA19
 				.getTitle());
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
@@ -266,6 +267,8 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getParameters().get(0)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock);
 		assertThat(emailToSend.getParameters().get(1))
 				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + documentWithContentA19.getTitle());
+
+		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
 	}
 
 	//

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.contents;
 
 import java.util.ArrayList;
@@ -97,7 +80,7 @@ public class ContentImpl implements Content {
 		content.history = new ArrayList<>();
 		content.dirty = true;
 		content.emptyVersion = empty;
-		content.setNewCurrentVersion(new ContentVersion(newVersion, correctFilename, version, user.getId(), now));
+		content.setNewCurrentVersion(new ContentVersion(newVersion, correctFilename, version, user.getId(), now, null));
 		return content;
 	}
 
@@ -168,6 +151,14 @@ public class ContentImpl implements Content {
 		return Collections.unmodifiableList(history);
 	}
 
+	@Override
+	public List<ContentVersion> getVersions() {
+		List<ContentVersion> versions = new ArrayList<>();
+		versions.addAll(getHistoryVersions());
+		versions.add(getCurrentVersion());
+		return Collections.unmodifiableList(versions);
+	}
+
 	public ContentImpl checkIn() {
 		ensureCheckedOut();
 		this.checkoutDateTime = null;
@@ -209,7 +200,7 @@ public class ContentImpl implements Content {
 		} else {
 			nextVersion = getNextVersion(finalize);
 		}
-		setNewCurrentVersion(new ContentVersion(newVersion, correctFilename, nextVersion, userId, now));
+		setNewCurrentVersion(new ContentVersion(newVersion, correctFilename, nextVersion, userId, now, null));
 		if (emptyVersion) {
 			this.history.clear();
 			this.emptyVersion = false;
@@ -271,6 +262,28 @@ public class ContentImpl implements Content {
 		return this;
 	}
 
+	@Override
+	public Content setVersionComment(String comment) {
+		if (currentCheckedOutVersion != null) {
+			this.currentCheckedOutVersion = this.currentCheckedOutVersion.withComment(comment);
+		} else {
+			this.currentVersion = this.currentVersion.withComment(comment);
+		}
+		this.dirty = true;
+		return this;
+	}
+
+	@Override
+	public Content setVersionModificationDatetime(LocalDateTime modificationDatetime) {
+		if (currentCheckedOutVersion != null) {
+			this.currentCheckedOutVersion = this.currentCheckedOutVersion.withModificationDatetime(modificationDatetime);
+		} else {
+			this.currentVersion = this.currentVersion.withModificationDatetime(modificationDatetime);
+		}
+		this.dirty = true;
+		return this;
+	}
+
 	public ContentVersion getCurrentVersion() {
 		return currentVersion;
 	}
@@ -298,10 +311,10 @@ public class ContentImpl implements Content {
 		if (emptyVersion) {
 			emptyVersion = false;
 			String version = finalize ? "1.0" : "0.1";
-			currentVersion = new ContentVersion(newVersion, correctedFilename, version, user.getId(), now);
+			currentVersion = new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null);
 		} else {
 			String version = getNextVersion(finalize);
-			setNewCurrentVersion(new ContentVersion(newVersion, correctedFilename, version, user.getId(), now));
+			setNewCurrentVersion(new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null));
 		}
 		this.dirty = true;
 		return this;
@@ -344,7 +357,7 @@ public class ContentImpl implements Content {
 
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		String userId = checkoutUserId;
-		this.currentCheckedOutVersion = new ContentVersion(newVersion, correctedFilename, version, userId, now);
+		this.currentCheckedOutVersion = new ContentVersion(newVersion, correctedFilename, version, userId, now, null);
 		this.dirty = true;
 		return this;
 	}

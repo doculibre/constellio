@@ -1,35 +1,26 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.solr.serverFactories;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 
-import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.ZookeeperAtomicFileSystem;
 
-public class CloudSolrServerFactory implements SolrServerFactory {
+public class CloudSolrServerFactory extends AbstractSolrServerFactory {
+	private List<AtomicFileSystem> atomicFileSystems = new ArrayList<>();
+	private List<SolrClient> solrClients = new ArrayList<>();
 
-	private static Map<String, CloudSolrClient> solrServers = new HashMap<String, CloudSolrClient>();
+	private static final String CONFIGS = "/configs";
 	private final String zkHost;
+	private static final int defaultTimeout = 6000;
 
 	public CloudSolrServerFactory(String zkHost) {
 		super();
@@ -37,46 +28,62 @@ public class CloudSolrServerFactory implements SolrServerFactory {
 	}
 
 	@Override
-	public SolrClient newSolrServer(String core) {
-		if (solrServers.containsKey(core)) {
-			return solrServers.get(core);
+	public synchronized SolrClient newSolrServer(String core) {
+		SolrClient solrClient = getSolrClient(core);
+		solrClients.add(solrClient);
+		return solrClient;
+	}
+
+	@Override
+	public synchronized void clear() {
+		for (AtomicFileSystem atomicFileSystem : atomicFileSystems) {
+			atomicFileSystem.close();
 		}
-		CloudSolrClient server = new CloudSolrClient(zkHost) {
-			@Override
-			public void shutdown() {
-				//super.shutdown();
-			}
-		};
-		server.setDefaultCollection(core);
-		//server.setParser(null);
-		//server.setZkClientTimeout(60000);
-		//server.setZkConnectTimeout(60000);
-		//server.connect();
-		solrServers.put(core, server);
-		return server;
+
+		for (SolrClient solrClient : solrClients)
+			solrClient.shutdown();
 	}
 
 	@Override
-	public void clear() {
+	public synchronized AtomicFileSystem getConfigFileSystem(String core) {
+		AtomicFileSystem configFileSystem = getAtomicFileSystem(core);
+		atomicFileSystems.add(configFileSystem);
+		return configFileSystem;
+	}
+
+	public synchronized AtomicFileSystem getConfigFileSystem() {
+		AtomicFileSystem configFileSystem = getAtomicFileSystem("");
+		atomicFileSystems.add(configFileSystem);
+		return configFileSystem;
 	}
 
 	@Override
-	public AtomicFileSystem getConfigFileSystem(String core) {
-		// TODO Auto-generated method stub
-		//throw new UnsupportedOperationException("Not implemented yet.");
-		return null;
+	public void reloadSolrServer(String core) {
+		try {
+			CollectionAdminRequest.Reload reload = new CollectionAdminRequest.Reload();
+			reload.setCollectionName(core);
+			CollectionAdminResponse response = reload.process(getAdminServer());
+			if (!response.isSuccess())
+				throw new RuntimeException("Core is not reloaded " + response.getErrorMessages());
+		} catch (SolrServerException | IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public SolrClient getAdminServer() {
-		// TODO Auto-generated method stub
-		//throw new UnsupportedOperationException("Not implemented yet.");
-		return null;
+	SolrClient getSolrClient(String core) {
+		CloudSolrClient solrClient = new CloudSolrClient(zkHost);
+		solrClient.setDefaultCollection(core);
+		return solrClient;
 	}
 
 	@Override
-	public AtomicFileSystem getConfigFileSystem() {
-		throw new UnsupportedOperationException("TODO");
+	AtomicFileSystem getAtomicFileSystem(String core) {
+		String path = CONFIGS + "/" + core;
+		if (core.isEmpty())
+			path = CONFIGS;
+
+		return new ChildAtomicFileSystem(new ZookeeperAtomicFileSystem(zkHost, defaultTimeout), path, false);
 	}
 
 }

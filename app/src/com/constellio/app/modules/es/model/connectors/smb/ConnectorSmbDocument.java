@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.model.connectors.smb;
 
 import java.util.Arrays;
@@ -24,7 +7,6 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
@@ -35,11 +17,11 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 
 	public static final String CONNECTOR = ConnectorDocument.CONNECTOR;
 	public static final String CONNECTOR_TYPE = ConnectorDocument.CONNECTOR_TYPE;
+	public static final String LAST_MODIFIED = ConnectorDocument.LAST_MODIFIED;
 
 	public static final String URL = "url";
 	public static final String PARSED_CONTENT = "parsedContent";
 	public static final String PERMISSIONS_HASH = "permissionsHash";
-	public static final String LAST_MODIFIED = "lastModified";
 	public static final String LAST_FETCH_ATTEMPT = "lastFetchAttempt";
 	public static final String SIZE = "size";
 
@@ -48,6 +30,7 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 	public static final String LANGUAGE = "language";
 	public static final String EXTENSION = "extension";
 	public static final String LAST_FETCH_ATTEMPT_DETAILS = "lastFetchAttemptDetails";
+	public static final String UNRETRIEVED_COUNT = "unretrievedCount";
 
 	public ConnectorSmbDocument(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -57,8 +40,9 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 		super(record, types, typeRequirement);
 	}
 
-	public String getUrl() {
-		return get(URL);
+	public ConnectorSmbDocument setURL(String url) {
+		set(URL, url);
+		return this;
 	}
 
 	public ConnectorSmbDocument setUrl(String url) {
@@ -80,7 +64,7 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 		return this;
 	}
 
-	public ConnectorSmbDocument setParent(Folder parent) {
+	public ConnectorSmbDocument setParent(ConnectorSmbFolder parent) {
 		set(PARENT, parent);
 		return this;
 	}
@@ -95,20 +79,17 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 	}
 
 	public double getSize() {
-		return get(SIZE);
+		double size;
+		try {
+			size = get(SIZE);
+		} catch (Exception e) {
+			size = -3;
+		}
+		return size;
 	}
 
 	public ConnectorSmbDocument setSize(long size) {
 		set(SIZE, size);
-		return this;
-	}
-
-	public LocalDateTime getLastModified() {
-		return get(LAST_MODIFIED);
-	}
-
-	public ConnectorSmbDocument setLastModified(LocalDateTime dateTime) {
-		set(LAST_MODIFIED, dateTime);
 		return this;
 	}
 
@@ -138,7 +119,7 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 		set(LAST_FETCH_ATTEMPT_STATUS, lastFetchedStatus);
 		return this;
 	}
-	
+
 	public String getLastFetchAttemptDetails() {
 		return get(LAST_FETCH_ATTEMPT_DETAILS);
 	}
@@ -163,6 +144,17 @@ public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument
 
 	public ConnectorSmbDocument setExtension(String extension) {
 		set(EXTENSION, extension);
+		return this;
+	}
+
+	public long getUnretrievedCount() {
+		double count = get(UNRETRIEVED_COUNT);
+		Double d = new Double(count);
+		return d.longValue();
+	}
+
+	public ConnectorSmbDocument setUnretrievedCount(long unretrievedCount) {
+		set(UNRETRIEVED_COUNT, unretrievedCount);
 		return this;
 	}
 

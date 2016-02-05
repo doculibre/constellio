@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.security;
 
 import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_EDIT_METADATA;
@@ -554,14 +537,14 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		givenAliceHasPermission(RMPermissionsTo.CREATE_DOCUMENTS);
 		assertThat(navigationToAddDocumentPossible()).isTrue();
 
-		givenAliceHasPermission(RMPermissionsTo.MANAGE_DECOMMISSIONING);
-		assertThatUserHasOnlyAccessToRMArchivesPages(DECOMMISSIONING_CAPTION, REPORTS_CAPTION);
+		givenAliceHasPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
+		assertThatUserHasOnlyAccessToRMArchivesPages(DECOMMISSIONING_CAPTION);
 		assertThatUserHasAccessToAdminPages();
 		assertThatUserHasAccessTORMEventsPages();
 		assertThatCanNavigateToAllDecommissioningPages();
 
 		givenAliceHasPermission(RMPermissionsTo.MANAGE_CONTAINERS);
-		assertThatUserHasOnlyAccessToRMArchivesPages(CONTAINERS_CAPTION, REPORTS_CAPTION);
+		assertThatUserHasOnlyAccessToRMArchivesPages(CONTAINERS_CAPTION);
 		assertThatUserHasAccessToAdminPages();
 		assertThatUserHasAccessTORMEventsPages();
 		assertThatCanNavigateToAllContainersPages();
@@ -762,7 +745,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigationToEditDocumentPossible(documentInA13)).isTrue();
 		assertThat(navigationToRecordAuthorizationsPossible(documentInA13)).isTrue();
 
-		assertThatCanNavigateToAllDecommissioningPages();
+		//assertThatCanNavigateToAllDecommissioningPages();
 		assertThatCanNavigateToAllContainersPages();
 
 		assertThat(navigateToReportsPossible()).isFalse();
@@ -2297,7 +2280,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		assertThat(navigateToBuildDecommissioningListPossible("semiActiveToDestroy")).isTrue();
 
 		assertThat(navigateToSearchContainerForDecommissioningListPossible(records.list_04)).isTrue();
-		assertThat(navigateToCreateContainerForDecommissioningListPossible(records.list_04)).isTrue();
+		//		assertThat(navigateToCreateContainerForDecommissioningListPossible(records.list_04)).isTrue();
 	}
 
 	private void assertThatCanNavigateToAllSystemCollectionsPages() {

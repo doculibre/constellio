@@ -1,21 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
+
+import org.joda.time.LocalDateTime;
 
 public class ContentImportVersion {
 
@@ -23,12 +8,18 @@ public class ContentImportVersion {
 
 	String fileName;
 
+	String comment;
+
 	boolean major;
 
-	public ContentImportVersion(String url, String fileName, boolean major) {
+	LocalDateTime lastModification;
+
+	public ContentImportVersion(String url, String fileName, boolean major, String comment, LocalDateTime lastModification) {
 		this.url = url;
 		this.fileName = fileName;
 		this.major = major;
+		this.comment = comment;
+		this.lastModification = lastModification;
 	}
 
 	public String getUrl() {
@@ -39,7 +30,15 @@ public class ContentImportVersion {
 		return fileName;
 	}
 
+	public String getComment() {
+		return comment;
+	}
+
 	public boolean isMajor() {
 		return major;
+	}
+
+	public LocalDateTime getLastModification() {
+		return lastModification;
 	}
 }

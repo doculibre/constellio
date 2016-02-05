@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search.query.logical.condition;
 
 import java.util.ArrayList;
@@ -140,24 +123,33 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	@Override
-	public String getSolrQuery() {
+	public String getSolrQuery(SolrQueryBuilderParams params) {
 		String query = "(";
 
 		if (dataStoreFields == null) {
 			query += " *:*";
 		} else {
 			for (int i = 0; i < dataStoreFields.size() - 1; i++) {
-				query += " " + valueCondition.getSolrQuery(dataStoreFields.get(i)) + " " + metadataLogicalOperator;
+				query += " " + valueCondition.getSolrQuery(getSearchedField(params, dataStoreFields.get(i))) + " "
+						+ metadataLogicalOperator;
 			}
 
 			DataStoreField metadata = dataStoreFields.get(dataStoreFields.size() - 1);
-			String solrQuery = valueCondition.getSolrQuery(metadata);
+			String solrQuery = valueCondition.getSolrQuery(getSearchedField(params, metadata));
 			query += " " + solrQuery;
 		}
 
 		query += " )";
 
 		return query;
+	}
+
+	private DataStoreField getSearchedField(SolrQueryBuilderParams params, DataStoreField dataStoreField) {
+		if (params.isPreferAnalyzedFields() && dataStoreField.isSearchable()) {
+			return dataStoreField.getAnalyzedField(params.getLanguageCode());
+		} else {
+			return dataStoreField;
+		}
 	}
 
 	public DataStoreFieldLogicalSearchCondition replacingValueConditionWith(LogicalSearchValueCondition newValueCondition) {

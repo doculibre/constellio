@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -55,6 +38,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManagerException.Opt
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -135,6 +119,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		String code;
+		boolean reindexRequired = false;
 
 		MetadataBuilder builder;
 		if (!editMode) {
@@ -159,6 +144,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
 			code = formMetadataVO.getCode();
 			if (!isInherited(code)) {
+				reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
+						builder.isSearchable() != formMetadataVO.isSearchable();
 				builder.setSortable(formMetadataVO.isSortable());
 				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
 				builder.setSearchable(formMetadataVO.isSearchable());
@@ -175,12 +162,17 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		} catch (OptimistickLocking optimistickLocking) {
 			// TODO exception gestion
 			throw new RuntimeException(optimistickLocking);
-		} catch (EssentialMetadataCannotBeDisabled e) {
-			view.showErrorMessage($("AddEditMetadataPresenter.essentialMetadataCannotBeDisabled"));
+		} catch (EssentialMetadataCannotBeDisabled | EssentialMetadataInSummaryCannotBeDisabled e) {
+			view.showErrorMessage($("AddEditMetadataView.essentialMetadataCannotBeDisabled"));
 			return;
 		}
 
 		saveDisplayConfig(formMetadataVO, code, schemasManager, editMode);
+
+		if (reindexRequired) {
+			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+			view.showMessage("AddEditMetadataView.reindexRequired");
+		}
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
 		view.navigateTo().listSchemaMetadata(params);
@@ -328,9 +320,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			}
 			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getValueType(), collection,
 					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
-					new HashMap<Locale, String>(), null, new String[] { }, formMetadataVO.getReference(), inputType,
+					new HashMap<Locale, String>(), null, new String[] {}, formMetadataVO.getReference(), inputType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
-					formMetadataVO.getDefaultValue());
+					formMetadataVO.getDefaultValue(), false);
 			return metadataVO;
 		} catch (Exception ex) {
 			return null;

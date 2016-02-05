@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -41,6 +24,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.Recor
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.ReferenceToNonExistentIndex;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
@@ -65,14 +49,17 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
@@ -85,6 +72,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.UnresolvableOptimsiticLockingCausingInfiniteLoops;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.AutocompleteFieldPopulator;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.schemas.MetadataList;
@@ -96,6 +84,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 
 public class RecordServicesImpl extends BaseRecordServices {
@@ -213,11 +202,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 			OptimisticLocking e, int attempt)
 			throws RecordServicesException {
 
-		if (attempt > 25) {
+		if (attempt > 35) {
 			throw new UnresolvableOptimsiticLockingCausingInfiniteLoops(transactionDTO);
 		}
 
-		//Will wait up to 15 seconds given 25 attempt are made
+		//Will wait up to 30 seconds given 35 attempt are made
 		long sleepDuration = 50 * attempt;
 		if (sleepDuration > 0) {
 			sleep(sleepDuration);
@@ -308,7 +297,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record getDocumentById(String id) {
 		try {
-			return new RecordImpl(recordDao.get(id));
+			return new RecordImpl(recordDao.get(id), true);
 		} catch (NoSuchRecordWithId e) {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, e);
 		}
@@ -328,6 +317,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	void prepareRecords(Transaction transaction, String onlyValidateRecord)
 			throws RecordServicesException.ValidationException {
 
+		RecordPopulateServices recordPopulateServices = modelLayerFactory.newRecordPopulateServices();
 		RecordProvider recordProvider = newRecordProvider(null, transaction);
 		RecordValidationServices validationServices = newRecordValidationServices();
 		RecordAutomaticMetadataServices automaticMetadataServices = newAutomaticMetadataServices();
@@ -349,28 +339,52 @@ public class RecordServicesImpl extends BaseRecordServices {
 			if (record.isDirty()) {
 				if (record.isSaved()) {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					extensions.callRecordInModificationEvent(new RecordInModificationEvent(record, modifiedMetadatas));
+					extensions.callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
+							new RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(record,
+									modifiedMetadatas));
 				} else {
-					extensions.callRecordInCreationEvent(new RecordInCreationEvent(record));
+					extensions.callRecordInCreationBeforeValidationAndAutomaticValuesCalculation(
+							new RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent(record,
+									transaction.getUser()));
 				}
 			}
 		}
 
-		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
+		if (transaction.getRecordUpdateOptions().isExtractorsEnabled()) {
+			boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
+			List<Record> records = DependencyUtils.sortRecordByDependency(types, transaction.getRecords());
+			for (Record record : records) {
+				recordPopulateServices.populate(record);
+
+				if (onlyValidateRecord == null || onlyValidateRecord.equals(record.getId())) {
+					if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
+						updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
+					}
+					if (validations) {
+						validationServices.validateManualMetadatas(record, recordProvider, transaction);
+					}
+					automaticMetadataServices
+							.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
+					if (validations) {
+						validationServices.validateCyclicReferences(record, recordProvider, transaction);
+						validationServices.validateAutomaticMetadatas(record, recordProvider, transaction);
+						validationServices.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
+					}
+				}
+
+			}
+
+		}
+
 		for (Record record : transaction.getRecords()) {
-			if (onlyValidateRecord == null || onlyValidateRecord.equals(record.getId())) {
-				if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
-					updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
-				}
-				if (validations) {
-					validationServices.validateManualMetadatas(record, recordProvider, transaction);
-				}
-				automaticMetadataServices
-						.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
-				if (validations) {
-					validationServices.validateCyclicReferences(record, recordProvider, transaction);
-					validationServices.validateAutomaticMetadatas(record, recordProvider, transaction);
-					validationServices.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
+			if (record.isDirty()) {
+				if (record.isSaved()) {
+					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
+					extensions.callRecordInModificationBeforeSave(
+							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas));
+				} else {
+					extensions.callRecordInCreationBeforeSave(
+							new RecordInCreationBeforeSaveEvent(record, transaction.getUser()));
 				}
 			}
 		}
@@ -440,6 +454,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			RecordImpl recordImpl = (RecordImpl) record;
 			long version = transactionResponseDTO.getNewDocumentVersion(record.getId());
 			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+
 			recordImpl.markAsSaved(version, schema);
 			recordsToInsert.add(record);
 		}
@@ -455,7 +470,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		try {
 			for (String deletedContent : contentModificationsBuilder.getDeletedContentsVersionsHashes()) {
-				System.out.println("Mark for deletion> " + deletedContent);
 				contentManager.silentlyMarkForDeletionIfNotReferenced(deletedContent);
 			}
 			saveTransactionDTO(transaction, modificationImpactHandler, attempt);
@@ -567,6 +581,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 				types, transaction.getRecordUpdateOptions().isFullRewrite(), contentManager, collectionLanguages));
 		//fieldsPopulators.add(new PathsFieldPopulator(types));
 		fieldsPopulators.add(new AutocompleteFieldPopulator());
+
+		Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+			@Override
+			public EncryptionServices get() {
+				return modelLayerFactory.newEncryptionServices();
+			}
+		};
+
 		for (Record record : modifiedOrUnsavedRecords) {
 			MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 					.getSchema(record.getSchemaCode());
@@ -583,13 +605,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 		return new TransactionDTO(
 				transaction.getId(), transaction.getRecordUpdateOptions().getRecordsFlushing(), addedRecords, modifiedRecordDTOs)
-				.withSkippingReferenceToLogicallyDeletedValidation(transaction.isSkippingReferenceToLogicallyDeletedValidation());
+				.withSkippingReferenceToLogicallyDeletedValidation(transaction.isSkippingReferenceToLogicallyDeletedValidation())
+				.withFullRewrite(transaction.getRecordUpdateOptions().isFullRewrite());
 	}
 
 	public Record newRecordWithSchema(MetadataSchema schema, String id) {
 		Record record = new RecordImpl(schema.getCode(), schema.getCollection(), id);
 
-		for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue()) {
+		for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
 
 			if (metadata.isMultivalue()) {
 				List<Object> values = new ArrayList<>();
@@ -607,6 +630,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 		String id;
 		if ("collection_default".equals(schema.getCode())) {
 			id = schema.getCollection();
+		} else if (!schema.isInTransactionLog()) {
+			id = uniqueIdGenerator.next() + "ZZ";
 		} else {
 			id = uniqueIdGenerator.next();
 		}
@@ -615,7 +640,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public RecordAutomaticMetadataServices newAutomaticMetadataServices() {
 		return new RecordAutomaticMetadataServices(modelFactory.getMetadataSchemasManager(), modelFactory.getTaxonomiesManager(),
-				modelFactory.getSystemConfigurationsManager());
+				modelFactory.getSystemConfigurationsManager(), modelFactory.getModelLayerLogger());
 	}
 
 	public RecordValidationServices newRecordValidationServices() {
@@ -665,11 +690,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	RecordProvider newRecordProvider(RecordProvider nestedProvider, Transaction transaction) {
-		return new RecordProvider(this, nestedProvider, transaction.getModifiedRecords(), transaction);
+		return new RecordProvider(modelLayerFactory.newRecordServices(), nestedProvider, transaction.getRecords(), transaction);
 	}
 
 	RecordProvider newRecordProviderWithoutPreloadedRecords() {
-		return new RecordProvider(this, null, null, null);
+		return new RecordProvider(modelLayerFactory.newRecordServices(), null, null, null);
 	}
 
 	public final List<String> getRecordTitles(String collection, List<String> recordIds) {
@@ -703,6 +728,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 				searchServices);
 
 		return calculator.findTransactionImpact(transaction, executedAfterTransaction);
+	}
+
+	@Override
+	public RecordsCaches getRecordsCaches() {
+		return recordsCaches;
 	}
 
 	public ModificationImpactCalculator newModificationImpactCalculator(TaxonomiesManager taxonomiesManager,
@@ -825,7 +855,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public void recalculate(Record record) {
-
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
 				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), new TransactionRecordsReindexation());
 	}

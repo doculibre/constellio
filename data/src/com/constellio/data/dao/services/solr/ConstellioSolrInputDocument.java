@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.solr;
 
 import java.util.List;
@@ -28,20 +11,53 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 
 	@Override
 	public void setField(String name, Object value) {
-		validate(name, value);
-		super.setField(name, value);
+		value = convertEmptyListToNull(value);
+		if (value == null) {
+			super.remove(name);
+		} else {
+			validate(name, value);
+			super.setField(name, value);
+		}
 	}
 
 	@Override
 	public void setField(String name, Object value, float boost) {
-		validate(name, value);
-		super.setField(name, value, boost);
+		value = convertEmptyListToNull(value);
+		if (value == null) {
+			super.remove(name);
+		} else {
+			validate(name, value);
+			super.setField(name, value, boost);
+		}
 	}
 
 	@Override
 	public void addField(String name, Object value, float boost) {
-		validate(name, value);
-		super.addField(name, value, boost);
+
+		value = convertEmptyListToNull(value);
+
+		if (value == null) {
+			super.remove(name);
+		} else {
+			validate(name, value);
+			super.addField(name, value, boost);
+		}
+	}
+
+	private Object convertEmptyListToNull(Object value) {
+		if (value instanceof List) {
+			List list = (List) value;
+			boolean hasNonNullValue = false;
+			for (Object o : list) {
+				if (o != null) {
+					hasNonNullValue = true;
+				}
+			}
+
+			return hasNonNullValue ? value : null;
+		} else {
+			return value;
+		}
 	}
 
 	private void validate(String name, Object value) {
@@ -64,9 +80,9 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 
 		if (value instanceof Map) {
 			for (Object item : ((Map) value).values()) {
-				if (item == null) {
-					throw new ImpossibleRuntimeException("value of field '" + name + "' must not contain null values");
-				}
+				//				if (item == null) {
+				//					throw new ImpossibleRuntimeException("value of field '" + name + "' must not contain null values");
+				//				}
 				if (item instanceof List) {
 					for (Object mapValueItem : (List) item) {
 						if (mapValueItem == null) {

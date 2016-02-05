@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.search.logical.condition;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +19,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.sdk.tests.ConstellioTest;
 
 /**
@@ -49,6 +33,7 @@ public class DataStoreFieldLogicalSearchConditionTest extends ConstellioTest {
 	@Mock Metadata firstTextMetadata;
 	private LogicalSearchValueCondition startsWith;
 	private List<Metadata> metadatas;
+	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null);
 
 	@Before
 	public void setUp() {
@@ -67,13 +52,13 @@ public class DataStoreFieldLogicalSearchConditionTest extends ConstellioTest {
 	public void givenMetadatasAndAndOperatorStartsWithConditionThenReturnValidSolrString() {
 		DataStoreFieldLogicalSearchCondition andSearchCondition = new DataStoreFieldLogicalSearchCondition(
 				new SchemaFilters(schemaType), metadatas, LogicalOperator.AND, startsWith);
-		assertThat(andSearchCondition.getSolrQuery()).isEqualTo("( firstText:edouard* AND secondText:edouard* )");
+		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo("( firstText:edouard* AND secondText:edouard* )");
 	}
 
 	@Test
 	public void givenMetadatasAndOrOperatorStartsWithConditionThenReturnValidSolrString() {
 		DataStoreFieldLogicalSearchCondition andSearchCondition = new DataStoreFieldLogicalSearchCondition(
 				new SchemaFilters(schemaType), metadatas, LogicalOperator.OR, startsWith);
-		assertThat(andSearchCondition.getSolrQuery()).isEqualTo("( firstText:edouard* OR secondText:edouard* )");
+		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo("( firstText:edouard* OR secondText:edouard* )");
 	}
 }

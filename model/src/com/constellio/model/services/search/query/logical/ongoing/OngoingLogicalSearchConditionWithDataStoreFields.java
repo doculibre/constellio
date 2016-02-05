@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search.query.logical.ongoing;
 
 import java.util.Arrays;
@@ -28,6 +11,7 @@ import com.constellio.model.services.search.query.logical.condition.CompositeLog
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 
 public class OngoingLogicalSearchConditionWithDataStoreFields {
 
@@ -175,6 +159,18 @@ public class OngoingLogicalSearchConditionWithDataStoreFields {
 
 	public LogicalSearchCondition isGreaterOrEqualThan(Object value) {
 		return is(LogicalSearchQueryOperators.greaterOrEqualThan(value));
+	}
+
+	public LogicalSearchCondition isNewerThan(Object value, MeasuringUnitTime measuringUnitTime) {
+		return is(LogicalSearchQueryOperators.newerThan(value, measuringUnitTime));
+	}
+
+	public LogicalSearchCondition isOlderThan(Object value, MeasuringUnitTime measuringUnitTime) {
+		return is(LogicalSearchQueryOperators.olderThan(value, measuringUnitTime));
+	}
+
+	public LogicalSearchCondition isOldLike(Object value, MeasuringUnitTime measuringUnitTime) {
+		return is(LogicalSearchQueryOperators.oldLike(value, measuringUnitTime));
 	}
 
 	public LogicalSearchCondition isEqualTo(Object value) {

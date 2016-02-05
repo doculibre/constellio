@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.ui.pages;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -47,9 +30,9 @@ public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements Di
 	private VerticalLayout mainLayout;
 	private RecordDisplay recordDisplay;
 	private DisplayConnectorInstancePresenter presenter;
-	private Button editConnectorButton, startButton, stopButton, editSchemasButton, deleteButton;
+	private Button editConnectorButton, startButton, stopButton, editSchemasButton, deleteDocumentsButton, indexationReportButton, errorsReportButton;
 	private TextArea lastDocumentsField;
-	
+
 	private Label documentsCountLabel;
 
 	public DisplayConnectorInstanceViewImpl() {
@@ -82,7 +65,7 @@ public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements Di
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 		recordDisplay = new RecordDisplay(recordVO, new ConnectorMetadataDisplayFactory());
-		
+
 		Component documentsCountComponent = newDocumentsCountComponent();
 		lastDocumentsField = new TextArea();
 		lastDocumentsField.setEnabled(false);
@@ -131,10 +114,22 @@ public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements Di
 				presenter.editSchemasButtonClicked();
 			}
 		};
-		deleteButton = new LinkButton($("DisplayConnectorInstanceView.deleteButton")) {
+		deleteDocumentsButton = new LinkButton($("DisplayConnectorInstanceView.deleteDocumentsButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.deleteConnectorInstanceButtonClicked();
+				presenter.deleteDocumentsButtonClicked();
+			}
+		};
+		indexationReportButton = new LinkButton($("DisplayConnectorInstanceView.indexationReportButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.indexationReportButtonClicked();
+			}
+		};
+		errorsReportButton = new LinkButton($("DisplayConnectorInstanceView.errorsReportButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.errorsReportButtonClicked();
 			}
 		};
 
@@ -142,8 +137,9 @@ public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements Di
 		actionMenuButtons.add(stopButton);
 		actionMenuButtons.add(editConnectorButton);
 		actionMenuButtons.add(editSchemasButton);
-		//Is not supported yet
-		//		actionMenuButtons.add(deleteButton);
+		actionMenuButtons.add(indexationReportButton);
+		actionMenuButtons.add(errorsReportButton);
+		actionMenuButtons.add(deleteDocumentsButton);
 
 		return actionMenuButtons;
 	}

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRule.newPrincipal;
@@ -46,10 +29,12 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class RMTestRecordsAcceptanceTest extends ConstellioTest {
@@ -64,6 +49,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@SlowTest
 	public void givenTestRecordsWithoutFoldersThenNoFolders()
 			throws Exception {
 
@@ -83,6 +69,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		assertThat(records.getAdmin().has(CorePermissions.DELETE_CONTENT_VERSION).globally()).isTrue();
@@ -223,7 +210,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getList14().getContainers()).containsOnlyOnce(records.containerId_bac05);
 		assertThat(records.getList14().getStatus()).isEqualTo(DecomListStatus.PROCESSED);
 
-		DecommissioningList list15 = records.getList15();
+		DecommissioningList list15 = getListOrNull(records.list_15);
 		assertThat(list15.getId()).isEqualTo("list15");
 		assertThat(list15.isUniform()).isTrue();
 		assertThat(list15.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_DEPOSIT);
@@ -232,6 +219,24 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(list15.getAdministrativeUnit()).isEqualTo(records.unitId_10a);
 		assertThat(list15.getFolders()).containsOnlyOnce(records.folder_A(94, 96));
 		assertThat(list15.getContainers()).containsOnlyOnce(records.containerId_bac04);
+
+		assertThat(getListOrNull(records.list_30)).isNull();
+		assertThat(getListOrNull(records.list_31)).isNull();
+		assertThat(getListOrNull(records.list_32)).isNull();
+		assertThat(getListOrNull(records.list_33)).isNull();
+		assertThat(getListOrNull(records.list_34)).isNull();
+		assertThat(getListOrNull(records.list_35)).isNull();
+		assertThat(getListOrNull(records.list_36)).isNull();
+
+	}
+
+	private DecommissioningList getListOrNull(String listId) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		try {
+			return rm.getDecommissioningList(listId);
+		} catch (NoSuchRecordWithId e) {
+			return null;
+		}
 	}
 
 	@Test
@@ -1159,6 +1164,47 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				.has(actualDepositDate(2009, 8, 17))
 				.has(noPlanifiedDestructionDate())
 				.has(container("bac01"));
+
+	}
+
+	@Test
+	public void givenDocumentDecomListThenOK()
+			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+
+		DecommissioningList list30 = rm.getDecommissioningList(records.list_30);
+		DecommissioningList list31 = rm.getDecommissioningList(records.list_31);
+		DecommissioningList list32 = rm.getDecommissioningList(records.list_32);
+		DecommissioningList list33 = rm.getDecommissioningList(records.list_33);
+		DecommissioningList list34 = rm.getDecommissioningList(records.list_34);
+		DecommissioningList list35 = rm.getDecommissioningList(records.list_35);
+		DecommissioningList list36 = rm.getDecommissioningList(records.list_36);
+
+		assertThat(list30.getDecommissioningListType()).isEqualTo(DecommissioningListType.DOCUMENTS_TO_TRANSFER);
+		assertThat(list30.getDocuments()).hasSize(20);
+
+		assertThat(list31.getDecommissioningListType()).isEqualTo(DecommissioningListType.DOCUMENTS_TO_TRANSFER);
+		assertThat(list31.getDocuments()).hasSize(12);
+
+		assertThat(list32.getDecommissioningListType()).isEqualTo(DecommissioningListType.DOCUMENTS_TO_DEPOSIT);
+		assertThat(list32.getDocuments()).hasSize(60);
+
+		assertThat(list33.getDecommissioningListType()).isEqualTo(DecommissioningListType.DOCUMENTS_TO_DEPOSIT);
+		assertThat(list33.getDocuments()).hasSize(12);
+
+		assertThat(list34.getDecommissioningListType()).isEqualTo(DecommissioningListType.DOCUMENTS_TO_DEPOSIT);
+		assertThat(list34.getDocuments()).hasSize(12);
+
+		assertThat(list35.getDecommissioningListType()).isEqualTo(DecommissioningListType.DOCUMENTS_TO_DESTROY);
+		assertThat(list35.getDocuments()).hasSize(12);
+
+		assertThat(list36.getDecommissioningListType()).isEqualTo(DecommissioningListType.DOCUMENTS_TO_DESTROY);
+		assertThat(list36.getDocuments()).hasSize(12);
 
 	}
 

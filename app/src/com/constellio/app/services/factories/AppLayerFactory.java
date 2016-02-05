@@ -1,44 +1,34 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.factories;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
-import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.impl.DefaultPagesComponentsExtension;
+import com.constellio.app.modules.complementary.ESRMRobotsModule;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.appManagement.AppManagementService;
+import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
-import com.constellio.app.services.extensions.ConstellioPluginManager;
-import com.constellio.app.services.extensions.JSPFConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -61,6 +51,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 
 public class AppLayerFactory extends LayerFactory {
@@ -115,11 +106,13 @@ public class AppLayerFactory extends LayerFactory {
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager()));
 
 		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), modelLayerFactory,
-				dataLayerFactory));
+				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager())));
+		pluginManager.register(new ConstellioRMModule());
 
-		pluginManager.register(InstallableModule.class, new ConstellioRMModule());
-		pluginManager.register(InstallableModule.class, new ConstellioESModule());
-		pluginManager.register(InstallableModule.class, new TaskModule());
+		pluginManager.register(new ConstellioESModule());
+		pluginManager.register(new TaskModule());
+		pluginManager.register(new ConstellioRobotsModule());
+		pluginManager.register(new ESRMRobotsModule());
 
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
@@ -128,7 +121,7 @@ public class AppLayerFactory extends LayerFactory {
 		this.systemGlobalConfigsManager = add(
 				new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory().getConfigManager(), systemSetupService));
 		this.collectionsManager = add(
-				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed));
+				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
 		try {
 			newMigrationServices().migrate(null);
@@ -171,13 +164,16 @@ public class AppLayerFactory extends LayerFactory {
 
 	public AppManagementService newApplicationService() {
 		IOServicesFactory ioServicesFactory = dataLayerFactory.getIOServicesFactory();
-		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager);
+		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager,
+				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager);
 	}
 
 	@Override
 	public void initialize() {
 
+		appLayerExtensions.getSystemWideExtensions().pagesComponentsExtensions.add(new DefaultPagesComponentsExtension(this));
 		this.pluginManager.detectPlugins();
+		Set<String> invalidPlugins = new HashSet<>();
 		super.initialize();
 
 		String warVersion = newApplicationService().getWarVersion();
@@ -186,22 +182,37 @@ public class AppLayerFactory extends LayerFactory {
 		}
 
 		try {
-			newMigrationServices().migrate(null);
+			invalidPlugins.addAll(newMigrationServices().migrate(null));
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
 
-		collectionsManager.initializeCollections();
+		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
 
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
-			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
+			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 			systemGlobalConfigsManager.setMarkedForReindexing(false);
+			systemGlobalConfigsManager.setReindexingRequired(false);
 		}
+		systemGlobalConfigsManager.setRestartRequired(false);
 
 		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
 			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
 		}
 
+		if (!invalidPlugins.isEmpty()) {
+			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));
+			try {
+				restart();
+			} catch (AppManagementServiceException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	void restart()
+			throws AppManagementServiceException {
+		newApplicationService().restart();
 	}
 
 	@Override
@@ -267,5 +278,9 @@ public class AppLayerFactory extends LayerFactory {
 
 	public LabelTemplateManager getLabelTemplateManager() {
 		return labelTemplateManager;
+	}
+
+	public AppLayerConfiguration getAppLayerConfiguration() {
+		return appLayerConfiguration;
 	}
 }

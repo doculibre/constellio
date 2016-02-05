@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.borrowingServices;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +23,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -52,6 +36,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 	LocalDate nowDate = TimeProvider.getLocalDate();
 	RMEventsSearchServices rmEventsSearchServices;
 	SearchServices searchServices;
+	RecordServices recordServices;
 
 	@Before
 	public void setUp()
@@ -66,6 +51,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		searchServices = getModelLayerFactory().newSearchServices();
+		recordServices = getModelLayerFactory().newRecordServices();
 
 		givenTimeIs(nowDate);
 	}
@@ -130,7 +116,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 						BorrowingType.CONSULTATION);
 		folderA94 = records.getFolder_A94();
 
-		assertThat(folderA94.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVATE_DEPOSITED);
+		assertThat(folderA94.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DEPOSITED);
 		assertThat(folderA94.getBorrowed()).isTrue();
 		assertThat(folderA94.getBorrowDate().toLocalDate()).isEqualTo(nowDate);
 		assertThat(folderA94.getBorrowReturnDate()).isNull();
@@ -247,7 +233,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		assertThat(
 				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
 				.isEqualTo(0);
-		Thread.sleep(1000);
+		recordServices.flush();
 		List<Record> records = searchServices.search(rmEventsSearchServices.newFindReturnedFoldersByDateRangeQuery(
 				this.records.getAdmin(),
 				TimeProvider.getLocalDateTime().minusDays(1), TimeProvider.getLocalDateTime().plusDays(1)));
@@ -284,7 +270,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		assertThat(
 				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
 				.isEqualTo(0);
-		Thread.sleep(1000);
+		recordServices.flush();
 		List<Record> records = searchServices.search(rmEventsSearchServices.newFindReturnedFoldersByDateRangeQuery(
 				this.records.getAdmin(),
 				TimeProvider.getLocalDateTime().minusDays(1), TimeProvider.getLocalDateTime().plusDays(1)));
@@ -321,7 +307,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
 				.isEqualTo(0);
 
-		Thread.sleep(1000);
+		recordServices.flush();
 		List<Record> records = searchServices.search(rmEventsSearchServices.newFindReturnedFoldersByDateRangeQuery(
 				this.records.getAdmin(),
 				TimeProvider.getLocalDateTime().minusDays(1), TimeProvider.getLocalDateTime().plusDays(1)));
@@ -345,7 +331,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		assertThat(
 				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
 				.isEqualTo(0);
-		Thread.sleep(1000);
+		recordServices.flush();
 		List<Record> records = searchServices.search(rmEventsSearchServices.newFindReturnedFoldersByDateRangeQuery(
 				this.records.getAdmin(),
 				TimeProvider.getLocalDateTime().minusDays(1), TimeProvider.getLocalDateTime().plusDays(1)));
@@ -363,7 +349,27 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 		assertThat(
 				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
 				.isEqualTo(0);
-		Thread.sleep(1000);
+		recordServices.flush();
+		List<Record> records = searchServices.search(rmEventsSearchServices.newFindReturnedFoldersByDateRangeQuery(
+				this.records.getAdmin(),
+				TimeProvider.getLocalDateTime().minusDays(1), TimeProvider.getLocalDateTime().plusDays(1)));
+		assertThat(records).isEmpty();
+	}
+
+	@Test(expected = BorrowingServicesRunTimeException_FolderIsNotBorrowed.class)
+	public void givenFalseInBorrowedStatusFolderWhenReturnItThenException()
+			throws Exception {
+
+		Folder folderC30 = records.getFolder_C30();
+
+		recordServices.update(folderC30.setBorrowed(false));
+
+		borrowingServices.returnFolder(folderC30.getId(), records.getAdmin(), nowDate);
+
+		assertThat(
+				searchServices.getResultsCount(rmEventsSearchServices.newFindCurrentlyBorrowedFoldersQuery(records.getAdmin())))
+				.isEqualTo(0);
+		recordServices.flush();
 		List<Record> records = searchServices.search(rmEventsSearchServices.newFindReturnedFoldersByDateRangeQuery(
 				this.records.getAdmin(),
 				TimeProvider.getLocalDateTime().minusDays(1), TimeProvider.getLocalDateTime().plusDays(1)));

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.schemas;
 
 import static com.constellio.sdk.tests.TestUtils.asSet;
@@ -70,10 +53,10 @@ public class MetadataSchemaTest extends ConstellioTest {
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		MetadataSchema schema = new MetadataSchema("default", "second_default", "zeCollection", "zeLabel", metadatas, false,
-				new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
 
 		MetadataSchemaType schemaType = new MetadataSchemaType("second", "zeCollection", "titre", new ArrayList<MetadataSchema>(),
-				schema, true, true);
+				schema, true, true, true);
 
 		List<Metadata> returnedMetadatas = schemaType.getTaxonomySchemasMetadataWithChildOfRelationship(taxonomies);
 
@@ -99,7 +82,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 						textMetadata);
 
 		MetadataSchema schema = new MetadataSchema("default", "zeType_default", "zeCollection", "zeLabel", metadatas, false,
-				new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);
@@ -127,7 +110,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 						textMetadata, relationToT1, relationToT2);
 
 		MetadataSchema schema = new MetadataSchema("default", "t2_default", "zeCollection", "zeLabel", metadatas, false,
-				new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);

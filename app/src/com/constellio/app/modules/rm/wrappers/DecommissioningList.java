@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.wrappers;
 
 import static java.util.Arrays.asList;
@@ -35,6 +18,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -59,6 +43,7 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String CONTAINER_DETAILS = "containerDetails";
 	public static final String FOLDERS = "folders";
 	public static final String CONTAINERS = "containers";
+	public static final String DOCUMENTS = "documents";
 	public static final String FOLDERS_MEDIA_TYPES = "foldersMediaTypes";
 	public static final String STATUS = "status";
 	public static final String UNIFORM_COPY_RULE = "uniformCopyRule";
@@ -70,6 +55,8 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String VALIDATIONS = "validations";
 	public static final String PENDING_VALIDATIONS = "pendingValidations";
 	public static final String COMMENTS = "comments";
+	public static final String DOCUMENTS_REPORT_CONTENT = "documentsReportContent";
+	public static final String FOLDERS_REPORT_CONTENT = "foldersReportContent";
 
 	// Disabled fields
 	public static final String VALIDATION_DATE = "validationDate";    // never used, disabled in 5.1.0
@@ -476,5 +463,32 @@ public class DecommissioningList extends RecordWrapper {
 
 	public boolean isToInactive() {
 		return getDecommissioningListType().isDepositOrDestroyal();
+	}
+
+	public Content getDocumentsReportContent() {
+		return get(DOCUMENTS_REPORT_CONTENT);
+	}
+
+	public DecommissioningList setDocumentsReportContent(Content content) {
+		set(DOCUMENTS_REPORT_CONTENT, content);
+		return this;
+	}
+
+	public Content getFoldersReportContent() {
+		return get(FOLDERS_REPORT_CONTENT);
+	}
+
+	public DecommissioningList setFoldersReportContent(Content content) {
+		set(FOLDERS_REPORT_CONTENT, content);
+		return this;
+	}
+
+	public DecommissioningList setDocuments(List<String> documents) {
+		set(DOCUMENTS, documents);
+		return this;
+	}
+
+	public List<String> getDocuments() {
+		return getList(DOCUMENTS);
 	}
 }

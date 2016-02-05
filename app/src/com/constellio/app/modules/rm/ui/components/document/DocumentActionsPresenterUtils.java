@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.components.document;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -22,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -29,6 +13,8 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -205,8 +191,16 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return getCurrentUser().has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(currentDocument());
 	}
 
+	protected boolean isCreateDocumentPossible() {
+		return getCurrentUser().has(RMPermissionsTo.CREATE_DOCUMENTS).on(currentDocument());
+	}
+
 	private ComponentState getAddAuthorizationState() {
 		return ComponentState.visibleIf(isAddAuthorizationPossible());
+	}
+
+	private ComponentState getCreateDocumentState() {
+		return ComponentState.visibleIf(isCreateDocumentPossible());
 	}
 
 	protected boolean isShareDocumentPossible() {
@@ -214,7 +208,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public ComponentState getCreatePDFAState() {
-		if (getAuthorizationServices().canWrite(getCurrentUser(), currentDocument())) {
+		if (isCheckOutPossible() && getAuthorizationServices().canWrite(getCurrentUser(), currentDocument())) {
 			if (getContent() != null) {
 				return ComponentState.ENABLED;
 			}
@@ -366,6 +360,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				updateActionsComponent();
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
 				actionsComponent.showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
+				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
+				if (agentURL != null) {
+					actionsComponent.openAgentURL(agentURL);
+				}
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			}
@@ -486,7 +484,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public void updateActionsComponent() {
 		updateBorrowedMessage();
 		actionsComponent.setEditDocumentButtonState(getEditButtonState());
-		actionsComponent.setAddDocumentButtonState(getAddAuthorizationState());
+		// THIS IS WHERE I SHOULD USE THE ADD DOCUMENT PERMISSION INSTEAD
+		actionsComponent.setAddDocumentButtonState(getCreateDocumentState());
 		actionsComponent.setDeleteDocumentButtonState(getDeleteButtonState());
 		actionsComponent.setAddAuthorizationButtonState(getAddAuthorizationState());
 		actionsComponent.setCreatePDFAButtonState(getCreatePDFAState());
@@ -542,16 +541,30 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public void alertWhenAvailable() {
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(presenterUtils.getCollection(),
 				presenterUtils.modelLayerFactory());
-		Document document = schemas.wrapDocument(presenterUtils.toRecord(documentVO));
+		Document document = schemas.getDocument(documentVO.getId());
 		List<String> usersToAlert = document.getAlertUsersWhenAvailable();
 		String currentUserId = getCurrentUser().getId();
 		List<String> newUsersToAlert = new ArrayList<>();
 		newUsersToAlert.addAll(usersToAlert);
-		if (!newUsersToAlert.contains(currentUserId)) {
+
+		String currentBorrower = getCurrentBorrowerOf(document);
+
+		if (!newUsersToAlert.contains(currentUserId) && currentBorrower != null && !currentUserId.equals(currentBorrower)) {
 			newUsersToAlert.add(currentUserId);
 			document.setAlertUsersWhenAvailable(newUsersToAlert);
 			presenterUtils.addOrUpdate(document.getWrappedRecord());
 		}
 		actionsComponent.showMessage($("RMObject.createAlert"));
+	}
+
+	private String getCurrentBorrowerOf(Document document) {
+		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
+	}
+
+	public void addToCartRequested() {
+		Cart cart = rmSchemasRecordsServices.getOrCreateUserCart(getCurrentUser())
+				.addDocuments(Arrays.asList(documentVO.getId()));
+		presenterUtils.addOrUpdate(cart.getWrappedRecord());
+		actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
 	}
 }

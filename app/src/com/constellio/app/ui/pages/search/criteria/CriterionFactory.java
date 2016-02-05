@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search.criteria;
 
 import java.lang.reflect.Type;
@@ -26,6 +9,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
+import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
@@ -72,6 +56,9 @@ public class CriterionFactory implements StructureFactory {
 		SearchOperator searchOperator = criterion.getSearchOperator();
 		newCriterion.setSearchOperator(searchOperator);
 
+		RelativeCriteria relativeCriteria = criterion.getRelativeCriteria();
+		newCriterion.setRelativeCriteria(relativeCriteria);
+
 		newCriterion.setLeftParens(criterion.isLeftParens());
 		newCriterion.setRightParens(criterion.isRightParens());
 
@@ -82,34 +69,34 @@ public class CriterionFactory implements StructureFactory {
 			value = "" + criterion.getValue();
 		}
 
+		String endValue = null;
+		if (criterion.getEndValue() != null) {
+			endValue = "" + criterion.getEndValue();
+		}
+
 		switch (metadataValueType) {
 		case DATE:
-			if (value != null) {
-				LocalDateTime ldt = new LocalDateTime().parse(value);
-				newCriterion.setValue(ldt);
-			}
-
-			String endValue = null;
-			if (criterion.getEndValue() != null) {
-				endValue = "" + criterion.getEndValue();
-			}
-			if (endValue != null) {
-				LocalDateTime ldt = new LocalDateTime().parse(endValue);
-				newCriterion.setEndValue(ldt);
-			}
-
-			break;
 		case DATE_TIME:
-			if (value != null) {
+
+			if (relativeCriteria != null
+					&& (relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.PAST
+					|| relativeCriteria.getRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
+				Double newValue = Double.valueOf(value);
+				newCriterion.setValue(newValue);
+			} else if (value != null) {
 				LocalDateTime ldt = new LocalDateTime().parse(value);
 				newCriterion.setValue(ldt);
 			}
-
-			endValue = (String) criterion.getEndValue();
-			if (endValue != null) {
+			if (relativeCriteria != null
+					&& (relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.PAST
+					|| relativeCriteria.getEndRelativeSearchOperator() == RelativeSearchOperator.FUTURE)) {
+				Double newEndValue = Double.valueOf(endValue);
+				newCriterion.setEndValue(newEndValue);
+			} else if (endValue != null) {
 				LocalDateTime ldt = new LocalDateTime().parse(endValue);
 				newCriterion.setEndValue(ldt);
 			}
+
 			break;
 		case STRING:
 			newCriterion.setValue(value);
@@ -123,6 +110,10 @@ public class CriterionFactory implements StructureFactory {
 		case NUMBER:
 			double doubleValue = Double.parseDouble(value);
 			newCriterion.setValue(doubleValue);
+			if (endValue != null) {
+				double doubleEndValue = Double.parseDouble(endValue);
+				newCriterion.setEndValue(doubleEndValue);
+			}
 			break;
 		case BOOLEAN:
 			Boolean booleanValue = null;

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.dto.records;
 
 import java.util.ArrayList;
@@ -39,6 +22,7 @@ public class TransactionDTO {
 	private Map<String, RecordDTO> newRecordsById;
 	private RecordsFlushing recordsFlushing;
 	private boolean skippingReferenceToLogicallyDeletedValidation;
+	private boolean fullRewrite = false;
 
 	public TransactionDTO(RecordsFlushing recordsFlushing) {
 		this(UUID.randomUUID().toString(), recordsFlushing, Collections.<RecordDTO>emptyList(),
@@ -53,12 +37,12 @@ public class TransactionDTO {
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
 			List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords, List<SolrParams> deletedByQueries) {
-		this(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries, false);
+		this(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries, false, false);
 	}
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
 			List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords, List<SolrParams> deletedByQueries,
-			boolean skippingReferenceToLogicallyDeletedValidation) {
+			boolean skippingReferenceToLogicallyDeletedValidation, boolean fullRewrite) {
 		this.transactionId = transactionId;
 		this.recordsFlushing = recordsFlushing;
 		this.newRecords = Collections.unmodifiableList(newRecords);
@@ -66,6 +50,7 @@ public class TransactionDTO {
 		this.deletedRecords = Collections.unmodifiableList(deletedRecords);
 		this.deletedByQueries = Collections.unmodifiableList(deletedByQueries);
 		this.skippingReferenceToLogicallyDeletedValidation = skippingReferenceToLogicallyDeletedValidation;
+		this.fullRewrite = fullRewrite;
 		newRecordsById = buildNewRecordsByIdMap();
 	}
 
@@ -86,6 +71,10 @@ public class TransactionDTO {
 		return deletedByQueries;
 	}
 
+	public boolean isFullRewrite() {
+		return fullRewrite;
+	}
+
 	public boolean isSkippingReferenceToLogicallyDeletedValidation() {
 		return skippingReferenceToLogicallyDeletedValidation;
 	}
@@ -96,7 +85,7 @@ public class TransactionDTO {
 		newRecords.addAll(records);
 
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				skippingReferenceToLogicallyDeletedValidation);
+				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withModifiedRecords(List<RecordDeltaDTO> records) {
@@ -105,7 +94,7 @@ public class TransactionDTO {
 		modifiedRecords.addAll(records);
 
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				skippingReferenceToLogicallyDeletedValidation);
+				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withDeletedRecords(List<RecordDTO> records) {
@@ -114,7 +103,7 @@ public class TransactionDTO {
 		deletedRecords.addAll(records);
 
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				skippingReferenceToLogicallyDeletedValidation);
+				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withDeletedByQueries(SolrParams... deletedByQueries) {
@@ -127,12 +116,17 @@ public class TransactionDTO {
 		queries.addAll(deletedByQueries);
 
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, queries,
-				skippingReferenceToLogicallyDeletedValidation);
+				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
+	}
+
+	public TransactionDTO withFullRewrite(boolean fullRewrite) {
+		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
+				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withSkippingReferenceToLogicallyDeletedValidation(boolean enabled) {
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				enabled);
+				enabled, fullRewrite);
 	}
 
 	public boolean hasRecord(String value) {

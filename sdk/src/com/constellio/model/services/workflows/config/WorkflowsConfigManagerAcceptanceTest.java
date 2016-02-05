@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.workflows.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +27,9 @@ import com.constellio.model.services.workflows.config.WorkflowsConfigManagerRunt
 import com.constellio.model.services.workflows.config.WorkflowsConfigManagerRuntimeException.WorkflowsConfigManagerRuntimeException_NoWorkflowConfigurationForThisCollection;
 import com.constellio.model.services.workflows.config.WorkflowsConfigManagerRuntimeException.WorkflowsConfigManagerRuntimeException_WorkflowConfigurationAlreadyExists;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
+@SlowTest
 public class WorkflowsConfigManagerAcceptanceTest extends ConstellioTest {
 
 	WorkflowsConfigManager workflowsConfigManager;
@@ -78,6 +63,7 @@ public class WorkflowsConfigManagerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		prepareSystem(withZeCollection());
 
 		Map<String, String> mapping1 = new HashMap<>();
 		mapping1.put("key1", "value1");
@@ -101,8 +87,6 @@ public class WorkflowsConfigManagerAcceptanceTest extends ConstellioTest {
 				WorkflowConfiguration.class))).thenReturn(workflowDefinition3);
 		when(workflowBPMNDefinitionsService.getWorkflowDefinition(eq(bpmnFileName4), eq(mapping4), any(
 				WorkflowConfiguration.class))).thenReturn(workflowDefinition4);
-
-		givenCollection(zeCollection);
 
 		workflowsConfigManager = getModelLayerFactory().getWorkflowsConfigManager();
 		//				new WorkflowsConfigManager(getDataLayerFactory().getConfigManager(),

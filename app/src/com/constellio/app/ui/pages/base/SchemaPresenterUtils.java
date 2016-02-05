@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.base;
 
 import java.io.InputStream;
@@ -83,6 +66,10 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		return recordServices().newRecordWithSchema(schema(schemaCode));
 	}
 
+	private Record newRecord(String id) {
+		return recordServices().newRecordWithSchema(schema(schemaCode), id);
+	}
+
 	public final Record getRecord(String id) {
 		return recordServices().getDocumentById(id);
 	}
@@ -122,12 +109,19 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		delete(record, reason, true);
 	}
 
+	public final void delete(Record record, String reason, User user) {
+		delete(record, reason, true, user);
+	}
+
 	public final void delete(Record record, String reason, boolean physically) {
-		User currentUser = getCurrentUser();
-		recordServices().logicallyDelete(record, currentUser);
-		modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, currentUser, reason);
+		delete(record, reason, physically, getCurrentUser());
+	}
+
+	public final void delete(Record record, String reason, boolean physically, User user) {
+		recordServices().logicallyDelete(record, user);
+		modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 		if (physically) {
-			recordServices().physicallyDelete(record, currentUser);
+			recordServices().physicallyDelete(record, user);
 		}
 	}
 
@@ -142,16 +136,22 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		try {
 			record = recordServices().getDocumentById(recordVO.getId());
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-			record = newRecord();
+			record = newRecord(recordVO.getId());
 		}
-		MetadataSchema schema = schema();
+		String recordSchemaCode = record.getSchemaCode();
+		MetadataSchema currentSchema = schema(recordSchemaCode);
+		MetadataSchema targetSchema = schema(schemaCode);
+		if (!recordSchemaCode.equals(schemaCode)) {
+			record.changeSchema(currentSchema, targetSchema);
+		}
 		for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
 			MetadataVO metadataVO = metadataValueVO.getMetadata();
 			String metadataCode = metadataVO.getCode();
+			String localMetadataCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadataCode);
 
 			Metadata metadata;
 			try {
-				metadata = schema.getMetadata(metadataCode);
+				metadata = targetSchema.getMetadata(localMetadataCode);
 			} catch (NoSuchMetadata e) {
 				continue;
 			}

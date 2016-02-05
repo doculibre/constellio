@@ -1,39 +1,33 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.services;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isFalse;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 
+import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
+import com.constellio.app.modules.es.connectors.spi.ConnectorInstanciator;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.model.connectors.RegisteredConnector;
 import com.constellio.app.modules.es.services.crawler.ConnectorCrawler;
-import com.constellio.app.modules.es.services.crawler.ConnectorManagerRuntimeException.ConnectorManagerRuntimeException_InParallelFlagMustBeSetBeforeFirstCrawl;
+import com.constellio.app.modules.es.services.crawler.ConnectorManagerRuntimeException.ConnectorManagerRuntimeException_CrawlerCannotBeChangedAfterItIsStarted;
 import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
@@ -59,19 +53,31 @@ public class ConnectorManager implements StatefulService {
 
 	ConnectorCrawler crawler;
 
+	ConnectorInstanciator connectorInstanciator;
+
 	boolean paused;
 
 	boolean inParallel = true;
+
+	private final List<RegisteredConnector> registeredConnectors = new ArrayList<>();
 
 	public ConnectorManager(ESSchemasRecordsServices es) {
 		this.recordServices = es.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = es.getModelLayerFactory().getMetadataSchemasManager();
 		this.es = es;
+		this.connectorInstanciator = es;
+	}
+
+	public void setCrawler(ConnectorCrawler crawler) {
+		if (this.crawler != null) {
+			throw new ConnectorManagerRuntimeException_CrawlerCannotBeChangedAfterItIsStarted();
+		}
+		this.crawler = crawler;
 	}
 
 	public void setCrawlerInParallel(boolean parallel) {
 		if (crawler != null) {
-			throw new ConnectorManagerRuntimeException_InParallelFlagMustBeSetBeforeFirstCrawl();
+			throw new ConnectorManagerRuntimeException_CrawlerCannotBeChangedAfterItIsStarted();
 		}
 		this.inParallel = parallel;
 	}
@@ -160,7 +166,7 @@ public class ConnectorManager implements StatefulService {
 		Connector connector = instanciate(connectorInstance);
 
 		for (String schemaType : connector.getConnectorDocumentTypes()) {
-			typesBuilder.getSchemaType(schemaType).createCustomSchema(schema);
+			typesBuilder.getSchemaType(schemaType).createCustomSchema(schema).setLabel(connectorInstance.getTitle());
 		}
 
 		try {
@@ -172,14 +178,15 @@ public class ConnectorManager implements StatefulService {
 		return connectorInstance;
 	}
 
-	<T extends ConnectorInstance> Connector instanciate(T connectorInstance) {
-		return es.instanciate(connectorInstance);
+	public <T extends ConnectorInstance> Connector instanciate(T connectorInstance) {
+		return connectorInstanciator.instanciate(connectorInstance);
 	}
 
 	public synchronized ConnectorCrawler getCrawler() {
 		if (crawler == null) {
 			ConnectorLogger connectorLogger = new ConsoleConnectorLogger();
-			String resourceName = "crawlerObserver-" + es.getCollection();
+			String resourceName = "crawlerObserver-" + UUIDV1Generator.newRandomId() + "-" + es.getCollection();
+			System.out.println("Starting crawler '" + resourceName + "'");
 			ConnectorEventObserver connectorEventObserver = new DefaultConnectorEventObserver(es, connectorLogger, resourceName);
 			if (inParallel) {
 				this.crawler = ConnectorCrawler.runningJobsInParallel(es, connectorLogger, connectorEventObserver);
@@ -193,7 +200,7 @@ public class ConnectorManager implements StatefulService {
 	public long getFetchedDocumentsCount(String connectorId) {
 		ConnectorInstance<?> connectorInstance = es.getConnectorInstance(connectorId);
 		return es.getSearchServices().getResultsCount(es.fromAllFetchedDocumentsOf(connectorId)
-				.andWhere(es.connectorDocument.traversalCode()).isEqualTo(connectorInstance.getTraversalCode()));
+				.andWhere(es.connectorDocument.searchable()).isNot(isFalse()));
 	}
 
 	public List<ConnectorDocument<?>> getLastFetchedDocuments(String connectorId, int qty) {
@@ -233,5 +240,54 @@ public class ConnectorManager implements StatefulService {
 	public void delete(ConnectorInstance<?> instance) {
 		recordServices.logicallyDelete(instance.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(instance.getWrappedRecord(), User.GOD);
+	}
+
+	public void setConnectorInstanciator(ConnectorInstanciator connectorInstanciator) {
+		this.connectorInstanciator = connectorInstanciator;
+	}
+
+	public void totallyDeleteConnectorRecordsSkippingValidation(RecordDao recordDao,
+			ConnectorInstance connectorInstance) {
+		stopConnectorAndWaitUntilStopped(connectorInstance);
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "connectorId_s:" + connectorInstance.getId());
+
+		try {
+			recordDao.execute(new TransactionDTO(RecordsFlushing.NOW).withDeletedByQueries(params));
+			Connector connector = instanciate(connectorInstance);
+			connector.initialize(new ConsoleConnectorLogger(), connectorInstance.getWrappedRecord(), null, es);
+			connector.onAllDocumentsDeleted();
+			connectorInstance.setTraversalCode(null);
+			recordServices.update(connectorInstance.getWrappedRecord());
+		} catch (OptimisticLocking optimisticLocking) {
+			throw new RuntimeException(optimisticLocking);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	public void stopConnectorAndWaitUntilStopped(ConnectorInstance connectorInstance) {
+		if (connectorInstance.isEnabled()) {
+			// TODO Francis replace sleep with proper waiting
+			connectorInstance.setEnabled(false);
+			try {
+				recordServices.update(connectorInstance.getWrappedRecord());
+				Thread.sleep(30000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public List<RegisteredConnector> getRegisteredConnectors() {
+		return Collections.unmodifiableList(registeredConnectors);
+	}
+
+	public ConnectorManager register(String connectorTypeCode, String connectorInstanceSchemaCode, ConnectorUtilsServices services) {
+		registeredConnectors.add(new RegisteredConnector(connectorTypeCode, connectorInstanceSchemaCode, services));
+		return this;
 	}
 }

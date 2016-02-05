@@ -1,38 +1,19 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemas.bulkImport;
 
 import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
-import java.io.File;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -42,6 +23,7 @@ import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesRunti
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -51,6 +33,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -60,11 +43,14 @@ import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import com.constellio.model.services.contents.BulkUploader;
+import com.constellio.model.services.contents.BulkUploaderRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.RecordCachesServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
@@ -76,8 +62,8 @@ public class RecordsImportServices implements ImportServices {
 	public static final String INVALID_SCHEMA_TYPE_CODE = "invalidSchemaTypeCode";
 	public static final String LEGACY_ID_LOCAL_CODE = LEGACY_ID.getLocalCode();
 
-	static final List<String> ALL_BOOLEAN_YES = Arrays.asList("o", "y", "t", "oui", "vrai", "yes", "true", "1");
-	static final List<String> ALL_BOOLEAN_NO = Arrays.asList("n", "f", "non", "faux", "no", "false", "0");
+	static final List<String> ALL_BOOLEAN_YES = asList("o", "y", "t", "oui", "vrai", "yes", "true", "1");
+	static final List<String> ALL_BOOLEAN_NO = asList("n", "f", "non", "faux", "no", "false", "0");
 
 	private static final String IMPORT_URL_INPUTSTREAM_NAME = "RecordsImportServices-ImportURL";
 
@@ -128,11 +114,14 @@ public class RecordsImportServices implements ImportServices {
 
 		ProgressionHandler progressionHandler = new ProgressionHandler(bulkImportProgressionListener);
 		String collection = user.getCollection();
+		new RecordCachesServices(modelLayerFactory).loadCachesIn(collection);
 		importDataProvider.initialize();
 		try {
 			ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
-			ResolverCache resolverCache = new ResolverCache(modelLayerFactory.newSearchServices(), types);
+
+			ResolverCache resolverCache = new ResolverCache(modelLayerFactory.newRecordServices(),
+					modelLayerFactory.newSearchServices(), types, importDataProvider);
 			validate(importDataProvider, progressionHandler, types, resolverCache, extensions);
 			return run(importDataProvider, progressionHandler, user, types, resolverCache, extensions);
 		} finally {
@@ -169,8 +158,9 @@ public class RecordsImportServices implements ImportServices {
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
 						progressionHandler, user, types, extensions, addUpdateCount);
 				if (skipped > 0 && skipped == previouslySkipped) {
-					List<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
-					throw new RecordsImportServicesRuntimeException_CyclicDependency(schemaType, cyclicDependentIds);
+					Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
+					throw new RecordsImportServicesRuntimeException_CyclicDependency(schemaType,
+							new ArrayList<>(cyclicDependentIds));
 				}
 				if (skipped == 0) {
 					typeImportFinished = true;
@@ -210,6 +200,45 @@ public class RecordsImportServices implements ImportServices {
 	private int importBatch(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			String schemaType, User user, List<ImportData> batch, Transaction transaction, MetadataSchemaTypes types,
 			ProgressionHandler progressionHandler, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount) {
+
+		BulkUploader bulkUploader = null;
+		List<Metadata> contentMetadatas = types.getAllContentMetadatas();
+		if (!contentMetadatas.isEmpty()) {
+			bulkUploader = new BulkUploader(modelLayerFactory);
+			bulkUploader.setHandleDeletionOfUnreferencedHashes(false);
+			for (ImportData toImport : batch) {
+
+				for (Metadata contentMetadata : contentMetadatas) {
+					if (toImport.getFields().containsKey(contentMetadata.getLocalCode())) {
+						List<ContentImport> contentImports = new ArrayList<>();
+						if (contentMetadata.isMultivalue()) {
+							contentImports.addAll((List) toImport.getFields().get(contentMetadata.getLocalCode()));
+						} else {
+							contentImports.add((ContentImport) toImport.getFields().get(contentMetadata.getLocalCode()));
+
+						}
+						for (ContentImport contentImport : contentImports) {
+							for (Iterator<ContentImportVersion> iterator = contentImport.getVersions().iterator(); iterator
+									.hasNext(); ) {
+								ContentImportVersion version = iterator.next();
+								String url = version.getUrl();
+								StreamFactory<InputStream> inputStreamStreamFactory = urlResolver
+										.resolve(url, version.getFileName());
+								if (iterator.hasNext()) {
+									bulkUploader.uploadAsyncWithoutParsing(url, inputStreamStreamFactory, version.getFileName());
+								} else {
+									bulkUploader.uploadAsync(url, inputStreamStreamFactory);
+								}
+							}
+
+						}
+					}
+				}
+
+			}
+			bulkUploader.close();
+		}
+
 		int skipped = 0;
 		for (ImportData toImport : batch) {
 
@@ -229,8 +258,8 @@ public class RecordsImportServices implements ImportServices {
 
 				try {
 
-					Record record = buildRecord(importResults, user, resolverCache, user.getCollection(), schemaType, toImport,
-							types, extensions);
+					Record record = buildRecord(bulkUploader, importResults, user, resolverCache, user.getCollection(),
+							schemaType, toImport, types, extensions);
 					transaction.add(record);
 					addUpdateCount.incrementAndGet();
 
@@ -265,37 +294,48 @@ public class RecordsImportServices implements ImportServices {
 				}
 			}
 		}
+		contentManager.deleteUnreferencedContents(RecordsFlushing.LATER());
 		return skipped;
 	}
 
-	Record buildRecord(BulkImportResults importResults, User user, ResolverCache resolverCache, String collection,
-			String schemaType, ImportData toImport, MetadataSchemaTypes types, ModelLayerCollectionExtensions extensions)
+	Record buildRecord(BulkUploader bulkUploader, BulkImportResults importResults, User user, ResolverCache resolverCache,
+			String collection, String schemaTypeCode, ImportData toImport, MetadataSchemaTypes types,
+			ModelLayerCollectionExtensions extensions)
 			throws SkippedRecordException {
-		MetadataSchema schema = getMetadataSchema(collection, schemaType + "_" + toImport.getSchema());
+		MetadataSchemaType schemaType = getMetadataSchemaType(collection, schemaTypeCode);
+		MetadataSchema newSchema = getMetadataSchema(collection, schemaTypeCode + "_" + toImport.getSchema());
 
 		Record record;
 		String legacyId = toImport.getLegacyId();
-		if (resolverCache.isRecordUpdate(schemaType, legacyId)) {
-			record = modelLayerFactory.newSearchServices().searchSingleResult(from(schema).where(LEGACY_ID).isEqualTo(legacyId));
+		if (resolverCache.isRecordUpdate(schemaTypeCode, legacyId)) {
+			record = modelLayerFactory.newSearchServices()
+					.searchSingleResult(from(schemaType).where(LEGACY_ID).isEqualTo(legacyId));
 		} else {
-			record = recordServices.newRecordWithSchema(schema);
+			record = recordServices.newRecordWithSchema(newSchema);
+		}
+
+		if (!newSchema.getCode().equals(record.getSchemaCode())) {
+			MetadataSchema wasSchema = getMetadataSchema(collection, record.getSchemaCode());
+			record.changeSchema(wasSchema, newSchema);
 		}
 		record.set(LEGACY_ID, legacyId);
 		for (Entry<String, Object> field : toImport.getFields().entrySet()) {
-			Metadata metadata = schema.getMetadata(field.getKey());
+			Metadata metadata = newSchema.getMetadata(field.getKey());
 			if (metadata.getType() != MetadataValueType.STRUCTURE) {
 				Object value = field.getValue();
-				Object convertedValue = value == null ? null : convertValue(importResults, user, resolverCache, metadata, value);
+				Object convertedValue =
+						value == null ? null : convertValue(bulkUploader, importResults, user, resolverCache, metadata, value);
 				record.set(metadata, convertedValue);
 			}
 		}
 
-		extensions.callRecordImportBuild(schemaType, new BuildParams(record, types, toImport));
+		extensions.callRecordImportBuild(schemaTypeCode, new BuildParams(record, types, toImport));
 
 		return record;
 	}
 
-	Object convertScalarValue(BulkImportResults importResults, User user, ResolverCache resolverCache, Metadata metadata,
+	Object convertScalarValue(BulkUploader bulkUploader, BulkImportResults importResults, User user, ResolverCache resolverCache,
+			Metadata metadata,
 			Object value)
 			throws SkippedRecordException {
 		switch (metadata.getType()) {
@@ -307,7 +347,7 @@ public class RecordsImportServices implements ImportServices {
 			return value == null ? null : ALL_BOOLEAN_YES.contains(((String) value).toLowerCase());
 
 		case CONTENT:
-			return convertContent(importResults, user, value);
+			return convertContent(bulkUploader, importResults, user, value);
 
 		case REFERENCE:
 			return convertReference(resolverCache, metadata, (String) value);
@@ -320,53 +360,38 @@ public class RecordsImportServices implements ImportServices {
 		}
 	}
 
-	private Content convertContent(BulkImportResults importResults, User user, Object value) {
+	private Content convertContent(BulkUploader uploader, BulkImportResults importResults, User user, Object value) {
 		ContentImport contentImport = (ContentImport) value;
 		List<ContentImportVersion> versions = contentImport.getVersions();
-
 		Content content = null;
 
-		for (ContentImportVersion version : versions) {
+		for (int i = 0; i < versions.size(); i++) {
+			ContentImportVersion version = versions.get(i);
 			try {
-				URL url = toURL(version.getUrl());
-				StreamFactory<InputStream> inputStreamStreamFactory = urlResolver.resolve(url, version.getFileName());
-				InputStream inputStream = inputStreamStreamFactory.create(IMPORT_URL_INPUTSTREAM_NAME);
-				try {
-					ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(inputStream);
-					if (content == null) {
-						if (version.isMajor()) {
-							content = contentManager.createMajor(user, version.getFileName(), contentVersionDataSummary);
-						} else {
-							content = contentManager.createMinor(user, version.getFileName(), contentVersionDataSummary);
-						}
+				ContentVersionDataSummary contentVersionDataSummary = uploader.get(version.getUrl());
+				if (content == null) {
+					if (version.isMajor()) {
+						content = contentManager.createMajor(user, version.getFileName(), contentVersionDataSummary);
 					} else {
-						content.updateContentWithName(user, contentVersionDataSummary, version.isMajor(),
-								contentImport.getFileName());
+						content = contentManager.createMinor(user, version.getFileName(), contentVersionDataSummary);
 					}
-
-				} finally {
-					ioServices.closeQuietly(inputStream);
+				} else {
+					content.updateContentWithName(user, contentVersionDataSummary, version.isMajor(), version.getFileName());
 				}
-
-			} catch (Exception e) {
+				if (version.getLastModification() != null) {
+					content.setVersionModificationDatetime(version.getLastModification());
+				}
+				if (version.getComment() != null) {
+					content.setVersionComment(version.getComment());
+				}
+			} catch (BulkUploaderRuntimeException e) {
+				e.getCause().printStackTrace();
 				LOGGER.warn("Could not retrieve content with url '" + contentImport.getUrl() + "'");
 				importResults.add(new ImportError(contentImport.getUrl(), ""));
 				return null;
 			}
 		}
 		return content;
-	}
-
-	private URL toURL(String value) {
-		try {
-			return new URL(value);
-		} catch (MalformedURLException e) {
-			try {
-				return new File(value).toURI().toURL();
-			} catch (MalformedURLException e1) {
-				throw new RuntimeException(e1);
-			}
-		}
 	}
 
 	private Object convertReference(ResolverCache resolverCache, Metadata metadata, String value)
@@ -381,7 +406,8 @@ public class RecordsImportServices implements ImportServices {
 		return resolverCache.resolve(referenceType, value);
 	}
 
-	Object convertValue(BulkImportResults importResults, User user, ResolverCache resolverCache, Metadata metadata, Object value)
+	Object convertValue(BulkUploader bulkUploader, BulkImportResults importResults, User user, ResolverCache resolverCache,
+			Metadata metadata, Object value)
 			throws SkippedRecordException {
 
 		if (metadata.isMultivalue()) {
@@ -391,7 +417,7 @@ public class RecordsImportServices implements ImportServices {
 			if (value != null) {
 				List<Object> rawValues = (List<Object>) value;
 				for (Object item : rawValues) {
-					Object convertedValue = convertScalarValue(importResults, user, resolverCache, metadata, item);
+					Object convertedValue = convertScalarValue(bulkUploader, importResults, user, resolverCache, metadata, item);
 					if (convertedValue != null) {
 						convertedValues.add(convertedValue);
 					}
@@ -401,7 +427,7 @@ public class RecordsImportServices implements ImportServices {
 			return convertedValues;
 
 		} else {
-			return convertScalarValue(importResults, user, resolverCache, metadata, value);
+			return convertScalarValue(bulkUploader, importResults, user, resolverCache, metadata, value);
 		}
 
 	}
@@ -442,6 +468,10 @@ public class RecordsImportServices implements ImportServices {
 
 	MetadataSchema getMetadataSchema(String collection, String schema) {
 		return schemasManager.getSchemaTypes(collection).getSchema(schema);
+	}
+
+	MetadataSchemaType getMetadataSchemaType(String collection, String schemaType) {
+		return schemasManager.getSchemaTypes(collection).getSchemaType(schemaType);
 	}
 
 	private static class SkippedRecordException extends Exception {

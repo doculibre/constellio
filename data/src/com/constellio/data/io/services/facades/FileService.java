@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.io.services.facades;
 
 import java.io.File;
@@ -22,16 +5,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.io.services.facades.FileServiceRuntimeException.CannotCreateTemporaryFolder;
 import com.constellio.data.io.services.facades.FileServiceRuntimeException.FileServiceRuntimeException_CannotReadFile;
 
 public class FileService {
+
+	private static String REPLACE_FILE_CONTENT_TEMP_FILE = "replaceFileContentTempFile";
 
 	private File tempFolder;
 
@@ -88,7 +73,9 @@ public class FileService {
 
 	public void replaceFileContent(File file, String data)
 			throws IOException {
-		FileUtils.writeStringToFile(file, data, false);
+		File tempFile = getAtomicWriteTempFileFor(file);
+		FileUtils.writeStringToFile(tempFile, data, false);
+		moveFile(tempFile, file);
 	}
 
 	public synchronized void appendFileContent(File file, String data)
@@ -202,7 +189,7 @@ public class FileService {
 	}
 
 	public File newTemporaryFile(String resourceName) {
-		final String name = resourceName + "_" + UUID.randomUUID().toString();
+		final String name = resourceName + "_" + UUIDV1Generator.newRandomId();
 		File file = new File(tempFolder, name) {
 			@Override
 			public String toString() {
@@ -219,6 +206,45 @@ public class FileService {
 			FileUtils.writeLines(file, lines);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	public File getAtomicWriteTempFileFor(File file) {
+		String filePath = file.getAbsoluteFile().getPath();
+		int indexOfLastSlash = filePath.lastIndexOf(File.separator);
+
+		String tempFilePath;
+
+		if (indexOfLastSlash == -1) {
+			tempFilePath = "." + filePath;
+		} else {
+			tempFilePath = filePath.substring(0, indexOfLastSlash) + File.separator + "." + filePath.substring(indexOfLastSlash + 1);
+		}
+		return new File(tempFilePath);
+	}
+
+	public void moveFolder(File src, File dest) {
+		src.renameTo(dest);
+	}
+
+	public void moveFile(File src, File dest) {
+		if (dest.exists() && !dest.delete()) {
+			throw new FileServiceRuntimeException.CannotMoveFile(src.getAbsolutePath(), dest.getAbsolutePath(), null);
+		}
+
+		try {
+			FileUtils.moveFile(src, dest);
+		} catch (IOException e) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			try {
+				FileUtils.moveFile(src, dest);
+			} catch (IOException e2) {
+				throw new FileServiceRuntimeException.CannotMoveFile(src.getAbsolutePath(), dest.getAbsolutePath(), e2);
+			}
 		}
 	}
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.constants;
 
 import java.util.List;
@@ -62,6 +45,8 @@ public class RMPermissionsTo {
 			"modifySemiActiveBorrowedFolder");
 	public static final String MODIFY_INACTIVE_BORROWED_FOLDER = permission(FOLDER_GROUP,
 			"modifyInactiveBorrowedFolder");
+	public static final String MODIFY_OPENING_DATE_FOLDER = permission(FOLDER_GROUP,
+			"modifyOpeningDateFolder");
 
 	// Documents
 	private static final String DOCUMENT_GROUP = "documents";
@@ -94,9 +79,8 @@ public class RMPermissionsTo {
 	public static final String PROCESS_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "processDecommissioningList");
 
 	public static final String MANAGE_REPORTS = permission("management", "manageReports");
-	public static final String MANAGE_DECOMMISSIONING = permission(DECOMMISSIONING, "decommissioning");
+	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
-	public static final String MANAGE_ROBOTS = permission(DECOMMISSIONING, "manageRobots");
 
 	// RM Module management
 	private static final String RM_MANAGEMENT = "rmManagement";

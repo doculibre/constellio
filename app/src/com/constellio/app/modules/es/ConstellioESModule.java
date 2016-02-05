@@ -1,21 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es;
+
+import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_HTTP;
+import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
+import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,14 +15,26 @@ import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
+import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
+import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
 import com.constellio.app.modules.es.constants.ESPermissionsTo;
+import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
+import com.constellio.app.modules.es.extensions.ESRecordExtension;
+import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
 import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
-import com.constellio.app.modules.es.migrations.ESMigrationTo5_0_7;
+import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
+import com.constellio.app.modules.es.migrations.*;
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCache;
 
@@ -60,7 +60,8 @@ public class ConstellioESModule implements InstallableModule {
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
 		return Arrays.asList(
-				(MigrationScript) new ESMigrationTo5_0_7());
+				(MigrationScript) new ESMigrationTo5_1_6()
+		);
 	}
 
 	@Override
@@ -79,6 +80,11 @@ public class ConstellioESModule implements InstallableModule {
 	}
 
 	@Override
+	public boolean isComplementary() {
+		return false;
+	}
+
+	@Override
 	public List<String> getDependencies() {
 		return new ArrayList<>();
 	}
@@ -93,13 +99,24 @@ public class ConstellioESModule implements InstallableModule {
 
 		registerManagers(collection, appLayerFactory);
 
-		setupModelLayerExtensions(collection, appLayerFactory.getModelLayerFactory());
+		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
+
+		registerPublicTypes(collection, appLayerFactory);
+
 	}
 
 	private void registerManagers(String collection, AppLayerFactory appLayerFactory) {
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-		appLayerFactory.registerManager(collection, ConstellioESModule.ID, ConnectorManager.ID, new ConnectorManager(es));
+		ConnectorManager connectorManager = new ConnectorManager(es);
+		appLayerFactory.registerManager(collection, ConstellioESModule.ID, ConnectorManager.ID, connectorManager);
+
+		connectorManager.register(CODE_HTTP, ConnectorHttpInstance.SCHEMA_CODE,
+				new ConnectorHttpUtilsServices(collection, appLayerFactory));
+		connectorManager
+				.register(CODE_SMB, ConnectorSmbInstance.SCHEMA_CODE, new SMBConnectorUtilsServices(collection, appLayerFactory));
+		connectorManager.register(CODE_LDAP, ConnectorLDAPInstance.SCHEMA_CODE,
+				new ConnectorLDAPUtilsServices(collection, appLayerFactory));
 	}
 
 	@Override
@@ -112,13 +129,42 @@ public class ConstellioESModule implements InstallableModule {
 	}
 
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
-		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
-
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions()
+				.forCollection(collection);
+		extensions.moduleExtensionsMap.put(ID, new ESModuleExtensions());
 		extensions.taxonomyAccessExtensions.add(new ESTaxonomyPageExtension(collection));
+		extensions.recordAppExtensions.add(new ESRecordAppExtension());
+		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
+
 	}
 
-	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
-		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
-		cache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
+	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		ModelLayerCollectionExtensions extensions = appLayerFactory.getModelLayerFactory()
+				.getExtensions()
+				.forCollection(collection);
+		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches()
+				.getCache(collection);
+
+		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
+		recordsCache.configureCache(permanentCache(es.connectorInstance.schemaType()));
+
+		extensions.recordExtensions.add(new ESRecordExtension(es));
 	}
+
+	private void registerPublicTypes(String collection, AppLayerFactory appLayerFactory) {
+
+		List<MetadataSchemaType> schemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(collection).getSchemaTypes();
+
+		for (MetadataSchemaType metadataSchemaType : schemaTypes) {
+			if (metadataSchemaType.getCode().startsWith("connector") && (metadataSchemaType.getCode().contains("Document")
+					|| metadataSchemaType.getCode().contains("Folder"))) {
+				appLayerFactory.getModelLayerFactory().getSecurityTokenManager()
+						.registerPublicType(metadataSchemaType.getCode());
+			}
+		}
+	}
+
 }

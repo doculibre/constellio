@@ -1,24 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemas.bulkImport;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.constellio.data.io.services.facades.IOServices;
@@ -33,14 +18,39 @@ public class DefaultURLResolver implements URLResolver {
 	}
 
 	@Override
-	public StreamFactory<InputStream> resolve(final URL url, final String fileName) {
+	public StreamFactory<InputStream> resolve(final String value, final String fileName) {
+
 		return new StreamFactory<InputStream>() {
 
 			@Override
-			public InputStream create(String name)
+			public InputStream create(String resourceName)
 					throws IOException {
-				return ioServices.newBufferedInputStream(url.openStream(), name);
+
+				try {
+					URL url = new URL(value);
+					return readUrl(resourceName, url, fileName);
+				} catch (MalformedURLException e) {
+
+					return readFile(resourceName, value, fileName);
+				}
+
 			}
 		};
+	}
+
+	protected InputStream readFile(String resourceName, String url, String fileName) {
+		try {
+			return ioServices.newBufferedFileInputStream(new File(url), resourceName);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected InputStream readUrl(String resourceName, URL url, String fileName) {
+		try {
+			return ioServices.newBufferedInputStream(url.openStream(), resourceName);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

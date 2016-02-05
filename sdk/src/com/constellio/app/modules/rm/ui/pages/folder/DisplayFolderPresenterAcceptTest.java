@@ -1,24 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,18 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -62,11 +45,13 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.setups.Users;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime().plusDays(1);
 
+	Users users = new Users();
 	@Mock DisplayFolderView displayFolderView;
 	@Mock ConstellioNavigator navigator;
 	@Mock UserCredentialVO chuckCredentialVO;
@@ -87,11 +72,12 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(rmRecords)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
 						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);
 
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 
@@ -99,7 +85,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
+		sessionContext = FakeSessionContext.forRealUserIncollection(users.chuckNorrisIn(zeCollection));
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		searchServices = getModelLayerFactory().newSearchServices();
 
@@ -492,18 +478,29 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		presenter.forParams("C30");
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
+		presenter.alertWhenAvailable();
 
+		connectWithBob();
+		presenter.forParams("C30");
+		presenter.alertWhenAvailable();
+
+		connectWithAlice();
 		presenter.forParams("C30");
 		presenter.alertWhenAvailable();
 
 		Folder folderC30 = rmRecords.getFolder_C30();
-		assertThat(folderC30.getAlertUsersWhenAvailable()).hasSize(1);
-		assertThat(folderC30.getAlertUsersWhenAvailable().get(0)).isEqualTo(rmRecords.getChuckNorris().getId());
+		assertThat(folderC30.getAlertUsersWhenAvailable()).containsOnly(
+				rmRecords.getAlice().getId(),
+				rmRecords.getBob_userInAC().getId());
 	}
 
 	@Test
 	public void givenSomeUsersToAlertWhenAlertWhenAvailableClickedManyTimeThenAlertOnceToEachUser()
 			throws Exception {
+
+		Folder folderC30 = rmRecords.getFolder_C30();
+		recordServices.update(folderC30.setAlertUsersWhenAvailable(asList(users.aliceIn(zeCollection).getId())));
+		assertThat(folderC30.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getAlice().getId());
 
 		presenter.forParams("C30");
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
@@ -511,17 +508,15 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams("C30");
 		presenter.alertWhenAvailable();
 		presenter.alertWhenAvailable();
-
+		assertThat(folderC30.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getAlice().getId());
 		connectWithBob();
 
 		presenter.forParams("C30");
 		presenter.alertWhenAvailable();
 		presenter.alertWhenAvailable();
 
-		Folder folderC30 = rmRecords.getFolder_C30();
-		assertThat(folderC30.getAlertUsersWhenAvailable()).hasSize(2);
-		assertThat(folderC30.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getChuckNorris().getId(),
-				rmRecords.getBob_userInAC().getId());
+		folderC30 = rmRecords.getFolder_C30();
+		assertThat(folderC30.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getBob_userInAC().getId());
 	}
 
 	@Test
@@ -550,10 +545,13 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		List<Record> emailToSendRecords = searchServices.search(query);
 
 		assertThat(emailToSendRecords.size()).isEqualTo(1);
-		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
-		assertThat(emailToSend.getTo()).hasSize(2);
+
+		EmailToSend emailToSend = rmSchemasRecordsServices.wrapEmailToSend(emailToSendRecords.get(0));
 		assertThat(emailToSend.getTo()).extracting("email")
-				.containsOnly(rmRecords.getChuckNorris().getEmail(), rmRecords.getBob_userInAC().getEmail());
+				.containsOnly(rmRecords.getBob_userInAC().getEmail());
+
+		Folder folder = rmSchemasRecordsServices.getFolder("C30");
+		assertThat(folder.getAlertUsersWhenAvailable()).isEmpty();
 	}
 
 	@Test
@@ -563,9 +561,11 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams("C30");
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
 
+		connectWithBob();
 		presenter.forParams("C30");
 		presenter.alertWhenAvailable();
 
+		connectWithChuck();
 		givenTimeIs(shishOClock);
 		presenter.forParams("C30");
 		presenter.returnFolder(shishOClock.toLocalDate());
@@ -582,13 +582,12 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		List<Record> emailToSendRecords = searchServices.search(query);
-		System.out.println(query.getQuery());
 
 		assertThat(emailToSendRecords).hasSize(1);
 		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
 		assertThat(emailToSend.getTo()).hasSize(1);
-		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(chuck.getTitle());
-		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(chuck.getEmail());
+		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
+		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
 		assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le folder est disponible " + folderC30.getTitle());
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		assertThat(emailToSend.getError()).isNull();
@@ -644,6 +643,13 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	private void connectWithBob() {
 		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
+		presenter = new DisplayFolderPresenter(displayFolderView);
+	}
+
+	private void connectWithAlice() {
+		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		presenter = new DisplayFolderPresenter(displayFolderView);

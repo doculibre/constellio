@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.collections;
 
 import static junit.framework.TestCase.fail;
@@ -42,8 +25,9 @@ import com.constellio.app.services.collections.CollectionsManagerRuntimeExceptio
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidLanguage;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
-import com.constellio.app.services.extensions.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
@@ -56,6 +40,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -71,9 +56,11 @@ public class CollectionsManagerTest extends ConstellioTest {
 
 	@Mock ConstellioPluginManager pluginManager;
 	@Mock CollectionsListManager collectionsListManager;
+	@Mock SearchBoostManager searchBoostManager;
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock ModelLayerConfiguration modelLayerConfiguration;
 
+	@Mock SystemGlobalConfigsManager systemGlobalConfigsManager;
 	@Mock GlobalGroupsManager globalGroupsManager;
 	@Mock MetadataSchemasManager metadataSchemasManager;
 	@Mock TaxonomiesManager taxonomiesManager;
@@ -115,10 +102,11 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
+		when(modelLayerFactory.getSearchBoostManager()).thenReturn(searchBoostManager);
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 
 		collectionsManager = spy(new com.constellio.app.services.collections.CollectionsManager(
-				modelLayerFactory, modulesManager, new Delayed<>(migrationServices)));
+				modelLayerFactory, modulesManager, new Delayed<>(migrationServices), systemGlobalConfigsManager));
 	}
 
 	@Test
@@ -127,7 +115,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 
 		doNothing().when(collectionsManager).createCollectionConfigs("zeCollection");
 		doReturn(aNewCollection).when(collectionsManager)
-				.createCollectionRecordWithCode("zeCollection", Arrays.asList("fr"));
+				.createCollectionRecordWithCode("zeCollection", "zeCollection", Arrays.asList("fr"));
 		doNothing().when(collectionsManager).initializeCollection(anyString());
 
 		collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr"));
@@ -180,6 +168,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		verify(taxonomiesManager).createCollectionTaxonomies(zeCollection);
 		verify(authorizationDetailsManager).createCollectionAuthorizationDetail(zeCollection);
 		verify(rolesManager).createCollectionRole(zeCollection);
+		verify(searchBoostManager).createCollectionSearchBoost(zeCollection);
 	}
 
 	@Test

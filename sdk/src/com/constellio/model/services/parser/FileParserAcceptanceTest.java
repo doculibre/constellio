@@ -1,32 +1,17 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.parser;
 
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 
 import java.io.InputStream;
-import java.util.List;
+import java.util.Date;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
@@ -35,17 +20,17 @@ import com.constellio.sdk.tests.ConstellioTest;
 //@SlowTest
 public class FileParserAcceptanceTest extends ConstellioTest {
 
-	InputStream inputStream;
+	StreamFactory<InputStream> inputStreamFactory;
 
 	private FileParser fileParser;
 
 	@Test
 	public void givenStreamOfDOCMimetypeWhenParsingThenValidParsedContentReturned()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFile.doc");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFile.doc");
 		long length = getLengthOf("testFile.doc");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("a doc file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
@@ -54,13 +39,41 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getProperties()).containsEntry("Company", "DocuLibre");
 	}
 
+	//@Test
+	public void parse1000times()
+			throws Exception {
+
+		inputStreamFactory = getTestResourceInputStreamFactory("architecture_logicielle.pdf");
+		long length = getLengthOf("testFile.doc");
+		long start = new Date().getTime();
+		for (int i = 0; i < 1000; i++) {
+			System.out.println(i);
+			fileParser.parse(inputStreamFactory, length);
+		}
+		System.out.println(new Date().getTime() - start);
+	}
+
+	//@Test
+	public void detectMimetype1000times()
+			throws Exception {
+
+		inputStreamFactory = getTestResourceInputStreamFactory("architecture_logicielle.pdf");
+		long length = getLengthOf("testFile.doc");
+		long start = new Date().getTime();
+		for (int i = 0; i < 10000; i++) {
+			System.out.println(i);
+			fileParser.detectMimetype(inputStreamFactory, "test.pdf");
+		}
+		System.out.println(new Date().getTime() - start);
+	}
+
 	@Test
 	public void givenStreamOfDOCXMimetypeWhenParsingThenValidParsedContentReturned()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFile.docx");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFile.docx");
 		long length = getLengthOf("testFile.docx");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("a docx file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
@@ -73,10 +86,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfHTMLMimetypeWhenParsingThenCorrectContentReturned()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFile.html");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFile.html");
 		long length = getLengthOf("testFile.html");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("a html file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
@@ -87,10 +100,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfPDFMimetypeWhenParsingThenCorrectContentReturned()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFile.pdf");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFile.pdf");
 		long length = getLengthOf("testFile.pdf");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("a pdf file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
@@ -102,12 +115,12 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenPasswordProtectedPDFFileThenReturnEmptyParsedContentWithUnknownLanguageAndPDFMimetype()
 			throws Exception {
-		inputStream = getTestResourceInputStream("passwordProtected.pdf");
+		inputStreamFactory = getTestResourceInputStreamFactory("passwordProtected.pdf");
 		long length = getLengthOf("passwordProtected.pdf");
 
 		try {
 
-			fileParser.parse(inputStream, length);
+			fileParser.parse(inputStreamFactory, length);
 			fail("Exception expected");
 		} catch (FileParserException_CannotParse e) {
 			assertThat(e.getDetectedMimetype()).isEqualTo("application/pdf");
@@ -118,10 +131,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfXLSMimetypeWhenParsingThenCorrectContentReturned()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFile.xls");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFile.xls");
 		long length = getLengthOf("testFile.xls");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("Feuille1").contains("This is the content of")
 				.contains("the xsl file");
@@ -137,10 +150,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfXLSXMimetypeWhenParsingThenCorrectContentReturned()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFile.xlsx");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFile.xlsx");
 		long length = getLengthOf("testFile.xlsx");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("Sheet1").contains("This is the content of")
 				.contains("the xslx file");
@@ -153,10 +166,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfXMLMimetypeWhenParsingThenCorrectContentReturned()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFile.xml");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFile.xml");
 		long length = getLengthOf("testFile.xml");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("This is the content of").contains("the xml file");
 		assertThat(parsedContent.getLanguage()).isEqualTo(Language.English.getCode());
@@ -167,10 +180,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfDOCWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFileWithProperties.doc");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithProperties.doc");
 		long length = getLengthOf("testFileWithProperties.doc");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
@@ -180,10 +193,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfDOCXWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFileWithProperties.docx");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithProperties.docx");
 		long length = getLengthOf("testFileWithProperties.docx");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
@@ -193,10 +206,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfPDFWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFileWithProperties.pdf");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithProperties.pdf");
 		long length = getLengthOf("testFileWithProperties.pdf");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
@@ -205,10 +218,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfPPTWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFileWithProperties.ppt");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithProperties.ppt");
 		long length = getLengthOf("testFileWithProperties.ppt");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
@@ -218,10 +231,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfPPTXWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFileWithProperties.pptx");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithProperties.pptx");
 		long length = getLengthOf("testFileWithProperties.pptx");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
@@ -231,10 +244,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfXLSWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFileWithProperties.xls");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithProperties.xls");
 		long length = getLengthOf("testFileWithProperties.xls");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
@@ -244,10 +257,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStreamOfXLSXWhenParsingThenAllPropertiesAreCatch()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testFileWithProperties.xlsx");
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithProperties.xlsx");
 		long length = getLengthOf("testFileWithProperties.xlsx");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 		assertThat(parsedContent.getProperties()).isNotEmpty();
 		assertThatAllCommunPropertiesAreCatchIn(parsedContent);
 		assertThatAllLessCommunPropertiesAreCatchIn(parsedContent);
@@ -256,10 +269,10 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenMessageWithAttachedDOCAndAttachedTextWhenParsingThenValidParsedContentReturned()
 			throws Exception {
-		inputStream = getTestResourceInputStream("testMessage.msg");
+		inputStreamFactory = getTestResourceInputStreamFactory("testMessage.msg");
 		long length = getLengthOf("testFile.docx");
 
-		ParsedContent parsedContent = fileParser.parse(inputStream, length);
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
 
 		assertThat(parsedContent.getParsedContent()).contains("contenu");
 		assertThat(parsedContent.getParsedContent()).contains("Microsoft word document");
@@ -273,6 +286,68 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 		assertThat(parsedContent.getMimeType())
 				.isEqualTo("application/vnd.ms-outlook");
 		assertThat(parsedContent.getLength()).isEqualTo(13771L);
+	}
+
+	@Test
+	public void givenWord2003DocumentWithStylesThenStylesExtracted()
+			throws Exception {
+		inputStreamFactory = getTestResourceInputStreamFactory("DocumentWithStylesAndProperties.doc");
+		long length = getLengthOf("DocumentWithStylesAndProperties.doc");
+
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
+
+		assertThat(parsedContent.getProperties()).containsOnly(
+				entry("Category", "category2"),
+				entry("Comments", "comments2"),
+				entry("Subject", "subject2"),
+				entry("List:Keywords", asList("zeKeyword2", "anotherKeyword2")),
+				entry("Manager", "manager2"),
+				entry("Author", "author2"),
+				entry("Company", "company2"),
+				entry("Title", "title2")
+		);
+
+		assertThat(parsedContent.getMimeType())
+				.isEqualTo("application/msword");
+		assertThat(parsedContent.getStyles()).containsOnly(
+				entry("titreofficiel", asList("The ring contract")),
+				entry("nomdelacompagnie", asList("Frodon", "Bilbon")),
+				entry("adressedelacompagnie", asList("Hobbiton, Shire")),
+				entry("nomduclient", asList("Gandalf Leblanc")),
+				entry("adresseduclient", asList("Somewhere, Terre du Milieu"))
+		);
+
+	}
+
+	@Test
+	public void givenWord2007DocumentWithStylesThenStylesExtracted()
+			throws Exception {
+		inputStreamFactory = getTestResourceInputStreamFactory("DocumentWithStylesAndProperties.docx");
+		long length = getLengthOf("DocumentWithStylesAndProperties.docx");
+
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
+
+		assertThat(parsedContent.getProperties()).containsOnly(
+				entry("Category", "category2"),
+				entry("Comments", "comments2"),
+				entry("Subject", "subject2"),
+				entry("List:Keywords", asList("zeKeyword2", "anotherKeyword2")),
+				entry("Manager", "manager2"),
+				entry("Author", "author2"),
+				entry("Company", "company2"),
+				entry("Title", "title2")
+		);
+
+		assertThat(parsedContent.getMimeType())
+				.isEqualTo("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+		assertThat(parsedContent.getStyles()).containsOnly(
+				entry("titreofficiel", asList("The ring contract")),
+				entry("nomdelacompagnie", asList("Frodon", "Bilbon")),
+				entry("adressedelacompagnie", asList("Hobbiton, Shire")),
+				entry("nomduclient", asList("Gandalf Leblanc")),
+				entry("adresseduclient", asList("Somewhere, Terre du Milieu"))
+		);
+
 	}
 
 	private void assertThatAllCommunPropertiesAreCatchIn(ParsedContent parsedContent) {

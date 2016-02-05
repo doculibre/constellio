@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.contents;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +40,7 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
+import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.io.streamFactories.services.one.StreamOperationReturningValueOrThrowingException;
 import com.constellio.data.io.streamFactories.services.one.StreamOperationThrowingException;
 import com.constellio.data.utils.hashing.HashingService;
@@ -68,9 +52,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -79,6 +65,8 @@ import com.constellio.sdk.tests.ConstellioTest;
 public class ContentManagerTest extends ConstellioTest {
 
 	String zeStreamName = "zeStreamName";
+
+	@Mock RecordServices recordServices;
 
 	@Mock ContentDao contentDao;
 
@@ -94,7 +82,7 @@ public class ContentManagerTest extends ConstellioTest {
 
 	@Mock InputStream contentInputStream, firstCreatedStream, secondCreatedStream;
 
-	@Mock CloseableStreamFactory<InputStream> streamFactory;
+	@Mock CopyInputStreamFactory streamFactory;
 
 	@Mock UniqueIdGenerator uniqueIdGenerator;
 
@@ -122,7 +110,7 @@ public class ContentManagerTest extends ConstellioTest {
 
 	String aContentHash = "aContentHash";
 
-	@Mock CloseableStreamFactory closeableStreamFactory;
+	@Mock CopyInputStreamFactory closeableStreamFactory;
 
 	@Mock InputStream aContentNewVersionInputStream;
 	@Mock InputStream anotherContentNewVersionInputStream;
@@ -137,10 +125,19 @@ public class ContentManagerTest extends ConstellioTest {
 	@Mock DataLayerFactory dataLayerFactory;
 	@Mock MetadataSchemasManager metadataSchemasManager;
 	@Mock ModelLayerConfiguration modelLayerConfiguration;
+	@Mock ModelLayerFactory modelLayerFactory;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
+		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
+		when(modelLayerFactory.newRecordServices()).thenReturn(recordServices);
+		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
+		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
+		when(modelLayerFactory.newFileParser()).thenReturn(fileParser);
+
 		when(dataLayerFactory.newRecordDao()).thenReturn(recordDao);
 		when(dataLayerFactory.getContentsDao()).thenReturn(contentDao);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
@@ -148,8 +145,7 @@ public class ContentManagerTest extends ConstellioTest {
 		when(ioServicesFactory.newHashingService()).thenReturn(hashingService);
 		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
 
-		contentManager = spy(new ContentManager(fileParser, searchServices, metadataSchemasManager, dataLayerFactory,
-				modelLayerConfiguration));
+		contentManager = spy(new ContentManager(modelLayerFactory));
 		when(ioServices.copyToReusableStreamFactory(contentInputStream)).thenReturn(streamFactory);
 		when(streamFactory.create(anyString())).thenReturn(firstCreatedStream).thenReturn(secondCreatedStream)
 				.thenThrow(new Error());
@@ -266,14 +262,14 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		doReturn(parsingResults).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
-		doNothing().when(contentManager).saveContent(anyString(), any(CloseableStreamFactory.class));
+		doNothing().when(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
 
 		ContentVersionDataSummary dataSummary = contentManager.upload(aContentNewVersionInputStream);
 
 		InOrder inOrder = inOrder(ioServices, contentManager, aContent);
 		inOrder.verify(ioServices).copyToReusableStreamFactory(aContentNewVersionInputStream);
 		inOrder.verify(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);
-		inOrder.verify(contentManager).saveContent(anyString(), any(CloseableStreamFactory.class));
+		inOrder.verify(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
 		inOrder.verify(ioServices).closeQuietly(closeableStreamFactory);
 
 		assertThat(dataSummary.getHash()).isEqualTo(aContentHash);
@@ -295,7 +291,7 @@ public class ContentManagerTest extends ConstellioTest {
 			//OK
 		}
 
-		verify(contentManager, never()).saveContent(anyString(), any(CloseableStreamFactory.class));
+		verify(contentManager, never()).saveContent(anyString(), any(CopyInputStreamFactory.class));
 		verify(contentManager, never()).getPreviouslyParsedContentOrParseFromStream(anyString(),
 				any(CloseableStreamFactory.class));
 		verify(ioServices).closeQuietly(closeableStreamFactory);
@@ -306,9 +302,8 @@ public class ContentManagerTest extends ConstellioTest {
 			throws Exception {
 
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		doReturn(contentInputStream).when(closeableStreamFactory).create(anyString());
 		doThrow(new FileParserException_CannotParse(mock(Exception.class), "zeMimetype")).when(fileParser)
-				.parse(eq(contentInputStream), anyInt());
+				.parse(eq(closeableStreamFactory), anyInt());
 
 		ParsedContent parsedContent = contentManager.tryToParse(closeableStreamFactory);
 
@@ -323,8 +318,7 @@ public class ContentManagerTest extends ConstellioTest {
 	public void whenTryToParseThenParsedContentWithEmptyTextAndUnknownLanguageAndCorrectMimetype()
 			throws Exception {
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		doReturn(contentInputStream).when(closeableStreamFactory).create(anyString());
-		doReturn(parsingResults).when(fileParser).parse(eq(contentInputStream), anyInt());
+		doReturn(parsingResults).when(fileParser).parse(eq(closeableStreamFactory), anyInt());
 
 		assertThat(contentManager.tryToParse(closeableStreamFactory)).isSameAs(parsingResults);
 

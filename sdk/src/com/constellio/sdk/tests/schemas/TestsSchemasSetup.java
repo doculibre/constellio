@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests.schemas;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
@@ -39,6 +22,7 @@ import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecor
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -106,11 +90,20 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
-	public static MetadataBuilderConfigurator whichNullValuesAreNotWritten = new MetadataBuilderConfigurator() {
+	public static MetadataBuilderConfigurator whichIsEssentialInSummary = new MetadataBuilderConfigurator() {
 
 		@Override
 		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
-			builder.setWriteNullValues(false);
+			builder.setEssentialInSummary(true);
+		}
+
+	};
+
+	public static MetadataBuilderConfigurator whichIsEncrypted = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setEncrypted(true);
 		}
 
 	};
@@ -707,6 +700,177 @@ public class TestsSchemasSetup extends SchemasSetup {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("withAnEnumMetadata").defineAsEnum(enumClass);
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
+	}
+
+	public static MetadataBuilderConfigurator whichIsReferencing(SchemaShortcuts schemaShortcuts) {
+		String schemaCode = schemaShortcuts.code();
+		String typeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
+		return whichIsReferencing(typeCode);
+	}
+
+	public static MetadataBuilderConfigurator whichIsReferencing(final String typeCode) {
+		return new MetadataBuilderConfigurator() {
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				MetadataSchemaTypeBuilder type = schemaTypes.getSchemaType(typeCode);
+				builder.defineReferencesTo(type);
+			}
+		};
+	}
+
+	public static class ZeSchemaMetadatasAdapter implements SchemaShortcuts {
+
+		ZeSchemaMetadatas zeSchemaMetadatas;
+
+		public ZeSchemaMetadatasAdapter(ZeSchemaMetadatas zeSchemaMetadatas) {
+			this.zeSchemaMetadatas = zeSchemaMetadatas;
+		}
+
+		public Metadata metadataWithCode(String code) {
+			return zeSchemaMetadatas.metadataWithCode(code);
+		}
+
+		@Override
+		public String code() {
+			return zeSchemaMetadatas.code();
+		}
+
+		@Override
+		public String collection() {
+			return zeSchemaMetadatas.collection();
+		}
+
+		public Metadata stringCopiedFromFirstReferenceStringMeta() {
+			return zeSchemaMetadatas.stringCopiedFromFirstReferenceStringMeta();
+		}
+
+		public Metadata dateCopiedFromSecondReferenceDateMeta() {
+			return zeSchemaMetadatas.dateCopiedFromSecondReferenceDateMeta();
+		}
+
+		public String firstReferenceToAnotherSchemaCompleteCode() {
+			return zeSchemaMetadatas.firstReferenceToAnotherSchemaCompleteCode();
+		}
+
+		public Metadata firstReferenceToAnotherSchema() {
+			return zeSchemaMetadatas.firstReferenceToAnotherSchema();
+		}
+
+		public Metadata secondReferenceToAnotherSchema() {
+			return zeSchemaMetadatas.secondReferenceToAnotherSchema();
+		}
+
+		public Metadata stringMetadata() {
+			return zeSchemaMetadatas.stringMetadata();
+		}
+
+		public Metadata enumMetadata() {
+			return zeSchemaMetadatas.enumMetadata();
+		}
+
+		public Metadata contentMetadata() {
+			return zeSchemaMetadatas.contentMetadata();
+		}
+
+		public Metadata contentListMetadata() {
+			return zeSchemaMetadatas.contentListMetadata();
+		}
+
+		public Metadata parentReferenceFromZeSchemaToZeSchema() {
+			return zeSchemaMetadatas.parentReferenceFromZeSchemaToZeSchema();
+		}
+
+		public Metadata metadata() {
+			return zeSchemaMetadatas.metadata();
+		}
+
+		public Metadata anotherStringMetadata() {
+			return zeSchemaMetadatas.anotherStringMetadata();
+		}
+
+		public Metadata dateTimeMetadata() {
+			return zeSchemaMetadatas.dateTimeMetadata();
+		}
+
+		public Metadata dateMetadata() {
+			return zeSchemaMetadatas.dateMetadata();
+		}
+
+		public Metadata numberMetadata() {
+			return zeSchemaMetadatas.numberMetadata();
+		}
+
+		public Metadata integerMetadata() {
+			return zeSchemaMetadatas.integerMetadata();
+		}
+
+		public Metadata booleanMetadata() {
+			return zeSchemaMetadatas.booleanMetadata();
+		}
+
+		public Metadata referenceMetadata() {
+			return zeSchemaMetadatas.referenceMetadata();
+		}
+
+		public Metadata creationDate() {
+			return zeSchemaMetadatas.creationDate();
+		}
+
+		public Metadata modificationDate() {
+			return zeSchemaMetadatas.modificationDate();
+		}
+
+		public Metadata title() {
+			return zeSchemaMetadatas.title();
+		}
+
+		public Metadata content() {
+			return zeSchemaMetadatas.content();
+		}
+
+		public Metadata parsedContent() {
+			return zeSchemaMetadatas.parsedContent();
+		}
+
+		public Metadata calculatedDaysBetween() {
+			return zeSchemaMetadatas.calculatedDaysBetween();
+		}
+
+		public List<Metadata> allFieldsList() {
+			return zeSchemaMetadatas.allFieldsList();
+		}
+
+		public MetadataSchema instance() {
+			return zeSchemaMetadatas.instance();
+		}
+
+		public Metadata metadata(String code) {
+			return zeSchemaMetadatas.metadata(code);
+		}
+
+		public Metadata path() {
+			return zeSchemaMetadatas.path();
+		}
+
+		public Metadata parentpath() {
+			return zeSchemaMetadatas.parentpath();
+		}
+
+		public Metadata largeTextMetadata() {
+			return zeSchemaMetadatas.largeTextMetadata();
+		}
+
+		public Metadata multivaluedLargeTextMetadata() {
+			return zeSchemaMetadatas.multivaluedLargeTextMetadata();
+		}
+
+		public String typeCode() {
+			return zeSchemaMetadatas.typeCode();
+		}
+
+		public MetadataSchemaType type() {
+			return zeSchemaMetadatas.type();
+		}
 	}
 
 	public class ZeSchemaMetadatas implements SchemaShortcuts {

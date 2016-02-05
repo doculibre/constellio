@@ -1,21 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.io.File;
 
@@ -23,10 +10,22 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.DemoTestRecords;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestPagesComponentsExtensions;
 import com.constellio.sdk.tests.annotations.MainTest;
@@ -48,13 +47,14 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		//givenBackgroundThreadsEnabled();
+		givenBackgroundThreadsEnabled();
 
 		givenTransactionLogIsEnabled();
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(
-						records).withFoldersAndContainersOfEveryStatus(),
-				withCollection("LaCollectionDeRida").withConstellioRMModule().withAllTestUsers().withRMTest(records2)
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
+				withCollection("LaCollectionDeRida").withConstellioRMModule().withConstellioESModule().withRobotsModule()
+						.withAllTestUsers().withRMTest(records2)
 						.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
@@ -62,8 +62,29 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		AppLayerFactory appLayerFactory = getAppLayerFactory();
-		appLayerFactory.getExtensions().getSystemWideExtensions().pagesComponentsExtensions
-				= new TestPagesComponentsExtensions(appLayerFactory);
+		appLayerFactory.getExtensions().getSystemWideExtensions().pagesComponentsExtensions.add(
+				new TestPagesComponentsExtensions(appLayerFactory));
+
+		DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
+		dataLayerFactory.getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		String token = userServices.generateToken("admin");
+		String serviceKey = userServices.getUser("admin").getServiceKey();
+		System.out.println("Admin token : \"" + token + "\", Admin service key \"" + serviceKey + "\"");
+		System.out.println("http://localhost:7070/constellio/select?token=" + token + "&serviceKey=" + serviceKey
+				+ "&fq=-type_s:index" + "&q=*:*");
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE).setLabel("Date metadata 1");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE).setLabel("Date metadata 2");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME).setLabel("Datetime metadata");
+			}
+		});
 
 	}
 
@@ -71,9 +92,72 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	@MainTestDefaultStart
 	public void startOnHomePageAsAdmin()
 			throws Exception {
+		//getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
+		//getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+		setup();
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
-		//driver.navigateTo().appManagement();
 		waitUntilICloseTheBrowsers();
+	}
+
+	private void setup() {
+		givenConfig(RMConfigs.DOCUMENTS_TYPES_CHOICE, DocumentsTypeChoice.ALL_DOCUMENTS_TYPES);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder folderTestSchema = types.getSchemaType("folder").createCustomSchema("test");
+				MetadataSchemaBuilder documentTestSchema = types.getSchemaType("document").createCustomSchema("test");
+				MetadataSchemaBuilder taskTestSchema = types.getSchemaType("userTask").createCustomSchema("test");
+
+				MetadataSchemaBuilder folderTest2Schema = types.getSchemaType("folder").createCustomSchema("test2");
+				MetadataSchemaBuilder documentTest2Schema = types.getSchemaType("document").createCustomSchema("test2");
+				MetadataSchemaBuilder taskTest2Schema = types.getSchemaType("userTask").createCustomSchema("test2");
+
+				folderTestSchema.create("toto").setType(STRING).setDefaultValue("tata");
+				documentTestSchema.create("toto").setType(STRING).setDefaultValue("tata");
+				taskTestSchema.create("toto").setType(STRING).setDefaultValue("tata");
+
+				folderTest2Schema.create("toto").setType(STRING).setDefaultValue("titi");
+				documentTest2Schema.create("toto").setType(STRING).setDefaultValue("titi");
+				taskTest2Schema.create("toto").setType(STRING).setDefaultValue("titi");
+
+				folderTestSchema.create("metadataOnlyInTest").setType(STRING).setDefaultValue("tata");
+				documentTestSchema.create("metadataOnlyInTest").setType(STRING).setDefaultValue("tata");
+				taskTestSchema.create("metadataOnlyInTest").setType(STRING).setDefaultValue("tata");
+
+			}
+		});
+
+		SchemasDisplayManager schemaDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		schemaDisplayManager.saveSchema(
+				schemaDisplayManager.getSchema(zeCollection, "folder_test").withNewFormMetadata("toto").withNewFormMetadata(
+						"metadataOnlyInTest"));
+		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "folder_test2").withNewFormMetadata("toto"));
+
+		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "document_test").withNewFormMetadata("toto")
+				.withNewFormMetadata("metadataOnlyInTest"));
+		schemaDisplayManager
+				.saveSchema(schemaDisplayManager.getSchema(zeCollection, "document_test2").withNewFormMetadata("toto"));
+
+		schemaDisplayManager.saveSchema(schemaDisplayManager.getSchema(zeCollection, "userTask_test").withNewFormMetadata("toto")
+				.withNewFormMetadata("metadataOnlyInTest"));
+		schemaDisplayManager
+				.saveSchema(schemaDisplayManager.getSchema(zeCollection, "userTask_test2").withNewFormMetadata("toto"));
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		try {
+			Transaction transaction = new Transaction();
+
+			transaction.add(rm.newFolderType().setCode("aaaa").setTitle("aaaa").setLinkedSchema("folder_test"));
+			transaction.add(rm.newFolderType().setCode("bbbb").setTitle("bbbb").setLinkedSchema("folder_test2"));
+			transaction.add(rm.newDocumentType().setCode("aaaa").setTitle("aaaa").setLinkedSchema("document_test"));
+			transaction.add(rm.newDocumentType().setCode("bbbb").setTitle("bbbb").setLinkedSchema("document_test2"));
+			transaction.add(tasks.newTaskType().setCode("aaaa").setTitle("aaaa").setLinkedSchema("userTask_test"));
+			transaction.add(tasks.newTaskType().setCode("bbbb").setTitle("bbbb").setLinkedSchema("userTask_test2"));
+			getModelLayerFactory().newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Test

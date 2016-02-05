@@ -1,23 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +9,7 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -45,13 +30,15 @@ public class MetadataSchemaTypesBuilderOldTest extends ConstellioTest {
 	MetadataSchemaBuilder employeeFolderSchemaBuilder;
 	MetadataBuilder employeeName;
 	@Mock TaxonomiesManager taxonomiesManager;
+	@Mock ModelLayerFactory modelLayerFactory;
 
 	@Before
 	public void setup()
 			throws Exception {
+		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollection, VERSION);
 		folderTypeBuilder = typesBuilder.createNewSchemaType(FOLDER);
-		schemaTypes = typesBuilder.build(typesFactory, taxonomiesManager);
+		schemaTypes = typesBuilder.build(typesFactory, modelLayerFactory);
 		typesBuilder2 = MetadataSchemaTypesBuilder.modify(schemaTypes);
 		folderTypeBuilder.getDefaultSchema().create("zetitle");
 		employeeFolderSchemaBuilder = folderTypeBuilder.createCustomSchema("employeeFolder");
@@ -107,7 +94,7 @@ public class MetadataSchemaTypesBuilderOldTest extends ConstellioTest {
 	public void whenBuildModifySchemaTypesThenNewSchemaTypesIsBuildWithNewVersion()
 			throws Exception {
 
-		assertThat(typesBuilder2.build(typesFactory, taxonomiesManager).getVersion()).isEqualTo(schemaTypes.getVersion() + 1);
+		assertThat(typesBuilder2.build(typesFactory, modelLayerFactory).getVersion()).isEqualTo(schemaTypes.getVersion() + 1);
 	}
 
 	@Test

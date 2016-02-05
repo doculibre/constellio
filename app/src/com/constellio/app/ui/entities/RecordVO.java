@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
@@ -28,9 +11,17 @@ import com.constellio.model.entities.schemas.Schemas;
 @SuppressWarnings("serial")
 public class RecordVO implements Serializable {
 
-	public enum VIEW_MODE {FORM, DISPLAY, TABLE}
+	public enum VIEW_MODE {
+		FORM, DISPLAY, TABLE, SEARCH
+	}
 
 	String id;
+
+	private String resourceKey;
+
+	private String extension;
+
+	private String niceTitle;
 
 	final List<MetadataValueVO> metadataValues;
 
@@ -101,10 +92,14 @@ public class RecordVO implements Serializable {
 			displayMetadataCodes = getMetadataCodes();
 		}
 		for (String displayMetadataCode : displayMetadataCodes) {
-			MetadataVO metadataVO = getMetadata(displayMetadataCode);
-			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
-			if (metadataValueVO != null) {
-				displayMetadataValues.add(metadataValueVO);
+			try {
+				MetadataVO metadataVO = getMetadata(displayMetadataCode);
+				MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
+				if (metadataValueVO != null) {
+					displayMetadataValues.add(metadataValueVO);
+				}
+			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+
 			}
 		}
 		return displayMetadataValues;
@@ -127,6 +122,23 @@ public class RecordVO implements Serializable {
 		return tableMetadataValues;
 	}
 
+	public List<MetadataValueVO> getSearchMetadataValues() {
+		List<MetadataValueVO> searchMetadataValues = new ArrayList<>();
+		MetadataSchemaVO schemaVO = getSchema();
+		List<String> searchMetadataCodes = schemaVO.getSearchMetadataCodes();
+		if (searchMetadataCodes == null) {
+			searchMetadataCodes = getMetadataCodes();
+		}
+		for (String tableMetadataCode : searchMetadataCodes) {
+			MetadataVO metadataVO = getMetadata(tableMetadataCode);
+			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
+			if (metadataValueVO != null) {
+				searchMetadataValues.add(metadataValueVO);
+			}
+		}
+		return searchMetadataValues;
+	}
+
 	public MetadataValueVO getMetadataValue(MetadataVO metadata) {
 		MetadataValueVO match = null;
 		for (MetadataValueVO metadataValue : metadataValues) {
@@ -145,7 +157,7 @@ public class RecordVO implements Serializable {
 		}
 		return metadatas;
 	}
-	
+
 	public List<String> getMetadataCodes() {
 		List<String> metadataCodes = new ArrayList<>();
 		List<MetadataVO> metadatas = getMetadatas();
@@ -165,6 +177,10 @@ public class RecordVO implements Serializable {
 
 	public List<MetadataVO> getTableMetadatas() {
 		return getSchema().getTableMetadatas();
+	}
+
+	public List<MetadataVO> getSearchMetadatas() {
+		return getSchema().getSearchMetadatas();
 	}
 
 	public MetadataVO getMetadataOrNull(String code) {
@@ -227,6 +243,30 @@ public class RecordVO implements Serializable {
 
 	public <T extends Object> List<T> getList(String metadataCode) {
 		return get(metadataCode);
+	}
+
+	public String getResourceKey() {
+		return resourceKey;
+	}
+
+	public void setResourceKey(String resourceKey) {
+		this.resourceKey = resourceKey;
+	}
+
+	public String getExtension() {
+		return extension;
+	}
+
+	public void setExtension(String extension) {
+		this.extension = extension;
+	}
+
+	public String getNiceTitle() {
+		return niceTitle;
+	}
+
+	public void setNiceTitle(String niceTitle) {
+		this.niceTitle = niceTitle;
 	}
 
 	@Override

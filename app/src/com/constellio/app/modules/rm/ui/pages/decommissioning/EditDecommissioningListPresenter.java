@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import java.util.Arrays;
@@ -54,19 +37,22 @@ public class EditDecommissioningListPresenter extends SingleSchemaBasePresenter<
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
 		DecommissioningList decommissioningList = rmRecordsServices().wrapDecommissioningList(restrictedRecord);
-		return securityService().hasAccessToDecommissioningListPage(decommissioningList, user) && securityService()
-				.canModify(decommissioningList, user);
+		return securityService().canModify(decommissioningList, user);
 	}
 
 	public RecordVO getDecommissioningList() {
-		return presenterService().getRecordVO(recordId, VIEW_MODE.FORM);
+		return presenterService().getRecordVO(recordId, VIEW_MODE.FORM, view.getSessionContext());
 	}
 
 	public void saveButtonClicked(RecordVO recordVO) {
 		try {
 			Record record = toRecord(recordVO);
 			addOrUpdate(record);
-			view.navigateTo().displayDecommissioningList(recordId);
+			if (rmRecordsServices().wrapDecommissioningList(record).getDecommissioningListType().isFolderList()) {
+				view.navigateTo().displayDecommissioningList(recordId);
+			} else {
+				view.navigateTo().displayDocumentDecommissioningList(recordId);
+			}
 		} catch (Exception e) {
 			view.showErrorMessage("Failed to save");
 		}

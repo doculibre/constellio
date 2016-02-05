@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.schemas;
 
 import java.util.ArrayList;
@@ -51,11 +34,13 @@ public class MetadataSchemaType {
 
 	private final boolean security;
 
+	private final boolean inTransactionLog;
+
 	private final Boolean undeletable;
 	private Collection<? extends Metadata> allMetadatas;
 
 	public MetadataSchemaType(String code, String collection, String label, List<MetadataSchema> customSchemas,
-			MetadataSchema defaultSchema, Boolean undeletable, boolean security) {
+			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog) {
 		super();
 		this.code = code;
 		this.collection = collection;
@@ -64,6 +49,7 @@ public class MetadataSchemaType {
 		this.defaultSchema = defaultSchema;
 		this.undeletable = undeletable;
 		this.security = security;
+		this.inTransactionLog = inTransactionLog;
 		this.metadatasByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildMetadataByLocalCodeIndex(
 				customSchemas, defaultSchema));
 	}
@@ -78,6 +64,10 @@ public class MetadataSchemaType {
 
 	public String getLabel() {
 		return label;
+	}
+
+	public boolean isInTransactionLog() {
+		return inTransactionLog;
 	}
 
 	public List<MetadataSchema> getSchemas() {
@@ -111,6 +101,10 @@ public class MetadataSchemaType {
 		String typeCode = parsedCode[0];
 		String schemaCode = parsedCode[1];
 		String localMetadataCode = parsedCode[2];
+
+		if (typeCode.equals("global")) {
+			typeCode = code;
+		}
 
 		if (!code.contains(typeCode)) {
 			throw new CannotGetMetadatasOfAnotherSchemaType(typeCode, code);
@@ -310,7 +304,35 @@ public class MetadataSchemaType {
 		return metadatas.unModifiable();
 	}
 
+	public MetadataList getAllMetadatasIncludingThoseWithInheritance() {
+		MetadataList metadatas = new MetadataList();
+
+		metadatas.addAll(defaultSchema.getMetadatas());
+
+		for (MetadataSchema customSchema : customSchemas) {
+			for (Metadata customParentReferenceMetadata : customSchema.getMetadatas()) {
+				metadatas.add(customParentReferenceMetadata);
+			}
+		}
+
+		return metadatas.unModifiable();
+	}
+
 	public boolean hasSecurity() {
 		return security;
+	}
+
+	public List<Metadata> getAllMetadataIncludingInheritedOnes() {
+		List<Metadata> metadatas = new ArrayList<>();
+
+		metadatas.addAll(defaultSchema.getMetadatas());
+
+		for (MetadataSchema customSchema : customSchemas) {
+			for (Metadata customParentReferenceMetadata : customSchema.getMetadatas()) {
+				metadatas.add(customParentReferenceMetadata);
+			}
+		}
+
+		return metadatas;
 	}
 }

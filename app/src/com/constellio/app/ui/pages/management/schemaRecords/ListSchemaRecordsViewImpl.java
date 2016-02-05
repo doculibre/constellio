@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.schemaRecords;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -26,11 +9,14 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.SearchButton;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -39,7 +25,9 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchemaRecordsView {
@@ -47,6 +35,8 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 	ListSchemaRecordsPresenter presenter;
 	VerticalLayout viewLayout;
 	Table table;
+	private HorizontalLayout searchAndAddButtonLayout;
+	private HorizontalLayout searchLayout;
 
 	public ListSchemaRecordsViewImpl() {
 		this.presenter = new ListSchemaRecordsPresenter(this);
@@ -70,9 +60,17 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 				presenter.addLinkClicked();
 			}
 		};
+
+		buildSearch();
+		searchAndAddButtonLayout = new HorizontalLayout();
+		searchAndAddButtonLayout.setWidth("100%");
+		searchAndAddButtonLayout.addComponents(searchLayout);
+		searchAndAddButtonLayout.addComponents(searchLayout, addButton);
+		searchAndAddButtonLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		searchAndAddButtonLayout.setSpacing(true);
+
 		table = buildRecordsTables();
-		viewLayout.addComponents(addButton, table);
-		viewLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		viewLayout.addComponents(searchAndAddButtonLayout, table);
 		return viewLayout;
 	}
 
@@ -123,16 +121,12 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 		});
 		recordsContainer = buttonsContainer;
 
-		Table table = new RecordVOTable(
-				$("ListSchemaRecordsView.tableTitle", dataProvider.size(), dataProvider.getSchema().getLabel(
-						getSessionContext().getCurrentLocale())),
-				recordsContainer);
+		Table table = new RecordVOTable($("ListSchemaRecordsView.tableTitle", dataProvider.size()), recordsContainer);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
 		table.setColumnWidth("buttons", 120);
-		table.setPageLength(table.getItemIds().size());
-		table.setCaption(table.getPageLength() + " " + table.getCaption());
+		table.setPageLength(Math.min(15, dataProvider.size()));
 
 		return table;
 	}
@@ -151,5 +145,28 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 				navigateTo().adminModule();
 			}
 		};
+	}
+
+	private void buildSearch() {
+		searchLayout = new HorizontalLayout();
+		final TextField searchField = new BaseTextField();
+		searchField.focus();
+		searchField.setNullRepresentation("");
+		Button searchButton = new SearchButton();
+		searchButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.search(searchField.getValue());
+			}
+		});
+		searchLayout.addComponents(searchField, searchButton);
+
+		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
+			@Override
+			public void onEnterKeyPressed() {
+				presenter.search(searchField.getValue());
+			}
+		};
+		onEnterHandler.installOn(searchField);
 	}
 }

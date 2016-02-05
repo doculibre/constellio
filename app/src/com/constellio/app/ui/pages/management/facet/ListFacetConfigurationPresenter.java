@@ -1,22 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.facet;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.IOException;
@@ -41,6 +25,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConfigurationView> {
 
+	private FacetConfigurationPresenterService service;
+
 	public ListFacetConfigurationPresenter(ListFacetConfigurationView view) {
 		super(view);
 		init();
@@ -53,6 +39,7 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 	}
 
 	private void init() {
+		service = new FacetConfigurationPresenterService(view.getConstellioFactories(), view.getSessionContext());
 	}
 
 	@Override
@@ -112,6 +99,28 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 		SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(recordVO.getSchema().getCode(),
 				view.getConstellioFactories(), view.getSessionContext());
 		return schemaPresenterUtils.toRecord(recordVO);
+	}
+
+	public void activate(RecordVO recordVO) {
+		try {
+			service.activate(recordVO.getId());
+			view.refreshTable();
+		} catch (Exception e) {
+			view.showErrorMessage($("ListFacetConfigurationView.cannotActivateFacet", recordVO.getTitle()));
+		}
+	}
+
+	public void deactivate(RecordVO recordVO) {
+		try {
+			service.deactivate(recordVO.getId());
+			view.refreshTable();
+		} catch (Exception e) {
+			view.showErrorMessage($("ListFacetConfigurationView.cannotDeactivateFacet", recordVO.getTitle()));
+		}
+	}
+
+	public boolean isActive(RecordVO recordVO) {
+		return service.isActive(recordVO);
 	}
 
 }

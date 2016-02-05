@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.firstSetup;
 
 import java.util.ArrayList;
@@ -55,7 +38,7 @@ public class FirstSetupPresenter {
 
 	public void setSystemLanguage(String languageCode) {
 		FoldersLocator foldersLocator = new FoldersLocator();
-//		foldersLocator.
+		//		foldersLocator.
 	}
 
 	private void createCollection(String code, Set<String> modules, String language) {
@@ -67,8 +50,8 @@ public class FirstSetupPresenter {
 		List<String> roles = new ArrayList<>();
 		for (String moduleCode : modules) {
 			Module module = modulesManager.getInstalledModule(moduleCode);
-			modulesManager.enableModule(code, module);
-			roles.addAll(module.getRolesForCreator());
+			modulesManager.enableValidModuleAndGetInvalidOnes(code, module);
+			roles.addAll(getRolesForCreator(module));
 		}
 
 		ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
@@ -76,15 +59,17 @@ public class FirstSetupPresenter {
 		// TODO Create admin user with specified password
 		//   |--> But how will the user provide the password?
 
-//		UserServices userServices = modelLayerFactory.newUserServices();
-//		User user = userServices.getUserInCollection("admin", code);
-//		try {
-//			modelLayerFactory.newRecordServices().update(user.setUserRoles(roles).setCollectionAllAccess(true));
-//		} catch (RecordServicesException e) {
-//			throw new RuntimeException(e);
-//		}
+		//		UserServices userServices = modelLayerFactory.newUserServices();
+		//		User user = userServices.getUserInCollection("admin", code);
+		//		try {
+		//			modelLayerFactory.newRecordServices().update(user.setUserRoles(roles).setCollectionAllAccess(true));
+		//		} catch (RecordServicesException e) {
+		//			throw new RuntimeException(e);
+		//		}
 	}
 
-
+	List<String> getRolesForCreator(Module module) {
+		return (module.getRolesForCreator() == null) ? new ArrayList<String>() : module.getRolesForCreator();
+	}
 
 }

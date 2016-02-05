@@ -1,26 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.model.calculators;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.OPEN_DATE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVATE_DEPOSITED;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -225,7 +208,7 @@ public class FolderDecommissioningDateCalculatorTest extends ConstellioTest {
 			throws Exception {
 
 		when(parameters.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
-		when(parameters.get(calculator.folderStatusParam)).thenReturn(INACTIVATE_DEPOSITED);
+		when(parameters.get(calculator.folderStatusParam)).thenReturn(INACTIVE_DEPOSITED);
 		when(parameters.get(calculator.openingDateParam)).thenReturn(november3_2012);
 		when(parameters.get(calculator.closingDateParam)).thenReturn(november4_2012);
 		when(parameters.get(calculator.actualTransferDateParam)).thenReturn(december13_2013);
@@ -239,7 +222,7 @@ public class FolderDecommissioningDateCalculatorTest extends ConstellioTest {
 			throws Exception {
 
 		when(parameters.get(calculator.decommissioningDateBasedOnParam)).thenReturn(OPEN_DATE);
-		when(parameters.get(calculator.folderStatusParam)).thenReturn(INACTIVATE_DEPOSITED);
+		when(parameters.get(calculator.folderStatusParam)).thenReturn(INACTIVE_DEPOSITED);
 		when(parameters.get(calculator.openingDateParam)).thenReturn(november3_2012);
 		when(parameters.get(calculator.closingDateParam)).thenReturn(may31_2014);
 		when(parameters.get(calculator.actualTransferDateParam)).thenReturn(december13_2014);

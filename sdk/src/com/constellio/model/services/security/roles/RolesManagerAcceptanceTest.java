@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.security.roles;
 
 import static java.util.Arrays.asList;
@@ -27,7 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.services.collections.CollectionsManager;
-import com.constellio.app.services.extensions.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
@@ -88,8 +72,8 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		manager.addRole(role1);
 		manager.addRole(role2);
 
-		assertThat(manager.getAllRoles("collection1")).hasSize(1);
-		assertThat(manager.getAllRoles("collection2")).hasSize(1);
+		assertThat(manager.getAllRoles("collection1")).hasSize(2);
+		assertThat(manager.getAllRoles("collection2")).hasSize(2);
 		assertThat(manager.getRole("collection1", role1.getCode()).getCollection()).isEqualTo("collection1");
 		assertThat(manager.getRole("collection2", role1.getCode()).getCollection()).isEqualTo("collection2");
 	}
@@ -173,7 +157,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		RolesManager newManager = new RolesManager(getDataLayerFactory().getConfigManager(), getModelLayerFactory()
 				.getCollectionsListManager());
 		newManager.initialize();
-		assertThat(newManager.getAllRoles(zeCollection)).hasSize(1);
+		assertThat(newManager.getAllRoles(zeCollection)).hasSize(2);
 	}
 
 	@Test
@@ -185,10 +169,8 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 
 		List<Role> loaded = manager.getAllRoles(zeCollection);
 
-		assertThat(loaded).hasSize(3);
-		assertThat(loaded.get(0).getCode()).isEqualTo(validRole.getCode());
-		assertThat(loaded.get(1).getCode()).isEqualTo(validRole2.getCode());
-		assertThat(loaded.get(2).getCode()).isEqualTo(validRole3.getCode());
+		assertThat(loaded).extracting("code").containsOnly(
+				CoreRoles.ADMINISTRATOR, validRole.getCode(), validRole2.getCode(), validRole3.getCode());
 	}
 
 	@Test
@@ -236,7 +218,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 		manager.addRole(validRole);
 		manager.deleteRole(validRole);
 
-		assertThat(manager.getAllRoles(zeCollection)).isEmpty();
+		assertThat(manager.getAllRoles(zeCollection)).hasSize(1);
 	}
 
 	@Test
@@ -274,9 +256,7 @@ public class RolesManagerAcceptanceTest extends ConstellioTest {
 
 		manager.deleteRole(validRole);
 
-		assertThat(manager.getAllRoles(zeCollection)).hasSize(2);
-		assertThat(manager.getAllRoles(zeCollection).get(0).getCode()).isEqualTo(validRole2.getCode());
-		assertThat(manager.getAllRoles(zeCollection).get(1).getCode()).isEqualTo(validRole3.getCode());
+		assertThat(manager.getAllRoles(zeCollection)).hasSize(3).extracting("code").doesNotContain(validRole.getCode());
 	}
 
 	@Test(expected = RolesManagerRuntimeException_Validation.class)

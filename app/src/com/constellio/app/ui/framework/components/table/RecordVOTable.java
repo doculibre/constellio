@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.components.table;
 
 import java.util.List;
@@ -24,6 +7,7 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEv
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -40,8 +24,11 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.data.Container;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -87,41 +74,53 @@ public class RecordVOTable extends Table {
 
 	private void init() {
 		addStyleName(STYLE_NAME);
-//		setColumnCollapsingAllowed(true);
 
 		setCellStyleGenerator(new CellStyleGenerator() {
 			@Override
 			public String getStyle(Table source, Object itemId, Object propertyId) {
-				String style;
-				if (propertyId instanceof MetadataVO) {
-					MetadataVO metadataVO = (MetadataVO) propertyId;
-					if (metadataVO.codeMatches(Schemas.TITLE_CODE)) {
-						RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);
-						RecordVO recordVO = recordVOItem.getRecord();
-						recordVO = getRecordVOForTitleColumn(recordVO);
-						try {
-							String extension = FileIconUtils.getExtension(recordVO);
-							if (extension != null) {
-								style = "file-icon-" + extension;
-							} else {
-								style = null;
-							}
-						} catch(Exception e) {
-							style = null;
+				if (isTitleColumn(propertyId)) {
+					try {
+						RecordVO recordVO = getRecordVOForTitleColumn(getItem(itemId));
+						String extension = FileIconUtils.getExtension(recordVO);
+						if (extension != null && !isDecomList(recordVO)) {
+							return "file-icon-" + extension;
 						}
-					} else {
-						style = null;
+					} catch (Exception e) {
+						// Do Nothing;
 					}
-				} else {
-					style = null;
 				}
-				return style;
+				return null;
+			}
+
+			private boolean isTitleColumn(Object id) {
+				if (CommonMetadataBuilder.TITLE.equals(id)) {
+					return true;
+				}
+				if (id instanceof MetadataVO) {
+					MetadataVO metadata = (MetadataVO) id;
+					return metadata.codeMatches(CommonMetadataBuilder.TITLE);
+				}
+				return false;
 			}
 		});
 	}
 
-	protected RecordVO getRecordVOForTitleColumn(RecordVO rowRecordVO) {
-		return rowRecordVO;
+	private boolean isDecomList(RecordVO recordVO) {
+		if (recordVO.getSchema() != null) {
+			return recordVO.getSchema().getCode().startsWith(DecommissioningList.SCHEMA_TYPE);
+		}
+		return false;
+	}
+
+	protected RecordVO getRecordVOForTitleColumn(Item item) {
+		if (item instanceof RecordVOItem) {
+			return ((RecordVOItem) item).getRecord();
+		}
+		if (item instanceof BeanItem) {
+			Object bean = ((BeanItem) item).getBean();
+			return (RecordVO) bean;
+		}
+		return null;
 	}
 
 	public final boolean isContextMenuPossible() {
@@ -162,7 +161,6 @@ public class RecordVOTable extends Table {
 			MetadataValueVO metadataValue = recordVO.getMetadataValue(metadataVO);
 			Component metadataDisplay = buildMetadataComponent(metadataValue, recordVO);
 			if ((metadataDisplay instanceof Label) && metadataVO.codeMatches(Schemas.TITLE_CODE)) {
-				recordVO = getRecordVOForTitleColumn(recordVO);
 				MetadataSchemaVO recordSchemaVO = recordVO.getSchema();
 				String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
 				if (StringUtils.isNotBlank(prefix)) {

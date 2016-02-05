@@ -1,38 +1,29 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.management;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveManagementView {
+	public static final ThemeResource DECOMMISSIONING_ICON = new ThemeResource("images/icons/config/platform_truck.png");
+	public static final String DECOMMISSIONING = "decommissioning-caption";
+	public static final ThemeResource NEW_CONTAINER_ICON = new ThemeResource("images/icons/config/container-add.png");
+	public static final String NEW_CONTAINER = "new-container";
+	public static final ThemeResource CONTAINERS_ICON = new ThemeResource("images/icons/config/box.png");
+	public static final String CONTAINERS = "containers-caption";
+	public static final ThemeResource REPORTS_ICON = new ThemeResource("images/icons/config/report.png");
+	public static final String REPORTS = "reports-caption";
+
 	private final ArchiveManagementPresenter presenter;
 
-	private Button decommissioning, containers, robots, reportsButton;
+	private Button decommissioning, newContainer, containers, reports;
 
 	public ArchiveManagementViewImpl() {
 		presenter = new ArchiveManagementPresenter(this);
@@ -45,58 +36,47 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		addStyleName("view-group");
-
-		decommissioning = new Button(
-				$("ArchiveManagementView.decommissioning"), new ThemeResource("images/icons/config/platform_truck.png"));
-		decommissioning.addClickListener(new ClickListener() {
+		decommissioning = new IconButton(DECOMMISSIONING_ICON, $("ArchiveManagementView.decommissioning"), false) {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				presenter.decommissioningButtonClicked();
 			}
-		});
+		};
 		decommissioning.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		decommissioning.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		decommissioning.addStyleName("decommissioning-caption");
+		decommissioning.addStyleName(DECOMMISSIONING);
 
-		containers = new Button(
-				$("ArchiveManagementView.containers"), new ThemeResource("images/icons/config/box.png"));
-		containers.addClickListener(new ClickListener() {
+		newContainer = new IconButton(NEW_CONTAINER_ICON, $("ArchiveManagementView.newContainer"), false) {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
+				presenter.newContainerButtonClicked();
+			}
+		};
+		newContainer.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		newContainer.addStyleName(NEW_CONTAINER);
+
+		containers = new IconButton(CONTAINERS_ICON, $("ArchiveManagementView.containers"), false) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
 				presenter.containersButtonClicked();
 			}
-		});
+		};
 		containers.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		containers.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		containers.addStyleName("containers-caption");
+		containers.addStyleName(CONTAINERS);
 
-		robots = new Button($("ArchiveManagementView.robots"),
-				new ThemeResource("images/icons/config/robot_platform_truck.png"));
-		robots.addClickListener(new ClickListener() {
+		reports = new IconButton(REPORTS_ICON, $("ArchiveManagementView.reports"), false) {
 			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.robotsButtonClicked();
-			}
-		});
-		robots.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		robots.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		robots.addStyleName("robots-caption");
-		robots.setEnabled(false);
-
-		reportsButton = new Button($("ArchiveManagementView.reports"), new ThemeResource("images/icons/config/report.png"));
-		reportsButton.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				presenter.reportsButtonClicked();
 			}
-		});
-		reportsButton.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		reportsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		reportsButton.addStyleName("reports-caption");
+		};
+		reports.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
+		reports.addStyleName(REPORTS);
 
 		presenter.onViewAssembled();
-		return new CssLayout(decommissioning, containers, reportsButton, robots);
+		CssLayout layout = new CssLayout(decommissioning, newContainer, containers, reports);
+		layout.addStyleName("view-group");
+
+		return layout;
 	}
 
 	@Override
@@ -105,8 +85,8 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 	}
 
 	@Override
-	public void setRobotsButtonVisible(boolean visible) {
-		robots.setVisible(visible);
+	public void setNewContainerButtonVisible(boolean visible) {
+		newContainer.setVisible(visible);
 	}
 
 	@Override
@@ -116,6 +96,6 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 
 	@Override
 	public void setPrintReportsButtonVisible(boolean visible) {
-
+		reports.setVisible(visible);
 	}
 }

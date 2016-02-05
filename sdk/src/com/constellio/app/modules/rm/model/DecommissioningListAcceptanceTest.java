@@ -1,26 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.model;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRule.newPrincipal;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,9 +31,15 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class DecommissioningListAcceptanceTest extends ConstellioTest {
@@ -104,9 +94,18 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		validations.add(new DecomListValidation(records.getBob_userInAC().getId(), november4));
 		validations.add(new DecomListValidation(records.getCharles_userInA().getId(), november4));
 
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		ContentVersionDataSummary newDocumentsVersions = contentManager.upload(getTestResourceInputStream("documents.pdf"));
+		Content documentContent = contentManager.createMajor(records.getAdmin(), "documents.pdf", newDocumentsVersions);
+
+		ContentVersionDataSummary newFoldersVersions = contentManager.upload(getTestResourceInputStream("folders.pdf"));
+		Content folderContent = contentManager.createMajor(records.getAdmin(), "folders.pdf", newFoldersVersions);
+
 		decommissioningList = rm.newDecommissioningList();
 		decommissioningList.setTitle("Ze list");
 		decommissioningList.setAdministrativeUnit(records.unitId_10a);
+		decommissioningList.setDocumentsReportContent(documentContent);
+		decommissioningList.setFoldersReportContent(folderContent);
 		decommissioningList.setApprovalDate(november4);
 		decommissioningList.setDescription("zeDescription");
 		decommissioningList.setApprovalRequest(records.getUsers().dakotaLIndienIn(zeCollection).getId());
@@ -137,6 +136,8 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getContainerDetails()).isEqualTo(asList(
 				new DecomListContainerDetail(aContainer.getId()),
 				new DecomListContainerDetail(anotherContainer.getId())));
+		assertThat(decommissioningList.getFoldersReportContent().getCurrentVersion().getFilename()).isEqualTo("folders.pdf");
+		assertThat(decommissioningList.getDocumentsReportContent().getCurrentVersion().getFilename()).isEqualTo("documents.pdf");
 		assertThat(decommissioningList.getProcessingDate()).isEqualTo(december12);
 		assertThat(decommissioningList.getProcessingUser()).isEqualTo(records.getUsers().dakotaLIndienIn(zeCollection).getId());
 		assertThat(decommissioningList.getDecommissioningListType()).isEqualTo(DecommissioningListType.FOLDERS_TO_CLOSE);
@@ -194,6 +195,63 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_4);
 		assertThat(decommissioningList.isUniform()).isEqualTo(false);
+	}
+
+	@Test
+	public void givenDecommissioningListwithUniformDocumentsThenUniformValues()
+			throws Exception {
+
+		decommissioningList = saveAndLoad((DecommissioningList) newFilingSpaceAList()
+				.set(DecommissioningList.DOCUMENTS, documentIn(records.folders("A04-A06"))));
+		assertThat(decommissioningList.getList(DecommissioningList.DOCUMENTS)).hasSize(9);
+		assertThat(decommissioningList.getUniformCategory()).isEqualTo(records.categoryId_X110);
+		assertThat(decommissioningList.getUniformCopyRule().toString())
+				.isEqualTo(newPrincipal(records.PA_MD, "42-5-C").toString());
+		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
+		assertThat(decommissioningList.isUniform()).isEqualTo(true);
+
+		decommissioningList = saveAndLoad((DecommissioningList) newFilingSpaceAList()
+				.set(DecommissioningList.DOCUMENTS, documentIn(records.folders("A04-A06, A16-A18"))));
+		assertThat(decommissioningList.getUniformCategory()).isNull();
+		assertThat(decommissioningList.getUniformCopyRule().toString())
+				.isEqualTo(newPrincipal(records.PA_MD, "42-5-C").toString());
+		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
+		assertThat(decommissioningList.isUniform()).isEqualTo(false);
+
+		decommissioningList = saveAndLoad((DecommissioningList) newFilingSpaceAList()
+				.set(DecommissioningList.DOCUMENTS, documentIn(records.folders("A04-A18, B52-B54"))));
+		assertThat(decommissioningList.getUniformCategory()).isNull();
+		assertThat(decommissioningList.getUniformCopyRule()).isNull();
+		assertThat(decommissioningList.getUniformCopyType()).isNull();
+		assertThat(decommissioningList.getUniformRule()).isNull();
+		assertThat(decommissioningList.isUniform()).isEqualTo(false);
+	}
+
+	private List<String> documentIn(List<String> folders) {
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.documentSchemaType()).where(rm.documentFolder()).isIn(folders));
+		return getModelLayerFactory().newSearchServices().searchRecordIds(query);
+
+	}
+
+	@Test
+	public void whenCreateRecordContainerInDecommissioningListThenCorrectlySaved()
+			throws Exception {
+
+		decommissioningList = saveAndLoad(newFilingSpaceAList().setFolderDetailsFor(records.folders("A04-A06")));
+		String containerRecordType = records.getContainerBac01().getType();
+
+		ContainerRecord containerRecord = rm.newContainerRecord().setTitle("ze container").setTemporaryIdentifier("42")
+				.setType(containerRecordType);
+		containerRecord.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, null);
+		DecomListContainerDetail decomListContainerDetail = new DecomListContainerDetail(containerRecord.getId());
+		decommissioningList.setContainerDetails(asList(decomListContainerDetail));
+		Transaction transaction = new Transaction();
+		transaction.addAll(containerRecord, decommissioningList);
+		recordServices.execute(transaction);
+
 	}
 
 	private DecommissioningList newFilingSpaceAList() {

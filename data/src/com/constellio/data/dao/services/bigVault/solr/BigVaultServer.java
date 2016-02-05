@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.bigVault.solr;
 
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_STRING;
@@ -34,6 +17,7 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteResponse;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
+import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -57,11 +41,13 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.S
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.solr.DateUtils;
+import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.data.utils.TimeProvider;
+import com.google.common.annotations.VisibleForTesting;
 
-public class BigVaultServer {
+public class BigVaultServer implements Cloneable {
 
 	private static final int HTTP_ERROR_500_INTERNAL = 500;
 	private static final int HTTP_ERROR_409_CONFLICT = 409;
@@ -70,30 +56,36 @@ public class BigVaultServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BigVaultServer.class);
 	private final int maxFailAttempt = 10;
 	private final int waitedMillisecondsBetweenAttempts = 500;
-	private SolrClient server;
-	private SolrClient adminServer;
 	private BigVaultLogger bigVaultLogger;
-	private AtomicFileSystem fileSystem;
-	private String name;
 	private DataLayerSystemExtensions extensions;
 
-	public BigVaultServer(String name, SolrClient server, AtomicFileSystem configManager, SolrClient adminServer,
-			BigVaultLogger bigVaultLogger, DataLayerSystemExtensions extensions) {
-		this.server = server;
+	private final String name;
+	private final SolrServerFactory solrServerFactory;
+	private final SolrClient server;
+	private final AtomicFileSystem fileSystem;
+
+	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
+		, DataLayerSystemExtensions extensions) {
+		this.solrServerFactory = solrServerFactory;
+		this.server = solrServerFactory.newSolrServer(name);
+		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
+		
 		this.bigVaultLogger = bigVaultLogger;
-		this.fileSystem = configManager;
 		this.name = name;
-		this.adminServer = adminServer;
 		this.extensions = extensions;
 	}
 
 	public String getName() {
 		return name;
 	}
-
+	
+	@VisibleForTesting
+	public SolrServerFactory getSolrServerFactory() {
+		return solrServerFactory;
+	}
+	
 	public QueryResponse query(SolrParams params)
 			throws BigVaultException.CouldNotExecuteQuery {
-
 		int currentAttempt = 0;
 		long start = new Date().getTime();
 		QueryResponse response = tryQuery(params, currentAttempt);
@@ -108,6 +100,7 @@ public class BigVaultServer {
 		try {
 			return server.query(params);
 		} catch (SolrServerException solrServerException) {
+			solrServerException.printStackTrace();
 			if (solrServerException.getCause() instanceof RemoteSolrException) {
 				RemoteSolrException remoteSolrException = (RemoteSolrException) solrServerException.getCause();
 				if (remoteSolrException.code() == HTTP_ERROR_400_BAD_REQUEST) {
@@ -307,7 +300,7 @@ public class BigVaultServer {
 			if (version != null) {
 				solrInputDocument.setField("id", updatedDocument.getFieldValue("id"));
 				solrInputDocument.setField("_version_", version);
-				solrInputDocument.setField("sys_s", newAtomicSet(NULL_STRING));
+				solrInputDocument.setField("sys_s", newAtomicSet(""));
 				optimisticLockingValidationDocuments.add(solrInputDocument);
 
 				if (updatedDocument.getFieldValue("type_s") == null) {
@@ -469,8 +462,8 @@ public class BigVaultServer {
 	public SolrClient getNestedSolrServer() {
 		return server;
 	}
-
-	public AtomicFileSystem getSolrFileSystem() {
+	
+	public AtomicFileSystem getSolrFileSystem(){
 		return fileSystem;
 	}
 
@@ -501,31 +494,6 @@ public class BigVaultServer {
 		}
 	}
 
-	public SolrClient getAdminServer() {
-		return adminServer;
-	}
-
-	public void reload() {
-
-		CoreAdminResponse adminResponse;
-		try {
-			adminResponse = CoreAdminRequest.reloadCore(name, adminServer);
-		} catch (SolrServerException | IOException e) {
-			throw new RuntimeException(e);
-		}
-		adminResponse.getCoreStatus();
-
-		//		ModifiableSolrParams params = new ModifiableSolrParams();
-		//		params.set(CommonParams.QT, "/admin/cores");
-		//		params.set(CommonParams.ACTION, "RELOAD");
-		//		params.set("core", name);
-		//		try {
-		//			adminServer.query(params);
-		//		} catch (SolrServerException e) {
-		//			throw new RuntimeException(e);
-		//		}
-	}
-
 	public long countDocuments() {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
@@ -533,6 +501,39 @@ public class BigVaultServer {
 			return query(params).getResults().getNumFound();
 		} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
 			throw new RuntimeException(couldNotExecuteQuery);
+		}
+	}
+	
+	public void reload(){
+		solrServerFactory.reloadSolrServer(name);
+	}
+	
+	@Override
+	public BigVaultServer clone(){
+		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions);
+	}
+
+	public void disableLogger() {
+		bigVaultLogger = BigVaultLogger.disabled();
+	}
+	
+	public void setExtensions(DataLayerSystemExtensions extensions) {
+		this.extensions = extensions;
+	}
+
+	public void expungeDeletes() {
+		try {
+
+			UpdateRequest updateRequest = new UpdateRequest();
+			updateRequest.setAction(UpdateRequest.ACTION.COMMIT, true, true, true);
+			updateRequest.process(server);
+			updateRequest.setParam("expungeDeletes", "true");
+		} catch (SolrServerException | IOException | RemoteSolrException e) {
+			//TODO
+			throw new RuntimeException(e);
+		} catch (OutOfMemoryError e) {
+			server.shutdown();
+			throw e;
 		}
 	}
 }

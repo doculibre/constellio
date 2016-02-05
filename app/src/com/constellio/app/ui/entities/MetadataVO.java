@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
@@ -102,7 +85,7 @@ public class MetadataVO implements Serializable {
 			boolean required,
 			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
 			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
-			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue) {
+			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue, boolean isWriteNullValues) {
 
 		this(code, type, collection, schema, required, multivalue, readOnly, labels, enumClass, taxonomyCodes,
 				schemaTypeCode, metadataInputType, allowedReferences, true, null, metadataGroup, defaultValue);
@@ -134,10 +117,14 @@ public class MetadataVO implements Serializable {
 		return code;
 	}
 
+	public String getLocalCode() {
+		return getCodeWithoutPrefix(code);
+	}
+
 	public static String getCodeWithoutPrefix(String code) {
 		String codeWithoutPrefix;
 		if (code != null) {
-			String[] splittedCode = code.split("_");
+			String[] splittedCode = SchemaUtils.underscoreSplitWithCache(code);
 			if (splittedCode.length == 3) {
 				codeWithoutPrefix = splittedCode[2];
 			} else {
@@ -270,6 +257,10 @@ public class MetadataVO implements Serializable {
 
 	public String getDatastoreCode() {
 		return datastoreCode;
+	}
+
+	public Object getDefaultValue() {
+		return defaultValue;
 	}
 
 	@Override

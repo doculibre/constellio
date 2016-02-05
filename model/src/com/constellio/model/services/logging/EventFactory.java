@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.logging;
 
 import java.util.ArrayList;
@@ -33,6 +16,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Authorization;
@@ -173,25 +157,28 @@ public class EventFactory {
 			for (Entry<String, Object> modifiedValueEntry : modifiedValues.entrySet()) {
 				String metadataDatastoreCode = modifiedValueEntry.getKey();
 				String metadataLocalCode = new SchemaUtils().getLocalCodeFromDataStoreCode(metadataDatastoreCode);
-				Metadata metadata = metadataSchemasManager.getSchemaTypes(record.getCollection())
-						.getSchema(record.getSchemaCode()).getMetadata(metadataLocalCode);
-				if (notAccepted(metadata)) {
-					continue;
-				}
-				Object newValue = modifiedValueEntry.getValue();
-				Object oldValue = recordImpl.getRecordDTO().getFields().get(metadataDatastoreCode);
-				if (newValue == null) {
-					if (oldValue != null) {
-						delta.append("-[" + metadata.getLabel() + " : " + oldValue.toString() + "]\n");
+				MetadataSchema schema = metadataSchemasManager.getSchemaTypes(record.getCollection())
+						.getSchema(record.getSchemaCode());
+				if (schema.hasMetadataWithCode(metadataLocalCode)) {
+					Metadata metadata = schema.getMetadata(metadataLocalCode);
+					if (notAccepted(metadata)) {
+						continue;
 					}
-				} else {
-					if (oldValue == null) {
-						delta.append("+[" + metadata.getLabel() + " : " + newValue.toString() + "]\n");
+					Object newValue = modifiedValueEntry.getValue();
+					Object oldValue = recordImpl.getRecordDTO().getFields().get(metadataDatastoreCode);
+					if (newValue == null) {
+						if (oldValue != null) {
+							delta.append("-[" + metadata.getLabel() + " : " + oldValue.toString() + "]\n");
+						}
 					} else {
-						if (!oldValue.toString().equals(newValue.toString())) {
-							delta.append("[ " + metadata.getLabel() + " :\n");
-							delta.append("\tAvant : " + limitContentLength(oldValue.toString()) + "\n");
-							delta.append("\tAprès : " + limitContentLength(newValue.toString()) + "]\n");
+						if (oldValue == null) {
+							delta.append("+[" + metadata.getLabel() + " : " + newValue.toString() + "]\n");
+						} else {
+							if (!oldValue.toString().equals(newValue.toString())) {
+								delta.append("[ " + metadata.getLabel() + " :\n");
+								delta.append("\tAvant : " + limitContentLength(oldValue.toString()) + "\n");
+								delta.append("\tAprès : " + limitContentLength(newValue.toString()) + "]\n");
+							}
 						}
 					}
 				}

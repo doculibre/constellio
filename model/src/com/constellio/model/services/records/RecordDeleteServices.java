@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -26,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +37,7 @@ import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_CannotTotallyDeleteSchemaType;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordIsNotAPrincipalConcept;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
@@ -312,7 +297,7 @@ public class RecordDeleteServices {
 			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(record.getId());
 		}
 
-		Transaction transaction = new Transaction();
+		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 
 		List<Record> hierarchyRecords = new ArrayList<>(getAllRecordsInHierarchy(record));
 		if (!new RecordUtils().toIdList(hierarchyRecords).contains(record.getId())) {
@@ -493,5 +478,25 @@ public class RecordDeleteServices {
 			throw new RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection(record.getCollection(),
 					user.getCollection());
 		}
+	}
+
+	public void totallyDeleteSchemaTypeRecords(MetadataSchemaType type) {
+		if (type.isInTransactionLog()) {
+			throw new RecordDeleteServicesRuntimeException_CannotTotallyDeleteSchemaType(type.getCode());
+		}
+
+		totallyDeleteSchemaTypeRecordsSkippingValidation_WARNING_CANNOT_BE_REVERTED(type);
+	}
+
+	public void totallyDeleteSchemaTypeRecordsSkippingValidation_WARNING_CANNOT_BE_REVERTED(MetadataSchemaType type) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "schema_s:" + type.getCode() + "_*");
+
+		try {
+			recordDao.execute(new TransactionDTO(RecordsFlushing.NOW).withDeletedByQueries(params));
+		} catch (OptimisticLocking optimisticLocking) {
+			throw new RuntimeException(optimisticLocking);
+		}
+
 	}
 }

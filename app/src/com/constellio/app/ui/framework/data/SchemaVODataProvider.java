@@ -1,29 +1,13 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.data;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -36,28 +20,13 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 @SuppressWarnings("serial")
 public class SchemaVODataProvider implements Serializable {
-
 	transient MetadataSchemasManager schemasManager;
-
-	transient List<MetadataSchemaVO> schemaTypes;
+	transient List<MetadataSchemaVO> schemas;
 
 	MetadataSchemaToVOBuilder voBuilder;
-
 	String typeCode;
-
 	String collection;
-
 	SessionContext sessionContext;
-
-	@Deprecated
-	public SchemaVODataProvider(MetadataSchemaToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String collection,
-			String code) {
-		this.voBuilder = voBuilder;
-		this.collection = collection;
-		this.typeCode = code;
-		this.sessionContext = ConstellioUI.getCurrentSessionContext();
-		init(modelLayerFactory);
-	}
 
 	public SchemaVODataProvider(MetadataSchemaToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String collection,
 			String code, SessionContext sessionContext) {
@@ -76,67 +45,62 @@ public class SchemaVODataProvider implements Serializable {
 
 	void init(ModelLayerFactory modelLayerFactory) {
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		schemaTypes = listSchemaVO();
-	}
-
-	public MetadataSchemaVO getSchemaVO(String code) {
-		for (MetadataSchemaVO type : schemaTypes) {
-			if (type.getCode().equals(code)) {
-				return type;
-			}
-		}
-		return null;
+		schemas = initSchemaVO();
 	}
 
 	public MetadataSchemaVO getSchemaVO(Integer index) {
-		return schemaTypes.get(index);
+		return schemas.get(index);
 	}
 
 	public int size() {
-		return schemaTypes.size();
+		return schemas.size();
 	}
 
 	public List<Integer> list() {
 		List<Integer> listInt = new ArrayList<>();
-		for (int i = 0; i < schemaTypes.size(); i++) {
+		for (int i = 0; i < schemas.size(); i++) {
 			listInt.add(i);
 		}
 
 		return listInt;
 	}
 
-	public List<MetadataSchemaVO> listSchemaVO() {
-		List<MetadataSchemaVO> schemaVOs = new ArrayList<>();
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
-		List<MetadataSchema> schemas = new ArrayList<>();
-		if (types != null) {
-			for (MetadataSchemaType type : types.getSchemaTypes()) {
-				if (type.getCode().equals(typeCode)) {
-					schemas = type.getAllSchemas();
-					break;
-				}
-			}
-
-			for (MetadataSchema metadata : schemas) {
-				schemaVOs.add(voBuilder.build(metadata, VIEW_MODE.TABLE, sessionContext));
-			}
-		}
-
-		return schemaVOs;
-	}
-
 	public List<MetadataSchemaVO> listSchemaVO(int startIndex, int count) {
-		List<MetadataSchemaVO> schemaVOs = listSchemaVO();
 		int toIndex = startIndex + count;
-		List subList = new ArrayList();
-		if (startIndex > schemaVOs.size()) {
-			return subList;
-		} else if (toIndex > schemaVOs.size()) {
-			toIndex = schemaVOs.size();
+		if (startIndex > schemas.size()) {
+			return new ArrayList<>();
+		} else if (toIndex > schemas.size()) {
+			toIndex = schemas.size();
 		}
-		return schemaVOs.subList(startIndex, toIndex);
+		return schemas.subList(startIndex, toIndex);
 	}
 
-	public void sort(String[] propertyId, boolean[] ascending) {
+	public void sort(Object[] propertyId, boolean[] ascending) {
+		final boolean asc = ascending[0];
+
+		Collections.sort(schemas, new Comparator<MetadataSchemaVO>() {
+			@Override
+			public int compare(MetadataSchemaVO o1, MetadataSchemaVO o2) {
+				int result = o1.getLabel().compareTo(o2.getLabel());
+				return asc ? result : -result;
+			}
+		});
+	}
+
+	private List<MetadataSchemaVO> initSchemaVO() {
+		List<MetadataSchemaVO> result = new ArrayList<>();
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+		if (types == null) {
+			return result;
+		}
+
+		MetadataSchemaType type = types.getSchemaType(typeCode);
+		result.add(voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));
+		for (MetadataSchema schema : type.getCustomSchemas()) {
+			result.add(voBuilder.build(schema, VIEW_MODE.TABLE, sessionContext));
+		}
+
+		return result;
 	}
 }

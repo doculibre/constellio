@@ -1,25 +1,11 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.authorizations;
 
+import static com.constellio.sdk.tests.FakeSessionContext.forRealUserIncollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +17,7 @@ import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -117,6 +104,83 @@ public class ListPrincipalAccessAuthorizationsPresenterAcceptTest extends Conste
 				AuthorizationVO.forGroups(rumors).givingReadWriteAccess().on(records.folder_A04),
 				AuthorizationVO.forGroups(rumors).givingReadWriteDeleteAccess().on(records.unitId_10a)
 		);
+	}
+
+	@Test
+	public void whenCurrentUserHasGlobalSecurityPermissionThenCanGiveCollectionAccessOnUsers()
+			throws Exception {
+
+		sessionContext = forRealUserIncollection(users.adminIn(zeCollection));
+		when(accessView.getSessionContext()).thenReturn(sessionContext);
+		accessPresenter = new ListPrincipalAccessAuthorizationsPresenter(accessView);
+		accessPresenter.forRequestParams(users.dakotaIn(zeCollection).getId());
+		assertThat(accessPresenter.seeCollectionAccessField()).isTrue();
+		assertThat(accessPresenter.getCollectionAccessChoicesModifiableByCurrentUser())
+				.containsOnly(Role.READ, Role.DELETE, Role.WRITE);
+
+		sessionContext = forRealUserIncollection(users.adminIn(zeCollection));
+		when(accessView.getSessionContext()).thenReturn(sessionContext);
+		accessPresenter = new ListPrincipalAccessAuthorizationsPresenter(accessView);
+		accessPresenter.forRequestParams(users.legendsIn(zeCollection).getId());
+		assertThat(accessPresenter.seeCollectionAccessField()).isFalse();
+
+		sessionContext = forRealUserIncollection(users.adminIn(zeCollection));
+		when(accessView.getSessionContext()).thenReturn(sessionContext);
+		accessPresenter = new ListPrincipalAccessAuthorizationsPresenter(accessView);
+		accessPresenter.forRequestParams(users.adminIn(zeCollection).getId());
+		assertThat(accessPresenter.seeCollectionAccessField()).isTrue();
+
+		sessionContext = forRealUserIncollection(users.chuckNorrisIn(zeCollection));
+		when(accessView.getSessionContext()).thenReturn(sessionContext);
+		accessPresenter = new ListPrincipalAccessAuthorizationsPresenter(accessView);
+		accessPresenter.forRequestParams(users.dakotaIn(zeCollection).getId());
+		assertThat(accessPresenter.seeCollectionAccessField()).isTrue();
+		assertThat(accessPresenter.getCollectionAccessChoicesModifiableByCurrentUser())
+				.containsOnly(Role.READ, Role.DELETE, Role.WRITE);
+
+		sessionContext = forRealUserIncollection(users.gandalfIn(zeCollection));
+		when(accessView.getSessionContext()).thenReturn(sessionContext);
+		accessPresenter = new ListPrincipalAccessAuthorizationsPresenter(accessView);
+		accessPresenter.forRequestParams(users.dakotaIn(zeCollection).getId());
+		assertThat(accessPresenter.seeCollectionAccessField()).isFalse();
+		assertThat(accessPresenter.getCollectionAccessChoicesModifiableByCurrentUser()).isEmpty();
+
+		sessionContext = forRealUserIncollection(users.gandalfIn(zeCollection));
+		when(accessView.getSessionContext()).thenReturn(sessionContext);
+		accessPresenter = new ListPrincipalAccessAuthorizationsPresenter(accessView);
+		accessPresenter.forRequestParams(users.dakotaIn(zeCollection).getId());
+		assertThat(accessPresenter.seeCollectionAccessField()).isFalse();
+		assertThat(accessPresenter.getCollectionAccessChoicesModifiableByCurrentUser()).isEmpty();
+
+	}
+
+	@Test
+	public void whenModifyingCollectionAccessesThenCorrectlySaved()
+			throws Exception {
+
+		accessPresenter.forRequestParams(users.dakotaIn(zeCollection).getId());
+		assertThat(accessPresenter.getUserGlobalAccess()).isEmpty();
+
+		accessPresenter.accessCreationRequested(asList(Role.READ, Role.DELETE));
+
+		assertThat(accessPresenter.getUserGlobalAccess()).containsOnly(Role.READ, Role.DELETE);
+
+		accessPresenter.accessCreationRequested(asList(Role.WRITE));
+
+		assertThat(accessPresenter.getUserGlobalAccess()).containsOnly(Role.READ, Role.WRITE);
+
+		accessPresenter.accessCreationRequested(asList(Role.DELETE));
+
+		assertThat(accessPresenter.getUserGlobalAccess()).containsOnly(Role.READ, Role.DELETE);
+
+		accessPresenter.accessCreationRequested(asList(Role.READ));
+
+		assertThat(accessPresenter.getUserGlobalAccess()).containsOnly(Role.READ);
+
+		accessPresenter.accessCreationRequested(new ArrayList<String>());
+
+		assertThat(accessPresenter.getUserGlobalAccess()).isEmpty();
+
 	}
 
 	// -------------------------------------------------------------------------

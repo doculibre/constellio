@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import java.io.Serializable;
@@ -23,7 +6,7 @@ import java.util.List;
 public class DecommissioningListParams implements Serializable {
 	private String title;
 	private String description;
-	private List<String> selectedFolderIds;
+	private List<String> selectedRecordIds;
 	private String administrativeUnit;
 	private SearchType searchType;
 
@@ -43,12 +26,12 @@ public class DecommissioningListParams implements Serializable {
 		this.description = description;
 	}
 
-	public List<String> getSelectedFolderIds() {
-		return selectedFolderIds;
+	public List<String> getSelectedRecordIds() {
+		return selectedRecordIds;
 	}
 
-	public void setSelectedFolderIds(List<String> selectedFolderIds) {
-		this.selectedFolderIds = selectedFolderIds;
+	public void setSelectedRecordIds(List<String> selectedRecordIds) {
+		this.selectedRecordIds = selectedRecordIds;
 	}
 
 	public String getAdministrativeUnit() {

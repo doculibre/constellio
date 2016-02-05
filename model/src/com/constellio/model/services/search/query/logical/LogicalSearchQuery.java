@@ -1,24 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search.query.logical;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -27,23 +12,29 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.FilterUtils;
 import com.constellio.model.services.search.query.ResultsProjection;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
 
+	//This condition will be inserted in Filter Query
 	LogicalSearchCondition condition;
+	//This condition will be inserted in Query
+	private LogicalSearchCondition queryCondition;
 	private LogicalSearchQueryFacetFilters facetFilters = new LogicalSearchQueryFacetFilters();
 	private String freeTextQuery;
-	String filterUser;
+	UserFilter userFilter;
 	String filterStatus;
 
 	private int numberOfRows;
@@ -56,10 +47,18 @@ public class LogicalSearchQuery implements SearchQuery {
 	private KeySetMap<String, String> queryFacets = new KeySetMap<>();
 	private List<String> fieldFacets = new ArrayList<>();
 	private List<String> statisticFields = new ArrayList<>();
+	private List<String> moreLikeThisFields = new ArrayList<>();
 	private int fieldFacetLimit;
 
 	private boolean highlighting = false;
 	private boolean spellcheck = false;
+	private boolean moreLikeThis = false;
+	private boolean preferAnalyzedFields = false;
+
+	private List<SearchBoost> fieldBoosts = new ArrayList<>();
+	private List<SearchBoost> queryBoosts = new ArrayList<>();
+
+	private Map<String, String[]> overridedQueryParams = new HashMap<>();
 
 	public LogicalSearchQuery() {
 		numberOfRows = 10000000;
@@ -77,9 +76,10 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery(LogicalSearchQuery query) {
 		condition = query.condition;
+		queryCondition = query.queryCondition;	
 		facetFilters = new LogicalSearchQueryFacetFilters(query.facetFilters);
 		freeTextQuery = query.freeTextQuery;
-		filterUser = query.filterUser;
+		userFilter = query.userFilter;
 		filterStatus = query.filterStatus;
 
 		numberOfRows = query.numberOfRows;
@@ -96,9 +96,22 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		highlighting = query.highlighting;
 		spellcheck = query.spellcheck;
+		preferAnalyzedFields = query.preferAnalyzedFields;
+
+		fieldBoosts = new ArrayList<>(query.fieldBoosts);
+		queryBoosts = new ArrayList<>(query.queryBoosts);
 	}
 
 	// The following methods are attribute accessors
+
+	public boolean isPreferAnalyzedFields() {
+		return preferAnalyzedFields;
+	}
+
+	public LogicalSearchQuery setPreferAnalyzedFields(boolean preferAnalyzedFields) {
+		this.preferAnalyzedFields = preferAnalyzedFields;
+		return this;
+	}
 
 	public LogicalSearchCondition getCondition() {
 		return condition;
@@ -120,43 +133,41 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	@Override
 	public LogicalSearchQuery filteredWithUser(User user) {
-		filterUser = FilterUtils.userReadFilter(user);
-		return this;
+		return filteredWithUser(user, Role.READ);
 	}
 
 	@Override
 	public LogicalSearchQuery filteredWithUser(User user, String access) {
-		if (access.equals(Role.READ)) {
-			filterUser = FilterUtils.userReadFilter(user);
-
-		} else if (access.equals(Role.WRITE)) {
-			filterUser = FilterUtils.userWriteFilter(user);
-
-		} else if (access.equals(Role.DELETE)) {
-			filterUser = FilterUtils.userDeleteFilter(user);
-
+		if (user == null) {
+			throw new IllegalArgumentException("user required");
 		}
+		if (access == null) {
+			throw new IllegalArgumentException("access required");
+		}
+		userFilter = new UserFilter(user, access);
+		return this;
+	}
+
+	public LogicalSearchQuery filteredWithUserWrite(User user) {
+		return filteredWithUser(user, Role.WRITE);
+	}
+
+	public LogicalSearchQuery filteredWithUserDelete(User user) {
+		return filteredWithUser(user, Role.DELETE);
+	}
+
+	public UserFilter getUserFilter() {
+		return userFilter;
+	}
+
+	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
+		filterStatus = FilterUtils.statusFilter(status);
 		return this;
 	}
 
 	@Override
 	public LogicalSearchQuery computeStatsOnField(String metadata) {
 		this.statisticFields.add(metadata);
-		return this;
-	}
-
-	public LogicalSearchQuery filteredWithUserWrite(User user) {
-		filterUser = FilterUtils.userWriteFilter(user);
-		return this;
-	}
-
-	public LogicalSearchQuery filteredWithUserDelete(User user) {
-		filterUser = FilterUtils.userDeleteFilter(user);
-		return this;
-	}
-
-	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
-		filterStatus = FilterUtils.statusFilter(status);
 		return this;
 	}
 
@@ -196,12 +207,16 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public LogicalSearchQuery sortAsc(DataStoreField field) {
-		sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), true));
+		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
+			sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), true));
+		}
 		return this;
 	}
 
 	public LogicalSearchQuery sortDesc(DataStoreField field) {
-		sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), false));
+		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
+			sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), false));
+		}
 		return this;
 	}
 
@@ -216,6 +231,13 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public KeySetMap<String, String> getQueryFacets() {
 		return queryFacets;
+	}
+
+	public LogicalSearchQuery addQueryFacets(String facetGroup, List<String> queryFacets) {
+		for (String queryFacet : queryFacets) {
+			this.queryFacets.add(facetGroup, queryFacet);
+		}
+		return this;
 	}
 
 	public LogicalSearchQuery addQueryFacet(String facetGroup, String queryFacet) {
@@ -267,11 +289,39 @@ public class LogicalSearchQuery implements SearchQuery {
 		return this;
 	}
 
+	public Map<String, String[]> getOverridedQueryParams() {
+		return overridedQueryParams;
+	}
+
+	public LogicalSearchQuery setOverridedQueryParams(Map<String, String[]> overridedQueryParams) {
+		this.overridedQueryParams = overridedQueryParams;
+		return this;
+	}
+
+	public List<SearchBoost> getFieldBoosts() {
+		return fieldBoosts;
+	}
+
+	public LogicalSearchQuery setFieldBoosts(List<SearchBoost> fieldBoosts) {
+		this.fieldBoosts = fieldBoosts;
+		return this;
+	}
+
+	public List<SearchBoost> getQueryBoosts() {
+		return queryBoosts;
+	}
+
+	public LogicalSearchQuery setQueryBoosts(List<SearchBoost> queryBoosts) {
+		this.queryBoosts = queryBoosts;
+		return this;
+	}
+
 	// The following methods are mainly used by the SPE itself
 
 	@Override
-	public String getQuery() {
-		return condition.getSolrQuery();
+	public String getQuery(String language) {
+		SolrQueryBuilderParams params = new SolrQueryBuilderParams(preferAnalyzedFields, language);
+		return condition.getSolrQuery(params);
 	}
 
 	@Override
@@ -280,10 +330,6 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		for (String filterQuery : condition.getFilters().getFilterQueries()) {
 			filterQueries.add(filterQuery);
-		}
-
-		if (filterUser != null) {
-			filterQueries.add(filterUser);
 		}
 
 		if (filterStatus != null) {
@@ -324,10 +370,6 @@ public class LogicalSearchQuery implements SearchQuery {
 		return ((SchemaFilters) condition.getFilters()).getSchema();
 	}
 
-	public String getSchemaTypeCondition() {
-		return ((SchemaFilters) condition.getFilters()).getSchemaType();
-	}
-
 	public String getHighlightingFields() {
 		return HIGHLIGHTING_FIELDS;
 	}
@@ -346,4 +388,63 @@ public class LogicalSearchQuery implements SearchQuery {
 		return new LogicalSearchQuery(LogicalSearchQueryOperators.fromAllSchemasIn("inexistentCollection42").returnAll());
 	}
 
+	public void setMoreLikeThis(boolean moreLikeThis) {
+		this.moreLikeThis = moreLikeThis;
+	}
+
+	public void addMoreLikeThisField(DataStoreField... fields) {
+		for (DataStoreField field : fields) {
+//			String dataStoreType;
+//			switch (field.getDataStoreType()) {
+//			case "ss":
+//				dataStoreType = "txt";
+//				break;
+//			case "s":
+//				dataStoreType = "t";
+//				break;
+//			default:
+//				dataStoreType = field.getDataStoreType();
+//				break;
+//			}
+
+			for (String lang : new String[] { "en", "fr", "ar" }) {
+				moreLikeThisFields.add(field.getAnalyzedField(lang).getDataStoreCode());
+			}
+		}
+	}
+
+	public List<String> getMoreLikeThisFields() {
+		return moreLikeThisFields;
+	}
+
+	public boolean isMoreLikeThis() {
+		return moreLikeThis;
+	}
+
+	public void setQueryCondition(LogicalSearchCondition queryCondition) {
+		this.queryCondition = queryCondition;
+	}
+	
+	public LogicalSearchCondition getQueryCondition() {
+		return queryCondition;
+	}
+
+
+	public static class UserFilter {
+		private final User user;
+		private final String access;
+
+		public UserFilter(User user, String access) {
+			this.user = user;
+			this.access = access;
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		public String getAccess() {
+			return access;
+		}
+	}
 }

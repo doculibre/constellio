@@ -1,22 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities;
 
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatToEqualsAndToStringThrowNoException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -26,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -40,9 +25,12 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
@@ -51,6 +39,7 @@ import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class POJOEntitiesTest extends ConstellioTest {
@@ -112,6 +101,15 @@ public class POJOEntitiesTest extends ConstellioTest {
 	}
 
 	@Test
+	public void testThatMetadataPopulateConfigsHasValidEqualsHashcodeAndToStringBehaviors() {
+		Pattern regex = Pattern.compile("regex");
+		RegexConfig regexConfig = new RegexConfig("inpuptMetadata", regex, "value", RegexConfigType.SUBSTITUTION);
+		MetadataPopulateConfigs o = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig));
+		MetadataPopulateConfigs o2 = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig));
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
 	public void testThatMetadataHasValidEqualsHashcodeAndToStringBehaviors() {
 		Metadata o = Schemas.IDENTIFIER;
 		Metadata o2 = Schemas.IDENTIFIER;
@@ -122,10 +120,10 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaHasValidEqualsHashcodeAndToStringBehaviors() {
 		MetadataSchema o = new MetadataSchema("a", "a", "a", "a", new ArrayList<Metadata>(), true,
-				new HashSet<RecordValidator>(),
+				true, new HashSet<RecordValidator>(),
 				new ArrayList<Metadata>());
 		MetadataSchema o2 = new MetadataSchema("a", "a", "a", "a", new ArrayList<Metadata>(), true,
-				new HashSet<RecordValidator>(),
+				true, new HashSet<RecordValidator>(),
 				new ArrayList<Metadata>());
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isNotInstanceOf(Serializable.class);
@@ -134,12 +132,13 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaTypeHasValidEqualsHashcodeAndToStringBehaviors() {
 		MetadataSchema defaultSchema = new MetadataSchema("a", "a", "a", "a", new ArrayList<Metadata>(), true,
-				new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
 		MetadataSchema defaultSchema2 = new MetadataSchema("a", "a", "a", "a", new ArrayList<Metadata>(), true,
-				new HashSet<RecordValidator>(), new ArrayList<Metadata>());
-		MetadataSchemaType o = new MetadataSchemaType("a", "a", "a", new ArrayList<MetadataSchema>(), defaultSchema, true, true);
-		MetadataSchemaType o2 = new MetadataSchemaType("a", "a", "a", new ArrayList<MetadataSchema>(), defaultSchema2, true,
+				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+		MetadataSchemaType o = new MetadataSchemaType("a", "a", "a", new ArrayList<MetadataSchema>(), defaultSchema, true, true,
 				true);
+		MetadataSchemaType o2 = new MetadataSchemaType("a", "a", "a", new ArrayList<MetadataSchema>(), defaultSchema2, true,
+				true, true);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isNotInstanceOf(Serializable.class);
 	}
@@ -174,8 +173,8 @@ public class POJOEntitiesTest extends ConstellioTest {
 
 	@Test
 	public void testThatXMLConfigurationHasValidEqualsHashcodeAndToStringBehaviors() {
-		XMLConfiguration o = new XMLConfiguration("a", null);
-		XMLConfiguration o2 = new XMLConfiguration("a", null);
+		XMLConfiguration o = new XMLConfiguration("a", null, null);
+		XMLConfiguration o2 = new XMLConfiguration("a", null, null);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 	}
 
@@ -393,6 +392,27 @@ public class POJOEntitiesTest extends ConstellioTest {
 
 	@Test
 	public void testThatMetadataSchemaTypesIsNotSerializable() {
+	}
+
+	@Test
+	public void testThatSpeCriterion_newerThan_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.newerThan(1.0, MeasuringUnitTime.DAYS);
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.newerThan(1.0, MeasuringUnitTime.DAYS);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_olderThan_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.olderThan(1.0, MeasuringUnitTime.DAYS);
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.olderThan(1.0, MeasuringUnitTime.DAYS);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
+	}
+
+	@Test
+	public void testThatSpeCriterion_olderLike_HasValidEqualsHashcodeAndToStringBehaviors() {
+		LogicalSearchValueCondition o = LogicalSearchQueryOperators.oldLike(1.0, MeasuringUnitTime.DAYS);
+		LogicalSearchValueCondition o2 = LogicalSearchQueryOperators.oldLike(1.0, MeasuringUnitTime.DAYS);
+		assertThatToEqualsAndToStringThrowNoException(o, o2);
 	}
 
 }

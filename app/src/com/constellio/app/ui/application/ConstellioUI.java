@@ -1,38 +1,24 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.application;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
-import com.constellio.app.modules.rm.ui.navigation.RMRecordNavigationHandler;
-import com.constellio.app.modules.tasks.ui.navigation.TasksRecordNavigationHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.sso.KerberosServices;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
-import com.constellio.app.ui.framework.navigation.RecordNavigationHandler;
+import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.handlers.ConstellioErrorHandler;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.pages.base.InitUIListener;
@@ -42,46 +28,56 @@ import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
 import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
-import com.constellio.app.utils.ConstellioSerializationUtils;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.annotations.Theme;
+import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
+import com.vaadin.server.RequestHandler;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
 public class ConstellioUI extends UI implements SessionContextProvider {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(ConstellioUI.class);
-
 	private SessionContext sessionContext;
 	private MainLayoutImpl mainLayout;
 
-	private List<RecordNavigationHandler> recordNavigationHandlers = new ArrayList<>();
-
 	private List<RecordContextMenuHandler> recordContextMenuHandlers = new ArrayList<>();
 
-	@Override
+    public final RequestHandler requestHandler = new ConstellioResourceHandler();
+
+    private KerberosServices kerberosServices;
+
+		@Override
 	protected void init(VaadinRequest request) {
-		Page.getCurrent().setTitle($("ConstellioUI.pageTitle"));
+        getSession().addRequestHandler(requestHandler);
+
+		kerberosServices = KerberosServices.getInstance();
 		
+		Page.getCurrent().setTitle($("ConstellioUI.pageTitle"));
+
 		// Important to allow update of components in current UI from another Thread
 		UI.getCurrent().setPollInterval(1000);
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
-		// TODO instantiate in the RM layer
-		addRecordNavigationHandler(new RMRecordNavigationHandler(constellioFactories));
-		addRecordNavigationHandler(new TasksRecordNavigationHandler(constellioFactories));
 		addRecordContextMenuHandler(new RMRecordContextMenuHandler(constellioFactories));
 
 		List<InitUIListener> initUIListeners = appLayerFactory.getInitUIListeners();
@@ -90,7 +86,8 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		}
 
 		Responsive.makeResponsive(this);
-		addStyleName(ValoTheme.UI_WITH_MENU);
+//		addStyleName(ValoTheme.UI_WITH_MENU);
+		addStyleName("ui-with-top-menu");
 
 		// Some views need to be aware of browser resize events so a
 		// BrowserResizeEvent gets fired to the event but on every occasion.
@@ -108,6 +105,8 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		if (sessionContext == null) {
 			sessionContext = new VaadinSessionContext();
 		}
+		VaadinSession.getCurrent().setLocale(i18n.getLocale());
+		sessionContext.setCurrentLocale(i18n.getLocale());
 
 		updateContent();
 
@@ -116,18 +115,90 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		}
 	}
 
+    @Override
+    public void detach() {
+        super.detach();
+        getSession().removeRequestHandler(requestHandler);
+    }
+	
+	private UserVO ssoAuthenticate() {
+		UserVO currentUserVO;
+
+		ConstellioFactories constellioFactories = getConstellioFactories();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		UserServices userServices = modelLayerFactory.newUserServices();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		
+		VaadinRequest vaadinRequest = VaadinService.getCurrentRequest();
+		Principal userPrincipal = vaadinRequest.getUserPrincipal();
+		String username = userPrincipal.getName();
+		
+		UserCredential userCredential = userServices.getUserCredential(username);
+		if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
+			List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
+			
+			String lastCollection = null;
+			User userInLastCollection = null;
+			LocalDateTime lastLogin = null;
+			
+			for (String collection : collections) {
+				User userInCollection = userServices.getUserInCollection(username, collection);
+				if (userInLastCollection == null) {
+					if (userInCollection != null) {
+						lastCollection = collection;
+						userInLastCollection = userInCollection;
+						lastLogin = userInCollection.getLastLogin();
+					}
+				} else {
+					if (lastLogin == null && userInCollection.getLastLogin() != null) {
+						lastCollection = collection;
+						userInLastCollection = userInCollection;
+						lastLogin = userInCollection.getLastLogin();
+					} else if (lastLogin != null && userInCollection.getLastLogin() != null && userInCollection.getLastLogin()
+							.isAfter(lastLogin)) {
+						lastCollection = collection;
+						userInLastCollection = userInCollection;
+						lastLogin = userInCollection.getLastLogin();
+					}
+				}
+			}
+			if (userInLastCollection != null) {
+				try {
+					recordServices.update(userInLastCollection
+							.setLastLogin(TimeProvider.getLocalDateTime())
+							.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+
+				modelLayerFactory.newLoggingServices().login(userInLastCollection);
+				currentUserVO = new UserToVOBuilder().build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
+				sessionContext.setCurrentUser(currentUserVO);
+				sessionContext.setCurrentCollection(lastCollection);
+			} else {
+				throw new RuntimeException("User " + username + " doesn't exist in Constellio");
+			}
+		} else {
+			throw new RuntimeException("User " + username + " is not active in Constellio");
+		}
+		return currentUserVO;
+	}
+
 	public void updateContent() {
 		if (isSetupRequired()) {
 			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl();
 			setContent(setupView);
 			addStyleName("setupview");
 		} else {
-			UserVO currentUser = sessionContext.getCurrentUser();
-			if (currentUser != null) {
+			ConstellioFactories constellioFactories = getConstellioFactories();
+			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+			
+			UserVO currentUserVO = sessionContext.getCurrentUser();
+			if (currentUserVO == null && kerberosServices.isEnabled()) {
+				currentUserVO = ssoAuthenticate();
+			}
+			if (currentUserVO != null) {
 				// Authenticated user
-				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-				AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-
 				mainLayout = new MainLayoutImpl(appLayerFactory);
 
 				setContent(mainLayout);
@@ -141,6 +212,11 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 
 					@Override
 					public void afterViewChange(ViewChangeEvent event) {
+						View oldView = event.getOldView();
+						if (oldView instanceof PollListener) {
+							removePollListener((PollListener) oldView);
+						}
+
 						View newView = event.getNewView();
 						ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 						AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
@@ -149,18 +225,18 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 							enterViewListener.enterView(newView);
 						}
 
-						if (enterViewListeners.isEmpty() && !isProductionMode()) {
-							try {
-								ConstellioSerializationUtils.validateSerializable(event.getOldView());
-							} catch (Exception e) {
-								LOGGER.warn(e.getMessage(), e);
-							}
-							try {
-								ConstellioSerializationUtils.validateSerializable(event.getNewView());
-							} catch (Exception e) {
-								LOGGER.warn(e.getMessage(), e);
-							}
-						}
+//						if (enterViewListeners.isEmpty() && !isProductionMode()) {
+//							try {
+//								ConstellioSerializationUtils.validateSerializable(event.getOldView());
+//							} catch (Exception e) {
+//								LOGGER.warn(e.getMessage(), e);
+//							}
+//							try {
+//								ConstellioSerializationUtils.validateSerializable(event.getNewView());
+//							} catch (Exception e) {
+//								LOGGER.warn(e.getMessage(), e);
+//							}
+//						}
 					}
 				});
 
@@ -192,7 +268,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 	public void setSessionContext(SessionContext sessionContext) {
 		this.sessionContext = sessionContext;
 	}
-	
+
 	@Override
 	public ConstellioFactories getConstellioFactories() {
 		return ConstellioFactories.getInstance();
@@ -201,7 +277,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 	public static SessionContext getCurrentSessionContext() {
 		return getCurrent().getSessionContext();
 	}
-	
+
 	public boolean isProductionMode() {
 		VaadinService service = VaadinService.getCurrent();
 		return service.getDeploymentConfiguration().isProductionMode();
@@ -209,18 +285,6 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 
 	public ConstellioNavigator navigateTo() {
 		return new ConstellioNavigator(getNavigator());
-	}
-
-	public void addRecordNavigationHandler(RecordNavigationHandler recordNavigationHandler) {
-		this.recordNavigationHandlers.add(recordNavigationHandler);
-	}
-
-	public void removeRecordNavigationHandler(RecordNavigationHandler recordNavigationHandler) {
-		this.recordNavigationHandlers.remove(recordNavigationHandler);
-	}
-
-	public List<RecordNavigationHandler> getRecordNavigationHandlers() {
-		return recordNavigationHandlers;
 	}
 
 	public void addRecordContextMenuHandler(RecordContextMenuHandler recordContextMenuHandler) {

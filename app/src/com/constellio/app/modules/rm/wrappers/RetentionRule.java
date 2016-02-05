@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.wrappers;
 
 import java.util.ArrayList;
@@ -26,6 +9,7 @@ import org.joda.time.LocalDate;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
@@ -53,6 +37,10 @@ public class RetentionRule extends RecordWrapper {
 	public static final String HISTORY = "history";
 	public static final String ESSENTIAL_DOCUMENTS = "essentialDocuments";
 	public static final String CONFIDENTIAL_DOCUMENTS = "confidentialDocuments";
+	public static final String DOCUMENT_COPY_RETENTION_RULES = "documentCopyRetentionRules";
+	public static final String PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE = "principalDefaultDocumentCopyRetentionRule";
+	public static final String SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE = "secondaryDefaultDocumentCopyRetentionRule";
+	public static final String SCOPE = "scope";
 
 	public RetentionRule(Record record,
 			MetadataSchemaTypes types) {
@@ -266,5 +254,52 @@ public class RetentionRule extends RecordWrapper {
 		public RetentionRuleRuntimeException(String message) {
 			super(message);
 		}
+	}
+
+	public List<CopyRetentionRule> getDocumentCopyRetentionRules() {
+		return getList(DOCUMENT_COPY_RETENTION_RULES);
+	}
+
+	public RetentionRule setDocumentCopyRetentionRules(CopyRetentionRule... documentCopyRetentionRules) {
+		return setDocumentCopyRetentionRules(Arrays.asList(documentCopyRetentionRules));
+	}
+
+	public RetentionRule setDocumentCopyRetentionRules(List<CopyRetentionRule> copyRetentionRules) {
+		set(DOCUMENT_COPY_RETENTION_RULES, copyRetentionRules);
+		return this;
+	}
+
+	public CopyRetentionRule getPrincipalDefaultDocumentCopyRetentionRule() {
+		return get(PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
+	}
+
+	public RetentionRule setPrincipalDefaultDocumentCopyRetentionRule(
+			CopyRetentionRule principalDefaultDocumentCopyRetentionRule) {
+		set(PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE, principalDefaultDocumentCopyRetentionRule);
+		return this;
+	}
+
+	public CopyRetentionRule getSecondaryDefaultDocumentCopyRetentionRule() {
+		return get(SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
+	}
+
+	public RetentionRule setSecondaryDefaultDocumentCopyRetentionRule(
+			CopyRetentionRule secondaryDefaultDocumentCopyRetentionRule) {
+		set(SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE, secondaryDefaultDocumentCopyRetentionRule);
+		return this;
+	}
+
+	public RetentionRuleScope getScope() {
+		return get(SCOPE);
+	}
+
+	public RetentionRule setScope(RetentionRuleScope scope) {
+		set(SCOPE, scope);
+		return this;
+	}
+
+	public RetentionRule setDecommissioningType(RetentionRuleScope retentionRuleScope) {
+		set(SCOPE, retentionRuleScope);
+		return this;
 	}
 }

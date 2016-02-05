@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemasDisplay;
 
 import java.util.ArrayList;
@@ -52,6 +35,7 @@ public class SchemasDisplayReader1 {
 	private static final String SCHEMA_CODE = "SchemaCode";
 	private static final String FORM_METADATA_CODES = "FormMetadataCodes";
 	private static final String SEARCH_RESULTS_METADATA_CODES = "SearchResultsMetadataCodes";
+	private static final String TABLE_METADATA_CODES = "TableMetadataCodes";
 	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
 	private static final String INPUT_TYPE = "InputType";
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
@@ -157,55 +141,62 @@ public class SchemasDisplayReader1 {
 		for (Element schemaDisplayConfigsElement : schemaDisplayConfigsElements) {
 			if (schemaDisplayConfigsElement != null) {
 				String schemaCode = schemaDisplayConfigsElement.getAttributeValue(SCHEMA_CODE);
-				MetadataSchema schema = types.getSchema(schemaCode);
-				Element displayMetadataCodesElement = schemaDisplayConfigsElement.getChild(DISPLAY_METADATA_CODES);
+				if (types.hasSchema(schemaCode)) {
+					MetadataSchema schema = types.getSchema(schemaCode);
+					Element displayMetadataCodesElement = schemaDisplayConfigsElement.getChild(DISPLAY_METADATA_CODES);
 
-				List<String> displayMetadataCodes = new ArrayList<>();
-				if (displayMetadataCodesElement != null) {
-					for (Element e : displayMetadataCodesElement.getChildren()) {
-						displayMetadataCodes.add(e.getName());
+					List<String> displayMetadataCodes = new ArrayList<>();
+					addElementValuesToList(schema, displayMetadataCodesElement, displayMetadataCodes);
+
+					Element formMetadataCodesElement = schemaDisplayConfigsElement.getChild(FORM_METADATA_CODES);
+
+					List<String> formMetadataCodes = new ArrayList<>();
+					addElementValuesToList(schema, formMetadataCodesElement, formMetadataCodes);
+
+					for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
+						if (!formMetadataCodes.contains(metadata.getCode())) {
+							formMetadataCodes.add(metadata.getCode());
+						}
 					}
-				}
 
-				Element formMetadataCodesElement = schemaDisplayConfigsElement.getChild(FORM_METADATA_CODES);
-
-				List<String> formMetadataCodes = new ArrayList<>();
-				if (formMetadataCodesElement != null) {
-					for (Element e : formMetadataCodesElement.getChildren()) {
-						formMetadataCodes.add(e.getName());
+					List<String> availables = SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema).toMetadatasCodesList();
+					for (Iterator<String> iterator = formMetadataCodes.iterator(); iterator.hasNext(); ) {
+						if (!availables.contains(iterator.next())) {
+							iterator.remove();
+						}
 					}
+
+					Element searchResultsMetadataCodesElement = schemaDisplayConfigsElement
+							.getChild(SEARCH_RESULTS_METADATA_CODES);
+
+					List<String> searchResultsMetadataCodes = new ArrayList<>();
+					addElementValuesToList(schema, searchResultsMetadataCodesElement, searchResultsMetadataCodes);
+
+					Element tableMetadataCodesElement = schemaDisplayConfigsElement
+							.getChild(TABLE_METADATA_CODES);
+
+					List<String> tableMetadataCodes = new ArrayList<>();
+					addElementValuesToList(schema, tableMetadataCodesElement, tableMetadataCodes);
+
+					SchemaDisplayConfig schemaDisplayConfig = new SchemaDisplayConfig(collection, schemaCode,
+							displayMetadataCodes, formMetadataCodes, searchResultsMetadataCodes, tableMetadataCodes);
+
+					map.put(schemaCode, schemaDisplayConfig);
 				}
-
-				for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
-					if (!formMetadataCodes.contains(metadata.getCode())) {
-						formMetadataCodes.add(metadata.getCode());
-					}
-				}
-
-				List<String> availables = SchemaDisplayUtils.getAvailableMetadatasInSchemaForm(schema).toMetadatasCodesList();
-				for (Iterator<String> iterator = formMetadataCodes.iterator(); iterator.hasNext(); ) {
-					if (!availables.contains(iterator.next())) {
-						iterator.remove();
-					}
-				}
-
-				Element searchResultsMetadataCodesElement = schemaDisplayConfigsElement
-						.getChild(SEARCH_RESULTS_METADATA_CODES);
-
-				List<String> searchResultsMetadataCodes = new ArrayList<>();
-				if (searchResultsMetadataCodesElement != null) {
-					for (Element e : searchResultsMetadataCodesElement.getChildren()) {
-						searchResultsMetadataCodes.add(e.getName());
-					}
-				}
-
-				SchemaDisplayConfig schemaDisplayConfig = new SchemaDisplayConfig(collection, schemaCode,
-						displayMetadataCodes, formMetadataCodes, searchResultsMetadataCodes);
-
-				map.put(schemaCode, schemaDisplayConfig);
 			}
 		}
 		return map;
+	}
+
+	private void addElementValuesToList(MetadataSchema schema, Element element,
+			List<String> list) {
+		if (element != null) {
+			for (Element e : element.getChildren()) {
+				if (schema.hasMetadataWithCode(e.getName())) {
+					list.add(e.getName());
+				}
+			}
+		}
 	}
 
 	private void setMetadataDisplayConfigs(String collection, Element rootElement,

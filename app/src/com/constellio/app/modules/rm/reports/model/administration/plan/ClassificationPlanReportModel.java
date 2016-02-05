@@ -1,35 +1,29 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.model.administration.plan;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.data.io.streamFactories.StreamFactory;
 
 public class ClassificationPlanReportModel {
 
 	private boolean detailed = false;
 
+	private boolean isByAdministrativeUnit = false;
+
 	private StreamFactory<InputStream> headerLogo;
 
 	private List<ClassificationPlanReportModel_Category> rootCategories = new ArrayList<>();
+
+	List<ClassificationPlanReportModel_Category> categories = new ArrayList<ClassificationPlanReportModel_Category>();
+
+	Map<AdministrativeUnit, List<ClassificationPlanReportModel_Category>> adminUnitRulesMap = new HashMap();
 
 	public StreamFactory<InputStream> getHeaderLogo() {
 		return headerLogo;
@@ -49,6 +43,15 @@ public class ClassificationPlanReportModel {
 		return this;
 	}
 
+	public void setCategoriesByAdministrativeUnit(
+			Map<AdministrativeUnit, List<ClassificationPlanReportModel_Category>> rulesByAdministrativeUnit) {
+		this.adminUnitRulesMap = rulesByAdministrativeUnit;
+	}
+
+	public Map<AdministrativeUnit, List<ClassificationPlanReportModel_Category>> getCategoriesByAdministrativeUnitMap() {
+		return adminUnitRulesMap;
+	}
+
 	public boolean isDetailed() {
 		return detailed;
 	}
@@ -57,12 +60,24 @@ public class ClassificationPlanReportModel {
 		this.detailed = detailed;
 	}
 
+	public boolean isByAdministrativeUnit() {
+		return isByAdministrativeUnit;
+	}
+
+	public void setByAdministrativeUnit(boolean isByAdministrativeUnit) {
+		this.isByAdministrativeUnit = isByAdministrativeUnit;
+	}
+
 	public String getTitle() {
-		if (isDetailed()) {
-			return "Plan de classification detaille";
+		String title;
+		if (isByAdministrativeUnit()) {
+			title = "ClassificationPlanByAdministrativeUnitReport.Title";
+		} else if (isDetailed()) {
+			title = "ClassificationPlanDetailedReport.Title";
 		} else {
-			return "Plan de classification";
+			title = "ClassificationPlanReport.Title";
 		}
+		return $(title);
 	}
 
 	public static class ClassificationPlanReportModel_Category {
@@ -74,6 +89,10 @@ public class ClassificationPlanReportModel {
 		private String description;
 
 		private List<ClassificationPlanReportModel_Category> categories = new ArrayList<>();
+
+		private List<String> keywords = new ArrayList<>();
+
+		private List<String> rententionRules = new ArrayList<>();
 
 		public String getCode() {
 			return code;
@@ -109,6 +128,24 @@ public class ClassificationPlanReportModel {
 		public ClassificationPlanReportModel_Category setCategories(List<ClassificationPlanReportModel_Category> categories) {
 			this.categories = categories;
 			return this;
+		}
+
+		public ClassificationPlanReportModel_Category setKeywords(List<String> keywords) {
+			this.keywords = keywords;
+			return this;
+		}
+
+		public List<String> getKeywords() {
+			return keywords;
+		}
+
+		public ClassificationPlanReportModel_Category setRetentionRules(List<String> rententionRules) {
+			this.rententionRules = rententionRules;
+			return this;
+		}
+
+		public List<String> getRetentionRules() {
+			return rententionRules;
 		}
 	}
 

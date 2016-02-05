@@ -1,26 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.imports;
 
 import com.constellio.app.services.schemas.bulkImport.*;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
-import com.constellio.app.services.schemas.bulkImport.data.excel.ExcelImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -37,7 +20,7 @@ import java.io.StringWriter;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ImportFilePresenter extends BasePresenter<ImportFileView> {
+public class ImportFilePresenter extends BasePresenter<ImportFileView> implements ImportFilePresenterInterface{
 
 	private transient ImportServices importServices;
 
@@ -141,7 +124,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> {
 	}
 
 	protected ImportDataProvider getExcelImportDataProviderFromFile(File file) {
-		return ExcelImportDataProvider.fromFile(file);
+		return Excel2003ImportDataProvider.fromFile(file);
 	}
 
 	protected String format(ImportError error) {

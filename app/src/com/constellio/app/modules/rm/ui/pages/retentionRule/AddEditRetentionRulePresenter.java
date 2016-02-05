@@ -1,41 +1,38 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
-import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentDecomDatesDynamicLocalDependency;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
+import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -48,11 +45,20 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<AddEditRetentionRuleView> {
+
 	private boolean addView;
-	private RetentionRuleVO retentionRuleVO;
+
+	private RetentionRuleVO rule;
+
+	private transient RMConfigs configs;
+
+	private RetentionRuleToVOBuilder voBuilder;
+
+	private boolean reloadingForm = false;
 
 	public AddEditRetentionRulePresenter(AddEditRetentionRuleView view) {
 		super(view, RetentionRule.DEFAULT_SCHEMA);
+		reloadingForm = true;
 	}
 
 	public void forParams(String id) {
@@ -65,13 +71,20 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			addView = true;
 		}
 
-		retentionRuleVO = new RetentionRuleToVOBuilder(appLayerFactory, schema(Category.DEFAULT_SCHEMA),
-				schema(UniformSubdivision.DEFAULT_SCHEMA)).build(record, VIEW_MODE.FORM, view.getSessionContext());
-		view.setRetentionRule(retentionRuleVO);
+		voBuilder = new RetentionRuleToVOBuilder(appLayerFactory, schema(Category.DEFAULT_SCHEMA),
+				schema(UniformSubdivision.DEFAULT_SCHEMA));
+		rule = voBuilder.build(record, VIEW_MODE.FORM, view.getSessionContext());
+		view.setRetentionRule(rule);
+
+		if (configs().areDocumentRetentionRulesEnabled()) {
+			if (rule.getScope() == null) {
+				rule.setScope(RetentionRuleScope.DOCUMENTS_AND_FOLDER);
+			}
+		}
 
 		boolean sortDisposal = false;
 		if (!addView) {
-			List<CopyRetentionRule> copyRetentionRules = retentionRuleVO.getCopyRetentionRules();
+			List<CopyRetentionRule> copyRetentionRules = rule.getCopyRetentionRules();
 			for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
 				if (copyRetentionRule.canSort()) {
 					sortDisposal = true;
@@ -82,33 +95,56 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		updateDisposalTypeForDocumentTypes(sortDisposal);
 	}
 
-	@Override
-	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+	public void viewAssembled() {
+		reloadingForm = false;
 	}
 
 	public boolean isAddView() {
 		return addView;
 	}
 
-	public void cancelButtonClicked() {
-		if (addView) {
-			view.navigateTo().listRetentionRules();
-		} else {
-			view.navigateTo().displayRetentionRule(retentionRuleVO.getId());
+	public boolean shouldDisplayDocumentTypeDetails() {
+		return !configs().areDocumentRetentionRulesEnabled();
+	}
+
+	public List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
+		List<VariableRetentionPeriodVO> returnList = new ArrayList<>();
+		LogicalSearchCondition condition = from(schemaType(VariableRetentionPeriod.SCHEMA_TYPE).getDefaultSchema()).returnAll();
+		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
+		for (Record record : records) {
+			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId())
+					.setTitle((String) record.get(Schemas.TITLE)).setCode((String) record.get(Schemas.CODE));
+			returnList.add(variableRetentionPeriodVO);
 		}
+		return returnList;
 	}
 
 	public void saveButtonClicked() {
-		Record record = toRecord(retentionRuleVO);
+		if (rule.getScope() == RetentionRuleScope.DOCUMENTS) {
+			rule.getCopyRetentionRules().clear();
+		}
+		Record record = toRecord(rule);
 		try {
 			addOrUpdate(record);
-			saveCategories(record.getId(), retentionRuleVO.getCategories());
-			saveUniformSubdivisions(record.getId(), retentionRuleVO.getUniformSubdivisions());
+			saveCategories(record.getId(), rule.getCategories());
+			saveUniformSubdivisions(record.getId(), rule.getUniformSubdivisions());
 			view.navigateTo().listRetentionRules();
 		} catch (ValidationRuntimeException e) {
 			view.showErrorMessage($(e.getValidationErrors()));
 		}
+	}
+
+	public void cancelButtonClicked() {
+		if (addView) {
+			view.navigateTo().listRetentionRules();
+		} else {
+			view.navigateTo().displayRetentionRule(rule.getId());
+		}
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
 	}
 
 	private void saveCategories(String id, List<String> categories) {
@@ -158,7 +194,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			sortPossible = true;
 		} else {
 			sortPossible = false;
-			List<CopyRetentionRule> copyRetentionRules = retentionRuleVO.getCopyRetentionRules();
+			List<CopyRetentionRule> copyRetentionRules = rule.getCopyRetentionRules();
 			for (CopyRetentionRule existingCopyRetentionRule : copyRetentionRules) {
 				if (!existingCopyRetentionRule.equals(copyRetentionRule) && existingCopyRetentionRule.canSort()) {
 					sortPossible = true;
@@ -173,14 +209,90 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		view.setDisposalTypeVisibleForDocumentTypes(sortDisposal);
 	}
 
-	public List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
-		List<VariableRetentionPeriodVO> returnList = new ArrayList<>();
-		LogicalSearchCondition condition = from(schemaType(VariableRetentionPeriod.SCHEMA_TYPE).getDefaultSchema()).returnAll();
-		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
-		for(Record record : records){
-			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId()).setTitle((String)record.get(Schemas.TITLE)).setCode((String)record.get(Schemas.CODE));
-			returnList.add(variableRetentionPeriodVO);
+	private RMConfigs configs() {
+		if (configs == null) {
+			configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		}
-		return returnList;
+		return configs;
 	}
+
+	public boolean isFoldersCopyRetentionRulesVisible() {
+		boolean foldersCopyRetentionRulesVisible;
+		boolean documentRetentionRulesEnabled = configs().areDocumentRetentionRulesEnabled();
+		if (documentRetentionRulesEnabled) {
+			RetentionRuleScope scope = rule.getScope();
+			foldersCopyRetentionRulesVisible = scope == RetentionRuleScope.DOCUMENTS_AND_FOLDER;
+		} else {
+			foldersCopyRetentionRulesVisible = true;
+		}
+		return foldersCopyRetentionRulesVisible;
+	}
+
+	public boolean isDocumentsCopyRetentionRulesVisible() {
+		boolean documentRetentionRulesEnabled = configs().areDocumentRetentionRulesEnabled();
+		return documentRetentionRulesEnabled;
+	}
+
+	public boolean isDefaultDocumentsCopyRetentionRulesVisible() {
+		boolean defaultDocumentsCopyRetentionRulesVisible;
+		boolean documentRetentionRulesEnabled = configs().areDocumentRetentionRulesEnabled();
+		if (documentRetentionRulesEnabled) {
+			RetentionRuleScope scope = rule.getScope();
+			defaultDocumentsCopyRetentionRulesVisible = scope == RetentionRuleScope.DOCUMENTS;
+		} else {
+			defaultDocumentsCopyRetentionRulesVisible = true;
+		}
+		return defaultDocumentsCopyRetentionRulesVisible;
+	}
+
+	public boolean isScopeVisible() {
+		boolean documentRetentionRulesEnabled = configs().areDocumentRetentionRulesEnabled();
+		return documentRetentionRulesEnabled;
+	}
+
+	public void scopeChanged(RetentionRuleScope scope) {
+		if (!reloadingForm) {
+			reloadingForm = true;
+			rule.setScope(scope);
+			view.reloadForm();
+			reloadingForm = false;
+		}
+	}
+
+	public List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+
+		MetadataSchema schema = schema(Document.DEFAULT_SCHEMA);
+		if (documentTypeId != null) {
+			DocumentType documentType = rm.getDocumentType(documentTypeId);
+			if (documentType.getLinkedSchema() != null) {
+				schema = schema(documentType.getLinkedSchema());
+			}
+		}
+
+		List<MetadataVO> dateMetadataVOs = new ArrayList<>();
+
+		MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
+		SessionContext sessionContext = view.getSessionContext();
+
+		for (Metadata metadata : schema.getMetadatas().onlyWithType(DATE_TIME, DATE)) {
+			if (!DocumentDecomDatesDynamicLocalDependency.excludedMetadatas.contains(metadata.getLocalCode()) &&
+					!Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, sessionContext);
+				dateMetadataVOs.add(metadataVO);
+			}
+		}
+
+		Collections.sort(dateMetadataVOs, new Comparator<MetadataVO>() {
+			@Override
+			public int compare(MetadataVO o1, MetadataVO o2) {
+				String label1 = AccentApostropheCleaner.cleanAll(o1.getLabel());
+				String label2 = AccentApostropheCleaner.cleanAll(o2.getLabel());
+				return label1.compareTo(label2);
+			}
+		});
+
+		return dateMetadataVOs;
+	}
+
 }

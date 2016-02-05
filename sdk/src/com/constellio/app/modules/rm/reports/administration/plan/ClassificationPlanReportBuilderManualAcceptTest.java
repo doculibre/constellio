@@ -1,39 +1,33 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.administration.plan;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationPlanReportBuilder;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 
 public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
 
 	ClassificationPlanReportModel model;
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
 	}
 
 	@Test
@@ -42,9 +36,23 @@ public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuild
 		model = new ClassificationPlanReportModel();
 		//model.setHeaderLogo(getTestResourceInputStreamFactory("logo.png"));
 
-		build(new ClassificationPlanReportBuilder(model, 
+		build(new ClassificationPlanReportBuilder(model,
 				getModelLayerFactory().getFoldersLocator()));
 
+	}
+
+	@Test
+	public void whenBuildClassificationPlanByAdministrativeUnitReportThenOk() {
+
+		boolean detailed = true;
+		model = configCategories(detailed);
+		Map<AdministrativeUnit, List<ClassificationPlanReportModel_Category>> administrativeUnitListCategoryMap = new HashMap<>();
+		administrativeUnitListCategoryMap.put(records.getUnit10(), model.getRootCategories());
+		model.setCategoriesByAdministrativeUnit(administrativeUnitListCategoryMap);
+		model.setByAdministrativeUnit(true);
+
+		build(new ClassificationPlanReportBuilder(model,
+				getModelLayerFactory().getFoldersLocator()));
 	}
 
 	@Test
@@ -118,29 +126,46 @@ public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuild
 		ClassificationPlanReportModel_Category categoryLevel_54 = new ClassificationPlanReportModel_Category();
 		ClassificationPlanReportModel_Category categoryLevel_55 = new ClassificationPlanReportModel_Category();
 
-		categoryLevel_010010.setCode("level_010010").setLabel("Ze level 010010").setDescription(textOfLength(200));
+		List<String> keywords = Arrays.asList("keyword1", "keyword2", "keyword3");
+		List<String> retentionRules = Arrays.asList("rule1", "rule2", "rule3");
 
-		categoryLevel_01000.setCode("level_01000").setLabel("Ze level 01000").setDescription(textOfLength(200));
-		categoryLevel_01001.setCode("level_01001").setLabel("Ze level 01010").setDescription(textOfLength(200)).getCategories()
+		categoryLevel_010010.setCode("level_010010").setLabel("Ze level 010010").setDescription(textOfLength(200))
+				.setKeywords(keywords).setRetentionRules(retentionRules);
+
+		categoryLevel_01000.setCode("level_01000").setLabel("Ze level 01000").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
+		categoryLevel_01001.setCode("level_01001").setLabel("Ze level 01010").setDescription(textOfLength(200))
+				.setKeywords(keywords).setRetentionRules(retentionRules).getCategories()
 				.add(categoryLevel_010010);
 
-		categoryLevel_0100.setCode("level_0100").setLabel("Ze level 0100").setDescription(textOfLength(200)).getCategories()
+		categoryLevel_0100.setCode("level_0100").setLabel("Ze level 0100").setDescription(textOfLength(200)).setKeywords(keywords)
+				.setRetentionRules(retentionRules).getCategories()
 				.addAll(Arrays.asList(categoryLevel_01000, categoryLevel_01001));
-		categoryLevel_0101.setCode("level_0101").setLabel("Ze level 0101").setDescription(textOfLength(200));
+		categoryLevel_0101.setCode("level_0101").setLabel("Ze level 0101").setDescription(textOfLength(200)).setKeywords(keywords)
+				.setRetentionRules(
+						retentionRules);
 
-		categoryLevel_010.setCode("level_010").setLabel("Ze level 010").setDescription(textOfLength(200)).getCategories()
+		categoryLevel_010.setCode("level_010").setLabel("Ze level 010").setDescription(textOfLength(200)).setKeywords(keywords)
+				.setRetentionRules(retentionRules).getCategories()
 				.addAll(Arrays.asList(categoryLevel_0100, categoryLevel_0101));
 
-		categoryLevel_011.setCode("level_011").setLabel("Ze level 011").setDescription(textOfLength(200));
-		categoryLevel_01.setCode("level_01").setLabel("Ze level 01").setDescription(textOfLength(200)).getCategories()
+		categoryLevel_011.setCode("level_011").setLabel("Ze level 011").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
+		categoryLevel_01.setCode("level_01").setLabel("Ze level 01").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules).getCategories()
 				.addAll(Arrays.asList(categoryLevel_010, categoryLevel_011));
 
-		categoryLevel_02.setCode("level_02").setLabel("Ze level 02").setDescription(textOfLength(200));
-		categoryLevel_03.setCode("level_03").setLabel("Ze level 03").setDescription(textOfLength(200));
-		categoryLevel_04.setCode("level_04").setLabel("Ze level 04").setDescription(textOfLength(200));
-		categoryLevel_05.setCode("level_05").setLabel("Ze level 05").setDescription(textOfLength(200));
+		categoryLevel_02.setCode("level_02").setLabel("Ze level 02").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
+		categoryLevel_03.setCode("level_03").setLabel("Ze level 03").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
+		categoryLevel_04.setCode("level_04").setLabel("Ze level 04").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
+		categoryLevel_05.setCode("level_05").setLabel("Ze level 05").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
 
-		categoryLevel_0.setCode("level_0").setLabel("Ze level 0").setDescription(textOfLength(200)).getCategories()
+		categoryLevel_0.setCode("level_0").setLabel("Ze level 0").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules).getCategories()
 				.addAll(Arrays.asList(categoryLevel_01, categoryLevel_02, categoryLevel_03, categoryLevel_04, categoryLevel_05));
 
 		categoryLevel_11.setCode("level_11").setLabel("Ze level 11").setDescription(textOfLength(500));
@@ -148,11 +173,15 @@ public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuild
 		categoryLevel_13.setCode("level_13").setLabel("Ze level 13").setDescription(textOfLength(200));
 		categoryLevel_14.setCode("level_14").setLabel("Ze level 14").setDescription(textOfLength(200));
 		categoryLevel_15.setCode("level_15").setLabel("Ze level 15").setDescription(textOfLength(200));
-		categoryLevel_1.setCode("level1").setLabel("Ze level 1").setDescription(textOfLength(200)).getCategories()
+		categoryLevel_1.setCode("level1").setLabel("Ze level 1").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules).getCategories()
 				.addAll(Arrays.asList(categoryLevel_11, categoryLevel_12, categoryLevel_13, categoryLevel_14, categoryLevel_15));
-		categoryLevel_2.setCode("level2").setLabel("Ze level 2").setDescription(textOfLength(200));
-		categoryLevel_3.setCode("level3").setLabel("Ze level 3").setDescription(textOfLength(200));
-		categoryLevel_4.setCode("level4").setLabel("Ze level 4").setDescription(textOfLength(200));
+		categoryLevel_2.setCode("level2").setLabel("Ze level 2").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
+		categoryLevel_3.setCode("level3").setLabel("Ze level 3").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
+		categoryLevel_4.setCode("level4").setLabel("Ze level 4").setDescription(textOfLength(200)).setKeywords(
+				keywords).setRetentionRules(retentionRules);
 		categoryLevel_5.setCode("level5").setLabel("Ze level 5").setDescription(textOfLength(200));
 
 		model.setHeaderLogo(getTestResourceInputStreamFactory("logo.png")).getRootCategories().add(categoryLevel_0);

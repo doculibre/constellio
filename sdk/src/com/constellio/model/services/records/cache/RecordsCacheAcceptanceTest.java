@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records.cache;
 
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
@@ -87,9 +70,15 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withAllTestUsers().andUsersWithWriteAccess("admin");
-		givenCollection(anotherCollection).withAllTestUsers().andUsersWithWriteAccess("admin");
-		defineSchemasManager().using(zeCollectionSchemas.withAStringMetadata(whichIsUnique));
+		prepareSystem(
+				withZeCollection().withAllTestUsers(),
+				withCollection(anotherCollection).withAllTestUsers()
+		);
+		inCollection(zeCollection).giveWriteAccessTo(admin);
+		inCollection(anotherCollection).giveWriteAccessTo(admin);
+
+		defineSchemasManager()
+				.using(zeCollectionSchemas.withAStringMetadata(whichIsUnique).withAnotherStringMetadata());
 		defineSchemasManager().using(anotherCollectionSchemas);
 
 		adminInZeCollection = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
@@ -112,7 +101,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		DataLayerSystemExtensions extensions = getDataLayerFactory().getExtensions().getSystemWideExtensions();
 		queriesListener = new StatsBigVaultServerExtension();
-		extensions.bigVaultServerExtension.add(queriesListener);
+		extensions.getBigVaultServerExtension().add(queriesListener);
 
 	}
 
@@ -142,6 +131,88 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThatRecords("2", "3", "18", "42").areInCache();
+	}
+
+	@Test
+	public void givenPermanentCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOneReturnedByTheCacheThenDoesNotAffectTheCachedRecord()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		Record record = transaction.add(newRecordOf("1", zeCollectionSchemaWithPermanentCache).withTitle("original title"));
+		record.set(Schemas.LEGACY_ID, "zeLegacyId");
+		recordServices.add(record);
+
+		recordsCaches.invalidateAll();
+
+		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+		record.set(Schemas.TITLE, "modified title");
+		returnedRecord.set(Schemas.TITLE, "modified title");
+		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
+
+		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
+		assertThat(recordsCaches.getCache(record.getCollection())
+				.getByMetadata(zeCollectionSchemaWithPermanentCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
+				.get(Schemas.TITLE)).isEqualTo("original title");
+		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
+		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(returnedRecord.isDirty()).isTrue();
+
+	}
+
+	@Test
+	public void givenVolatileCacheWhenInsertingARecordAndUpdatePassedRecordAndTheOneReturnedByTheCacheThenDoesNotAffectTheCachedRecord()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		Record record = transaction.add(newRecordOf("1", zeCollectionSchemaWithVolatileCache).withTitle("original title"));
+		record.set(Schemas.LEGACY_ID, "zeLegacyId");
+		recordServices.add(record);
+
+		recordsCaches.invalidateAll();
+
+		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+
+		record.set(Schemas.TITLE, "modified title");
+		returnedRecord.set(Schemas.TITLE, "modified title");
+		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
+
+		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
+		assertThat(recordsCaches.getCache(record.getCollection())
+				.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
+				.get(Schemas.TITLE)).isEqualTo("original title");
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
+		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(returnedRecord.isDirty()).isTrue();
+
+	}
+
+	@Test
+	public void givenVolatileCacheWhenGetMetadataByLegacyIdThenObtainACopy()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		Record record = transaction.add(newRecordOf("1", zeCollectionSchemaWithVolatileCache).withTitle("original title"));
+		record.set(Schemas.LEGACY_ID, "zeLegacyId");
+		recordServices.add(record);
+
+		recordsCaches.invalidateAll();
+
+		Record returnedRecord = recordsCaches.getCache(record.getCollection()).insert(record);
+
+		record.set(Schemas.TITLE, "modified title");
+		returnedRecord.set(Schemas.TITLE, "modified title");
+		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
+
+		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
+		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.isDirty()).isTrue();
+		assertThat(returnedRecord.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(returnedRecord.isDirty()).isTrue();
+
 	}
 
 	@Test
@@ -299,6 +370,22 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		transaction.update(record1.withTitle("modified2"));
 		cachelessRecordServices.execute(transaction);
 		cachelessRecordServices.flush();
+
+	}
+
+	@Test
+	public void whenInsertingCacheRecordWithEmptyValueThenRetrievedAsNull()
+			throws Exception {
+
+		givenTestRecords();
+
+		Transaction transaction = new Transaction();
+		transaction.update(newRecordOf("zeUltimateRecordWithEmptyValue", zeCollectionSchemaWithVolatileCache).set(
+				zeCollectionSchemaWithVolatileCache.anotherStringMetadata(), ""));
+		cachelessRecordServices.execute(transaction);
+
+		Record record = getModelLayerFactory().newRecordServices().getDocumentById("zeUltimateRecordWithEmptyValue");
+		assertThat(record.get(zeCollectionSchemaWithVolatileCache.anotherStringMetadata())).isNull();
 
 	}
 

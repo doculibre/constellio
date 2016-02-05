@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.configs;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -22,13 +5,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.Iterator;
 import java.util.List;
 
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
-import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.configs.SystemConfigurationType;
@@ -145,12 +126,15 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 				config.getType() == SystemConfigurationType.INTEGER) {
 			TextField textField = new TextField();
 			textField.setRequired(true);
-			textField.setValue(config.getValue().toString());
+
 			if (config.getType() == SystemConfigurationType.INTEGER) {
 				textField.setConverter(Integer.class);
+				textField.setValue(config.getValue().toString());
 				textField.addValidator(
 						new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator_withoutLimits"), null,
 								null));
+			} else {
+				textField.setValue(config.getValue().toString());
 			}
 			return textField;
 		} else if (type == SystemConfigurationType.BOOLEAN) {
@@ -169,7 +153,12 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 			combobox.setRequired(true);
 			return combobox;
 		} else if (type == SystemConfigurationType.BINARY) {
-			BaseUploadField uploadField = new BaseUploadField();
+			BaseUploadField uploadField = new BaseUploadField() {
+				@Override
+				protected boolean isDeleteTempFilesOnDetach() {
+					return false;
+				}
+			};
 			return uploadField;
 		} else {
 			throw new RuntimeException("Unsupported type " + type);

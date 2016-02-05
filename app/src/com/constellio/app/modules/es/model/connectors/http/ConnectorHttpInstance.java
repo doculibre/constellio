@@ -1,24 +1,13 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.model.connectors.http;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.app.modules.es.model.connectors.AuthenticationScheme;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -32,25 +21,137 @@ public class ConnectorHttpInstance extends ConnectorInstance<ConnectorHttpInstan
 
 	public static final String ON_DEMANDS = "onDemands";
 
+	public static final String INCLUDE_PATTERNS = "includePatterns";
+
+	public static final String EXCLUDE_PATTERNS = "excludePatterns";
+
+	public static final String NUMBER_OF_JOBS_IN_PARALLEL = "jobsInParallel";
+	public static final String NUMBER_OF_DOCUMENTS_PER_JOBS = "documentsPerJobs";
+	public static final String DAYS_BEFORE_REFETCHING = "daysBeforeRefetching";
+	public static final String MAX_LEVEL = "maxLevel";
+
+	public static final String AUTHENTICATION_SCHEME = "authenticationScheme";
+	public static final String USERNAME = "username";
+	public static final String PASSWORD = "password";
+	public static final String DOMAIN = "domain";
+
 	public ConnectorHttpInstance(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_CODE);
 	}
 
-	public List<String> getSeeds() {
-		return getList(SEEDS);
+	public int getNumberOfJobsInParallel() {
+		return getInteger(NUMBER_OF_JOBS_IN_PARALLEL);
 	}
 
-	public ConnectorHttpInstance setSeeds(List<String> seeds) {
+	public ConnectorHttpInstance setNumberOfJobsInParallel(int jobsInParallel) {
+		set(NUMBER_OF_JOBS_IN_PARALLEL, jobsInParallel);
+		return this;
+	}
+
+	public int getDocumentsPerJobs() {
+		return getInteger(NUMBER_OF_DOCUMENTS_PER_JOBS);
+	}
+
+	public ConnectorHttpInstance setDocumentsPerJobs(int documentsPerJobs) {
+		set(NUMBER_OF_DOCUMENTS_PER_JOBS, documentsPerJobs);
+		return this;
+	}
+
+	public int getDaysBeforeRefetching() {
+		return getInteger(DAYS_BEFORE_REFETCHING);
+	}
+
+	public ConnectorHttpInstance setDaysBeforeRefetching(double delayBeforeRefetching) {
+		set(DAYS_BEFORE_REFETCHING, delayBeforeRefetching);
+		return this;
+	}
+
+	public List<String> getSeedsList() {
+		return StringUtils.isBlank(getSeeds()) ? new ArrayList<String>() : asList(getSeeds().split("\n"));
+	}
+
+	public String getSeeds() {
+		return get(SEEDS);
+	}
+
+	public ConnectorHttpInstance setSeeds(String seeds) {
 		set(SEEDS, seeds);
 		return this;
 	}
 
-	public List<String> getOnDemands() {
-		return getList(ON_DEMANDS);
+	public int getMaxLevel() {
+		return getInteger(MAX_LEVEL);
 	}
 
-	public ConnectorHttpInstance setOnDemands(List<String> onDemands) {
+	public ConnectorHttpInstance setMaxLevel(int maxLevel) {
+		set(MAX_LEVEL, maxLevel);
+		return this;
+	}
+
+	public List<String> getOnDemandsList() {
+		return StringUtils.isBlank(getOnDemands()) ? new ArrayList<String>() : asList(getOnDemands().split("\n"));
+	}
+
+	public String getOnDemands() {
+		return get(ON_DEMANDS);
+	}
+
+	public ConnectorHttpInstance setOnDemands(String onDemands) {
 		set(ON_DEMANDS, onDemands);
+		return this;
+	}
+
+	public String getIncludePatterns() {
+		return get(INCLUDE_PATTERNS);
+	}
+
+	public ConnectorHttpInstance setIncludePatterns(String includePatterns) {
+		set(INCLUDE_PATTERNS, includePatterns);
+		return this;
+	}
+
+	public String getExcludePatterns() {
+		return get(EXCLUDE_PATTERNS);
+	}
+
+	public ConnectorHttpInstance setExcludePatterns(String excludePatterns) {
+		set(EXCLUDE_PATTERNS, excludePatterns);
+		return this;
+	}
+
+	public AuthenticationScheme getAuthenticationScheme() {
+		return get(AUTHENTICATION_SCHEME);
+	}
+
+	public ConnectorHttpInstance setAuthenticationScheme(AuthenticationScheme authenticationScheme) {
+		set(AUTHENTICATION_SCHEME, authenticationScheme);
+		return this;
+	}
+
+	public String getUsername() {
+		return get(USERNAME);
+	}
+
+	public ConnectorHttpInstance setUsername(String username) {
+		set(USERNAME, username);
+		return this;
+	}
+
+	public String getPasssword() {
+		return get(PASSWORD);
+	}
+
+	public ConnectorHttpInstance setPassword(String password) {
+		set(PASSWORD, password);
+		return this;
+	}
+
+	public String getDomain() {
+		return get(DOMAIN);
+	}
+
+	public ConnectorHttpInstance setDomain(String domain) {
+		set(DOMAIN, domain);
 		return this;
 	}
 

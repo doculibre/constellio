@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemas.bulkImport;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -22,28 +5,42 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ResolverCache {
+
+	private static final int MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_LEGACY_IDS = 1000;
 
 	Map<String, Map<String, SchemaTypeUniqueMetadataMappingCache>> cache = new HashMap<>();
 
 	MetadataSchemaTypes types;
 
+	RecordServices recordServices;
+
 	SearchServices searchServices;
 
-	public ResolverCache(SearchServices searchServices, MetadataSchemaTypes types) {
-		this.searchServices = searchServices;
+	ImportDataProvider importDataProvider;
+
+	public ResolverCache(RecordServices recordServices, SearchServices searchServices, MetadataSchemaTypes types,
+			ImportDataProvider importDataProvider) {
+		this.recordServices = recordServices;
 		this.types = types;
+		this.searchServices = searchServices;
+		this.importDataProvider = importDataProvider;
 	}
 
 	public SchemaTypeUniqueMetadataMappingCache getSchemaTypeCache(String schemaType, String metadata) {
@@ -86,23 +83,24 @@ public class ResolverCache {
 	public String resolve(String schemaType, String resolver) {
 		if (resolver == null) {
 			return null;
-		} else if (resolver.contains(":")) {
-			String resolverMetadata = resolver.split(":")[0];
-			String resolverValue = resolver.split(":")[1];
-			String id = getSchemaTypeCache(schemaType, resolverMetadata).searchMapping.get(resolverValue);
-			if (id == null) {
-				MetadataSchemaType type = types.getSchemaType(schemaType);
-				Metadata metadata = type.getAllMetadatas().getMetadataWithLocalCode(resolverMetadata);
-				Record result = searchServices.searchSingleResult(
-						from(type).where(metadata).isEqualTo(resolverValue));
-				id = result == null ? null : result.getId();
-				getSchemaTypeCache(schemaType, resolverMetadata).mapSearch(resolver, id);
-			}
-			return id;
 		} else {
-			return getSchemaTypeCache(schemaType, Schemas.LEGACY_ID.getLocalCode()).idsMapping.get(resolver);
+			int colonIndex = resolver.indexOf(":");
+			if (colonIndex != -1) {
+				String resolverMetadata = resolver.substring(0, colonIndex);
+				String resolverValue = resolver.substring(colonIndex + 1);
+				String id = getSchemaTypeCache(schemaType, resolverMetadata).searchMapping.get(resolverValue);
+				if (id == null) {
+					MetadataSchemaType type = types.getSchemaType(schemaType);
+					Metadata metadata = type.getAllMetadatas().getMetadataWithLocalCode(resolverMetadata);
+					Record result = recordServices.getRecordByMetadata(metadata, resolverValue);
+					id = result == null ? null : result.getId();
+					getSchemaTypeCache(schemaType, resolverMetadata).mapSearch(resolver, id);
+				}
+				return id;
+			} else {
+				return getSchemaTypeCache(schemaType, Schemas.LEGACY_ID.getLocalCode()).idsMapping.get(resolver);
+			}
 		}
-
 	}
 
 	public void markUniqueValueAsRequired(String schemaType, String metadata, String uniqueValue) {
@@ -113,8 +111,8 @@ public class ResolverCache {
 		return getSchemaTypeCache(schemaType, metadata).getUnresolvableLegacyIds();
 	}
 
-	public List<String> getNotYetImportedLegacyIds(String schemaType) {
-		return new ArrayList<>(getSchemaTypeCache(schemaType, Schemas.LEGACY_ID.getLocalCode()).recordsInFile);
+	public Set<String> getNotYetImportedLegacyIds(String schemaType) {
+		return getSchemaTypeCache(schemaType, Schemas.LEGACY_ID.getLocalCode()).recordsInFile;
 	}
 
 	public boolean isNewUniqueValue(String schemaType, String metadata, String legacyId) {
@@ -130,6 +128,8 @@ public class ResolverCache {
 
 	class SchemaTypeUniqueMetadataMappingCache {
 
+		int importDataSize = -1;
+
 		String metadata;
 
 		String schemaType;
@@ -142,7 +142,7 @@ public class ResolverCache {
 
 		Set<String> unresolvedLegacyIds = new HashSet<>();
 
-		Map<String, Boolean> updatedRecords = new HashMap<>();
+		Set<String> legacyIds = null;
 
 		private SchemaTypeUniqueMetadataMappingCache(String schemaType, String metadata) {
 			this.schemaType = schemaType;
@@ -185,13 +185,31 @@ public class ResolverCache {
 		}
 
 		public boolean isRecordUpdate(String legacyId) {
-			Boolean value = updatedRecords.get(legacyId);
-			if (value == null) {
-				MetadataSchemaType type = types.getSchemaType(schemaType);
-				value = searchServices.searchSingleResult(from(type).where(Schemas.LEGACY_ID).isEqualTo(legacyId)) != null;
-				updatedRecords.put(legacyId, value);
+
+			if (importDataSize == -1) {
+				importDataSize = importDataProvider.size(schemaType);
 			}
-			return value;
+			if (importDataSize <= MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_LEGACY_IDS) {
+				MetadataSchemaType type = types.getSchemaType(schemaType);
+				return searchServices.hasResults(from(type).where(Schemas.LEGACY_ID).isEqualTo(legacyId));
+
+			} else {
+				if (legacyIds == null) {
+
+					MetadataSchemaType type = types.getSchemaType(schemaType);
+					//List<String> ids = searchServices.searchRecordIds(from(type).where(Schemas.LEGACY_ID).isNotNull());
+					legacyIds = new HashSet<>();
+					Iterator<Record> iterators = searchServices.recordsIterator(new LogicalSearchQuery()
+							.setCondition(from(type).where(Schemas.LEGACY_ID).isNotNull())
+							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.LEGACY_ID)), 5000);
+					while (iterators.hasNext()) {
+						String aLegacyId = iterators.next().get(Schemas.LEGACY_ID);
+						legacyIds.add(aLegacyId);
+					}
+				}
+
+				return legacyIds.contains(legacyId);
+			}
 		}
 	}
 

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.security.authentification;
 
 import java.util.HashMap;
@@ -31,6 +14,7 @@ import javax.naming.ldap.LdapContext;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +35,8 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 	public Control[] connCtls = null;
 
-	public LDAPAuthenticationService(LDAPConfigurationManager ldapConfigurationManager, ConfigManager configManager, HashingService hashingService) {
+	public LDAPAuthenticationService(LDAPConfigurationManager ldapConfigurationManager, ConfigManager configManager,
+			HashingService hashingService) {
 		this.ldapConfigurationManager = ldapConfigurationManager;
 		this.configManager = configManager;
 		this.hashingService = hashingService;
@@ -69,10 +54,16 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 	@Override
 	public boolean authenticate(String username, String password) {
-		if (username.equals(ADMIN_USERNAME)){
+		if (username.equals(ADMIN_USERNAME)) {
 			return adminAuthenticationService.authenticate(username, password);
 		}
+		if(StringUtils.isBlank(password)){
+			return false;
+		}
 		boolean authenticated = false;
+		if (StringUtils.isBlank(password)) {
+			return false;
+		}
 		for (String url : ldapServerConfiguration.getUrls()) {
 			authenticated = authenticate(username, password, url);
 
@@ -121,6 +112,10 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 			env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
 			env.put(Context.SECURITY_AUTHENTICATION, "simple");
 			env.put(Context.PROVIDER_URL, url);
+			env.put("java.naming.ldap.attributes.binary", "tokenGroups objectSid");
+			if (this.ldapServerConfiguration.getFollowReferences()) {
+				env.put(Context.REFERRAL, "follow");
+			}
 			InitialLdapContext context = new InitialLdapContext(env, connCtls);
 			for (String securityPrincipal : securityPrincipals) {
 				context.addToEnvironment(Context.SECURITY_PRINCIPAL, securityPrincipal);
@@ -130,7 +125,7 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 					return true;
 				} catch (Exception e) {
 					LOGGER.warn("Exception when reconnecting", e);
-				}finally{
+				} finally {
 					context.close();
 				}
 			}

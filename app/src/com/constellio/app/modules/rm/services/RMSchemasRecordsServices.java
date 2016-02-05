@@ -1,21 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -56,6 +41,7 @@ import com.auxilii.msgparser.MsgParser;
 import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -74,10 +60,12 @@ import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.Metadata;
@@ -89,13 +77,12 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
-	private static final String EMAIL_MIME_TYPES = "mimeTypes";
-	private static final String EMAIL_ATTACHMENTS = "attachments";
+	public static final String EMAIL_MIME_TYPES = "mimeTypes";
+	public static final String EMAIL_ATTACHMENTS = "attachments";
 
 	public RMSchemasRecordsServices(String collection, SessionContextProvider sessionContextProvider) {
 		this(collection, sessionContextProvider.getConstellioFactories().getModelLayerFactory());
@@ -103,6 +90,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public RMSchemasRecordsServices(String collection, ModelLayerFactory modelLayerFactory) {
 		super(collection, modelLayerFactory);
+	}
+
+	public RMSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory) {
+		super(collection, appLayerFactory.getModelLayerFactory());
 	}
 
 	//
@@ -371,6 +362,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return documents;
 	}
 
+	public Document getDocumentByLegacyId(String id) {
+		return wrapDocument(getByLegacyId(Document.SCHEMA_TYPE, id));
+	}
+
 	public Document getDocument(String id) {
 		return new Document(get(id), getTypes());
 	}
@@ -406,6 +401,30 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public Metadata documentFolder() {
 		return defaultDocumentSchema().getMetadata(Document.FOLDER);
+	}
+
+	public Metadata documentDocumentType() {
+		return defaultDocumentSchema().getMetadata(Document.DOCUMENT_TYPE);
+	}
+
+	public Metadata documentAdministrativeUnit() {
+		return defaultDocumentSchema().getMetadata(Document.FOLDER_ADMINISTRATIVE_UNIT);
+	}
+
+	public Metadata documentArchivisticStatus() {
+		return defaultDocumentSchema().getMetadata(Document.FOLDER_ARCHIVISTIC_STATUS);
+	}
+
+	public Metadata documentPlanifiedTransferDate() {
+		return defaultDocumentSchema().getMetadata(Document.FOLDER_EXPECTED_TRANSFER_DATE);
+	}
+
+	public Metadata documentPlanifiedDepositDate() {
+		return defaultDocumentSchema().getMetadata(Document.FOLDER_EXPECTED_DEPOSIT_DATE);
+	}
+
+	public Metadata documentPlanifiedDestructionDate() {
+		return defaultDocumentSchema().getMetadata(Document.FOLDER_EXPECTED_DESTRUCTION_DATE);
 	}
 
 	//
@@ -490,6 +509,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 			folders.add(wrapFolder(record));
 		}
 		return folders;
+	}
+
+	public Folder getFolderByLegacyId(String id) {
+		return wrapFolder(getByLegacyId(Folder.SCHEMA_TYPE, id));
 	}
 
 	public Folder getFolder(String id) {
@@ -620,6 +643,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public Metadata folderMediumTypes() {
 		return defaultFolderSchema().getMetadata(Folder.MEDIUM_TYPES);
+	}
+
+	public Metadata folderFolderType() {
+		return defaultFolderSchema().getMetadata(Folder.FOLDER_TYPE);
 	}
 
 	//
@@ -951,6 +978,28 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return new UniformSubdivision(create(uniformSubdivisionSchema(), id), getTypes());
 	}
 
+	public MetadataSchemaType cartSchemaType() {
+		return getTypes().getSchemaType(Cart.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema cartSchema() {
+		return getTypes().getSchema(Cart.DEFAULT_SCHEMA);
+	}
+
+	public Metadata cartOwner() {
+		return cartSchema().getMetadata(Cart.OWNER);
+	}
+
+	//Cart
+	public Cart getOrCreateUserCart(User user) {
+		Record record = modelLayerFactory.newSearchServices().searchSingleResult(
+				from(cartSchemaType()).where(cartOwner()).isEqualTo(user));
+		if (record == null) {
+			record = create(cartSchema());
+		}
+		return new Cart(record, getTypes()).setOwner(user);
+	}
+
 	//User document
 
 	public MetadataSchemaType userDocumentSchemaType() {
@@ -1099,6 +1148,18 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.APPROVAL_USER);
 	}
 
+	public Metadata decommissioningListStatus() {
+		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.STATUS);
+	}
+
+	public Metadata decommissioningListApprovalRequestor() {
+		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.APPROVAL_REQUEST);
+	}
+
+	public Metadata decommissioningListAdminUnit() {
+		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.ADMINISTRATIVE_UNIT);
+	}
+
 	public RMObject wrapRMObject(Record record) {
 		if (record == null) {
 			return null;
@@ -1140,7 +1201,7 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 		MetadataSchema documentTypeDefaultSchema = schema(DocumentType.DEFAULT_SCHEMA);
 		Metadata linkedSchemaMetadata = documentTypeDefaultSchema.getMetadata(DocumentType.LINKED_SCHEMA);
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(documentTypeDefaultSchema).where(linkedSchemaMetadata)
+		LogicalSearchCondition condition = from(documentTypeDefaultSchema).where(linkedSchemaMetadata)
 				.isEqualTo(Email.SCHEMA);
 		DocumentType emailDocumentType = new DocumentType(searchServices.searchSingleResult(condition), types);
 		return emailDocumentType.getId();
@@ -1352,12 +1413,12 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 				}
 			}
 
-			String from = CHUNKS.displayFromChunk.getValue();
-			String subject = CHUNKS.subjectChunk.getValue();
-			String to = CHUNKS.displayToChunk.getValue();
-			String cc = CHUNKS.displayCCChunk.getValue();
-			String bcc = CHUNKS.displayBCCChunk.getValue();
-			String content = CHUNKS.textBodyChunk.getValue();
+			String from = getValue(CHUNKS.displayFromChunk);
+			String subject = getValue(CHUNKS.subjectChunk);
+			String to = getValue(CHUNKS.displayToChunk);
+			String cc = getValue(CHUNKS.displayCCChunk);
+			String bcc = getValue(CHUNKS.displayBCCChunk);
+			String content = getValue(CHUNKS.textBodyChunk);
 
 			MsgParser msgp = new MsgParser();
 			Message msg = msgp.parseMsg(new ByteArrayInputStream(messageBytes));
@@ -1382,6 +1443,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		}
 
 		return parsed;
+	}
+
+	private String getValue(StringChunk chunk) {
+		return chunk == null ? null : chunk.getValue();
 	}
 
 	private static List<String> splitAddresses(String addresses) {

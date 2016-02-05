@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.components.breadcrumb;
 
 import java.io.IOException;
@@ -36,13 +19,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
-	
+
 	private String recordId;
-	
+
 	private BreadcrumbTrail breadcrumbTrail;
-	
+
 	private transient SchemaPresenterUtils folderPresenterUtils;
-	
+
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
 	public FolderDocumentBreadcrumbTrailPresenter(String recordId, BreadcrumbTrail breadcrumbTrail) {
@@ -51,10 +34,10 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
-	
+
 	private void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
-		
+
 		String currentRecordId = recordId;
 		while (currentRecordId != null) {
 			Record record = folderPresenterUtils.getRecord(currentRecordId);
@@ -62,12 +45,12 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
 			if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				breadcrumbItems.add(0, new FolderBreadcrumbItem(currentRecordId));
-				
+
 				Folder folder = rmSchemasRecordsServices.getFolder(currentRecordId);
 				currentRecordId = folder.getParentFolder();
 			} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				breadcrumbItems.add(new DocumentBreadcrumbItem(currentRecordId));
-				
+
 				Document document = rmSchemasRecordsServices.getDocument(currentRecordId);
 				currentRecordId = document.getFolder();
 			} else {
@@ -103,11 +86,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			breadcrumbTrail.navigateTo().displayDocument(documentId);
 		}
 	}
-	
+
 	class FolderBreadcrumbItem implements BreadcrumbItem {
-		
+
 		private String folderId;
-		
+
 		FolderBreadcrumbItem(String folderId) {
 			this.folderId = folderId;
 		}
@@ -133,13 +116,13 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 			return enabled;
 		}
-		
+
 	}
-	
+
 	class DocumentBreadcrumbItem implements BreadcrumbItem {
-		
+
 		private String documentId;
-		
+
 		DocumentBreadcrumbItem(String documentId) {
 			this.documentId = documentId;
 		}
@@ -158,7 +141,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			// Always last item
 			return false;
 		}
-		
+
 	}
 
 }

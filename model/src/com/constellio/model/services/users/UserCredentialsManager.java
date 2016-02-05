@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.users;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
@@ -37,11 +20,14 @@ import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManager;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.encrypt.EncryptionServices;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class UserCredentialsManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -55,16 +41,31 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 
 	private Map<String, UserCredential> cache = new LinkedHashMap<>();
 
-	private List<String> usersWithServiceKey = new ArrayList<>();
+	private List<String> usersWithServiceKey = null;
 
 	private CollectionsListManager collectionsListManager;
 
-	public UserCredentialsManager(DataLayerFactory dataLayerFactory, CollectionsListManager collectionsListManager,
+	private ModelLayerFactory modelLayerFactory;
+
+	public UserCredentialsManager(DataLayerFactory dataLayerFactory, ModelLayerFactory modelLayerFactory,
 			ModelLayerConfiguration configuration) {
 		this.configManager = dataLayerFactory.getConfigManager();
-		this.collectionsListManager = collectionsListManager;
+		this.modelLayerFactory = modelLayerFactory;
+		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.configuration = configuration;
 		this.backgroundThreadsManager = dataLayerFactory.getBackgroundThreadsManager();
+	}
+
+	private void init() {
+		usersWithServiceKey = new ArrayList<>();
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		for (UserCredential userCredential :
+				userServices.getActiveUserCredentials()) {
+			if (userCredential.getServiceKey() != null) {
+				usersWithServiceKey.add(userCredential.getUsername());
+			}
+		}
 	}
 
 	@Override
@@ -89,6 +90,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public void addUpdate(UserCredential userCredential) {
+		initIfRequired();
 		configManager.updateXML(USER_CREDENTIALS_CONFIG, newAddUpdateUserCredentialsDocumentAlteration(userCredential));
 		if (userCredential.getServiceKey() != null) {
 			usersWithServiceKey.add(userCredential.getUsername());
@@ -167,9 +169,18 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 
 	void createEmptyUserCredentialsConfig() {
 		Document document = new Document();
-		UserCredentialsWriter writer = new UserCredentialsWriter(document);
+		UserCredentialsWriter writer = new UserCredentialsWriter(document, newEncryptionServicesFactory());
 		writer.createEmptyUserCredentials();
 		configManager.add(USER_CREDENTIALS_CONFIG, document);
+	}
+
+	Factory<EncryptionServices> newEncryptionServicesFactory() {
+		return new Factory<EncryptionServices>() {
+			@Override
+			public EncryptionServices get() {
+				return modelLayerFactory.newEncryptionServices();
+			}
+		};
 	}
 
 	@Override
@@ -225,11 +236,11 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	UserCredentialsWriter newUserCredencialsWriter(Document document) {
-		return new UserCredentialsWriter(document);
+		return new UserCredentialsWriter(document, newEncryptionServicesFactory());
 	}
 
 	UserCredentialsReader newUserCredencialsReader(Document document) {
-		return new UserCredentialsReader(document);
+		return new UserCredentialsReader(document, newEncryptionServicesFactory());
 	}
 
 	ConfigManager getConfigManager() {
@@ -237,6 +248,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public String getUserCredentialByServiceKey(String serviceKey) {
+		initIfRequired();
 		for (String usernameWithServiceKey : usersWithServiceKey) {
 			UserCredential userCredential = getUserCredential(usernameWithServiceKey);
 			if (userCredential != null && serviceKey.equals(userCredential.getServiceKey())) {
@@ -246,7 +258,14 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 		return null;
 	}
 
+	synchronized private void initIfRequired() {
+		if(usersWithServiceKey == null){
+			init();
+		}
+	}
+
 	public String getServiceKeyByToken(String token) {
+		initIfRequired();
 		for (String usernameWithServiceKey : usersWithServiceKey) {
 			UserCredential userCredential = getUserCredential(usernameWithServiceKey);
 			if (userCredential.getTokens().containsKey(token) && !userCredential.getTokens().get(token)
@@ -286,5 +305,19 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 				return o1.getUsername().toLowerCase().compareTo(o2.getUsername().toLowerCase());
 			}
 		});
+	}
+
+	public void rewrite() {
+		configManager.updateXML(USER_CREDENTIALS_CONFIG, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				UserCredentialsReader reader = newUserCredencialsReader(document);
+				Map<String, UserCredential> allUsers = reader.readAll(collectionsListManager.getCollections());
+				newUserCredencialsWriter(document).rewrite(allUsers.values());
+			}
+		});
+		Document document = configManager.getXML(USER_CREDENTIALS_CONFIG).getDocument();
+		UserCredentialsReader reader = newUserCredencialsReader(document);
+		cache = Collections.unmodifiableMap(reader.readAll(collectionsListManager.getCollections()));
 	}
 }

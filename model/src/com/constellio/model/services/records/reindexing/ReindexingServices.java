@@ -1,26 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records.reindexing;
 
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,6 +15,11 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
+import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.model.entities.records.Record;
@@ -74,7 +63,22 @@ public class ReindexingServices {
 		if (logManager != null && params.getReindexationMode().isFullRewrite()) {
 			logManager.regroupAndMoveInVault();
 			logManager.moveTLOGToBackup();
+			RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
+			try {
+
+				RecordDTO recordDTO = recordDao.get("the_private_key");
+				try {
+					recordDao.execute(
+							new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(asList(recordDTO)).withFullRewrite(true));
+				} catch (OptimisticLocking optimisticLocking) {
+					throw new RuntimeException(optimisticLocking);
+				}
+			} catch (NoSuchRecordWithId noSuchRecordWithId) {
+				//OK
+			}
+			recordDao.expungeDeletes();
 		}
+
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 			reindexCollection(collection, params);
 		}
@@ -104,7 +108,6 @@ public class ReindexingServices {
 		}
 		transactionOptions.setFullRewrite(params.getReindexationMode().isFullRewrite());
 		reindexCollection(collection, params, transactionOptions);
-		SecondTransactionLogManager log = modelLayerFactory.getDataLayerFactory().getSecondTransactionLogManager();
 
 	}
 
@@ -151,9 +154,9 @@ public class ReindexingServices {
 
 		LogicalSearchQuery query = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(collection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(Schemas.PARENT_PATH));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PARENT_PATH));
 
-		Iterator<Record> idsIterator = modelLayerFactory.newSearchServices().recordsIterator(query);
+		Iterator<Record> idsIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 50000);
 		recordDao.recreateZeroCounterIndexesIn(collection, new RecordDTOIterator(idsIterator));
 	}
 
@@ -169,7 +172,7 @@ public class ReindexingServices {
 		long current = 0;
 		while (true) {
 			Set<String> idsInCurrentBatch = new HashSet<>();
-			Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(from(type).returnAll()));
+			Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), 1000);
 			while (records.hasNext()) {
 				Record record = records.next();
 				if (metadatas.isEmpty() || (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId()))) {

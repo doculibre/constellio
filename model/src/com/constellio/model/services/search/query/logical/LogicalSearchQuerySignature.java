@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search.query.logical;
 
 import java.io.Serializable;
@@ -23,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 
 public class LogicalSearchQuerySignature implements Serializable {
 
@@ -40,8 +25,9 @@ public class LogicalSearchQuerySignature implements Serializable {
 		filterQueries.addAll(query.getFilterQueries());
 		Collections.sort(filterQueries);
 
+		SolrQueryBuilderParams params = new SolrQueryBuilderParams(query.isPreferAnalyzedFields(), "?");
 		filterQueries.add(query.getFreeTextQuery());
-		filterQueries.add(query.getCondition().getSolrQuery());
+		filterQueries.add(query.getCondition().getSolrQuery(params));
 		String conditionSignature = StringUtils.join(filterQueries, ",");
 
 		return new LogicalSearchQuerySignature(conditionSignature, query.getSort());
@@ -49,6 +35,10 @@ public class LogicalSearchQuerySignature implements Serializable {
 
 	public boolean isSameCondition(LogicalSearchQuerySignature signature) {
 		return conditionSignature.equals(signature.conditionSignature);
+	}
+
+	public String toStringSignature() {
+		return conditionSignature + ":" + sortSignature;
 	}
 
 	public boolean isSameSort(LogicalSearchQuerySignature signature) {

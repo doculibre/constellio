@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.workflows;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
@@ -53,8 +36,10 @@ import com.constellio.model.services.workflows.execution.WorkflowExecutionIndexR
 import com.constellio.model.services.workflows.execution.WorkflowExecutionService;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 
+@SlowTest
 public class WorkflowExecutorAcceptTest extends ConstellioTest {
 
 	LocalDateTime shishOClock = new LocalDateTime();
@@ -80,7 +65,7 @@ public class WorkflowExecutorAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		givenCollection(zeCollection);
+		prepareSystem(withZeCollection());
 		defineSchemasManager().using(schemas);
 		users.setUp(getModelLayerFactory().newUserServices());
 

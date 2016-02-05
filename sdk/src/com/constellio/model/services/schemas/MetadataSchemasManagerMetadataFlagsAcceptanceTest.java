@@ -1,24 +1,8 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas;
 
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichNullValuesAreNotWritten;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -64,23 +48,44 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	}
 
 	@Test
-	public void whenAddUpdateSchemasThenSaveWriteNullValuesFlag()
+	public void whenAddUpdateSchemasThenSaveEncryptedFlag()
 			throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata(whichNullValuesAreNotWritten).withABooleanMetadata());
+		defineSchemasManager().using(schemas.withAStringMetadata().withAnotherStringMetadata(whichIsEncrypted));
 
-		assertThat(zeSchema.stringMetadata().isWriteNullValues()).isFalse();
-		assertThat(zeSchema.booleanMetadata().isWriteNullValues()).isTrue();
+		assertThat(zeSchema.stringMetadata().isEncrypted()).isFalse();
+		assertThat(zeSchema.anotherStringMetadata().isEncrypted()).isTrue();
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setWriteNullValues(true);
-				types.getSchema(zeSchema.code()).get(zeSchema.booleanMetadata().getLocalCode()).setWriteNullValues(false);
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setEncrypted(true);
+				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode()).setEncrypted(false);
 			}
 		});
 
-		assertThat(zeSchema.stringMetadata().isWriteNullValues()).isTrue();
-		assertThat(zeSchema.booleanMetadata().isWriteNullValues()).isFalse();
+		assertThat(zeSchema.stringMetadata().isEncrypted()).isTrue();
+		assertThat(zeSchema.anotherStringMetadata().isEncrypted()).isFalse();
+	}
+
+	@Test
+	public void whenAddUpdateSchemasThenSaveEssentialInSummaryFlag()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata().withAnotherStringMetadata(whichIsEssentialInSummary));
+
+		assertThat(zeSchema.stringMetadata().isEssentialInSummary()).isFalse();
+		assertThat(zeSchema.anotherStringMetadata().isEssentialInSummary()).isTrue();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setEssentialInSummary(true);
+				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode())
+						.setEssentialInSummary(false);
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().isEssentialInSummary()).isTrue();
+		assertThat(zeSchema.anotherStringMetadata().isEncrypted()).isFalse();
 	}
 
 	@Before
@@ -94,8 +99,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 		BatchProcessesManager batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-		otherMetadataSchemasManager = new MetadataSchemasManager(configManager, typesFactory, taxonomiesManager,
-				collectionsListManager, batchProcessesManager, searchServices);
+		otherMetadataSchemasManager = new MetadataSchemasManager(getModelLayerFactory());
 
 	}
 }

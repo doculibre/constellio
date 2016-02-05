@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.migrations;
 
 import java.util.ArrayList;
@@ -25,6 +8,8 @@ import java.util.List;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
+import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class ConstellioEIMConfigs {
@@ -33,25 +18,38 @@ public class ConstellioEIMConfigs {
 	public static List<SystemConfiguration> configurations;
 
 	//Retention calendar configs
-	public static final SystemConfiguration USER_TITLE_PATTERN, ENTERED_VALUES_OVER_EXTRACTED_VALUES;
+	public static final SystemConfiguration USER_TITLE_PATTERN;
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
+	public static final SystemConfiguration PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 
+	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
-	public static final SystemConfiguration  LOGO_LINK;
+	public static final SystemConfiguration LOGO_LINK;
+	public static final SystemConfiguration CONSTELLIO_URL;
+	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
 				.withDefaultValue("${firstName} ${lastName}"));
-		add(ENTERED_VALUES_OVER_EXTRACTED_VALUES = others.createBooleanTrueByDefault("enteredValuesOverExtractedValues"));
 
 		// Associer ou non des rôles utilisateur aux autorisations
 		add(USER_ROLES_IN_AUTHORIZATIONS = others.createBooleanFalseByDefault("userRolesInAuthorizations"));
 
 		add(LOGO = others.createBinary("logo"));
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
+		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
+				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
+		add(TITLE_METADATA_POPULATE_PRIORITY = others
+				.createEnum("titleMetadataPopulatePriority", TitleMetadataPopulatePriority.class)
+				.withDefaultValue(TitleMetadataPopulatePriority.STYLES_FILENAME_PROPERTIES));
+		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:8080/constellio/"));
 
+		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
+		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
+				.withDefaultValue(3000));
+		add(CLEAN_DURING_INSTALL = others.createBooleanFalseByDefault("cleanDuringInstall"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -62,15 +60,16 @@ public class ConstellioEIMConfigs {
 
 	SystemConfigurationsManager manager;
 
-	String collection;
-
-	public ConstellioEIMConfigs(SystemConfigurationsManager manager, String collection) {
+	public ConstellioEIMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
-		this.collection = collection;
 	}
 
-	public boolean isEnteredValuesOverExtractedValues() {
-		return manager.getValue(ENTERED_VALUES_OVER_EXTRACTED_VALUES);
+	public MetadataPopulatePriority getMetadataPopulatePriority() {
+		return manager.getValue(METADATA_POPULATE_PRIORITY);
+	}
+
+	public TitleMetadataPopulatePriority getTitleMetadataPopulatePriority() {
+		return manager.getValue(TITLE_METADATA_POPULATE_PRIORITY);
 	}
 
 	public String getUserTitlePattern() {
@@ -79,6 +78,14 @@ public class ConstellioEIMConfigs {
 
 	public boolean seeUserRolesInAuthorizations() {
 		return manager.getValue(USER_ROLES_IN_AUTHORIZATIONS);
+	}
+
+	public String getConstellioUrl() {
+		return manager.getValue(CONSTELLIO_URL);
+	}
+
+	public Boolean isCleanDuringInstall() {
+		return manager.getValue(CLEAN_DURING_INSTALL);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {

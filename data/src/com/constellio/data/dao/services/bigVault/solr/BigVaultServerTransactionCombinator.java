@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.bigVault.solr;
 
 import java.util.ArrayList;
@@ -34,12 +17,20 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 
 public class BigVaultServerTransactionCombinator {
 
+	public static final int DEFAULT_MAX_TRANSACTION_SIZE = 10000;
+
 	List<SolrInputDocument> mergeNewDocuments = new LinkedList<>();
 	List<SolrInputDocument> mergeUpdatedDocuments = new LinkedList<>();
 	Map<String, SolrInputDocument> newDocumentsById = new HashMap<>();
 	Map<String, SolrInputDocument> updatedDocumentsById = new HashMap<>();
 	Set<String> deletedRecords = new HashSet<>();
 	List<String> deletedQueries = new ArrayList<>();
+
+	int maximumTransactionSize;
+
+	public BigVaultServerTransactionCombinator(int maximumTransactionSize) {
+		this.maximumTransactionSize = maximumTransactionSize;
+	}
 
 	public BigVaultServerTransactionCombinator combineWith(BigVaultServerTransaction newTransaction) {
 		//		for (SolrInputDocument newDocInFirstTransaction : firstTransaction.getNewDocuments()) {
@@ -83,7 +74,10 @@ public class BigVaultServerTransactionCombinator {
 	}
 
 	public boolean canCombineWith(BigVaultServerTransaction otherTransaction) {
-		return deletedQueries.isEmpty() && otherTransaction.getDeletedQueries().isEmpty();
+		int totalAddUpdate = mergeNewDocuments.size() + mergeUpdatedDocuments.size() + otherTransaction.getNewDocuments().size()
+				+ otherTransaction.getUpdatedDocuments().size();
+		return deletedQueries.isEmpty() && otherTransaction.getDeletedQueries().isEmpty()
+				&& totalAddUpdate < maximumTransactionSize;
 		//
 		//		if (!otherTransaction.deletedQueries.isEmpty()) {
 		//			return false;
@@ -308,7 +302,7 @@ public class BigVaultServerTransactionCombinator {
 
 	public static BigVaultServerTransaction combineAll(BigVaultServerTransaction... transactions) {
 
-		BigVaultServerTransactionCombinator combinator = new BigVaultServerTransactionCombinator();
+		BigVaultServerTransactionCombinator combinator = new BigVaultServerTransactionCombinator(DEFAULT_MAX_TRANSACTION_SIZE);
 		for (BigVaultServerTransaction transaction : transactions) {
 			combinator.combineWith(transaction);
 		}

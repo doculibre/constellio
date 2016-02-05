@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -27,6 +10,7 @@ import org.joda.time.LocalDate;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -35,6 +19,8 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.data.io.services.facades.FileService;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -73,17 +59,20 @@ public abstract class Decommissioner {
 		case FOLDERS_TO_CLOSE:
 			return new ClosingDecommissioner(decommissioningService);
 		case FOLDERS_TO_TRANSFER:
+		case DOCUMENTS_TO_TRANSFER:
 			return new TransferringDecommissioner(decommissioningService);
 		case FOLDERS_TO_DEPOSIT:
+		case DOCUMENTS_TO_DEPOSIT:
 			return decommissioningService.isSortable(decommissioningList) ?
 					new SortingDecommissioner(decommissioningService, true) :
 					new DepositingDecommissioner(decommissioningService);
 		case FOLDERS_TO_DESTROY:
+		case DOCUMENTS_TO_DESTROY:
 			return decommissioningService.isSortable(decommissioningList) ?
 					new SortingDecommissioner(decommissioningService, false) :
 					new DestroyingDecommissioner(decommissioningService);
 		}
-		throw new RuntimeException("Unknown decommissioning type");
+		throw new ImpossibleRuntimeException("Unknown decommissioning type: " + decommissioningList.getDecommissioningListType());
 	}
 
 	protected Decommissioner(DecommissioningService decommissioningService) {
@@ -99,11 +88,41 @@ public abstract class Decommissioner {
 	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
 		prepare(decommissioningList, user, processingDate);
 		validate();
-		processFolders();
-		processContainers();
+		saveCertificates(decommissioningList);
+		try (ContentConversionManager manager = new ContentConversionManager(modelLayerFactory)) {
+			conversionManager = manager;
+			if (decommissioningList.getDecommissioningListType().isFolderList()) {
+				processFolders();
+				processContainers();
+			} else {
+				processDocuments();
+			}
+		}
 		markProcessed();
-		loggingServices.logDecommissioning(decommissioningList, user);
-		execute();
+		execute(true);
+	}
+
+	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
+		prepare(decommissioningList, user, processingDate);
+		approveFolders();
+		markApproved();
+		execute(false);
+	}
+
+	protected void approveFolders() {
+		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+			if (detail.isFolderExcluded()) {
+				continue;
+			}
+			Folder folder = rm.getFolder(detail.getFolderId());
+			add(folder.setPermissionStatus(getPermissionStatusFor(folder, detail)));
+		}
+	}
+
+	protected abstract FolderStatus getPermissionStatusFor(Folder folder, DecomListFolderDetail detail);
+
+	private void markApproved() {
+		add(decommissioningList.setApprovalDate(processingDate).setApprovalUser(user));
 	}
 
 	protected LocalDate getProcessingDate() {
@@ -133,23 +152,34 @@ public abstract class Decommissioner {
 		recordsToDelete = new ArrayList<>();
 	}
 
-	private void processFolders() {
-		try {
-			conversionManager = new ContentConversionManager(modelLayerFactory);
+	private void saveCertificates(DecommissioningList decommissioningList) {
+		if (!decommissioningList.getDecommissioningListType().isDestroyal()) {
+			return;
+		}
+		FileService fileService = modelLayerFactory.getIOServicesFactory()
+				.newFileService();
+		DecomCertificateService service = new DecomCertificateService(rm, searchServices, contentManager, fileService,
+				user, decommissioningList);
+		service.computeContents();
+		Content documentsContent = service.getDocumentsContent();
+		Content foldersContent = service.getFoldersContent();
+		decommissioningList.setDocumentsReportContent(documentsContent);
+		decommissioningList.setFoldersReportContent(foldersContent);
+	}
 
-			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-				if (detail.isFolderExcluded()) {
-					continue;
-				}
-				Folder folder = rm.getFolder(detail.getFolderId());
-				preprocessFolder(folder, detail);
-				processFolder(folder, detail);
-				add(folder);
+	private void processFolders() {
+		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
+			if (detail.isFolderExcluded()) {
+				continue;
 			}
-		} finally {
-			conversionManager.close();
+			Folder folder = rm.getFolder(detail.getFolderId());
+			preprocessFolder(folder, detail);
+			processFolder(folder, detail);
+			add(folder);
 		}
 	}
+
+	protected abstract void processDocuments();
 
 	protected void preprocessFolder(Folder folder, DecomListFolderDetail detail) {
 		if (folder.getCloseDateEntered() == null) {
@@ -169,12 +199,24 @@ public abstract class Decommissioner {
 		folder.setActualTransferDate(processingDate);
 	}
 
+	protected void markDocumentTransferred(Document document) {
+		document.setActualTransferDateEntered(processingDate);
+	}
+
 	protected void markFolderDeposited(Folder folder) {
 		folder.setActualDepositDate(processingDate);
 	}
 
+	protected void markDocumentDeposited(Document document) {
+		document.setActualDepositDateEntered(processingDate);
+	}
+
 	protected void markFolderDestroyed(Folder folder) {
 		folder.setActualDestructionDate(processingDate);
+	}
+
+	protected void markDocumentDestroyed(Document document) {
+		document.setActualDestructionDateEntered(processingDate);
 	}
 
 	protected void removeFolderFromContainer(Folder folder) {
@@ -194,32 +236,44 @@ public abstract class Decommissioner {
 		if (!purgeMinorVersions && !createPDFa) {
 			return;
 		}
-		for (Document document : getDocumentsWithContentInFolder(folder)) {
+		cleanupDocuments(getAllDocumentsInFolder(folder), purgeMinorVersions, createPDFa, null);
+	}
+
+	protected void cleanupDocuments(
+			List<Document> documents, boolean purgeMinorVersions, boolean createPDFa, DocumentUpdater updater) {
+		for (Document document : documents) {
 			Content content = document.getContent();
-			if (purgeMinorVersions) {
-				content = purgeMinorVersions(content);
+			if (content != null) {
+				if (purgeMinorVersions) {
+					content = purgeMinorVersions(content);
+				}
+				if (createPDFa && content != null) {
+					content = createPDFa(content);
+					loggingServices.logPdfAGeneration(document, user);
+				}
 			}
-			if (createPDFa && content != null) {
-				content = createPDFa(content);
-				loggingServices.logPdfAGeneration(document, user);
+			if (updater != null) {
+				updater.update(document);
 			}
 			add(document.setContent(content));
 		}
 	}
 
 	protected void destroyDocumentsIn(Folder folder) {
-		if (configs.deleteDocumentRecordsWithDestruction()) {
-			for (Document document : getAllDocumentsInFolder(folder)) {
-				if (document.getContent() != null) {
-					destroyContent(document.getContent());
-					add(document.setContent(null));
-				}
-				delete(document);
-			}
-		} else {
-			for (Document document : getDocumentsWithContentInFolder(folder)) {
+		destroyDocuments(getAllDocumentsInFolder(folder), null);
+	}
+
+	protected void destroyDocuments(List<Document> documents, DocumentUpdater updater) {
+		for (Document document : documents) {
+			if (document.getContent() != null) {
 				destroyContent(document.getContent());
-				add(document.setContent(null));
+			}
+			if (updater != null) {
+				updater.update(document);
+			}
+			add(document.setContent(null));
+			if (configs.deleteDocumentRecordsWithDestruction()) {
+				delete(document);
 			}
 		}
 	}
@@ -261,10 +315,9 @@ public abstract class Decommissioner {
 		contentManager.markForDeletionIfNotReferenced(content.getCurrentVersion().getHash());
 	}
 
-	private List<Document> getDocumentsWithContentInFolder(Folder folder) {
+	protected List<Document> getListDocuments() {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.documentSchemaType())
-				.where(rm.documentFolder()).isEqualTo(folder)
-				.andWhere(rm.documentContent()).isNotNull());
+				.where(Schemas.IDENTIFIER).isIn(decommissioningList.getDocuments()));
 		return rm.wrapDocuments(searchServices.search(query));
 	}
 
@@ -313,7 +366,10 @@ public abstract class Decommissioner {
 		add(decommissioningList.setProcessingDate(processingDate).setProcessingUser(user));
 	}
 
-	private void execute() {
+	private void execute(boolean logging) {
+		if (logging) {
+			loggingServices.logDecommissioning(decommissioningList, user);
+		}
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		try {
 			recordServices.execute(transaction);
@@ -326,12 +382,21 @@ public abstract class Decommissioner {
 			throw new RuntimeException(e);
 		}
 	}
+
+	public interface DocumentUpdater {
+		void update(Document document);
+	}
 }
 
 class ClosingDecommissioner extends Decommissioner {
 
 	protected ClosingDecommissioner(DecommissioningService decommissioningService) {
 		super(decommissioningService);
+	}
+
+	@Override
+	protected FolderStatus getPermissionStatusFor(Folder folder, DecomListFolderDetail detail) {
+		return folder.getPermissionStatus();
 	}
 
 	@Override
@@ -343,12 +408,27 @@ class ClosingDecommissioner extends Decommissioner {
 	protected void processContainer(ContainerRecord container, DecomListContainerDetail detail) {
 		//  No need to do anything here
 	}
+
+	@Override
+	protected void processDocuments() {
+		// No need to do anything here
+	}
+
+	@Override
+	protected void approveFolders() {
+		// No need to do anything here
+	}
 }
 
 class TransferringDecommissioner extends Decommissioner {
 
 	protected TransferringDecommissioner(DecommissioningService decommissioningService) {
 		super(decommissioningService);
+	}
+
+	@Override
+	protected FolderStatus getPermissionStatusFor(Folder folder, DecomListFolderDetail detail) {
+		return FolderStatus.SEMI_ACTIVE;
 	}
 
 	@Override
@@ -361,6 +441,17 @@ class TransferringDecommissioner extends Decommissioner {
 	protected void processContainer(ContainerRecord container, DecomListContainerDetail detail) {
 		container.setRealTransferDate(getProcessingDate());
 		updateContainer(container, detail);
+	}
+
+	@Override
+	protected void processDocuments() {
+		cleanupDocuments(getListDocuments(), configs.purgeMinorVersionsOnTransfer(), configs.createPDFaOnTransfer(),
+				new DocumentUpdater() {
+					@Override
+					public void update(Document document) {
+						markDocumentTransferred(document);
+					}
+				});
 	}
 
 	private void processDocumentsIn(Folder folder) {
@@ -389,13 +480,20 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 	protected void processDeletedFolder(Folder folder, DecomListFolderDetail detail) {
 		removeFolderFromContainer(folder);
 		markFolderDestroyed(folder);
+		if (configs.deleteFolderRecordsWithDestruction()) {
+			delete(folder);
+		}
 		destroyedFolders.add(folder.getId());
 		processDocumentsInDeleted(folder);
 	}
 
 	protected void processDeletedContainer(ContainerRecord container, DecomListContainerDetail detail) {
 		if (isContainerEmpty(container, destroyedFolders)) {
-			delete(container);
+			if (configs.isContainerRecyclingAllowed()) {
+				add(decommissioningService.prepareToRecycle(container));
+			} else {
+				delete(container);
+			}
 		} else {
 			container.setFull(detail.isFull());
 			add(container);
@@ -410,13 +508,13 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 		destroyDocumentsIn(folder);
 	}
 
-	private boolean shouldPurgeMinorVersions() {
+	protected boolean shouldPurgeMinorVersions() {
 		return decommissioningList.isFromActive() ?
 				configs.purgeMinorVersionsOnTransfer() :
 				configs.purgeMinorVersionsOnDeposit();
 	}
 
-	private boolean shouldCreatePDFa() {
+	protected boolean shouldCreatePDFa() {
 		return decommissioningList.isFromActive() ? configs.createPDFaOnTransfer() : configs.createPDFaOnDeposit();
 	}
 }
@@ -428,6 +526,11 @@ class DepositingDecommissioner extends DeactivatingDecommissioner {
 	}
 
 	@Override
+	protected FolderStatus getPermissionStatusFor(Folder folder, DecomListFolderDetail detail) {
+		return FolderStatus.INACTIVE_DEPOSITED;
+	}
+
+	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
 		processDepositedFolder(folder, detail);
 	}
@@ -436,12 +539,27 @@ class DepositingDecommissioner extends DeactivatingDecommissioner {
 	protected void processContainer(ContainerRecord container, DecomListContainerDetail detail) {
 		processDepositedContainer(container, detail);
 	}
+
+	@Override
+	protected void processDocuments() {
+		cleanupDocuments(getListDocuments(), shouldPurgeMinorVersions(), shouldCreatePDFa(), new DocumentUpdater() {
+			@Override
+			public void update(Document document) {
+				markDocumentDeposited(document);
+			}
+		});
+	}
 }
 
 class DestroyingDecommissioner extends DeactivatingDecommissioner {
 
 	protected DestroyingDecommissioner(DecommissioningService decommissioningService) {
 		super(decommissioningService);
+	}
+
+	@Override
+	protected FolderStatus getPermissionStatusFor(Folder folder, DecomListFolderDetail detail) {
+		return FolderStatus.INACTIVE_DESTROYED;
 	}
 
 	@Override
@@ -453,6 +571,16 @@ class DestroyingDecommissioner extends DeactivatingDecommissioner {
 	protected void processContainer(ContainerRecord container, DecomListContainerDetail detail) {
 		processDeletedContainer(container, detail);
 	}
+
+	@Override
+	protected void processDocuments() {
+		destroyDocuments(getListDocuments(), new DocumentUpdater() {
+			@Override
+			public void update(Document document) {
+				markDocumentDestroyed(document);
+			}
+		});
+	}
 }
 
 class SortingDecommissioner extends DeactivatingDecommissioner {
@@ -461,6 +589,11 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 	protected SortingDecommissioner(DecommissioningService decommissioningService, boolean depositByDefault) {
 		super(decommissioningService);
 		this.depositByDefault = depositByDefault;
+	}
+
+	@Override
+	protected FolderStatus getPermissionStatusFor(Folder folder, DecomListFolderDetail detail) {
+		return shouldDeposit(folder, detail) ? FolderStatus.INACTIVE_DEPOSITED : FolderStatus.INACTIVE_DESTROYED;
 	}
 
 	@Override
@@ -479,6 +612,11 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 		} else {
 			processDepositedContainer(container, detail);
 		}
+	}
+
+	@Override
+	protected void processDocuments() {
+		// This is never called on documents for the time being
 	}
 
 	@Override

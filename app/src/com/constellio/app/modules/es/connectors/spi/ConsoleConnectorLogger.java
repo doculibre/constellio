@@ -1,22 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.connectors.spi;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -39,5 +24,36 @@ public class ConsoleConnectorLogger implements ConnectorLogger {
 	@Override
 	public void debug(String title, String description, Map<String, String> properties) {
 		LOGGER.debug(title + " " + description + " " + properties);
+	}
+
+	@Override
+	public void info(LoggedException exception) {
+		LOGGER.info(exception.getMessage());
+	}
+
+	@Override
+	public void error(LoggedException exception) {
+		LOGGER.error(exception.getMessage());
+	}
+
+	@Override
+	public void error(String documentUrl, Exception exception) {
+		LOGGER.error("Error in document '" + documentUrl + "' :\n" + exception.getMessage() + "\n" + getStackTrace(exception));
+	}
+
+	@Override
+	public void debug(LoggedException exception) {
+		LOGGER.debug(exception.getMessage());
+	}
+
+	@Override
+	public void errorUnexpected(Throwable exception) {
+		LOGGER.error(exception.getMessage() + "\n" + getStackTrace(exception));
+	}
+
+	public static String getStackTrace(Throwable t) {
+		StringWriter sw = new StringWriter();
+		t.printStackTrace(new PrintWriter(sw));
+		return sw.toString();
 	}
 }

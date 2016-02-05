@@ -1,31 +1,22 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.ui.builders;
+
+import java.util.List;
 
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 
-public class TaskToVoBuilder extends RecordToVOBuilder {
+public class TaskToVOBuilder extends RecordToVOBuilder { 
+	
 	@Override
 	protected Object getValue(Record record, Metadata metadata) {
 		Object value = super.getValue(record, metadata);
@@ -49,4 +40,25 @@ public class TaskToVoBuilder extends RecordToVOBuilder {
 		return new TaskReminderVO(taskReminder.getFixedDate(), taskReminder.getNumberOfDaysToRelativeDate(),
 				taskReminder.getRelativeDateMetadataCode(), taskReminder.isBeforeRelativeDate());
 	}
+
+	@Override
+	public TaskVO build(Record record, VIEW_MODE viewMode) {
+		return (TaskVO) super.build(record, viewMode);
+	}
+
+	@Override
+	public TaskVO build(Record record, VIEW_MODE viewMode, SessionContext sessionContext) {
+		return (TaskVO) super.build(record, viewMode, sessionContext);
+	}
+
+	@Override
+	public TaskVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO) {
+		return (TaskVO) super.build(record, viewMode, schemaVO);
+	}
+
+	@Override
+	protected TaskVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
+		return new TaskVO(id, metadataValueVOs, viewMode);
+	}
+	
 }

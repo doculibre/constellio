@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -22,7 +5,9 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
@@ -40,6 +25,7 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
 import com.constellio.model.services.records.RecordServices;
@@ -50,7 +36,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class SearchPresenterServiceAcceptTest extends ConstellioTest {
-
 	LocalDateTime threeYearsAgo = new LocalDateTime().minusYears(3);
 
 	LogicalSearchQuery allFolders;
@@ -62,6 +47,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 	RecordServices recordServices;
 	SearchServices searchServices;
 	SearchPresenterService searchPresenterService;
+	Map<String, Boolean> facetStatus;
 
 	@Before
 	public void setUp()
@@ -71,10 +57,12 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		searchPresenterService = new SearchPresenterService(zeCollection, getAppLayerFactory());
+		searchPresenterService = new SearchPresenterService(zeCollection, getModelLayerFactory());
 
 		allFolders = new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll());
 		allFoldersAndDocuments = new LogicalSearchQuery(from(asList(rm.folderSchemaType(), rm.documentSchemaType())).returnAll());
+
+		facetStatus = new HashMap<>();
 
 		clearExistingFacets();
 	}
@@ -100,15 +88,15 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices.add(rm.newFacetField().setOrder(6).setFieldDataStoreCode("administrativeUnitId_s")
 				.setTitle("Unités administratives"));
 
-		List<FacetVO> facets = searchPresenterService.getFacets(allFolders);
-		assertThat(facets.get(0)).has(label("Règles de conservations")).has(dataStoreCode("retentionRuleId_s")).has(
+		List<FacetVO> facets = searchPresenterService.getFacets(allFolders, facetStatus);
+		assertThat(facets.get(1)).has(label("Règles de conservations")).has(
 				values(value(records.getRule2()), value(records.getRule4()), value(records.getRule1()),
 						value(records.getRule3())));
 
-		assertThat(facets.get(1)).has(label("Statut d'exemplaire")).has(dataStoreCode("copyStatus_s")).has(
+		assertThat(facets.get(2)).has(label("Statut d'exemplaire")).has(
 				values(value(CopyType.PRINCIPAL.getCode(), "Principal"), value(CopyType.SECONDARY.getCode(), "Secondaire")));
 
-		assertThat(facets.get(2)).has(label("Unités administratives")).has(dataStoreCode("administrativeUnitId_s")).has(
+		assertThat(facets.get(4)).has(label("Unités administratives")).has(
 				values(value(records.getUnit10a()), value(records.getUnit30c()), value(records.getUnit11b()),
 						value(records.getUnit12b())));
 
@@ -136,20 +124,20 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices.add(rm.newFacetField().setOrder(6).setFieldDataStoreCode("administrativeUnitId_s")
 				.setTitle("Unités administratives"));
 
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
 
 		assertThat(facets.get(0)).has(label("Type")).has(values(
 				value("schema_s:document*", "Documents"),
 				value("schema_s:folder*", "Dossiers")));
 
-		assertThat(facets.get(1)).has(label("Règles de conservations")).has(dataStoreCode("retentionRuleId_s")).has(
+		assertThat(facets.get(1)).has(label("Règles de conservations")).has(
 				values(value(records.getRule2()), value(records.getRule1()), value(records.getRule4()),
 						value(records.getRule3())));
 
-		assertThat(facets.get(2)).has(dataStoreCode("copyStatus_s")).has(label("Statut d'exemplaire")).has(
+		assertThat(facets.get(2)).has(label("Statut d'exemplaire")).has(
 				values(value(CopyType.PRINCIPAL.getCode(), "Principal"), value(CopyType.SECONDARY.getCode(), "Secondaire")));
 
-		assertThat(facets.get(3)).has(label("Unités administratives")).has(dataStoreCode("administrativeUnitId_s")).has(
+		assertThat(facets.get(4)).has(label("Unités administratives")).has(
 				values(value(records.getUnit10a()), value(records.getUnit30c()), value(records.getUnit12b()),
 						value(records.getUnit11b())));
 
@@ -166,93 +154,18 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
 				.setTitle("Unités administratives").setOrderResult(FacetOrderType.ALPHABETICAL));
 
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
 
-		assertThat(facets.get(0)).has(label("Règles de conservations")).has(dataStoreCode("retentionRuleId_s")).has(
+		assertThat(facets.get(0)).has(label("Règles de conservations")).has(
 				values(value(records.getRule1()), value(records.getRule2()), value(records.getRule3()),
 						value(records.getRule4())));
 
-		assertThat(facets.get(1)).has(dataStoreCode("copyStatus_s")).has(label("Statut d'exemplaire")).has(
+		assertThat(facets.get(1)).has(label("Statut d'exemplaire")).has(
 				values(value(CopyType.PRINCIPAL.getCode(), "Principal"), value(CopyType.SECONDARY.getCode(), "Secondaire")));
 
-		assertThat(facets.get(2)).has(label("Unités administratives")).has(dataStoreCode("administrativeUnitId_s")).has(
+		assertThat(facets.get(2)).has(label("Unités administratives")).has(
 				values(value(records.getUnit10a()), value(records.getUnit11b()), value(records.getUnit12b()),
 						value(records.getUnit30c())));
-
-	}
-
-	@Test
-	public void givenFacetsWithLimitAndRelevanceOrderWhenSearchingAQueryWithToMuchFacetValuesThenLimitValuesBasedOnOrder()
-			throws Exception {
-
-		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setElementPerPage(2));
-
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments);
-
-		assertThat(facets.get(0)).has(label("Règles de conservations")).has(dataStoreCode("retentionRuleId_s")).has(
-				values(value(records.getRule2()), value(records.getRule1())));
-	}
-
-	@Test
-	public void givenFacetsWithLimitAndAlphabeticalOrderWhenSearchingAQueryWithToMuchFacetValuesThenLimitValuesBasedOnOrder()
-			throws Exception {
-
-		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.ALPHABETICAL).setElementPerPage(2));
-
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments);
-
-		assertThat(facets.get(0)).has(label("Règles de conservations")).has(dataStoreCode("retentionRuleId_s")).has(
-				values(value(records.getRule1()), value(records.getRule2())));
-	}
-
-	@Test
-	public void givenFacetsWithLimitAndPagesInRelevanceOrderWhenSearchingAQueryWithToMuchFacetValuesThenLimitValuesBasedOnOrder()
-			throws Exception {
-
-		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setElementPerPage(1).setPages(2));
-
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments);
-
-		assertThat(facets.get(0)).has(label("Règles de conservations")).has(dataStoreCode("retentionRuleId_s")).has(
-				values(value(records.getRule2()), value(records.getRule1())));
-	}
-
-	@Test
-	public void givenFacetsWithLimitAndPagesInAlphabeticalOrderWhenSearchingAQueryWithToMuchFacetValuesThenLimitValuesBasedOnOrder()
-			throws Exception {
-
-		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
-				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.ALPHABETICAL).setElementPerPage(1)
-				.setPages(2));
-
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments);
-
-		assertThat(facets.get(0)).has(label("Règles de conservations")).has(dataStoreCode("retentionRuleId_s")).has(
-				values(value(records.getRule1()), value(records.getRule2())));
-	}
-
-	@Test
-	public void givenAPlethoraOfFacetsThenOnlyShowFirstSevenOnes()
-			throws Exception {
-
-		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("categoryId_s").setTitle("Catégorie"));
-		recordServices.add(rm.newFacetField().setOrder(1).setFieldDataStoreCode("retentionRuleId_s").setTitle("Règles"));
-		recordServices.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("copyStatus_s").setTitle("Statut d'exemplaire"));
-		recordServices.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("schema_s").setTitle("Type"));
-		recordServices.add(rm.newFacetField().setOrder(4).setFieldDataStoreCode("activeRetentionPeriodCode_s").setTitle("actif"));
-		recordServices.add(rm.newFacetField().setOrder(5).setFieldDataStoreCode("semiactiveRetentionPeriodCode_s")
-				.setTitle("semi-active"));
-		recordServices.add(rm.newFacetField().setOrder(6).setFieldDataStoreCode("archivisticStatus_s").setTitle(
-				"Statut archivistique"));
-		recordServices.add(rm.newFacetField().setOrder(7).setFieldDataStoreCode("mediaType_s").setTitle("Media type"));
-
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments);
-
-		assertThat(facets).extracting("label").isEqualTo(asList("Catégorie", "Règles", "Statut d'exemplaire", "Type",
-				"actif", "semi-active", "Statut archivistique"));
 
 	}
 
@@ -267,24 +180,65 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("schema_s").setTitle("Ze type"));
 
-		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments);
+		List<FacetVO> facets = new SearchPresenterService(zeCollection, getModelLayerFactory()).getFacets(allFoldersAndDocuments,
+				facetStatus);
 
-		assertThat(facets.get(0)).has(dataStoreCode("schema_s")).has(label("Ze type")).has(
+		assertThat(facets.get(0)).has(label("Ze type")).has(
 				values(value(Document.DEFAULT_SCHEMA, "Ze document"), value(Folder.DEFAULT_SCHEMA, "Ze folder")));
 
 	}
 
+	@Test
+	public void givenFacetOpenByDefaultAndNoUserOverrideThenFacetIsOpen()
+			throws Exception {
+		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
+				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		assertThat(facets.get(0).isOpen()).isTrue();
+	}
+
+	@Test
+	public void givenFacetNotOpenByDefaultAndNoUserOverrideThenFacetIsNotOpen()
+			throws Exception {
+		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
+				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(false));
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		assertThat(facets.get(0).isOpen()).isFalse();
+	}
+
+	@Test
+	public void givenFacetOpenByDefaultAndUserOverrideThenFacetIsClosed()
+			throws Exception {
+		Facet facet;
+		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
+				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+		facetStatus.put(facet.getId(), false);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		assertThat(facets.get(0).isOpen()).isFalse();
+	}
+
+	@Test
+	public void givenFacetNotOpenByDefaultAndUserOverrideThenFacetIsOpen()
+			throws Exception {
+		Facet facet;
+		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("retentionRuleId_s")
+				.setTitle("Règles de conservations").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(false));
+		facetStatus.put(facet.getId(), true);
+		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus);
+		assertThat(facets.get(0).isOpen()).isTrue();
+	}
+
 	// ----------------------------------------------------
 
-	private Condition<? super FacetVO> dataStoreCode(final String expectedDataStoreCode) {
-		return new Condition<FacetVO>() {
-			@Override
-			public boolean matches(FacetVO value) {
-				assertThat(value.getDatastoreCode()).describedAs("datastoreCode").isEqualTo(expectedDataStoreCode);
-				return true;
-			}
-		};
-	}
+	//	private Condition<? super FacetVO> dataStoreCode(final String expectedDataStoreCode) {
+	//		return new Condition<FacetVO>() {
+	//			@Override
+	//			public boolean matches(FacetVO value) {
+	//				assertThat(value.getDatastoreCode()).describedAs("datastoreCode").isEqualTo(expectedDataStoreCode);
+	//				return true;
+	//			}
+	//		};
+	//	}
 
 	private ExpectedFacetValue value(RetentionRule retentionRule) {
 		int count = (int) searchServices.getResultsCount(from(rm.folderSchemaType())

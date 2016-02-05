@@ -1,23 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -73,6 +57,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
@@ -158,10 +143,10 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		CollectionsListManager collectionsListManager = appLayerFactory.getModelLayerFactory().getCollectionsListManager();
 		ConstellioModulesManager modulesManager = appLayerFactory.getModulesManager();
 		if (!modulesManager.isInstalled(taskModule)) {
-			modulesManager.installModule(taskModule, collectionsListManager);
+			modulesManager.installValidModuleAndGetInvalidOnes(taskModule, collectionsListManager);
 		}
 		if (!modulesManager.isModuleEnabled(collection, taskModule)) {
-			modulesManager.enableModule(collection, taskModule);
+			modulesManager.enableValidModuleAndGetInvalidOnes(collection, taskModule);
 		}
 	}
 
@@ -412,6 +397,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 			Transaction transaction = new Transaction()
 					.setSkippingRequiredValuesValidation(true)
+					.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION)
 					.setSkippingReferenceToLogicallyDeletedValidation(true);
 			createNewAdministrativeUnit(transaction);
 			moveContainersInNewAdministrativeUnits(transaction);
@@ -425,12 +411,13 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 			moveFoldersToNewAdministrativeUnits();
 
-			reindexAll();
+			boolean hasAdministrativeUnits = searchServices.hasResults(from(rm.administrativeUnitSchemaType()).returnAll());
+			if (hasAdministrativeUnits) {
+				reindexAll();
 
-			physicallyDeleteFilingSpaces();
+				physicallyDeleteFilingSpaces();
 
-			System.out.println("Bye bye filing spaces!");
-
+			}
 		}
 
 		private void reindexAll() {
@@ -451,9 +438,9 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 			for (FilingSpace filingSpace : wrapFilingSpaces(search(from(rm.filingSpaceSchemaType()).returnAll()))) {
 
-				List<String> usersWithReadWrite = filingSpace.getUsers();
-				List<String> usersWithReadWriteDelete = filingSpace.getAdministrators();
-				List<String> managersInFilingSpace = new ArrayList<>(filingSpace.getAdministrators());
+				List<String> usersWithReadWrite = withoutDuplicatesAndNulls(filingSpace.getUsers());
+				List<String> usersWithReadWriteDelete = withoutDuplicatesAndNulls(filingSpace.getAdministrators());
+				List<String> managersInFilingSpace = new ArrayList<>(withoutDuplicatesAndNulls(filingSpace.getAdministrators()));
 
 				managersInFilingSpace.removeAll(managersAndRGDs);
 
@@ -507,7 +494,13 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		private void physicallyDeleteFilingSpaces() {
 			for (FilingSpace filingSpace : wrapFilingSpaces(search(from(rm.filingSpaceSchemaType()).returnAll()))) {
-				recordServices.logicallyDelete(filingSpace.getWrappedRecord(), User.GOD);
+				if (Boolean.TRUE.equals(filingSpace.getWrappedRecord().get(Schemas.LOGICALLY_DELETED_STATUS))) {
+					for (AdministrativeUnit newUnit : rm.getAdministrativesUnits(getNewUnits(filingSpace.getId()))) {
+						recordServices.logicallyDelete(newUnit.getWrappedRecord(), User.GOD);
+					}
+				} else {
+					recordServices.logicallyDelete(filingSpace.getWrappedRecord(), User.GOD);
+				}
 				recordServices.physicallyDelete(filingSpace.getWrappedRecord(), User.GOD);
 			}
 		}

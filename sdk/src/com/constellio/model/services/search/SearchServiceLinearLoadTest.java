@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -27,7 +10,6 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.BulkRecordTransactionHandler;
@@ -52,8 +34,7 @@ public class SearchServiceLinearLoadTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		recordServices = getModelLayerFactory().newRecordServices();
-		RecordDao recordDao = getDataLayerFactory().newRecordDao();
-		searchServices = new SearchServices(recordDao, recordServices);
+		searchServices = getModelLayerFactory().newSearchServices();
 
 		defineSchemasManager().using(schema.withAStringMetadata());
 
@@ -79,7 +60,6 @@ public class SearchServiceLinearLoadTest extends ConstellioTest {
 	public void isInSearch50IdIn500records()
 			throws Exception {
 		List<String> ids = addAndGetIdRecords(500).subList(0, 50);
-		;
 
 		condition = from(zeSchema.instance()).where(Schemas.IDENTIFIER).isIn(ids);
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -95,7 +75,6 @@ public class SearchServiceLinearLoadTest extends ConstellioTest {
 	public void isInSearch50IdIn1000records()
 			throws Exception {
 		List<String> ids = addAndGetIdRecords(1000).subList(0, 50);
-		;
 
 		condition = from(zeSchema.instance()).where(Schemas.IDENTIFIER).isIn(ids);
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -200,7 +179,6 @@ public class SearchServiceLinearLoadTest extends ConstellioTest {
 	public void isNotInSearch50IdIn500records()
 			throws Exception {
 		List<String> ids = addAndGetIdRecords(500).subList(0, 50);
-		;
 
 		condition = from(zeSchema.instance()).where(Schemas.IDENTIFIER).isNotIn(ids);
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -216,7 +194,6 @@ public class SearchServiceLinearLoadTest extends ConstellioTest {
 	public void isNotInSearch50IdIn1000records()
 			throws Exception {
 		List<String> ids = addAndGetIdRecords(1000).subList(0, 50);
-		;
 
 		condition = from(zeSchema.instance()).where(Schemas.IDENTIFIER).isNotIn(ids);
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -232,7 +209,6 @@ public class SearchServiceLinearLoadTest extends ConstellioTest {
 	public void isNotInSearch50IdIn5000records()
 			throws Exception {
 		List<String> ids = addAndGetIdRecords(5000).subList(0, 50);
-		;
 
 		condition = from(zeSchema.instance()).where(Schemas.IDENTIFIER).isNotIn(ids);
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -248,7 +224,6 @@ public class SearchServiceLinearLoadTest extends ConstellioTest {
 	public void isNotInSearch50IdIn10000records()
 			throws Exception {
 		List<String> ids = addAndGetIdRecords(10000).subList(0, 50);
-		;
 
 		condition = from(zeSchema.instance()).where(Schemas.IDENTIFIER).isNotIn(ids);
 		LogicalSearchQuery query = new LogicalSearchQuery();

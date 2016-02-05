@@ -1,41 +1,28 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.services;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
@@ -237,6 +224,57 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	public TaskReminderEmailManager getTaskReminderEmailManager() {
 		return appLayerFactory.getRegisteredManager(collection, TaskModule.ID, TaskReminderEmailManager.ID);
+	}
+
+	public MetadataSchema getLinkedSchema(MetadataSchemaType schemaType, SchemaLinkingType recordType) {
+		if (recordType == null || recordType.getLinkedSchema() == null) {
+			return schemaType.getDefaultSchema();
+		} else {
+			return schemaType.getSchema(recordType.getLinkedSchema());
+		}
+	}
+
+	public String getSchemaCodeForTaskTypeRecordId(String taskTypeRecordId) {
+		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		Record schemaRecord = recordServices.getDocumentById(taskTypeRecordId);
+		TaskType taskType = new TaskType(schemaRecord, getTypes());
+		String linkedSchemaCode = taskType.getLinkedSchema();
+		return linkedSchemaCode;
+	}
+
+	public TaskType getTaskType(String id) {
+		return new TaskType(get(id), getTypes());
+	}
+
+	public TaskType newTaskType() {
+		return new TaskType(create(getTypes().getSchemaType(TaskType.SCHEMA_TYPE).getDefaultSchema()), getTypes());
+	}
+
+	public MetadataSchema defaultTaskSchema() {
+		return getTypes().getSchema(Task.DEFAULT_SCHEMA);
+	}
+
+	public MetadataSchemaType taskSchemaType() {
+		return getTypes().getSchemaType(Task.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema taskSchemaFor(TaskType type) {
+		return type == null ? defaultTaskSchema() : getLinkedSchema(taskSchemaType(), type);
+	}
+
+	public MetadataSchema taskSchemaFor(String typeId) {
+		return typeId == null ? defaultTaskSchema() : taskSchemaFor(getTaskType(typeId));
+	}
+
+	public Task newTaskWithType(TaskType type) {
+		Record record = create(taskSchemaFor(type));
+		return new Task(record, getTypes()).setType(type);
+	}
+
+	public Task newTaskWithType(String typeId) {
+		Record record = create(taskSchemaFor(typeId));
+		return new Task(record, getTypes()).setType(typeId);
 	}
 
 }

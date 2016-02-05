@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import java.util.ArrayList;
@@ -53,11 +36,13 @@ public class RecordValidationServices {
 	private final ConfigProvider configProvider;
 	private SearchServices searchService;
 
-	public RecordValidationServices(ConfigProvider configProvider, MetadataSchemasManager schemasManager, SearchServices searchService) {
+	public RecordValidationServices(ConfigProvider configProvider, MetadataSchemasManager schemasManager,
+			SearchServices searchService) {
 		this(configProvider, schemasManager, searchService, null);
 	}
 
-	public RecordValidationServices(ConfigProvider configProvider, MetadataSchemasManager schemasManager, SearchServices searchService,
+	public RecordValidationServices(ConfigProvider configProvider, MetadataSchemasManager schemasManager,
+			SearchServices searchService,
 			AuthorizationsServices authorizationsServices) {
 		this.configProvider = configProvider;
 		this.schemasManager = schemasManager;
@@ -152,7 +137,9 @@ public class RecordValidationServices {
 	ValidationErrors validateMetadatasReturningErrors(Record record, RecordProvider recordProvider,
 			MetadataSchemaTypes schemaTypes, List<Metadata> metadatas, Transaction transaction) {
 		ValidationErrors validationErrors = new ValidationErrors();
-		new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider).validate(record, validationErrors);
+		if (!transaction.isSkipReferenceValidation()) {
+			new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider).validate(record, validationErrors);
+		}
 		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
 			new ValueRequirementValidator(metadatas).validate(record, validationErrors);
@@ -193,7 +180,14 @@ public class RecordValidationServices {
 
 	private void callMetadataValidator(Record record, final Metadata metadata,
 			RecordMetadataValidator<Object> validator, final ValidationErrors validationErrors) {
+
 		final Object value = record.get(metadata);
+		callMetadataValidatorForValue(metadata, validator, validationErrors, value);
+
+	}
+
+	private void callMetadataValidatorForValue(final Metadata metadata, RecordMetadataValidator<Object> validator,
+			final ValidationErrors validationErrors, final Object value) {
 		ValidationErrors validationErrorsWithFailedMetadataParameters = new ValidationErrors() {
 			@Override
 			public void add(Class<?> validatorClass, String code, Map<String, String> parameters) {
@@ -203,7 +197,7 @@ public class RecordValidationServices {
 				validationErrors.add(validatorClass, code, parameters);
 			}
 		};
-		validator.validate(metadata, value,configProvider, validationErrorsWithFailedMetadataParameters);
+		validator.validate(metadata, value, configProvider, validationErrorsWithFailedMetadataParameters);
 	}
 
 	private void callSchemaValidator(Record record, MetadataSchemaTypes types, final MetadataSchema schema,

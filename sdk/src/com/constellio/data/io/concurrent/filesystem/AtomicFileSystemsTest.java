@@ -1,28 +1,17 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.io.concurrent.filesystem;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import org.apache.zookeeper.server.NIOServerCnxnFactory;
+import org.apache.zookeeper.server.ZooKeeperServer;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,21 +20,52 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.data.DataWithVersion;
+import com.constellio.data.io.concurrent.exception.FileNotFoundException;
 import com.constellio.data.io.concurrent.exception.OptimisticLockingException;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.conf.FoldersLocator;
 
+@InDevelopmentTest
 @RunWith(value = Parameterized.class)
 public class AtomicFileSystemsTest {
+	private static NIOServerCnxnFactory serverFactory;
+	private static ZooKeeperServer zks;
+	
+	private static void setUpZookeeper(int port) throws IOException, InterruptedException{
+		File zkTmpDir=File.createTempFile("zookeeper","test");
+		zkTmpDir.delete();
+		zkTmpDir.mkdir();
+		zks = new ZooKeeperServer(zkTmpDir,zkTmpDir,2181);
+		serverFactory = new NIOServerCnxnFactory();
+		serverFactory.configure(new InetSocketAddress(port), 100);
+		serverFactory.startup(zks);
+	}
+
 	@Parameters(name = "{index}: Test {0}")
-	public static Iterable<Object[]> setUpParameters() {
-		
+	public static Iterable<Object[]> setUpParameters() throws Exception {
 		File baseFld = new FoldersLocator().getDefaultTempFolder();
 		HashingService hashingService = new IOServicesFactory(null).newHashingService();
-		AtomicLocalFileSystem localFileSystem = new AtomicLocalFileSystem(baseFld, hashingService);
+		AtomicFileSystem localFileSystem = new ChildAtomicFileSystem(new AtomicLocalFileSystem(hashingService), baseFld.getAbsolutePath());
+		
+		int zkPort = 63210;
+		setUpZookeeper(zkPort);
+		AtomicFileSystem zookeeperAtomicFileSystem = new ChildAtomicFileSystem(new ZookeeperAtomicFileSystem("localhost:" + zkPort, 6000), "/tmp");
+		
 		return Arrays.asList(new Object[][] { 
-			{ localFileSystem }, 
+			{ localFileSystem },
+			{ zookeeperAtomicFileSystem}
 		});
+	}
+
+	@AfterClass
+	public static void cleanup() throws IOException{
+//		zkc.close();
+		if (serverFactory != null) {
+			serverFactory.shutdown();
+		}
+		if (zks != null) {
+			zks.shutdown();
+		}
 	}
 	
 	private AtomicFileSystem fileSystemUnderTest;
@@ -63,17 +83,16 @@ public class AtomicFileSystemsTest {
 		newContent = "it is an another data";
 		
 		path = "/test.txt";
+		
 		fileSystemUnderTest.delete("/", null);
-		invalidVersion = fileSystemUnderTest.writeData(path, new DataWithVersion(oldContent.getBytes(), null));
+		invalidVersion = fileSystemUnderTest.writeData(path, new DataWithVersion(oldContent.getBytes(), null)).getVersion();
 		fileSystemUnderTest.writeData(path, new DataWithVersion(newContent.getBytes(), null));	//this will change the version of the file
 
 	}
 	
 	@Test
 	public void whenRemovingAllFilesInRootThenThereIsNoFileInTheRoot(){
-		for (String path: fileSystemUnderTest.list("/")){
-			fileSystemUnderTest.delete(path, null);
-		}
+		fileSystemUnderTest.delete("/", null);
 		
 		assertThat(fileSystemUnderTest.list("/")).hasSize(0);
 	}
@@ -92,7 +111,7 @@ public class AtomicFileSystemsTest {
 	@Test
 	public void whenDeletingAFileThatDoesNotExistThenDoesNotThrowExceptio(){
 		fileSystemUnderTest.delete(path, updatedVersion);
-		fileSystemUnderTest.delete(path, updatedVersion);
+		fileSystemUnderTest.delete(path, null);
 	}
 	
 	@Test
@@ -154,15 +173,38 @@ public class AtomicFileSystemsTest {
 	
 	@Test
 	public void whenListingANonExistanceDirectoryThenReturnNull(){
-		fileSystemUnderTest.delete("/", null);
 		String aPath = "/this/is/a/random/path";
 		assertThat(fileSystemUnderTest.list(aPath)).isNull();
 	}
 	
 	@Test
 	public void givenAPathPointToAFileWhenListFilesInThePathThenReturnNull(){
-		
 		List<String> nullList = fileSystemUnderTest.list(path);
 		assertThat(nullList).isNull();
 	}
+	
+	@Test (expected = FileNotFoundException.class)
+	public void whenReadingFromNonExistedPathThenThrowsFileNotFoundException(){
+		String aPath = "/this/is/a/random/path";
+		assertThat(fileSystemUnderTest.readData(aPath));
+	}
+	
+	@Test 
+	public void whenReadingFromADirectoryThenReturnADataWithNullValue(){
+		String aPath = "/aDirPath";
+		if (fileSystemUnderTest.exists(aPath))
+			fileSystemUnderTest.delete(aPath, null);
+		fileSystemUnderTest.mkdirs(aPath);
+		
+		assertThat(fileSystemUnderTest.readData(aPath).getData()).isNull();
+	}
+	
+	@Test
+	public void whenCreatingAFileWithNoContentThenTheFileIsNotDirectory(){
+		String aPath = "/aFileWithZeroContent";
+		fileSystemUnderTest.writeData(aPath, new DataWithVersion(new byte[0], null));
+		
+		assertThat(fileSystemUnderTest.isDirectory(aPath)).isFalse();
+	}
+	
 }

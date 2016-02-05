@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.ui.pages;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -24,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.services.ConnectorDeleteService;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -106,11 +91,9 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	}
 
 	public void deleteButtonClicked(RecordVO entity) {
-		throw new UnsupportedOperationException();
-		//		Record record = presenterService().getRecord(entity.getId());
-		//		User user = presenterService().getCurrentUser(view.getSessionContext());
-		//		recordServices().logicallyDelete(record, user);
-		//		view.navigateTo().listConnectorInstances();
+		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+		new ConnectorDeleteService(collection, appLayerFactory).deleteConnector(es.getConnectorInstance(entity.getId()));
+		view.refreshTable();
 	}
 
 	public void addButtonClicked() {
@@ -118,6 +101,6 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	}
 
 	public void editSchemasButtonClicked(RecordVO entity) {
-		view.navigateTo().editSchemasConnectorInstance(entity.getId());
+		view.navigateTo().displayConnectorMappings(entity.getId());
 	}
 }

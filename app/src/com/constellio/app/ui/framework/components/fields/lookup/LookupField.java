@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.components.fields.lookup;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -34,6 +17,7 @@ import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
 import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -62,6 +46,7 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
@@ -75,20 +60,22 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public static final String ERROR_STYLE_NAME = STYLE_NAME + "-error";
 	public static final String AUTOCOMPLETE_FIELD_STYLE_NAME = STYLE_NAME + "-autocomplete-field";
 	public static final String OPEN_WINDOW_BUTTON_STYLE_NAME = STYLE_NAME + "-open-window-button";
+	public static final String CLEAR_BUTTON_STYLE_NAME = STYLE_NAME + "-clear-button";
 	public static final String LOOKUP_WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String LOOKUP_WINDOW_CONTENT_STYLE_NAME = LOOKUP_WINDOW_STYLE_NAME + "-content";
 	private static final String CAPTION_PROPERTY_ID = "caption";
-	private HorizontalLayout mainLayout;
 	private TextInputDataProvider<T> suggestInputDataProvider;
 	private List<LookupTreeDataProvider<T>> lookupTreeDataProviders = new ArrayList<>();
 	private BaseAutocompleteField<T> autoCompleteField;
 	private WindowButton lookupWindowButton;
+	private Button clearButton;
 	private Converter<String, T> itemConverter;
 	private int treeBufferSize = 20;
 	/**
 	 * The component should receive focus (if {@link Focusable}) when attached.
 	 */
 	private boolean delayedFocus;
+	private Integer windowZIndex;
 
 	@SuppressWarnings("unchecked")
 	public LookupField(
@@ -100,6 +87,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				this.lookupTreeDataProviders.add(lookupTreeDataProvider);
 			}
 		}
+	}
+
+	public final Integer getWindowZIndex() {
+		return windowZIndex;
+	}
+
+	public final void setWindowZIndex(Integer windowZIndex) {
+		this.windowZIndex = windowZIndex;
 	}
 
 	public int getTreeBufferSize() {
@@ -114,9 +109,6 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	protected Component initContent() {
 		addStyleName(STYLE_NAME);
 		setSizeFull();
-
-		mainLayout = new HorizontalLayout();
-		mainLayout.setSpacing(true);
 
 		AutocompleteSuggestionsProvider<T> suggestionsProvider = new AutocompleteSuggestionsProvider<T>() {
 			@Override
@@ -141,7 +133,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		lookupWindowButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
 		lookupWindowButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 		lookupWindowButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
-		lookupWindowButton.setZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
+		lookupWindowButton.setZIndex(windowZIndex);
 
 		addValueChangeListener(new ValueChangeListener() {
 			@Override
@@ -153,9 +145,19 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			}
 		});
 
-		mainLayout.addComponent(autoCompleteField);
-		mainLayout.addComponent(lookupWindowButton);
+		clearButton = new Button(DeleteButton.ICON_RESOURCE);
+		clearButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
+		clearButton.addStyleName(CLEAR_BUTTON_STYLE_NAME);
+		clearButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				autoCompleteField.setValue(null);
+			}
+		});
+
+		HorizontalLayout mainLayout = new HorizontalLayout(autoCompleteField, lookupWindowButton, clearButton);
 		mainLayout.setExpandRatio(autoCompleteField, 1);
+		mainLayout.setSpacing(true);
 
 		return mainLayout;
 	}
@@ -283,6 +285,8 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		@SuppressWarnings("unchecked")
 		public LookupWindowContent(Window window) {
 			super();
+			
+			setSizeFull();
 
 			window.setWidth("80%");
 			window.setHeight("80%");
@@ -334,13 +338,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 						}
 					});
 
+					Panel lazyTreePanel = new Panel(lazyTree);
+					lazyTreePanel.setWidth("100%");
+					lazyTreePanel.setHeight("100%");
+					
 					if (lookupTreeComponent == null) {
-						lookupTreeComponent = lazyTree;
+						lookupTreeComponent = lazyTreePanel;
 					} else {
 						TabSheet tabSheet = (TabSheet) lookupTreeComponent;
 						String lazyTreeCaption = getCaptionForLazyTree(lookupTreeDataProvider);
-						tabSheet.addTab(lazyTree, lazyTreeCaption);
-						selectDefaultUserTaxonomyTab(lazyTree, tabSheet);
+						tabSheet.addTab(lazyTreePanel, lazyTreeCaption);
+						selectDefaultUserTaxonomyTab(lazyTree, tabSheet, lazyTreePanel);
 					}
 				}
 			}
@@ -369,13 +377,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 		@SuppressWarnings("unchecked")
 		private LookupTreeDataProvider<T> getCurrentTreeDataProvider() {
-			LazyTree<T> currentLazyTree;
+			Panel currentLazyTreePanel;
 			if (lookupTreeComponent instanceof TabSheet) {
 				TabSheet tabSheet = (TabSheet) lookupTreeComponent;
-				currentLazyTree = (LazyTree<T>) tabSheet.getSelectedTab();
+				currentLazyTreePanel = (Panel) tabSheet.getSelectedTab();
 			} else {
-				currentLazyTree = (LazyTree<T>) lookupTreeComponent;
+				currentLazyTreePanel = (Panel) lookupTreeComponent;
 			}
+			LazyTree<T> currentLazyTree = (LazyTree<T>) currentLazyTreePanel.getContent();
 			return (LookupTreeDataProvider<T>) currentLazyTree.getDataProvider();
 		}
 
@@ -391,7 +400,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					Container searchResultsContainer = new LookupSearchResultContainer(currentDataProvider.search(), searchField);
 					searchResultsTable.setContainerDataSource(searchResultsContainer);
 					replaceComponent(lookupTreeComponent, searchResultsTable);
-					setExpandRatio(searchResultsTable, 0);
+					setExpandRatio(searchResultsTable, 1);
 				} else {
 					lookupTreeComponent.setVisible(true);
 					searchResultsTable.setVisible(false);
@@ -406,10 +415,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 	}
 
-	private void selectDefaultUserTaxonomyTab(LazyTree<T> lazyTree, TabSheet tabSheet) {
+	private void selectDefaultUserTaxonomyTab(LazyTree<T> lazyTree, TabSheet tabSheet, Panel lazyTreePanel) {
 		User user = suggestInputDataProvider.getCurrentUser();
 		if (lazyTree.getDataProvider().getTaxonomyCode().equals(user.getDefaultTaxonomy())) {
-			tabSheet.setSelectedTab(lazyTree);
+			tabSheet.setSelectedTab(lazyTreePanel);
 		}
 	}
 
@@ -461,11 +470,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				public int size() {
 					int size;
 					String text = property.getValue();
-//					if (StringUtils.isNotBlank(text)) {
-						size = lookupData.size(text);
-//					} else {
-//						size = 0;
-//					}
+					//					if (StringUtils.isNotBlank(text)) {
+					size = lookupData.size(text);
+					//					} else {
+					//						size = 0;
+					//					}
 					return size;
 				}
 
@@ -473,13 +482,13 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				public List<Item> loadItems(int startIndex, int count) {
 					List<Item> dataItems = new ArrayList<Item>();
 					String text = property.getValue();
-//					if (StringUtils.isNotBlank(text)) {
-						List<T> dataObjects = lookupData.getData(text, startIndex, count);
-						for (T dataObject : dataObjects) {
-							Item dataItem = new DataItem(dataObject);
-							dataItems.add(dataItem);
-						}
-//					}
+					//					if (StringUtils.isNotBlank(text)) {
+					List<T> dataObjects = lookupData.getData(text, startIndex, count);
+					for (T dataObject : dataObjects) {
+						Item dataItem = new DataItem(dataObject);
+						dataItems.add(dataItem);
+					}
+					//					}
 					return dataItems;
 				}
 

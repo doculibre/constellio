@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.services.crawler;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -40,6 +23,7 @@ import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -49,6 +33,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class ConnectorCrawler {
+
+	int timeWaitedWhenNoJobs = 10000;
 
 	private static Logger LOGGER = LoggerFactory.getLogger(ConnectorCrawler.class);
 
@@ -70,13 +56,18 @@ public class ConnectorCrawler {
 		this.recordServices = es.getModelLayerFactory().newRecordServices();
 	}
 
-	private Connector createConnectorFor(ConnectorInstance instance) {
+	public Connector createConnectorFor(ConnectorInstance instance) {
 
-		Connector connector = es.instanciate(instance);
+		Connector connector = es.getConnectorManager().instanciate(instance);
 		connector.initialize(logger, instance.getWrappedRecord(), eventObserver, es);
 
 		if (instance.getTraversalCode() == null) {
 			instance.setTraversalCode(UUID.randomUUID().toString());
+			try {
+				recordServices.update(instance);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
 			connector.start();
 		} else {
 			connector.resume();
@@ -93,26 +84,47 @@ public class ConnectorCrawler {
 		boolean executedJobs = false;
 		for (CrawledConnector crawledConnector : crawledConnectors) {
 
-			LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + "' ****");
-			List<ConnectorJob> jobs = crawledConnector.connector.getJobs();
+			ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+			if (instance.isCurrentlyRunning()) {
+				LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + "' ****");
+				List<ConnectorJob> jobs = crawledConnector.connector.getJobs();
 
-			if (!jobs.isEmpty()) {
-				try {
-					jobCrawler.crawl(jobs);
-				} catch (Exception e) {
-					e.printStackTrace();
+				if (!jobs.isEmpty()) {
+					try {
+						jobCrawler.crawl(jobs);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					executedJobs = true;
+					crawledConnector.connector.afterJobs(jobs);
+				} else {
+					try {
+						recordServices.add(instance.setLastTraversalOn(TimeProvider.getLocalDateTime()));
+					} catch (RecordServicesException e) {
+						LOGGER.warn("last traversal date not updated", e);
+					}
+					waitSinceNoJobs();
 				}
-				executedJobs = true;
 			}
 
 		}
-		recordServices.flush();
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+		eventObserver.flush();
+
+		if (crawledConnectors.isEmpty()) {
+			waitSinceNoJobs();
 		}
+
 		return executedJobs;
+	}
+
+	void waitSinceNoJobs() {
+		if (timeWaitedWhenNoJobs > 0) {
+			try {
+				Thread.sleep(timeWaitedWhenNoJobs);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	private List<ConnectorInstance> getConnectorInstances() {
@@ -158,8 +170,10 @@ public class ConnectorCrawler {
 	private void removedDisabledConnectors(List<String> enabledConnectorInstanceIds) {
 		Iterator<CrawledConnector> connectors = crawledConnectors.iterator();
 		while (connectors.hasNext()) {
-			if (!enabledConnectorInstanceIds.contains(connectors.next().connectorInstance.getId())) {
+			CrawledConnector crawledConnector = connectors.next();
+			if (!enabledConnectorInstanceIds.contains(crawledConnector.connectorInstance.getId())) {
 				connectors.remove();
+				crawledConnector.connector.stop();
 			}
 		}
 	}
@@ -167,8 +181,10 @@ public class ConnectorCrawler {
 	private void removedCrawledConnectorsFromCrawlingList(String id) {
 		Iterator<CrawledConnector> connectors = crawledConnectors.iterator();
 		while (connectors.hasNext()) {
-			if (connectors.next().connectorInstance.getId().equals(id)) {
+			CrawledConnector crawledConnector = connectors.next();
+			if (crawledConnector.connectorInstance.getId().equals(id)) {
 				connectors.remove();
+				crawledConnector.connector.stop();
 			}
 		}
 	}
@@ -248,6 +264,12 @@ public class ConnectorCrawler {
 		}
 	}
 
+	public void crawlNTimes(int times) {
+		for (int i = 0; i < times; i++) {
+			crawlAllConnectors();
+		}
+	}
+
 	public void crawlUntil(Factory<Boolean> condition) {
 		while (!condition.get()) {
 			crawlAllConnectors();
@@ -259,6 +281,11 @@ public class ConnectorCrawler {
 				}
 			}
 		}
+	}
+
+	public ConnectorCrawler withoutSleeps() {
+		timeWaitedWhenNoJobs = 0;
+		return this;
 	}
 
 	private static class CrawledConnector {

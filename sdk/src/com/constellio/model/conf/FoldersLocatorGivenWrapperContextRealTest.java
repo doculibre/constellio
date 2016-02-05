@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
@@ -47,7 +31,8 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	static String givenJavaRootFolderIsNewWebappFolder = "givenJavaRootFolderIsNewWebappFolder";
 	static File constellioProperties, keystore, constellioSetupProperties, wrapperInstallationFolder, conf, importation, bin, webapp,
 			webapp2, webapp3, webinf, wrapperConf, command, deploy, temp, commandCmdTxt, uploadConstellioWar, settings, custom,
-			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, buildData;
+			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, buildData, vaadin, themes, themesConstellio,
+			themesConstellioImages, crypt;
 	@Rule public TestRule benchmarkRun = new BenchmarkRule();
 	String testCase;
 	FoldersLocator foldersLocator;
@@ -66,7 +51,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	@Test
 	public void __prepareTests__()
 			throws Exception {
-
+		FoldersLocator.invalidateCaches();
 		anotherTemp = null;
 
 		wrapperInstallationFolder = modifyFileSystem().newTempFolder();
@@ -94,6 +79,11 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 		commandCmdTxt = new File(command, "cmd");
 		uploadConstellioWar = new File(wrapperInstallationFolder, "constellio.war");
 		buildData = new File(webapp, "data.txt");
+		vaadin = new File(webapp, "VAADIN");
+		themes = new File(vaadin, "themes");
+		themesConstellio = new File(themes, "constellio");
+		themesConstellioImages = new File(themesConstellio, "images");
+		crypt = new File(conf, "key.txt");
 
 		importation.mkdir();
 		conf.mkdir();
@@ -112,6 +102,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 		temp.mkdir();
 		settings.mkdir();
 		dict.mkdir();
+		themesConstellioImages.mkdirs();
 		FileUtils.touch(commandCmdTxt);
 		FileUtils.touch(constellioProperties);
 		FileUtils.touch(wrapperConf);
@@ -132,6 +123,11 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 			doReturn(webapp2).when(locator).getJavaRootFolder();
 		}
 		return locator;
+	}
+
+	@Test
+	public void whenGetConstellioEncryptionFileThenReturnCorrectFolder() {
+		assertThat(foldersLocator.getConstellioEncryptionFile()).is(samePath(crypt));
 	}
 
 	@Test
@@ -263,4 +259,30 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 		assertThat(foldersLocator.getLibFolder()).isEqualTo(lib);
 	}
 
+	@Test
+	public void whenConstellioThemesImagesThenObtainCorrectFolder() {
+		assertThat(foldersLocator.getConstellioThemeImages().getAbsolutePath())
+				.isEqualTo(themesConstellioImages.getAbsolutePath());
+	}
+
+	@Test
+	public void givenWebAppFolderWhenGetLibFolderForItThenReturnsDefaultLibFolder() {
+		assertThat(foldersLocator.getLibFolder())
+				.isEqualTo(foldersLocator.getLibFolder(foldersLocator.getConstellioWebappFolder()));
+	}
+
+	@Test
+	public void givenWebAppFolderWhenGetPluginsFolderForItThenReturnsDefaultPluginFolder() {
+		assertThat(foldersLocator.getPluginsJarsFolder())
+				.isEqualTo(foldersLocator.getPluginsJarsFolder(foldersLocator.getConstellioWebappFolder()));
+	}
+
+	private Condition<? super File> samePath(final File expectedPath) {
+		return new Condition<File>() {
+			@Override
+			public boolean matches(File value) {
+				return expectedPath.getAbsolutePath().equals(value.getAbsolutePath());
+			}
+		};
+	}
 }

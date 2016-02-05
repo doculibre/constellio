@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search.cache;
 
 import static java.util.Collections.unmodifiableMap;
@@ -32,12 +15,12 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class SerializedCacheSearchService {
-
 	private static Map<String, List<FacetValue>> emptyFieldFacetValues = Collections.emptyMap();
 	private static Map<String, Integer> emptyQueryFacetsValues = Collections.emptyMap();
 	private static Map<String, Map<String, Object>> emptyStatisticsValues = Collections.emptyMap();
 	private static List<String> emptySpellcheckerSuggestions = Collections.emptyList();
 	boolean correctlySpelt = true;
+	boolean serializeRecords;
 
 	Map<String, Map<String, List<String>>> highlights;
 
@@ -48,10 +31,11 @@ public class SerializedCacheSearchService {
 	SearchServices searchServices;
 
 	public SerializedCacheSearchService(ModelLayerFactory modelLayerFactory,
-			SerializableSearchCache cache) {
+			SerializableSearchCache cache, boolean serializeRecords) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.cache = cache;
+		this.serializeRecords = serializeRecords;
 		this.highlights = new HashMap<>();
 	}
 
@@ -60,9 +44,6 @@ public class SerializedCacheSearchService {
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query, int batch) {
-
-		validateQueryNotUsingUnsupportedFeatures(query);
-
 		long qtime = 0L;
 		LogicalSearchQuery duplicateQuery = new LogicalSearchQuery(query);
 		List<Record> records = search(duplicateQuery, batch);
@@ -70,7 +51,7 @@ public class SerializedCacheSearchService {
 
 		long numFound = records.size();
 		return new SPEQueryResponse(emptyFieldFacetValues, emptyStatisticsValues, emptyQueryFacetsValues, qtime, numFound,
-				records, highlights, correctlySpelt, emptySpellcheckerSuggestions);
+				records, highlights, correctlySpelt, emptySpellcheckerSuggestions, new HashMap<Record, Map<Record, Double>>());
 	}
 
 	private void validateQueryNotUsingUnsupportedFeatures(LogicalSearchQuery query) {
@@ -97,7 +78,8 @@ public class SerializedCacheSearchService {
 	}
 
 	public List<Record> search(LogicalSearchQuery query, int batch) {
+		validateQueryNotUsingUnsupportedFeatures(query);
 		cache.initializeFor(query);
-		return new LazyRecordList(batch, cache, modelLayerFactory, query);
+		return new LazyRecordList(batch, cache, modelLayerFactory, query, serializeRecords);
 	}
 }

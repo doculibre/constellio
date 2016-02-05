@@ -1,29 +1,15 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -36,6 +22,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_TooManyClosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -43,9 +30,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		implements SearchCriteriaPresenter {
 	private transient LogicalSearchCondition condition;
 	private transient RMSchemasRecordsServices rmRecordServices;
+	private transient RMConfigs rmConfigs;
+
 	String recordId;
-	String filingSpaceId;
 	String adminUnitId;
+	DecommissioningType decommissioningType;
 
 	public AddExistingContainerPresenter(AddExistingContainerView view) {
 		super(view);
@@ -55,8 +44,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	public AddExistingContainerPresenter forRequestParameters(String params) {
 		recordId = params;
 		DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(recordId);
-		filingSpaceId = decommissioningList.getFilingSpace();
 		adminUnitId = decommissioningList.getAdministrativeUnit();
+		decommissioningType = decommissioningList.getDecommissioningListType().getDecommissioningType();
 		view.setCriteriaSchemaType(ContainerRecord.SCHEMA_TYPE);
 		view.addEmptyCriterion();
 		view.addEmptyCriterion();
@@ -65,7 +54,17 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DECOMMISSIONING).globally();
+		return true;
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		return Arrays.asList(params);
+	}
+
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(restrictedRecord);
 	}
 
 	@Override
@@ -165,9 +164,13 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	private LogicalSearchCondition selectByDecommissioningListProperties() {
+		if (rmConfigs().areMixedContainersAllowed()) {
+			return from(rmRecordServices().containerRecordSchemaType())
+					.where(rmRecordServices().containerDecommissioningType()).isEqualTo(decommissioningType);
+		}
 		return from(rmRecordServices().containerRecordSchemaType())
 				.where(rmRecordServices().containerAdministrativeUnit()).isEqualTo(adminUnitId)
-				.andWhere(rmRecordServices().containerFilingSpace()).isEqualTo(filingSpaceId);
+				.andWhere(rmRecordServices().containerDecommissioningType()).isEqualTo(decommissioningType);
 	}
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
@@ -180,5 +183,12 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
 		}
 		return rmRecordServices;
+	}
+
+	private RMConfigs rmConfigs() {
+		if (rmConfigs == null) {
+			rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		}
+		return rmConfigs;
 	}
 }

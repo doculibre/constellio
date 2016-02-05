@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.security.global;
 
 import java.util.ArrayList;
@@ -54,14 +37,18 @@ public class UserCredential {
 
 	private final String domain;
 
+	private final List<String> msExchDelegateListBL;
+
+	private String dn;
+
 	public UserCredential(String username, String firstName, String lastName, String email, List<String> globalGroups,
 			List<String> collections, UserCredentialStatus status) {
-		this(username, firstName, lastName, email, globalGroups, collections, status, "");
+		this(username, firstName, lastName, email, globalGroups, collections, status, "", null, null);
 
 	}
 
 	public UserCredential(String username, String firstName, String lastName, String email, List<String> globalGroups,
-			List<String> collections, UserCredentialStatus status, String domain) {
+			List<String> collections, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -74,6 +61,8 @@ public class UserCredential {
 		this.collections = Collections.unmodifiableList(collections);
 		this.status = status;
 		this.domain = domain;
+		this.msExchDelegateListBL = msExchDelegateListBL;
+		this.dn = dn;
 	}
 
 	public UserCredential(String username, String firstName, String lastName, String email, String serviceKey,
@@ -81,12 +70,12 @@ public class UserCredential {
 			UserCredentialStatus status) {
 		this(username, firstName, lastName, email, serviceKey,
 				systemAdmin, globalGroups, collections, tokens,
-				status, "");
+				status, "", null, null);
 	}
 
 	public UserCredential(String username, String firstName, String lastName, String email, String serviceKey,
 			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-			UserCredentialStatus status, String domain) {
+			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -99,6 +88,8 @@ public class UserCredential {
 		this.tokensMap = tokens;
 		this.status = status;
 		this.domain = domain;
+		this.msExchDelegateListBL = msExchDelegateListBL;
+		this.dn = dn;
 	}
 
 	public String getUsername() {
@@ -157,9 +148,13 @@ public class UserCredential {
 		return domain;
 	}
 
+	public List<String> getMsExchDelegateListBL() {
+		return msExchDelegateListBL;
+	}
+
 	public UserCredential withCollections(List<String> collections) {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withNewGlobalGroup(String newGroup) {
@@ -168,7 +163,7 @@ public class UserCredential {
 		groups.add(newGroup);
 
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, groups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withRemovedGlobalGroup(String removedGroup) {
@@ -177,32 +172,32 @@ public class UserCredential {
 		groups.remove(removedGroup);
 
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, groups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withGlobalGroups(List<String> globalGroups) {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withFirstName(String firstName) {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withLastName(String lastName) {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withEmail(String email) {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withStatus(UserCredentialStatus status) {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withToken(String token, LocalDateTime dateTime) {
@@ -216,13 +211,13 @@ public class UserCredential {
 		allTokens.putAll(this.getTokens());
 		allTokens.remove(key);
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				allTokens, status, domain);
+				allTokens, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withTokens(Map<String, LocalDateTime> tokens) {
 		Map<String, LocalDateTime> allTokens = new HashMap<>();
 		allTokens.putAll(this.getTokens());
-		while (allTokens.size() > 4) {
+		while (allTokens.size() >= 50) {
 
 			String olderToken = null;
 			LocalDateTime dateTime = null;
@@ -240,7 +235,7 @@ public class UserCredential {
 		}
 
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				allTokens, status, domain);
+				allTokens, status, domain, msExchDelegateListBL, dn);
 	}
 
 	@Override
@@ -271,7 +266,7 @@ public class UserCredential {
 
 	public UserCredential withSystemAdminPermission() {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, true, globalGroups, collections, tokensMap,
-				status, domain);
+				status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential withNewServiceKey() {
@@ -281,7 +276,26 @@ public class UserCredential {
 
 	public UserCredential withServiceKey(String serviceKey) {
 		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
-				tokensMap, status, domain);
+				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}
 
+	public UserCredential withMsExchDelegateListBL(List<String> msExchDelegateListBL) {
+		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
+				tokensMap, status, domain, msExchDelegateListBL, dn);
+	}
+
+	public UserCredential withDN(String dn) {
+		return new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
+				tokensMap, status, domain, msExchDelegateListBL,
+				dn);
+	}
+
+	public String getDn() {
+		return dn;
+	}
+
+	private UserCredential setDn(String dn) {
+		this.dn = dn;
+		return this;
+	}
 }

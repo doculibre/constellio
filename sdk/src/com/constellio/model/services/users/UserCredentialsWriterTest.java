@@ -1,38 +1,30 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.users;
 
+import static com.constellio.model.services.users.UserCredentialsWriter.DN;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jdom2.Document;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class UserCredentialsWriterTest extends ConstellioTest {
+
+	@Mock Factory<EncryptionServices> encryptionServicesFactory;
 
 	private static final String COLLECTIONS = "collections";
 	private static final String TOKENS = "tokens";
@@ -42,8 +34,9 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 	private static final String LAST_NAME = "lastName";
 	private static final String FIRST_NAME = "firstName";
 	private static final String USERNAME = "username";
-	public static final String STATUS = "status";
-	public static final String DOMAIN = "domain";
+	private static final String STATUS = "status";
+	private static final String DOMAIN = "domain";
+	private static final String MS_EXCH_DELEGATE_LIST_BL = "msExchDelegateListBL";
 	UserCredentialsWriter writer;
 	Document document;
 	UserCredential chuckUserCredential;
@@ -51,22 +44,31 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 	LocalDateTime endDate;
 
 	Map<String, LocalDateTime> tokens;
+	List<String> msExchDelegateListBL = new ArrayList<>();
 
 	@Before
 	public void setup()
 			throws Exception {
+
+		EncryptionServices encryptionServices = FakeEncryptionServicesUtils.create();
+		when(encryptionServicesFactory.get()).thenReturn(encryptionServices);
+
 		document = new Document();
-		writer = new UserCredentialsWriter(document);
+		writer = new UserCredentialsWriter(document, encryptionServicesFactory);
 		writer.createEmptyUserCredentials();
+
+		msExchDelegateListBL.add("msExchDelegateListBL1");
+		msExchDelegateListBL.add("msExchDelegateListBL2");
 
 		tokens = new HashMap<String, LocalDateTime>();
 		endDate = new LocalDateTime(2014, 11, 04, 10, 30);
 		tokens.put("token1", endDate);
 		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", "serviceKeyChuck", false,
 				Arrays.asList("group1"),
-				Arrays.asList(zeCollection), tokens, UserCredentialStatus.ACTIVE, "");
+				Arrays.asList(zeCollection), tokens, UserCredentialStatus.ACTIVE, "", msExchDelegateListBL, "dnChuck");
 		dakotaUserCredential = new UserCredential("dakota", "Dakota", "Lindien", "dakota.lindien@gmail.com",
-				Arrays.asList("group1"), Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "");
+				Arrays.asList("group1"), Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "",
+				msExchDelegateListBL, "dakotaDN");
 	}
 
 	@Test
@@ -101,10 +103,14 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 				chuckUserCredential.getDomain());
 		assertThat(document.getRootElement().getChildren().get(0).getChild(TOKENS).getChildren().get(0).getChildren().get(0)
 				.getText()).isEqualTo(
-				"token1");
+				"$token1");
 		assertThat(document.getRootElement().getChildren().get(0).getChild(TOKENS).getChildren().get(0).getChildren().get(1)
 				.getText()).isEqualTo(
 				endDate.toString());
+		assertThat(
+				document.getRootElement().getChildren().get(0).getChild(MS_EXCH_DELEGATE_LIST_BL).getChildren().get(0).getText())
+				.isEqualTo(
+						chuckUserCredential.getMsExchDelegateListBL().get(0));
 	}
 
 	@Test
@@ -114,7 +120,7 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 		writer.addUpdate(chuckUserCredential);
 
 		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", Arrays.asList("group1"),
-				Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "");
+				Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "", msExchDelegateListBL, "chuckDN");
 
 		writer.addUpdate(chuckUserCredential);
 		assertThat(document.getRootElement().getChildren()).hasSize(1);
@@ -174,9 +180,10 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 			throws Exception {
 
 		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", Arrays.asList("group1",
-				"group2"), Arrays.asList(zeCollection), UserCredentialStatus.ACTIVE, "");
+				"group2"), Arrays.asList(zeCollection), UserCredentialStatus.ACTIVE, "", msExchDelegateListBL, "chuckDN");
 		dakotaUserCredential = new UserCredential("dakota", "Dakota", "Lindien", "dakota.lindien@gmail.com", Arrays.asList(
-				"group1", "group2"), Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "");
+				"group1", "group2"), Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "",
+				msExchDelegateListBL, "dakotaDN");
 		writer.addUpdate(chuckUserCredential);
 		writer.addUpdate(dakotaUserCredential);
 
@@ -188,5 +195,7 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 		assertThat(document.getRootElement().getChildren().get(1).getChild(GLOBAL_GROUPS).getChildren()).hasSize(1);
 		assertThat(document.getRootElement().getChildren().get(1).getChild(GLOBAL_GROUPS).getChild(GLOBAL_GROUP).getText())
 				.isEqualTo("group2");
+		assertThat(document.getRootElement().getChildren().get(1).getChild(DN).getText())
+				.isEqualTo("dakotaDN");
 	}
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.entities;
 
 import java.io.InputStream;
@@ -26,41 +9,46 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 public class ContentVersionVO implements Serializable {
-	
+
 	public static interface InputStreamProvider extends Serializable {
 
 		InputStream getInputStream(String streamName);
-		
+
 		void deleteTemp();
-		
+
 	}
-	
+
 	private String contentId;
-	
+
 	private String hash;
-	
+
 	private String fileName;
-	
+
+	private String comment;
+
 	private String mimeType;
-	
+
 	private long length;
-	
+
 	private String version;
-	
+
 	private Boolean majorVersion;
 
 	private final Date lastModificationDateTime;
 
 	private final String lastModifiedBy;
-	
+
 	private InputStreamProvider inputStreamProvider;
-	
+
 	private String checkoutUserId;
-	
+
 	private LocalDateTime checkoutDateTime;
 
-	public ContentVersionVO(String contentId, String hash, String fileName, String mimeType, long length, String version, Date lastModificationDateTime, String lastModifiedBy, String checkoutUserId, LocalDateTime checkoutDateTime, InputStreamProvider inputStreamProvider) {
+	public ContentVersionVO(String contentId, String hash, String fileName, String mimeType, long length, String version,
+			Date lastModificationDateTime, String lastModifiedBy, String checkoutUserId, LocalDateTime checkoutDateTime,
+			String comment, InputStreamProvider inputStreamProvider) {
 		super();
+		this.comment = comment;
 		this.contentId = contentId;
 		this.hash = hash;
 		this.fileName = fileName;
@@ -77,7 +65,7 @@ public class ContentVersionVO implements Serializable {
 	public final String getContentId() {
 		return contentId;
 	}
-	
+
 	public final void setContentId(String contentId) {
 		this.contentId = contentId;
 	}
@@ -85,7 +73,7 @@ public class ContentVersionVO implements Serializable {
 	public final String getHash() {
 		return hash;
 	}
-	
+
 	public final void setHash(String id) {
 		this.hash = id;
 	}
@@ -138,6 +126,14 @@ public class ContentVersionVO implements Serializable {
 		return inputStreamProvider;
 	}
 
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
@@ -145,7 +141,11 @@ public class ContentVersionVO implements Serializable {
 		if (StringUtils.isNotBlank(version)) {
 			sb.append(" [" + version + "]");
 		}
-		sb.append(" (" + FileUtils.byteCountToDisplaySize(length) + ")");
+		String lengthLabel = FileUtils.byteCountToDisplaySize(length);
+		if (!lengthLabel.endsWith("bytes")) {
+			lengthLabel +=  ", " + String.format("%,d", length) + " bytes";
+		}
+		sb.append(" (" + lengthLabel +  ")");
 		return sb.toString();
 	}
 
@@ -174,9 +174,9 @@ public class ContentVersionVO implements Serializable {
 				return false;
 			} else if (contentId != null && !contentId.equals(other.contentId)) {
 				return false;
-			} else  if (version == null && other.version != null) {
+			} else if (version == null && other.version != null) {
 				return false;
-			} else  if (version != null && other.version == null) {
+			} else if (version != null && other.version == null) {
 				return false;
 			} else if (version != null && !version.equals(other.version)) {
 				return false;
@@ -187,7 +187,7 @@ public class ContentVersionVO implements Serializable {
 					return false;
 				}
 			}
-		}	
+		}
 		return true;
 	}
 

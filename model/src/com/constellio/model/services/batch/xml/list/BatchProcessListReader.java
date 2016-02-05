@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.xml.list;
 
 import java.util.ArrayList;
@@ -44,6 +27,7 @@ public class BatchProcessListReader {
 	private static final String RECORDS_COUNT = "recordsCount";
 	private static final String REQUEST_DATE_TIME = "requestDateTime";
 	private static final String START_DATE_TIME = "startDateTime";
+	private static final String QUERY = "query";
 	private static final String ERRORS = "errors";
 	private static final String ID = "id";
 	private static final String COLLECTION = "collection";
@@ -79,13 +63,14 @@ public class BatchProcessListReader {
 		BatchProcessStatus status = getStatus(nextBatchProcess);
 		LocalDateTime requestDateTime = getRequestDateTime(nextBatchProcess);
 		LocalDateTime startDateTime = getStartDateTime(nextBatchProcess);
+		String query = getQuery(nextBatchProcess);
 		int totalRecordsCount = Integer.parseInt(nextBatchProcess.getChild(RECORDS_COUNT).getText());
 		int errors = getErrors(nextBatchProcess);
 		int handledRecordsCount = getHandledRecords(nextBatchProcess, status, totalRecordsCount);
 		String collection = getCollection(nextBatchProcess);
 		BatchProcessAction batchProcessAction = getBatchProcessActions(nextBatchProcess);
 		batchProcess = new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount,
-				totalRecordsCount, errors, batchProcessAction, collection);
+				totalRecordsCount, errors, batchProcessAction, collection, query);
 		return batchProcess;
 	}
 
@@ -180,6 +165,15 @@ public class BatchProcessListReader {
 			errorsCount = Integer.parseInt(errorsElement.getText());
 		}
 		return errorsCount;
+	}
+
+	private String getQuery(Element nextBatchProcess) {
+		Element queryElement = nextBatchProcess.getChild(QUERY);
+		String query = null;
+		if (queryElement != null) {
+			query = queryElement.getText();
+		}
+		return query;
 	}
 
 	private LocalDateTime getStartDateTime(Element nextBatchProcess) {

@@ -1,26 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 
 public enum SearchType {
-	fixedPeriod, code888, code999, transfer, activeToDeposit, activeToDestroy, semiActiveToDeposit, semiActiveToDestroy;
+	fixedPeriod, code888, code999, transfer, activeToDeposit, activeToDestroy, semiActiveToDeposit, semiActiveToDestroy,
+	documentTransfer, documentActiveToDeposit, documentActiveToDestroy, documentSemiActiveToDeposit, documentSemiActiveToDestroy;
 
 	public DecommissioningListType toDecomListType() {
 		switch (this) {
@@ -36,11 +20,24 @@ public enum SearchType {
 		case activeToDestroy:
 		case semiActiveToDestroy:
 			return DecommissioningListType.FOLDERS_TO_DESTROY;
+		case documentTransfer:
+			return DecommissioningListType.DOCUMENTS_TO_TRANSFER;
+		case documentActiveToDeposit:
+		case documentSemiActiveToDeposit:
+			return DecommissioningListType.DOCUMENTS_TO_DEPOSIT;
+		case documentActiveToDestroy:
+		case documentSemiActiveToDestroy:
+			return DecommissioningListType.DOCUMENTS_TO_DESTROY;
 		}
 		return null;
 	}
 
 	public boolean isFromSemiActive() {
-		return this == semiActiveToDeposit || this == semiActiveToDestroy;
+		return this == semiActiveToDeposit || this == semiActiveToDestroy ||
+				this == documentSemiActiveToDeposit || this == documentSemiActiveToDestroy;
+	}
+
+	public boolean isFolderSearch() {
+		return toDecomListType().isFolderList();
 	}
 }

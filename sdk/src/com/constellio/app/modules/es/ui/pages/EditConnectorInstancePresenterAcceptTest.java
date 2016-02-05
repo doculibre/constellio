@@ -1,24 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.ui.pages;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +12,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -61,11 +44,12 @@ public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioESModule().withAllTestUsers();
+		prepareSystem(withZeCollection().withConstellioESModule().withAllTestUsers());
+		ConstellioFactories constellioFactories = getConstellioFactories();
 
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
-		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
+		when(view.getConstellioFactories()).thenReturn(constellioFactories);
 		when(view.navigateTo()).thenReturn(navigator);
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -86,7 +70,7 @@ public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 						.setTitle("Ze Connector")
 						.setTraversalCode("traversalCode")
 						.setEnabled(true)
-						.setSeeds(asList("http://constellio.com")));
+						.setSeeds("http://constellio.com"));
 
 	}
 

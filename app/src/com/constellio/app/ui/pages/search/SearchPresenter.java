@@ -1,30 +1,19 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +22,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactory;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -50,32 +40,51 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.zipContents.ZipContentsService;
+import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
+import com.vaadin.server.StreamResource.StreamSource;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements ReportPresenter {
+	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
+
 	public enum SortOrder {ASCENDING, DESCENDING}
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SearchPresenter.class);
 
+	private Map<String, String[]> extraSolrParams = new HashMap<>();
 	KeySetMap<String, String> facetSelections = new KeySetMap<>();
+	Map<String, Boolean> facetStatus = new HashMap<>();
 	List<String> suggestions;
 	String sortCriterion;
 	SortOrder sortOrder;
 	String collection;
+	transient SchemasDisplayManager schemasDisplayManager;
 	transient SearchPresenterService service;
+	boolean highlighter = true;
 
 	public SearchPresenter(T view) {
 		super(view);
 		init(view.getConstellioFactories(), view.getSessionContext());
+	}
+
+	public void setExtraSolrParams(Map<String, String[]> extraSolrParams) {
+		this.extraSolrParams = extraSolrParams;
+	}
+
+	public Map<String, String[]> getExtraSolrParams() {
+		return extraSolrParams;
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -88,7 +97,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		collection = sessionContext.getCurrentCollection();
-		service = new SearchPresenterService(collection, constellioFactories.getAppLayerFactory());
+		service = new SearchPresenterService(collection, constellioFactories.getModelLayerFactory());
+		schemasDisplayManager = constellioFactories.getAppLayerFactory().getMetadataSchemasDisplayManager();
 	}
 
 	public void resetFacetAndOrder() {
@@ -103,7 +113,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public abstract int getPageNumber();
 
 	public List<FacetVO> getFacets() {
-		return service.getFacets(getSearchQuery());
+		return service.getFacets(getSearchQuery(), facetStatus);
 	}
 
 	public String getSortCriterion() {
@@ -140,8 +150,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				LogicalSearchQuery query = getSearchQuery().setHighlighting(true);
+				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
 				if (sortCriterion == null) {
+					if (StringUtils.isNotBlank(getUserSearchExpression())) {
+						query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
+						query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
+					}
 					return query;
 				}
 				Metadata metadata = getMetadata(sortCriterion);
@@ -158,6 +172,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public void facetValueDeselected(String facetId, String facetValue) {
 		facetSelections.get(facetId).remove(facetValue);
 		view.refreshSearchResultsAndFacets();
+	}
+
+	public void facetDeselected(String facetId) {
+		facetSelections.get(facetId).clear();
+		view.refreshSearchResultsAndFacets();
+	}
+
+	public void facetOpened(String facetId) {
+		facetStatus.put(facetId, true);
+	}
+
+	public void facetClosed(String facetId) {
+		facetStatus.put(facetId, false);
 	}
 
 	public KeySetMap<String, String> getFacetSelections() {
@@ -190,6 +217,34 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
 
+	public String getZippedContentsFilename() {
+		return $("SearchView.contentZip");
+	}
+
+	public StreamSource getZippedContents() {
+		return new StreamSource() {
+			@Override
+			public InputStream getStream() {
+				File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
+						.newTemporaryFolder(ZIP_CONTENT_RESOURCE);
+				File file = new File(folder, getZippedContentsFilename());
+				try {
+					new ZipContentsService(modelLayerFactory, collection)
+							.zipContentsOfRecords(view.getSelectedRecordIds(), file);
+					return new FileInputStream(file);
+				} catch (NoContentToZipRuntimeException e) {
+					LOGGER.error("Error while zipping", e);
+					view.showErrorMessage($("SearchView.noContentInSelectedRecords"));
+					return null;
+				} catch (Exception e) {
+					LOGGER.error("Error while zipping", e);
+					view.showErrorMessage($("SearchView.zipContentsError"));
+					return null;
+				}
+			}
+		};
+	}
+
 	public abstract void suggestionSelected(String suggestion);
 
 	public abstract List<MetadataVO> getMetadataAllowedInSort();
@@ -198,9 +253,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	protected LogicalSearchQuery getSearchQuery() {
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
+				.setOverridedQueryParams(extraSolrParams)
 				.setFreeTextQuery(getUserSearchExpression())
 				.filteredWithUser(getCurrentUser())
-				.filteredByStatus(StatusFilter.ACTIVES);
+				.filteredByStatus(StatusFilter.ACTIVES)
+				.setPreferAnalyzedFields(true);
+
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(
+				schemasDisplayManager.getReturnedFieldsForSearch(collection)));
+
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		LogicalSearchQueryFacetFilters filters = query.getFacetFilters();
 		filters.clear();
@@ -221,12 +282,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return query;
 	}
 
+	public void setHighlighter(boolean highlighter) {
+		this.highlighter = highlighter;
+	}
+
 	protected void resetFacetSelection() {
 		facetSelections.clear();
 	}
 
 	protected SavedSearch getSavedSearch(String id) {
-		Record record = recordServices().getDocumentById(id, getCurrentUser());
+		Record record = recordServices().getDocumentById(id);
 		return new SavedSearch(record, types());
 	}
 
@@ -251,13 +316,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	protected MetadataVO getMetadataVO(String metadataCode) {
-		if (metadataCode == null) {
-			return null;
-		}
-		MetadataToVOBuilder builder = new MetadataToVOBuilder();
-		MetadataSchemaTypes types = types();
-		Metadata metadata = types.getMetadata(metadataCode);
-		return builder.build(metadata, view.getSessionContext());
+		return presenterService().getMetadataVO(metadataCode, view.getSessionContext());
 	}
 
 	protected List<MetadataVO> getMetadataAllowedInSort(String schemaTypeCode) {
@@ -269,6 +328,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
+		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (metadata.isSortable()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
@@ -301,5 +361,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search;
+	}
+
+	private SearchBoostManager searchBoostManager() {
+		return modelLayerFactory.getSearchBoostManager();
 	}
 }

@@ -1,60 +1,46 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordDepositReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordTransferReportViewImpl;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements ReportPresenter {
+	private transient RMSchemasRecordsServices rmRecordServices;
+	private transient DecommissioningService decommissioningService;
 
 	private String containerId;
 
@@ -67,25 +53,52 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return true;
 	}
 
+	@Override
+	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
+		return user.hasReadAccess().on(restrictedRecord);
+	}
+
+	@Override
+	protected List<String> getRestrictedRecordIds(String params) {
+		return asList(params);
+	}
+
 	public void backButtonClicked() {
 		view.navigateTo().previousView();
 	}
 
-	public RecordVODataProvider getFoldersDataProvider(final String containerId) {
-		final MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema(Folder.DEFAULT_SCHEMA), VIEW_MODE.TABLE);
-		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory) {
+	public RecordVODataProvider getFolders() {
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
+				.build(schema(Folder.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				LogicalSearchCondition condition = LogicalSearchQueryOperators.from(schema(Folder.DEFAULT_SCHEMA))
-						.where(schema(Folder.DEFAULT_SCHEMA).getMetadata(Folder.CONTAINER)).isEqualTo(containerId);
-				return new LogicalSearchQuery(condition);
+				return getFoldersQuery();
 			}
 		};
-		return dataProvider;
 	}
 
-	public RecordVO getContainer(String containerId) {
-		return new RecordToVOBuilder().build(recordServices().getDocumentById(containerId), VIEW_MODE.DISPLAY);
+	public RecordVO getContainer() {
+		return new RecordToVOBuilder()
+				.build(recordServices().getDocumentById(containerId), VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
+
+	public void editContainer() {
+		view.navigateTo().editContainer(containerId);
+	}
+
+	public ComponentState getEmptyButtonState() {
+		return isContainerRecyclingAllowed() ? ComponentState.enabledIf(canEmpty()) : ComponentState.INVISIBLE;
+	}
+
+	public void emptyButtonClicked() {
+		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+		try {
+			decommissioningService().recycleContainer(container, getCurrentUser());
+		} catch (Exception e) {
+			view.showErrorMessage(MessageUtils.toMessage(e));
+		}
+		view.navigateTo().displayContainer(containerId);
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
@@ -99,10 +112,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	public ReportBuilderFactory getReport(String report) {
-
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(containerId);
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(view.getCollection());
-		ContainerRecord containerRecord = new ContainerRecord(record, types);
+		ContainerRecord containerRecord = new ContainerRecord(record, types());
 
 		if (containerRecord.getDecommissioningType() == DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE) {
 			return new ContainerRecordTransferReportViewImpl(containerId);
@@ -112,20 +123,19 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		throw new RuntimeException("BUG: Unknown report: " + report);
 	}
 
-	public boolean isPrintReportEnable() {
-		boolean enable1;
-		enable1 = getFoldersDataProvider(containerId).size() > 0;
-		boolean enable2;
+	public boolean canPrintReports() {
+		if (!searchServices().hasResults(getFoldersQuery())) {
+			return false;
+		}
 		try {
 			getReport("");
-			enable2 = true;
 		} catch (RuntimeException e) {
-			enable2 = false;
+			return false;
 		}
-		return (enable1 && enable2);
+		return true;
 	}
 
-	public void setContainerId(String containerId) {
+	public void forContainerId(String containerId) {
 		this.containerId = containerId;
 	}
 
@@ -136,16 +146,6 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public List<LabelTemplate> getTemplates() {
 		return appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
 
-	}
-
-	@Override
-	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		return user.hasReadAccess().on(restrictedRecord);
-	}
-
-	@Override
-	protected List<String> getRestrictedRecordIds(String params) {
-		return asList(params);
 	}
 
 	public Double getFillRatio(RecordVO container)
@@ -184,6 +184,21 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return sum * 100 / capacity;
 	}
 
+	private LogicalSearchQuery getFoldersQuery() {
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folderSchemaType())
+				.where(rmRecordServices().folderContainer()).isEqualTo(containerId);
+		return new LogicalSearchQuery(condition);
+	}
+
+	private boolean isContainerRecyclingAllowed() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isContainerRecyclingAllowed();
+	}
+
+	private boolean canEmpty() {
+		return getCurrentUser().has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally() &&
+				searchServices().hasResults(getFoldersQuery());
+	}
+
 	private Double getSum(Map<String, Object> result) {
 		Object sum = result.get("sum");
 		return Double.valueOf(sum.toString());
@@ -191,17 +206,20 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	private boolean includesMissing(Map<String, Object> result) {
 		Object missing = result.get("missing");
-		if (missing != null) {
-			return !missing.equals(0L);
-		} else {
-			return false;
-		}
+		return missing != null && !missing.equals(0L);
 	}
 
-	public void editContainer() {
-		Map<String, String> paramsMap = new HashMap<>();
-		paramsMap.put("containerId", containerId);
-		String params = ParamUtils.addParams(NavigatorConfigurationService.EDIT_CONTAINER, paramsMap);
-		view.navigateTo().editContainer(params);
+	private DecommissioningService decommissioningService() {
+		if (decommissioningService == null) {
+			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+		}
+		return decommissioningService;
+	}
+
+	private RMSchemasRecordsServices rmRecordServices() {
+		if (rmRecordServices == null) {
+			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+		}
+		return rmRecordServices;
 	}
 }

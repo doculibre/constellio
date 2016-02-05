@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.io.streams.factories;
 
 import java.io.BufferedInputStream;
@@ -73,7 +56,7 @@ public class StreamsServices {
 	}
 
 	public OutputStream newBufferedOutputStream(OutputStream outputStream, final String name) {
-		return OpenedResourcesWatcher.onOpen(new BufferedOutputStream(outputStream) {
+		return OpenedResourcesWatcher.onOpen(new BufferedOutputStream(outputStream, 65536) {
 
 			@Override
 			public String toString() {
@@ -90,7 +73,7 @@ public class StreamsServices {
 	}
 
 	public InputStream newBufferedInputStream(InputStream inputStream, final String name) {
-		return OpenedResourcesWatcher.onOpen(new BufferedInputStream(inputStream) {
+		return OpenedResourcesWatcher.onOpen(new BufferedInputStream(inputStream, 65536) {
 
 			@Override
 			public String toString() {
@@ -107,7 +90,7 @@ public class StreamsServices {
 	}
 
 	public BufferedReader newBufferedReader(Reader reader, final String name) {
-		return OpenedResourcesWatcher.onOpen(new BufferedReader(reader) {
+		return OpenedResourcesWatcher.onOpen(new BufferedReader(reader, 65536) {
 
 			@Override
 			public String toString() {

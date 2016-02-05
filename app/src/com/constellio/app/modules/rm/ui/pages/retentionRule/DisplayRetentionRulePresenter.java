@@ -1,35 +1,29 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<DisplayRetentionRuleView> {
 	private RetentionRuleVO retentionRuleVO;
@@ -80,5 +74,25 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 		Record record = getRecord(entity.getId());
 		User user = getCurrentUser();
 		return recordService.isLogicallyDeletable(record, user);
+	}
+
+	public List<VariableRetentionPeriodVO> getOpenActivePeriodsDDVList() {
+		List<String> variablePeriodCodes = new ArrayList<>();
+		for (CopyRetentionRule copyRetentionRule : retentionRuleVO.getCopyRetentionRules()) {
+			if (!variablePeriodCodes.contains("" + copyRetentionRule.getActiveRetentionPeriod().getValue())) {
+				variablePeriodCodes.add("" + copyRetentionRule.getActiveRetentionPeriod().getValue());
+			}
+		}
+		List<VariableRetentionPeriodVO> returnList = new ArrayList<>();
+		LogicalSearchCondition condition = from(schemaType(VariableRetentionPeriod.SCHEMA_TYPE).getDefaultSchema())
+				.where(Schemas.CODE).isIn(variablePeriodCodes);
+		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
+		for (Record record : records) {
+			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId())
+					.setTitle((String) record.get(
+							Schemas.TITLE)).setCode((String) record.get(Schemas.CODE));
+			returnList.add(variableRetentionPeriodVO);
+		}
+		return returnList;
 	}
 }

@@ -1,31 +1,20 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.authorizations;
 
-import java.util.Arrays;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 
 public class ListPrincipalAccessAuthorizationsPresenter extends ListAuthorizationsPresenter {
 	public ListPrincipalAccessAuthorizationsPresenter(ListPrincipalAccessAuthorizationsView view) {
@@ -53,7 +42,7 @@ public class ListPrincipalAccessAuthorizationsPresenter extends ListAuthorizatio
 
 	@Override
 	public List<String> getAllowedAccesses() {
-		return Arrays.asList(Role.READ, Role.WRITE, Role.DELETE);
+		return asList(Role.READ, Role.WRITE, Role.DELETE);
 	}
 
 	@Override
@@ -86,4 +75,66 @@ public class ListPrincipalAccessAuthorizationsPresenter extends ListAuthorizatio
 		return user.has(CorePermissions.MANAGE_SECURITY).globally();
 	}
 
+	public void accessCreationRequested(List<String> access) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		User user = schemas.getUser(recordId);
+
+		user.setCollectionReadAccess(!access.isEmpty());
+		user.setCollectionWriteAccess(access.contains(Role.WRITE));
+		user.setCollectionDeleteAccess(access.contains(Role.DELETE));
+
+		try {
+			recordServices().update(user);
+		} catch (RecordServicesException e) {
+			throw new ImpossibleRuntimeException(e);
+		}
+		view.refresh();
+
+	}
+
+	public boolean seeCollectionAccessField() {
+		return isAUser() && !getCollectionAccessChoicesModifiableByCurrentUser().isEmpty();
+	}
+
+	public List<String> getCollectionAccessChoicesModifiableByCurrentUser() {
+		if (getCurrentUser().has(CorePermissions.MANAGE_SECURITY).globally()) {
+			return asList(Role.READ, Role.WRITE, Role.DELETE);
+		} else {
+			return new ArrayList<>();
+		}
+	}
+
+	public boolean isAUser() {
+		Record record = recordServices().getDocumentById(recordId);
+		return record.getSchemaCode().startsWith(User.SCHEMA_TYPE);
+	}
+
+	public boolean isASystemUser() {
+		Record record = recordServices().getDocumentById(recordId);
+		if (record.getSchemaCode().startsWith(User.SCHEMA_TYPE)) {
+			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+			User user = schemas.getUser(recordId);
+			return user.isSystemAdmin();
+		} else {
+			return false;
+		}
+	}
+
+	public List<String> getUserGlobalAccess() {
+		List<String> globalAccess = new ArrayList<>();
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		if (isAUser()) {
+			User user = schemas.getUser(recordId);
+			if (user.hasCollectionReadAccess()) {
+				globalAccess.add(Role.READ);
+			}
+			if (user.hasCollectionWriteAccess()) {
+				globalAccess.add(Role.WRITE);
+			}
+			if (user.hasCollectionDeleteAccess()) {
+				globalAccess.add(Role.DELETE);
+			}
+		}
+		return globalAccess;
+	}
 }

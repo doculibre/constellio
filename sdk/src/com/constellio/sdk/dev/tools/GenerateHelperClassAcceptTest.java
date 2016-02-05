@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.dev.tools;
 
 import java.lang.reflect.Field;
@@ -22,8 +5,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -31,9 +12,16 @@ import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
+import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.model.wrappers.RobotLog;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -45,6 +33,24 @@ import com.constellio.sdk.tests.annotations.MainTest;
 
 @MainTest
 public class GenerateHelperClassAcceptTest extends ConstellioTest {
+
+	@Test
+	public void generateRobotsSchemas()
+			throws Exception {
+		givenCollection(zeCollection).withRobotsModule();
+
+		Map<String, Class<? extends RecordWrapper>> wrappers = new HashMap<>();
+
+		wrappers.put(ActionParameters.DEFAULT_SCHEMA, ActionParameters.class);
+		wrappers.put(Robot.DEFAULT_SCHEMA, Robot.class);
+		wrappers.put(RobotLog.DEFAULT_SCHEMA, RobotLog.class);
+
+		System.out.println(header());
+
+		printGeneratedSchemas(wrappers);
+
+		System.out.println(footer());
+	}
 
 	@Test
 	public void generateEnterpriseSearchSchemas()
@@ -65,6 +71,10 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(ConnectorSmbInstance.SCHEMA_CODE, ConnectorSmbInstance.class);
 		wrappers.put(ConnectorSmbDocument.DEFAULT_SCHEMA, ConnectorSmbDocument.class);
 		wrappers.put(ConnectorSmbFolder.DEFAULT_SCHEMA, ConnectorSmbFolder.class);
+
+		// LDAP
+		wrappers.put(ConnectorLDAPInstance.SCHEMA_CODE, ConnectorLDAPInstance.class);
+		wrappers.put(ConnectorLDAPUserDocument.DEFAULT_SCHEMA, ConnectorLDAPUserDocument.class);
 
 		System.out.println(header());
 
@@ -91,7 +101,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		System.out.println(footer());
 	}
 
-	private void printGeneratedSchemas(Map<String, Class<? extends RecordWrapper>> wrappers)
+	protected void printGeneratedSchemas(Map<String, Class<? extends RecordWrapper>> wrappers)
 			throws Exception {
 
 		StringBuilder stringBuilder = new StringBuilder();
@@ -304,19 +314,20 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		return declaredFields;
 	}
 
-	private String header() {
+	protected String header() {
 		String line = "/** " + StringUtils.repeat("** ", 25) + "**/";
-		return line + "\n\t\t// Auto-generated methods by GenerateHelperClassAcceptTest -- start\n" + line + "\n\n";
+		return line + "\n\t\t// Auto-generated methods by "
+				+ "" + this.getClass().getSimpleName() + " -- start\n" + line + "\n\n";
 	}
 
-	private String footer() {
+	protected String footer() {
 		String line = "/** " + StringUtils.repeat("** ", 25) + "**/";
-		return line + "\n\t\t// Auto-generated methods by GenerateHelperClassAcceptTest -- end\n" + line + "\n\n";
+		return line + "\n\t\t// Auto-generated methods by " + this.getClass().getSimpleName() + " -- end\n" + line + "\n\n";
 	}
 
-	private static interface SchemasFilter {
+	private interface SchemasFilter {
 
-		public boolean isGenerated(Metadata metadata);
+		boolean isGenerated(Metadata metadata);
 
 	}
 

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.search;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
@@ -49,16 +32,19 @@ import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
 
+import javax.servlet.http.HttpServletResponse;
+
+@SlowTest
 public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 
-	String anotherCollection = "anotherCollection";
+	String anotherCollection = "otherCollection";
 	TestsSchemasSetup anotherCollectionSetup = new TestsSchemasSetup(anotherCollection);
 	ZeSchemaMetadatas anotherCollectionSchema = anotherCollectionSetup.new ZeSchemaMetadatas();
 	TestsSchemasSetup zeCollectionSetup = new TestsSchemasSetup(zeCollection);
@@ -163,8 +149,10 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		assertThat(findAllRecordsVisibleByUsingWebService(userWithSomeRecordAccess))
 				.containsOnly(zeCollectionRecord1, anotherCollectionRecord1);
 
-		whenSearchingWithInvalidPasswordThenException();
-		whenSearchingWithNoPasswordThenException();
+		whenSearchingWithAvalidServiceKeyFromAnotherUserThenException();
+		whenSearchingWithInvalidTokenThenException();
+		whenSearchingWithNoTokenThenException();
+		whenSearchingWithNoServiceKeyThenException();
 	}
 
 	@Test
@@ -217,41 +205,77 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		return records;
 	}
 
-	private void whenSearchingWithInvalidPasswordThenException()
+	private void whenSearchingWithInvalidTokenThenException()
 			throws SolrServerException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
+		String serviceKey = userServices
+				.giveNewServiceToken(userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername()));
+		solrParams.set("serviceKey", serviceKey);
+		solrParams.set("token", "noidea");
 		try {
-			String serviceKey = userServices
-					.giveNewServiceToken(userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername()));
-			String token = userServices.getToken(serviceKey, userWithBothCollectionReadAccess.getUsername(), "noidea");
-			solrParams.set("serviceKey", serviceKey);
-			solrParams.set("token", token);
+
 			solrServer.query(solrParams);
 			fail("Exception expected");
-		} catch (UserServicesRuntimeException_InvalidUserNameOrPassword e) {
+		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid username " + userWithBothCollectionReadAccess.getUsername() + " or password");
+					.contains("Invalid serviceKey/token");
 		}
 	}
 
-	private void whenSearchingWithNoPasswordThenException()
+	private void whenSearchingWithAvalidServiceKeyFromAnotherUserThenException()
 			throws SolrServerException {
 		SolrClient solrServer = newSearchClient();
 		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
 
+		String serviceKey = userServices
+				.giveNewServiceToken(userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername()));
+		String anotherUserToken = userServices.generateToken(userWithZeCollectionReadAccess.getUsername());
+		solrParams.set("serviceKey", serviceKey);
+		solrParams.set("token", anotherUserToken);
+
 		try {
-			String serviceKey = userServices
-					.giveNewServiceToken(userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername()));
-			String token = userServices.getToken(serviceKey, userWithBothCollectionReadAccess.getUsername(), null);
-			solrParams.set("serviceKey", serviceKey);
-			solrParams.set("token", token);
+			assertThat(solrServer.query(solrParams).getStatus()).isEqualTo(HttpServletResponse.SC_FORBIDDEN);
+			fail("Exception expected");
+		} catch (RuntimeException e) {
+			assertThat(e.getMessage())
+					.contains("Invalid serviceKey/token");
+		}
+	}
+
+	private void whenSearchingWithNoTokenThenException()
+			throws SolrServerException {
+		SolrClient solrServer = newSearchClient();
+		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
+
+		String serviceKey = userServices
+				.giveNewServiceToken(userServices.getUserCredential(userWithBothCollectionReadAccess.getUsername()));
+		solrParams.set("serviceKey", serviceKey);
+		try {
+
 			solrServer.query(solrParams);
 			fail("Exception expected");
-		} catch (UserServicesRuntimeException_InvalidUserNameOrPassword e) {
+		} catch (RuntimeException e) {
 			assertThat(e.getMessage())
-					.contains("Invalid username " + userWithBothCollectionReadAccess.getUsername() + " or password");
+					.contains("Invalid serviceKey/token");
+		}
+	}
+
+	private void whenSearchingWithNoServiceKeyThenException()
+			throws SolrServerException {
+		SolrClient solrServer = newSearchClient();
+		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
+
+		String token = userServices.generateToken(userWithBothCollectionReadAccess.getUsername());
+		solrParams.set("token", token);
+		try {
+
+			solrServer.query(solrParams);
+			fail("Exception expected");
+		} catch (RuntimeException e) {
+			assertThat(e.getMessage())
+					.contains("Invalid serviceKey/token");
 		}
 	}
 

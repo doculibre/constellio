@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.search.logical.criterion;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
@@ -35,6 +18,7 @@ import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 
 /**
  * Created by maxime on 8/11/14.
@@ -47,6 +31,8 @@ public class NotCriterionTest extends com.constellio.sdk.tests.ConstellioTest {
 	@Mock Metadata firstTextMetadata;
 	private java.util.List<LogicalSearchCondition> firstConditions;
 	private java.util.List<LogicalSearchCondition> secondConditions;
+
+	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null);
 
 	@org.junit.Before
 	public void setUp() {
@@ -77,7 +63,8 @@ public class NotCriterionTest extends com.constellio.sdk.tests.ConstellioTest {
 		CompositeLogicalSearchCondition andSearchCondition = new CompositeLogicalSearchCondition(new SchemaFilters(schemaType),
 				LogicalOperator.AND, firstConditions);
 
-		assertThat(andSearchCondition.getSolrQuery()).isEqualTo("( ( (*:* -(firstText:chuck*) ) ) AND ( firstText:*noris ) )");
+		assertThat(andSearchCondition.getSolrQuery(params))
+				.isEqualTo("( ( (*:* -(firstText:chuck*) ) ) AND ( firstText:*noris ) )");
 	}
 
 	@org.junit.Test
@@ -85,7 +72,7 @@ public class NotCriterionTest extends com.constellio.sdk.tests.ConstellioTest {
 		CompositeLogicalSearchCondition andSearchCondition = new CompositeLogicalSearchCondition(new SchemaFilters(schemaType),
 				LogicalOperator.AND, secondConditions);
 
-		assertThat(andSearchCondition.getSolrQuery()).isEqualTo(
+		assertThat(andSearchCondition.getSolrQuery(params)).isEqualTo(
 				"( ( ( (*:* -(firstText:chuck*) ) AND (*:* -(firstText:*lechat) ) ) ) )");
 	}
 }

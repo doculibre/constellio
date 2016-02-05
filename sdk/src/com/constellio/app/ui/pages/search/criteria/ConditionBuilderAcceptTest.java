@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search.criteria;
 
 import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.AND;
@@ -23,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,9 +15,14 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
+import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 
@@ -42,9 +32,27 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices rm;
 	ConditionBuilder folderConditionBuilder;
+	RecordServices recordServices;
+	LocalDateTime now = TimeProvider.getLocalDateTime();
+
+	@Before
+	public void setUp()
+			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
+		searchServices = getModelLayerFactory().newSearchServices();
+		recordServices = getModelLayerFactory().newRecordServices();
+
+		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		folderConditionBuilder = new ConditionBuilder(rm.folderSchemaType());
+	}
 
 	@Test
-	public void test()
+	public void testWithParens()
 			throws Exception {
 
 		// A && ( B || C)
@@ -65,21 +73,227 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 
 	}
 
-	@Before
-	public void setUp()
+	//Relative equals today
+	@Test
+	public void whenBuilderWithRelativeCriterionEqualsTodayThenNoRecordFound()
 			throws Exception {
 
-		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
-		);
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
 
-		searchServices = getModelLayerFactory().newSearchServices();
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria);
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		folderConditionBuilder = new ConditionBuilder(rm.folderSchemaType());
+		assertThat(recordIdsOfFolderCriteria(builder)).isEmpty();
 	}
 
+	@Test
+	public void givenAFolderWithOpeningDateOfTodayWhenBuilderWithRelativeCriterionEqualsTodayThenOneRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate());
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
+	}
+
+	@Test
+	public void givenAFolderWithOpeningDateOfTodayAndTimeTommorowWhenBuilderWithRelativeCriterionEqualsTodayThenNoRecordFound()
+			throws Exception {
+
+		givenTimeIs(now);
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate());
+		recordServices.update(folder);
+
+		givenTimeIs(now.plusDays(1));
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).isEmpty();
+	}
+
+	//Relative equals in future
+	@Test
+	public void givenAFolderWithOpeningDateInTheFutureWhenBuilderWithRelativeCriterionEqualsFutureThenOneRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate().plusDays(1));
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.FUTURE);
+		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
+				.value(1.0);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
+	}
+
+	@Test
+	public void givenAFolderWithOpeningDateInThePastWhenBuilderWithRelativeCriterionEqualsFutureThenNoRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate().minusDays(1));
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.FUTURE);
+		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
+				.value(1.0);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).isEmpty();
+	}
+
+	//Relative equals in past
+	@Test
+	public void givenAFolderWithOpeningDateInThePastWhenBuilderWithRelativeCriterionEqualsPastThenOneRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate().minusDays(1));
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.PAST);
+		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
+				.value(1.0);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
+	}
+
+	@Test
+	public void givenAFolderWithOpeningDateInTheFutureWhenBuilderWithRelativeCriterionEqualsPastThenNoRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate().plusDays(1));
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.PAST);
+		relativeCriteria.setMeasuringUnitTime(MeasuringUnitTime.DAYS);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
+				.value(1.0);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).isEmpty();
+	}
+
+	//Relative equals
+	@Test
+	public void givenAFolderWithOpeningDateInThePastWhenBuilderWithRelativeCriterionEqualsTheDateThenOneRecordFound()
+			throws Exception {
+
+		LocalDate ldt = now.toLocalDate().minusDays(1);
+		Folder folder = records.getFolder_A01().setOpenDate(ldt);
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.EQUALS);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
+				.value(ldt);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
+	}
+
+	@Test
+	public void givenAFolderWithOpeningDateInTheFutureWhenBuilderWithRelativeCriterionEqualsTheDateThenOneRecordFound()
+			throws Exception {
+
+		LocalDate ldt = now.toLocalDate().plusDays(1);
+		Folder folder = records.getFolder_A01().setOpenDate(ldt);
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.EQUALS);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.EQUALS).relativeSearchCriteria(relativeCriteria)
+				.value(ldt);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
+	}
+
+	//Relative between
+	@Test
+	public void givenAFolderWithOpeningDateWhenBuilderWithRelativeCriterionBetweenTheDateThenOneRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate());
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.EQUALS);
+		relativeCriteria.setEndRelativeSearchOperator(RelativeSearchOperator.TODAY);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.BETWEEN).relativeSearchCriteria(relativeCriteria)
+				.value(now.toLocalDate().minusDays(1));
+
+		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
+	}
+
+	@Test
+	public void givenAFolderWithOpeningDateWhenBuilderWithRelativeCriterionBetweenTheDateThenNoRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate().minusDays(1));
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
+		relativeCriteria.setEndRelativeSearchOperator(RelativeSearchOperator.EQUALS);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.BETWEEN).relativeSearchCriteria(relativeCriteria)
+				.endValue(now.toLocalDate().plusDays(1));
+
+		assertThat(recordIdsOfFolderCriteria(builder)).isEmpty();
+	}
+
+	//Relative lesserThan
+	@Test
+	public void givenAFolderWithOpeningDateWhenBuilderWithRelativeCriterionLesserThanTheDateThenOneRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate().plusDays(1));
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.LESSER_THAN)
+				.relativeSearchCriteria(relativeCriteria);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).doesNotContain(records.folder_A01);
+	}
+
+	//Relative greaterThan
+	@Test
+	public void givenAFolderWithOpeningDateWhenBuilderWithRelativeCriterionGreaterThanTheDateThenOneRecordFound()
+			throws Exception {
+
+		Folder folder = records.getFolder_A01().setOpenDate(now.toLocalDate().plusDays(1));
+		recordServices.update(folder);
+
+		RelativeCriteria relativeCriteria = new RelativeCriteria();
+		relativeCriteria.setRelativeSearchOperator(RelativeSearchOperator.TODAY);
+		CriteriaBuilder builder = newFolderCriteriaBuilderAsAdmin();
+		builder.addCriterion(Folder.OPENING_DATE).searchOperator(SearchOperator.GREATER_THAN)
+				.relativeSearchCriteria(relativeCriteria);
+
+		assertThat(recordIdsOfFolderCriteria(builder)).containsOnly(records.folder_A01);
+	}
+
+	//
 	private List<String> recordIdsOfFolderCriteria(CriteriaBuilder criteriaBuilder)
 			throws Exception {
 		LogicalSearchCondition condition = folderConditionBuilder.build(criteriaBuilder.build());

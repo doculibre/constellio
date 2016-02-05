@@ -12,9 +12,15 @@
         <title>The wonderful life of Dakota : The Kings Return</title>
         <folder>662</folder>
         <content type="content">
-            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg338.txt" filename="The Kings Return" major="true"/>
-            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg339.txt" filename="The Kings Return" major="false"/>
-            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg340.txt" filename="The Kings Return" major="true"/>
+            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg338.txt"
+                            lastModificationDateTime="2014-06-09 23:38:45" filename="The Kings Return1"
+                            comment="DVD #1" major="true"/>
+            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg339.txt"
+                            lastModificationDateTime="2015-06-09 23:38:45" filename="The Kings Return2"
+                            comment="DVD #2"
+                            major="false"/>
+            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg340.txt" filename="The Kings Return3"
+                            comment="DVD #3 : extras" major="true"/>
         </content>
     </record>
     <record id="00000000002">

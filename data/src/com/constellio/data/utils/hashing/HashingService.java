@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.utils.hashing;
 
 import java.io.File;
@@ -32,27 +15,20 @@ import com.constellio.data.utils.Factory;
 
 public class HashingService {
 
-	private final MessageDigest messageDigest;
+	private String algorithm;
+	private ThreadLocal<MessageDigest> messageDigests = new ThreadLocal<>();
 
-	public HashingService(String algorithm, EncodingService encodingService)
-			throws NoSuchAlgorithmException {
-		messageDigest = MessageDigest.getInstance(algorithm);
+	public HashingService(String algorithm, EncodingService encodingService) {
+
+		this.algorithm = algorithm;
 	}
 
 	public static HashingService forMD5(EncodingService encodingService) {
-		try {
-			return new HashingService("MD5", encodingService);
-		} catch (NoSuchAlgorithmException e) {
-			throw new HashingServiceRuntimeException.NoSuchAlgorithm("MD5", e);
-		}
+		return new HashingService("MD5", encodingService);
 	}
 
 	public static HashingService forSHA1(EncodingService encodingService) {
-		try {
-			return new HashingService("SHA1", encodingService);
-		} catch (NoSuchAlgorithmException e) {
-			throw new HashingServiceRuntimeException.NoSuchAlgorithm("SHA1", e);
-		}
+		return new HashingService("SHA1", encodingService);
 	}
 
 	public String getHashFromStream(StreamFactory<InputStream> streamFactory)
@@ -166,6 +142,18 @@ public class HashingService {
 	}
 
 	String doHash(byte[] bytes) {
+
+		MessageDigest messageDigest = messageDigests.get();
+		if (messageDigest == null) {
+
+			try {
+				messageDigest = MessageDigest.getInstance(algorithm);
+			} catch (NoSuchAlgorithmException e) {
+				throw new HashingServiceRuntimeException.NoSuchAlgorithm(algorithm, e);
+			}
+			messageDigests.set(messageDigest);
+		}
+
 		byte[] digestBytes = messageDigest.digest(bytes);
 		return new EncodingService().encodeToBase64(digestBytes);
 	}

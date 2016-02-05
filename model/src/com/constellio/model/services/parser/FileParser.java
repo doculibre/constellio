@@ -1,22 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.parser;
 
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
+import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.join;
 
 import java.io.IOException;
@@ -26,61 +11,124 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.hwpf.model.StyleDescription;
+import org.apache.poi.hwpf.usermodel.Paragraph;
+import org.apache.poi.hwpf.usermodel.Range;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.Detector;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.fork.ForkParser;
 import org.apache.tika.metadata.Message;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.Property;
 import org.apache.tika.metadata.TikaCoreProperties;
+import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
 
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.parser.FileParserException.FileParserException_CannotExtractStyles;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
 
 public class FileParser {
 
+	private static final String MS_DOC_MIMETYPE = "application/msword";
+	private static final String MS_DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+	static final String READ_STREAM_FOR_STYLES_EXTRACTION = "FileParser-ReadStreamForStylesExtraction";
+	static final String READ_STREAM_FOR_PARSING_WITH_TIKA = "FileParser-ReadStreamForParsingWithTika";
+	static final String READ_STREAM_FOR_MIMETYPE_DETECTION = "FileParser-MimetypeDetection";
+
+	private final IOServices ioServices;
 	private final ForkParsers parsers;
 	private boolean forkParserEnabled;
 	private LanguageDetectionManager languageDetectionManager;
+	private ThreadLocal<AutoDetectParser> autoDetectParsers = new ThreadLocal<>();
+	private SystemConfigurationsManager systemConfigurationsManager;
 
-	public FileParser(ForkParsers parsers, LanguageDetectionManager languageDetectionManager, boolean forkParserEnabled) {
+	public FileParser(ForkParsers parsers, LanguageDetectionManager languageDetectionManager, IOServices ioServices,
+			SystemConfigurationsManager systemConfigurationsManager, boolean forkParserEnabled) {
 		super();
 		this.parsers = parsers;
+		this.ioServices = ioServices;
 		this.forkParserEnabled = forkParserEnabled;
 		this.languageDetectionManager = languageDetectionManager;
+		this.systemConfigurationsManager = systemConfigurationsManager;
 	}
 
-	public ParsedContent parse(InputStream inputStream, long length)
-			throws FileParserException_CannotParse {
+	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length)
+			throws FileParserException {
+		return parse(inputStreamFactory, length, true);
+	}
 
-		BodyContentHandler handler = new BodyContentHandler(200 * 1024 * 1024);
+	public ParsedContent parse(InputStream inputStream, boolean detectLanguage)
+			throws FileParserException {
+
+		CopyInputStreamFactory inputStreamFactory = null;
+		try {
+			inputStreamFactory = ioServices.copyToReusableStreamFactory(inputStream);
+			return parse(inputStreamFactory, inputStreamFactory.length(), detectLanguage);
+		} finally {
+			ioServices.closeQuietly(inputStream);
+			ioServices.closeQuietly(inputStreamFactory);
+		}
+	}
+
+	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage)
+			throws FileParserException {
+
+		int maxParsedContentLengthInKO = systemConfigurationsManager.getValue(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS);
+		BodyContentHandler handler = new BodyContentHandler(maxParsedContentLengthInKO * 1000);
 		Metadata metadata = new Metadata();
 
+		InputStream inputStream = null;
 		try {
+			inputStream = inputStreamFactory.create(READ_STREAM_FOR_PARSING_WITH_TIKA);
 			if (forkParserEnabled) {
 				ForkParser forkParser = parsers.getForkParser();
 				forkParser.parse(inputStream, handler, metadata, new ParseContext());
 			} else {
-				AutoDetectParser parser = newAutoDetectParser();
+
+				AutoDetectParser parser = autoDetectParsers.get();
+
+				if (parser == null) {
+					autoDetectParsers.set(parser = newAutoDetectParser());
+				}
 				parser.parse(inputStream, handler, metadata);
 			}
 		} catch (IOException | SAXException | TikaException e) {
-			String detectedMimetype = metadata.get(Metadata.CONTENT_TYPE);
-			throw new FileParserException_CannotParse(e, detectedMimetype);
+			if (!e.getClass().getSimpleName().equals("WriteLimitReachedException")) {
+				String detectedMimetype = metadata.get(Metadata.CONTENT_TYPE);
+				throw new FileParserException_CannotParse(e, detectedMimetype);
+			}
 
 		} finally {
-			IOUtils.closeQuietly(inputStream);
+			ioServices.closeQuietly(inputStream);
 		}
 
 		String type = metadata.get(Metadata.CONTENT_TYPE);
 		String parsedContent = handler.toString().trim();
-		String language = languageDetectionManager.tryDetectLanguage(parsedContent);
+		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
 		Map<String, Object> properties = getPropertiesHashMap(metadata, type);
-		return new ParsedContent(parsedContent, language, type, length, properties);
+		Map<String, List<String>> styles = null;
+		try {
+			styles = getStylesDoc(inputStreamFactory, type);
+		} catch (IOException e) {
+			throw new FileParserException_CannotExtractStyles(e, type);
+		}
+		return new ParsedContent(parsedContent, language, type, length, properties, styles);
 
 	}
 
@@ -146,8 +194,129 @@ public class FileParser {
 		}
 	}
 
+	private Map<String, List<String>> getStylesDoc(StreamFactory<InputStream> inputStreamFactory, String mimeType)
+			throws IOException {
+		InputStream inputStream = null;
+
+		try {
+
+			if (MS_DOC_MIMETYPE.equals(mimeType)) {
+				inputStream = inputStreamFactory.create(READ_STREAM_FOR_STYLES_EXTRACTION);
+				return getStylesDoc(inputStream);
+
+			} else if (MS_DOCX_MIMETYPE.equals(mimeType)) {
+				inputStream = inputStreamFactory.create(READ_STREAM_FOR_STYLES_EXTRACTION);
+				return getStylesDocX(inputStream);
+
+			} else {
+				return new HashMap<>();
+			}
+
+		} finally {
+			ioServices.closeQuietly(inputStream);
+		}
+	}
+
+	private Map<String, List<String>> getStylesDoc(InputStream inputStream)
+			throws IOException {
+
+		KeyListMap<String, String> styles = new KeyListMap<>();
+
+		POIFSFileSystem fis = new POIFSFileSystem(inputStream);
+		HWPFDocument wdDoc = new HWPFDocument(fis);
+
+		Range range = wdDoc.getRange();
+		int parasSize = range.numParagraphs();
+		int maxPara = 20;
+		if (range.numParagraphs() > maxPara) {
+			parasSize = maxPara;
+		}
+
+		for (int i = 0; i < parasSize; i++) {
+			Paragraph p = range.getParagraph(i);
+
+			StyleDescription style = wdDoc.getStyleSheet().getStyleDescription(p.getStyleIndex());
+			String styleName = style.getName();
+
+			if (styleName != null) {
+				styleName = styleName.toLowerCase().replace(" ", "");
+				if (!excludedStyles.contains(styleName)) {
+					String text = p.text().trim();
+					if (StringUtils.isNotBlank(text)) {
+						if (!styles.get(styleName).contains(text)) {
+							styles.add(styleName, text);
+						}
+					}
+				}
+			}
+
+		}
+
+		return styles.getNestedMap();
+	}
+
+	private static List<String> excludedStyles = asList("normal", "nospacing");
+
+	public static Map<String, List<String>> getStylesDocX(InputStream inputStream)
+			throws IOException {
+		KeyListMap<String, String> styles = new KeyListMap<>();
+
+		XWPFDocument wdDoc = new XWPFDocument(inputStream);
+
+		List<XWPFParagraph> paras = wdDoc.getParagraphs();
+		int parasSize = paras.size();
+		int maxPara = 20;
+		if (paras.size() > maxPara) {
+			parasSize = maxPara;
+		}
+
+		for (int i = 0; i < parasSize; i++) {
+			XWPFParagraph para = paras.get(i);
+			String styleName = para.getStyle();
+
+			if (styleName != null) {
+				styleName = styleName.toLowerCase().replace(" ", "");
+				if (!excludedStyles.contains(styleName)) {
+					String text = para.getText().trim();
+					if (StringUtils.isNotBlank(text)) {
+						if (!styles.get(styleName).contains(text)) {
+							styles.add(styleName, text);
+						}
+					}
+				}
+			}
+		}
+		return styles.getNestedMap();
+	}
+
 	AutoDetectParser newAutoDetectParser() {
 		return new AutoDetectParser();
 	}
 
+	public String detectMimetype(StreamFactory<InputStream> inputStreamFactory, String fileName)
+			throws FileParserException {
+
+		InputStream inputStream = null;
+		try {
+			inputStream = inputStreamFactory.create(READ_STREAM_FOR_MIMETYPE_DETECTION);
+			return getTikaMediaType(inputStream, fileName).toString();
+		} catch (IOException e) {
+			throw new FileParserException_CannotParse(e, "application/octet-stream");
+
+		} finally {
+			ioServices.closeQuietly(inputStream);
+		}
+	}
+
+	private MediaType getTikaMediaType(InputStream is, String fileName) {
+		Metadata md = new Metadata();
+		md.set(Metadata.RESOURCE_NAME_KEY, fileName);
+		Detector detector = new DefaultDetector();
+
+		try {
+			return detector.detect(is, md);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

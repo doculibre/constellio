@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.contents;
 
 import java.util.ArrayList;
@@ -23,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
 
 public class ParsedContentConverter {
@@ -38,6 +22,14 @@ public class ParsedContentConverter {
 			String parameterKey = encodeString("" + mapEntry.getKey());
 			String parameterValue = encodeString("" + mapEntry.getValue());
 			stringBuilder.append(parameterKey + "=" + parameterValue + "\n");
+		}
+
+		for (Entry<String, List<String>> mapEntry : parsedContent.getStyles().entrySet()) {
+			for (String value : mapEntry.getValue()) {
+				String parameterKey = "style_" + encodeString("" + mapEntry.getKey());
+				String parameterValue = encodeString("" + value);
+				stringBuilder.append(parameterKey + "=" + parameterValue + "\n");
+			}
 		}
 
 		stringBuilder.append(SEPARATOR);
@@ -56,6 +48,7 @@ public class ParsedContentConverter {
 	public ParsedContent convertToParsedContent(String string) {
 		int separatorIndex = string.indexOf(SEPARATOR);
 
+		KeyListMap<String, String> styles = new KeyListMap<>();
 		Map<String, Object> parameters = new HashMap<>();
 
 		String[] attributeLines = string.substring(0, separatorIndex).split("\n");
@@ -67,14 +60,17 @@ public class ParsedContentConverter {
 			int equalSignIndex = attributeLine.indexOf("=");
 			String key = decodeString(attributeLine.substring(0, equalSignIndex));
 			String value = decodeString(attributeLine.substring(equalSignIndex + 1));
-			if (key.contains("List:")) {
+
+			if (key.startsWith("style_")) {
+				styles.add(key.substring(6), value);
+			} else if (key.contains("List:")) {
 				putStringListInHashMap(parameters, key, value);
 			} else {
 				parameters.put(key, value);
 			}
 		}
 		String parsedContent = decodeString(string.substring(separatorIndex + SEPARATOR.length()));
-		return new ParsedContent(parsedContent, lang, mime, length, parameters);
+		return new ParsedContent(parsedContent, lang, mime, length, parameters, styles.getNestedMap());
 	}
 
 	private void putStringListInHashMap(Map<String, Object> parameters, String key, String value) {

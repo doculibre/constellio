@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.builders.object;
 
 import java.util.EnumSet;
@@ -43,33 +26,36 @@ public class AllowableActionsBuilder {
 		if (record == null) {
 			throw new IllegalArgumentException("File must not be null!");
 		}
-		boolean isFolder = true;
-		//		boolean isRoot = repository.getRoot().equals(file);
+		boolean isRoot = record.getSchemaCode().startsWith("collection_");
 
 		Set<Action> aas = EnumSet.noneOf(Action.class);
+		if (isRoot) {
+			addAction(aas, Action.CAN_GET_PROPERTIES, true);
+			addAction(aas, Action.CAN_GET_CHILDREN, true);
+		} else {
 
-		addAction(aas, Action.CAN_GET_OBJECT_PARENTS, true);
-		addAction(aas, Action.CAN_GET_PROPERTIES, true);
-		addAction(aas, Action.CAN_UPDATE_PROPERTIES, !userReadOnly);
-		addAction(aas, Action.CAN_MOVE_OBJECT, !userReadOnly);
-		addAction(aas, Action.CAN_DELETE_OBJECT, !userReadOnly);
-		addAction(aas, Action.CAN_GET_ACL, true);
+			addAction(aas, Action.CAN_GET_OBJECT_PARENTS, true);
+			addAction(aas, Action.CAN_GET_PROPERTIES, true);
+			addAction(aas, Action.CAN_UPDATE_PROPERTIES, !userReadOnly);
+			addAction(aas, Action.CAN_MOVE_OBJECT, !userReadOnly);
+			addAction(aas, Action.CAN_DELETE_OBJECT, !userReadOnly);
+			addAction(aas, Action.CAN_GET_ACL, true);
 
-		//if (isFolder) {
-		addAction(aas, Action.CAN_GET_DESCENDANTS, true);
-		addAction(aas, Action.CAN_GET_CHILDREN, true);
-		addAction(aas, Action.CAN_GET_FOLDER_PARENT, true);
-		addAction(aas, Action.CAN_GET_FOLDER_TREE, true);
-		addAction(aas, Action.CAN_CREATE_DOCUMENT, !userReadOnly);
-		addAction(aas, Action.CAN_CREATE_FOLDER, !userReadOnly);
-		addAction(aas, Action.CAN_DELETE_TREE, !userReadOnly);
-		//} else {
-		addAction(aas, Action.CAN_GET_CONTENT_STREAM, true);
-		addAction(aas, Action.CAN_SET_CONTENT_STREAM, true);
-		addAction(aas, Action.CAN_DELETE_CONTENT_STREAM, true);
-		addAction(aas, Action.CAN_GET_ALL_VERSIONS, true);
-		//}
-
+			//if (isFolder) {
+			addAction(aas, Action.CAN_GET_DESCENDANTS, true);
+			addAction(aas, Action.CAN_GET_CHILDREN, true);
+			addAction(aas, Action.CAN_GET_FOLDER_PARENT, true);
+			addAction(aas, Action.CAN_GET_FOLDER_TREE, true);
+			addAction(aas, Action.CAN_CREATE_DOCUMENT, !userReadOnly);
+			addAction(aas, Action.CAN_CREATE_FOLDER, !userReadOnly);
+			addAction(aas, Action.CAN_DELETE_TREE, !userReadOnly);
+			//} else {
+			addAction(aas, Action.CAN_GET_CONTENT_STREAM, true);
+			addAction(aas, Action.CAN_SET_CONTENT_STREAM, true);
+			addAction(aas, Action.CAN_DELETE_CONTENT_STREAM, true);
+			addAction(aas, Action.CAN_GET_ALL_VERSIONS, true);
+			//}
+		}
 		AllowableActionsImpl result = new AllowableActionsImpl();
 		result.setAllowableActions(aas);
 

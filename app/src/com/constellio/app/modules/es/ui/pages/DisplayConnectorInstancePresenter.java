@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.ui.pages;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -85,7 +68,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		view.setRecord(recordVO);
 		connectorInstance = esSchemasRecordsServices.getConnectorInstance(recordVO.getId());
 	}
-	
+
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
 		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_CONNECTORS);
@@ -108,24 +91,20 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		view.navigateTo().editConnectorInstances(recordVO.getId());
 	}
 
-	public void deleteConnectorInstanceButtonClicked() {
-		throw new UnsupportedOperationException();
-	}
-
 	public String getTitle() {
 		return $("DisplayConnectorInstanceView.viewTitle") + " " + recordVO.getTitle();
 	}
 
 	String getLastDocuments() {
 		StringBuilder result = new StringBuilder();
-		List<String> titles = new ArrayList<>();
+		List<String> urls = new ArrayList<>();
 		List<ConnectorDocument<?>> documents = esSchemasRecordsServices.getConnectorManager()
 				.getLastFetchedDocuments(connectorInstance.getId(), NUMBER_OF_DOCS);
 		for (ConnectorDocument<?> document : documents) {
-			titles.add(document.getTitle());
+			urls.add(document.getURL());
 		}
-		for (String title : titles) {
-			result.append(title);
+		for (String url : urls) {
+			result.append(url);
 			result.append(System.getProperty("line.separator"));
 		}
 		return result.toString();
@@ -168,18 +147,36 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 	}
 
 	public void editSchemasButtonClicked() {
-		view.navigateTo().editSchemasConnectorInstance(recordVO.getId());
+		view.navigateTo().displayConnectorMappings(recordVO.getId());
 	}
 
 	public void backgroundViewMonitor() {
 		updateDocumentsInfo();
 	}
-	
+
 	private void updateDocumentsInfo() {
 		long fetchedDocumentsCount = getFetchedDocumentsCount();
 		String lastDocuments = getLastDocuments();
 		view.setDocumentsCount(fetchedDocumentsCount);
 		view.setLastDocuments(lastDocuments);
 	}
-	
+
+	public void indexationReportButtonClicked() {
+		try {
+			view.navigateTo().connectorIndexationReport(connectorInstance.getId());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public void errorsReportButtonClicked() {
+		view.navigateTo().connectorErrorsReport(connectorInstance.getId());
+	}
+
+	public void deleteDocumentsButtonClicked() {
+		esSchemasRecordsServices.getConnectorManager()
+				.totallyDeleteConnectorRecordsSkippingValidation(modelLayerFactory.getDataLayerFactory().newRecordDao(),
+						connectorInstance);
+		view.navigateTo().displayConnectorInstance(recordVO.getId());
+	}
 }

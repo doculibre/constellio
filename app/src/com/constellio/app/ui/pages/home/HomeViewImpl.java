@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.home;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -25,12 +8,15 @@ import java.util.Map;
 
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
+import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
+import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
+import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
@@ -38,7 +24,12 @@ import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.schemas.Schemas;
+import com.vaadin.data.Property;
+import com.vaadin.data.util.BeanItem;
+import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -94,7 +85,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
+	protected Component buildMainComponent(ViewChangeEvent event) {		
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName("records-management");
 
@@ -138,6 +129,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		int indexOfSelectedTab = tabSheet.getTabPosition(tab);
 		PageItem tabSource = tabs.get(indexOfSelectedTab);
 		switch (tabSource.getType()) {
+		case RECENT_ITEM_TABLE:
+			return buildRecentItemTable((RecentItemTable) tabSource);
 		case RECORD_TABLE:
 			return buildRecordTable((RecordTable) tabSource);
 		case RECORD_TREE:
@@ -147,9 +140,18 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 	}
 
+	private Component buildRecentItemTable(RecentItemTable recentItems) {
+		RecentTable table = new RecentTable(
+				recentItems.getItems(getConstellioFactories().getModelLayerFactory(), getSessionContext()));
+		table.setSizeFull();
+		table.addStyleName("record-table");
+		return table;
+	}
+
 	private Table buildRecordTable(RecordTable recordTable) {
 		Table table = new RecordVOTable(
 				recordTable.getDataProvider(getConstellioFactories().getModelLayerFactory(), getSessionContext()));
+		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
 			MetadataVO property = (MetadataVO) item;
@@ -211,6 +213,61 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		@Override
 		public void setCompositionRoot(Component compositionRoot) {
 			super.setCompositionRoot(compositionRoot);
+		}
+	}
+
+	private class RecentTable extends Table {
+		public RecentTable(List<RecentItem> recentItems) {
+			setContainerDataSource(new BeanItemContainer<>(RecentItem.class, recentItems));
+
+			addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
+
+			setVisibleColumns(RecentItem.CAPTION, RecentItem.LAST_ACCESS);
+			setColumnHeader(RecentItem.CAPTION, $("HomeView.recentItem.caption"));
+			setColumnHeader(RecentItem.LAST_ACCESS, $("HomeView.recentItem.lastAccess"));
+			setColumnExpandRatio(RecentItem.CAPTION, 1);
+
+			addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					if (event.getButton() == MouseButton.LEFT) {
+						@SuppressWarnings("unchecked")
+						BeanItem<RecentItem> item = (BeanItem<RecentItem>) event.getItem();
+						presenter.recordClicked(item.getBean().getId());
+					}
+				}
+			});
+
+			setCellStyleGenerator(new CellStyleGenerator() {
+				@Override
+				public String getStyle(Table source, Object itemId, Object propertyId) {
+					if (RecentItem.CAPTION.equals(propertyId)) {
+						@SuppressWarnings("unchecked")
+						BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
+						RecordVO recordVO = recordVOItem.getBean().getRecord();
+						try {
+							String extension = FileIconUtils.getExtension(recordVO);
+							if (extension != null) {
+								return "file-icon-" + extension;
+							}
+						} catch (Exception e) {
+							// Ignore the exception
+						}
+					}
+					return null;
+				}
+			});
+		}
+
+		@Override
+		public Property<?> getContainerProperty(Object itemId, Object propertyId) {
+			if (RecentItem.LAST_ACCESS.equals(propertyId)) {
+				RecentItem recentItem = (RecentItem) itemId;
+				String value = new JodaDateTimeToStringConverter()
+						.convertToPresentation(recentItem.getLastAccess(), String.class, getSessionContext().getCurrentLocale());
+				return new ObjectProperty<>(value);
+			}
+			return super.getContainerProperty(itemId, propertyId);
 		}
 	}
 }

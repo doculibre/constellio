@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.search;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
@@ -50,10 +33,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
 
+@SlowTest
 public class FreeTextSearchAcceptTest extends ConstellioTest {
 
 	String englishSearchField = "search_txt_en";
@@ -89,19 +74,14 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		recordServices = getModelLayerFactory().newRecordServices();
-		contentManager = getModelLayerFactory().getContentManager();
-
-		solrServer = ((DataLayerFactory) getDataLayerFactory()).getRecordsVaultServer().getNestedSolrServer();
 	}
 
 	@Test
 	public void givenAMultilingualCollectionAndASinglelingualwithUnsearchableMetadatasThenNotSearchable()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().monitor("00000000005");
-
 		givenFrenchCollectionWithUnSearchableMetadatas();
+		getDataLayerFactory().getDataLayerLogger().monitor("00000000005");
 
 		Content content1 = contentManager.createMinor(aliceInZeCollection, "gandalf.docx", textContent(quote1));
 		Content content2 = contentManager.createMajor(aliceInZeCollection, "darth.docx", textContent(quote2));
@@ -347,7 +327,11 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	private void givenFrenchCollectionWithUnSearchableMetadatas()
 			throws Exception {
 
-		givenCollection(zeCollection, asList("fr"));
+		prepareSystem(withZeCollection());
+		recordServices = getModelLayerFactory().newRecordServices();
+		contentManager = getModelLayerFactory().getContentManager();
+
+		solrServer = ((DataLayerFactory) getDataLayerFactory()).getRecordsVaultServer().getNestedSolrServer();
 		setupUsers();
 		aliceInZeCollection = users.aliceIn(zeCollection);
 
@@ -363,7 +347,11 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	private void givenFrenchCollectionWithSearchableMetadatas()
 			throws Exception {
 
-		givenCollection(zeCollection, asList("fr"));
+		prepareSystem(withZeCollection());
+		recordServices = getModelLayerFactory().newRecordServices();
+		contentManager = getModelLayerFactory().getContentManager();
+
+		solrServer = ((DataLayerFactory) getDataLayerFactory()).getRecordsVaultServer().getNestedSolrServer();
 		setupUsers();
 		aliceInZeCollection = users.aliceIn(zeCollection);
 

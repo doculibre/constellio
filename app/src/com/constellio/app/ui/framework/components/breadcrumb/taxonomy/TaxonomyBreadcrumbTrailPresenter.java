@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.components.breadcrumb.taxonomy;
 
 import java.io.IOException;
@@ -29,8 +12,8 @@ import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.taxonomy.TaxonomyPresentersService;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -38,7 +21,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
-	
+
 	private String collection;
 
 	private String taxonomyCode;
@@ -46,7 +29,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 	private String conceptId;
 
 	private BreadcrumbTrail breadcrumbTrail;
-	
+
 	private transient TaxonomiesManager taxonomiesManager;
 
 	private transient SchemaPresenterUtils taxonomyPresenterUtils;
@@ -55,16 +38,16 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 		this.taxonomyCode = taxonomyCode;
 		this.conceptId = conceptId;
 		this.breadcrumbTrail = breadcrumbTrail;
-		
+
 		collection = breadcrumbTrail.getSessionContext().getCurrentCollection();
-		
+
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
 
 	private void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
-		
+
 		breadcrumbItems.add(new TaxonomyRootBreadcrumbItem());
 
 		String[] pathParts = ((String) taxonomyPresenterUtils.getRecord(conceptId).getList(Schemas.PARENT_PATH).get(0))
@@ -128,12 +111,13 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 		@Override
 		public boolean isEnabled() {
 			boolean enabled;
+			TaxonomyPresentersService taxonomyPresentersService = new TaxonomyPresentersService(
+					breadcrumbTrail.getConstellioFactories().getAppLayerFactory());
 			if (conceptId.equals(TaxonomyBreadcrumbTrailPresenter.this.conceptId)) {
 				enabled = false;
 			} else {
-				Record record = taxonomyPresenterUtils.getRecord(conceptId);
 				User user = taxonomyPresenterUtils.getCurrentUser();
-				enabled = user.hasReadAccess().on(record);
+				enabled = taxonomyPresentersService.canManage(taxonomyCode, user);
 			}
 			return enabled;
 		}

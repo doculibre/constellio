@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.batchprocess;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -41,8 +24,11 @@ public class BatchProcess {
 
 	private final String collection;
 
+	private final String query;
+
 	public BatchProcess(String id, BatchProcessStatus status, LocalDateTime requestDateTime, LocalDateTime startDateTime,
-			int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action, String collection) {
+			int handleRecordsCount, int totalRecordsCount, int errors, BatchProcessAction action, String collection,
+			String query) {
 		super();
 		this.id = id;
 		this.status = status;
@@ -53,6 +39,11 @@ public class BatchProcess {
 		this.errors = errors;
 		this.action = action;
 		this.collection = collection;
+		this.query = query;
+	}
+
+	public String getQuery() {
+		return query;
 	}
 
 	public String getId() {
@@ -101,4 +92,8 @@ public class BatchProcess {
 		return EqualsBuilder.reflectionEquals(this, obj, "action");
 	}
 
+	public BatchProcess withQuery(String query) {
+		return new BatchProcess(id, status, requestDateTime, startDateTime, handledRecordsCount, totalRecordsCount, errors,
+				action, collection, query);
+	}
 }

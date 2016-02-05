@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.migrations;
 
 import java.util.Comparator;
@@ -31,25 +14,44 @@ public class VersionsComparator implements Comparator<String> {
 
 	@Override
 	public int compare(String versionOne, String versionTwo) {
+		String[] version1VersionAndSubVersion = versionOne.split("-");
+		String[] version2VersionAndSubVersion = versionTwo.split("-");
 
-		String[] versionsOne = split(versionOne);
-		String[] versionsTwo = split(versionTwo);
+		String[] versionsOneWithoutSubVersion = split(version1VersionAndSubVersion[0]);
+		String[] versionsTwoWithoutSubVersion = split(version2VersionAndSubVersion[0]);
 
-		for (int i = 0; i < Math.min(versionsOne.length, versionsTwo.length); i++) {
-			if (Integer.parseInt(versionsOne[i]) > Integer.parseInt(versionsTwo[i])) {
+		for (int i = 0; i < Math.min(versionsOneWithoutSubVersion.length, versionsTwoWithoutSubVersion.length); i++) {
+			if (Integer.parseInt(versionsOneWithoutSubVersion[i]) > Integer.parseInt(versionsTwoWithoutSubVersion[i])) {
 				return 1;
-			} else if (Integer.parseInt(versionsOne[i]) < Integer.parseInt(versionsTwo[i])) {
+			} else if (Integer.parseInt(versionsOneWithoutSubVersion[i]) < Integer.parseInt(versionsTwoWithoutSubVersion[i])) {
 				return -1;
 			}
 		}
 
-		if (versionsOne.length > versionsTwo.length) {
+		if (versionsOneWithoutSubVersion.length > versionsTwoWithoutSubVersion.length) {
 			return 1;
 		} else if (versionOne.length() < versionTwo.length()) {
 			return -1;
 		}
-		return 0;
 
+		String subVersion1 = "", subVersion2 = "";
+		if (version1VersionAndSubVersion.length > 1) {
+			subVersion1 = version1VersionAndSubVersion[1];
+		}
+		if (version2VersionAndSubVersion.length > 1) {
+			subVersion2 = version2VersionAndSubVersion[1];
+			if (subVersion1.isEmpty()) {
+				return -1;
+			} else {
+				return Integer.valueOf(subVersion1).compareTo(Integer.valueOf(subVersion2));
+			}
+		} else {
+			if (subVersion1.isEmpty()) {
+				return 0;
+			} else {
+				return 1;
+			}
+		}
 	}
 
 	private String[] split(String version) {

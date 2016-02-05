@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import static java.util.Arrays.asList;
@@ -35,10 +18,13 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction;
+import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
@@ -48,8 +34,9 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 	BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions();
 	@Mock RecordServices recordServices;
 	@Mock ThreadList<Thread> zeThreadList;
-	@Mock Record aRecord, theRecordThrowingAnException, theNextRecord, aReferencedRecord, anotherReferencedRecord, aThirdReferencedRecord;
-
+	@Mock Record aRecord, aCachedRecord, theRecordThrowingAnException, theNextRecord, aReferencedRecord, anotherReferencedRecord, aThirdReferencedRecord;
+	@Mock RecordsCaches recordsCaches;
+	@Mock RecordsCache zeCollectionRecordsCache;
 	BulkRecordTransactionHandler handler;
 
 	@Before
@@ -57,11 +44,33 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		when(aRecord.getId()).thenReturn("aRecord");
+		when(aCachedRecord.getId()).thenReturn("aCachedRecord");
 		when(theRecordThrowingAnException.getId()).thenReturn("theRecordThrowingAnException");
 		when(theNextRecord.getId()).thenReturn("theNextRecord");
 		when(aReferencedRecord.getId()).thenReturn("aReferencedRecord");
 		when(anotherReferencedRecord.getId()).thenReturn("anotherReferencedRecord");
 		when(aThirdReferencedRecord.getId()).thenReturn("aThirdReferencedRecord");
+
+		when(aRecord.getSchemaCode()).thenReturn("zeSchema_default");
+		when(aCachedRecord.getSchemaCode()).thenReturn("cachedSchema_default");
+		when(theRecordThrowingAnException.getSchemaCode()).thenReturn("zeSchema_default");
+		when(theNextRecord.getSchemaCode()).thenReturn("zeSchema_default");
+		when(aReferencedRecord.getSchemaCode()).thenReturn("zeSchema_default");
+		when(anotherReferencedRecord.getSchemaCode()).thenReturn("zeSchema_default");
+		when(aThirdReferencedRecord.getSchemaCode()).thenReturn("zeSchema_default");
+
+		when(aRecord.getCollection()).thenReturn(zeCollection);
+		when(aCachedRecord.getCollection()).thenReturn(zeCollection);
+		when(theRecordThrowingAnException.getCollection()).thenReturn(zeCollection);
+		when(theNextRecord.getCollection()).thenReturn(zeCollection);
+		when(aReferencedRecord.getCollection()).thenReturn(zeCollection);
+		when(anotherReferencedRecord.getCollection()).thenReturn(zeCollection);
+		when(aThirdReferencedRecord.getCollection()).thenReturn(zeCollection);
+
+		when(recordServices.getRecordsCaches()).thenReturn(recordsCaches);
+		when(recordsCaches.getCache(zeCollection)).thenReturn(zeCollectionRecordsCache);
+		when(zeCollectionRecordsCache.isConfigured("zeSchema")).thenReturn(false);
+		when(zeCollectionRecordsCache.isConfigured("cachedSchema")).thenReturn(true);
 
 		options = options.withNumberOfThreads(2).withQueueSize(6).withRecordsPerBatch(1);
 
@@ -94,24 +103,75 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 
 		verify(recordServices, times(2)).execute(transactionArgumentCaptor.capture());
 
-		Transaction firstTransaction = transactionArgumentCaptor.getAllValues().get(0);
-		Transaction secondTransaction = transactionArgumentCaptor.getAllValues().get(1);
+		Transaction transactionWithARecord = null;
+		Transaction transactionWithTheNextRecord = null;
 
-		Transaction transactionWithARecord, transactionWithTheNextRecord;
-		if (firstTransaction.getRecords().contains(aRecord)) {
-			transactionWithARecord = firstTransaction;
-			transactionWithTheNextRecord = secondTransaction;
-
-		} else {
-			transactionWithARecord = secondTransaction;
-			transactionWithTheNextRecord = firstTransaction;
+		for (Transaction capturedTransaction : transactionArgumentCaptor.getAllValues()) {
+			if (capturedTransaction.getRecords().contains(aRecord)) {
+				transactionWithARecord = capturedTransaction;
+			} else {
+				transactionWithTheNextRecord = capturedTransaction;
+			}
 		}
 
 		assertThat(transactionWithARecord.getRecords()).containsOnly(aRecord);
 		assertThat(transactionWithARecord.getReferencedRecords()).hasSize(1).containsValue(aReferencedRecord);
+		assertThat(transactionWithARecord.getRecordUpdateOptions().getRecordsFlushing())
+				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
+
 		assertThat(transactionWithTheNextRecord.getRecords()).containsOnly(theRecordThrowingAnException);
 		assertThat(transactionWithTheNextRecord.getReferencedRecords()).hasSize(2).containsValue(anotherReferencedRecord)
 				.containsValue(aThirdReferencedRecord);
+		assertThat(transactionWithTheNextRecord.getRecordUpdateOptions().getRecordsFlushing())
+				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
+
+	}
+
+	@Test
+	public void givenARecordIsCachedThenFlushingNow()
+			throws Exception {
+
+		ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
+
+		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
+				.when(recordServices).execute(any(Transaction.class));
+
+		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
+
+		handler.append(asList(aRecord), asList(aReferencedRecord));
+		handler.append(asList(aCachedRecord), asList(aReferencedRecord));
+
+		triggerAnExceptionInAThread();
+		Thread.sleep(100);
+
+		try {
+			handler.closeAndJoin();
+			fail("Exception expected");
+		} catch (BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction e) {
+			//OK
+		}
+
+		verify(recordServices, times(2)).execute(transactionArgumentCaptor.capture());
+
+		Transaction transactionWithARecord = null;
+		Transaction transactionWithACachedRecord = null;
+
+		for (Transaction capturedTransaction : transactionArgumentCaptor.getAllValues()) {
+			if (capturedTransaction.getRecords().contains(aRecord)) {
+				transactionWithARecord = capturedTransaction;
+			} else if (capturedTransaction.getRecords().contains(aCachedRecord)) {
+				transactionWithACachedRecord = capturedTransaction;
+			}
+		}
+
+		assertThat(transactionWithARecord.getRecords()).containsOnly(aRecord);
+		assertThat(transactionWithARecord.getReferencedRecords()).hasSize(1).containsValue(aReferencedRecord);
+		assertThat(transactionWithARecord.getRecordUpdateOptions().getRecordsFlushing())
+				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
+
+		assertThat(transactionWithACachedRecord.getRecords()).containsOnly(aCachedRecord);
+		assertThat(transactionWithACachedRecord.getReferencedRecords()).hasSize(1).containsValue(aReferencedRecord);
+		assertThat(transactionWithACachedRecord.getRecordUpdateOptions().getRecordsFlushing()).isEqualTo(RecordsFlushing.NOW);
 
 	}
 

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.acceptation;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -97,7 +80,8 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	private void givenEnglishSystem() {
 		givenSystemLanguageIs("en");
 		givenTransactionLogIsEnabled();
-		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withConstellioRMModule().withAllTestUsers().withConstellioESModule();
+		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withConstellioRMModule().withAllTestUsers()
+				.withConstellioESModule().withRobotsModule();
 		i18n.setLocale(Locale.ENGLISH);
 		locale = Locale.ENGLISH;
 	}
@@ -105,7 +89,8 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	private void givenFrenchSystem() {
 		givenSystemLanguageIs("fr");
 		givenTransactionLogIsEnabled();
-		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test").withConstellioRMModule().withAllTestUsers().withConstellioESModule();
+		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test").withConstellioRMModule().withAllTestUsers()
+				.withConstellioESModule().withRobotsModule();
 		i18n.setLocale(Locale.FRENCH);
 		locale = Locale.FRENCH;
 	}

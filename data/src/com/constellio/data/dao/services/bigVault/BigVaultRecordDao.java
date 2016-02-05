@@ -1,26 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.bigVault;
 
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_DATE_TIME;
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_ITEM_LOCALDATE;
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_ITEM_LOCAL_DATE_TIME;
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_STRING;
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertLocalDateTimeToSolrDate;
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertLocalDateToSolrDate;
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertNullToSolrValue;
@@ -34,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +34,9 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -215,7 +199,11 @@ public class BigVaultRecordDao implements RecordDao {
 			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts,
 			KeyListMap<String, String> recordsAncestors, RecordDeltaDTO modifiedRecord) {
 		if (!modifiedRecord.getModifiedFields().isEmpty()) {
-			updatedDocuments.add(buildDeltaSolrDocument(modifiedRecord));
+			SolrInputDocument solrInputDocument = buildDeltaSolrDocument(modifiedRecord);
+			if (transaction.isFullRewrite()) {
+				solrInputDocument.removeField("_version_");
+			}
+			updatedDocuments.add(solrInputDocument);
 			deleteIndexForLogicallyDeletedRecord(deletedRecordsIds, modifiedRecord);
 			addActiveIndexesForRestoredRecord(newDocuments, modifiedRecord);
 			if (modifiedRecord.getModifiedFields().containsKey("parentpath_ss")) {
@@ -234,7 +222,12 @@ public class BigVaultRecordDao implements RecordDao {
 			Map<String, Double> recordsOutOfTransactionRefCounts, KeyListMap<String, String> recordsAncestors,
 			Map<Object, SolrInputDocument> activeReferencesCheck, RecordDTO newRecord) {
 		Object collection = getCollection(newRecord);
-		newDocuments.add(buildSolrDocument(newRecord));
+
+		SolrInputDocument solrInputDocument = buildSolrDocument(newRecord);
+		if (transaction.isFullRewrite()) {
+			solrInputDocument.removeField("_version_");
+		}
+		newDocuments.add(solrInputDocument);
 		if (isNotLogicallyDeleted(newRecord) && supportIndexes(newRecord)) {
 			newDocuments.add(buildActiveIndexSolrDocument(newRecord.getId(), collection));
 		}
@@ -400,7 +393,9 @@ public class BigVaultRecordDao implements RecordDao {
 		List<String> parentPaths = (List) newRecord.getFields().get("parentpath_ss");
 		if (parentPaths != null) {
 			for (String parentPath : parentPaths) {
-				addParentPathToRecordsAncestors(newRecord.getId(), recordsAncestors, parentPath);
+				if (parentPath != null) {
+					addParentPathToRecordsAncestors(newRecord.getId(), recordsAncestors, parentPath);
+				}
 			}
 		}
 		return recordsAncestors;
@@ -497,6 +492,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 		for (Map.Entry<String, Object> field : newRecord.getFields().entrySet()) {
 			Object refId = field.getValue();
+
 			if (field.getKey().endsWith("Id_s") && field.getValue() != null && !activeReferencesCheck.containsKey(refId)
 					&& !referencedIdIsNewRecordInTransaction(refId, transaction)) {
 				activeReferencesCheck.put(refId, setVersion1ToDocument((String) field.getValue(), collection));
@@ -509,8 +505,8 @@ public class BigVaultRecordDao implements RecordDao {
 	private void verifyIndexForReferencesInMultivalueField(TransactionDTO transaction,
 			Object collection, Entry<String, Object> field, Map<Object, SolrInputDocument> activeReferencesCheck) {
 		for (Object referenceId : (List) field.getValue()) {
-			if (!activeReferencesCheck.containsKey(referenceId) && !referencedIdIsNewRecordInTransaction(referenceId,
-					transaction)) {
+			if (!activeReferencesCheck.containsKey(referenceId)
+					&& !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
 				activeReferencesCheck.put(referenceId, setVersion1ToDocument((String) referenceId, collection));
 			}
 		}
@@ -649,7 +645,7 @@ public class BigVaultRecordDao implements RecordDao {
 				}
 			} else if (field.getKey().endsWith("Id_ss") && field.getValue() != null) {
 				verifyIndexForNewReferencesInMultivalueField(modifiedRecord, referencedIndexes, field,
-						recordsInTransactionRefCounts);
+						recordsInTransactionRefCounts, transaction);
 			}
 		}
 		return referencedIndexes;
@@ -712,21 +708,25 @@ public class BigVaultRecordDao implements RecordDao {
 
 	private void verifyIndexForNewReferencesInMultivalueField(RecordDeltaDTO modifiedRecord,
 			List<SolrInputDocument> referencedIndexes, Entry<String, Object> field,
-			Map<String, Double> recordsInTransactionRefCounts) {
+			Map<String, Double> recordsInTransactionRefCounts, TransactionDTO transaction) {
 		Object collection = modifiedRecord.getInitialFields().get(COLLECTION_FIELD);
-		LangUtils utils = new LangUtils();
-		if (modifiedRecord.getInitialFields().get(field.getKey()) != null) {
+		Object initialValue = modifiedRecord.getInitialFields().get(field.getKey());
+		if (initialValue != null) {
 			List newReferences = LangUtils
 					.compare((List) modifiedRecord.getInitialFields().get(field.getKey()), (List) field.getValue())
 					.getNewItems();
 			for (Object referenceId : newReferences) {
 				if (!recordsInTransactionRefCounts.containsKey(referenceId)) {
-					referencedIndexes.add(setVersion1ToDocument((String) referenceId, collection));
+					if (referenceId != null && !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
+						referencedIndexes.add(setVersion1ToDocument((String) referenceId, collection));
+					}
 				}
 			}
 		} else {
 			for (Object referenceId : (List) field.getValue()) {
-				referencedIndexes.add(setVersion1ToDocument((String) referenceId, collection));
+				if (referenceId != null && !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
+					referencedIndexes.add(setVersion1ToDocument((String) referenceId, collection));
+				}
 			}
 		}
 	}
@@ -807,9 +807,19 @@ public class BigVaultRecordDao implements RecordDao {
 			spellcheckerSuggestions = spellcheckerSuggestions(spellCheckResponse);
 		}
 
+		Map<RecordDTO, Map<RecordDTO, Double>> resultWithMoreLikeThis = new LinkedHashMap<>();
+		if (params.get(MoreLikeThisParams.MLT) != null
+				&& Boolean.parseBoolean(params.get(MoreLikeThisParams.MLT))) {
+			try {
+				resultWithMoreLikeThis = extractMoreLikeThis(response, params.get(MoreLikeThisParams.SIMILARITY_FIELDS));
+			} catch (SolrServerException | IOException e) {
+				throw new BigVaultRuntimeException.CannotListDocuments(e);
+			}
+		}
+
 		return new QueryResponseDTO(documents, response.getQTime(), response.getResults().getNumFound(), fieldFacetValues,
 				fieldsStatistics,
-				facetQueries, highlights, correctlySpelt, spellcheckerSuggestions);
+				facetQueries, highlights, correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
 	}
 
 	private Map<String, Map<String, Object>> getFieldsStats(QueryResponse response) {
@@ -829,6 +839,33 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 
 		return fieldsStats;
+	}
+
+	private Map<RecordDTO, Map<RecordDTO, Double>> extractMoreLikeThis(QueryResponse response, String moreLikeThisFields)
+			throws SolrServerException, IOException {
+		Map<RecordDTO, Map<RecordDTO, Double>> moreLikeThisRes = new LinkedHashMap<>();
+
+		NamedList<?> moreLikeThis = (NamedList<?>) response.getResponse().get("moreLikeThis");
+		if (moreLikeThis != null) {
+			for (int i = 0; i < moreLikeThis.size(); i++) {
+				@SuppressWarnings("unchecked")
+				List<SolrDocument> results = (List<SolrDocument>) moreLikeThis.getVal(i);
+				SolrDocument aSolrDocument = response.getResults().get(i);
+				JaccardDocumentSorter sorter = new JaccardDocumentSorter(bigVaultServer.getNestedSolrServer(), aSolrDocument,
+						moreLikeThisFields, "id");
+				List<SolrDocument> sortedResults = sorter.sort(results);
+				Map<RecordDTO, Double> docMoreLikeThisRes = new LinkedHashMap<>();
+				for (SolrDocument aSimilarDoc : sortedResults) {
+					Double score = (Double) aSimilarDoc.get(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
+					aSimilarDoc.remove(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
+					RecordDTO entity = toEntity(aSimilarDoc);
+					docMoreLikeThisRes.put(entity, score);
+				}
+
+				moreLikeThisRes.put(toEntity(aSolrDocument), docMoreLikeThisRes);
+			}
+		}
+		return moreLikeThisRes;
 	}
 
 	private List<String> spellcheckerSuggestions(SpellCheckResponse spellCheckResponse) {
@@ -899,7 +936,7 @@ public class BigVaultRecordDao implements RecordDao {
 		SolrInputDocument document = new ConstellioSolrInputDocument();
 		document.addField(ID_FIELD, ACTIVE_IDX_PREFIX + recordId);
 		document.addField(TYPE_FIELD, "index");
-		document.addField(COLLECTION_FIELD, collection == null ? NULL_STRING : collection);
+		document.addField(COLLECTION_FIELD, collection == null ? null : collection);
 		return document;
 	}
 
@@ -910,7 +947,7 @@ public class BigVaultRecordDao implements RecordDao {
 		document.addField(ID_FIELD, indexId);
 		document.addField(TYPE_FIELD, "index");
 		document.addField(REFCOUNT_FIELD, value);
-		document.addField(COLLECTION_FIELD, collection == null ? NULL_STRING : collection);
+		document.addField(COLLECTION_FIELD, collection == null ? null : collection);
 		document.addField(ANCESTORS_FIELD, ancestors);
 		return document;
 	}
@@ -970,6 +1007,9 @@ public class BigVaultRecordDao implements RecordDao {
 				if (!localDateTimes.isEmpty()) {
 					List<String> dates = new ArrayList<>();
 					for (LocalDateTime localDateTime : localDateTimes) {
+						if (localDateTime == null) {
+							localDateTime = SolrUtils.NULL_ITEM_LOCAL_DATE_TIME;
+						}
 						dates.add(convertLocalDateTimeToSolrDate(localDateTime));
 					}
 					convertedFieldValue = dates;
@@ -984,6 +1024,9 @@ public class BigVaultRecordDao implements RecordDao {
 				if (!localDates.isEmpty()) {
 					List<String> dates = new ArrayList<>();
 					for (LocalDate localDate : localDates) {
+						if (localDate == null) {
+							localDate = SolrUtils.NULL_ITEM_LOCALDATE;
+						}
 						dates.add(convertLocalDateToSolrDate(localDate));
 					}
 					convertedFieldValue = dates;
@@ -1000,9 +1043,10 @@ public class BigVaultRecordDao implements RecordDao {
 					} else {
 						List convertedFieldValueList = new ArrayList<>();
 						for (Object fieldValueAsListItem : fieldValueAsList) {
-							if (fieldValueAsListItem != null) {
-								convertedFieldValueList.add(fieldValueAsListItem);
+							if (fieldValueAsListItem == null) {
+								fieldValueAsListItem = SolrUtils.NULL_STRING;
 							}
+							convertedFieldValueList.add(fieldValueAsListItem);
 						}
 						if (convertedFieldValueList.isEmpty()) {
 							convertedFieldValue = convertNullToSolrValue(fieldName);
@@ -1054,7 +1098,9 @@ public class BigVaultRecordDao implements RecordDao {
 		for (String fieldName : solrDocument.getFieldNames()) {
 			if (!fieldName.equals("sys_s") && !containsTwoUnderscoresAndIsNotVersionField(fieldName)) {
 				Object value = convertSolrValueToBigVaultValue(fieldName, solrDocument.getFieldValue(fieldName));
-				fieldValues.put(fieldName, value);
+				if (value != null) {
+					fieldValues.put(fieldName, value);
+				}
 			}
 		}
 		return new RecordDTO(id, version, fields, fieldValues);
@@ -1086,12 +1132,18 @@ public class BigVaultRecordDao implements RecordDao {
 				convertedValue = true;
 			} else if ("__FALSE__".equals(fieldValue)) {
 				convertedValue = false;
+			} else if ("__NULL__".equals(fieldValue)) {
+				convertedValue = null;
 			}
 			if (fieldName.endsWith("_t") && fieldValue instanceof List) {
 				convertedValue = ((List) fieldValue).get(0);
+				if ("__NULL__".equals(convertedValue)) {
+					convertedValue = null;
+				}
 			}
 		} else if (fieldName.endsWith("_dts") && fieldValue instanceof List) {
 			List<LocalDateTime> localDateTimes = new ArrayList<LocalDateTime>();
+			boolean hasNonNullValues = false;
 			List<Date> dates = ((List<Date>) fieldValue);
 			for (Date date : dates) {
 				LocalDateTime localDateTime = convertSolrDateToLocalDateTime(date);
@@ -1099,25 +1151,30 @@ public class BigVaultRecordDao implements RecordDao {
 				if (localDateTime != null) {
 					if (localDateTime.equals(NULL_ITEM_LOCAL_DATE_TIME)) {
 						localDateTime = null;
+					} else {
+						hasNonNullValues = true;
 					}
 					localDateTimes.add(localDateTime);
 				}
 			}
-			convertedValue = localDateTimes;
+			convertedValue = hasNonNullValues ? localDateTimes : null;
 
 		} else if (fieldName.endsWith("_das") && fieldValue instanceof List) {
 			List<LocalDate> localDates = new ArrayList<LocalDate>();
 			List<Date> dates = ((List<Date>) fieldValue);
+			boolean hasNonNullValues = false;
 			for (Date date : dates) {
 				LocalDate localDate = convertSolrDateToLocalDate(date);
 				if (localDate != null) {
 					if (localDate.equals(NULL_ITEM_LOCALDATE)) {
 						localDate = null;
+					} else {
+						hasNonNullValues = true;
 					}
 					localDates.add(localDate);
 				}
 			}
-			convertedValue = localDates;
+			convertedValue = hasNonNullValues ? localDates : null;
 
 		} else if (isMultiValueStringOrText(fieldName) && fieldValue instanceof List) {
 			convertedValue = convertMultivalueBooleanSolrValuesToBooleans(fieldValue);
@@ -1141,18 +1198,34 @@ public class BigVaultRecordDao implements RecordDao {
 	private List convertMultivalueBooleanSolrValuesToBooleans(Object fieldValue) {
 		List<String> strings = (List) fieldValue;
 		List<Boolean> booleans = new ArrayList<Boolean>();
-		for (String aString : strings) {
+		boolean hasBooleanValues = false;
+		boolean hasNonNullValues = false;
+		for (int i = 0; i < strings.size(); i++) {
+			String aString = strings.get(i);
 			if ("__TRUE__".equals(aString)) {
 				booleans.add(Boolean.TRUE);
+				hasBooleanValues = true;
+				hasNonNullValues = true;
 			} else if ("__FALSE__".equals(aString)) {
 				booleans.add(Boolean.FALSE);
+				hasBooleanValues = true;
+				hasNonNullValues = true;
+			} else if (SolrUtils.NULL_STRING.equals(aString)) {
+				strings.set(i, null);
+				booleans.add(null);
+			} else {
+				hasNonNullValues = true;
 			}
 		}
-		return booleans.isEmpty() ? strings : booleans;
+		if (hasNonNullValues) {
+			return hasBooleanValues ? booleans : strings;
+		} else {
+			return null;
+		}
 	}
 
 	private Double convertNumber(Object fieldValue) {
-		if (fieldValue == null || fieldValue.equals((double) Integer.MIN_VALUE)) {
+		if (fieldValue == null || fieldValue.equals((double) Integer.MIN_VALUE) || fieldValue.equals(Integer.MIN_VALUE)) {
 			return null;
 		} else {
 			return ((Number) fieldValue).doubleValue();
@@ -1161,21 +1234,29 @@ public class BigVaultRecordDao implements RecordDao {
 
 	private boolean isSolrNullValue(Object fieldValue) {
 
-		if (NULL_STRING.equals(fieldValue)) {
-			return true;
-		} else if (NULL_DATE_TIME.equals(fieldValue) || NULL_DATE.equals(fieldValue)) {
-			return true;
-		} else if (NULL_NUMBER.equals(fieldValue)) {
+		if (fieldValue == null) {
 			return true;
 		} else if (fieldValue instanceof List) {
-			List list = (List) fieldValue;
-			if (list.contains(NULL_STRING) || list.contains(NULL_DATE_TIME) || list.contains(NULL_NUMBER) || list
-					.contains(NULL_DATE)) {
-				return true;
-			}
+			return ((List) fieldValue).isEmpty();
+		} else {
+			return false;
 		}
 
-		return false;
+		//
+		//		if (NULL_STRING.equals(fieldValue)) {
+		//			return true;
+		//		} else if (NULL_DATE_TIME.equals(fieldValue) || NULL_DATE.equals(fieldValue)) {
+		//			return true;
+		//		} else if (NULL_NUMBER.equals(fieldValue)) {
+		//			return true;
+		//		} else if (fieldValue instanceof List) {
+		//			List list = (List) fieldValue;
+		//			if (list.contains(NULL_STRING) || list.contains(NULL_DATE_TIME) || list.contains(NULL_NUMBER) || list
+		//					.contains(NULL_DATE)) {
+		//				return true;
+		//			}
+		//		}
+
 	}
 
 	private SolrInputDocument buildDeltaSolrDocument(RecordDeltaDTO deltaDTO) {
@@ -1187,7 +1268,6 @@ public class BigVaultRecordDao implements RecordDao {
 			Object solrValue = convertBigVaultValueToSolrValue(modifiedField.getKey(), modifiedField.getValue());
 			atomicUpdate.addField(modifiedField.getKey(), LangUtils.newMapWithEntry("set", solrValue));
 		}
-
 		for (Map.Entry<String, Object> field : deltaDTO.getCopyfields().entrySet()) {
 			Object solrValue = convertBigVaultValueToSolrValue(field.getKey(), field.getValue());
 			atomicUpdate.addField(field.getKey(), LangUtils.newMapWithEntry("set", solrValue));
@@ -1216,6 +1296,11 @@ public class BigVaultRecordDao implements RecordDao {
 
 	public BigVaultServer getBigVaultServer() {
 		return bigVaultServer;
+	}
+
+	@Override
+	public void expungeDeletes() {
+		bigVaultServer.expungeDeletes();
 	}
 
 }

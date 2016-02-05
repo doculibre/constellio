@@ -1,26 +1,14 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.entities;
 
+import static com.constellio.model.entities.configs.SystemConfigurationType.BINARY;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+
+import org.apache.commons.io.FileUtils;
 
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.data.io.streamFactories.StreamFactory;
@@ -32,6 +20,7 @@ public class SystemConfigurationVO implements Serializable {
 	SystemConfigurationType type;
 	Class<? extends Enum<?>> values;
 	private boolean updated;
+	private String tmpFilePath;
 
 	public SystemConfigurationVO(String code, Object value,
 			SystemConfigurationType type, Class<? extends Enum<?>> values) {
@@ -82,7 +71,7 @@ public class SystemConfigurationVO implements Serializable {
 				value = Boolean.valueOf(stringValue.toString());
 				break;
 			case INTEGER:
-				value = Integer.valueOf(stringValue.toString());
+				value = Integer.valueOf(stringValue.toString().replace(" ", ""));
 				break;
 			case STRING:
 				value = stringValue;
@@ -96,21 +85,24 @@ public class SystemConfigurationVO implements Serializable {
 				}
 				break;
 			case BINARY:
-				//FIXME
 				final TempFileUpload tmpFile = (TempFileUpload) stringValue;
 				StreamFactory<InputStream> streamFactory = new StreamFactory<InputStream>() {
 					@Override
-					public InputStream create(String name) throws IOException {
+					public InputStream create(String name)
+							throws IOException {
 						return new FileInputStream(tmpFile.getTempFile().getPath());
 					}
-
 				};
+				tmpFilePath = tmpFile.getTempFile().getPath();
 				value = streamFactory;
+
 				break;
-			default: throw new RuntimeException("Unsupported type " + type);
+			default:
+				throw new RuntimeException("Unsupported type " + type);
 			}
 		}
 		setValue(value);
+
 		setUpdated(true);
 	}
 
@@ -120,5 +112,11 @@ public class SystemConfigurationVO implements Serializable {
 
 	void setUpdated(Boolean updated) {
 		this.updated = updated;
+	}
+
+	public void afterSetValue() {
+		if (type.equals(BINARY) && tmpFilePath != null) {
+			FileUtils.deleteQuietly(new File(tmpFilePath));
+		}
 	}
 }

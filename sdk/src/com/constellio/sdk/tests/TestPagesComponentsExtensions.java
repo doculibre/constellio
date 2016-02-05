@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import java.io.PrintWriter;
@@ -33,16 +16,15 @@ import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.extensions.PagesComponentsExtensions;
+import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.extensions.BigVaultServerExtension;
-import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.LoggerUtils;
 import com.constellio.sdk.tests.SystemLoadSimulator.SystemLoadLevel;
-import com.vaadin.ui.Component;
 
-public class TestPagesComponentsExtensions extends PagesComponentsExtensions {
+public class TestPagesComponentsExtensions extends PagesComponentsExtension {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(TestPagesComponentsExtensions.class);
 
@@ -54,25 +36,12 @@ public class TestPagesComponentsExtensions extends PagesComponentsExtensions {
 		this.appLayerFactory = appLayerFactory;
 		this.bottomPanelBigVaultServerExtension = new BottomPanelBigVaultServerExtension();
 		this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().getExtensions()
-				.getSystemWideExtensions().bigVaultServerExtension.add(this.bottomPanelBigVaultServerExtension);
+				.getSystemWideExtensions().getBigVaultServerExtension().add(this.bottomPanelBigVaultServerExtension);
 	}
 
 	@Override
-	public Factory<Component> getFooterComponentFactory() {
-		return null;
-	}
-
-	@Override
-	public Factory<Component> getLicenseComponentFactory() {
-		return new LicenseComponentFactory();
-	}
-
-	private class LicenseComponentFactory implements Factory<Component> {
-
-		@Override
-		public Component get() {
-			return new SDKPanel();
-		}
+	public void decorateView(PagesComponentsExtensionParams params) {
+		params.getFooter().addComponent(new SDKPanel());
 	}
 
 	public static class BottomPanelBigVaultServerExtension extends BigVaultServerExtension {
@@ -274,12 +243,14 @@ public class TestPagesComponentsExtensions extends PagesComponentsExtensions {
 			}
 
 			List<String> newFQs = new ArrayList<>();
-			for (String fq : clone.getParams("fq")) {
-				if (!fq.equals("-type_s:index") && !fq.startsWith("collection_s:")) {
-					newFQs.add(fq);
+			if (clone.getParams("fq") != null) {
+				for (String fq : clone.getParams("fq")) {
+					if (!fq.equals("-type_s:index") && !fq.startsWith("collection_s:")) {
+						newFQs.add(fq);
+					}
 				}
+				clone.set("fq", newFQs.toArray(new String[0]));
 			}
-			clone.set("fq", newFQs.toArray(new String[0]));
 
 			return clone;
 		}

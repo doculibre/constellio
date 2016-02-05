@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.acceptation.components;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -112,7 +95,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 	public void givenRequiredStringMetadataWhenSubmittedWithEmptyValueThenValidationFailAndSaveNeverCalledOnPresenter()
 			throws Exception {
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, REQUIRED, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -130,7 +113,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -146,7 +129,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -166,7 +149,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		doThrow(runtimeException).when(presenter).saveButtonClick(any(RecordVO.class));
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -209,10 +192,10 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		MetadataVO metadata2 = new MetadataVO("metadata2", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 
@@ -252,10 +235,10 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, false);
 		MetadataVO metadata2 = new MetadataVO("metadata2", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
-				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null);
+				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, false);
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 

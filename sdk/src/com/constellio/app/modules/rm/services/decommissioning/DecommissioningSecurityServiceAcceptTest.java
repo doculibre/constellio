@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.sdk.tests.TestUtils.comparingRecordWrapperIds;
@@ -48,7 +31,7 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 	RecordServices recordServices;
 	RMSchemasRecordsServices rm;
 	DecommissioningSecurityService service;
-	DecomissioningListQueryFactory queryFactory;
+	DecommissioningListQueryFactory queryFactory;
 
 	User sasquatch, robin, bob;
 	DecommissioningList alistIn10A, anotherListIn10A, aListIn20D, anotherListIn20D, aProcessedListIn10A, anotherProcessedListIn10A, listIn10ASentForValidation, anotherListIn10ASentForValidation;
@@ -62,7 +45,7 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		service = new DecommissioningSecurityService(zeCollection, getModelLayerFactory());
-		queryFactory = new DecomissioningListQueryFactory(zeCollection, getModelLayerFactory());
+		queryFactory = new DecommissioningListQueryFactory(zeCollection, getModelLayerFactory());
 
 		refresh();
 	}
@@ -78,7 +61,7 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 	@Test
 	public void givenUsersHasGlobalDecommissioningPermissionsThenCanDoAnything()
 			throws Exception {
-		recordServices.update(sasquatch.setUserRoles(asList(RMRoles.MANAGER)));
+		recordServices.update(sasquatch.setUserRoles(asList(RMRoles.RGD)));
 		refresh();
 
 		assertThat(service.canCreateLists(sasquatch)).isTrue();
@@ -89,7 +72,9 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 		assertThat(service.getVisibleTabsInDecommissioningMainPage(sasquatch)).containsOnly(
 				DecommissioningMainPresenter.CREATE, DecommissioningMainPresenter.GENERATED,
 				DecommissioningMainPresenter.PENDING_VALIDATION, DecommissioningMainPresenter.TO_VALIDATE,
-				DecommissioningMainPresenter.PENDING_APPROVAL, DecommissioningMainPresenter.PROCESSED);
+				DecommissioningMainPresenter.VALIDATED, DecommissioningMainPresenter.PENDING_APPROVAL,
+				DecommissioningMainPresenter.TO_APPROVE, DecommissioningMainPresenter.APPROVED,
+				DecommissioningMainPresenter.PROCESSED);
 
 		assertThat(service.canAskApproval(alistIn10A, sasquatch)).isTrue();
 		assertThat(service.canAskValidation(alistIn10A, sasquatch)).isTrue();
@@ -114,29 +99,29 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 				.contains(aProcessedListIn10A, anotherProcessedListIn10A)
 				.doesNotContain(alistIn10A, anotherListIn10A, aListIn20D, anotherListIn20D);
 
-		assertThatResultsOf(queryFactory.getListsToValidateQuery(sasquatch))
-				.isEmpty();
+		assertThatResultsOf(queryFactory.getListsToValidateQuery(sasquatch)).isEmpty();
 
-		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch))
-				.containsOnly(anotherListIn10ASentForValidation);
+		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch)).isEmpty();
 	}
 
 	@Test
 	public void givenUsersHasDecommissioningPermissionsInASpecificAdministrativeUnitThenHasAccessToItsLists()
 			throws Exception {
-		save(authorization().forUsers(sasquatch).on(records.unitId_10).giving(RMRoles.MANAGER));
-		save(authorization().forUsers(robin).on(records.unitId_20).giving(RMRoles.MANAGER));
+		save(authorization().forUsers(sasquatch).on(records.unitId_10).giving(RMRoles.RGD));
+		save(authorization().forUsers(robin).on(records.unitId_20).giving(RMRoles.RGD));
 		refresh();
 
-		assertThat(service.canCreateLists(sasquatch)).isFalse();
-		assertThat(service.canCreateLists(robin)).isFalse();
+		assertThat(service.canCreateLists(sasquatch)).isTrue();
+		assertThat(service.canCreateLists(robin)).isTrue();
 		assertThat(service.hasAccessToDecommissioningMainPage(sasquatch)).isTrue();
 		assertThat(service.hasAccessToDecommissioningListPage(alistIn10A, sasquatch)).isTrue();
 		assertThat(service.hasAccessToDecommissioningListPage(aListIn20D, sasquatch)).isFalse();
 		assertThat(service.getVisibleTabsInDecommissioningMainPage(sasquatch)).containsOnly(
 				DecommissioningMainPresenter.CREATE, DecommissioningMainPresenter.GENERATED,
 				DecommissioningMainPresenter.PENDING_VALIDATION, DecommissioningMainPresenter.TO_VALIDATE,
-				DecommissioningMainPresenter.PENDING_APPROVAL, DecommissioningMainPresenter.PROCESSED);
+				DecommissioningMainPresenter.VALIDATED, DecommissioningMainPresenter.PENDING_APPROVAL,
+				DecommissioningMainPresenter.TO_APPROVE, DecommissioningMainPresenter.APPROVED,
+				DecommissioningMainPresenter.PROCESSED);
 
 		assertThat(service.canAskApproval(alistIn10A, sasquatch)).isTrue();
 		assertThat(service.canAskValidation(alistIn10A, sasquatch)).isTrue();
@@ -169,14 +154,11 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 
 		assertThatResultsOf(queryFactory.getProcessedListsQuery(robin)).isEmpty();
 
-		assertThatResultsOf(queryFactory.getListsToValidateQuery(sasquatch))
-				.isEmpty();
+		assertThatResultsOf(queryFactory.getListsToValidateQuery(sasquatch)).isEmpty();
 
-		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch))
-				.containsOnly(anotherListIn10ASentForValidation);
+		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch)).isEmpty();
 
-		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(robin))
-				.isEmpty();
+		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(robin)).isEmpty();
 	}
 
 	@Test

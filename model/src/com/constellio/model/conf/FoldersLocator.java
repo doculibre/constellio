@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf;
 
 import java.io.File;
@@ -27,7 +10,9 @@ public class FoldersLocator {
 
 	private static boolean CONTEXT_PRINTED = false;
 
-	private FoldersLocatorMode foldersLocatorModeCached;
+	private static FoldersLocatorMode foldersLocatorModeCached;
+
+	private static String currentClassPath;
 
 	public FoldersLocator() {
 	}
@@ -59,7 +44,10 @@ public class FoldersLocator {
 	}
 
 	String getCurrentClassPath() {
-		return new File(FoldersLocator.class.getResource("").getFile()).getAbsoluteFile().getPath();
+		if (currentClassPath == null) {
+			currentClassPath = new File(FoldersLocator.class.getResource("").getFile()).getAbsoluteFile().getPath();
+		}
+		return currentClassPath;
 	}
 
 	public File getWrapperInstallationFolder() {
@@ -110,6 +98,26 @@ public class FoldersLocator {
 		} else {
 			return new File(getConstellioWebappFolder(), "conf");
 		}
+	}
+
+	public File getVAADINFolder() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			return new File(getConstellioWebappFolder(), "VAADIN");
+		} else {
+			return new File(getAppProjectWebContent(), "VAADIN");
+		}
+	}
+
+	public File getThemes() {
+		return new File(getVAADINFolder(), "themes");
+	}
+
+	public File getConstellioTheme() {
+		return new File(getThemes(), "constellio");
+	}
+
+	public File getConstellioThemeImages() {
+		return new File(getConstellioTheme(), "images");
 	}
 
 	public File getImportationProject() {
@@ -349,6 +357,11 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getLibFolder(File webAppFolder) {
+		File webInf = new File(webAppFolder, "WEB-INF");
+		return new File(webInf, "lib");
+	}
+
 	public File getSDKProject() {
 		return new File(getConstellioProject(), "sdk");
 	}
@@ -403,13 +416,13 @@ public class FoldersLocator {
 
 	public File getReportsResourceFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			return new File(getWrapperInstallationFolder(), "reportsRecource");
+			return new File(getWrapperInstallationFolder(), "resources" + File.separator + "reports");
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getConstellioWebinfFolder(), "reportsRecource");
+			return new File(getConstellioWebinfFolder(), "resources" + File.separator + "reports");
 
 		} else {
-			return new File(getConstellioWebappFolder(), "reportsRecource");
+			return new File(getConstellioWebappFolder(), "resources" + File.separator + "reports");
 		}
 	}
 
@@ -423,6 +436,46 @@ public class FoldersLocator {
 		} else {
 			return new File(getConstellioWebappFolder(), "resources");
 		}
+	}
+
+	public static void invalidateCaches() {
+		foldersLocatorModeCached = null;
+		currentClassPath = null;
+	}
+
+	public File getConstellioEncryptionFile() {
+		String encryptionFileName = "key.txt";
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			return new File(getConfFolder(), encryptionFileName);
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
+			return new File(getConfFolder(), encryptionFileName);
+
+		} else {
+			return new File(getDefaultSettingsFolder(), encryptionFileName);
+		}
+	}
+
+	public File getPluginsJarsFolder() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
+			return new File(getConstellioWebinfFolder(), "plugins");
+
+		} else {
+			return new File(getConstellioWebappFolder(), "plugins");
+		}
+	}
+
+	public File getPluginsJarsFolder(File webAppFolder) {
+		File webInf = new File(webAppFolder, "WEB-INF");
+		return new File(webInf, "plugins");
+	}
+
+	public File getUploadLicenseFile() {
+		return new File(getDefaultTempFolder(), "license.xml");
+	}
+
+	public File getLicenseFile() {
+		return new File(getConfFolder(), "license.xml");
 	}
 
 	/*

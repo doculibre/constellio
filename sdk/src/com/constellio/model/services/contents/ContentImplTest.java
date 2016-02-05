@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.contents;
 
 import static junit.framework.TestCase.fail;
@@ -64,14 +47,14 @@ public class ContentImplTest extends ConstellioTest {
 	LocalDateTime smashOClock = new LocalDateTime().minusHours(4);
 	ContentVersion firstHistoryVersion = new ContentVersion(
 			new ContentVersionDataSummary("zeFirstHash", "zeFirstMime", zeFirstLength), "zeFirstFile.pdf", "0.1", bobId,
-			smashOClock);
+			smashOClock, null);
 	LocalDateTime meetingOClock = new LocalDateTime().minusHours(4);
 	LocalDateTime shishOClock = new LocalDateTime().minusHours(2);
 	ContentVersion currentVersion = new ContentVersion(new ContentVersionDataSummary("zeCurrentHash", "zeMime", zeLength),
-			"zeFile.pdf", "1.0", charlesId, shishOClock);
+			"zeFile.pdf", "1.0", charlesId, shishOClock, null);
 	LocalDateTime teaOClock = new LocalDateTime().minusHours(1);
 	ContentVersion modifiedCheckedOut = new ContentVersion(new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength),
-			"zeNewFile.pdf", "1.1", aliceId, teaOClock);
+			"zeNewFile.pdf", "1.1", aliceId, teaOClock, null);
 	LocalDateTime tockOClock = new LocalDateTime().minusHours(1);
 	@Mock Lazy<List<ContentVersion>> history;
 

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
 import java.util.ArrayList;
@@ -31,7 +14,6 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_AdministrativeUnit;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Copy;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Rule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -56,19 +38,26 @@ public class ConservationRulesReportPresenter {
 	private SearchServices searchServices;
 	private boolean byAdministrativeUnit;
 	private DecommissioningService decommissioningService;
+	private String administrativeUnitId;
 
 	public ConservationRulesReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
-		this(collection, modelLayerFactory, false);
+		this(collection, modelLayerFactory, false, null);
 	}
 
 	public ConservationRulesReportPresenter(String collection, ModelLayerFactory modelLayerFactory,
 			boolean byAdministrativeUnit) {
+		this(collection, modelLayerFactory, byAdministrativeUnit, null);
+	}
+
+	public ConservationRulesReportPresenter(String collection, ModelLayerFactory modelLayerFactory,
+			boolean byAdministrativeUnit, String administrativeUnitId) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		searchServices = modelLayerFactory.newSearchServices();
 		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		this.byAdministrativeUnit = byAdministrativeUnit;
+		this.administrativeUnitId = administrativeUnitId;
 	}
 
 	public ConservationRulesReportModel build() {
@@ -76,7 +65,12 @@ public class ConservationRulesReportPresenter {
 
 		if (byAdministrativeUnit) {
 			Map<AdministrativeUnit, List<ConservationRulesReportModel_Rule>> conservationRulesModelByAdministrativeUnit = new HashMap<>();
-			Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = getRetentionRulesByAdministrativeUnit();
+			Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit;
+			if (StringUtils.isNotBlank(administrativeUnitId)) {
+				retentionRulesByAdministrativeUnit = getRetentionRulesByAdministrativeUnit(administrativeUnitId);
+			} else {
+				retentionRulesByAdministrativeUnit = getRetentionRulesByAdministrativeUnit();
+			}
 			for (Entry<AdministrativeUnit, List<RetentionRule>> entry : retentionRulesByAdministrativeUnit.entrySet()) {
 				List<ConservationRulesReportModel_Rule> reportModelRules = convertRulesToModelRules(entry.getValue());
 				conservationRulesModelByAdministrativeUnit.put(entry.getKey(), reportModelRules);
@@ -92,6 +86,7 @@ public class ConservationRulesReportPresenter {
 		return model;
 	}
 
+	//
 	private List<ConservationRulesReportModel_Rule> getAndConvertRulesToModelRules() {
 		List<ConservationRulesReportModel_Rule> conservationRulesReportModel_Rules = new ArrayList<>();
 		List<RetentionRule> retentionRules = getRetentionRules();
@@ -150,6 +145,40 @@ public class ConservationRulesReportPresenter {
 
 	}
 
+	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit(String administrativeUnitId) {
+
+		Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = new HashMap<>();
+		MetadataSchemaType retentionRuleSchemaType = rm.retentionRuleSchemaType();
+		AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(administrativeUnitId);
+
+		List<RetentionRule> newRetentionRules = getRetentionRulesByAdministrativeUnit(administrativeUnit,
+				retentionRuleSchemaType);
+		if (!newRetentionRules.isEmpty()) {
+			retentionRulesByAdministrativeUnit.put(administrativeUnit, newRetentionRules);
+		}
+		return retentionRulesByAdministrativeUnit;
+	}
+
+	private List<RetentionRule> getRetentionRulesByAdministrativeUnit(AdministrativeUnit administrativeUnit,
+			MetadataSchemaType retentionRuleSchemaType) {
+		//List<RetentionRule> newRetentionRules = new ArrayList<>();
+
+		LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
+				.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
+						.where(rm.retentionRuleAdministrativeUnitsId())
+						.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
+
+		List<RetentionRule> retentionRules = rm.wrapRetentionRules(searchServices
+				.search(retentionRulesQuery));
+
+		/*for (RetentionRule retentionRule : retentionRules) {
+			if (!retentionRule.isResponsibleAdministrativeUnits()) {
+				newRetentionRules.add(retentionRule);
+			}
+		}*/
+		return retentionRules;//newRetentionRules;
+	}
+
 	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit() {
 
 		MetadataSchemaType administrativeUnitSchemaType = rm.administrativeUnitSchemaType();
@@ -166,21 +195,8 @@ public class ConservationRulesReportPresenter {
 
 		if (administrativeUnits != null) {
 			for (AdministrativeUnit administrativeUnit : administrativeUnits) {
-				List<RetentionRule> newRetentionRules = new ArrayList<>();
-
-				LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
-						.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
-								.where(rm.retentionRuleAdministrativeUnitsId())
-								.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
-
-				List<RetentionRule> retentionRules = rm.wrapRetentionRules(searchServices
-						.search(retentionRulesQuery));
-
-				for (RetentionRule retentionRule : retentionRules) {
-					if (!retentionRule.isResponsibleAdministrativeUnits()) {
-						newRetentionRules.add(retentionRule);
-					}
-				}
+				List<RetentionRule> newRetentionRules = getRetentionRulesByAdministrativeUnit(administrativeUnit,
+						retentionRuleSchemaType);
 				if (!newRetentionRules.isEmpty()) {
 					retentionRulesByAdministrativeUnit.put(administrativeUnit, newRetentionRules);
 				}
@@ -192,93 +208,27 @@ public class ConservationRulesReportPresenter {
 	private Map<String, String> getPrincipalsHolders(RetentionRule rule) {
 		Map<String, String> principalsHolders = new HashMap<String, String>();
 
-		Map<String, AdministrativeUnitReportModel_AdministrativeUnit> administrativeUnits = getAdministrativeUnitsMapModel();
+		if (rule != null) {
+			List<String> administrativeUnitIds = rule.getAdministrativeUnits();
+			if (administrativeUnitIds != null) {
+				for (String administrativeUnitId : administrativeUnitIds) {
+					if (administrativeUnitId != null && !administrativeUnitId.isEmpty()) {
+						AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(administrativeUnitId);
 
-		if (administrativeUnits != null) {
-			if (rule != null) {
-				List<String> administrativeUnitIds = rule.getAdministrativeUnits();
-				if (administrativeUnitIds != null) {
-					for (String administrativeUnitId : administrativeUnitIds) {
-						if (administrativeUnitId != null && !administrativeUnitId.isEmpty()) {
-							AdministrativeUnitReportModel_AdministrativeUnit administrativeUnit = administrativeUnits
-									.get(administrativeUnitId);
-							if (administrativeUnit != null) {
-								String code = StringUtils.defaultString(administrativeUnit.getCode());
-								if (code != null && !code.isEmpty()) {
-									String label = StringUtils.defaultString(administrativeUnit.getLabel());
-									principalsHolders.put(code, label);
-								}
+						if (administrativeUnit != null) {
+							String code = StringUtils.defaultString(administrativeUnit.getCode());
+							if (code != null && !code.isEmpty()) {
+								String label = StringUtils.defaultString(administrativeUnit.getTitle());
+								principalsHolders.put(code, label);
 							}
 						}
 					}
 				}
 			}
+
 		}
 
 		return principalsHolders;
-	}
-
-	private Map<String, AdministrativeUnitReportModel_AdministrativeUnit> getAdministrativeUnitsMapModel() {
-		Map<String, AdministrativeUnitReportModel_AdministrativeUnit> mappedUnits = new HashMap<>();
-
-		List<AdministrativeUnitReportModel_AdministrativeUnit> modelAdministrativeUnits = getModelAdministrativeUnits();
-
-		if (modelAdministrativeUnits != null) {
-			for (AdministrativeUnitReportModel_AdministrativeUnit administrativeUnit : modelAdministrativeUnits) {
-				if (administrativeUnit != null) {
-					String unitId = administrativeUnit.getUnitId();
-					if (unitId != null && !unitId.isEmpty()) {
-						mappedUnits.put(unitId, administrativeUnit);
-						List<AdministrativeUnitReportModel_AdministrativeUnit> childAdministrativeUnits = administrativeUnit
-								.getChildAdministrativeUnits();
-						if (childAdministrativeUnits != null) {
-							recursive(childAdministrativeUnits, mappedUnits);
-						}
-					}
-				}
-			}
-		}
-
-		return mappedUnits;
-	}
-
-	private List<AdministrativeUnitReportModel_AdministrativeUnit> getModelAdministrativeUnits() {
-
-		AdministrativeUnitReportPresenter unitPresenter = new AdministrativeUnitReportPresenter(collection,
-				modelLayerFactory);
-
-		AdministrativeUnitReportModel administrativeUnitModel = unitPresenter.build();
-
-		List<AdministrativeUnitReportModel_AdministrativeUnit> modelAdministrativeUnits = null;
-		if (administrativeUnitModel != null) {
-			modelAdministrativeUnits = administrativeUnitModel.getAdministrativeUnits();
-		}
-
-		if (modelAdministrativeUnits == null) {
-			modelAdministrativeUnits = new ArrayList<>();
-		}
-		return modelAdministrativeUnits;
-
-	}
-
-	private void recursive(List<AdministrativeUnitReportModel_AdministrativeUnit> adminUnits,
-			Map<String, AdministrativeUnitReportModel_AdministrativeUnit> mappedUnits) {
-
-		if (adminUnits != null) {
-			for (AdministrativeUnitReportModel_AdministrativeUnit adminUnit : adminUnits) {
-				if (adminUnit != null) {
-					String unitId = adminUnit.getUnitId();
-					if (unitId != null && !unitId.isEmpty()) {
-						mappedUnits.put(unitId, adminUnit);
-						List<AdministrativeUnitReportModel_AdministrativeUnit> childAdministrativeUnits = adminUnit
-								.getChildAdministrativeUnits();
-						if (childAdministrativeUnits != null) {
-							recursive(childAdministrativeUnits, mappedUnits);
-						}
-					}
-				}
-			}
-		}
 	}
 
 	private List<ConservationRulesReportModel_Copy> getPrincipalCopies(RetentionRule rule) {

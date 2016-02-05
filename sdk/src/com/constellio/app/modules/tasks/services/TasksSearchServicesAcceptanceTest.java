@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.services;
 
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
@@ -23,6 +6,7 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -53,10 +37,12 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	private LocalDate now = LocalDate.now();
 	private Task taskAssignedByChuckToAlice;
 	private Task taskAssignedByChuckToAliceClosed;
+	private Task taskAssignedByChuckToAliceFinished;
 	private Task nonAssignedTaskCreatedByChuck;
 	private Task nonAssignedTaskClosed;
 	private Task subTaskOfNonAssignedTaskClosed;
 	private Task taskAssignedByBobToChuckClosed;
+	private Task taskAssignedByBobToChuckFinished;
 	private Task taskWithDakotaInAssignationUsersCandidates;
 	private Task taskWithCharlesInAssignationGroupCandidates;
 	private TasksSchemasRecordsServices tasksSchemas;
@@ -66,14 +52,17 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	private User chuck;
 	private User dakotaIndien;
 	private User charles;
+	private User edouard;
+	private Group legends;
 	private UserServices userServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
+		prepareSystem(withZeCollection().withTasksModule().withAllTest(users));
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("taskWithCharlesInAssignationGroupCandidates"));
 		givenTimeIs(now);
-		givenCollection(zeCollection).withTaskModule().withAllTestUsers().andUsersWithWriteAndDeleteAccess(admin);
-		users.setUp(getModelLayerFactory().newUserServices());
+		inCollection(zeCollection).giveWriteAndDeleteAccessTo(admin);
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -87,6 +76,8 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		chuck = users.chuckNorrisIn(zeCollection);
 		dakotaIndien = users.dakotaIn(zeCollection);
 		charles = users.charlesIn(zeCollection);
+		edouard = users.edouardIn(zeCollection);
+		legends = users.legendsIn(zeCollection);
 
 		TaskStatus closedStatus = tasksSchemas.getTaskStatusWithCode(CLOSED_CODE);
 
@@ -99,6 +90,12 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 				.setAssigner(chuck.getId())
 				.setAssignationDate(now).setAssignee(alice.getId()).setStatus(closedStatus.getId());
 		transaction.add(taskAssignedByChuckToAliceClosed.setCreatedBy(chuck.getId()));
+
+		taskAssignedByChuckToAliceFinished = tasksSchemas.newTask().setTitle("taskAssignedByChuckToAliceFinished")
+				.setAssigner(chuck.getId())
+				.setAssignationDate(now).setAssignee(alice.getId())
+				.setStatus(taskSearchServices.getFirstFinishedStatus().getId());
+		transaction.add(taskAssignedByChuckToAliceFinished.setCreatedBy(chuck.getId()));
 
 		nonAssignedTaskCreatedByChuck = tasksSchemas.newTask().setTitle("nonAssignedTaskCreatedByChuck");
 		transaction.add(nonAssignedTaskCreatedByChuck.setCreatedBy(chuck.getId()));
@@ -114,8 +111,14 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		taskAssignedByBobToChuckClosed = tasksSchemas.newTask().setTitle("taskAssignedByBobToChuckClosed")
 				.setAssigner(bob.getId())
 				.setAssignationDate(now).setAssignee(chuck.getId())
-				.setStatus(taskSearchServices.getClosedStatus().getId());
+				.setStatus(closedStatus.getId());
 		transaction.add(taskAssignedByBobToChuckClosed.setCreatedBy(bob.getId()));
+
+		taskAssignedByBobToChuckFinished = tasksSchemas.newTask().setTitle("taskAssignedByBobToChuckFinished")
+				.setAssigner(bob.getId())
+				.setAssignationDate(now).setAssignee(chuck.getId())
+				.setStatus(taskSearchServices.getFirstFinishedStatus().getId());
+		transaction.add(taskAssignedByBobToChuckFinished.setCreatedBy(bob.getId()));
 
 		String sasquatchId = users.sasquatchIn(zeCollection).getId();
 		taskWithDakotaInAssignationUsersCandidates = tasksSchemas.newTask().setTitle("taskWithDakotaInAssignationUsersCandidates")
@@ -137,7 +140,8 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		Group newGroup = userServices.getGroupInCollection(newGlobalGroup, zeCollection);
 		Group taskNewGroup = userServices.getGroupInCollection(taskNewGlobalGroup, zeCollection);
 		userServices.addUpdateUserCredential(users.charles().withGlobalGroups(asList(newGlobalGroup, charlesNewGlobalGroup)));
-		taskWithCharlesInAssignationGroupCandidates = tasksSchemas.newTask()
+		charles = users.charlesIn(zeCollection);
+		taskWithCharlesInAssignationGroupCandidates = tasksSchemas.newTaskWithId("taskWithCharlesInAssignationGroupCandidates")
 				.setTitle("taskWithCharlesInAssignationGroupCandidates")
 				.setAssigner(sasquatchId)
 				.setAssignationDate(now).setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()));
@@ -158,19 +162,19 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getTasksAssignedByUserQuery(chuck));
-		assertThat(results.size()).isEqualTo(1);
-		assertThatRecord(results.get(0)).hasMetadataValue(Schemas.TITLE, "taskAssignedByChuckToAlice");
+		assertThat(results.size()).isEqualTo(2);
+		//TODO: Assert on records
 	}
 
 	@Test
 	public void whenSearchNonAssignedTasksThenReturnNonAssignedTasksCreatedByChuckToChuckAndNothingToBob()
 			throws Exception {
 		List<Record> results = searchServices
-				.search(tasksSearchServices.getNonAssignedTasksQuery(chuck));
+				.search(tasksSearchServices.getUnassignedTasksQuery(chuck));
 		assertThat(results.size()).isEqualTo(1);
 		assertThatRecord(results.get(0)).hasMetadataValue(Schemas.TITLE, "nonAssignedTaskCreatedByChuck");
 		results = searchServices
-				.search(tasksSearchServices.getNonAssignedTasksQuery(bob));
+				.search(tasksSearchServices.getUnassignedTasksQuery(bob));
 		assertThat(results.size()).isEqualTo(0);
 	}
 
@@ -179,8 +183,8 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getTasksAssignedToUserQuery(alice));
-		assertThat(results.size()).isEqualTo(1);
-		assertThatRecord(results.get(0)).hasMetadataValue(Schemas.TITLE, "taskAssignedByChuckToAlice");
+		assertThat(results.size()).isEqualTo(2);
+		//TODO: Assert on records
 	}
 
 	@Test
@@ -195,6 +199,7 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSearchTasksAssignedToCharlesThenReturnTaskWithCharlesInAssignationGroupCandidates()
 			throws Exception {
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getTasksAssignedToUserQuery(charles));
 		assertThat(results.size()).isEqualTo(1);
@@ -202,12 +207,12 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenBobWhenSearchRecentlyCompletedTasksThenReturnCompletedAndClosedTasksVisibleToBob()
+	public void givenBobWhenSearchRecentlyCompletedTasksThenReturnCompletedTasksVisibleToBob()
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(bob));
 		assertThat(results.size()).isEqualTo(1);
-		assertThatRecord(results.get(0)).hasMetadataValue(Schemas.TITLE, "taskAssignedByBobToChuckClosed");
+		assertThatRecord(results.get(0)).hasMetadataValue(Schemas.TITLE, "taskAssignedByBobToChuckFinished");
 	}
 
 	@Test
@@ -232,6 +237,56 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 		whenSearchSubTasksForBobThenNoTasFound(taskCreatedByChuckHavingSubTaskCreatedByAlice.getId());
 		whenSearchSubTasksForUserThenOk(taskCreatedByChuckHavingSubTaskCreatedByAlice.getId(), alice);
 		whenSearchSubTasksForUserThenOk(taskCreatedByChuckHavingSubTaskCreatedByAlice.getId(), chuck);
+	}
+
+	@Test
+	public void givenAliceAndBobInCandidatesWhenAssignedToAliceThenNotVisibleToBob()
+			throws Exception {
+		Task taskForCandidatesBobAndAlice = tasksSchemas.newTask().setTitle("zeTask").setAssigneeUsersCandidates(
+				Arrays.asList(bob.getId(), alice.getId()));
+		Transaction transaction = new Transaction();
+		transaction.add(taskForCandidatesBobAndAlice);
+		recordServices.execute(transaction);
+
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksAssignedToUserQuery(bob)))
+				.contains(taskForCandidatesBobAndAlice.getId());
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksAssignedToUserQuery(alice))).contains(
+				taskForCandidatesBobAndAlice.getId());
+
+		taskForCandidatesBobAndAlice.setAssignee(alice.getId()).setAssignationDate(now).setAssigner(chuck.getId());
+		transaction = new Transaction();
+		transaction.update(taskForCandidatesBobAndAlice.getWrappedRecord());
+		recordServices.execute(transaction);
+
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksAssignedToUserQuery(bob))).doesNotContain(
+				taskForCandidatesBobAndAlice.getId());
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksAssignedToUserQuery(alice))).contains(
+				taskForCandidatesBobAndAlice.getId());
+	}
+
+	@Test
+	public void givenLegendsInCandidatesWhenAssignedToAliceThenNotVisibleToEdouard()
+			throws Exception {
+		Task taskForCandidatesLegends = tasksSchemas.newTask().setTitle("zeTask").setAssigneeGroupsCandidates(
+				Arrays.asList(legends.getId()));
+		Transaction transaction = new Transaction();
+		transaction.add(taskForCandidatesLegends);
+		recordServices.execute(transaction);
+
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksAssignedToUserQuery(edouard)))
+				.contains(taskForCandidatesLegends.getId());
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksAssignedToUserQuery(alice))).contains(
+				taskForCandidatesLegends.getId());
+
+		taskForCandidatesLegends.setAssignee(alice.getId()).setAssignationDate(now).setAssigner(chuck.getId());
+		transaction = new Transaction();
+		transaction.update(taskForCandidatesLegends.getWrappedRecord());
+		recordServices.execute(transaction);
+
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksAssignedToUserQuery(edouard))).doesNotContain(
+				taskForCandidatesLegends.getId());
+		assertThat(searchServices.searchRecordIds(tasksSearchServices.getTasksAssignedToUserQuery(alice))).contains(
+				taskForCandidatesLegends.getId());
 	}
 
 	private void whenSearchSubTasksForBobThenNoTasFound(String taskId) {

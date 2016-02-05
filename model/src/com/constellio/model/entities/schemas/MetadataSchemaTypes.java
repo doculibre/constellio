@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.schemas;
 
 import java.util.ArrayList;
@@ -43,6 +26,7 @@ public class MetadataSchemaTypes {
 
 	private final List<String> schemaTypesSortedByDependency;
 	private List<String> referenceDefaultValues;
+	private MetadataList searchableMetadatas;
 
 	public MetadataSchemaTypes(String collection, int version, List<MetadataSchemaType> schemaTypes,
 			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues) {
@@ -52,6 +36,7 @@ public class MetadataSchemaTypes {
 		this.schemaTypes = Collections.unmodifiableList(schemaTypes);
 		this.schemaTypesSortedByDependency = schemaTypesSortedByDependency;
 		this.referenceDefaultValues = referenceDefaultValues;
+		this.searchableMetadatas = getAllMetadatas().onlySearchable();
 	}
 
 	public String getCollection() {
@@ -70,6 +55,10 @@ public class MetadataSchemaTypes {
 		}
 
 		return types;
+	}
+
+	public List<Metadata> getHighlightedMetadatas() {
+		return searchableMetadatas;
 	}
 
 	public List<MetadataSchemaType> getSchemaTypes() {
@@ -143,14 +132,14 @@ public class MetadataSchemaTypes {
 		return "MetadataSchemaTypes [version=" + version + ", schemaTypes=" + schemaTypes + "]";
 	}
 
-	public List<Metadata> getMetadatas(List<String> metadataCompleteCodes) {
+	public MetadataList getMetadatas(List<String> metadataCompleteCodes) {
 		List<Metadata> metadatas = new ArrayList<>();
 
 		for (String metadataCompleteCode : metadataCompleteCodes) {
 			metadatas.add(getMetadata(metadataCompleteCode));
 		}
 
-		return Collections.unmodifiableList(metadatas);
+		return new MetadataList(metadatas).unModifiable();
 	}
 
 	public List<String> getSchemaTypesSortedByDependency() {
@@ -161,6 +150,14 @@ public class MetadataSchemaTypes {
 		MetadataList metadatas = new MetadataList();
 		for (MetadataSchemaType schemaType : schemaTypes) {
 			metadatas.addAll(schemaType.getAllMetadatas());
+		}
+		return metadatas.unModifiable();
+	}
+
+	public MetadataList getAllMetadatasIncludingThoseWithInheritance() {
+		MetadataList metadatas = new MetadataList();
+		for (MetadataSchemaType schemaType : schemaTypes) {
+			metadatas.addAll(schemaType.getAllMetadatasIncludingThoseWithInheritance());
 		}
 		return metadatas.unModifiable();
 	}
@@ -202,5 +199,26 @@ public class MetadataSchemaTypes {
 		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
 			return false;
 		}
+	}
+
+	public boolean hasSchema(String schemaCode) {
+		try {
+			getSchema(schemaCode);
+			return true;
+		} catch (MetadataSchemasRuntimeException.NoSuchSchema e) {
+			return false;
+
+		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			return false;
+
+		}
+	}
+
+	public List<Metadata> getAllMetadataIncludingInheritedOnes() {
+		List<Metadata> metadatas = new ArrayList<>();
+		for (MetadataSchemaType schemaType : schemaTypes) {
+			metadatas.addAll(schemaType.getAllMetadataIncludingInheritedOnes());
+		}
+		return metadatas;
 	}
 }

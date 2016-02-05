@@ -1,27 +1,12 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package demo;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -29,13 +14,19 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 
 import com.constellio.app.entities.modules.InstallableModule;
-import com.constellio.app.services.extensions.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.start.ApplicationStarter;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestConstellioFactoriesDecorator;
 
 public class DemoUtils {
@@ -66,20 +57,21 @@ public class DemoUtils {
 		solrServer.commit();
 	}
 
-	public static void startDemoOn(int port, DemoInitScript initScript)
+	public static void startDemoOn(int port, DemoInitScript initScript, String language)
 			throws Exception {
 		File configFile = new FoldersLocator().getConstellioProperties();
 
 		boolean initialized = new File(getAppData(), "settings").exists();
 
-		ConstellioFactories factories = ConstellioFactories.getInstance(configFile, getFactoriesDecorator(configFile));
+		ConstellioFactories factories = ConstellioFactories.getInstance(configFile, getFactoriesDecorator(false, language));
 
 		ConstellioPluginManager pluginManager = factories.getAppLayerFactory().getPluginManager();
-		when(pluginManager.getPlugins(InstallableModule.class)).thenReturn(initScript.getModules());
+		when(pluginManager.getActivePlugins()).thenReturn(initScript.getModules());
 		ConstellioModulesManager modulesManager = factories.getAppLayerFactory().getModulesManager();
 		for (InstallableModule module : initScript.getModules()) {
 			if (!modulesManager.isInstalled(module)) {
-				modulesManager.installModule(module, factories.getModelLayerFactory().getCollectionsListManager());
+				modulesManager.installValidModuleAndGetInvalidOnes(module,
+						factories.getModelLayerFactory().getCollectionsListManager());
 			}
 		}
 
@@ -90,7 +82,7 @@ public class DemoUtils {
 		ApplicationStarter.startApplication(false, getWebContentDir(), port);
 	}
 
-	private static TestConstellioFactoriesDecorator getFactoriesDecorator(File configFile)
+	private static TestConstellioFactoriesDecorator getFactoriesDecorator(final boolean transactionLog, String language)
 			throws IOException {
 
 		File tempFolder = new File(getAppData(), "temp");
@@ -99,15 +91,27 @@ public class DemoUtils {
 		setupPropertiesContent.append("admin.servicekey=adminkey\n");
 		setupPropertiesContent.append("admin.password=password\n");
 		File setupProperties = new File(tempFolder, "setup.properties");
+		File pluginFolder = new File(tempFolder, "plugins");
 		FileUtils.write(setupProperties, setupPropertiesContent);
 
 		File appData = getAppData();
 		TestConstellioFactoriesDecorator decorator = new TestConstellioFactoriesDecorator(true);
 		decorator.setSetupProperties(setupProperties);
+		decorator.setPluginsFolder(pluginFolder);
 		decorator.setImportationFolder(new File(appData, "importation"));
 		decorator.setConfigManagerFolder(new File(appData, "settings"));
 		decorator.setAppTempFolder(tempFolder);
+		decorator.setSystemLanguage(language);
 		decorator.setContentFolder(new File(appData, "vault"));
+		DataLayerConfigurationAlteration dataLayerConfigurationAlteration = new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(DataLayerConfiguration configuration) {
+				if (transactionLog) {
+					configuration.setSecondTransactionLogFolderEnabled(transactionLog);
+				}
+			}
+		};
+		decorator.setDataLayerConfigurationAlterations(asList(dataLayerConfigurationAlteration));
 		return decorator;
 	}
 
@@ -157,6 +161,66 @@ public class DemoUtils {
 			throw new RuntimeException("Property 'solr.home' is invalid : " + solrHomePath);
 		} else {
 			throw new RuntimeException("Property 'solr.home' is required");
+		}
+	}
+
+	public static void startDemoWithSaveState(int port, File saveState, String language) {
+		File configFile = new FoldersLocator().getConstellioProperties();
+		File settings = new File(getAppData(), "settings");
+
+		boolean firstStart = !settings.exists();
+
+		if (firstStart) {
+			System.out.print("First start!");
+			try {
+				uncompressSaveState(saveState, language);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		ConstellioFactories factories;
+
+		try {
+			factories = ConstellioFactories.getInstance(configFile, getFactoriesDecorator(true, language));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		if (firstStart) {
+			ReindexingServices reindexingServices = factories.getModelLayerFactory().newReindexingServices();
+			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		}
+
+		ApplicationStarter.startApplication(false, getWebContentDir(), port);
+	}
+
+	private static void uncompressSaveState(File saveState, String language)
+			throws Exception {
+
+		File appData = getAppData();
+		File settings = new File(appData, "settings");
+		File content = new File(appData, "vault");
+		File tempFolder = new File(appData, "temp");
+
+		File uncompressedSaveStateFolder;
+		if (saveState.isFile()) {
+
+			uncompressedSaveStateFolder = new File(tempFolder, "uncompressed-save-state");
+			FileUtils.deleteDirectory(tempFolder);
+			tempFolder.mkdirs();
+			ZipService zipService = new ZipService(new IOServices(tempFolder));
+			zipService.unzip(saveState, uncompressedSaveStateFolder);
+
+		} else {
+			uncompressedSaveStateFolder = saveState;
+		}
+		FileUtils.deleteQuietly(settings);
+		FileUtils.deleteQuietly(content);
+		FileUtils.moveDirectory(new File(uncompressedSaveStateFolder, "settings"), settings);
+		FileUtils.moveDirectory(new File(uncompressedSaveStateFolder, "content"), content);
+
+		if (saveState.isFile()) {
+			FileUtils.deleteQuietly(tempFolder);
 		}
 	}
 }

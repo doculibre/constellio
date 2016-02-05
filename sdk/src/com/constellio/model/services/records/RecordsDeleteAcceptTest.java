@@ -1,22 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.idsArray;
 import static com.constellio.sdk.tests.TestUtils.recordsIds;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +21,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
@@ -47,6 +32,7 @@ import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_CannotTotallyDeleteSchemaType;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
@@ -99,8 +85,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		customSystemPreparation(new CustomSystemPreparation() {
 			@Override
 			public void prepare() {
-				givenCollection(zeCollection).withAllTestUsers();
-				givenCollection("anotherCollection").withAllTestUsers();
+				givenCachedCollection(zeCollection).withAllTestUsers();
+				givenCachedCollection("anotherCollection").withAllTestUsers();
 
 				setupServices();
 
@@ -1228,6 +1214,34 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				idsArray(records.folder1(), records.folder2(), records.folder3()));
 	}
 
+	@Test(expected = RecordDeleteServicesRuntimeException_CannotTotallyDeleteSchemaType.class)
+	public void givenTypeNotSupportingTotalDeleteWhenTotallyDeletingRecordsThenExceptionThrown()
+			throws Exception {
+
+		MetadataSchemaType typeNotTotallyDeletable = schemas.get("valueList");
+		recordDeleteServices.totallyDeleteSchemaTypeRecords(typeNotTotallyDeletable);
+	}
+
+	@Test
+	public void givenTypeSupportingTotalDeleteWhenTotallyDeletingRecordsThenAllDeleted()
+			throws Exception {
+		MetadataSchemaType typeTotallyDeletable = schemas.get("typeSupportingRawDelete");
+		Record record1 = new TestRecord(typeTotallyDeletable.getDefaultSchema(), "totalRecord1").set(Schemas.TITLE, "1");
+		Record record2 = new TestRecord(typeTotallyDeletable.getDefaultSchema(), "totalRecord2").set(Schemas.TITLE, "2");
+
+		recordServices.execute(new Transaction(record1, record2));
+
+		assertThatRecord(record1).isNot(physicallyDeleted());
+		assertThatRecord(record2).isNot(physicallyDeleted());
+		assertThatRecord(records.folder2()).isNot(physicallyDeleted());
+
+		recordDeleteServices.totallyDeleteSchemaTypeRecords(typeTotallyDeletable);
+
+		assertThatRecord(record1).is(physicallyDeleted());
+		assertThatRecord(record2).is(physicallyDeleted());
+		assertThatRecord(records.folder2()).isNot(physicallyDeleted());
+	}
+
 	// -------------------------------------------------------------
 
 	private Condition<? super Record> logicallyDeletableBy(final User user) {
@@ -1684,6 +1698,9 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				MetadataSchemaBuilder folderSchema = schemaTypes.getSchemaType("folder").getDefaultSchema();
 				folderSchema.create("valueListRef").defineReferencesTo(aValueListType).setMultivalue(true);
 				folderSchema.create("securedUnclassified").defineReferencesTo(securedUnclassifiedSchemaType);
+
+				MetadataSchemaTypeBuilder typeSupportingRawDelete = schemaTypes.createNewSchemaType("typeSupportingRawDelete")
+						.setInTransactionLog(false);
 			}
 		};
 	}

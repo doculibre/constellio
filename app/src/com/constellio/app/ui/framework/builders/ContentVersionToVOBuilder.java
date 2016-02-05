@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.builders;
 
 import java.io.IOException;
@@ -83,9 +66,10 @@ public class ContentVersionToVOBuilder implements Serializable {
 		String lastModifiedBy = contentVersion.getModifiedBy();
 		InputStreamProvider inputStreamProvider = new ContentInputStreamProvider(hash, modelLayerFactory);
 		String checkouUserId = content.getCheckoutUserId();
+		String comment = contentVersion.getComment();
 		LocalDateTime checkoutDateTime = content.getCheckoutDateTime();
 		return new ContentVersionVO(contentId, hash, fileName, mimeType, length, version, lastModificationDateTime,
-				lastModifiedBy, checkouUserId, checkoutDateTime, inputStreamProvider);
+				lastModifiedBy, checkouUserId, checkoutDateTime, comment, inputStreamProvider);
 	}
 
 	private static class ContentInputStreamProvider implements InputStreamProvider {

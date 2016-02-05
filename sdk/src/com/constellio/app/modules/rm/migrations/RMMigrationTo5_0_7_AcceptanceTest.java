@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -32,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -49,6 +33,7 @@ import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.records.RecordUtils;
@@ -59,6 +44,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import com.constellio.sdk.tests.setups.Users;
 
+@SlowTest
 public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 
 	@Test
@@ -98,11 +84,12 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 				.getLDAPServerConfiguration();
 		assertThat(serverConfiguration.getLdapAuthenticationActive()).isEqualTo(true);
 		assertThat(serverConfiguration.getDirectoryType()).isEqualTo(LDAPTestConfig.getDirectoryType());
-		assertThat(serverConfiguration.getDomains()).isEqualTo(LDAPTestConfig.getDomains());
-		assertThat(serverConfiguration.getUrls()).isEqualTo(LDAPTestConfig.getUrls());
+		assertThat(serverConfiguration.getDomains()).containsOnly("test.doculibre.ca");
+		assertThat(serverConfiguration.getUrls()).containsOnly("ldap://sp2010.constellio.com:389");
+		assertThat(serverConfiguration.getFollowReferences()).isEqualTo(false);
 
 		LDAPUserSyncConfiguration usersSynchConfiguration = getModelLayerFactory().getLdapConfigurationManager()
-				.getLDAPUserSyncConfiguration();
+				.getLDAPUserSyncConfiguration(true);
 		assertThat(usersSynchConfiguration.getPassword()).isEqualTo(usersSynchConfiguration.getPassword());
 		assertThat(usersSynchConfiguration.getUser()).isEqualTo(usersSynchConfiguration.getUser());
 		assertThat(usersSynchConfiguration.getGroupBaseContextList())
@@ -119,6 +106,14 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 				.isEqualTo(usersSynchConfiguration.getUsersFilterRejectionRegex());
 		assertThat(usersSynchConfiguration.getDurationBetweenExecution().getStandardDays()).isEqualTo(1);
 		assertThat(usersSynchConfiguration.getSelectedCollectionsCodes()).isEmpty();
+	}
+
+	@Test
+	public void givenSystemWithLogicallyDeletedFilingSpacesWhenUpdatingFrom5_0_6ThenCreateLogicallyAdministrativeUnits() {
+		givenSystemAtVersion5_0_6WithDisabledFilingSpaces();
+
+		AdministrativeUnit unit10a = getExistingUnitWithCode("A");
+		assertThat((Boolean) unit10a.getWrappedRecord().get(Schemas.LOGICALLY_DELETED_STATUS)).isTrue();
 	}
 
 	@Test
@@ -273,7 +268,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion5_0_6() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
 		File state = new File(statesFolder, "given_system_in_5.0.6_with_rm_module__with_test_records.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
@@ -281,7 +276,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion5_0_6WithVariousTypeOfFilingSpaceAndUnitRelations() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
 		File state = new File(statesFolder, "given_system_in_5.0.6_with_rm_module__with_some_administrativeUnits.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
@@ -289,8 +284,16 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 
 	private void givenSystemAtVersion5_0_6WithManualLDAPConfiguration() {
 		givenTransactionLogIsEnabled();
-		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
 		File state = new File(statesFolder, "given_system_in_5.0.6_with_rm_module__with_manual_LDAPConfiguration.zip");
+
+		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
+	}
+
+	private void givenSystemAtVersion5_0_6WithDisabledFilingSpaces() {
+		givenTransactionLogIsEnabled();
+		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
+		File state = new File(statesFolder, "given_system_in_5.0.6_with_rm_module__with_disabled_filingSpaces.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}

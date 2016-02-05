@@ -1,31 +1,18 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.services.schemas.builders.ClassListBuilder.combine;
+
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
+import com.constellio.model.services.encrypt.EncryptionServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class Metadata implements DataStoreField {
 
@@ -63,6 +50,10 @@ public class Metadata implements DataStoreField {
 
 	final Object defaultValue;
 
+	final MetadataPopulateConfigs populateConfigs;
+
+	final Factory<EncryptionServices> encryptionServicesFactory;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue);
 	}
@@ -76,9 +67,10 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, true);
+				false, false, false, false, false, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
+		this.encryptionServicesFactory = null;
 		this.accessRestriction = new MetadataAccessRestriction();
 
 		if (datastoreCode.contains("_") && !datastoreCode.equals("_version_")) {
@@ -104,6 +96,8 @@ public class Metadata implements DataStoreField {
 		this.structureFactory = null;
 		this.enumClass = null;
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
+		this.populateConfigs = new MetadataPopulateConfigs();
+
 	}
 
 	public Metadata(String localCode, String code, String collection, String label, Boolean enabled,
@@ -111,7 +105,7 @@ public class Metadata implements DataStoreField {
 			AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
 			MetadataAccessRestriction accessRestriction, StructureFactory structureFactory, Class<? extends Enum<?>> enumClass,
-			Object defaultValue) {
+			Object defaultValue, MetadataPopulateConfigs populateConfigs, Factory<EncryptionServices> encryptionServices) {
 		super();
 
 		this.inheritance = null;
@@ -131,11 +125,13 @@ public class Metadata implements DataStoreField {
 		this.structureFactory = structureFactory;
 		this.enumClass = enumClass;
 		this.defaultValue = defaultValue;
-
+		this.populateConfigs = populateConfigs;
+		this.encryptionServicesFactory = encryptionServices;
 	}
 
 	public Metadata(Metadata inheritance, String label, boolean enabled, boolean defaultRequirement, String code,
-			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue) {
+			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue,
+			MetadataPopulateConfigs populateConfigs) {
 		super();
 
 		this.localCode = inheritance.getLocalCode();
@@ -151,11 +147,13 @@ public class Metadata implements DataStoreField {
 		this.dataEntry = inheritance.getDataEntry();
 		this.dataStoreType = inheritance.getDataStoreType();
 		this.accessRestriction = inheritance.getAccessRestrictions();
-		this.recordMetadataValidators = new HashSet<RecordMetadataValidator<?>>(inheritance.recordMetadataValidators);
-		this.recordMetadataValidators.addAll(recordMetadataValidators);
+		this.recordMetadataValidators = combine(inheritance.recordMetadataValidators, recordMetadataValidators);
+
 		this.structureFactory = inheritance.structureFactory;
 		this.enumClass = inheritance.enumClass;
 		this.defaultValue = defaultValue;
+		this.populateConfigs = populateConfigs;
+		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
 	}
 
 	public String getCode() {
@@ -258,8 +256,12 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isEssential();
 	}
 
-	public boolean isWriteNullValues() {
-		return getInheritedMetadataBehaviors().isWriteNullValues();
+	public boolean isEssentialInSummary() {
+		return getInheritedMetadataBehaviors().isEssentialInSummary();
+	}
+
+	public boolean isEncrypted() {
+		return getInheritedMetadataBehaviors().isEncrypted();
 	}
 
 	public boolean isSchemaAutocomplete() {
@@ -272,12 +274,13 @@ public class Metadata implements DataStoreField {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory");
+		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory", "encryptionServicesFactory");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "dataEntry", "recordMetadataValidators", "structureFactory");
+		return EqualsBuilder.reflectionEquals(this, obj, "dataEntry", "recordMetadataValidators", "structureFactory",
+				"encryptionServicesFactory");
 	}
 
 	@Override
@@ -335,5 +338,44 @@ public class Metadata implements DataStoreField {
 		}
 
 		return false;
+	}
+
+	public String getSchemaCode() {
+		return new SchemaUtils().getSchemaCode(this);
+	}
+
+	public MetadataPopulateConfigs getPopulateConfigs() {
+		return populateConfigs;
+	}
+
+	public boolean hasCode(String otherCode) {
+		return new SchemaUtils().hasSameTypeAndLocalCode(code, otherCode);
+	}
+
+	public Factory<EncryptionServices> getEncryptionServicesFactory() {
+		return encryptionServicesFactory;
+	}
+
+	public Metadata getAnalyzedField(String languageCode) {
+		return Schemas.getSearchableMetadata(this, languageCode);
+	}
+
+	public boolean isSameValueThan(Metadata otherMetadata) {
+		boolean sameValue = type == otherMetadata.type &&
+				isMultivalue() == otherMetadata.isMultivalue();
+
+		if (sameValue && otherMetadata.type == MetadataValueType.REFERENCE) {
+			sameValue = allowedReferences.equals(otherMetadata.getAllowedReferences());
+		}
+
+		if (sameValue && otherMetadata.type == MetadataValueType.ENUM) {
+			sameValue = enumClass.equals(otherMetadata.getEnumClass());
+		}
+
+		if (sameValue && otherMetadata.type == MetadataValueType.STRUCTURE) {
+			sameValue = structureFactory.getClass().equals(otherMetadata.getStructureFactory().getClass());
+		}
+
+		return sameValue;
 	}
 }

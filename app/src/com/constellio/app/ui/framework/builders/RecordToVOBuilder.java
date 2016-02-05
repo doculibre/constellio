@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.builders;
 
 import java.io.Serializable;
@@ -22,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -72,7 +56,8 @@ public class RecordToVOBuilder implements Serializable {
 		ContentVersionToVOBuilder contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 
 		List<MetadataValueVO> metadataValueVOs = new ArrayList<MetadataValueVO>();
-		for (MetadataVO metadataVO : schemaVO.getMetadatas()) {
+		List<MetadataVO> metadatas = schemaVO.getMetadatas();
+		for (MetadataVO metadataVO : metadatas) {
 			String metadataCode = metadataVO.getCode();
 			Metadata metadata = schema.getMetadata(metadataCode);
 
@@ -97,7 +82,12 @@ public class RecordToVOBuilder implements Serializable {
 			metadataValueVOs.add(metadataValueVO);
 		}
 
-		return newRecordVO(id, metadataValueVOs, viewMode);
+		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode);
+		BuildRecordVOParams buildRecordVOParams = new BuildRecordVOParams(record, recordVO);
+		constellioFactories.getAppLayerFactory().getExtensions()
+				.forCollection(record.getCollection()).buildRecordVO(buildRecordVOParams);
+
+		return recordVO;
 	}
 
 	protected Object getValue(Record record, Metadata metadata) {

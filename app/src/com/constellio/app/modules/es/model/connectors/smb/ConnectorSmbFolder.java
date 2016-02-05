@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.model.connectors.smb;
 
 import java.util.Arrays;
@@ -24,7 +7,6 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
@@ -40,6 +22,7 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 	public static final String PARENT = "parent";
 	public static final String LAST_FETCH_ATTEMPT = "lastFetchAttempt";
 	public static final String LAST_FETCHED_STATUS = "lastFetchedStatus";
+	public static final String UNRETRIEVED_COUNT = "unretrievedCount";
 
 	public ConnectorSmbFolder(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -72,11 +55,11 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 		return this;
 	}
 
-	public ConnectorSmbFolder setParent(Folder parent) {
+	public ConnectorSmbFolder setParent(ConnectorSmbFolder parent) {
 		set(PARENT, parent);
 		return this;
 	}
-	
+
 	public LocalDateTime getLastFetched() {
 		return get(LAST_FETCH_ATTEMPT);
 	}
@@ -85,13 +68,24 @@ public class ConnectorSmbFolder extends ConnectorDocument<ConnectorSmbFolder> {
 		set(LAST_FETCH_ATTEMPT, dateTime);
 		return this;
 	}
-	
-	public String getLastFetchedStatus() {
+
+	public LastFetchedStatus getLastFetchedStatus() {
 		return get(LAST_FETCHED_STATUS);
 	}
 
 	public ConnectorSmbFolder setLastFetchedStatus(LastFetchedStatus lastFetchedStatus) {
 		set(LAST_FETCHED_STATUS, lastFetchedStatus);
+		return this;
+	}
+
+	public long getUnretrievedCount() {
+		double count = get(UNRETRIEVED_COUNT);
+		Double d = new Double(count);
+		return d.longValue();
+	}
+
+	public ConnectorSmbFolder setUnretrievedCount(long unretrievedCount) {
+		set(UNRETRIEVED_COUNT, unretrievedCount);
 		return this;
 	}
 

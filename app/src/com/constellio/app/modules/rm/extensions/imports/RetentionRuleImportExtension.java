@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.extensions.imports;
 
 import static com.constellio.data.utils.LangUtils.asMap;
@@ -25,6 +8,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
@@ -127,14 +112,14 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 	private boolean prevalidateCopyRetentionRule(Map<String, String> copyRetentionRule, ImportDataErrors errors, String index) {
 		boolean copyRetentionRulePrincipalAndNotSortExist = false;
-		if (copyRetentionRule.containsKey(CODE)) {
-			String value = copyRetentionRule.get(CODE);
-			if (value.isEmpty()) {
-				errors.error(INVALID_STRING_VALUE, copyRetentionRule);
-			}
-		} else {
-			errors.error(MISSING_METADATA, asMap("value", CODE, COPY_RETENTION_RULE_INDEX, index));
-		}
+		//		if (copyRetentionRule.containsKey(CODE)) {
+		//			String value = copyRetentionRule.get(CODE);
+		//			if (value.isEmpty()) {
+		//				errors.error(INVALID_STRING_VALUE, copyRetentionRule);
+		//			}
+		//		} else {
+		//			errors.error(MISSING_METADATA, asMap("value", CODE, COPY_RETENTION_RULE_INDEX, index));
+		//		}
 
 		if (copyRetentionRule.containsKey(INACTIVE_DISPOSAL_TYPE)) {
 			String value = copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase();
@@ -168,14 +153,14 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 			String value = copyRetentionRule.get(ACTIVE_RETENTION_PERIOD);
 			if (value.isEmpty()) {
 				errors.error(REQUIRED_VALUE, copyRetentionRule);
-			} else {
+			} else if(!value.startsWith("var:")) {
 				try {
 					int convertedValue = Integer.valueOf(value);
 					if (convertedValue < 0) {
-						errors.error(INVALID_NUMBER_VALUE, asMap("value", value, DOCUMENT_TYPE_INDEX, index));
+						errors.error(INVALID_NUMBER_VALUE, asMap("value", value, COPY_RETENTION_RULE_INDEX, index));
 					}
 				} catch (NullPointerException | NumberFormatException np) {
-					errors.error(INVALID_NUMBER_VALUE, asMap("value", value, DOCUMENT_TYPE_INDEX, index));
+					errors.error(INVALID_NUMBER_VALUE, asMap("value", value, COPY_RETENTION_RULE_INDEX, index));
 				}
 			}
 		} else {
@@ -184,7 +169,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 		if (copyRetentionRule.containsKey(SEMI_ACTIVE_RETENTION_PERIOD)) {
 			if (copyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD) == null) {
-				errors.error(INVALID_DATE_VALUE, asMap("value", "null", COPY_RETENTION_RULE_INDEX, index));
+				errors.error(INVALID_NUMBER_VALUE, asMap("value", "null", COPY_RETENTION_RULE_INDEX, index));
 			}
 		} else {
 			errors.error(MISSING_METADATA, asMap("value", SEMI_ACTIVE_RETENTION_PERIOD, COPY_RETENTION_RULE_INDEX, index));
@@ -273,40 +258,56 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		List<String> mediumTypesId = getMediumTypesId(resolver, mapCopyRetentionRule.get(MEDIUM_TYPES));
 		copyRetentionRule.setMediumTypeIds(mediumTypesId);
 
-		if (!mapCopyRetentionRule.get(CONTENT_TYPES_COMMENT).equals("")) {
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(CONTENT_TYPES_COMMENT))) {
+			//		if (!mapCopyRetentionRule.get(CONTENT_TYPES_COMMENT).equals("")) {
 			copyRetentionRule.setContentTypesComment(mapCopyRetentionRule.get(CONTENT_TYPES_COMMENT));
 		}
 
-		int activeRetentionPeriod = Integer.parseInt(mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD));
-		if (activeRetentionPeriod == 999) {
-			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_999);
-		} else if (activeRetentionPeriod == 888) {
-			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
+		String activeRetentionPeriodValue = mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD);
+		if(activeRetentionPeriodValue.startsWith("var:")) {
+			activeRetentionPeriodValue = activeRetentionPeriodValue.replace("var:", "");
+			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.variable(activeRetentionPeriodValue));
 		} else {
-			copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.fixed(activeRetentionPeriod));
+			int activeRetentionPeriod = Integer.parseInt(mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD));
+			if (activeRetentionPeriod == 999) {
+				copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_999);
+			} else if (activeRetentionPeriod == 888) {
+				copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
+			} else {
+				copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.fixed(activeRetentionPeriod));
+			}
 		}
 
-		if (!mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD_COMMENT).equals("")) {
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD_COMMENT))) {
+			//		if (!mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD_COMMENT).equals("")) {
 			copyRetentionRule.setActiveRetentionComment(mapCopyRetentionRule.get(ACTIVE_RETENTION_PERIOD_COMMENT));
 		}
 
-		int semiActiveRetentionPeriod = Integer.parseInt(mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD));
-		if (semiActiveRetentionPeriod == 999) {
-			copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.OPEN_999);
-		} else if (semiActiveRetentionPeriod == 888) {
-			copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.OPEN_888);
+		String semiActiveRetentionPeriodValue = mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD);
+		if(semiActiveRetentionPeriodValue.startsWith("var:")) {
+			semiActiveRetentionPeriodValue = semiActiveRetentionPeriodValue.replace("var:", "");
+			copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.variable(semiActiveRetentionPeriodValue));
 		} else {
-			copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(semiActiveRetentionPeriod));
+			int semiActiveRetentionPeriod = Integer.parseInt(mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD));
+			if (semiActiveRetentionPeriod == 999) {
+				copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.OPEN_999);
+			} else if (semiActiveRetentionPeriod == 888) {
+				copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.OPEN_888);
+			} else {
+				copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(semiActiveRetentionPeriod));
+			}
 		}
 
-		if (!mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD_COMMENT).equals("")) {
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD_COMMENT))) {
+			//		if (!mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD_COMMENT).equals("")) {
 			copyRetentionRule.setSemiActiveRetentionComment(mapCopyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD_COMMENT));
 		}
 
 		DisposalType disposalType = disposalTypeFromString(mapCopyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase());
 		copyRetentionRule.setInactiveDisposalType(disposalType);
 
-		if (!mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT).equals("")) {
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT))) {
+			//		if (!mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT).equals("")) {
 			copyRetentionRule.setInactiveDisposalComment(mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT));
 		}
 

@@ -1,23 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,9 +26,11 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaTypeSinceItHasRecords;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 
@@ -76,14 +62,14 @@ public class MetadataSchemaTypesBuilder {
 		return new MetadataSchemaTypesBuilder(collection, version);
 	}
 
-	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, TaxonomiesManager taxonomiesManager) {
+	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 
 		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 		validateAutomaticMetadatas();
 
 		List<MetadataSchemaType> buildedSchemaTypes = new ArrayList<>();
 		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
-			buildedSchemaTypes.add(schemaType.build(typesFactory, taxonomiesManager));
+			buildedSchemaTypes.add(schemaType.build(typesFactory, modelLayerFactory));
 		}
 
 		List<String> referenceDefaultValues = new ArrayList<>();
@@ -266,7 +252,7 @@ public class MetadataSchemaTypesBuilder {
 			typesDependencies.put(metadataSchemaType.getCode(), types);
 		}
 		try {
-			return newDependencyUtils().sortByDependency(typesDependencies, null);
+			return newDependencyUtils().sortByDependency(typesDependencies);
 		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas(e);
 		}
@@ -337,11 +323,10 @@ public class MetadataSchemaTypesBuilder {
 						.getCalculator().getClass().getName());
 			}
 			if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
-				String valueTypeName = valueTypeMetadataCalculated == null ? "'null'" : valueTypeMetadataCalculated.name();
 				throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
-						metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeName);
+						metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 			}
-			validateDependenciesTypes(metadataBuilder, dependencies, valueTypeMetadataCalculated);
+			validateDependenciesTypes(metadataBuilder, dependencies);
 		}
 	}
 
@@ -355,35 +340,33 @@ public class MetadataSchemaTypesBuilder {
 		}
 	}
 
-	private void validateDependenciesTypes(MetadataBuilder metadataBuilder, List<? extends Dependency> dependencies,
-			MetadataValueType valueTypeMetadataCalculated) {
+	private void validateDependenciesTypes(MetadataBuilder metadataBuilder, List<? extends Dependency> dependencies) {
 		for (Dependency dependency : dependencies) {
 			if (dependency instanceof ReferenceDependency) {
-				validateReferencedDependency(metadataBuilder, valueTypeMetadataCalculated, dependency);
+				validateReferencedDependency(metadataBuilder, dependency);
 			} else if (dependency instanceof LocalDependency) {
-				validateLocalDependency(metadataBuilder, valueTypeMetadataCalculated, dependency);
+				validateLocalDependency(metadataBuilder, dependency);
 			}
 		}
 	}
 
 	@SuppressWarnings("rawtypes")
-	private void validateLocalDependency(MetadataBuilder metadataBuilder, MetadataValueType valueTypeMetadataCalculated,
-			Dependency dependency) {
+	private void validateLocalDependency(MetadataBuilder calculatedMetadataBuilder, Dependency dependency) {
 		LocalDependency localDependency = (LocalDependency) dependency;
-		String schemaCompleteCode = new SchemaUtils().getSchemaCode(metadataBuilder);
+		String schemaCompleteCode = new SchemaUtils().getSchemaCode(calculatedMetadataBuilder);
 		MetadataBuilder dependencyMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
 		if (dependencyMetadataBuilder.getType() != localDependency.getReturnType()) {
-			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
-					metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated.name());
+			throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
+					calculatedMetadataBuilder.getCode(), dependencyMetadataBuilder.getCode(), dependencyMetadataBuilder.getType(),
+					localDependency.getReturnType());
 		}
 	}
 
 	@SuppressWarnings("rawtypes")
-	private void validateReferencedDependency(MetadataBuilder metadataBuilder, MetadataValueType valueTypeMetadataCalculated,
-			Dependency dependency) {
+	private void validateReferencedDependency(MetadataBuilder calculatedMetadataBuilder, Dependency dependency) {
 
 		ReferenceDependency referenceDependency = (ReferenceDependency) dependency;
-		String schemaCompleteCode = new SchemaUtils().getSchemaCode(metadataBuilder);
+		String schemaCompleteCode = new SchemaUtils().getSchemaCode(calculatedMetadataBuilder);
 		MetadataBuilder dependencyRefMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
 		if (dependencyRefMetadataBuilder.getAllowedReferencesBuider() != null) {
 			String dependencyMetaCompleteCode = dependencyRefMetadataBuilder.getAllowedReferencesBuider()
@@ -396,8 +379,9 @@ public class MetadataSchemaTypesBuilder {
 			}
 			if (dependencyMetadata.getType() != referenceDependency.getReturnType()
 					|| dependencyRefMetadataBuilder.getType() != MetadataValueType.REFERENCE) {
-				throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
-						metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated.name());
+				throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
+						calculatedMetadataBuilder.getCode(), dependencyMetadata.getCode(), dependencyMetadata.getType(),
+						referenceDependency.getReturnType());
 			} else if (!dependencyMetadata.getCode().contains(DEFAULT)) {
 				throw new MetadataSchemaTypesBuilderRuntimeException.CannotUseACustomMetadataForCalculation(
 						dependencyMetadata.getCode());
@@ -444,4 +428,17 @@ public class MetadataSchemaTypesBuilder {
 	public String getCollection() {
 		return collection;
 	}
+
+	public void deleteSchemaType(MetadataSchemaType type, SearchServices searchServices) {
+		if (searchServices.hasResults(from(type).returnAll())) {
+			throw new CannotDeleteSchemaTypeSinceItHasRecords(type.getCode());
+		} else {
+			try {
+				schemaTypes.remove(getSchemaType(type.getCode()));
+			} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType e) {
+				//OK
+			}
+		}
+	}
+
 }

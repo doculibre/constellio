@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.io.services.facades;
 
 import java.io.BufferedInputStream;
@@ -31,12 +14,12 @@ import java.io.Reader;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
-import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
@@ -55,6 +38,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.Octets;
 
 public class IOServices {
+
+	private static final String REPLACE_FILE_CONTENT_TEMP_FILE = "IOServices-replaceFileContentTempFile";
 
 	private final File tempFolder;
 	private final FileService fileServices;
@@ -247,7 +232,7 @@ public class IOServices {
 		streamFactoriesServices.closeQuietly(inputStreamFactory);
 	}
 
-	public CloseableStreamFactory<InputStream> copyToReusableStreamFactory(InputStream inputStream)
+	public CopyInputStreamFactory copyToReusableStreamFactory(InputStream inputStream)
 			throws CopyInputStreamFactoryRuntimeException {
 		CopyInputStreamFactory copyInputStreamFactory = new CopyInputStreamFactory(this, Octets.megaoctets(10));
 		try {
@@ -365,7 +350,7 @@ public class IOServices {
 	}
 
 	private String uniqueIdWith(String name) {
-		return name + "-" + UUID.randomUUID().toString();
+		return name + "-" + UUIDV1Generator.newRandomId();
 	}
 
 	public File newTemporaryFile(String resourceName) {
@@ -380,4 +365,34 @@ public class IOServices {
 		}
 	}
 
+	public File getAtomicWriteTempFileFor(File propertiesFile) {
+		return fileServices.getAtomicWriteTempFileFor(propertiesFile);
+	}
+
+	public void moveFolder(File src, File dest) {
+		fileServices.moveFolder(src, dest);
+	}
+
+	public void moveFile(File src, File dest) {
+		fileServices.moveFile(src, dest);
+	}
+
+	public void replaceFileContent(File file, InputStream inputStream)
+			throws IOException {
+		File tempFile = getAtomicWriteTempFileFor(file);
+
+		OutputStream outputStream = newFileOutputStream(tempFile, REPLACE_FILE_CONTENT_TEMP_FILE);
+		try {
+			copy(inputStream, outputStream);
+
+		} catch (IOException e) {
+			tempFile.delete();
+			throw e;
+
+		} finally {
+			closeQuietly(outputStream);
+		}
+
+		moveFile(tempFile, file);
+	}
 }

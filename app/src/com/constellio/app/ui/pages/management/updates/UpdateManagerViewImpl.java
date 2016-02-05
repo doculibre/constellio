@@ -1,52 +1,45 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.updates;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.OutputStream;
+import java.util.List;
 
+import org.joda.time.LocalDate;
+
+import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.services.migrations.VersionsComparator;
+import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.components.LocalDateLabel;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
-public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, Receiver, SucceededListener {
-
+public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView {
 	private final UpdateManagerPresenter presenter;
 	private UploadWaitWindow uploadWaitWindow;
-	private boolean error;
-	private boolean manual;
-	private static VerticalLayout previousLayout;
-	final private Label restartMessage = new Label("<p style=\"color:red\">" + $("UpdateManagerViewImpl.restart") + "</p>",
-			ContentMode.HTML);
+	private VerticalLayout layout;
+	private Component panel;
+	private Button license;
+	private Button standardUpdate;
+	private Button alternateUpdate;
 
 	public UpdateManagerViewImpl() {
 		presenter = new UpdateManagerPresenter(this);
@@ -58,35 +51,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
-		error = false;
-
-		VerticalLayout layout = new VerticalLayout();
-		layout.setSpacing(true);
-		layout.setWidth("100%");
-
-		uploadWaitWindow = new UploadWaitWindow();
-
-		Label versionTitle = new Label($("UpdateManagerViewImpl.version"));
-		Label currentVersion = new Label(presenter.getCurrentVersion());
-
-		//Label buildTitle = new Label($("UpdateManagerViewImpl.buildVersion"));
-		//buildVersion = new Label(presenter.getBuildVersion());
-
-		String changelog = presenter.getChangelog();
-
-		layout.addComponent(versionTitle);
-		layout.addComponent(currentVersion);
-		//layout.addComponent(buildTitle);
-		//layout.addComponent(buildVersion);
-
-		if (changelog == null) {
-			manual = true;
-			setupManualUpload(layout);
-		} else {
-			manual = false;
-			setupAutomaticUpload(layout, changelog, true);
-		}
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> buttons = super.buildActionMenuButtons(event);
 
 		Button restart = new Button($("UpdateManagerViewImpl.restartButton"));
 		restart.addClickListener(new ClickListener() {
@@ -95,124 +61,227 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				presenter.restart();
 			}
 		});
+		buttons.add(restart);
 
-		restartMessage.setVisible(false);
-		layout.addComponent(restartMessage);
-		layout.addComponent(restart);
-
-		Button restartAndReindex = new Button($("UpdateManagerViewImpl.restartAndReindexButton"));
-		restartAndReindex.addClickListener(new ClickListener() {
+		Button reindex = new Button($("UpdateManagerViewImpl.restartAndReindexButton"));
+		reindex.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				presenter.restartAndReindex();
 			}
 		});
-		layout.addComponent(restartAndReindex);
+		buttons.add(reindex);
+
+		standardUpdate = new Button($("UpdateManagerViewImpl.automatic"));
+		standardUpdate.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.standardUpdateRequested();
+			}
+		});
+		buttons.add(standardUpdate);
+
+		alternateUpdate = new Button($("UpdateManagerViewImpl." + presenter.getAlternateUpdateName()));
+		alternateUpdate.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.alternateUpdateRequested();
+			}
+		});
+		alternateUpdate.setVisible(presenter.isAlternateUpdateAvailable());
+		buttons.add(alternateUpdate);
+
+		license = new Button($("UpdateManagerViewImpl.licenseButton"));
+		license.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.licenseUpdateRequested();
+			}
+		});
+		buttons.add(license);
+
+		return buttons;
+	}
+
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
+		layout = new VerticalLayout(buildInfoItem($("UpdateManagerViewImpl.version"), presenter.getCurrentVersion()));
+		layout.setSpacing(true);
+		layout.setWidth("100%");
+
+		LicenseInfo info = presenter.getLicenseInfo();
+		if (info != null) {
+			layout.addComponents(
+					buildInfoItem($("UpdateManagerViewImpl.clientName"), info.getClientName()),
+					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
+		}
+
+		panel = new VerticalLayout();
+		layout.addComponent(panel);
+
+		showStandardUpdatePanel();
 
 		return layout;
 	}
 
-	private void setupManualUpload(final VerticalLayout layout) {
-		final Upload upload = new Upload($("UpdateManagerViewImpl.caption"), this);
-		upload.addSucceededListener(this);
-		upload.setButtonCaption($("UpdateManagerViewImpl.upload"));
-
-		layout.addComponent(upload);
+	@Override
+	public void showStandardUpdatePanel() {
+		Component updatePanel = presenter.isLicensedForAutomaticUpdate() ? buildAutomaticUpdateLayout() : buildUnlicensedLayout();
+		layout.replaceComponent(panel, updatePanel);
+		license.setEnabled(true);
+		standardUpdate.setEnabled(false);
+		alternateUpdate.setEnabled(true);
+		panel = updatePanel;
 	}
 
-	private void setupAutomaticUpload(final VerticalLayout layout, final String changelog, boolean displayButton) {
-		final VerticalLayout automaticLayout = new VerticalLayout();
-		Label changelogTitle = new Label($("UpdateManagerViewImpl.changelog"));
-		Label changelogLabel = new Label(changelog, ContentMode.HTML);
-		final Button manualUpdate = new Button($("UpdateManagerViewImpl.manual"));
-		Button update = new Button($("UpdateManagerViewImpl.updateButton"));
-		update.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				final ProgressInfo progressInfo = new ProgressInfo() {
-					@Override
-					public void setTask(String task) {
-						uploadWaitWindow.setTask(task);
-					}
+	@Override
+	public void showAlternateUpdatePanel(UpdateModeHandler handler) {
+		Component updatePanel = handler.buildUpdatePanel();
+		layout.replaceComponent(panel, updatePanel);
+		license.setEnabled(true);
+		standardUpdate.setEnabled(true);
+		alternateUpdate.setEnabled(false);
+		panel = updatePanel;
+	}
 
-					@Override
-					public void setProgressMessage(String progressMessage) {
-						uploadWaitWindow.setProgressMessage(progressMessage);
-					}
-				};
-				UI.getCurrent().addWindow(uploadWaitWindow);
+	@Override
+	public void showLicenseUploadPanel() {
+		Component licensePanel = buildLicenseUploadPanel();
+		layout.replaceComponent(panel, licensePanel);
+		license.setEnabled(false);
+		standardUpdate.setEnabled(true);
+		alternateUpdate.setEnabled(true);
+		panel = licensePanel;
+	}
+
+	@Override
+	public void showRestartRequiredPanel() {
+		Component restartPanel = buildRestartRequiredPanel();
+		layout.replaceComponent(panel, restartPanel);
+		license.setEnabled(false);
+		standardUpdate.setEnabled(false);
+		alternateUpdate.setEnabled(false);
+		panel = restartPanel;
+	}
+
+	private Component buildInfoItem(String caption, Object value) {
+		Label captionLabel = new Label(caption);
+		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+		Label valueLabel = value instanceof LocalDate ? new LocalDateLabel((LocalDate) value) : new Label(value.toString());
+
+		HorizontalLayout layout = new HorizontalLayout(captionLabel, valueLabel);
+		layout.setSpacing(true);
+
+		return layout;
+	}
+
+	private Component buildAutomaticUpdateLayout() {
+		return presenter.isAutomaticUpdateAvailable() ? buildAvailableUpdateLayout() : buildUpToDateUpdateLayout();
+	}
+
+	private Component buildAvailableUpdateLayout() {
+		Label message = new Label($("UpdateManagerViewImpl.updateAvailable", presenter.getUpdateVersion()));
+		message.addStyleName(ValoTheme.LABEL_BOLD);
+
+		Button update = new LinkButton($("UpdateManagerViewImpl.updateButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
 				new Thread(UpdateManagerViewImpl.class.getName() + "-updateFromServer") {
 					@Override
 					public void run() {
-						try {
-							presenter.updateFromServer(progressInfo);
-							restartMessage.setVisible(true);
-							uploadWaitWindow.close();
-						} catch (Throwable t) {
-							uploadWaitWindow.setProgressMessage($("UpdateManagerViewImpl.error.automaticUpdate"));
-							throw t;
-						}
+						presenter.updateFromServer();
 					}
 				}.start();
 			}
-		});
+		};
 
-		manualUpdate.addClickListener(new ClickListener() {
+		HorizontalLayout updater = new HorizontalLayout(message, update);
+		updater.setComponentAlignment(message, Alignment.MIDDLE_LEFT);
+		updater.setComponentAlignment(update, Alignment.MIDDLE_LEFT);
+		updater.setSpacing(true);
+
+		Label changelog = new Label(presenter.getChangelog(), ContentMode.HTML);
+
+		VerticalLayout layout = new VerticalLayout(updater, changelog);
+		layout.setSpacing(true);
+		layout.setWidth("100%");
+
+		return layout;
+	}
+
+	@Override
+	public ProgressInfo openProgressPopup() {
+		uploadWaitWindow = new UploadWaitWindow();
+		final ProgressInfo progressInfo = new ProgressInfo() {
 			@Override
-			public void buttonClick(ClickEvent event) {
-				VerticalLayout subLayout = new VerticalLayout();
-				if (manual) {
-					manualUpdate.setCaption($("UpdateManagerViewImpl.manual"));
-					setupAutomaticUpload(subLayout, changelog, false);
-				} else {
-					manualUpdate.setCaption($("UpdateManagerViewImpl.automatic"));
-					setupManualUpload(subLayout);
-				}
+			public void setTask(String task) {
+				uploadWaitWindow.setTask(task);
+			}
 
-				manual = !manual;
-				if (previousLayout == null) {
-					previousLayout = automaticLayout;
-				}
-				layout.replaceComponent(previousLayout, subLayout);
-				previousLayout = subLayout;
+			@Override
+			public void setProgressMessage(String progressMessage) {
+				uploadWaitWindow.setProgressMessage(progressMessage);
+			}
+		};
+		UI.getCurrent().addWindow(uploadWaitWindow);
+		return progressInfo;
+	}
+
+	@Override
+	public void closeProgressPopup() {
+		uploadWaitWindow.close();
+	}
+
+	private Component buildUpToDateUpdateLayout() {
+		Label message = new Label($("UpdateManagerViewImpl.upToDate"));
+		message.addStyleName(ValoTheme.LABEL_BOLD);
+		return message;
+	}
+
+	private Component buildUnlicensedLayout() {
+		Label message = new Label($("UpdateManagerViewImpl.unlicensed"));
+		message.addStyleName(ValoTheme.LABEL_BOLD);
+
+		Link request = new Link(
+				$("UpdateManagerViewImpl.requestLicense"), new ExternalResource("mailto:info@constellio.com"));
+
+		VerticalLayout layout = new VerticalLayout(message, request);
+		layout.setSpacing(true);
+
+		return layout;
+	}
+
+	private Component buildLicenseUploadPanel() {
+		Upload upload = new Upload($("UpdateManagerViewImpl.uploadLicenseCaption"), new Receiver() {
+			@Override
+			public OutputStream receiveUpload(String filename, String mimeType) {
+				return presenter.getLicenseOutputStream();
 			}
 		});
-
-		boolean needUpdate = VersionsComparator
-				.isFirstVersionBeforeSecond(presenter.getCurrentVersion(), presenter.getChangelogVersion());
-		update.setEnabled(needUpdate);
-
-		automaticLayout.addComponent(changelogTitle);
-		automaticLayout.addComponent(changelogLabel);
-		automaticLayout.addComponent(update);
-		layout.addComponent(automaticLayout);
-		if (displayButton) {
-			layout.addComponent(manualUpdate);
-		}
-	}
-
-	@Override
-	public void showError(String message) {
-		error = true;
-		showErrorMessage(message);
-	}
-
-	@Override
-	public OutputStream receiveUpload(String filename, String mimeType) {
-		UI.getCurrent().addWindow(uploadWaitWindow);
-		return presenter.getOutputStreamFor(filename, mimeType);
-	}
-
-	@Override
-	public void uploadSucceeded(SucceededEvent event) {
-		if (event.getLength() == 0 || event.getFilename().isEmpty()) {
-			showErrorMessage($("UpdateManagerViewImpl.error.file"));
-		} else {
-			presenter.uploadSucceeded(new ProgressInfo());
-			if (!error) {
-				restartMessage.setVisible(true);
+		upload.addSucceededListener(new SucceededListener() {
+			@Override
+			public void uploadSucceeded(SucceededEvent event) {
+				presenter.licenseUploadSucceeded();
 			}
-		}
-		uploadWaitWindow.close();
+		});
+		upload.setButtonCaption($("UpdateManagerViewImpl.uploadLicense"));
+
+		Button cancel = new LinkButton($("cancel")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.licenseUploadCancelled();
+			}
+		};
+
+		VerticalLayout layout = new VerticalLayout(upload, cancel);
+		layout.setWidth("100%");
+		layout.setSpacing(true);
+
+		return layout;
+	}
+
+	private Component buildRestartRequiredPanel() {
+		return new Label("<p style=\"color:red\">" + $("UpdateManagerViewImpl.restart") + "</p>", ContentMode.HTML);
 	}
 }

@@ -1,30 +1,27 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.schemas.schema;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.services.metadata.MetadataDeletionException;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CalculatedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataReference;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_ExtractedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_FacetMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_InheritedMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_PopulatedMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_SystemMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionService;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
@@ -33,6 +30,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<AddEditSchemaMetadataView> {
+	private transient MetadataDeletionService metadataDeletionService;
 
 	public AddEditSchemaMetadataPresenter(AddEditSchemaMetadataView view) {
 		super(view);
@@ -83,5 +81,48 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 	public void backButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA, parameters);
 		view.navigateTo().listSchema(params);
+	}
+
+	public void deleteButtonClicked(MetadataVO entity) {
+		try {
+			metadataDeletionService().deleteMetadata(entity.getCode());
+			String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
+			view.navigateTo().listSchemaMetadata(params);
+
+		} catch (MetadataDeletionException e) {
+			view.showErrorMessage(getAppropriateMessage(e));
+		}
+	}
+
+	private String getAppropriateMessage(MetadataDeletionException e) {
+		if (e instanceof MetadataDeletionException_SystemMetadata) {
+			return $("MetadataDeletionException_SystemMetadata");
+		} else if (e instanceof MetadataDeletionException_PopulatedMetadata) {
+			return $("MetadataDeletionException_PopulatedMetadata");
+		} else if (e instanceof MetadataDeletionException_CopiedMetadataSource) {
+			return $("MetadataDeletionException_CopiedMetadataSource");
+		} else if (e instanceof MetadataDeletionException_CopiedMetadataReference) {
+			return $("MetadataDeletionException_CopiedMetadataReference");
+		} else if (e instanceof MetadataDeletionException_CalculatedMetadataSource) {
+			return $("MetadataDeletionException_CalculatedMetadataSource");
+		} else if (e instanceof MetadataDeletionException_ExtractedMetadataSource) {
+			return $("MetadataDeletionException_ExtractedMetadataSource");
+		} else if (e instanceof MetadataDeletionException_InheritedMetadata) {
+			return $("MetadataDeletionException_InheritedMetadata");
+		} else if (e instanceof MetadataDeletionException_FacetMetadata) {
+			return $("MetadataDeletionException_FacetMetadata");
+		}
+		return null;
+	}
+
+	private MetadataDeletionService metadataDeletionService() {
+		if (metadataDeletionService == null) {
+			this.metadataDeletionService = new MetadataDeletionService(appLayerFactory, collection);
+		}
+		return metadataDeletionService;
+	}
+
+	public boolean isMetadataDeletable(MetadataVO entity) {
+		return metadataDeletionService().isMetadataDeletable(entity.getCode());
 	}
 }

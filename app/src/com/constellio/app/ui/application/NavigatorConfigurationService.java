@@ -1,46 +1,34 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.application;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.es.ui.pages.ConnectorReportViewImpl;
 import com.constellio.app.modules.es.ui.pages.DisplayConnectorInstanceViewImpl;
 import com.constellio.app.modules.es.ui.pages.EditConnectorInstanceViewImpl;
-import com.constellio.app.modules.es.ui.pages.EditSchemasConnectorInstanceViewImpl;
 import com.constellio.app.modules.es.ui.pages.ListConnectorInstancesViewImpl;
 import com.constellio.app.modules.es.ui.pages.WizardConnectorInstanceViewImpl;
+import com.constellio.app.modules.es.ui.pages.mapping.AddEditMappingViewImpl;
+import com.constellio.app.modules.es.ui.pages.mapping.DisplayConnectorMappingsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
+import com.constellio.app.modules.rm.ui.pages.cart.CartViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrativeUnitViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.containers.edit.EditContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.AddExistingContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.AddNewContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DocumentDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.EditDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
+import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
@@ -48,7 +36,12 @@ import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.AddEditRetentionRuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.DisplayRetentionRuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.ListRetentionRulesViewImpl;
+import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRulesViewImpl;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
+import com.constellio.app.modules.robots.ui.pages.AddEditRobotViewImpl;
+import com.constellio.app.modules.robots.ui.pages.ListRootRobotsViewImpl;
+import com.constellio.app.modules.robots.ui.pages.RobotConfigurationViewImpl;
+import com.constellio.app.modules.robots.ui.pages.RobotLogsViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.AddEditTaskViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.DisplayTaskViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.TaskManagementViewImpl;
@@ -67,8 +60,10 @@ import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupsViewImpl;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.pages.imports.ExportViewImpl;
 import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
+import com.constellio.app.ui.pages.imports.ImportGroupsFileViewImpl;
 import com.constellio.app.ui.pages.imports.ImportSchemaTypesFileViewImpl;
 import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
+import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
@@ -79,21 +74,27 @@ import com.constellio.app.ui.pages.management.collections.AddEditCollectionViewI
 import com.constellio.app.ui.pages.management.collections.CollectionManagementViewImpl;
 import com.constellio.app.ui.pages.management.configs.ConfigManagementViewImpl;
 import com.constellio.app.ui.pages.management.email.EmailServerConfigViewImpl;
+import com.constellio.app.ui.pages.management.extractors.AddEditMetadataExtractorViewImpl;
+import com.constellio.app.ui.pages.management.extractors.ListMetadataExtractorsViewImpl;
 import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.DisplayFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.ListFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.facet.OrderFacetConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.ldap.LDAPConfigManagementViewImpl;
 import com.constellio.app.ui.pages.management.permissions.PermissionsManagementViewImpl;
+import com.constellio.app.ui.pages.management.plugin.PluginManagementViewImpl;
+import com.constellio.app.ui.pages.management.reindexation.ForcedReindexViewImpl;
 import com.constellio.app.ui.pages.management.schemaRecords.AddEditSchemaRecordViewImpl;
 import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordViewImpl;
 import com.constellio.app.ui.pages.management.schemaRecords.ListSchemaRecordsViewImpl;
+import com.constellio.app.ui.pages.management.schemaRecords.SearchSchemaRecordsViewImpl;
 import com.constellio.app.ui.pages.management.schemas.ListSchemaTypeViewImpl;
 import com.constellio.app.ui.pages.management.schemas.display.display.DisplayConfigViewImpl;
 import com.constellio.app.ui.pages.management.schemas.display.form.FormDisplayConfigViewImpl;
 import com.constellio.app.ui.pages.management.schemas.display.group.ListMetadataGroupSchemaTypeViewImpl;
 import com.constellio.app.ui.pages.management.schemas.display.report.ReportConfigurationViewImpl;
 import com.constellio.app.ui.pages.management.schemas.display.search.SearchDisplayConfigViewImpl;
+import com.constellio.app.ui.pages.management.schemas.display.table.TableDisplayConfigViewImpl;
 import com.constellio.app.ui.pages.management.schemas.metadata.AddEditMetadataViewImpl;
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaMetadataViewImpl;
 import com.constellio.app.ui.pages.management.schemas.schema.AddEditSchemaViewImpl;
@@ -101,11 +102,14 @@ import com.constellio.app.ui.pages.management.schemas.type.ListSchemaViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.ListTaxonomyViewImpl;
+import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementSearchViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
 import com.constellio.app.ui.pages.management.updates.UpdateManagerViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainViewImpl;
 import com.constellio.app.ui.pages.profile.ModifyProfileViewImpl;
 import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
+import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
+import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
@@ -126,6 +130,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String TAXONOMY_MANAGEMENT = "taxonomyManagement";
 	public static final String TAXONOMY_CONCEPT_ADD_EDIT = "taxonomyConceptAddEdit";
 	public static final String LIST_VALUE_DOMAINS = "valueDomains";
+	public static final String SEARCH_SCHEMA_RECORDS = "searchSchemaRecords";
 	public static final String GROUP_LIST = "groupList";
 	public static final String GROUP_ADD_EDIT = "groupAddEdit";
 	public static final String COLLECTION_ADD_EDIT = "collectionAddEdit";
@@ -150,12 +155,14 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String COLLECTION_GROUP = "collectionGroup";
 	public static final String COLLECTION_GROUP_ROLES = "collectionGroupRoles";
 	public static final String CONFIG_MANAGEMENT = "configManagement";
+	public static final String PLUGIN_MANAGEMENT = "pluginManagement";
 	public static final String EMAIL_SERVER_MANAGEMENT = "emailServerManagement";
 	public static final String REPORTS = "reports";
 	public static final String ARCHIVES_MANAGEMENT = "archivesManagement";
 	public static final String DECOMMISSIONING = "decommissioning";
 	public static final String DECOMMISSIONING_LIST_BUILDER = "decommissioningListBuilder";
 	public static final String DECOMMISSIONING_LIST_DISPLAY = "decommissioningList";
+	public static final String DOCUMENT_DECOMMISSIONING_LIST_DISPLAY = "documentDecommissioningList";
 	public static final String DECOMMISSIONING_LIST_EDIT = "editDecommissioningList";
 	public static final String DECOMMISSIONING_LIST_ADD_NEW_CONTAINER = "createContainerForDecommissioningList";
 	public static final String DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER = "searchContainerForDecommissioningList";
@@ -174,7 +181,9 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String DISPLAY_DOCUMENT = "displayDocument";
 	public static final String EDIT_DISPLAY_FORM = "displayForm";
 	public static final String SEARCH_DISPLAY_FORM = "searchDisplayForm";
+	public static final String TABLE_DISPLAY_FORM = "tableDisplayForm";
 	public static final String CONTAINERS_BY_ADMIN_UNITS = "containersByAdminUnits";
+	public static final String CART = "cart";
 	public static final String DISPLAY_ADMIN_UNIT_WITH_CONTAINERS = "displayAdminUnitWithContainers";
 	public static final String FORM_DISPLAY_FORM = "formDisplayForm";
 	public static final String DISPLAY_FILING_SPACE_WITH_CONTAINERS = "displayFilingSpaceWithContainers";
@@ -192,6 +201,8 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LDAP_CONFIG_MANAGEMENT = "ldapConfigManagement";
 	public static final String IMPORT_FILE = "importRecords";
 	public static final String IMPORT_USERS = "importUsers";
+	public static final String IMPORT_AUTHORIZATIONS = "importAuthorizations";
+	public static final String IMPORT_GROUPS = "importGroups";
 	public static final String EDIT_CONTAINER = "editContainer";
 	public static final String IMPORT_SCHEMA_TYPES = "importSchemaTypes";
 	public static final String AGENT_SETUP = "agentSetup";
@@ -208,13 +219,32 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String EDIT_TASK = "editTask";
 	public static final String DISPLAY_TASK = "displayTask";
 	public static final String LIST_TASKS_LOGS = "listTaksLogs";
-	public static final String EDIT_SCHEMAS_CONNECTOR_INSTANCE = "editSchemasConnectorInstance";
+	public static final String DISPLAY_CONNECTOR_MAPPINGS = "displayConnectorMappings";
+	public static final String ADD_CONNECTOR_MAPPING = "addConnectorMapping";
+	public static final String EDIT_CONNECTOR_MAPPING = "editConnectorMapping";
+	public static final String CONNECTOR_REPORT = "connectorReport";
+	public static final String SEARCH_BOOST_BY_METADATAS = "searchBoostByMetadatas";
+	public static final String SEARCH_BOOST_BY_QUERYS = "searchBoostByQuery";
+	public static final String FORCED_REINDEX = "reindex";
 
 	public static final String ADD_FACET_CONFIGURATION = "addFacetConfiguration";
 	public static final String EDIT_FACET_CONFIGURATION = "editFacetConfiguration";
 	public static final String LIST_FACET_CONFIGURATION = "listFacetConfiguration";
 	public static final String DISPLAY_FACET_CONFIGURATION = "displayFacetConfiguration";
 	public static final String ORDER_FACET_CONFIGURATION = "orderFacetConfiguration";
+
+	public static final String LIST_METADATA_EXTRACTORS = "listMetadataExtractors";
+	public static final String ADD_METADATA_EXTRACTOR = "addMetadataExtractor";
+	public static final String EDIT_METADATA_EXTRACTOR = "editMetadataExtractor";
+
+	public static final String LIST_ROOT_ROBOTS = "listRootRobots";
+	public static final String ROBOT_CONFIGURATION = "robotConfiguration";
+	public static final String ADD_EDIT_ROBOT = "addEditRobot";
+	public static final String ROBOT_LOGS = "robotLogs";
+
+	public static final String TAXONOMY_SEARCH = "taxonomySearch";
+	public static final String RETENTION_RULES_SEARCH = "retentionRulesSearch";
+	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -253,9 +283,11 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_METADATA, AddEditMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_SCHEMA_METADATA, AddEditSchemaMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(CONFIG_MANAGEMENT, ConfigManagementViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(PLUGIN_MANAGEMENT, PluginManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LDAP_CONFIG_MANAGEMENT, LDAPConfigManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_DISPLAY_FORM, DisplayConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_DISPLAY_FORM, SearchDisplayConfigViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(TABLE_DISPLAY_FORM, TableDisplayConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(FORM_DISPLAY_FORM, FormDisplayConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS,
 				ListPrincipalAccessAuthorizationsViewImpl.class));
@@ -270,6 +302,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_GROUP, CollectionGroupViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_GROUP_ROLES, CollectionGroupRolesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_VALUE_DOMAINS, ListValueDomainViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SEARCH_SCHEMA_RECORDS, SearchSchemaRecordsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_TAXONOMY, ListTaxonomyViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_ADD_EDIT, AddEditTaxonomyViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(CONTAINERS_BY_ADMIN_UNITS, ContainersByAdministrativeUnitsViewImpl.class));
@@ -282,6 +315,9 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EXPORTER, ExportViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(REPORT_DISPLAY_FORM, ReportConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EMAIL_SERVER_MANAGEMENT, EmailServerConfigViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_SEARCH, TaxonomyManagementSearchViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(FORCED_REINDEX, ForcedReindexViewImpl.class));
 
 		// TODO Use generic system to configure
 		viewProviders.add(new ClassBasedViewProvider(ADMIN_MODULE, AdminViewImpl.class));
@@ -289,15 +325,18 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(EVENT_CATEGORY, BaseEventCategoryViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EVENT_DISPLAY, EventViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(REPORTS, RMReportsViewImpl.class));
-		//		viewProviders.add(new ClassBasedViewProvider(REPORTS, RMReportsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ARCHIVES_MANAGEMENT, ArchiveManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DECOMMISSIONING, DecommissioningMainViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DECOMMISSIONING_LIST_BUILDER, DecommissioningBuilderViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DECOMMISSIONING_LIST_DISPLAY, DecommissioningListViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DOCUMENT_DECOMMISSIONING_LIST_DISPLAY,
+				DocumentDecommissioningListViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DECOMMISSIONING_LIST_EDIT, EditDecommissioningListViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DECOMMISSIONING_LIST_ADD_NEW_CONTAINER, AddNewContainerViewImpl.class));
 		viewProviders.add(
 				new ClassBasedViewProvider(DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER, AddExistingContainerViewImpl.class));
+
+		viewProviders.add(new ClassBasedViewProvider(CART, CartViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(LIST_METADATA_GROUP, ListMetadataGroupSchemaTypeViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_ONGLET, ListMetadataGroupSchemaTypeViewImpl.class));
@@ -317,6 +356,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_FILE, ImportFileViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_USERS, ImportUsersFileViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_SCHEMA_TYPES, ImportSchemaTypesFileViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(IMPORT_AUTHORIZATIONS, ImportAuthorizationsFileViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(IMPORT_GROUPS, ImportGroupsFileViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_MANAGEMENT, CollectionManagementViewImpl.class));
@@ -324,7 +365,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(MODIFY_PROFILE, ModifyProfileViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(UPDATE_MANAGER, UpdateManagerViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(EDIT_CONTAINER, EditContainerViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_CONTAINER, AddEditContainerViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(AGENT_SETUP, AgentSetupViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_AGENT_LOGS, ListAgentLogsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_SAVED_SEARCHES, SavedSearchViewImpl.class));
@@ -335,13 +376,21 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_FACET_CONFIGURATION, DisplayFacetConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ORDER_FACET_CONFIGURATION, OrderFacetConfigurationViewImpl.class));
 
+		viewProviders.add(new ClassBasedViewProvider(LIST_METADATA_EXTRACTORS, ListMetadataExtractorsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADD_METADATA_EXTRACTOR, AddEditMetadataExtractorViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_METADATA_EXTRACTOR, AddEditMetadataExtractorViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_METADATAS, SearchBoostByMetadataViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
+
 		//Module ES
 		viewProviders.add(new ClassBasedViewProvider(LIST_CONNECTOR_INSTANCES, ListConnectorInstancesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_CONNECTOR_INSTANCE, DisplayConnectorInstanceViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_CONNECTOR_INSTANCE, EditConnectorInstanceViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(WIZARD_CONNECTOR_INSTANCE, WizardConnectorInstanceViewImpl.class));
-		viewProviders
-				.add(new ClassBasedViewProvider(EDIT_SCHEMAS_CONNECTOR_INSTANCE, EditSchemasConnectorInstanceViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_CONNECTOR_MAPPINGS, DisplayConnectorMappingsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADD_CONNECTOR_MAPPING, AddEditMappingViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_CONNECTOR_MAPPING, AddEditMappingViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(CONNECTOR_REPORT, ConnectorReportViewImpl.class));
 
 		//Tasks Module
 		viewProviders.add(new ClassBasedViewProvider(TASKS_MANAGEMENT, TaskManagementViewImpl.class));
@@ -349,6 +398,14 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(ADD_TASK, AddEditTaskViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_TASK, DisplayTaskViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_TASKS_LOGS, TasksLogsViewImpl.class));
+
+		//Robots Module
+		viewProviders.add(new ClassBasedViewProvider(LIST_ROOT_ROBOTS, ListRootRobotsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ROBOT_CONFIGURATION, RobotConfigurationViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_ROBOT, AddEditRobotViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ROBOT_LOGS, RobotLogsViewImpl.class));
+		
+		viewProviders.add(new ClassBasedViewProvider(ADD_EMAIL_ATTACHMENTS_TO_FOLDER, AddEmailAttachmentsToFolderViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

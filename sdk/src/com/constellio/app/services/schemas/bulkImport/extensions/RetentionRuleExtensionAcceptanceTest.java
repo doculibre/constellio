@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemas.bulkImport.extensions;
 
 import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.INVALID_CODE_VALUE;
@@ -95,8 +78,7 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
 		List<ValidationError> errors = validationErrors.getValidationErrors();
 
-		assertThat(errors.size()).isEqualTo(6);
-		assertThat(errors).contains(newValidationError(MISSING_METADATA, asMap("value", "code", "copyRetentionRuleIndex", "0")));
+		assertThat(errors.size()).isEqualTo(5);
 		assertThat(errors).contains(
 				newValidationError(INVALID_ENUM_VALUE, asMap("inactiveDisposalType", "S", "copyRetentionRuleIndex", "0")));
 		assertThat(errors)
@@ -217,8 +199,8 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		expectedErrors.add(
 				newValidationError(MISSING_METADATA, asMap("value", "mediumTypes", "copyRetentionRuleIndex", "4")));
 
-		expectedErrors.add(newValidationError(INVALID_NUMBER_VALUE, asMap("documentTypeIndex", "1", "value", "-25")));
-		expectedErrors.add(newValidationError(INVALID_NUMBER_VALUE, asMap("documentTypeIndex", "4", "value", "awer")));
+		expectedErrors.add(newValidationError(INVALID_NUMBER_VALUE, asMap("copyRetentionRuleIndex", "1", "value", "-25")));
+		expectedErrors.add(newValidationError(INVALID_NUMBER_VALUE, asMap("copyRetentionRuleIndex", "4", "value", "awer")));
 
 		return expectedErrors;
 	}

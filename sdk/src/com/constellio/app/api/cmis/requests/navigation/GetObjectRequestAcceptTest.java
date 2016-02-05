@@ -1,27 +1,12 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.requests.navigation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,6 +40,9 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 
 	// Session cmisSession;
 
+	String chuckNorrisKey = "chuckNorris-key";
+	String chuckNorrisToken;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -69,11 +57,15 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 		users.setUp(userServices);
 
 		defineSchemasManager().using(zeCollectionSchemas);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUserToCollection(users.bob(), zeCollection);
+		userServices.addUpdateUserCredential(
+				userServices.getUserCredential(chuckNorris).withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
 	}
@@ -122,28 +114,45 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 		thenCategoryTwoObjectHasCorrectFields(object);
 	}
 
+	@Test
+	public void whenGetRootFolderThenValidActionsAndProperties()
+			throws Exception {
+		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true).getWrappedRecord());
+		Session cmisSession = givenAdminSessionOnZeCollection();
+		Folder rootFolder = cmisSession.getRootFolder();
+
+		assertThat(rootFolder.getAllowableActions().getAllowableActions()).containsOnly(
+				Action.CAN_GET_CHILDREN,
+				Action.CAN_GET_PROPERTIES
+		);
+
+		assertThat(rootFolder.getPropertyValue(PropertyIds.NAME)).isEqualTo("Collection de test");
+	}
+
 	private void thenFolderOneObjectHasCorrectFields(CmisObject object) {
 		assertThat(object).isNotNull();
 		assertThat(object.getId()).isEqualTo("folder1");
-		assertThat(object.getProperty("folder_default_id").getValue()).isEqualTo("folder1");
-		assertThat(object.getProperty("folder_default_title").getValue()).isEqualTo("folder1");
-		assertThat(object.getProperty("folder_default_schema").getValue()).isEqualTo("folder_default");
-		assertThat(object.getProperty("folder_default_parentpath").getFirstValue()).isEqualTo(
-				"/taxo1/taxo1_fond1/taxo1_fond1_1/taxo1_category1");
-		assertThat(object.getProperty("folder_default_path").getFirstValue()).isEqualTo(
-				"/taxo1/taxo1_fond1/taxo1_fond1_1/taxo1_category1/folder1");
-		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo("taxo1_category1");
+		assertThat(object.getProperty("id").getValue()).isEqualTo("folder1");
+		assertThat(object.getProperty("title").getValue()).isEqualTo("folder1");
+		assertThat(object.getProperty("schema").getValue()).isEqualTo("folder_default");
+		assertThat(object.getProperty("parentpath").getFirstValue()).isEqualTo(
+				"/taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1");
+		assertThat(object.getProperty("path").getFirstValue()).isEqualTo(
+				"/taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1");
+		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo("zetaxo1_category1");
+		assertThat(object.getProperty(PropertyIds.PATH).getValue()).isNotNull();
 	}
 
 	private void thenCategoryTwoObjectHasCorrectFields(CmisObject object) {
 		assertThat(object).isNotNull();
-		assertThat(object.getId()).isEqualTo("taxo1_category2");
-		//assertThat(object.getProperty("category_default_id").getValue()).isEqualTo("taxo1_category2");
-		assertThat(object.getProperty("category_default_title").getValue()).isEqualTo("taxo1_category2");
-		assertThat(object.getProperty("category_default_schema").getValue()).isEqualTo("category_default");
-		assertThat(object.getProperty("category_default_parentpath").getFirstValue()).isEqualTo("/taxo1/taxo1_fond1");
-		assertThat(object.getProperty("category_default_path").getFirstValue()).isEqualTo("/taxo1/taxo1_fond1/taxo1_category2");
-		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo("taxo1_fond1");
+		assertThat(object.getId()).isEqualTo("zetaxo1_category2");
+		//assertThat(object.getProperty("id").getValue()).isEqualTo("taxo1_category2");
+		assertThat(object.getProperty("title").getValue()).isEqualTo("zetaxo1_category2");
+		assertThat(object.getProperty("schema").getValue()).isEqualTo("category_default");
+		assertThat(object.getProperty("parentpath").getFirstValue()).isEqualTo("/taxo1/zetaxo1_fond1");
+		assertThat(object.getProperty("path").getFirstValue())
+				.isEqualTo("/taxo1/zetaxo1_fond1/zetaxo1_category2");
+		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo("zetaxo1_fond1");
 	}
 
 	private void thenTaxoOneObjectHasCorrectFields(CmisObject object) {
@@ -156,8 +165,8 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 
 	private Session givenAdminSessionOnZeCollection()
 			throws RecordServicesException {
-		getModelLayerFactory().newAuthenticationService().changePassword(chuckNorris, "1qaz2wsx");
-		return newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
+		return newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
+				.build();
 	}
 
 }

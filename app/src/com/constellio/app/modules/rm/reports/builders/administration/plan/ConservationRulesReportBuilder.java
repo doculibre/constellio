@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.reports.builders.administration.plan;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -101,9 +84,10 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 				PdfPTable subTable = new PdfPTable(COLUMN_NUMBER);
 				subTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
 				pdfTableUtils
-						.addPhraseCell(subTable, adminUnitRulesEntry.getKey().getCode(), ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE, 10);
+						.addLeftPhraseCell(subTable, adminUnitRulesEntry.getKey().getCode(), ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE,
+								10);
 				pdfTableUtils
-						.addPhraseCell(subTable, adminUnitRulesEntry.getKey().getTitle(), ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE,
+						.addLeftPhraseCell(subTable, adminUnitRulesEntry.getKey().getTitle(), ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE,
 								20);
 				table.addCell(subTable);
 				for (ConservationRulesReportModel_Rule rule : adminUnitRulesEntry.getValue()) {
@@ -123,17 +107,17 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 		PdfPTable subTable = new PdfPTable(COLUMN_NUMBER);
 
 		subTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
-		pdfTableUtils.addPhraseCell(subTable, rule.getRuleNumber(), TITLE_FONT_SIZE, 5);
-		pdfTableUtils.addPhraseRow(subTable, rule.getTitle(), TITLE_FONT_SIZE, COLUMN_NUMBER);
+		pdfTableUtils.addLeftPhraseCell(subTable, rule.getRuleNumber(), TITLE_FONT_SIZE, 5);
+		pdfTableUtils.addLeftPhraseRow(subTable, rule.getTitle(), TITLE_FONT_SIZE, COLUMN_NUMBER);
 		pdfTableUtils.addEmptyCells(subTable, 5, 1);
-		pdfTableUtils.addPhraseRow(subTable, rule.getDescription(), TITLE_FONT_SIZE, COLUMN_NUMBER);
+		pdfTableUtils.addLeftPhraseRow(subTable, rule.getDescription(), TITLE_FONT_SIZE, COLUMN_NUMBER);
 		pdfTableUtils.addEmptyCells(subTable, 5, 1);
-		pdfTableUtils.addPhraseCell(subTable, $("ConservationRulesReport.principalHolders"), TITLE_FONT_SIZE, 10);
-		pdfTableUtils.addPhraseCell(subTable, $("ConservationRulesReport.copies"), TITLE_FONT_SIZE, 4);
-		pdfTableUtils.addPhraseCell(subTable, $("ConservationRulesReport.supportTypes"), TITLE_FONT_SIZE, 4);
-		pdfTableUtils.addPhraseCell(subTable, $("ConservationRulesReport.active"), TITLE_FONT_SIZE, 2);
-		pdfTableUtils.addPhraseCell(subTable, $("ConservationRulesReport.semiActive"), TITLE_FONT_SIZE, 3);
-		pdfTableUtils.addPhraseRow(subTable, $("ConservationRulesReport.inactive"), TITLE_FONT_SIZE, 2);
+		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.principalHolders"), TITLE_FONT_SIZE, 10);
+		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.copies"), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.supportTypes"), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.active"), TITLE_FONT_SIZE, 2);
+		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.semiActive"), TITLE_FONT_SIZE, 3);
+		pdfTableUtils.addLeftPhraseRow(subTable, $("ConservationRulesReport.inactive"), TITLE_FONT_SIZE, 2);
 
 		pdfTableUtils.addEmptyCells(subTable, 5, 1);
 		PdfPCell principalHoldersCell = new PdfPCell();
@@ -143,8 +127,8 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 		PdfPTable principalHoldersTable = new PdfPTable(20);
 		principalHoldersTable.setWidthPercentage(100);
 		for (Map.Entry<String, String> principalHolder : rule.getAdministrativeUnits().entrySet()) {
-			pdfTableUtils.addPhraseCell(principalHoldersTable, principalHolder.getKey(), TITLE_FONT_SIZE, 5);
-			pdfTableUtils.addPhraseCell(principalHoldersTable, principalHolder.getValue(), TITLE_FONT_SIZE, 15);
+			pdfTableUtils.addLeftPhraseCell(principalHoldersTable, principalHolder.getKey(), TITLE_FONT_SIZE, 5);
+			pdfTableUtils.addLeftPhraseCell(principalHoldersTable, principalHolder.getValue(), TITLE_FONT_SIZE, 15);
 		}
 		principalHoldersCell.addElement(principalHoldersTable);
 		subTable.addCell(principalHoldersCell);
@@ -155,7 +139,7 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 		copiesCell.setBorder(Rectangle.NO_BORDER);
 		PdfPTable copiesTable = new PdfPTable(15);
 		copiesTable.setWidthPercentage(100);
-		pdfTableUtils.addPhraseCell(copiesTable, $("ConservationRulesReport.principal"), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addLeftPhraseCell(copiesTable, $("ConservationRulesReport.principal"), TITLE_FONT_SIZE, 4);
 		int principalsCopiesNumber = rule.getPrincipalsCopies().size();
 		for (int i = 0; i < principalsCopiesNumber; i++) {
 			//for (ConservationRulesReportModel_Copy principalCopy : rule.getPrincipalsCopies()) {
@@ -168,19 +152,19 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 					stringBuffer.append(", ");
 				}
 			}
-			pdfTableUtils.addPhraseCell(copiesTable, stringBuffer.toString(), TITLE_FONT_SIZE, 4);
-			pdfTableUtils.addPhraseCell(copiesTable, principalCopy.getActive(), TITLE_FONT_SIZE, 2);
-			pdfTableUtils.addPhraseCell(copiesTable, principalCopy.getSemiActive(), TITLE_FONT_SIZE, 3);
-			pdfTableUtils.addPhraseCell(copiesTable, principalCopy.getInactive(), TITLE_FONT_SIZE, 2);
+			pdfTableUtils.addLeftPhraseCell(copiesTable, stringBuffer.toString(), TITLE_FONT_SIZE, 4);
+			pdfTableUtils.addLeftPhraseCell(copiesTable, principalCopy.getActive(), TITLE_FONT_SIZE, 2);
+			pdfTableUtils.addLeftPhraseCell(copiesTable, principalCopy.getSemiActive(), TITLE_FONT_SIZE, 3);
+			pdfTableUtils.addLeftPhraseCell(copiesTable, principalCopy.getInactive(), TITLE_FONT_SIZE, 2);
 			if (principalCopy.getObservations() != null) {
-				pdfTableUtils.addPhraseRow(copiesTable, principalCopy.getObservations(), TITLE_FONT_SIZE, 15);
+				pdfTableUtils.addLeftPhraseRow(copiesTable, principalCopy.getObservations(), TITLE_FONT_SIZE, 15);
 			}
 			if (i != principalsCopiesNumber - 1) {
 				pdfTableUtils.addEmptyCells(copiesTable, 4, copiesTable.getDefaultCell().getHeight());
 			}
 		}
 
-		pdfTableUtils.addPhraseCell(copiesTable, $("ConservationRulesReport.secondary"), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addLeftPhraseCell(copiesTable, $("ConservationRulesReport.secondary"), TITLE_FONT_SIZE, 4);
 		//TODO verify null
 		ConservationRulesReportModel_Copy secondaryCopy = rule.getSecondaryCopy();
 		int quantity = secondaryCopy.getSupportTypes().size();
@@ -191,12 +175,12 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 				stringBuffer.append(", ");
 			}
 		}
-		pdfTableUtils.addPhraseCell(copiesTable, stringBuffer.toString(), TITLE_FONT_SIZE, 4);
-		pdfTableUtils.addPhraseCell(copiesTable, secondaryCopy.getActive(), TITLE_FONT_SIZE, 2);
-		pdfTableUtils.addPhraseCell(copiesTable, secondaryCopy.getSemiActive(), TITLE_FONT_SIZE, 3);
-		pdfTableUtils.addPhraseCell(copiesTable, secondaryCopy.getInactive(), TITLE_FONT_SIZE, 2);
+		pdfTableUtils.addLeftPhraseCell(copiesTable, stringBuffer.toString(), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addLeftPhraseCell(copiesTable, secondaryCopy.getActive(), TITLE_FONT_SIZE, 2);
+		pdfTableUtils.addLeftPhraseCell(copiesTable, secondaryCopy.getSemiActive(), TITLE_FONT_SIZE, 3);
+		pdfTableUtils.addLeftPhraseCell(copiesTable, secondaryCopy.getInactive(), TITLE_FONT_SIZE, 2);
 		if (secondaryCopy.getObservations() != null) {
-			pdfTableUtils.addPhraseRow(copiesTable, secondaryCopy.getObservations(), TITLE_FONT_SIZE, 15);
+			pdfTableUtils.addLeftPhraseRow(copiesTable, secondaryCopy.getObservations(), TITLE_FONT_SIZE, 15);
 		}
 
 		copiesCell.addElement(copiesTable);

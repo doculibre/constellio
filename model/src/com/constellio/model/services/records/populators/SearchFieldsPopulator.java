@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records.populators;
 
 import java.util.Collections;
@@ -26,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.ParsedContent;
@@ -88,11 +73,12 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		} else {
 			return Collections.emptyMap();
 		}
+
 	}
 
 	private void addFilenameAndParsedContent(ContentVersion currentVersion, KeyListMap<String, Object> keyListMap, String code) {
 		try {
-			ParsedContent parsedContent = contentManager.getParsedContent(currentVersion.getHash());
+			ParsedContent parsedContent = contentManager.getParsedContentParsingIfNotYetDone(currentVersion.getHash());
 
 			String contentLanguage = null;
 			if (collectionLanguages.size() == 1) {
@@ -113,7 +99,9 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				keyListMap.add(code + "_txt_" + contentLanguage, parsedContent.getParsedContent());
 			}
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
-			LOGGER.warn("Parsed content of '" + currentVersion.getHash() + "' was not found in vault");
+			if (new FoldersLocator().getFoldersLocatorMode() != FoldersLocatorMode.PROJECT) {
+				LOGGER.warn("Parsed content of '" + currentVersion.getHash() + "' was not found in vault");
+			}
 		}
 	}
 
@@ -189,24 +177,30 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
 		for (Content value : values) {
 			ContentVersion currentVersion = value.getCurrentVersion();
-			ParsedContent parsedContent = contentManager.getParsedContent(currentVersion.getHash());
+			try {
+				ParsedContent parsedContent = contentManager.getParsedContentParsingIfNotYetDone(currentVersion.getHash());
 
-			String contentLanguage = null;
-			if (collectionLanguages.size() == 1) {
-				contentLanguage = collectionLanguages.get(0);
-			} else if (parsedContent != null && collectionLanguages.contains(parsedContent.getLanguage())) {
-				contentLanguage = parsedContent.getLanguage();
-			}
-
-			if (parsedContent == null || contentLanguage == null) {
-				for (String collectionLanguage : collectionLanguages) {
-					keyListMap.add(copiedMetadataCode + "_" + collectionLanguage + "_ss", currentVersion.getFilename());
+				String contentLanguage = null;
+				if (collectionLanguages.size() == 1) {
+					contentLanguage = collectionLanguages.get(0);
+				} else if (parsedContent != null && collectionLanguages.contains(parsedContent.getLanguage())) {
+					contentLanguage = parsedContent.getLanguage();
 				}
-			} else {
-				keyListMap.add(copiedMetadataCode + "_" + contentLanguage + "_ss", currentVersion.getFilename());
-			}
-			if (parsedContent != null && contentLanguage != null) {
-				keyListMap.add(copiedMetadataCode + "_txt_" + contentLanguage, parsedContent.getParsedContent());
+
+				if (parsedContent == null || contentLanguage == null) {
+					for (String collectionLanguage : collectionLanguages) {
+						keyListMap.add(copiedMetadataCode + "_" + collectionLanguage + "_ss", currentVersion.getFilename());
+					}
+				} else {
+					keyListMap.add(copiedMetadataCode + "_" + contentLanguage + "_ss", currentVersion.getFilename());
+				}
+				if (parsedContent != null && contentLanguage != null) {
+					keyListMap.add(copiedMetadataCode + "_txt_" + contentLanguage, parsedContent.getParsedContent());
+				}
+			} catch (ContentManagerRuntimeException_NoSuchContent e) {
+				if (new FoldersLocator().getFoldersLocatorMode() != FoldersLocatorMode.PROJECT) {
+					LOGGER.warn("Parsed content of '" + currentVersion.getHash() + "' was not found in vault");
+				}
 			}
 		}
 

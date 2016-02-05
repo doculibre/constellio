@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.utils;
 
 import java.util.ArrayList;
@@ -26,6 +9,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import org.apache.commons.collections.map.HashedMap;
 
 public class DependencyUtils<V> {
 
@@ -39,15 +30,55 @@ public class DependencyUtils<V> {
 	}
 
 	public List<V> sortByDependency(Map<V, Set<V>> dependenciesMap, Comparator<V> tieComparator) {
-		return sortByDependency(dependenciesMap, tieComparator, true);
+		return sortByDependency(dependenciesMap, new DependencyUtilsParams().sortTieUsing(tieComparator));
+
+	}
+
+	public List<V> sortByDependency(Map<V, Set<V>> dependenciesMap) {
+		return sortByDependency(dependenciesMap, new DependencyUtilsParams().sortUsingDefaultComparator());
 
 	}
 
 	public List<V> sortByDependencyWithoutTieSort(Map<V, Set<V>> dependenciesMap) {
-		return sortByDependency(dependenciesMap, null, false);
+		return sortByDependency(dependenciesMap,new DependencyUtilsParams());
 	}
 
-	public List<V> sortByDependency(Map<V, Set<V>> dependenciesMap, Comparator<V> tieComparator, boolean sortTie) {
+	public static List<Record> sortRecordByDependency(MetadataSchemaTypes types, List<Record> records) {
+
+		//Set<String> ids = new HashSet<>(new RecordUtils().toIdList(records));
+		Map<String, Set<String>> dependencies = new HashMap<>();
+		Map<String, Record> recordMap = new HashMap<>();
+		for (Record record : records) {
+			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+			Set<String> dependentIds = new HashSet<>();
+			recordMap.put(record.getId(), record);
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (metadata.getType() == MetadataValueType.REFERENCE) {
+					if (metadata.isMultivalue()) {
+						List<String> metadataIds = record.getList(metadata);
+						dependentIds.addAll(metadataIds);
+					} else {
+						String metadataId = record.get(metadata);
+						if (metadataId != null) {
+							dependentIds.add(metadataId);
+						}
+					}
+				}
+			}
+			dependencies.put(record.getId(), dependentIds);
+		}
+
+		List<Record> sorted = new ArrayList<>();
+		DependencyUtilsParams params = new DependencyUtilsParams().withToleratedCyclicDepencies()
+				.sortUsingDefaultComparator();
+		for (String recordId : new DependencyUtils<String>().sortByDependency(dependencies, params)) {
+			sorted.add(recordMap.get(recordId));
+		}
+
+		return records;
+	}
+
+	public List<V> sortByDependency(Map<V, Set<V>> dependenciesMap, DependencyUtilsParams params) {
 		Map<V, Set<V>> dependenciesMapCopy = copyInModifiableMap(dependenciesMap);
 		removeSelfDependencies(dependenciesMapCopy);
 		removeDependenciesToOtherElements(dependenciesMapCopy);
@@ -55,14 +86,14 @@ public class DependencyUtils<V> {
 		List<V> sortedElements = new ArrayList<>();
 
 		while (!dependenciesMapCopy.isEmpty()) {
-			IterationResults<V> iterationResults = getMetadatasWithoutDependencies(dependenciesMapCopy);
+			IterationResults<V> iterationResults = getMetadatasWithoutDependencies(dependenciesMapCopy, params);
 
 			if (iterationResults.valuesWithoutDependencies.isEmpty()) {
 				List<V> cycleElements = getCyclicElements(dependenciesMapCopy.keySet());
 				throw new DependencyUtilsRuntimeException.CyclicDependency(cycleElements);
 			} else {
-				if (sortTie) {
-					Collections.sort(iterationResults.valuesWithoutDependencies, tieComparator);
+				if (params.isSortTie()) {
+					Collections.sort(iterationResults.valuesWithoutDependencies, params.<V>getTieComparator());
 				}
 
 				sortedElements.addAll(iterationResults.valuesWithoutDependencies);
@@ -107,7 +138,7 @@ public class DependencyUtils<V> {
 		return metadatas;
 	}
 
-	private IterationResults<V> getMetadatasWithoutDependencies(Map<V, Set<V>> metadatas) {
+	private IterationResults<V> getMetadatasWithoutDependencies(Map<V, Set<V>> metadatas, DependencyUtilsParams params) {
 		List<V> valuesWithoutDependencies = new ArrayList<>();
 		Map<V, Set<V>> valuesWithDependencies = new HashMap<>();
 		for (Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
@@ -123,7 +154,60 @@ public class DependencyUtils<V> {
 				otherMetadataEntry.getValue().remove(nextElement);
 			}
 		}
-		return new IterationResults<>(valuesWithoutDependencies, valuesWithDependencies);
+
+		if (valuesWithoutDependencies.isEmpty() && !valuesWithDependencies.isEmpty() && params.isTolerateCyclicDependencies()) {
+			return getMetadatasWithoutLesserDependencies(metadatas);
+		} else {
+			return new IterationResults<>(valuesWithoutDependencies, valuesWithDependencies);
+		}
+	}
+
+	private IterationResults<V> getMetadatasWithoutLesserDependencies(Map<V, Set<V>> metadatas) {
+
+		boolean moreDepenciesToAdd = true;
+		while(moreDepenciesToAdd)  {
+			moreDepenciesToAdd = false;
+			for(Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
+				Set<V> valuesToAdd = new HashSet<>();
+				for(V value : entry.getValue()) {
+					valuesToAdd.addAll(metadatas.get(value));
+				}
+				valuesToAdd.add(entry.getKey());
+				int sizeBefore = entry.getValue().size();
+				entry.getValue().addAll(valuesToAdd);
+				int sizeAfter = entry.getValue().size();
+
+				moreDepenciesToAdd |= sizeBefore != sizeAfter;
+			}
+		}
+
+
+		int minCounterOfDependencies = 10000000;
+		for(Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
+			int currentValue = entry.getValue().size();
+			if (currentValue < minCounterOfDependencies) {
+				minCounterOfDependencies = currentValue;
+			}
+		}
+
+		List<V> valuesWithLesserDependencies = new ArrayList<>();
+		Map<V, Set<V>> valuesWithDependencies = new HashMap<>();
+
+		for(Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
+			if (entry.getValue().size() == minCounterOfDependencies) {
+				valuesWithLesserDependencies.add(entry.getKey());
+			} else {
+				valuesWithDependencies.put(entry.getKey(), metadatas.get(entry.getKey()));
+			}
+		}
+
+		for (V nextElement : valuesWithLesserDependencies) {
+			for (Map.Entry<V, Set<V>> otherMetadataEntry : valuesWithDependencies.entrySet()) {
+				otherMetadataEntry.getValue().remove(nextElement);
+			}
+		}
+
+		return new IterationResults<>(valuesWithLesserDependencies, valuesWithDependencies);
 	}
 
 	private static class IterationResults<V> {

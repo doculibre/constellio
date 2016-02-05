@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -138,6 +121,27 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 		}
 
 		layout.addComponents(foldersWithoutDate, foldersWithDate);
+
+		if (presenter.isDocumentDecommissioningSupported()) {
+			Label documentsCaption = new Label($("DecommissioningMainView.create.documents"));
+			documentsCaption.addStyleName(ValoTheme.LABEL_H2);
+
+			VerticalLayout documents = new VerticalLayout(documentsCaption);
+			for (final SearchType type : presenter.getCriteriaForDocuments()) {
+				Button button = new Button($("DecommissioningMainView.create." + type));
+				button.addStyleName(ValoTheme.BUTTON_LINK);
+				button.addStyleName(CREATE + type);
+				button.addClickListener(new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.creationRequested(type);
+					}
+				});
+				documents.addComponent(button);
+			}
+
+			layout.addComponent(documents);
+		}
 	}
 
 	@Override
@@ -227,10 +231,10 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Table buildTable(ButtonsContainer container) {
-		Table table = new RecordVOTable();
+		Table table = new RecordVOTable($("DecommissioningMainView.lists", container.size()));
 		table.setContainerDataSource(container);
 		table.setColumnHeader(BUTTONS_PROPERTY_ID, "");
-		table.setPageLength(table.size());
+		table.setPageLength(Math.min(15, container.size()));
 		table.setWidth("100%");
 		return table;
 	}

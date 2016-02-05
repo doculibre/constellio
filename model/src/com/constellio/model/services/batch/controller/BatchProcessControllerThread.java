@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.controller;
 
 import java.util.ArrayList;
@@ -24,15 +7,23 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.threads.ConstellioThread;
-import com.constellio.model.entities.batchprocess.BatchProcessPart;
+import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.batch.state.BatchProcessProgressionServices;
+import com.constellio.model.services.batch.state.InMemoryBatchProcessProgressionServices;
+import com.constellio.model.services.batch.state.StoredBatchProcessPart;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
 
 public class BatchProcessControllerThread extends ConstellioThread {
 
@@ -44,18 +35,19 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	private final RecordServices recordServices;
 	private final MetadataSchemasManager schemasManager;
 	private final SearchServices searchServices;
+	private final ModelLayerFactory modelLayerFactory;
 	private boolean stopRequested;
 	private Semaphore newEventSemaphore;
 	private AtomicLong completed = new AtomicLong();
 
-	public BatchProcessControllerThread(BatchProcessesManager batchProcessesManager, RecordServices recordServices,
-			int numberOfRecordsPerTask, MetadataSchemasManager schemasManager, SearchServices searchServices) {
+	public BatchProcessControllerThread(ModelLayerFactory modelLayerFactory, int numberOfRecordsPerTask) {
 		super(RESOURCE_NAME);
-		this.batchProcessesManager = batchProcessesManager;
-		this.recordServices = recordServices;
+		this.modelLayerFactory = modelLayerFactory;
+		this.batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
+		this.recordServices = modelLayerFactory.newRecordServices();
 		this.numberOfRecordsPerTask = numberOfRecordsPerTask;
-		this.schemasManager = schemasManager;
-		this.searchServices = searchServices;
+		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.searchServices = modelLayerFactory.newSearchServices();
 		this.newEventSemaphore = new Semaphore(1);
 	}
 
@@ -72,9 +64,50 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 	void process()
 			throws Exception {
-		BatchProcessPart batchPart = batchProcessesManager.getCurrentBatchProcessPart();
-		while (batchPart != null) {
-			batchPart = processBatchProcessPart(batchPart);
+
+		BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
+		if (batchProcess != null) {
+			BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
+
+			ModifiableSolrParams params = new ModifiableSolrParams();
+			params.set("q", batchProcess.getQuery());
+			params.set("sort", "principalPath_s asc, id asc");
+
+			RecordSearchResponseIterator iterator = new RecordSearchResponseIterator(modelLayerFactory, params, 100, true);
+			BatchBuilderIterator<Record> batchIterator = new BatchBuilderIterator<>(iterator, 100);
+			StoredBatchProcessPart previousPart = batchProcessProgressionServices.getLastBatchProcessPart(batchProcess);
+			if (previousPart != null) {
+				iterator.beginAfterId(previousPart.getLastId());
+			}
+
+			ForkJoinPool pool = newForkJoinPool();
+			TaskList taskList = new TaskList(pool);
+
+			List<String> recordsWithErrors = new ArrayList<>();
+
+			while (batchIterator.hasNext()) {
+				List<Record> records = batchIterator.next();
+				int index = previousPart == null ? 0 : previousPart.getIndex() + 1;
+				String firstId = records.get(0).getId();
+				String lastId = records.get(records.size() - 1).getId();
+				StoredBatchProcessPart storedBatchProcessPart = new StoredBatchProcessPart(batchProcess.getId(), index, firstId,
+						lastId, false, false);
+
+				//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
+				batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
+				List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
+						records, recordsWithErrors, numberOfRecordsPerTask, schemasManager);
+
+				for (BatchProcessTask task : tasks) {
+					List<String> errors = pool.invoke(task);
+					recordsWithErrors.addAll(errors);
+				}
+				batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
+				previousPart = storedBatchProcessPart;
+			}
+			pool.shutdown();
+			pool.awaitTermination(1, TimeUnit.DAYS);
+			batchProcessesManager.markAsFinished(batchProcess, recordsWithErrors.size());
 		}
 		//newEventSemaphore.release();
 		waitUntilNotified();
@@ -82,27 +115,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 	void waitUntilNotified()
 			throws InterruptedException {
-		newEventSemaphore.acquire();
+		newEventSemaphore.tryAcquire(5, TimeUnit.SECONDS);
 
-	}
-
-	BatchProcessPart processBatchProcessPart(BatchProcessPart batchPart)
-			throws Exception {
-		List<String> recordsWithErrors = new ArrayList<>();
-
-		ForkJoinPool pool = newForkJoinPool();
-		TaskList taskList = new TaskList(pool);
-		List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchPart.getBatchProcess(),
-				batchPart.getRecordIds(), recordsWithErrors, numberOfRecordsPerTask, schemasManager);
-
-		for (BatchProcessTask task : tasks) {
-			pool.execute(task);
-		}
-		pool.shutdown();
-		pool.awaitTermination(1, TimeUnit.DAYS);
-
-		return batchProcessesManager.markBatchProcessPartAsFinishedAndGetAnotherPart(batchPart,
-				recordsWithErrors);
 	}
 
 	public boolean isStopRequested() {
@@ -125,7 +139,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	}
 
 	ForkJoinPool newForkJoinPool() {
-		return new ForkJoinPool();
+		return new ForkJoinPool(2);
 	}
 
 }

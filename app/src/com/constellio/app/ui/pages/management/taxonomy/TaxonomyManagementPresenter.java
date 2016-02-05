@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.taxonomy;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -53,14 +36,13 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
 public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagementView> {
-
 	public static final String TAXONOMY_CODE = "taxonomyCode";
 	public static final String CONCEPT_ID = "conceptId";
-	public static final String PARENT_CONCEPT_ID = "parentConceptId";
+
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	TaxonomyVO taxonomy;
 	String conceptId;
-	String parentConceptId;
+	String taxonomyCode;
 
 	public TaxonomyManagementPresenter(TaxonomyManagementView view) {
 		super(view);
@@ -68,9 +50,8 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 
 	public TaxonomyManagementPresenter forParams(String parameters) {
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
-		String taxonomyCode = params.get(TAXONOMY_CODE);
+		taxonomyCode = params.get(TAXONOMY_CODE);
 		conceptId = params.get(CONCEPT_ID);
-		parentConceptId = params.get(PARENT_CONCEPT_ID);
 		taxonomy = new TaxonomyToVOBuilder().build(fetchTaxonomy(taxonomyCode));
 		return this;
 	}
@@ -142,8 +123,8 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		metadataCodes.add(schemaCode + "_code");
 		metadataCodes.add(schemaCode + "_title");
 
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
-				.build(schema(schemaCode), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+		MetadataSchemaVO schemaVO = schemaVOBuilder.build(
+				schema(schemaCode), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
@@ -168,7 +149,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	Taxonomy fetchTaxonomy(String taxonomyCode) {
-		TaxonomiesManager taxonomiesManager = view.getConstellioFactories().getModelLayerFactory().getTaxonomiesManager();
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		return taxonomiesManager.getEnabledTaxonomyWithCode(view.getCollection(), taxonomyCode);
 	}
 
@@ -177,7 +158,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().taxonomyManagement(taxonomy.getCode(), recordVO.getId(), conceptId);
+		view.navigateTo().taxonomyManagement(taxonomy.getCode(), recordVO.getId());
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
@@ -189,7 +170,11 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 			SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(),
 					view.getSessionContext());
 			utils.delete(utils.toRecord(recordVO), null, false);
-			view.refreshTable();
+			if (recordVO.getId().equals(conceptId)) {
+				backButtonClicked();
+			} else {
+				view.refreshTable();
+			}
 		} else {
 			view.showErrorMessage($("TaxonomyManagementView.cannotDelete"));
 		}
@@ -212,7 +197,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public boolean isPrincipalTaxonomy() {
-		TaxonomiesManager taxonomiesManager = view.getConstellioFactories().getModelLayerFactory().getTaxonomiesManager();
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(collection);
 		return principalTaxonomy != null && principalTaxonomy.getCode().equals(taxonomy.getCode());
 	}
@@ -220,10 +205,17 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	public void backButtonClicked() {
 		if (conceptId == null) {
 			view.navigateTo().adminModule();
-		} else if (parentConceptId == null) {
-			view.navigateTo().taxonomyManagement(taxonomy.getCode());
 		} else {
-			view.navigateTo().taxonomyManagement(taxonomy.getCode(), parentConceptId, null);
+			SchemaPresenterUtils taxonomyPresenterUtils = new SchemaPresenterUtils(getCurrentConcept().getSchema().getCode(),
+					view.getConstellioFactories(), view.getSessionContext());
+			String[] pathParts = ((String) taxonomyPresenterUtils.getRecord(conceptId).getList(Schemas.PARENT_PATH).get(0))
+					.split("/");
+			String parentId = pathParts[pathParts.length - 1];
+			if (taxonomyCode.equals(parentId)) {
+				view.navigateTo().taxonomyManagement(taxonomyCode);
+			} else {
+				view.navigateTo().taxonomyManagement(taxonomyCode, parentId);
+			}
 		}
 	}
 
@@ -272,5 +264,9 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 
 	public String getDefaultOrderField() {
 		return Schemas.CODE.getLocalCode();
+	}
+
+	public void searchConcept(String freeText) {
+		view.navigateTo().taxonomySearch(taxonomyCode, freeText);
 	}
 }

@@ -1,25 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.bigVault.solr;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
@@ -29,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -131,18 +114,17 @@ public class SolrUtils {
 	public static Object convertNullToSolrValue(String fieldName) {
 		Object convertedFieldValue = null;
 		if (isSingleValueStringOrText(fieldName)) {
-			convertedFieldValue = NULL_STRING;
+			convertedFieldValue = null;
 		} else if (fieldName.endsWith("_dt") || fieldName.endsWith("_da")) {
-			convertedFieldValue = new SimpleDateFormat(SOLR_DATE_FORMATTER_PATTERN).format(NULL_DATE_TIME);
+			convertedFieldValue = null;
 		} else if (fieldName.endsWith("_d")) {
-			convertedFieldValue = Integer.MIN_VALUE;
+			convertedFieldValue = null;
 		} else if (isMultiValueStringOrText(fieldName)) {
-			convertedFieldValue = new ArrayList<>(Arrays.asList(NULL_STRING));
+			convertedFieldValue = null;
 		} else if (fieldName.endsWith("_dts") || fieldName.endsWith("_das")) {
-			convertedFieldValue = new ArrayList<>(Arrays.asList(new SimpleDateFormat(SOLR_DATE_FORMATTER_PATTERN).format(
-					NULL_DATE_TIME)));
+			convertedFieldValue = null;
 		} else if (fieldName.endsWith("_ds")) {
-			convertedFieldValue = new ArrayList<>(Arrays.asList(Integer.MIN_VALUE));
+			convertedFieldValue = null;
 		}
 		return convertedFieldValue;
 	}
@@ -195,10 +177,10 @@ public class SolrUtils {
 	public static String convertLocalDateTimeToSolrDate(LocalDateTime localDateTime) {
 
 		if (localDateTime == null) {
-			localDateTime = NULL_ITEM_LOCAL_DATE_TIME;
+			localDateTime = null;
 		}
 
-		if (localDateTime != NULL_ITEM_LOCAL_DATE_TIME && localDateTime.getYear() < 1900) {
+		if (localDateTime != null && localDateTime.getYear() < 1900) {
 			return localDateTime.withTime(12, 0, 0, 0).toString(SOLR_DATE_FORMATTER_PATTERN);
 		} else {
 			return new SimpleDateFormat(SOLR_DATE_FORMATTER_PATTERN).format(localDateTime.toDate());
@@ -207,8 +189,26 @@ public class SolrUtils {
 
 	public static String convertLocalDateToSolrDate(LocalDate localDate) {
 		if (localDate == null) {
-			localDate = NULL_ITEM_LOCALDATE;
+			return null;
 		}
 		return convertLocalDateTimeToSolrDate(localDate.toLocalDateTime(LocalTime.MIDNIGHT));
+	}
+
+	public static String toSingleQueryString(ModifiableSolrParams params) {
+		StringBuilder queryBuilder = new StringBuilder();
+		queryBuilder.append("(");
+		queryBuilder.append(params.get("q"));
+		queryBuilder.append(")");
+
+		String[] fqs = params.getParams("fq");
+		if (fqs != null) {
+			for (String fq : fqs) {
+				queryBuilder.append(" AND (");
+				queryBuilder.append(fq);
+				queryBuilder.append(")");
+			}
+		}
+
+		return queryBuilder.toString();
 	}
 }

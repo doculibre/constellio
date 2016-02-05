@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.taxonomies;
 
 import static com.constellio.data.utils.LangUtils.isTrueOrNull;
@@ -28,8 +11,11 @@ import static com.constellio.model.services.search.query.logical.valueCondition.
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -105,7 +91,23 @@ public class TaxonomiesSearchServices {
 				.setStartRow(taxonomiesSearchOptions.getStartRow())
 				.setNumberOfRows(taxonomiesSearchOptions.getRows())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(taxonomiesSearchOptions.getReturnedMetadatasFilter().withIncludedField(Schemas.TOKENS));
+				.setReturnedMetadatas(taxonomiesSearchOptions.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.TOKENS));
+	}
+
+	public LogicalSearchQuery getChildConceptsQuery(String taxonomyCode, Record record, TaxonomiesSearchOptions options) {
+		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(record.getCollection(), taxonomyCode);
+		List<String> paths = record.getList(PATH);
+		LogicalSearchCondition condition = fromAllSchemasIn(record.getCollection())
+				.where(PARENT_PATH).isIn(paths)
+				.andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull()
+				.andWhere(schemaTypeIsIn(taxonomy.getSchemaTypes()));
+
+		return new LogicalSearchQuery(condition)
+				.filteredByStatus(options.getIncludeStatus())
+				.setStartRow(options.getStartRow())
+				.setNumberOfRows(options.getRows())
+				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.TOKENS));
 	}
 
 	public List<TaxonomySearchRecord> getVisibleRootConcept(User user, String collection, String taxonomyCode,
@@ -116,37 +118,46 @@ public class TaxonomiesSearchServices {
 	public LinkableTaxonomySearchResponse getVisibleRootConceptResponse(User user, String collection, String taxonomyCode,
 			TaxonomiesSearchOptions taxonomiesSearchOptions) {
 		LogicalSearchQuery mainQuery = getRootConceptsQuery(collection, taxonomyCode, taxonomiesSearchOptions);
-		SPEQueryResponse mainQueryResponse = searchServices.query(mainQuery.setNumberOfRows(100000).setStartRow(0));
-
-		List<Record> children = mainQueryResponse.getRecords();
+		SearchResponseIterator<Record> rootIterator = searchServices.recordsIteratorKeepingOrder(
+				mainQuery.setNumberOfRows(100000).setStartRow(0), 25);
+		Iterator<List<Record>> batchIterators = new BatchBuilderIterator<>(rootIterator, 25);
 
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
-		LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(null, taxonomy);
-		LogicalSearchQuery query = new LogicalSearchQuery(condition)
-				.filteredWithUser(user)
-				.filteredByStatus(taxonomiesSearchOptions.getIncludeStatus())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema())
-				.setNumberOfRows(0);
 
-		for (Record child : children) {
-			query.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, 0, child, true, onlyActives(taxonomiesSearchOptions)));
-		}
-		SPEQueryResponse response = searchServices.query(query);
-
+		int consumed = 0;
 		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
-		for (Record child : children) {
+		while (batchIterators.hasNext() && resultVisible.size() < taxonomiesSearchOptions.getStartRow() + taxonomiesSearchOptions
+				.getRows()) {
 
-			if (response.getQueryFacetCount(facetQueryFor(taxonomy, 0, child, true, onlyActives(taxonomiesSearchOptions))) > 0) {
-				resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, true));
+			LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(null, taxonomy, true,
+					onlyActives(taxonomiesSearchOptions));
+			LogicalSearchQuery query = new LogicalSearchQuery(condition)
+					.filteredWithUser(user)
+					.filteredByStatus(taxonomiesSearchOptions.getIncludeStatus())
+					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema())
+					.setNumberOfRows(0);
+
+			List<Record> batch = batchIterators.next();
+			for (Record child : batch) {
+				query.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, 0, child));
+			}
+			SPEQueryResponse response = searchServices.query(query);
+
+			for (Record child : batch) {
+				consumed++;
+				if (response.getQueryFacetCount(facetQueryFor(taxonomy, 0, child)) > 0) {
+					resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, true));
+				}
 			}
 		}
 
+		long numFound = rootIterator.getNumFound() - consumed + resultVisible.size();
 		int toIndex = Math.min(resultVisible.size(), taxonomiesSearchOptions.getStartRow() + taxonomiesSearchOptions.getRows());
 		List<TaxonomySearchRecord> returnedRecords = resultVisible.subList(taxonomiesSearchOptions.getStartRow(), toIndex);
-		return new LinkableTaxonomySearchResponse(resultVisible.size(), returnedRecords);
+		return new LinkableTaxonomySearchResponse(numFound, returnedRecords);
 	}
 
-	private String facetQueryFor(Taxonomy taxonomy, int level, Record child, boolean onlyVisibleInTrees, boolean onlyActives) {
+	private String facetQueryFor(Taxonomy taxonomy, int level, Record child) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("(pathParts_ss:");
 		stringBuilder.append(taxonomy.getCode());
@@ -154,13 +165,7 @@ public class TaxonomiesSearchServices {
 		stringBuilder.append(level);
 		stringBuilder.append("_");
 		stringBuilder.append(child.getId());
-		if (onlyVisibleInTrees) {
-			stringBuilder.append(" AND (visibleInTrees_s:__TRUE__ OR visibleInTrees_s:__NULL__)");
-		}
-		if (onlyActives) {
-			stringBuilder.append(" AND (deleted_s:__FALSE__ OR deleted_s:__NULL__)");
-		}
-		stringBuilder.append(") AND -(id:");
+		stringBuilder.append(") AND (*:* -id:");
 		stringBuilder.append(child.getId());
 		stringBuilder.append(")");
 		return stringBuilder.toString();
@@ -187,21 +192,21 @@ public class TaxonomiesSearchServices {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(usingTaxonomy.getCollection(), usingTaxonomy.getCode());
 		LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection())
 				.where(schemaTypeIsIn(taxonomy.getSchemaTypes()));
-		LogicalSearchQuery query = new LogicalSearchQuery(condition)
+		LogicalSearchQuery query = new LogicalSearchQuery(withFilters(condition, false, onlyActives(options)))
 				.filteredWithUser(user, options.getRequiredAccess())
 				.filteredByStatus(options.getIncludeStatus())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyFields(Schemas.LINKABLE));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.LINKABLE));
 
 		for (Record child : children) {
-			query.addQueryFacet("childrens", facetQueryFor(usingTaxonomy, level, child, false, onlyActives(options)));
+			query.addQueryFacet("childrens", facetQueryFor(usingTaxonomy, level, child));
 		}
 		SPEQueryResponse response = searchServices.query(query);
 		List<String> responseRecordIds = new RecordUtils().toIdList(response.getRecords());
 		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
 		for (Record child : children) {
 			boolean hasVisibleChildren =
-					response.getQueryFacetCount(facetQueryFor(taxonomy, level, child, false, onlyActives(options))) > 0;
+					response.getQueryFacetCount(facetQueryFor(taxonomy, level, child)) > 0;
 
 			boolean readAuthorizationsOnConcept = responseRecordIds.contains(child.getId());
 			boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
@@ -219,7 +224,7 @@ public class TaxonomiesSearchServices {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
 				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedField(Schemas.TOKENS));
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.TOKENS));
 
 		return searchServices.query(query);
 	}
@@ -238,7 +243,8 @@ public class TaxonomiesSearchServices {
 	private LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfATaxonomyConcept(User user,
 			Taxonomy taxonomy, MetadataSchemaType selectedType, Record inRecord, TaxonomiesSearchOptions options) {
 
-		options = options.cloneAddingReturnedField(Schemas.LINKABLE);
+		options = options.cloneAddingReturnedField(Schemas.LINKABLE).cloneAddingReturnedField(Schemas.DESCRIPTION_STRING)
+				.cloneAddingReturnedField(Schemas.DESCRIPTION_TEXT);
 
 		SPEQueryResponse mainQueryResponse;
 		if (inRecord == null) {
@@ -260,13 +266,13 @@ public class TaxonomiesSearchServices {
 		LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection())
 				.where(PARENT_PATH).isStartingWithText("/" + taxonomy.getCode())
 				.andWhere(schemaTypeIsIn(taxonomy.getSchemaTypes()));
-		LogicalSearchQuery hasChildrenQuery = new LogicalSearchQuery(condition)
+		LogicalSearchQuery hasChildrenQuery = new LogicalSearchQuery(withFilters(condition, true, onlyActives(options)))
 				.filteredByStatus(options.getIncludeStatus())
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema())
 				.setNumberOfRows(0);
 
 		for (Record child : mainQueryResponse.getRecords()) {
-			hasChildrenQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, level, child, true, onlyActives(options)));
+			hasChildrenQuery.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, level, child));
 		}
 
 		SPEQueryResponse response = searchServices.query(hasChildrenQuery);
@@ -277,7 +283,7 @@ public class TaxonomiesSearchServices {
 			boolean sameType = rootConcept.getSchemaCode().startsWith(selectedType.getCode());
 			boolean linkable = isTrueOrNull(rootConcept.get(Schemas.LINKABLE));
 			boolean hasChildren =
-					response.getQueryFacetCount(facetQueryFor(taxonomy, level, rootConcept, true, onlyActives(options))) > 0;
+					response.getQueryFacetCount(facetQueryFor(taxonomy, level, rootConcept)) > 0;
 			records.add(new TaxonomySearchRecord(rootConcept, sameType && linkable, hasChildren));
 		}
 		return new LinkableTaxonomySearchResponse(mainQueryResponse.getNumFound(), records);
@@ -304,52 +310,67 @@ public class TaxonomiesSearchServices {
 	private LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfARecordUsingNonPrincipalTaxonomy(User user,
 			Taxonomy taxonomy, MetadataSchemaType selectedType, Record inRecord, TaxonomiesSearchOptions options) {
 
-		SPEQueryResponse mainQueryResponse;
+		LogicalSearchQuery mainQuery;
 
 		if (inRecord == null) {
-			mainQueryResponse = getRootConceptResponse(taxonomy.getCollection(), taxonomy.getCode(), options);
+			mainQuery = getRootConceptsQuery(taxonomy.getCollection(), taxonomy.getCode(), options);
 		} else {
 			Object path = inRecord.getList(PATH).get(0);
 			LogicalSearchCondition condition = fromAllSchemasIn(inRecord.getCollection()).where(PARENT_PATH).isEqualTo(path);
-			mainQueryResponse = queryWithOptionsExceptStartAndRows(condition, options);
+			mainQuery = new LogicalSearchQuery(condition);
+
 		}
+
+		mainQuery.filteredByStatus(options.getIncludeStatus())
+				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+				.setReturnedMetadatas(options.getReturnedMetadatasFilter().withIncludedMetadata(Schemas.TOKENS));
 
 		int level = inRecord == null ? 0 : getRecordLevelInTaxonomy(inRecord, taxonomy);
 
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(taxonomy.getCollection()).where(schemaTypeIs(selectedType)))
-				.filteredWithUser(user, options.getRequiredAccess())
-				.filteredByStatus(options.getIncludeStatus())
-				.setNumberOfRows(0)
-				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
-
-		for (Record child : mainQueryResponse.getRecords()) {
-			query.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, level, child, false, onlyActives(options)));
-		}
-
-		SPEQueryResponse response = searchServices.query(query);
+		Iterator<Record> recordsIterator = searchServices.recordsIteratorKeepingOrder(
+				mainQuery.setNumberOfRows(100000).setStartRow(0), 25);
+		Iterator<List<Record>> batchIterators = new BatchBuilderIterator<>(recordsIterator, 25);
 
 		List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
-		for (Record child : mainQueryResponse.getRecords()) {
-			String schemaType = schemaUtils.getSchemaTypeCode(child.getSchemaCode());
+		while (batchIterators.hasNext() && visibleRecords.size() < options.getStartRow() + options.getRows() + 1) {
+			List<Record> batch = batchIterators.next();
 
-			boolean hasVisibleChildren =
-					response.getQueryFacetCount(facetQueryFor(taxonomy, level, child, false, onlyActives(options))) > 0;
+			LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection()).where(schemaTypeIs(selectedType));
+			LogicalSearchQuery query = new LogicalSearchQuery()
+					.setCondition(withFilters(condition, false, onlyActives(options)))
+					.filteredWithUser(user, options.getRequiredAccess())
+					.filteredByStatus(options.getIncludeStatus())
+					.setNumberOfRows(0)
+					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 
-			if (schemaType.equals(selectedType.getCode())) {
-				boolean hasAccess = user.hasRequiredAccess(options.getRequiredAccess()).on(child);
-				if (hasAccess || hasVisibleChildren) {
-					visibleRecords.add(new TaxonomySearchRecord(child, hasAccess, hasVisibleChildren));
-				}
-
-			} else if (hasVisibleChildren) {
-				visibleRecords.add(new TaxonomySearchRecord(child, false, true));
+			for (Record child : batch) {
+				query.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, level, child));
 			}
 
+			SPEQueryResponse response = searchServices.query(query);
+
+			for (Record child : batch) {
+				String schemaType = schemaUtils.getSchemaTypeCode(child.getSchemaCode());
+
+				boolean hasVisibleChildren =
+						response.getQueryFacetCount(facetQueryFor(taxonomy, level, child)) > 0;
+
+				if (schemaType.equals(selectedType.getCode())) {
+					boolean hasAccess = user.hasRequiredAccess(options.getRequiredAccess()).on(child);
+					if (hasAccess || hasVisibleChildren) {
+						visibleRecords.add(new TaxonomySearchRecord(child, hasAccess, hasVisibleChildren));
+					}
+
+				} else if (hasVisibleChildren) {
+					visibleRecords.add(new TaxonomySearchRecord(child, false, true));
+				}
+
+			}
 		}
+		int numFound = visibleRecords.size();//Math.min(visibleRecords.size(), options.getStartRow() + options.getRows() + 1);
 		int toIndex = Math.min(visibleRecords.size(), options.getStartRow() + options.getRows());
 		List<TaxonomySearchRecord> returnedRecords = visibleRecords.subList(options.getStartRow(), toIndex);
-		return new LinkableTaxonomySearchResponse(visibleRecords.size(), returnedRecords);
+		return new LinkableTaxonomySearchResponse(numFound, returnedRecords);
 	}
 
 	private LinkableTaxonomySearchResponse getLinkableConceptResponse(User user, String collection, String usingTaxonomyCode,
@@ -423,11 +444,12 @@ public class TaxonomiesSearchServices {
 			TaxonomiesSearchOptions taxonomiesSearchOptions) {
 
 		LogicalSearchQuery query = getChildConceptsQuery(record, taxonomiesSearchOptions);
-		SPEQueryResponse mainQueryResponse = searchServices.query(query.setNumberOfRows(100000).setStartRow(0));
-		List<Record> childs = mainQueryResponse.getRecords();
+		SearchResponseIterator<Record> childsIterator = searchServices
+				.recordsIteratorKeepingOrder(query.setNumberOfRows(100000).setStartRow(0),
+						25);
+		Iterator<List<Record>> batchIterators = new BatchBuilderIterator<>(childsIterator, 25);
 
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(record.getCollection(), taxonomyCode);
-		boolean principalTaxonomy = taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()));
 		String path = null;
 		for (String candidate : record.<String>getList(PATH)) {
 			if (candidate.startsWith("/" + taxonomy.getCode())) {
@@ -436,69 +458,101 @@ public class TaxonomiesSearchServices {
 			}
 		}
 
-		LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(path,
-				taxonomy);
-		query = new LogicalSearchQuery(condition)
-				.filteredWithUser(user)
-				.filteredByStatus(taxonomiesSearchOptions.getIncludeStatus())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema())
-				.setNumberOfRows(0);
-
 		int level = path.split("/").length - 2;
-		for (Record child : childs) {
-			query.addQueryFacet(CHILDREN_QUERY,
-					facetQueryFor(taxonomy, level, child, true, onlyActives(taxonomiesSearchOptions)));
-		}
-
-		SPEQueryResponse response = searchServices.query(query);
-
+		int consumed = 0;
 		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
-		for (Record child : childs) {
-			String childType = schemaUtils.getSchemaTypeCode(child.getSchemaCode());
-			boolean isTaxonomyRecord = taxonomy.getSchemaTypes().contains(childType);
-			boolean hasChildren =
-					response.getQueryFacetCount(facetQueryFor(taxonomy, level, child, true, onlyActives(taxonomiesSearchOptions)))
-							> 0;
-			boolean hasAccess = false;
-			if (!isTaxonomyRecord) {
-				hasAccess = user == User.GOD || user.hasReadAccess().on(child);
+		while (batchIterators.hasNext() && resultVisible.size() < taxonomiesSearchOptions.getStartRow() + taxonomiesSearchOptions
+				.getRows()) {
+
+			LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(path,
+					taxonomy, false, onlyActives(taxonomiesSearchOptions));
+			query = new LogicalSearchQuery(condition)
+					.filteredWithUser(user)
+					.filteredByStatus(taxonomiesSearchOptions.getIncludeStatus())
+					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema())
+					.setNumberOfRows(0);
+
+			List<Record> batch = batchIterators.next();
+			for (Record child : batch) {
+				query.addQueryFacet(CHILDREN_QUERY,
+						facetQueryFor(taxonomy, level, child));
 			}
 
-			if (hasAccess || hasChildren) {
-				resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, hasChildren));
+			SPEQueryResponse response = searchServices.query(query);
+
+			for (Record child : batch) {
+				consumed++;
+				String childType = schemaUtils.getSchemaTypeCode(child.getSchemaCode());
+				boolean isTaxonomyRecord = taxonomy.getSchemaTypes().contains(childType);
+				boolean hasChildren =
+						response.getQueryFacetCount(
+								facetQueryFor(taxonomy, level, child))
+								> 0;
+				boolean hasAccess = false;
+				if (!isTaxonomyRecord) {
+					hasAccess = user == User.GOD || user.hasReadAccess().on(child);
+				}
+
+				if (hasAccess || hasChildren) {
+					resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, hasChildren));
+				}
 			}
 		}
+		long numFound = childsIterator.getNumFound() - consumed + resultVisible.size();
 		int toIndex = Math.min(resultVisible.size(), taxonomiesSearchOptions.getStartRow() + taxonomiesSearchOptions.getRows());
 		List<TaxonomySearchRecord> returnedRecords = resultVisible.subList(taxonomiesSearchOptions.getStartRow(), toIndex);
-		return new LinkableTaxonomySearchResponse(resultVisible.size(), returnedRecords);
+		return new LinkableTaxonomySearchResponse(numFound, returnedRecords);
 	}
 
 	public boolean findNonTaxonomyRecordsInStructure(Record record,
 			TaxonomiesSearchOptions taxonomiesSearchOptions) {
+		return findNonTaxonomyRecordsInStructure(record, taxonomiesSearchOptions, false, false);
+	}
+
+	public boolean findNonTaxonomyRecordsInStructure(Record record,
+			TaxonomiesSearchOptions taxonomiesSearchOptions, boolean onlyVisibleInTrees, boolean onlyActives) {
 		String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), schemaType);
 		String path = record.getList(PATH).get(0) + "/";
-		return findNonTaxonomyRecordsInStructure(record.getCollection(), path, taxonomy, taxonomiesSearchOptions);
+		return findNonTaxonomyRecordsInStructure(record.getCollection(), path, taxonomy, taxonomiesSearchOptions,
+				onlyVisibleInTrees, onlyActives);
 	}
 
 	public boolean findNonTaxonomyRecordsInStructure(String collection, String path, Taxonomy taxonomy,
-			TaxonomiesSearchOptions options) {
+			TaxonomiesSearchOptions options, boolean onlyVisibleInTrees, boolean onlyActives) {
 
-		LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(path, taxonomy);
+		LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(path, taxonomy, onlyVisibleInTrees,
+				onlyActives);
 		return searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(options.getIncludeStatus()));
 	}
 
-	LogicalSearchCondition findVisibleNonTaxonomyRecordsInStructure(String path, Taxonomy taxonomy) {
+	private LogicalSearchCondition withFilters(LogicalSearchCondition condition, boolean onlyVisibleInTree, boolean onlyActives) {
+		if (onlyVisibleInTree) {
+			condition = condition.andWhere(Schemas.VISIBLE_IN_TREES).isTrueOrNull();
+		}
 
+		if (onlyActives) {
+			condition = condition.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+		}
+
+		return condition;
+	}
+
+	LogicalSearchCondition findVisibleNonTaxonomyRecordsInStructure(String path, Taxonomy taxonomy, boolean onlyVisibleInTrees,
+			boolean onlyActives) {
+
+		LogicalSearchCondition condition;
 		if (path == null) {
-			return fromAllSchemasIn(taxonomy.getCollection())
+			condition = fromAllSchemasIn(taxonomy.getCollection())
 					.where(schemaTypeIsNotIn(taxonomy.getSchemaTypes()));
 		} else {
 
-			return fromAllSchemasIn(taxonomy.getCollection())
+			condition = fromAllSchemasIn(taxonomy.getCollection())
 					.where(PATH).isStartingWithText(path)
 					.andWhere(schemaTypeIsNotIn(taxonomy.getSchemaTypes()));
 		}
+
+		return withFilters(condition, onlyVisibleInTrees, onlyActives);
 	}
 
 	LogicalSearchCondition findVisibleTaxonomyRecordsInStructure(String collection, String path, Taxonomy taxonomy) {

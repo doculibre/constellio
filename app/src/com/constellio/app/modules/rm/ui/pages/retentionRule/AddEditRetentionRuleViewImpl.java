@@ -1,60 +1,41 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleFieldFactory;
-import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleForm;
-import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
-import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Component;
-
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.ui.components.retentionRule.DocumentCopyRetentionRuleTable;
+import com.constellio.app.modules.rm.ui.components.retentionRule.DocumentDefaultCopyRetentionRuleTable;
+import com.constellio.app.modules.rm.ui.components.retentionRule.FolderCopyRetentionRuleTable;
+import com.constellio.app.modules.rm.ui.components.retentionRule.ListAddRemoveRetentionRuleDocumentTypeField;
+import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+
 public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEditRetentionRuleView {
+	
 	private final AddEditRetentionRulePresenter presenter;
-	private RetentionRuleVO retentionRuleVO;
-
-	private RetentionRuleFieldFactory fieldFactory;
+	private RetentionRuleVO rule;
 	private RetentionRuleForm form;
-
 	private Boolean delayedDisposalTypeVisibleForDocumentTypes;
 
 	public AddEditRetentionRuleViewImpl() {
 		presenter = new AddEditRetentionRulePresenter(this);
-		fieldFactory = new RetentionRuleFieldFactory() {
-			@Override
-			protected List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
-				return presenter.getOpenPeriodsDDVList();
-			}
-
-			@Override
-			protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
-				presenter.disposalTypeChanged(copyRetentionRule);
-			}
-
-		};
 	}
 
 	@Override
@@ -64,34 +45,39 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 
 	@Override
 	public void setRetentionRule(RetentionRuleVO retentionRuleVO) {
-		this.retentionRuleVO = retentionRuleVO;
+		this.rule = retentionRuleVO;
 	}
 
 	@Override
 	protected String getTitle() {
-		String titleKey;
-		if (presenter.isAddView()) {
-			titleKey = "AddEditRetentionRuleView.addViewTitle";
-		} else {
-			titleKey = "AddEditRetentionRuleView.editViewTitle";
-		}
-		return $(titleKey);
+		return $(presenter.isAddView() ? "AddEditRetentionRuleView.addViewTitle" : "AddEditRetentionRuleView.editViewTitle");
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		form = new RetentionRuleForm(retentionRuleVO, fieldFactory) {
-			@Override
-			protected void saveButtonClick(RecordVO viewObject)
-					throws ValidationException {
-				presenter.saveButtonClicked();
-			}
+		this.form = initForm();
+		return form;
+	}
+	
+	@Override
+	protected void afterViewAssembled(ViewChangeEvent event) {
+		presenter.viewAssembled();
+	}
 
-			@Override
-			protected void cancelButtonClick(RecordVO viewObject) {
-				presenter.cancelButtonClicked();
-			}
-		};
+	@Override
+	public void reloadForm() {
+		RetentionRuleForm newForm = initForm();
+		replaceComponent(this.form, newForm);
+		this.form = newForm;
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	private RetentionRuleForm initForm() {
+		RetentionRuleForm form = new RetentionRuleForm(rule);
 		if (delayedDisposalTypeVisibleForDocumentTypes != null) {
 			setDisposalTypeVisibleForDocumentTypes(delayedDisposalTypeVisibleForDocumentTypes);
 		}
@@ -101,9 +87,138 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 	@Override
 	public void setDisposalTypeVisibleForDocumentTypes(boolean visible) {
 		if (form != null) {
-			form.getDocumentTypesField().setDisposalTypeVisible(visible);
+			ListAddRemoveRetentionRuleDocumentTypeField documentTypesField = form.getDocumentTypesField();
+			if (documentTypesField != null) {
+				documentTypesField.setDisposalTypeVisible(visible);
+			}
 		} else {
 			delayedDisposalTypeVisibleForDocumentTypes = visible;
+		}
+	}
+
+	private class RetentionRuleForm extends RecordForm {
+		public RetentionRuleForm(RecordVO record) {
+			super(record, new RetentionRuleFieldFactory());
+		}
+
+		@Override
+		protected void saveButtonClick(RecordVO record)
+				throws ValidationException {
+			presenter.saveButtonClicked();
+		}
+
+		@Override
+		protected void cancelButtonClick(RecordVO viewObject) {
+			presenter.cancelButtonClicked();
+		}
+
+		public ListAddRemoveRetentionRuleDocumentTypeField getDocumentTypesField() {
+			return ComponentTreeUtils.getFirstChild(this, ListAddRemoveRetentionRuleDocumentTypeField.class);
+		}
+	}
+
+	private class RetentionRuleFieldFactory extends RecordFieldFactory {
+		
+		private DocumentDefaultCopyRetentionRuleTable documentDefaultCopyRetentionRuleTable;
+		
+		private void initDocumentDefaultCopyRetentionRuleTable(RecordVO recordVO) {
+			if (documentDefaultCopyRetentionRuleTable == null) {
+				documentDefaultCopyRetentionRuleTable = new DocumentDefaultCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter.getOpenPeriodsDDVList()) {
+					@Override
+					protected List<MetadataVO> getDateMetadataVOs() {
+						return presenter.getDateMetadataVOs(null);
+					}
+				};
+			}
+		}
+		
+		@Override
+		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+			Field<?> field;
+			switch (metadataVO.getLocalCode()) {
+			case RetentionRule.COPY_RETENTION_RULES:
+				if (presenter.isFoldersCopyRetentionRulesVisible()) {
+					field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter.getOpenPeriodsDDVList()) {
+						@Override
+						protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
+							presenter.disposalTypeChanged(copyRetentionRule);
+						}
+					};
+					postBuild(field, recordVO, metadataVO);
+				} else {
+					field = null;
+				}
+				break;
+			case RetentionRule.DOCUMENT_COPY_RETENTION_RULES:
+				if (presenter.isDocumentsCopyRetentionRulesVisible()) {
+					field = new DocumentCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter.getOpenPeriodsDDVList()) {
+						@Override
+						protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
+							return presenter.getDateMetadataVOs(documentTypeId);
+						}
+					};
+					postBuild(field, recordVO, metadataVO);
+				} else {
+					field = null;
+				}
+				break;
+			case RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE:
+				if (presenter.isDefaultDocumentsCopyRetentionRulesVisible()) {
+					initDocumentDefaultCopyRetentionRuleTable(recordVO);
+					field = documentDefaultCopyRetentionRuleTable.getPrincipalCopyRetentionRuleField();
+					postBuild(field, recordVO, metadataVO);
+				} else {
+					field = null;
+				}
+				break;
+			case RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE:
+				if (presenter.isDefaultDocumentsCopyRetentionRulesVisible()) {
+					initDocumentDefaultCopyRetentionRuleTable(recordVO);
+					field = documentDefaultCopyRetentionRuleTable.getSecondaryCopyRetentionRuleField();
+					postBuild(field, recordVO, metadataVO);
+					field.setVisible(false);
+				} else {
+					field = null;
+				}
+				break;
+			case RetentionRule.DOCUMENT_TYPES_DETAILS:
+				field = presenter.shouldDisplayDocumentTypeDetails() ? new ListAddRemoveRetentionRuleDocumentTypeField() : null;
+				if (field != null) {
+					postBuild(field, recordVO, metadataVO);
+				}
+				break;
+			case RetentionRuleVO.CATEGORIES:
+				field = buildCategoriesField(recordVO, metadataVO);
+				postBuild(field, recordVO, metadataVO);
+				break;
+			case RetentionRule.SCOPE:
+				if (presenter.isScopeVisible()) {
+					field = new EnumWithSmallCodeComboBox<>(RetentionRuleScope.class);
+					field.addValueChangeListener(new ValueChangeListener() {
+						@Override
+						public void valueChange(ValueChangeEvent event) {
+							RetentionRuleScope scope = (RetentionRuleScope) event.getProperty().getValue();
+							presenter.scopeChanged(scope);
+						}
+					});
+					postBuild(field, recordVO, metadataVO);
+				} else {
+					field = null;
+				}
+				break;
+			default:
+				field = super.build(recordVO, metadataVO);
+				break;
+			}
+			return field;
+		}
+
+		private Field<?> buildCategoriesField(RecordVO recordVO, MetadataVO metadataVO) {
+			ListAddRemoveRecordLookupField field = (ListAddRemoveRecordLookupField) super.build(recordVO, metadataVO);
+			if (field != null) {
+				field.setIgnoreLinkability(true);
+			}
+			return field;
 		}
 	}
 }

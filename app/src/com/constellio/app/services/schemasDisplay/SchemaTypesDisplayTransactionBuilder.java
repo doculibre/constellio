@@ -1,23 +1,11 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemasDisplay;
 
+import java.util.List;
+
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
@@ -48,7 +36,7 @@ public class SchemaTypesDisplayTransactionBuilder {
 
 			SchemaDisplayConfig modifiedConfig = schemaDisplayAlteration.alter(config);
 			if (modifiedConfig != config) {
-				transaction.add(modifiedConfig);
+				transaction.addReplacing(modifiedConfig);
 			}
 		}
 	}
@@ -60,5 +48,64 @@ public class SchemaTypesDisplayTransactionBuilder {
 			}
 		}
 		return schemasDisplayManager.getSchema(types.getCollection(), schema.getCode());
+	}
+
+	public SchemaTypesDisplayTransactionBuilder add(SchemaTypeDisplayConfig typeDisplayConfig) {
+		transaction.add(typeDisplayConfig);
+		return this;
+	}
+
+	public SchemaTypesDisplayTransactionBuilder add(SchemaDisplayConfig schemaDisplayConfig) {
+		transaction.add(schemaDisplayConfig);
+		return this;
+	}
+
+	public SchemaTypesDisplayTransactionBuilder add(MetadataDisplayConfig metadataDisplayConfig) {
+		transaction.add(metadataDisplayConfig);
+		return this;
+	}
+
+	public SchemaTypesDisplayTransactionBuilder addReplacing(SchemaDisplayConfig schemaDisplayConfig) {
+		transaction.addReplacing(schemaDisplayConfig);
+		return this;
+	}
+
+	public SchemaTypesDisplayTransactionBuilder addReplacing(MetadataDisplayConfig metadataDisplayConfig) {
+		transaction.addReplacing(metadataDisplayConfig);
+		return this;
+	}
+
+	public SchemaTypesDisplayTransactionBuilder setModifiedCollectionTypes(
+			SchemaTypesDisplayConfig modifiedCollectionTypes) {
+		transaction.setModifiedCollectionTypes(modifiedCollectionTypes);
+		return this;
+	}
+
+	public SchemaTypesDisplayConfig getModifiedCollectionTypes() {
+		return transaction.getModifiedCollectionTypes();
+	}
+
+	public MetadataDisplayConfig getMetadataDisplayConfig(String code) {
+		return transaction.getMetadataDisplayConfig(code);
+	}
+
+	public List<MetadataDisplayConfig> getModifiedMetadatas() {
+		return transaction.getModifiedMetadatas();
+	}
+
+	public List<SchemaTypeDisplayConfig> getModifiedTypes() {
+		return transaction.getModifiedTypes();
+	}
+
+	public SchemaDisplayConfig getModifiedSchema(String schemaCode) {
+		return transaction.getModifiedSchema(schemaCode);
+	}
+
+	public String getCollection() {
+		return transaction.getCollection();
+	}
+
+	public List<SchemaDisplayConfig> getModifiedSchemas() {
+		return transaction.getModifiedSchemas();
 	}
 }

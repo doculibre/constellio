@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.model;
 
 import static java.util.Arrays.asList;
@@ -76,6 +59,18 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		rule = new CopyRetentionRule();
 		rule.setInactiveDisposalComment("zeInactive:Disposable\nComment");
 		assertThat(rule.isDirty()).isTrue();
+
+		rule = new CopyRetentionRule();
+		rule.setDocumentTypeId("zeDocumentTypeId");
+		assertThat(rule.isDirty()).isTrue();
+
+		rule = new CopyRetentionRule();
+		rule.setActiveDateMetadata("codeActiveDate");
+		assertThat(rule.isDirty()).isTrue();
+
+		rule = new CopyRetentionRule();
+		rule.setSemiActiveDateMetadata("codeSemiActiveDate");
+		assertThat(rule.isDirty()).isTrue();
 	}
 
 	@Test
@@ -93,6 +88,9 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		rule.setSemiActiveRetentionComment("zeSemi=;ActiveRetention-Comment");
 		rule.setInactiveDisposalType(DisposalType.DESTRUCTION);
 		rule.setInactiveDisposalComment("zeInactive:Disposable\nComment");
+		rule.setDocumentTypeId("zeDocumentTypeId");
+		rule.setActiveDateMetadata("codeActiveDate");
+		rule.setSemiActiveDateMetadata("codeSemiActiveDate");
 
 		String stringValue = factory.toString(rule);
 		CopyRetentionRule builtRule = (CopyRetentionRule) factory.build(stringValue);
@@ -119,6 +117,9 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		rule.setSemiActiveRetentionComment("zeSemi=;ActiveRetention-Comment");
 		rule.setInactiveDisposalType(DisposalType.DESTRUCTION);
 		rule.setInactiveDisposalComment("zeInactive:Disposable\nComment");
+		rule.setDocumentTypeId("zeDocumentTypeId");
+		rule.setActiveDateMetadata("codeActiveDate");
+		rule.setSemiActiveDateMetadata("codeSemiActiveDate");
 
 		String stringValue = factory.toString(rule);
 		CopyRetentionRule builtRule = (CopyRetentionRule) factory.build(stringValue);
@@ -134,10 +135,27 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenConvertingStructureWithoutDisposalTypeThenSetToDestruction()
+	public void whenConvertingStructureVersion1WithoutDisposalTypeThenSetToDestruction()
 			throws Exception {
 		String strValue = "~null~:S:~null~:F1:~null~:F2:~null~:R1:firstType:secondType:thirdType";
 		String strValue2 = "~null~:S:~null~:F1:~null~:F2:~null~:~null~:firstType:secondType:thirdType";
+
+		CopyRetentionRule rule1 = (CopyRetentionRule) factory.build(strValue);
+		CopyRetentionRule rule2 = (CopyRetentionRule) factory.build(strValue2);
+
+		assertThat(rule1.getInactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
+		assertThat(rule1.getInactiveDisposalComment()).isEqualTo("R1");
+
+		assertThat(rule2.getInactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
+		assertThat(rule2.getInactiveDisposalComment()).isNull();
+
+	}
+
+	@Test
+	public void whenConvertingStructureVersion2WithoutDisposalTypeThenSetToDestruction()
+			throws Exception {
+		String strValue = "version2:~null~:S:~null~:F1:~null~:F2:~null~:R1:zeDocumentTypeId:codeActiveDate:codeSemiActiveDate:firstType:secondType:thirdType";
+		String strValue2 = "version2:~null~:S:~null~:F1:~null~:F2:~null~:~null~:zeDocumentTypeId:codeActiveDate:codeSemiActiveDate:firstType:secondType:thirdType";
 
 		CopyRetentionRule rule1 = (CopyRetentionRule) factory.build(strValue);
 		CopyRetentionRule rule2 = (CopyRetentionRule) factory.build(strValue2);
@@ -166,6 +184,31 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(rule1.getActiveRetentionComment()).isNull();
 		assertThat(rule1.getSemiActiveRetentionComment()).isNull();
 		assertThat(rule1.getInactiveDisposalComment()).isNull();
+		assertThat(rule1.getDocumentTypeId()).isNull();
+		assertThat(rule1.getActiveDateMetadata()).isNull();
+		assertThat(rule1.getSemiActiveDateMetadata()).isNull();
+
+	}
+
+	@Test
+	public void whenConvertingStructureVersion2ThenCorrectInfos()
+			throws Exception {
+		String strValue = "version2:375:P:~null~:888::888::T:~null~:zeDocumentTypeId:codeActiveDate:codeSemiActiveDate:00000000003:00000000001";
+
+		CopyRetentionRule rule1 = (CopyRetentionRule) factory.build(strValue);
+
+		assertThat(rule1.getCode()).isEqualTo("375");
+		assertThat(rule1.getCopyType()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(rule1.getMediumTypeIds()).isEqualTo(asList("00000000003", "00000000001"));
+		assertThat(rule1.getActiveRetentionPeriod()).isEqualTo(RetentionPeriod.OPEN_888);
+		assertThat(rule1.getSemiActiveRetentionPeriod()).isEqualTo(RetentionPeriod.OPEN_888);
+		assertThat(rule1.getInactiveDisposalType()).isEqualTo(DisposalType.SORT);
+		assertThat(rule1.getActiveRetentionComment()).isNull();
+		assertThat(rule1.getSemiActiveRetentionComment()).isNull();
+		assertThat(rule1.getInactiveDisposalComment()).isNull();
+		assertThat(rule1.getDocumentTypeId()).isEqualTo("zeDocumentTypeId");
+		assertThat(rule1.getActiveDateMetadata()).isEqualTo("codeActiveDate");
+		assertThat(rule1.getSemiActiveDateMetadata()).isEqualTo("codeSemiActiveDate");
 
 	}
 

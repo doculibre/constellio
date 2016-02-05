@@ -1,33 +1,23 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.ReportSelector;
+import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
@@ -44,6 +34,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -91,22 +82,52 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	protected Component buildSummary(SearchResultTable results) {
+		// TODO: Create an extension for this
+
+		String schemaType = getSchemaType();
+		List<Component> selectionActions = new ArrayList<>();
+
 		WindowButton batchProcess = new BatchProcessingButton();
 		batchProcess.addStyleName(ValoTheme.BUTTON_LINK);
 		batchProcess.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
-		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return presenter.getTemplates();
-			}
-		};
-		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-				labelTemplatesFactory);
-		labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
-		labelsButton.addStyleName(LABELS_BUTTONSTYLE);
-		Label separatorLabel = new Label("|");
-		ReportSelector reportSelector = new ReportSelector(presenter);
-		return results.createSummary(buildSavedSearchButton(), batchProcess, separatorLabel, labelsButton, reportSelector);
+		selectionActions.add(batchProcess);
+
+		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
+			Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+				@Override
+				public List<LabelTemplate> get() {
+					return presenter.getTemplates();
+				}
+			};
+			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
+					labelTemplatesFactory);
+			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
+			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
+			selectionActions.add(labelsButton);
+		}
+
+		if (schemaType.equals(Document.SCHEMA_TYPE)) {
+			Component zipButton = new Link($("ReportViewer.download", "(zip)"),
+					new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
+			zipButton.addStyleName(ValoTheme.BUTTON_LINK);
+			selectionActions.add(zipButton);
+		}
+
+		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
+				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
+			Button addToCart = new LinkButton($("SearchView.addToCart")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.addToCartRequested(getSelectedRecordIds());
+				}
+			};
+			selectionActions.add(addToCart);
+		}
+
+		List<Component> actions = Arrays.asList(
+				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+
+		return results.createSummary(actions, selectionActions);
 	}
 
 	@Override
@@ -160,8 +181,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			metadata.setNullSelectionAllowed(false);
 			for (MetadataVO metadata : presenter.getMetadataAllowedInBatchEdit()) {
 				this.metadata.addItem(metadata);
-				this.metadata.setItemCaption(metadata,
-						metadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));
+				this.metadata.setItemCaption(metadata, metadata.getLabel());
 			}
 			metadata.addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -187,4 +207,5 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			return field;
 		}
 	}
+
 }

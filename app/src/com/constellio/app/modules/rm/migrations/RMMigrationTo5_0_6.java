@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE;
@@ -162,8 +145,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			//Folder
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
-			folderSchema.createUndeletable(Folder.LINEAR_SIZE).setType(MetadataValueType.NUMBER).setWriteNullValues(false)
-					.setEssential(true);
+			folderSchema.createUndeletable(Folder.LINEAR_SIZE).setType(MetadataValueType.NUMBER).setEssential(true);
 			folderSchema.createUndeletable(Folder.ACTIVE_RETENTION_CODE).setType(MetadataValueType.STRING)
 					.defineDataEntry().asCalculated(FolderActiveRetentionPeriodCodeCalculator.class);
 			folderSchema.createUndeletable(Folder.SEMIACTIVE_RETENTION_CODE).setType(MetadataValueType.STRING)
@@ -196,9 +178,6 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 						metadata.setTypeWithoutValidation(MetadataValueType.STRUCTURE);
 					}
 
-					if (typesWithoutNullValues.contains(metadata.getType()) || metadata.getCode().startsWith("USR")) {
-						metadata.setWriteNullValues(false);
-					}
 				}
 			}
 		}

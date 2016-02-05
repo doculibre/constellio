@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.records.wrappers;
 
 import java.io.IOException;
@@ -38,6 +21,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordWrapper implements Serializable, CollectionObject {
 
@@ -70,11 +54,24 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return types;
 	}
 
+	public Integer getInteger(String localCode) {
+		Number value = get(localCode);
+		return value == null ? null : value.intValue();
+	}
+
+	public <T> T get(Metadata metadata) {
+		return wrappedRecord.get(metadata);
+	}
+
 	public <T> T get(String localCode) {
 		ensureConnected();
 		String code = wrappedRecord.getSchemaCode() + "_" + localCode;
 		Metadata metadata = types.getMetadata(code);
 		return wrappedRecord.get(metadata);
+	}
+
+	public <T> List<T> getList(Metadata metadata) {
+		return wrappedRecord.getList(metadata);
 	}
 
 	public <T> List<T> getList(String localCode) {
@@ -110,7 +107,7 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	}
 
 	public String getCollection() {
-		return wrappedRecord.get(Schemas.COLLECTION);
+		return wrappedRecord.getCollection();
 	}
 
 	public List<String> getPaths() {
@@ -254,4 +251,31 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		}
 	}
 
+	public boolean isLogicallyDeletedStatus() {
+		return Boolean.TRUE.equals(get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode()));
+	}
+
+	public Boolean getLogicallyDeletedStatus() {
+		return get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode());
+	}
+
+	public boolean isMarkedForPreviewConversion() {
+		return Boolean.TRUE.equals(get(Schemas.MARKED_FOR_PREVIEW_CONVERSION.getLocalCode()));
+	}
+
+	public void setMarkedForPreviewConversion(Boolean value) {
+		set(Schemas.MARKED_FOR_PREVIEW_CONVERSION.getLocalCode(), value);
+	}
+	public Record changeSchemaTo(String newSchemaCode) {
+
+		if (!newSchemaCode.contains("_")) {
+			String currentSchemaType = new SchemaUtils().getSchemaTypeCode(wrappedRecord.getSchemaCode());
+			newSchemaCode = currentSchemaType + "_" + newSchemaCode;
+		}
+
+		MetadataSchema wasSchema = getMetadataSchemaTypes().getSchema(wrappedRecord.getSchemaCode());
+		MetadataSchema newSchema = getMetadataSchemaTypes().getSchema(newSchemaCode);
+		wrappedRecord.changeSchema(wasSchema, newSchema);
+		return wrappedRecord;
+	}
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.admin.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,6 +86,8 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		prepareSystem(withZeCollection().withAllTest(usersRecords));
+
 		userServices = getModelLayerFactory().newUserServices();
 		authService = getModelLayerFactory().newAuthenticationService();
 		globalGroupsManager = getModelLayerFactory().getGlobalGroupsManager();
@@ -115,9 +100,6 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 		roleManager = getModelLayerFactory().getRolesManager();
 		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		userServices = getModelLayerFactory().newUserServices();
-
-		usersRecords.setUp(userServices);
-		givenCollection(zeCollection).withAllTestUsers();
 
 		defineSchemasManager().using(schemas);
 		taxonomiesManager.addTaxonomy(schemas.getTaxonomy1(), schemasManager);
@@ -438,6 +420,6 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 		}
 		return new UserCredential(wrappedUser.getUsername(), wrappedUser.getFirstName(), wrappedUser.getLastName(),
 				wrappedUser.getEmail(), wrappedUser.getGroupsAuthorizations(), Arrays.asList(wrappedUser.getCollection()),
-				status, null);
+				status, null, Arrays.asList(""), null);
 	}
 }

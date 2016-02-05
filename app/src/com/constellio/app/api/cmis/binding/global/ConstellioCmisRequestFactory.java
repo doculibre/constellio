@@ -1,25 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.binding.global;
 
 import java.math.BigInteger;
 import java.util.Map;
 
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.server.AbstractServiceFactory;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.CmisService;
@@ -31,13 +15,14 @@ import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServi
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidLogin;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException;
 
 public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 
@@ -99,31 +84,40 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 
 	private void authenticate(CallContext context) {
 		String collection = context.getRepositoryId();
-		String username = context.getUsername();
-		if (username.contains("=>")) {
-			username = username.split("=>")[0];
-			User user = getUserServices().getUserInCollection(username, collection);
-			Record collectionRecord = getRecordServices().getDocumentById(collection);
-			AuthorizationsServices authorizationsServices = getAuthorizationsServices();
-			if (!(authorizationsServices.canDelete(user, collectionRecord) && authorizationsServices.canWrite(user,
-					collectionRecord))) {
-				throw new CmisExceptions_InvalidLogin();
+		String serviceKey = context.getUsername();
+		String token = context.getPassword();
+		//		if (serviceKey.contains("=>")) {
+		//			serviceKey = serviceKey.split("=>")[0];
+		//			User user = getUserServices().getUserInCollection(serviceKey, collection);
+		//			Record collectionRecord = getRecordServices().getDocumentById(collection);
+		//			AuthorizationsServices authorizationsServices = getAuthorizationsServices();
+		//			if (!(authorizationsServices.canDelete(user, collectionRecord) && authorizationsServices.canWrite(user,
+		//					collectionRecord))) {
+		//				throw new CmisExceptions_InvalidLogin();
+		//			}
+		//		}
+		try {
+			UserServices userServices = getUserServices();
+			String username = userServices.getTokenUser(serviceKey, token);
+			UserCredential userCredential = userServices.getUserCredential(username);
+			if (!userCredential.isSystemAdmin()) {
+				throw new CmisPermissionDeniedException("User must be a system admin");
 			}
-		}
-		boolean authenticate = getAuthenticationService().authenticate(username, context.getPassword());
-		if (!authenticate) {
+		} catch (UserServicesRuntimeException e) {
 			throw new CmisExceptions_InvalidLogin();
 		}
 	}
 
 	private User getCurrentUser(CallContext context, String collection) {
 		User currentUser = null;
-		String username = context.getUsername();
+		String serviceKey = context.getUsername();
 		if (collection != null) {
-			if (username.contains("=>")) {
-				username = username.split("=>")[1];
-			}
-			currentUser = getUserServices().getUserInCollection(username, collection);
+			//			if (username.contains("=>")) {
+			//				username = username.split("=>")[1];
+			//			}
+			UserServices userServices = getUserServices();
+			String username = userServices.getUserCredentialByServiceKey(serviceKey);
+			currentUser = userServices.getUserInCollection(username, collection);
 		}
 		return currentUser;
 	}

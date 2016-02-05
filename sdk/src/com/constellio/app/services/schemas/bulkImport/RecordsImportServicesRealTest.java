@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemas.bulkImport;
 
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportServices.INVALID_SCHEMA_TYPE_CODE;
@@ -92,6 +75,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.schemas.validators.ValueRequirementValidator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
@@ -385,6 +369,81 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenUpdatingARecordSchemaThenModified()
+			throws Exception {
+
+		LocalDate aDate = new LocalDate().minusDays(1);
+		LocalDate anotherDate = new LocalDate().minusDays(2);
+		LocalDateTime aDateTime = new LocalDateTime().minusDays(1);
+		LocalDateTime anotherDateTime = new LocalDateTime().minusDays(2);
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withABooleanMetadata(whichIsMultivalue)
+				.withADateMetadata(whichIsMultivalue)
+				.withADateTimeMetadata(whichIsMultivalue)
+				.withANumberMetadata(whichIsMultivalue)
+				.withAnEnumMetadata(AValidEnum.class, whichIsMultivalue)
+				.withAStringMetadataInCustomSchema());
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").setSchema("default").addField("title", "Record 1")
+				.addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
+				.addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
+				.addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+		Record record = recordWithLegacyId("1");
+		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_default");
+		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
+		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
+		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
+		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
+
+		zeSchemaTypeRecords.clear();
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").setSchema("custom").addField("title", "Record 1")
+				.addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
+				.addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
+				.addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
+				.addField(zeCustomSchemaMetadatas.customStringMetadata().getLocalCode(), "customMetadataValue")
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
+		bulkImport(importDataProvider, progressionListener, admin);
+		record = recordWithLegacyId("1");
+		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_custom");
+		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
+		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
+		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
+		assertThat(record.get(zeCustomSchemaMetadatas.customStringMetadata())).isEqualTo("customMetadataValue");
+		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
+
+		zeSchemaTypeRecords.clear();
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").setSchema("default").addField("title", "Record 1")
+				.addField(zeSchema.booleanMetadata().getLocalCode(), asList("yes", "FALSE"))
+				.addField(zeSchema.dateMetadata().getLocalCode(), asList(aDate, anotherDate))
+				.addField(zeSchema.dateTimeMetadata().getLocalCode(), asList(anotherDateTime, aDateTime))
+				.addField(zeSchema.numberMetadata().getLocalCode(), asList("6.66", "42.0"))
+				.addField(zeSchema.enumMetadata().getLocalCode(), asList("F", "S")));
+		bulkImport(importDataProvider, progressionListener, admin);
+		record = recordWithLegacyId("1");
+		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
+		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_default");
+		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
+		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
+		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
+		assertThat(record.get(zeSchema.numberMetadata())).isEqualTo(asList(6.66, 42.0));
+		assertThat(record.get(zeCustomSchemaMetadatas.customStringMetadata())).isNull();
+		assertThat(record.get(zeSchema.enumMetadata())).isEqualTo(asList(AValidEnum.FIRST_VALUE, AValidEnum.SECOND_VALUE));
+	}
+
+	@Test
 	public void whenImportingRecordsWithValidValueInBooleanMetadataThenCorrectlySaved()
 			throws Exception {
 
@@ -478,6 +537,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			@Override
 			public ImportDataIterator newDataIterator(String schemaType) {
 				return null;
+			}
+
+			@Override
+			public int size(String schemaType) {
+				return 0;
 			}
 		};
 
@@ -1193,7 +1257,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("referenceFromAnotherSchemaToZeSchema", "1"));
 
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		ResolverCache resolver = new ResolverCache(getModelLayerFactory().newSearchServices(), types);
+		ResolverCache resolver = new ResolverCache(getModelLayerFactory().newRecordServices(),
+				getModelLayerFactory().newSearchServices(), types, importDataProvider);
 
 		ProgressionHandler progressionHandler = new ProgressionHandler(new LoggerBulkImportProgressionListener());
 		ModelLayerCollectionExtensions extensions = getModelLayerFactory().getExtensions()
@@ -1257,14 +1322,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAContentListMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-				.addField("contentMetadata", new ContentImport(testResource1, "Ze document.docx", true)));
+				.addField("contentMetadata", new ContentImport(testResource1, "Ze document.docx", true, null, null)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
 				.addField("contentListMetadata", asList(
-						new ContentImport(testResource2, "Ze ultimate document.pdf", false),
-						new ContentImport(testResource3, "Ze book.txt", true))));
+						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
 
 		BulkImportResults results = bulkImport(importDataProvider, progressionListener, admin);
 
@@ -1299,6 +1364,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	@InternetTest
 	public void whenImportingRecordsWithContentThenContentUploadedAndAddedToRecord()
 			throws Exception {
 		String testResource1 = getTestResourceFile("resource1.docx").getAbsolutePath();
@@ -1316,9 +1382,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAContentMetadata()
 				.withAContentListMetadata());
 
-		ContentImportVersion version1 = new ContentImportVersion(testResource1, "Ze document.docx", true);
-		ContentImportVersion version2 = new ContentImportVersion(testResource4, "Ze document.docx", false);
-		ContentImportVersion version3 = new ContentImportVersion(testResource5, "Ze document.docx", true);
+		ContentImportVersion version1 = new ContentImportVersion(testResource1, "Ze document.docx", true, null, null);
+		ContentImportVersion version2 = new ContentImportVersion(testResource4, "Ze document.docx", false, null, null);
+		ContentImportVersion version3 = new ContentImportVersion(testResource5, "Ze document.docx", true, null, null);
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("contentMetadata", new ContentImport(Arrays.asList(version1, version2, version3))));
@@ -1327,8 +1393,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
 				.addField("contentListMetadata", asList(
-						new ContentImport(testResource2, "Ze ultimate document.pdf", false),
-						new ContentImport(testResource3, "Ze book.txt", true))));
+						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
 
 		BulkImportResults results = bulkImport(importDataProvider, progressionListener, admin);
 
@@ -1373,12 +1439,52 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(record3ContentList.get(1).getCurrentVersion().getFilename()).isEqualTo("Ze book.txt");
 		assertThat(record3ContentList.get(1).getCurrentVersion().getVersion()).isEqualTo("1.0");
 
-		assertThat(contentManager.getParsedContent(testResource1Hash).getParsedContent()).contains("My document");
+		assertThat(contentManager.isParsed(testResource1Hash)).isFalse();
+
+		assertThat(contentManager.isParsed(testResource2Hash)).isTrue();
 		assertThat(contentManager.getParsedContent(testResource2Hash).getParsedContent()).contains("Gestion des documents");
+
+		assertThat(contentManager.isParsed(testResource3Hash)).isTrue();
 		assertThat(contentManager.getParsedContent(testResource3Hash).getParsedContent())
 				.contains("He is your friend, but his arrow will kill one of your kind! He is a\r\nDakota");//\nDakota");
 
+		assertThat(contentManager.isParsed(testResource4Hash)).isFalse();
+
+		assertThat(contentManager.isParsed(testResource5Hash)).isTrue();
+		assertThat(contentManager.getParsedContent(testResource5Hash).getParsedContent())
+				.contains("CONSTELLIO");
+
 		assertThat(results.getInvalidIds()).isEmpty();
+
+		//Reimport the records changing the order of versions of record #1
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("contentMetadata", new ContentImport(Arrays.asList(version3, version2, version1))));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField("contentListMetadata", asList(
+						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
+						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
+
+		results = bulkImport(importDataProvider, progressionListener, admin);
+
+		record1 = recordWithLegacyId("1");
+
+		record1Content = record1.get(zeSchema.contentMetadata());
+		assertThat(record1Content.getCurrentVersion().getHash()).isEqualTo(testResource1Hash);
+		assertThat(record1Content.getCurrentVersion().getFilename()).isEqualTo("Ze document.docx");
+		assertThat(record1Content.getCurrentVersion().getVersion()).isEqualTo("2.0");
+		assertThat(record1Content.getHistoryVersions()).hasSize(2);
+
+		assertThat(record1Content.getHistoryVersions().get(0).getHash()).isEqualTo(testResource5Hash);
+		assertThat(record1Content.getHistoryVersions().get(0).getFilename()).isEqualTo("Ze document.docx");
+		assertThat(record1Content.getHistoryVersions().get(0).getVersion()).isEqualTo("1.0");
+
+		assertThat(record1Content.getHistoryVersions().get(1).getHash()).isEqualTo(testResource4Hash);
+		assertThat(record1Content.getHistoryVersions().get(1).getFilename()).isEqualTo("Ze document.docx");
+		assertThat(record1Content.getHistoryVersions().get(1).getVersion()).isEqualTo("1.1");
 
 	}
 

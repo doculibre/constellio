@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.search.query.logical;
 
 import java.util.Arrays;
@@ -23,11 +6,13 @@ import java.util.List;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.CollectionFilters;
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.NegatedLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SchemaTypesFilters;
 import com.constellio.model.services.search.query.logical.criteria.CompositeLogicalSearchValueOperator;
@@ -42,15 +27,19 @@ import com.constellio.model.services.search.query.logical.criteria.IsGreaterThan
 import com.constellio.model.services.search.query.logical.criteria.IsInCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsLessOrEqualThanCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsLessThanCriterion;
+import com.constellio.model.services.search.query.logical.criteria.IsNewerThanCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsNotContainingElementsCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsNotEqualCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsNotInCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsNotNullCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsNullCriterion;
+import com.constellio.model.services.search.query.logical.criteria.IsOldLikeCriterion;
+import com.constellio.model.services.search.query.logical.criteria.IsOlderThanCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsStartingWithTextCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsTrueCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsTrueOrNullCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsValueInRangeCriterion;
+import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.model.services.search.query.logical.criteria.NotCriterion;
 import com.constellio.model.services.search.query.logical.criteria.QueryCriterion;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
@@ -68,6 +57,10 @@ public class LogicalSearchQueryOperators {
 
 	public static OngoingLogicalSearchCondition from(List<MetadataSchemaType> schemaTypes) {
 		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypes));
+	}
+
+	public static OngoingLogicalSearchCondition fromAllSchemasExcept(List<MetadataSchemaType> schemaTypes) {
+		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypes, true));
 	}
 
 	public static OngoingLogicalSearchCondition fromAllSchemasIn(String collection) {
@@ -118,6 +111,10 @@ public class LogicalSearchQueryOperators {
 
 	public static LogicalSearchCondition anyConditions(LogicalSearchCondition... otherOperators) {
 		return anyConditions(Arrays.asList(otherOperators));
+	}
+
+	public static LogicalSearchCondition not(LogicalSearchCondition otherOperator) {
+		return new NegatedLogicalSearchCondition(otherOperator);
 	}
 
 	public static LogicalSearchCondition anyConditions(List<LogicalSearchCondition> otherOperators) {
@@ -222,6 +219,18 @@ public class LogicalSearchQueryOperators {
 
 	}
 
+	public static LogicalSearchValueCondition newerThan(Object value, MeasuringUnitTime measuringUnitTime) {
+		return new IsNewerThanCriterion(value, measuringUnitTime);
+	}
+
+	public static LogicalSearchValueCondition olderThan(Object value, MeasuringUnitTime measuringUnitTime) {
+		return new IsOlderThanCriterion(value, measuringUnitTime);
+	}
+
+	public static LogicalSearchValueCondition oldLike(Object value, MeasuringUnitTime measuringUnitTime) {
+		return new IsOldLikeCriterion(value, measuringUnitTime);
+	}
+
 	public static LogicalSearchValueCondition greaterOrEqualThan(Object index) {
 		return new IsGreaterOrEqualThanCriterion(index);
 	}
@@ -236,5 +245,9 @@ public class LogicalSearchQueryOperators {
 
 	public static LogicalSearchValueCondition query(String query) {
 		return new QueryCriterion(query);
+	}
+
+	public static LogicalSearchCondition impossibleCondition(String collection) {
+		return fromAllSchemasIn(collection).where(Schemas.IDENTIFIER).isEqualTo("impossibleID_42");
 	}
 }

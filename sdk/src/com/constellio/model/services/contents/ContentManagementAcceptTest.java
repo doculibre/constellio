@@ -1,35 +1,25 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.contents;
 
 import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -46,19 +36,25 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustBeCheckedOut;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustNotBeCheckedOut;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -72,6 +68,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 	private AtomicInteger threadCalls = new AtomicInteger();
 
+	private final String OCTET_STREAM_MIMETYPE = "application/octet-stream";
 	private final String PDF_MIMETYPE = "application/pdf";
 	private final String DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 	LocalDateTime smashOClock = new LocalDateTime();
@@ -118,37 +115,58 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 						org.joda.time.Duration.standardHours(10));
 			}
 		});
+		customSystemPreparation(new CustomSystemPreparation() {
+			@Override
+			public void prepare() {
+				try {
+					defineSchemasManager()
+							.using(schemas.withAContentMetadata(whichIsSearchable).withAContentListMetadata()
+									.withAParentReferenceFromZeSchemaToZeSchema());
+					defineSchemasManager().using(anotherCollectionSchemas.withAContentMetadata());
+
+					recordServices = getModelLayerFactory().newRecordServices();
+					contentManager = getModelLayerFactory().getContentManager();
+
+					MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+					TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
+					Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
+					taxonomiesManager.addTaxonomy(taxonomy, metadataSchemasManager);
+					taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
+
+					getModelLayerFactory().newUserServices().addUpdateUserCredential(
+							new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
+									asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE, "domain", Arrays
+									.asList(""), null));
+
+					getModelLayerFactory().newUserServices().addUpdateUserCredential(
+							new UserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
+									asList(zeCollection), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null));
+
+					bob = spy(getModelLayerFactory().newUserServices().getUserInCollection("bob", zeCollection));
+					bob.setCollectionDeleteAccess(true);
+					recordServices.update(bob.getWrappedRecord());
+
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			@Override
+			public void initializeFromCache() {
+				recordServices = getModelLayerFactory().newRecordServices();
+				contentManager = getModelLayerFactory().getContentManager();
+				schemas.refresh(getModelLayerFactory().getMetadataSchemasManager());
+				anotherCollectionSchemas.refresh(getModelLayerFactory().getMetadataSchemasManager());
+			}
+		});
 
 		givenTimeIs(smashOClock);
-		defineSchemasManager()
-				.using(schemas.withAContentMetadata().withAContentListMetadata().withAParentReferenceFromZeSchemaToZeSchema());
-		defineSchemasManager().using(anotherCollectionSchemas.withAContentMetadata());
-
-		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, Arrays.asList("zeSchemaType"));
-		taxonomiesManager.addTaxonomy(taxonomy, metadataSchemasManager);
-		taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
-
-		getModelLayerFactory().newUserServices().addUpdateUserCredential(
-				new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
-						Arrays.asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE, "domain"));
-
-		getModelLayerFactory().newUserServices().addUpdateUserCredential(
-				new UserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
-						Arrays.asList(zeCollection), UserCredentialStatus.ACTIVE, "domain"));
 
 		alice = getModelLayerFactory().newUserServices().getUserInCollection("alice", zeCollection);
 		bob = spy(getModelLayerFactory().newUserServices().getUserInCollection("bob", zeCollection));
 		bobInAnotherCollection = getModelLayerFactory().newUserServices().getUserInCollection("bob", "anotherCollection");
 		aliceId = alice.getId();
 		bobId = bob.getId();
-
-		recordServices = getModelLayerFactory().newRecordServices();
-		contentManager = getModelLayerFactory().getContentManager();
-
-		bob.setCollectionDeleteAccess(true);
-		recordServices.update(bob.getWrappedRecord());
 
 		Mockito.doAnswer(new Answer() {
 			@Override
@@ -244,6 +262,194 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenAddingAContentWithMultipleVersionsWithDifferentNamesThenNamesCorrectlySaved()
+			throws Exception {
+
+		Content content = contentManager.createMinor(alice, "ZePdf1.pdf", uploadPdf1InputStream());
+		content.updateContentWithName(bob, uploadPdf2InputStream(), true, "ZePdf2.pdf");
+		content.updateContentWithName(alice, uploadPdf3InputStream(), false, "ZePdf3.pdf");
+		content.updateContentWithName(alice, uploadDocx1InputStream(), false, "ZeDocx1.docx");
+		content.updateContentWithName(bob, uploadDocx2InputStream(), true, "ZeDocx2.docx");
+
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		assertThat(theRecordContent().getVersions()).extracting("version", "filename", "lastModifiedBy").isEqualTo(asList(
+				tuple("0.1", "ZePdf1.pdf", aliceId),
+				tuple("1.0", "ZePdf2.pdf", bobId),
+				tuple("1.1", "ZePdf3.pdf", aliceId),
+				tuple("1.2", "ZeDocx1.docx", aliceId),
+				tuple("2.0", "ZeDocx2.docx", bobId)
+		));
+	}
+
+	@Test
+	public void whenAddingAContentThenUpdateNameWithMultipleVersionsWithDifferentNamesThenNamesCorrectlySaved()
+			throws Exception {
+
+		Content content = contentManager.createMinor(alice, "ZePdf1.pdf", uploadPdf1InputStream());
+		content.updateContent(bob, uploadPdf2InputStream(), true);
+		content.renameCurrentVersion("ZePdf2.pdf");
+		content.updateContentWithName(alice, uploadPdf3InputStream(), false, "test.txt");
+		content.renameCurrentVersion("ZePdf3.pdf");
+		content.updateContent(alice, uploadDocx1InputStream(), false);
+		content.renameCurrentVersion("ZeDocx1.docx");
+		content.updateContentWithName(bob, uploadDocx2InputStream(), true, "test.txt");
+		content.renameCurrentVersion("ZeDocx2.docx");
+
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		assertThat(theRecordContent().getVersions()).extracting("version", "filename", "lastModifiedBy").isEqualTo(asList(
+				tuple("0.1", "ZePdf1.pdf", aliceId),
+				tuple("1.0", "ZePdf2.pdf", bobId),
+				tuple("1.1", "ZePdf3.pdf", aliceId),
+				tuple("1.2", "ZeDocx1.docx", aliceId),
+				tuple("2.0", "ZeDocx2.docx", bobId)
+		));
+
+	}
+
+	@Test
+	public void whenAddingContentWithoutParsingHistoryVersionsThenMimetypeCorrectlySet()
+			throws Exception {
+
+		Content content = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStreamWithoutParsing());
+		content.updateContent(bob, uploadPdf2InputStreamWithoutParsing(), true);
+		content.updateContent(alice, uploadPdf3InputStreamWithoutParsing(), false);
+		content.updateContentWithName(alice, uploadDocx1InputStreamWithoutParsing(), false, "ZeDocx.docx");
+		content.updateContent(bob, uploadDocx2InputStreamWithoutParsing(), true);
+
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		assertThat(theRecordContent().getVersions())
+				.extracting("version", "filename", "lastModifiedBy", "mimetype", "hash", "length").isEqualTo(asList(
+				tuple("0.1", "ZePdf.pdf", aliceId, PDF_MIMETYPE, pdf1Hash, pdf1Length),
+				tuple("1.0", "ZePdf.pdf", bobId, PDF_MIMETYPE, pdf2Hash, pdf2Length),
+				tuple("1.1", "ZePdf.pdf", aliceId, PDF_MIMETYPE, pdf3Hash, pdf3Length),
+				tuple("1.2", "ZeDocx.docx", aliceId, DOCX_MIMETYPE, docx1Hash, docx1Length),
+				tuple("2.0", "ZeDocx.docx", bobId, DOCX_MIMETYPE, docx2Hash, docx2Length)
+		));
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx2Hash)).isTrue();
+
+	}
+
+	@Test
+	public void givenHistoryVersionsAreNotParsedWhenRemovingCurrentVersionThenParseLastHistoryVersion()
+			throws Exception {
+
+		doReturn(true).when(userPermissionsChecker).globally();
+		doReturn(userPermissionsChecker).when(bob).has(CorePermissions.DELETE_CONTENT_VERSION);
+
+		Content content = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStreamWithoutParsing());
+		content.updateContent(bob, uploadPdf2InputStreamWithoutParsing(), true);
+		content.updateContent(alice, uploadPdf3InputStreamWithoutParsing(), false);
+		content.updateContentWithName(alice, uploadDocx1InputStreamWithoutParsing(), false, "ZeDocx.docx");
+		content.updateContent(bob, uploadDocx2InputStreamWithoutParsing(), true);
+
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		when(theRecord()).deleteVersion("2.0", bob).and().isSaved();
+
+		assertThat(theRecordContent().getVersions())
+				.extracting("version", "filename", "lastModifiedBy", "mimetype", "hash", "length").isEqualTo(asList(
+				tuple("0.1", "ZePdf.pdf", aliceId, PDF_MIMETYPE, pdf1Hash, pdf1Length),
+				tuple("1.0", "ZePdf.pdf", bobId, PDF_MIMETYPE, pdf2Hash, pdf2Length),
+				tuple("1.1", "ZePdf.pdf", aliceId, PDF_MIMETYPE, pdf3Hash, pdf3Length),
+				tuple("1.2", "ZeDocx.docx", aliceId, DOCX_MIMETYPE, docx1Hash, docx1Length)
+		));
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf3Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx1Hash)).isTrue();
+
+	}
+
+	@Test
+	public void givenHistoryVersionsAreNotParsedWhenAddingAPreviousVersionHasANewVersionThenParsed()
+			throws Exception {
+
+		Content content = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStreamWithoutParsing());
+		content.updateContent(bob, uploadPdf2InputStreamWithoutParsing(), true);
+		content.updateContent(alice, uploadPdf3InputStream(), false);
+		content.updateContentWithName(alice, uploadDocx1InputStreamWithoutParsing(), false, "ZeDocx.docx");
+		content.updateContent(bob, uploadDocx2InputStream(), true);
+
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		when(theRecord()).hasItsContentUpdated(alice, uploadPdf1InputStream()).and().isSaved();
+
+		assertThat(theRecordContent().getVersions())
+				.extracting("version", "filename", "lastModifiedBy", "mimetype", "hash", "length").isEqualTo(asList(
+				tuple("0.1", "ZePdf.pdf", aliceId, PDF_MIMETYPE, pdf1Hash, pdf1Length),
+				tuple("1.0", "ZePdf.pdf", bobId, PDF_MIMETYPE, pdf2Hash, pdf2Length),
+				tuple("1.1", "ZePdf.pdf", aliceId, PDF_MIMETYPE, pdf3Hash, pdf3Length),
+				tuple("1.2", "ZeDocx.docx", aliceId, DOCX_MIMETYPE, docx1Hash, docx1Length),
+				tuple("2.0", "ZeDocx.docx", bobId, DOCX_MIMETYPE, docx2Hash, docx2Length),
+				tuple("2.1", "ZeDocx.docx", aliceId, PDF_MIMETYPE, pdf1Hash, pdf1Length)
+		));
+
+		assertThat(contentManager.isParsed(pdf1Hash)).isTrue();
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
+		assertThat(contentManager.isParsed(pdf3Hash)).isTrue();
+		assertThat(contentManager.isParsed(docx1Hash)).isFalse();
+		assertThat(contentManager.isParsed(docx2Hash)).isTrue();
+
+	}
+
+	@Test
+	public void whenAddingAContentThenUpdateNameAndCommentWithMultipleVersionsWithDifferentNamesThenNamesCorrectlySaved()
+			throws Exception {
+
+		Content content = contentManager.createMinor(alice, "zetest.pdf", uploadPdf1InputStream());
+		content.setVersionComment("version comment 1");
+		content.updateContent(bob, uploadPdf2InputStream(), true);
+		content.setVersionComment("version comment 2");
+		content.updateContent(alice, uploadPdf3InputStream(), false);
+		content.setVersionComment("version comment 3");
+		content.updateContentWithName(alice, uploadDocx1InputStream(), false, "zetest.docx");
+		content.setVersionComment("version comment 4");
+		content.updateContent(bob, uploadDocx2InputStream(), true);
+		content.setVersionComment("version comment 5");
+
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		assertThat(theRecordContent().getVersions()).extracting("version", "filename", "lastModifiedBy", "comment")
+				.isEqualTo(asList(
+						tuple("0.1", "zetest.pdf", aliceId, "version comment 1"),
+						tuple("1.0", "zetest.pdf", bobId, "version comment 2"),
+						tuple("1.1", "zetest.pdf", aliceId, "version comment 3"),
+						tuple("1.2", "zetest.docx", aliceId, "version comment 4"),
+						tuple("2.0", "zetest.docx", bobId, "version comment 5")
+				));
+
+	}
+
+	@Test
+	public void givenEmptyCommentThenSavedAsAnEmptyComment()
+			throws Exception {
+
+		Content content = contentManager.createMinor(alice, "zetest.pdf", uploadPdf1InputStream());
+		content.setVersionComment("");
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		assertThat(theRecordContent().getVersions()).extracting("version", "filename", "lastModifiedBy", "comment")
+				.isEqualTo(asList(
+						tuple("0.1", "zetest.pdf", aliceId, null)
+				));
+
+		when(theRecord()).hasItsContentCommentChangedTo("Ze comment").and().isSaved();
+		assertThat(theRecordContent().getVersions()).extracting("version", "filename", "lastModifiedBy", "comment")
+				.isEqualTo(asList(
+						tuple("0.1", "zetest.pdf", aliceId, "Ze comment")
+				));
+	}
+
+	@Test
 	public void whenModifyingContentOfMultivalueContentMetadataThenNewContentRetreivableAndOldRemoved()
 			throws Exception {
 
@@ -273,6 +479,47 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZeUltimatePdf.pdf")).has(
 				pdf1HashAndLength())
 				.has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+	}
+
+	@Test
+	public void whenCommentingAVersionThenCommentModified()
+			throws Exception {
+
+		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream())).isSaved();
+
+		when(theRecord()).hasItsContentCommentChangedTo("comment 1").and().isSaved();
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(comment("comment 1")).has(
+				pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+
+		when(theRecord()).hasItsContentCommentChangedTo("comment 2").and().isSaved();
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(comment("comment 2")).has(
+				pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+	}
+
+	@Test
+	public void givenaACheckedOutContentWhenCommentingAVersionThenCommentModified()
+			throws Exception {
+
+		givenRecord().withSingleValueContent(contentManager.createMinor(bob, "ZePdf.pdf", uploadPdf1InputStream()))
+				.contentCheckedOutBy(alice).isSaved();
+
+		givenTimeIs(shishOClock);
+		when(theRecord()).hasItsCheckedOutContentUpdatedWith(uploadPdf2InputStream()).hasItsContentCommentChangedTo("comment 1")
+				.and().isSaved();
+
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(
+				pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob)).has(comment(null))
+				.has(modificationDatetime(smashOClock));
+		assertThat(theRecordContent().getCurrentCheckedOutVersion()).has(pdfMimetype()).has(comment("comment 1")).has(
+				pdf2HashAndLength()).has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
+
+		givenTimeIs(teaOClock);
+		when(theRecord()).hasItsContentCommentChangedTo("comment 2").and().isSaved();
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(
+				pdf1HashAndLength()).has(version("0.1")).has(modifiedBy(bob)).has(comment(null))
+				.has(modificationDatetime(smashOClock));
+		assertThat(theRecordContent().getCurrentCheckedOutVersion()).has(pdfMimetype()).has(comment("comment 2")).has(
+				pdf2HashAndLength()).has(version("0.2")).has(modifiedBy(alice)).has(modificationDatetime(shishOClock));
 	}
 
 	@Test
@@ -1080,7 +1327,123 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		assertThat(theRecordContentCurrentVersion()).has(pdf1HashAndLength()).has(modificationDatetime(smashOClock));
 	}
 
+	@Test
+	public void givenARecordHasAParsedContentHigherThanTheLimitThenTrimmed()
+			throws Exception {
+		SystemConfigurationsManager manager = getModelLayerFactory().getSystemConfigurationsManager();
+		givenSingleValueContentMetadataIsSearchable();
+
+		//default limit is 3mo
+		ContentVersionDataSummary zeContent = contentManager.upload(getTestResourceInputStream("fileWith4MoOfParsedContent.txt"));
+		ParsedContent parsedContent = contentManager.getParsedContent(zeContent.getHash());
+		givenRecord().withSingleValueContent(contentManager.createMajor(alice, "file.txt", zeContent)).isSaved();
+
+		assertThat(parsedContent.getParsedContent()).contains("Allo", "Hola", "Test").doesNotContain("Cafe");
+		assertThatRecordCanBeObtainedWithKeywords("Allo", "Hola", "Test");
+		assertThatRecordCannotBeObtainedWithKeywords("Cafe");
+
+		manager.setValue(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS, 4000);
+		contentManager.reparse(zeContent.getHash());
+
+		parsedContent = contentManager.getParsedContent(zeContent.getHash());
+		assertThat(parsedContent.getParsedContent()).contains("Allo", "Hola", "Cafe", "Test");
+		assertThatRecordCanBeObtainedWithKeywords("Allo", "Hola", "Cafe", "Test");
+
+		manager.setValue(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS, 2000);
+		contentManager.reparse(zeContent.getHash());
+
+		parsedContent = contentManager.getParsedContent(zeContent.getHash());
+		assertThat(parsedContent.getParsedContent()).contains("Allo", "Test").doesNotContain("Cafe").doesNotContain("Hola");
+		assertThatRecordCanBeObtainedWithKeywords("Allo", "Test");
+		assertThatRecordCannotBeObtainedWithKeywords("Cafe", "Hola");
+	}
+
+	@Test
+	public void givenTheRequireConversionFlagIsActivatedWhenCheckContentsToConvertThenConvert()
+			throws Exception {
+
+		ContentVersionDataSummary zeContent = uploadDocx1InputStream();
+		givenRecord().withSingleValueContent(contentManager.createMajor(alice, "file.docx", zeContent))
+				.withRequireConversionFlag(true).isSaved();
+
+		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isEqualTo(Boolean.TRUE);
+		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isFalse();
+		try {
+			contentManager.getContentPreviewInputStream(zeContent.getHash(), SDK_STREAM);
+			fail("Exception expected");
+		} catch (ContentManagerRuntimeException_ContentHasNoPreview e) {
+			//OK
+		}
+
+		contentManager.convertPendingContentForPreview();
+
+		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isNull();
+		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isTrue();
+
+		InputStream in = contentManager.getContentPreviewInputStream(zeContent.getHash(), SDK_STREAM);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		IOUtils.copy(in, out);
+		assertThat(out.toByteArray().length == 42);
+
+	}
+
+	@Test
+	public void givenARecordCannotBeConvertedThenFlagRemovedAndStillNotAvailableForePreview()
+			throws Exception {
+
+		ContentVersionDataSummary zeContent = uploadACorruptedDocx();
+		givenRecord().withSingleValueContent(contentManager.createMajor(alice, "file.docx", zeContent))
+				.withRequireConversionFlag(true).isSaved();
+
+		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isEqualTo(Boolean.TRUE);
+		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isFalse();
+		try {
+			contentManager.getContentPreviewInputStream(zeContent.getHash(), SDK_STREAM);
+			fail("Exception expected");
+		} catch (ContentManagerRuntimeException_ContentHasNoPreview e) {
+			//OK
+		}
+
+		contentManager.convertPendingContentForPreview();
+
+		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isNull();
+		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isFalse();
+		try {
+			contentManager.getContentPreviewInputStream(zeContent.getHash(), SDK_STREAM);
+			fail("Exception expected");
+		} catch (ContentManagerRuntimeException_ContentHasNoPreview e) {
+			//OK
+		}
+
+	}
+
 	//------------------------------------------------------------------
+
+	private void assertThatRecordCanBeObtainedWithKeywords(String... keywords) {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		for (String keyword : keywords) {
+			assertThat(searchServices.search(new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll())
+					.setFreeTextQuery(keyword))).isNotEmpty();
+		}
+	}
+
+	private void assertThatRecordCannotBeObtainedWithKeywords(String... keywords) {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		for (String keyword : keywords) {
+			assertThat(searchServices.search(new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll())
+					.setFreeTextQuery(keyword))).isEmpty();
+		}
+	}
+
+	private void givenSingleValueContentMetadataIsSearchable() {
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.contentMetadata().getCode()).setSearchable(true);
+			}
+		});
+		zeSchema = schemas.new ZeSchemaMetadatas();
+	}
 
 	private Condition<? super Content> notCheckedOut() {
 		return new Condition<Content>() {
@@ -1155,6 +1518,19 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				return filename.equals(value.getFilename());
 			}
 		}.describedAs("filename(" + filename + ")");
+	}
+
+	private Condition<? super ContentVersion> comment(final String comment) {
+		return new Condition<ContentVersion>() {
+			@Override
+			public boolean matches(ContentVersion value) {
+				if (comment == null) {
+					return value.getComment() == null || value.getComment().equals("");
+				} else {
+					return comment.equals(value.getComment());
+				}
+			}
+		}.describedAs("comment(" + comment + ")");
 	}
 
 	private Condition<? super ContentVersion> pdf1HashAndLength() {
@@ -1271,6 +1647,10 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				"application/vnd.openxmlformats-officedocument.wordprocessingml.document", 27325);
 	}
 
+	private ContentVersionDataSummary uploadACorruptedDocx() {
+		return contentManager.upload(getTestResourceInputStream("corrupted.docx"));
+	}
+
 	private ContentVersionDataSummary uploadPdf1InputStream() {
 		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"));
 	}
@@ -1291,6 +1671,26 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		return contentManager.upload(getTestResourceInputStream("docx2.docx"));
 	}
 
+	private ContentVersionDataSummary uploadPdf1InputStreamWithoutParsing() {
+		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), false, false, "pd1.pdf");
+	}
+
+	private ContentVersionDataSummary uploadPdf2InputStreamWithoutParsing() {
+		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"), false, false, "pd2.docx.pdf");
+	}
+
+	private ContentVersionDataSummary uploadPdf3InputStreamWithoutParsing() {
+		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"), false, false, "pd3.pdf.pdf");
+	}
+
+	private ContentVersionDataSummary uploadDocx1InputStreamWithoutParsing() {
+		return contentManager.upload(getTestResourceInputStream("docx1.docx"), false, false, "doc1.docx");
+	}
+
+	private ContentVersionDataSummary uploadDocx2InputStreamWithoutParsing() {
+		return contentManager.upload(getTestResourceInputStream("docx2.docx"), false, false, "doc2.doc.docx");
+	}
+
 	private void assertThatVaultOnlyContains(String... hashes)
 			throws Exception {
 		RecordDao recordDao = getDataLayerFactory().newRecordDao();
@@ -1307,7 +1707,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		getModelLayerFactory().getContentManager().deleteUnreferencedContents();
 
-		List<String> hashList = Arrays.asList(hashes);
+		List<String> hashList = asList(hashes);
 		if (hashList.contains(pdf1Hash)) {
 			assertThatContentIsAvailable(getPdf1InputStream());
 		} else {
@@ -1458,6 +1858,12 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			return this;
 		}
 
+		public RecordPreparation hasItsContentCommentChangedTo(String newComment) {
+			Content content = record.get(zeSchema.contentMetadata());
+			content.setVersionComment(newComment);
+			return this;
+		}
+
 		public RecordPreparation contentCheckedIn() {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.checkIn();
@@ -1509,6 +1915,11 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		public RecordPreparation deleteVersion(String versionLabel, User user) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.deleteVersion(versionLabel, user);
+			return this;
+		}
+
+		public RecordPreparation withRequireConversionFlag(boolean value) {
+			record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, value);
 			return this;
 		}
 	}

@@ -1,22 +1,6 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.utils;
 
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -43,7 +27,7 @@ public class DependencyUtilsTest {
 		dependenciesMap.put("a", asSet("b", "c"));
 		dependenciesMap.put("b", asSet("c"));
 
-		List<String> dependencies = utils.sortByDependency(dependenciesMap, null);
+		List<String> dependencies = utils.sortByDependency(dependenciesMap);
 
 		assertThat(dependencies).containsExactly("b", "a");
 
@@ -58,6 +42,30 @@ public class DependencyUtilsTest {
 		dependenciesMap.put("b", asSet("c"));
 
 		utils.validateNoCyclicDependencies(dependenciesMap);
+
+	}
+
+
+	@Test()
+	public void givenMapWithCyclicDependenciesWhenSortingWithCyclicTolerationThenCorrectlySorted()
+			throws Exception {
+
+		Map<String, Set<String>> dependenciesMap = new HashMap<>();
+		dependenciesMap.put("a", asSet("b", "c"));
+		dependenciesMap.put("b", asSet("c"));
+		dependenciesMap.put("c", asSet("b", "d"));
+		dependenciesMap.put("d", asSet("h"));
+		dependenciesMap.put("e", asSet("d"));
+		dependenciesMap.put("f", asSet("a"));
+		dependenciesMap.put("g", asSet("a"));
+		// d -> e -> b/c -> a
+
+		DependencyUtilsParams params = new DependencyUtilsParams().sortUsingDefaultComparator()
+				.withToleratedCyclicDepencies();
+
+		List<String> sortedValues = utils.sortByDependency(dependenciesMap, params);
+		assertThat(sortedValues).isEqualTo(asList("d", "e", "b", "c", "a", "f", "g"));
+
 
 	}
 

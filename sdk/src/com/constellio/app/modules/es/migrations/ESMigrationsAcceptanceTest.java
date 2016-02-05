@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.migrations;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,19 +30,39 @@ public class ESMigrationsAcceptanceTest extends ConstellioTest {
 
 	private void whenMigratingToCurrentVersionThenValidSchemas()
 			throws Exception {
+		assertThat(es.userSchemaType()).isNotNull();
+		assertThat(es.userSchemaType().isInTransactionLog()).isTrue();
+
 		assertThat(es.connectorType.schemaType()).isNotNull();
 		assertThat(es.connectorType.schema()).isNotNull();
 		assertThat(es.connectorType.code()).isNotNull();
+		assertThat(es.connectorType.schemaType().isInTransactionLog()).isTrue();
 
 		assertThat(es.connectorInstance.schemaType()).isNotNull();
 		assertThat(es.connectorInstance.schema()).isNotNull();
 		assertThat(es.connectorInstance.connectorType()).isNotNull();
+		assertThat(es.connectorInstance.schemaType().isInTransactionLog()).isTrue();
 
 		assertThat(es.connectorHttpDocument.schemaType()).isNotNull();
 		assertThat(es.connectorHttpDocument.connector()).isNotNull();
 		assertThat(es.connectorHttpDocument.schema()).isNotNull();
 		assertThat(es.connectorHttpDocument.connectorType()).isNotNull();
 		assertThat(es.connectorHttpDocument.url()).isNotNull();
+		assertThat(es.connectorHttpDocument.schemaType().isInTransactionLog()).isFalse();
+
+		assertThat(es.connectorSmbFolder.schemaType()).isNotNull();
+		assertThat(es.connectorSmbFolder.connector()).isNotNull();
+		assertThat(es.connectorSmbFolder.schema()).isNotNull();
+		assertThat(es.connectorSmbFolder.connectorType()).isNotNull();
+		assertThat(es.connectorSmbFolder.url()).isNotNull();
+		assertThat(es.connectorSmbFolder.schemaType().isInTransactionLog()).isFalse();
+
+		assertThat(es.connectorSmbDocument.schemaType()).isNotNull();
+		assertThat(es.connectorSmbDocument.connector()).isNotNull();
+		assertThat(es.connectorSmbDocument.schema()).isNotNull();
+		assertThat(es.connectorSmbDocument.connectorType()).isNotNull();
+		assertThat(es.connectorSmbDocument.url()).isNotNull();
+		assertThat(es.connectorSmbDocument.schemaType().isInTransactionLog()).isFalse();
 	}
 
 	private void whenMigratingToCurrentVersionThenCreateConnectorTypes() {
@@ -68,11 +70,6 @@ public class ESMigrationsAcceptanceTest extends ConstellioTest {
 		ConnectorType httpConnectorType = es.getHttpConnectorType();
 		assertThat(httpConnectorType.getConnectorClassName()).isEqualTo(ConnectorHttp.class.getName());
 		assertThat(httpConnectorType.getLinkedSchema()).isEqualTo("connectorInstance_http");
-		assertThat(httpConnectorType.getDefaultAvailableProperties())
-				.containsEntry("mimetype", String.class.getName())
-				.containsEntry("charset", String.class.getName())
-				.containsEntry("language", String.class.getName())
-				.containsEntry("lastModification", LocalDate.class.getName());
 	}
 
 	//--------------------------------------------------------------
@@ -105,7 +102,8 @@ public class ESMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		if ("givenNewInstallation".equals(testCase)) {
 			givenTransactionLogIsEnabled();
-			givenCollection(zeCollection).withAllTestUsers().withConstellioESModule();
+			prepareSystem(withZeCollection().withAllTestUsers().withConstellioESModule());
+			//prepareSystem(withZeCollection().withConstellioESModule().withAllTestUsers());
 			//			prepareSystem(
 			//					withZeCollection().withAllTestUsers().withConstellioESModule()
 			//			);

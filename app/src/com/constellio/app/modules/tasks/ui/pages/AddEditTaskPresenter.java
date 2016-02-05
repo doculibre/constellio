@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.tasks.ui.pages;
 
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
@@ -32,18 +15,26 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
-import com.constellio.app.modules.tasks.ui.builders.TaskToVoBuilder;
+import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.logging.LoggingServices;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
+	
 	TaskVO taskVO;
 	transient TasksSearchServices tasksSearchServices;
 	transient private TasksSchemasRecordsServices tasksSchemas;
@@ -51,6 +42,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private boolean editMode;
 	transient private LoggingServices loggingServices;
 	private String parentId;
+	private TaskToVOBuilder voBuilder = new TaskToVOBuilder();
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
@@ -100,7 +92,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		return taskVO;
 	}
 
-	public void cancel() {
+	public void cancelButtonClicked() {
 		view.navigateTo().tasksManagement();
 	}
 
@@ -141,7 +133,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 		}
-		String completeTask = paramsMap.get("competeTask");
+		String completeTask = paramsMap.get("completeTask");
 		if (StringUtils.isNotBlank(completeTask) && completeTask.equals("" + true)) {
 			TaskStatus finishedStatus = tasksSearchServices
 					.getFirstFinishedStatus();
@@ -149,7 +141,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.setStatus(finishedStatus.getId());
 			}
 		}
-		taskVO = new TaskVO(new TaskToVoBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
+		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
+		view.setRecord(taskVO);
 	}
 
 	public String getViewTitle() {
@@ -168,5 +161,99 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
 		progressPercentageField.setVisible(editMode);
+	}
+	
+	void reloadFormAfterFieldChanged() {
+		commitForm();
+		reloadForm();
+	}
+
+	void reloadForm() {
+		view.getForm().reload();
+	}
+
+	void commitForm() {
+		view.getForm().commit();
+	}
+
+	String getTypeFieldValue() {
+		return (String) view.getForm().getCustomField(Task.TYPE).getFieldValue();
+	}
+
+	public void customFieldValueChanged(CustomTaskField<?> customField) {
+		adjustCustomFields(customField);
+	}
+
+	void adjustCustomFields(CustomTaskField<?> customField) {
+		adjustTypeField();
+		boolean reload = isReloadRequiredAfterTaskTypeChange();
+		if (reload) {
+			reloadFormAfterTaskTypeChange();
+		}
+	}
+
+	void adjustTypeField() {
+		// Nothing to adjust
+	}
+
+	boolean isReloadRequiredAfterTaskTypeChange() {
+		boolean reload;
+		String currentSchemaCode = getSchemaCode();
+		String taskTypeRecordId = getTypeFieldValue();
+		if (StringUtils.isNotBlank(taskTypeRecordId)) {
+			String schemaCodeForTaskTypeRecordId = tasksSchemas.getSchemaCodeForTaskTypeRecordId(taskTypeRecordId);
+			if (schemaCodeForTaskTypeRecordId != null) {
+				reload = !currentSchemaCode.equals(schemaCodeForTaskTypeRecordId);
+			} else
+				reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+		} else {
+			reload = !currentSchemaCode.equals(Task.DEFAULT_SCHEMA);
+		}
+		return reload;
+	}
+
+	void reloadFormAfterTaskTypeChange() {
+		String taskTypeId = getTypeFieldValue();
+		
+		String newSchemaCode;
+		if (taskTypeId != null) {
+			newSchemaCode = tasksSearchServices.getSchemaCodeForTaskTypeRecordId(taskTypeId);
+		} else {
+			newSchemaCode = Task.DEFAULT_SCHEMA;
+		}
+		if (newSchemaCode == null) {
+			newSchemaCode = Task.DEFAULT_SCHEMA;
+		}
+ 
+		Record taskRecord = toRecord(taskVO);
+		Task task = new Task(taskRecord, types());
+
+		setSchemaCode(newSchemaCode);
+		task.changeSchemaTo(newSchemaCode);
+		MetadataSchema newSchema = task.getSchema();
+
+		commitForm();
+		for (MetadataVO metadataVO : taskVO.getMetadatas()) {
+			String metadataCode = metadataVO.getCode();
+			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
+
+			try {
+				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
+				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+					Object metadataValue = taskVO.get(metadataVO);
+					Object defaultValue = metadataVO.getDefaultValue();
+					if (metadataValue == null || !metadataValue.equals(defaultValue)) {
+						task.getWrappedRecord().set(matchingMetadata, metadataValue);
+					}
+				}
+			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+				// Ignore
+			}
+		}
+
+		taskVO = voBuilder.build(task.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+
+		view.setRecord(taskVO);
+		reloadForm();
 	}
 }

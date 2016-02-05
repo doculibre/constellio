@@ -1,33 +1,20 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.entities.navigation;
 
 import java.io.Serializable;
 import java.util.List;
 
+import org.joda.time.LocalDateTime;
+
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public abstract class PageItem implements CodedItem, Serializable {
-	public enum Type {RECORD_TABLE, RECORD_TREE}
+	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE}
 
 	private final String code;
 	private final Type type;
@@ -46,8 +33,45 @@ public abstract class PageItem implements CodedItem, Serializable {
 		return type;
 	}
 
+	public static abstract class RecentItemTable extends PageItem {
+		protected RecentItemTable(String code) {
+			super(code, Type.RECENT_ITEM_TABLE);
+		}
+
+		public abstract List<RecentItem> getItems(ModelLayerFactory modelLayerFactory, SessionContext sessionContext);
+
+		public static class RecentItem implements Serializable {
+			public static final String CAPTION = "caption";
+			public static final String LAST_ACCESS = "lastAccess";
+
+			private final RecordVO record;
+			private final String caption;
+
+			public RecentItem(RecordVO record, String caption) {
+				this.record = record;
+				this.caption = caption;
+			}
+
+			public RecordVO getRecord() {
+				return record;
+			}
+
+			public String getCaption() {
+				return caption;
+			}
+
+			public String getId() {
+				return record.getId();
+			}
+
+			public LocalDateTime getLastAccess() {
+				return record.get(CommonMetadataBuilder.MODIFIED_ON);
+			}
+		}
+	}
+
 	public static abstract class RecordTable extends PageItem {
-		protected RecordTable(String code) {
+		public RecordTable(String code) {
 			super(code, Type.RECORD_TABLE);
 		}
 
@@ -56,7 +80,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 	}
 
 	public static abstract class RecordTree extends PageItem {
-		protected RecordTree(String code) {
+		public RecordTree(String code) {
 			super(code, Type.RECORD_TREE);
 		}
 

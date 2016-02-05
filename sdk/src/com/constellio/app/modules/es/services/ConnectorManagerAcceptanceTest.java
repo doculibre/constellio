@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.services;
 
 import static java.util.Arrays.asList;
@@ -29,7 +12,9 @@ import org.mockito.Mock;
 
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -37,7 +22,8 @@ public class ConnectorManagerAcceptanceTest extends ConstellioTest {
 
 	@Mock Connector connector1, connector2, connector3;
 
-	ConnectorInstance<?> instance1, instance2, instance3;
+	MetadataSchemasManager schemasManager;
+	ConnectorInstance instance1, instance2, instance3;
 	ESSchemasRecordsServices es;
 	ConnectorManager connectorManager;
 	Users users = new Users();
@@ -48,15 +34,15 @@ public class ConnectorManagerAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioESModule();
+		prepareSystem(withZeCollection().withConstellioESModule());
 		users.setUp(getModelLayerFactory().newUserServices());
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		instance1 = es.newConnectorHttpInstanceWithId("instance1").setCode("connector1").setTitle("connector1").setEnabled(false)
-				.setSeeds(asList("http://constellio.com"));
+				.setSeeds("http://constellio.com");
 		instance2 = es.newConnectorHttpInstanceWithId("instance2").setCode("connector2").setTitle("connector2").setEnabled(false)
-				.setSeeds(asList("http://doculibre.com"));
+				.setSeeds("http://doculibre.com");
 		instance3 = es.newConnectorHttpInstanceWithId("instance3").setCode("connector3").setTitle("connector3").setEnabled(false)
-				.setSeeds(asList("http://perdu.com"));
+				.setSeeds("http://perdu.com");
 
 		connectorManager = spy(es.getConnectorManager());
 		connectorManager.save(instance1);
@@ -68,9 +54,27 @@ public class ConnectorManagerAcceptanceTest extends ConstellioTest {
 		doReturn(connector3).when(connectorManager).instanciate(instance3);
 		getModelLayerFactory().newUserServices().addUserToCollection(users.edouardLechat(), zeCollection);
 		getModelLayerFactory().newUserServices().addUserToCollection(users.dakotaLIndien(), zeCollection);
+		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		dakota = users.dakotaLIndienIn(zeCollection);
 		edouard = users.edouardIn(zeCollection);
+	}
+
+	@Test
+	public void whenCreateOrUpdateConnectorInstanceThenUpdateSchemaTitle()
+			throws Exception {
+
+		ConnectorInstance zeInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+		connectorManager.createConnector(zeInstance);
+		String schemaCode = ConnectorHttpDocument.SCHEMA_TYPE + "_" + zeInstance.getId();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(schemaCode).getLabel()).isEqualTo("Ze connector");
+
+		zeInstance.setTitle("Ze ultimate connector");
+		getModelLayerFactory().newRecordServices().update(zeInstance);
+
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(schemaCode).getLabel())
+				.isEqualTo("Ze ultimate connector");
 	}
 
 	@Test

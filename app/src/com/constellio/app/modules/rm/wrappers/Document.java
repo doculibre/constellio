@@ -1,29 +1,19 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
 
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class Document extends RMObject {
@@ -34,6 +24,7 @@ public class Document extends RMObject {
 	public static final String DESCRIPTION = "description";
 	public static final String CONTENT = "content";
 	public static final String TYPE = "type";
+	public static final String DOCUMENT_TYPE = "documentType";
 	public static final String COMMENTS = "comments";
 	public static final String FOLDER_BORROWED = Folder.BORROWED;
 	public static final String FOLDER_CATEGORY = Folder.CATEGORY;
@@ -49,10 +40,19 @@ public class Document extends RMObject {
 	public static final String FOLDER_EXPECTED_TRANSFER_DATE = Folder.EXPECTED_TRANSFER_DATE;
 	public static final String FOLDER_OPENING_DATE = Folder.OPENING_DATE;
 	public static final String FOLDER_CLOSING_DATE = Folder.CLOSING_DATE;
+	public static final String ACTUAL_TRANSFER_DATE_ENTERED = "actualTransferDateEntered";
+	public static final String ACTUAL_DEPOSIT_DATE_ENTERED = "actualDepositDateEntered";
+	public static final String ACTUAL_DESTRUCTION_DATE_ENTERED = "actualDestructionDateEntered";
+	public static final String INHERITED_FOLDER_RETENTION_RULE = "inheritedRetentionRule";
+	public static final String COPY_STATUS = Folder.COPY_STATUS;
 	public static final String AUTHOR = "author";
 	public static final String COMPANY = "company";
 	public static final String SUBJECT = "subject";
 	public static final String ALERT_USERS_WHEN_AVAILABLE = "alertUsersWhenAvailable";
+	public static final String MAIN_COPY_RULE = "mainCopyRule";
+	public static final String APPLICABLE_COPY_RULES = "applicableCopyRule";
+	public static final String SAME_SEMI_ACTIVE_FATE_AS_FOLDER = "sameSemiActiveFateAsFolder";
+	public static final String SAME_INACTIVE_FATE_AS_FOLDER = "sameInactiveFateAsFolder";
 
 	public Document(Record record,
 			MetadataSchemaTypes types) {
@@ -186,8 +186,125 @@ public class Document extends RMObject {
 		return this;
 	}
 
+	public Document setFormCreatedBy(String userId) {
+		set(FORM_CREATED_BY, userId);
+		return this;
+	}
+
+	public Document setFormCreatedBy(Record user) {
+		set(FORM_CREATED_BY, user);
+		return this;
+	}
+
+	public Document setFormCreatedBy(User user) {
+		set(FORM_CREATED_BY, user);
+		return this;
+	}
+
+	public Document setFormCreatedOn(LocalDateTime dateTime) {
+		set(FORM_CREATED_ON, dateTime);
+		return this;
+	}
+
+	public Document setFormModifiedBy(String userId) {
+		set(FORM_MODIFIED_BY, userId);
+		return this;
+	}
+
+	public Document setFormModifiedBy(Record user) {
+		set(FORM_MODIFIED_BY, user);
+		return this;
+	}
+
+	public Document setFormModifiedBy(User user) {
+		set(FORM_MODIFIED_BY, user);
+		return this;
+	}
+
+	public Document setFormModifiedOn(LocalDateTime dateTime) {
+		set(FORM_MODIFIED_ON, dateTime);
+		return this;
+	}
+
+	public List<CopyRetentionRuleInRule> getApplicableCopyRules() {
+		return getList(APPLICABLE_COPY_RULES);
+	}
+
+	public CopyRetentionRule getMainCopyRule() {
+		return get(MAIN_COPY_RULE);
+	}
+
 	@Override
 	public FolderStatus getArchivisticStatus() {
 		return get(FOLDER_ARCHIVISTIC_STATUS);
 	}
+
+	public String getRetentionRule() {
+		return get(FOLDER_RETENTION_RULE);
+	}
+
+	public LocalDate getFolderActualDepositDate() {
+		return get(FOLDER_ACTUAL_DEPOSIT_DATE);
+	}
+
+	public LocalDate getFolderActualDestructionDate() {
+		return get(FOLDER_ACTUAL_DESTRUCTION_DATE);
+	}
+
+	public LocalDate getFolderActualTransferDate() {
+		return get(FOLDER_ACTUAL_TRANSFER_DATE);
+	}
+
+	public LocalDate getFolderExpectedDepositDate() {
+		return get(FOLDER_EXPECTED_DEPOSIT_DATE);
+	}
+
+	public LocalDate getFolderExpectedDestructionDate() {
+		return get(FOLDER_EXPECTED_DESTRUCTION_DATE);
+	}
+
+	public LocalDate getFolderExpectedTransferDate() {
+		return get(FOLDER_EXPECTED_TRANSFER_DATE);
+	}
+
+	public LocalDate getActualTransferDateEntered() {
+		return get(ACTUAL_TRANSFER_DATE_ENTERED);
+	}
+
+	public Document setActualTransferDateEntered(LocalDate transferDate) {
+		set(ACTUAL_TRANSFER_DATE_ENTERED, transferDate);
+		return this;
+	}
+
+	public LocalDate getActualDepositDateEntered() {
+		return get(ACTUAL_DEPOSIT_DATE_ENTERED);
+	}
+
+	public Document setActualDepositDateEntered(LocalDate depositDate) {
+		set(ACTUAL_DEPOSIT_DATE_ENTERED, depositDate);
+		return this;
+	}
+
+	public LocalDate getActualDestructionDateEntered() {
+		return get(ACTUAL_DESTRUCTION_DATE_ENTERED);
+	}
+
+	public Document setActualDestructionDateEntered(LocalDate destructionDate) {
+		set(ACTUAL_DESTRUCTION_DATE_ENTERED, destructionDate);
+		return this;
+	}
+
+	public boolean isSemiActiveSameFateAsFolder() {
+		return get(SAME_SEMI_ACTIVE_FATE_AS_FOLDER);
+	}
+
+	public boolean isInactiveSameFateAsFolder() {
+		return get(SAME_INACTIVE_FATE_AS_FOLDER);
+	}
+
+	public <T> Document set(Metadata metadata, T value) {
+		set(metadata.getLocalCode(), value);
+		return this;
+	}
+
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.search.criteria;
 
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -32,6 +15,7 @@ public class SearchCriterionTestSetup extends SchemasSetup {
 	public static final String AN_INT = "anInt";
 	public static final String A_DOUBLE = "aDouble";
 	public static final String A_DATE = "aDate";
+	public static final String A_DATE_TIME = "aDateTime";
 	public static final String AN_ENUM = "anEnum";
 
 	public enum TestEnum implements EnumWithSmallCode {
@@ -62,6 +46,7 @@ public class SearchCriterionTestSetup extends SchemasSetup {
 		//builder.create(AN_INT).setType(MetadataValueType.INTEGER);
 		builder.create(A_DOUBLE).setType(MetadataValueType.NUMBER);
 		builder.create(A_DATE).setType(MetadataValueType.DATE);
+		builder.create(A_DATE_TIME).setType(MetadataValueType.DATE_TIME);
 		builder.create(AN_ENUM).defineAsEnum(TestEnum.class);
 	}
 
@@ -98,6 +83,10 @@ public class SearchCriterionTestSetup extends SchemasSetup {
 
 		public Metadata aDate() {
 			return getMetadata(DEFAULT_SCHEMA + "_" + A_DATE);
+		}
+
+		public Metadata aDateTime() {
+			return getMetadata(DEFAULT_SCHEMA + "_" + A_DATE_TIME);
 		}
 
 		public Metadata anEnum() {

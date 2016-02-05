@@ -1,28 +1,11 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.configs;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 
 public class SystemConfiguration {
+
+	boolean hidden;
 
 	SystemConfigurationType type;
 
@@ -39,7 +22,7 @@ public class SystemConfiguration {
 	Class<? extends SystemConfigurationScript> scriptClass;
 
 	SystemConfiguration(SystemConfigurationType type, String module, String configGroupCode, String code, Object defaultValue,
-			Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass) {
+			Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass, boolean hidden) {
 		this.type = type;
 		this.configGroupCode = configGroupCode;
 		this.code = code;
@@ -47,6 +30,7 @@ public class SystemConfiguration {
 		this.defaultValue = defaultValue;
 		this.enumClass = enumClass;
 		this.scriptClass = scriptClass;
+		this.hidden = hidden;
 	}
 
 	public SystemConfigurationType getType() {
@@ -78,12 +62,12 @@ public class SystemConfiguration {
 	}
 
 	public SystemConfiguration withDefaultValue(Object value) {
-		return new SystemConfiguration(type, module, configGroupCode, code, value, enumClass, scriptClass);
+		return new SystemConfiguration(type, module, configGroupCode, code, value, enumClass, scriptClass, hidden);
 
 	}
 
 	public SystemConfiguration scriptedBy(Class<? extends SystemConfigurationScript> scriptClass) {
-		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass);
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden);
 	}
 
 	public <T> ConfigDependency<T> dependency() {
@@ -92,17 +76,29 @@ public class SystemConfiguration {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return code.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		if (obj instanceof SystemConfiguration) {
+			return LangUtils.isEqual(code, ((SystemConfiguration) obj).getCode());
+		} else {
+			return false;
+		}
 	}
 
 	@Override
 	public String toString() {
 		return code;
+	}
+
+	public SystemConfiguration whichIsHidden() {
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, true);
+	}
+
+	public boolean isHidden() {
+		return hidden;
 	}
 }
 

@@ -1,27 +1,12 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.ui.pages;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +18,7 @@ import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -56,7 +42,7 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	ESSchemasRecordsServices es;
 
 	ConnectorType connectorType;
-	ConnectorInstance connectorInstance, anotherConnectorInstace;
+	ConnectorInstance<?> connectorInstance, anotherConnectorInstace;
 	MetadataSchemasManager metadataSchemasManager;
 
 	WizardConnectorInstancePresenter presenter;
@@ -65,11 +51,12 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenCollection(zeCollection).withConstellioESModule().withAllTestUsers();
+		prepareSystem(withZeCollection().withConstellioESModule().withAllTestUsers());
+		ConstellioFactories constellioFactories = getConstellioFactories();
 
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
-		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
+		when(view.getConstellioFactories()).thenReturn(constellioFactories);
 		when(view.navigateTo()).thenReturn(navigator);
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -91,7 +78,7 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 						.setTitle("Ze Connector")
 						.setTraversalCode("traversalCode")
 						.setEnabled(true)
-						.setSeeds(asList("http://constellio.com")));
+						.setSeeds("http://constellio.com"));
 
 		anotherConnectorInstace = connectorManager
 				.createConnector(es.newConnectorHttpInstance()
@@ -99,7 +86,7 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 						.setTitle("Another Connector")
 						.setTraversalCode("anotherTraversalCode")
 						.setEnabled(true)
-						.setSeeds(asList("http://constellio.com")));
+						.setSeeds("http://constellio.com"));
 	}
 
 	@Test
@@ -124,19 +111,10 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenCancelButtonClickedThenNavigateSelectConnectorTypeTab()
-			throws Exception {
-
-		presenter.cancelButtonClicked();
-
-		verify(view).setConnectorTypeListTable();
-	}
-
-	@Test
 	public void whenConnectorTypeButtonClickedThenSetRecordVOType()
 			throws Exception {
 
-		presenter.connectorTypeButtonClicked(es.getHttpConnectorTypeId());
+		presenter.connectorTypeSelected(es.getHttpConnectorTypeId());
 
 		assertThat(presenter.connectorTypeId).isEqualTo(es.getHttpConnectorTypeId());
 		assertThat(presenter.recordVO).isNotNull();
@@ -144,14 +122,18 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenTwoConnectorTypesWhenGetDataProviderConnectorTypesThenSizeOk()
+	public void givenThreeConnectorTypesWhenGetDataProviderConnectorTypesThenSizeOk()
 			throws Exception {
 
-		RecordVODataProvider recordVODataProvider = presenter.getDataProviderSelectConnectorType();
+		RecordVODataProvider recordVODataProvider = presenter.getConnectorTypeDataProvider();
 
-		assertThat(recordVODataProvider.size()).isEqualTo(1);
-		//assertThat(recordVODataProvider.getRecordVO(0).getTitle()).contains("Connecteur HTTP");
-		assertThat(recordVODataProvider.getRecordVO(0).getTitle()).contains("Connecteur Smb");
+		List<String> titles = new ArrayList<>();
+		for (int i = 0; i < recordVODataProvider.size(); i++) {
+			titles.add(recordVODataProvider.getRecordVO(i).getTitle());
+		}
+
+		assertThat(titles).containsOnly("Connecteur HTTP", "Connecteur SMB", "Connecteur LDAP", "Connecteur MS Exchange",
+				"Connecteur Sharepoint");
 	}
 
 	@Test
@@ -167,10 +149,10 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 	public void whenSaveButtonClickedThenCreateSchemaAndRecord()
 			throws Exception {
 
-		presenter.connectorTypeButtonClicked(es.getHttpConnectorTypeId());
+		presenter.connectorTypeSelected(es.getHttpConnectorTypeId());
 		presenter.recordVO.set(ConnectorHttpInstance.TITLE, "new Title");
 		presenter.recordVO.set(ConnectorHttpInstance.CODE, "newCode");
-		presenter.recordVO.set(ConnectorHttpInstance.SEEDS, asList("constellio.com"));
+		presenter.recordVO.set(ConnectorHttpInstance.SEEDS, "constellio.com");
 
 		presenter.saveButtonClicked(presenter.recordVO);
 

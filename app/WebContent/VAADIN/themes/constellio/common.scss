@@ -19,6 +19,17 @@
     overflow: hidden;
   }
 
+  .v-ui {
+    .valo-menu-title {
+      @include valo-gradient($color: $valo-menu-background-color);
+      border-bottom-color: first-color(valo-border($color: $valo-menu-background-color));
+    }
+    .valo-menu .v-menubar-user-menu {
+      color: inherit;
+    }
+  }
+  
+/*
   .v-ui[width-range~="0-800px"] {
     .valo-menu-title {
       @include valo-gradient($color: $valo-menu-background-color);
@@ -28,7 +39,7 @@
       color: inherit;
     }
   }
-
+  
   .v-ui[width-range~="801px-"] {
     .valo-menu {
       @include animation(valo-animate-in-slide-right 700ms 700ms backwards);
@@ -40,6 +51,7 @@
       border-bottom: none;
     }
   }
+*/  
 
   .valo-menu-title {
     line-height: 1.2;
@@ -65,7 +77,19 @@
       }
     }
   }
+  
+  .v-ui {
+    .v-menubar-user-menu > .v-menubar-menuitem {
+      max-width: none;
+      margin-right: .5em;
 
+      .v-menubar-menuitem-caption:after {
+        margin-right: 0;
+      }
+    }
+  }
+
+/*
   .v-ui[width-range~="0-800px"] {
     .v-menubar-user-menu > .v-menubar-menuitem {
       max-width: none;
@@ -76,6 +100,7 @@
       }
     }
   }
+*/  
 
   .valo-menu .valo-menu-badge,
   .dashboard-view .notifications.unread .v-button-caption {

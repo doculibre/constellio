@@ -1,43 +1,30 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemas.bulkImport.data.xml;
+
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.LazyIterator;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
 import com.google.common.base.Strings;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class XMLFileImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
 
@@ -53,7 +40,9 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 	public static final String SCHEMA_ATTR = "schema";
 	public static final String URL_ATTR = "url";
 	public static final String FILENAME_ATTR = "filename";
+	public static final String COMMENT_ATTR = "comment";
 	public static final String MAJOR_ATTR = "major";
+	public static final String LAST_MODIFICATION_DATETIME = "lastModificationDateTime";
 
 	public static final String STRING_VALUE = "string";
 	public static final String CONTENT_VALUE = "content";
@@ -138,17 +127,17 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 					fields.put("content", parseContent());
 					break;
 				default:
-					if(localName.equals(elementTag())){
+					if (localName.equals(elementTag())) {
 						fields = new HashMap<>();
 						previousSystemId = getElementId(xmlReader);
-						if(StringUtils.isBlank(previousSystemId)){
+						if (StringUtils.isBlank(previousSystemId)) {
 							throw new InvalidIdRuntimeException(previousSystemId);
 						}
 						initElementFields(previousSystemId, fields);
-					}else if(localName.equals(mainElementTag())){
+					} else if (localName.equals(mainElementTag())) {
 						patterns = new HashMap<>();
 						initPatterns(xmlReader, patterns);
-					}else{
+					} else {
 						type = getType();
 						value = isMultivalue() ? parseMultivalue(xmlReader.getLocalName(), type) : parseScalar(type);
 
@@ -265,11 +254,19 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 		boolean closeContent = false;
 		String url;
 		String fileName;
+		String comment;
 		boolean major;
+		LocalDateTime dateTime;
 		int endClose = 0;
 
 		List<ContentImportVersion> contentVersions = new ArrayList<>();
 
+		DateTimeFormatter datetimePattern;
+		try {
+			datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));
+		} catch (IllegalArgumentException e) {
+			datetimePattern = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+		}
 		while (xmlReader.hasNext() && !closeContent) {
 			int event = xmlReader.next();
 			if (event == XMLStreamConstants.END_ELEMENT) {
@@ -281,9 +278,17 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 				endClose++;
 				url = xmlReader.getAttributeValue("", URL_ATTR);
 				fileName = xmlReader.getAttributeValue("", FILENAME_ATTR);
+				comment = xmlReader.getAttributeValue("", COMMENT_ATTR);
 				major = Boolean.parseBoolean(xmlReader.getAttributeValue("", MAJOR_ATTR));
 
-				contentVersions.add(new ContentImportVersion(url, fileName, major));
+				try {
+					String dateTimeStr = xmlReader.getAttributeValue("", LAST_MODIFICATION_DATETIME);
+					dateTime = datetimePattern.parseLocalDateTime(dateTimeStr);
+				} catch (Exception exception) {
+					dateTime = TimeProvider.getLocalDateTime();
+				}
+
+				contentVersions.add(new ContentImportVersion(url, fileName, major, comment, dateTime));
 			}
 		}
 
@@ -327,37 +332,39 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 					break;
 				}
 			}
-        }
+		}
 
 		switch (type) {
-			case DATE_VALUE:
-				DateTimeFormatter datePattern = DateTimeFormat.forPattern(patterns.get(DATE_PATTERN));
-				try {
-					return datePattern.parseLocalDate(content);
-				} catch (IllegalArgumentException exception) {
-					throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(patterns.get(DATE_PATTERN), content);
-				}
+		case DATE_VALUE:
+			DateTimeFormatter datePattern = DateTimeFormat.forPattern(patterns.get(DATE_PATTERN));
+			try {
+				return datePattern.parseLocalDate(content);
+			} catch (IllegalArgumentException exception) {
+				throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(
+						patterns.get(DATE_PATTERN), content);
+			}
 
-			case DATETIME_VALUE:
-				DateTimeFormatter datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));
-				try {
-					return datetimePattern.parseLocalDateTime(content);
-				} catch (IllegalArgumentException exception) {
-					throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(patterns.get(DATETIME_PATTERN), content);
-				}
+		case DATETIME_VALUE:
+			DateTimeFormatter datetimePattern = DateTimeFormat.forPattern(patterns.get(DATETIME_PATTERN));
+			try {
+				return datetimePattern.parseLocalDateTime(content);
+			} catch (IllegalArgumentException exception) {
+				throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(
+						patterns.get(DATETIME_PATTERN), content);
+			}
 
-			case STRUCTURE_VALUE:
-				Map<String, String> structure = new HashMap<>();
-				for (int i = 0; i < xmlReader.getAttributeCount(); i++) {
-					structure.put(xmlReader.getAttributeLocalName(i), xmlReader.getAttributeValue(i));
-				}
-				return structure;
+		case STRUCTURE_VALUE:
+			Map<String, String> structure = new HashMap<>();
+			for (int i = 0; i < xmlReader.getAttributeCount(); i++) {
+				structure.put(xmlReader.getAttributeLocalName(i), xmlReader.getAttributeValue(i));
+			}
+			return structure;
 
-			default:
-				if (content.isEmpty()) {
-					return "";
-				}
-				return content;
+		default:
+			if (content.isEmpty()) {
+				return "";
+			}
+			return content;
 		}
 	}
 
@@ -373,24 +380,14 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 
 	private XMLStreamReader newXMLStreamReader(Reader reader) {
 		try {
-//			return XMLInputFactory.newInstance().createXMLStreamReader(reader);
-            XMLInputFactory factory = XMLInputFactory.newInstance();
-            factory.setProperty("javax.xml.stream.isCoalescing", true);  // decode entities into one string
-            return factory.createXMLStreamReader(reader);
+			//			return XMLInputFactory.newInstance().createXMLStreamReader(reader);
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			factory.setProperty("javax.xml.stream.isCoalescing", true);  // decode entities into one string
+			return factory.createXMLStreamReader(reader);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
-
-
-
-
-
-
-
-
-
-
 
 	@Override
 	public void close() {

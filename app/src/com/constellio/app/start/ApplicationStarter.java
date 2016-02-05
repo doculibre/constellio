@@ -1,29 +1,21 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.start;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.Servlet;
 
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.Configuration;
@@ -39,9 +31,11 @@ import com.constellio.model.conf.FoldersLocator;
 public class ApplicationStarter {
 
 	private static Server server;
+	private static WebAppContext handler;
+	private static Map<String, Servlet> servlets = new HashMap<>();
+	private static Map<String, Filter> filters = new HashMap<>();
 
 	private ApplicationStarter() {
-
 	}
 
 	public static void startApplication(boolean joinServerThread, File webContentDir, int port) {
@@ -57,7 +51,7 @@ public class ApplicationStarter {
 		server = newServer(params);
 
 		// Static file handler
-		WebAppContext handler = new WebAppContext();
+		handler = new WebAppContext();
 		handler.setConfigurations(new Configuration[] { new WebXmlConfiguration(), new WebInfConfiguration(),
 				new TagLibConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration() });
 		handler.setContextPath("/constellio");
@@ -70,6 +64,16 @@ public class ApplicationStarter {
 		server.setHandler(handler);
 		try {
 			server.start();
+
+			for (String pathSpec : filters.keySet()) {
+				Filter filter = filters.get(pathSpec);
+				handler.addFilter(new FilterHolder(filter), pathSpec, EnumSet.allOf(DispatcherType.class));
+			}
+			
+			for (String pathSpec : servlets.keySet()) {
+				Servlet servlet = servlets.get(pathSpec);
+				handler.addServlet(new ServletHolder(servlet), pathSpec);
+			}
 		} catch (Exception e) {
 			throw new ApplicationStarterRuntimeException(e);
 		}
@@ -113,4 +117,23 @@ public class ApplicationStarter {
 		return sslServer;
 	}
 
+	public static void registerServlet(String pathRelativeToConstellioContext, Servlet servlet) {
+		if (!servlets.containsKey(pathRelativeToConstellioContext)){
+			servlets.put(pathRelativeToConstellioContext, servlet);
+		}
+	}
+
+	public static void registerFilter(String pathRelativeToConstellioContext, Filter filter) {
+		if (!filters.containsKey(pathRelativeToConstellioContext)){
+			filters.put(pathRelativeToConstellioContext, filter);
+		}
+	}
+	
+	public static void resetServlets() {
+		servlets.clear();
+	}
+	
+	public static void resetFilters() {
+		filters.clear();
+	}
 }

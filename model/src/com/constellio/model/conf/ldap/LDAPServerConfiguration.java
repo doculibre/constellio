@@ -1,28 +1,12 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf.ldap;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-public class LDAPServerConfiguration implements Serializable{
+public class LDAPServerConfiguration implements Serializable {
 	private Boolean ldapAuthenticationActive;
+	private Boolean followReferences;
 
 	private List<String> urls;
 
@@ -30,11 +14,13 @@ public class LDAPServerConfiguration implements Serializable{
 
 	private LDAPDirectoryType directoryType;
 
-	public LDAPServerConfiguration(List<String> urls, List<String> domains, LDAPDirectoryType directoryType, Boolean ldapAuthenticationActive) {
+	public LDAPServerConfiguration(List<String> urls, List<String> domains, LDAPDirectoryType directoryType,
+			Boolean ldapAuthenticationActive, Boolean followReferences) {
 		this.urls = Collections.unmodifiableList(urls);
 		this.domains = Collections.unmodifiableList(domains);
 		this.directoryType = directoryType;
 		this.ldapAuthenticationActive = ldapAuthenticationActive;
+		this.followReferences = followReferences;
 	}
 
 	public List<String> getUrls() {
@@ -51,5 +37,9 @@ public class LDAPServerConfiguration implements Serializable{
 
 	public Boolean getLdapAuthenticationActive() {
 		return ldapAuthenticationActive;
+	}
+
+	public Boolean getFollowReferences() {
+		return followReferences;
 	}
 }

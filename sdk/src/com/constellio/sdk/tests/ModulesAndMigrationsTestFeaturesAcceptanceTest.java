@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.sdk.tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +13,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -48,7 +32,7 @@ import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
-import com.constellio.app.services.extensions.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -107,7 +91,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("collection").getCode()).isEqualTo("collection");
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("task").getCode()).isEqualTo("task");
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("event").getCode()).isEqualTo("event");
-		assertThat(getAppLayerFactory().newMigrationServices().getCurrentVersion(zeCollection)).isEqualTo("5.1.0");
+		assertThat(getAppLayerFactory().newMigrationServices().getCurrentVersion(zeCollection)).isEqualTo("5.2");
 
 	}
 
@@ -163,9 +147,10 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 				.getFormMetadataCodes();
 
 		assertThat(metadataCodes.size()).isNotZero();
-		assertThat(metadataCodes.get(0)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.TYPE);
-		assertThat(metadataCodes.get(1)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode());
-		assertThat(metadataCodes.get(2)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER);
+
+		assertThat(metadataCodes.get(0)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER);
+		assertThat(metadataCodes.get(1)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.TYPE);
+		assertThat(metadataCodes.get(2)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode());
 		assertThat(metadataCodes.get(3)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.KEYWORDS);
 		assertThat(metadataCodes.get(4)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.CONTENT);
 
@@ -322,7 +307,8 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		);
 		pluginManager = getAppLayerFactory().getPluginManager();
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(29);
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(30);
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Cart.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Task.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(TaskType.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(TaskStatus.SCHEMA_TYPE)).isNotNull();

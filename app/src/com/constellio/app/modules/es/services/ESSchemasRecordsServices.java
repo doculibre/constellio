@@ -1,22 +1,12 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.es.services;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -24,24 +14,32 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.connectors.spi.Connector;
+import com.constellio.app.modules.es.connectors.spi.ConnectorInstanciator;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
+import com.constellio.app.modules.es.model.connectors.RegisteredConnector;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.app.modules.es.services.ESSchemaRecordsServicesRuntimeException.ESSchemaRecordsServicesRuntimeException_RecordIsNotAConnectorDocument;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -50,14 +48,19 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices {
+public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices implements ConnectorInstanciator {
 
-	AppLayerFactory appLayerFactory;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ESSchemasRecordsServices.class);
+	private static final int sharepointDefaultRefreshDelay = 0;
+
+	protected AppLayerFactory appLayerFactory;
 
 	public ESSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory) {
 		super(collection, appLayerFactory);
 		this.appLayerFactory = appLayerFactory;
 	}
+
+	private String sharepointConnectorTypeId;
 
 	private String httpConnectorTypeId;
 
@@ -65,11 +68,22 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return getConnectorTypeWithCode(ConnectorType.CODE_HTTP);
 	}
 
+	public ConnectorType getSharepointConnectorType() {
+		return getConnectorTypeWithCode(ConnectorType.CODE_SHAREPOINT);
+	}
+
 	public String getHttpConnectorTypeId() {
 		if (httpConnectorTypeId == null) {
 			httpConnectorTypeId = getHttpConnectorType().getId();
 		}
 		return httpConnectorTypeId;
+	}
+
+	public String getSharepointConnectorTypeId() {
+		if (sharepointConnectorTypeId == null) {
+			sharepointConnectorTypeId = getSharepointConnectorType().getId();
+		}
+		return sharepointConnectorTypeId;
 	}
 
 	public ConnectorManager getConnectorManager() {
@@ -112,6 +126,12 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 				"Unsupported operation - Use newConnectorHttpDocument(id, connectorInstance) instead");
 	}
 
+	public ConnectorHttpDocument getConnectorHttpDocumentByUrl(String url) {
+		Metadata metadata = connectorHttpDocument.schema().getMetadata(Schemas.URL.getLocalCode());
+		LogicalSearchCondition condition = from(connectorHttpDocument.schemaType()).where(metadata).isEqualTo(url);
+		return wrapConnectorHttpDocument(modelLayerFactory.newSearchServices().searchSingleResult(condition));
+	}
+
 	public ConnectorHttpDocument newConnectorHttpDocumentWithId(String id, ConnectorInstance connectorInstance) {
 		String schema = connectorInstance.getDocumentsCustomSchemaCode();
 		ConnectorHttpDocument connectorHttpDocumentRecord = wrapConnectorHttpDocument(
@@ -122,13 +142,14 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return connectorHttpDocumentRecord;
 	}
 
-	public ConnectorHttpDocument newConnectorHttpDocument(ConnectorInstance connectorInstance) {
+	public ConnectorHttpDocument newConnectorHttpDocument(ConnectorHttpInstance connectorInstance) {
 		String schema = connectorInstance.getDocumentsCustomSchemaCode();
 		ConnectorHttpDocument connectorHttpDocumentRecord = wrapConnectorHttpDocument(
 				create(connectorHttpDocument.schemaType().getCustomSchema(schema)));
 		connectorHttpDocumentRecord.setConnector(connectorInstance);
 		connectorHttpDocumentRecord.setConnectorType(connectorInstance.getConnectorType());
 		connectorHttpDocumentRecord.setTraversalCode(connectorInstance.getTraversalCode());
+		connectorHttpDocumentRecord.setFetchDelay(connectorInstance.getDaysBeforeRefetching());
 		return connectorHttpDocumentRecord;
 	}
 
@@ -151,24 +172,24 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 	@Deprecated
 	public ConnectorSmbDocument newConnectorSmbDocument() {
 		throw new UnsupportedOperationException(
-				"Unsupported operation - Use newConnectorHttpDocument(connectorInstance) instead");
+				"Unsupported operation - Use newConnectorSmbDocument(connectorInstance) instead");
 	}
 
 	@Deprecated
 	public ConnectorSmbDocument newConnectorSmbDocumentWithId(String id) {
 		throw new UnsupportedOperationException(
-				"Unsupported operation - Use newConnectorHttpDocument(id, connectorInstance) instead");
+				"Unsupported operation - Use newConnectorSmbDocument(id, connectorInstance) instead");
 	}
 
 	@Deprecated
 	public ConnectorSmbFolder newConnectorSmbFolder() {
-		throw new UnsupportedOperationException("Unsupported operation - Use newConnectorHttpFolder(connectorInstance) instead");
+		throw new UnsupportedOperationException("Unsupported operation - Use newConnectorSmbFolder(connectorInstance) instead");
 	}
 
 	@Deprecated
 	public ConnectorSmbFolder newConnectorSmbFolderWithId(String id) {
 		throw new UnsupportedOperationException(
-				"Unsupported operation - Use newConnectorHttpFolder(id, connectorInstance) instead");
+				"Unsupported operation - Use newConnectorSmbFolder(id, connectorInstance) instead");
 	}
 
 	public String getSmbConnectorTypeId() {
@@ -225,7 +246,7 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 	public LogicalSearchCondition fromConnectorSmbDocumentWhereConnectorIs(ConnectorSmbInstance instance) {
 		return from(connectorSmbDocument.schemaType()).where(connectorSmbDocument.connector()).isEqualTo(instance);
 	}
-	
+
 	public LogicalSearchCondition fromConnectorSmbFolderWhereConnectorIs(ConnectorSmbInstance instance) {
 		return from(connectorSmbFolder.schemaType()).where(connectorSmbFolder.connector()).isEqualTo(instance);
 	}
@@ -241,22 +262,51 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return documents;
 	}
 
+	public ConnectorDocument<?> getConnectorDocument(String id) {
+		Record record = getRecordServices().getDocumentById(id);
+		return record == null ? null : wrapConnectorDocument(record);
+	}
+
+	@Override
+	public ConnectorInstance wrapConnectorInstance(Record record) {
+		if (record == null) {
+			return null;
+
+		} else {
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(record.getCollection(), appLayerFactory);
+			ConnectorManager connectorManager = es.getConnectorManager();
+
+			for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
+				ConnectorUtilsServices services;
+				if (record.getSchemaCode().equals(connector.getConnectorInstanceCode())) {
+					services = connector.getServices();
+					return services.wrapConnectorInstance(record);
+				}
+			}
+			LOGGER.warn("Unsupported connector instance '" + record.getSchemaCode() + "'");
+			return new ConnectorInstance(record, getTypes());
+		}
+	}
+
 	public ConnectorDocument<?> wrapConnectorDocument(Record record) {
 		if (record == null) {
 			return null;
 
-		} else if (record.getSchemaCode().startsWith(ConnectorHttpDocument.SCHEMA_TYPE)) {
-			return wrapConnectorHttpDocument(record);
+		} else {
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(record.getCollection(), appLayerFactory);
+			ConnectorManager connectorManager = es.getConnectorManager();
 
-		} else if (record.getSchemaCode().startsWith(ConnectorSmbFolder.SCHEMA_TYPE)) {
-			return wrapConnectorSmbFolder(record);
-
-		} else if (record.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE)) {
-			return wrapConnectorSmbDocument(record);
+			for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
+				ConnectorUtilsServices<?> services = connector.getServices();
+				for (String type : services.getConnectorDocumentTypes()) {
+					if (record.getSchemaCode().startsWith(type + "_")) {
+						return services.wrapConnectorDocument(record);
+					}
+				}
+			}
+			throw new ESSchemaRecordsServicesRuntimeException_RecordIsNotAConnectorDocument(record.getSchemaCode());
 
 		}
-
-		throw new ImpossibleRuntimeException("wrapConnectorDocument does not support schema '" + record.getSchemaCode() + "'");
 	}
 
 	public List<MetadataSchemaType> getConnectorDocumentsSchemaTypes(String connectorId) {
@@ -279,7 +329,7 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 				.where(connectorDocument.fetched()).isTrue()
 				.andWhere(connectorDocument.connector()).isEqualTo(connectorId);
 	}
-	
+
 	public LogicalSearchCondition fromAllDocumentsOf(String connectorId) {
 		List<MetadataSchemaType> schemaTypes = getConnectorDocumentsSchemaTypes(connectorId);
 		return from(schemaTypes)
@@ -291,6 +341,13 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 	}
 
 	public LogicalSearchQuery connectorDocumentsToFetchQuery(ConnectorInstance<?> connectorInstance) {
+		LogicalSearchQuery query = connectorDocumentsToFetchQueryUnsorted(connectorInstance);
+		query.sortAsc(connectorDocument.fetched());
+		query.sortAsc(Schemas.MODIFIED_ON);
+		return query;
+	}
+
+	public LogicalSearchQuery connectorDocumentsToFetchQueryUnsorted(ConnectorInstance<?> connectorInstance) {
 		List<String> typeCodes = instanciate(connectorInstance).getConnectorDocumentTypes();
 		List<MetadataSchemaType> types = getTypes().getSchemaTypesWithCode(typeCodes);
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -299,10 +356,32 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 				where(connectorDocument.connector()).isEqualTo(connectorInstance),
 				anyConditions(
 						where(connectorDocument.fetched()).isFalse(),
-						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode)
+						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode),
+						where(connectorDocument.nextFetch()).isLessOrEqualThan(TimeProvider.getLocalDateTime())
 				)));
+		return query;
+	}
+
+	public LogicalSearchQuery connectorDocumentsToFetchWithNoDelayAndNoDeletedQuery(ConnectorInstance<?> connectorInstance) {
+		LogicalSearchQuery query = connectorDocumentsToFetchWithNoDelayAndNoDeletedQueryUnsorted(connectorInstance);
 		query.sortAsc(connectorDocument.fetched());
 		query.sortAsc(Schemas.MODIFIED_ON);
+		return query;
+	}
+
+	public LogicalSearchQuery connectorDocumentsToFetchWithNoDelayAndNoDeletedQueryUnsorted(
+			ConnectorInstance<?> connectorInstance) {
+		List<String> typeCodes = instanciate(connectorInstance).getConnectorDocumentTypes();
+		List<MetadataSchemaType> types = getTypes().getSchemaTypesWithCode(typeCodes);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		String currentTraversalCode = connectorInstance.getTraversalCode();
+		query.setCondition(from(types).whereAllConditions(
+				where(connectorDocument.connector()).isEqualTo(connectorInstance),
+				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
+				anyConditions(
+						where(connectorDocument.fetched()).isFalse(),
+						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode))
+		));
 		return query;
 	}
 
@@ -311,22 +390,77 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 			super(schemaCode);
 		}
 
-		public Metadata connector() {
-			return Metadata.newGlobalMetadata("connector_s", MetadataValueType.REFERENCE, false);
+		public Metadata url() {
+			return Metadata.newGlobalMetadata("url_s", STRING, false);
 		}
 
-		public Metadata connectorType() {
-			return Metadata.newGlobalMetadata("connectorType_s", MetadataValueType.REFERENCE, false);
-		}
-
-		public Metadata fetched() {
-			return Metadata.newGlobalMetadata("fetched_s", MetadataValueType.BOOLEAN, false);
+		public Metadata mimetype() {
+			return Metadata.newGlobalMetadata("mimetype_s", STRING, false);
 		}
 
 		public Metadata traversalCode() {
-			return Metadata.newGlobalMetadata("traversalCode_s", MetadataValueType.STRING, false);
+			return Metadata.newGlobalMetadata("traversalCode_s", STRING, false);
 		}
 
+		public Metadata connector() {
+			return Metadata.newGlobalMetadata("connector_s", REFERENCE, false);
+		}
+
+		public Metadata connectorType() {
+			return Metadata.newGlobalMetadata("connectorType_s", REFERENCE, false);
+		}
+
+		public Metadata fetched() {
+			return Metadata.newGlobalMetadata("fetched_s", BOOLEAN, false);
+		}
+
+		public Metadata fetchedDateTime() {
+			return Metadata.newGlobalMetadata("fetchedDateTime_dt", DATE_TIME, false);
+		}
+
+		public Metadata status() {
+			return Metadata.newGlobalMetadata("status_s", ENUM, false);
+		}
+
+		public Metadata fetchFrequency() {
+			return Metadata.newGlobalMetadata("fetchFrequency_s", ENUM, false);
+		}
+
+		public Metadata fetchDelay() {
+			return Metadata.newGlobalMetadata("fetchDelay_d", NUMBER, false);
+		}
+
+		public Metadata nextFetch() {
+			return Metadata.newGlobalMetadata("nextFetch_dt", DATE_TIME, false);
+		}
+
+		public Metadata searchable() {
+			return Metadata.newGlobalMetadata("searchable_s", BOOLEAN, false);
+		}
+
+		public Metadata neverFetch() {
+			return Metadata.newGlobalMetadata("neverFetch_s", BOOLEAN, false);
+		}
+
+		public Metadata errorCode() {
+			return Metadata.newGlobalMetadata("errorCode_s", STRING, false);
+		}
+
+		public Metadata errorsCount() {
+			return Metadata.newGlobalMetadata("errorsCount_d", NUMBER, false);
+		}
+
+		public Metadata errorMessage() {
+			return Metadata.newGlobalMetadata("errorMessage_s", STRING, false);
+		}
+
+		public Metadata errorStackTrace() {
+			return Metadata.newGlobalMetadata("errorStackTrace_s", TEXT, false);
+		}
+
+		public final Metadata lastModified() {
+			return Metadata.newGlobalMetadata("lastModified_dt", DATE_TIME, false);
+		}
 	}
 
 	public Connector instanciate(String connectorId) {
@@ -350,7 +484,7 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 	public List<ConnectorDocument<?>> searchConnectorDocuments(LogicalSearchQuery query) {
 		return wrapConnectorDocuments(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
 	}
-	
+
 	public SchemasDisplayManager getMetadataSchemasDisplayManager() {
 		return appLayerFactory.getMetadataSchemasDisplayManager();
 	}
@@ -358,9 +492,47 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 	public AppLayerFactory getAppLayerFactory() {
 		return appLayerFactory;
 	}
-	
+
 	public String getConnectorSmbDocumentSchemaCode(ConnectorInstance connectorInstance) {
 		String result = connectorSmbDocument.schemaType().getDefaultSchema().getCode();
 		return result;
 	}
+
+	//ldap
+
+	public ConnectorLDAPInstance newConnectorLDAPInstance() {
+		return super.newConnectorLDAPInstance().setConnectorType(getLDAPConnectorTypeId());
+	}
+
+	public ConnectorType getLDAPConnectorTypeId() {
+		return getConnectorTypeWithCode(ConnectorType.CODE_LDAP);
+	}
+
+	@Deprecated
+	public ConnectorLDAPUserDocument newConnectorLDAPUserDocument() {
+		return super.newConnectorLDAPUserDocument();
+	}
+
+	public ConnectorLDAPUserDocument newConnectorLDAPUserDocument(ConnectorLDAPInstance connectorInstance) {
+		ConnectorLDAPUserDocument document = super.newConnectorLDAPUserDocument();
+		document.setConnector(connectorInstance);
+		document.setConnectorType(connectorInstance.getConnectorType());
+		document.setTraversalCode(connectorInstance.getTraversalCode());
+		return document;
+	}
+
+	@Deprecated
+	public ConnectorLDAPUserDocument newConnectorLDAPUserDocumentWithId(String id) {
+		return wrapConnectorLDAPUserDocument(create(connectorLdapUserDocument.schema(), id));
+	}
+
+	public ConnectorLDAPUserDocument newConnectorLDAPUserDocumentWithId
+			(String id, ConnectorInstance connectorInstance) {
+		ConnectorLDAPUserDocument document = super.newConnectorLDAPUserDocumentWithId(id);
+		document.setConnector(connectorInstance);
+		document.setConnectorType(connectorInstance.getConnectorType());
+		document.setTraversalCode(connectorInstance.getTraversalCode());
+		return document;
+	}
+
 }

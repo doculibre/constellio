@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.rm.folder;
 
 import static java.util.Arrays.asList;
@@ -651,8 +634,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		// Delete
 		navigateToEditFolder(getFolderId());
-		zeForm.getDropDown(METADATA1_FINDER).getEmptyValue();
-		zeForm.getDropDown(METADATA2_FINDER).getEmptyValue();
+		zeForm.getDropDown(METADATA1_FINDER).clear();
+		zeForm.getDropDown(METADATA2_FINDER).clear();
 		zeForm.clickSaveButtonAndWaitForPageReload();
 
 		assertThatMetadatasNotVisibleInFolderDetails();
@@ -693,8 +676,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		// Delete
 		navigateToEditFolder(getFolderId());
-		zeForm.getDropDown(METADATA1_FINDER).getEmptyValue();
-		zeForm.getDropDown(METADATA2_FINDER).getEmptyValue();
+		zeForm.getDropDown(METADATA1_FINDER).clear();
+		zeForm.getDropDown(METADATA2_FINDER).clear();
 		zeForm.clickSaveButtonAndWaitForPageReload();
 
 		assertThatMetadatasNotVisibleInFolderDetails();
@@ -736,8 +719,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		// Delete
 		navigateToEditFolder(getFolderId());
-		zeForm.getDropDown(METADATA1_FINDER).getEmptyValue();
-		zeForm.getDropDown(METADATA2_FINDER).getEmptyValue();
+		zeForm.getDropDown(METADATA1_FINDER).clear();
+		zeForm.getDropDown(METADATA2_FINDER).clear();
 		zeForm.clickSaveButtonAndWaitForPageReload();
 
 		assertThatMetadatasNotVisibleInFolderDetails();
@@ -1020,8 +1003,8 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		// Create
 		navigateToAddFolderFormLoggedAs(admin);
-		zeForm.getTextField(METADATA1_FINDER).setValue("3.14");
-		zeForm.getTextField(METADATA2_FINDER).setValue("-3.14");
+		zeForm.getTextField(METADATA1_FINDER).setValue("3,14");
+		zeForm.getTextField(METADATA2_FINDER).setValue("-3,14");
 		completeRequiredField();
 		zeForm.clickSaveButtonAndWaitForPageReload();
 
@@ -1150,7 +1133,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		// Create
 		navigateToAddFolderFormLoggedAs(admin);
 		zeForm.getListAddRemoveRichTextField(METADATA1_FINDER).add("Nota Bene");
-		zeForm.getListAddRemoveRichTextField(METADATA2_FINDER).add("Post Sriptum");
+		zeForm.getListAddRemoveRichTextField(METADATA2_FINDER).add("Post Scriptum");
 		completeRequiredField();
 		zeForm.clickSaveButtonAndWaitForPageReload();
 
@@ -1191,7 +1174,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 		// Create
 		navigateToAddFolderFormLoggedAs(admin);
 		zeForm.getTextField(METADATA1_FINDER).setValue("Nota Bene");
-		zeForm.getTextField(METADATA2_FINDER).setValue("Post Sriptum");
+		zeForm.getTextField(METADATA2_FINDER).setValue("Post Scriptum");
 		completeRequiredField();
 		zeForm.clickSaveButtonAndWaitForPageReload();
 

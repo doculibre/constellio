@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemas.bulkImport;
 
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
@@ -24,6 +7,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +16,7 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,7 +32,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
-import com.constellio.app.services.schemas.bulkImport.data.excel.ExcelImportDataProvider;
+import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -55,9 +40,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
+	private Users users = new Users();
 	private RMSchemasRecordsServices rm;
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 
@@ -70,13 +57,17 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	private Folder folder3;
 	private Folder folder4;
 
+	private LocalDateTime now = new LocalDateTime().minusHours(3);
+
 	@Before
 	public void setUp()
 			throws Exception {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
+
+		givenTimeIs(now);
 
 		importServices = new RecordsImportServices(getModelLayerFactory());
 
@@ -101,6 +92,111 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenImportingXMLFilesWithCreationModificationInfosThenImportedCorrectly()
+			throws Exception {
+
+		File zipFile = buildZipWith("administrativeUnit.xml", "category.xml",
+				"folderWithCreationModificationInfos.xml:folder.xml",
+				"documentWithCreationModificationInfos.xml:document.xml", "retentionRule.xml", "ddvDocumentType.xml");
+
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+
+		LocalDateTime shishOClock = new LocalDateTime().minusDays(1);
+		givenTimeIs(shishOClock);
+
+		Folder folder660 = rm.getFolderByLegacyId("660");
+		assertThat(folder660.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
+		assertThat(folder660.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
+		assertThat(folder660.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
+		assertThat(folder660.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
+
+		Folder folder670 = rm.getFolderByLegacyId("670");
+		assertThat(folder670.getFormCreatedBy()).isEqualTo(users.charlesIn(zeCollection).getId());
+		assertThat(folder670.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
+		assertThat(folder670.getFormModifiedBy()).isEqualTo(users.dakotaLIndienIn(zeCollection).getId());
+		assertThat(folder670.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
+
+		Folder folder661 = rm.getFolderByLegacyId("661");
+		assertThat(folder661.getFormCreatedBy()).isEqualTo(users.edouardIn(zeCollection).getId());
+		assertThat(folder661.getFormCreatedOn()).isEqualTo(new LocalDateTime(2003, 3, 3, 3, 3, 3));
+		assertThat(folder661.getFormModifiedBy()).isEqualTo(users.gandalfIn(zeCollection).getId());
+		assertThat(folder661.getFormModifiedOn()).isEqualTo(new LocalDateTime(2004, 4, 4, 4, 4, 4));
+
+		Folder folder662 = rm.getFolderByLegacyId("662");
+		assertThat(folder662.getFormCreatedBy()).isNull();
+		assertThat(folder662.getFormCreatedOn()).isNull();
+		assertThat(folder662.getFormModifiedBy()).isNull();
+		assertThat(folder662.getFormModifiedOn()).isNull();
+
+		Document document1 = rm.getDocumentByLegacyId("00000000001");
+		assertThat(document1.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
+		assertThat(document1.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
+		assertThat(document1.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
+		assertThat(document1.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
+
+		Document document3 = rm.getDocumentByLegacyId("00000000003");
+		assertThat(document3.getFormCreatedBy()).isEqualTo(users.charlesIn(zeCollection).getId());
+		assertThat(document3.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
+		assertThat(document3.getFormModifiedBy()).isEqualTo(users.dakotaIn(zeCollection).getId());
+		assertThat(document3.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
+
+		Document document2 = rm.getDocumentByLegacyId("00000000002");
+		assertThat(document2.getFormCreatedBy()).isNull();
+		assertThat(document2.getFormCreatedOn()).isNull();
+		assertThat(document2.getFormModifiedBy()).isNull();
+		assertThat(document2.getFormModifiedOn()).isNull();
+
+		//Update
+		zipFile = buildZipWith("administrativeUnit.xml", "category.xml",
+				"folderWithCreationModificationInfos2.xml:folder.xml",
+				"documentWithCreationModificationInfos2.xml:document.xml", "retentionRule.xml", "ddvDocumentType.xml");
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+
+		folder660 = rm.getFolderByLegacyId("660");
+		assertThat(folder660.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
+		assertThat(folder660.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
+		assertThat(folder660.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
+		assertThat(folder660.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
+
+		folder670 = rm.getFolderByLegacyId("670");
+		assertThat(folder670.getFormCreatedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
+		assertThat(folder670.getFormCreatedOn()).isEqualTo(new LocalDateTime(3001, 1, 1, 1, 1, 1));
+		assertThat(folder670.getFormModifiedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
+		assertThat(folder670.getFormModifiedOn()).isEqualTo(new LocalDateTime(3002, 2, 2, 2, 2, 2));
+
+		folder661 = rm.getFolderByLegacyId("661");
+		assertThat(folder661.getFormCreatedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
+		assertThat(folder661.getFormCreatedOn()).isEqualTo(new LocalDateTime(3003, 3, 3, 3, 3, 3));
+		assertThat(folder661.getFormModifiedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
+		assertThat(folder661.getFormModifiedOn()).isEqualTo(new LocalDateTime(3004, 4, 4, 4, 4, 4));
+
+		folder662 = rm.getFolderByLegacyId("662");
+		assertThat(folder662.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
+		assertThat(folder662.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
+		assertThat(folder662.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
+		assertThat(folder662.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
+
+		document1 = rm.getDocumentByLegacyId("00000000001");
+		assertThat(document1.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
+		assertThat(document1.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
+		assertThat(document1.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
+		assertThat(document1.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
+
+		document3 = rm.getDocumentByLegacyId("00000000003");
+		assertThat(document3.getFormCreatedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
+		assertThat(document3.getFormCreatedOn()).isEqualTo(new LocalDateTime(3001, 1, 1, 1, 1, 1));
+		assertThat(document3.getFormModifiedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
+		assertThat(document3.getFormModifiedOn()).isEqualTo(new LocalDateTime(3002, 2, 2, 2, 2, 2));
+
+		document2 = rm.getDocumentByLegacyId("00000000002");
+		assertThat(document2.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
+		assertThat(document2.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
+		assertThat(document2.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
+		assertThat(document2.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
+
+	}
+
+	@Test
 	public void whenImportingXMLFilesSeparatelyThenImportedCorrectly()
 			throws Exception {
 
@@ -117,6 +213,13 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 			importServices.bulkImport(importDataProvider, progressionListener, admin);
 		}
 
+		assertThat(administrativeUnit.size("administrativeUnit")).isEqualTo(3);
+		assertThat(category.size("category")).isEqualTo(3);
+		assertThat(folder.size("folder")).isEqualTo(4);
+		assertThat(document.size("document")).isEqualTo(3);
+		assertThat(retentionRule.size("retentionRule")).isEqualTo(2);
+		assertThat(ddvDocumentType.size("ddvDocumentType")).isEqualTo(2);
+
 		importAndValidate();
 		importAndValidateWithRetentionRules();
 		importAndValidateDocumentType();
@@ -130,14 +233,13 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		File excelFile = getTestResourceFile("datas.xls");
 		File excelFileModified = getTestResourceFile("datasModified.xls");
 
-		importServices.bulkImport(ExcelImportDataProvider.fromFile(excelFile), progressionListener, admin);
+		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(excelFile), progressionListener, admin);
 
 		importAndValidate();
-		importAndValidateWithModifications(ExcelImportDataProvider.fromFile(excelFileModified));
+		importAndValidateWithModifications(Excel2003ImportDataProvider.fromFile(excelFileModified));
 	}
 
 	private void importAndValidate() {
-
 		Category category1 = rm.wrapCategory(expectedRecordWithLegacyId("22200"));
 		assertThat(category1.getCode()).isEqualTo("X2222");
 		assertThat(category1.getTitle()).isEqualTo("Element Category");
@@ -243,11 +345,16 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(document3.getTitle()).isEqualTo("The wonderful life of Dakota : The Kings Return");
 		assertThat(document3.getFolder()).isEqualTo(folder4.getId());
 		assertThat(content3).isNotNull();
-		//		assertThat(content3.getCurrentVersion().getHash()).isEqualTo(testResourceHash);
-		//		assertThat(content3.getCurrentVersion().getFilename()).isEqualTo("The Kings Return");
-		//		assertThat(content3.getCurrentVersion().getVersion()).isEqualTo("0.1");
+
+		assertThat(content3.getVersions()).extracting("filename", "version", "comment", "lastModificationDateTime")
+				.isEqualTo(asList(
+						tuple("The Kings Return1", "1.0", "DVD #1", new LocalDateTime(2014, 6, 9, 23, 38, 45)),
+						tuple("The Kings Return2", "1.1", "DVD #2", new LocalDateTime(2015, 6, 9, 23, 38, 45)),
+						tuple("The Kings Return3", "2.0", "DVD #3 : extras", now)
+				));
+
 		assertThat(content3.getCurrentVersion().getHash()).isEqualTo(testSecondResourceHash);
-		assertThat(content3.getCurrentVersion().getFilename()).isEqualTo("The Kings Return");
+		assertThat(content3.getCurrentVersion().getFilename()).isEqualTo("The Kings Return3");
 		assertThat(content3.getCurrentVersion().getVersion()).isEqualTo("2.0");
 	}
 
@@ -430,8 +537,15 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		File tempFolder = newTempFolder();
 
 		for (String file : files) {
-			File fileInTempFolder = new File(tempFolder, file);
-			File resourceFile = getTestResourceFile(file);
+			String filenameInTempFolder = file;
+			String resourceFilename = file;
+			if (file.contains(":")) {
+				resourceFilename = file.split(":")[0];
+				filenameInTempFolder = file.split(":")[1];
+			}
+
+			File fileInTempFolder = new File(tempFolder, filenameInTempFolder);
+			File resourceFile = getTestResourceFile(resourceFilename);
 			FileUtils.copyFile(resourceFile, fileInTempFolder);
 		}
 

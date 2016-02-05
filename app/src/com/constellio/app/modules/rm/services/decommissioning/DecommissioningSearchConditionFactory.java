@@ -1,24 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.services.decommissioning;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.app.modules.rm.wrappers.Document.SAME_INACTIVE_FATE_AS_FOLDER;
+import static com.constellio.app.modules.rm.wrappers.Document.SAME_SEMI_ACTIVE_FATE_AS_FOLDER;
 import static com.constellio.data.utils.TimeProvider.getLocalDate;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNotNull;
@@ -30,10 +15,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
@@ -62,6 +44,11 @@ public class DecommissioningSearchConditionFactory {
 				SearchType.semiActiveToDeposit, SearchType.semiActiveToDestroy);
 	}
 
+	public static List<SearchType> availableCriteriaForDocuments() {
+		return Arrays.asList(SearchType.documentTransfer, SearchType.documentActiveToDeposit, SearchType.documentActiveToDestroy,
+				SearchType.documentSemiActiveToDeposit, SearchType.documentSemiActiveToDestroy);
+	}
+
 	public LogicalSearchCondition bySearchType(SearchType type, String adminUnitId) {
 		switch (type) {
 		case fixedPeriod:
@@ -80,60 +67,105 @@ public class DecommissioningSearchConditionFactory {
 			return semiActiveToDeposit(adminUnitId);
 		case semiActiveToDestroy:
 			return semiActiveToDestroy(adminUnitId);
+		case documentTransfer:
+			return documentTransfer(adminUnitId);
+		case documentActiveToDeposit:
+			return documentActiveToDeposit(adminUnitId);
+		case documentActiveToDestroy:
+			return documentActiveToDestroy(adminUnitId);
+		case documentSemiActiveToDeposit:
+			return documentSemiActiveToDeposit(adminUnitId);
+		case documentSemiActiveToDestroy:
+			return documentSemiActiveToDestroy(adminUnitId);
 		default:
 			throw new RuntimeException("Unknown search type: " + type);
 		}
 	}
 
 	public LogicalSearchCondition withoutClosingDateAndWithFixedPeriod(String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
+		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.FIXED)
 				.andWhere(schemas.folderCloseDate()).isNull()
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition withoutClosingDateAndWith888Period(String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
+		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.OPEN)
 				.andWhere(schemas.folderCloseDate()).isNull()
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition withoutClosingDateAndWith999Period(String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
+		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.UNTIL_REPLACED)
 				.andWhere(schemas.folderCloseDate()).isNull()
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition activeToTransferToSemiActive(String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
+		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folderPlanifiedTransferDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition activeToDestroy(String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
+		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folderPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition activeToDeposit(String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
+		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folderPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition semiActiveToDestroy(String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
+		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folderPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition semiActiveToDeposit(String adminUnitId) {
-		return fromFolderWhereFilingSpaceAndAdministrativeUnitAre(adminUnitId)
+		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.folderPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
 				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
+	}
+
+	public LogicalSearchCondition documentTransfer(String adminUnitId) {
+		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
+				.andWhere(schemas.defaultDocumentSchema().get(SAME_SEMI_ACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.documentPlanifiedTransferDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
+	}
+
+	public LogicalSearchCondition documentActiveToDeposit(String adminUnitId) {
+		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
+				.andWhere(schemas.defaultDocumentSchema().get(SAME_INACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.documentPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
+	}
+
+	public LogicalSearchCondition documentActiveToDestroy(String adminUnitId) {
+		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
+				.andWhere(schemas.defaultDocumentSchema().get(SAME_INACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.documentPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
+	}
+
+	public LogicalSearchCondition documentSemiActiveToDeposit(String adminUnitId) {
+		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
+				.andWhere(schemas.defaultDocumentSchema().get(SAME_INACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.documentPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
+	}
+
+	public LogicalSearchCondition documentSemiActiveToDestroy(String adminUnitId) {
+		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
+				.andWhere(schemas.defaultDocumentSchema().get(SAME_INACTIVE_FATE_AS_FOLDER)).isFalse()
+				.andWhere(schemas.documentPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition getVisibleContainersCondition(ContainerSearchParameters params) {
@@ -166,11 +198,12 @@ public class DecommissioningSearchConditionFactory {
 		return searchServices.getResultsCount(condition);
 	}
 
-	private LogicalSearchCondition fromFolderWhereFilingSpaceAndAdministrativeUnitAre(String adminUnitId) {
-		MetadataSchema folderSchema = schemas.defaultFolderSchema();
-		Metadata administrativeUnit = folderSchema.getMetadata(Folder.ADMINISTRATIVE_UNIT);
+	private LogicalSearchCondition fromFolderWhereAdministrativeUnitIs(String adminUnitId) {
+		return from(schemas.folderSchemaType()).where(schemas.folderAdministrativeUnit()).isEqualTo(adminUnitId);
+	}
 
-		return from(schemas.folderSchemaType()).where(administrativeUnit).isEqualTo(adminUnitId);
+	private LogicalSearchCondition fromDocumentWhereAdministrativeUnitIs(String adminUnitId) {
+		return from(schemas.documentSchemaType()).where(schemas.documentAdministrativeUnit()).isEqualTo(adminUnitId);
 	}
 
 	public static class ContainerSearchParameters {

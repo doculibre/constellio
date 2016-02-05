@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -37,14 +21,15 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 
 	static File constellio, constellioApp, constellioData, constellioModel, webinf, conf, buildLibs, constellioProperties,
 			constellioSetupProperties, deploy, cmdTxt, uploadConstellioWar, temp, importation, custom, settings, sdk,
-			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, reportsRecource,
-			buildData;
+			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, resourcesReports,
+			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt;
 	FoldersLocator foldersLocator;
 	private static String classpath;
 
 	@Test
 	public void __prepareTests__()
 			throws Exception {
+		FoldersLocator.invalidateCaches();
 		anotherTemp = null;
 
 		File tmp = newTempFolder();
@@ -73,8 +58,13 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 		deploy = new File(tempUpdateclient, "constellio-deploy");
 		cmdTxt = new File(temp, "cmd");
 		uploadConstellioWar = new File(temp, "constellio.war");
-		reportsRecource = new File(constellio, "reportsRecource");
+		resourcesReports = new File(constellio, "resources" + File.separator + "reports");
 		buildData = new File(constellio, "data.txt");
+		vaadin = new File(appProjectWebContent, "VAADIN");
+		themes = new File(vaadin, "themes");
+		themesConstellio = new File(themes, "constellio");
+		themesConstellioImages = new File(themesConstellio, "images");
+		crypt = new File(settings, "key.txt");
 
 		constellio.mkdir();
 		constellioApp.mkdir();
@@ -97,7 +87,8 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 		appProjectWebContent.mkdirs();
 		FileUtils.touch(cmdTxt);
 		FileUtils.touch(constellioProperties);
-		reportsRecource.mkdir();
+		resourcesReports.mkdirs();
+		themesConstellioImages.mkdirs();
 
 		classpath = constellio.getAbsolutePath() + "/file:" + constellio.getAbsolutePath()
 				+ "/model/build/libs/core-model-5.0.4.jar!/com/constellio/model/conf";
@@ -137,8 +128,13 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	}
 
 	@Test
+	public void whenGetConstellioEncryptionFileThenReturnCorrectFolder() {
+		assertThat(foldersLocator.getConstellioEncryptionFile()).is(samePath(crypt));
+	}
+
+	@Test
 	public void whenGetReportsFolderThenReturnCorrectFolder() {
-		//	assertThat(foldersLocator.getReportsResourceFolder()).isEqualTo(reportsRecource);
+		//	assertThat(foldersLocator.getReportsResourceFolder()).isEqualTo(resourcesReports);
 	}
 
 	@Test
@@ -174,7 +170,8 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	@Test
 	public void whenGetIntelliGISetupDPropertiesFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioSetupProperties().getAbsolutePath()).isEqualTo(constellioSetupProperties.getAbsolutePath());
+		assertThat(foldersLocator.getConstellioSetupProperties().getAbsolutePath())
+				.isEqualTo(constellioSetupProperties.getAbsolutePath());
 	}
 
 	@Test
@@ -192,7 +189,8 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	@Test
 	public void whenGetWarFileThenObtainCorrectFileInUpdateClientTempFolder()
 			throws Exception {
-		assertThat(foldersLocator.getUploadConstellioWarFile().getAbsolutePath()).isEqualTo(uploadConstellioWar.getAbsolutePath());
+		assertThat(foldersLocator.getUploadConstellioWarFile().getAbsolutePath())
+				.isEqualTo(uploadConstellioWar.getAbsolutePath());
 	}
 
 	@Test
@@ -237,6 +235,21 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	@Test
 	public void whenGetSettingsThenObtainCorrectFolder() {
 		assertThat(foldersLocator.getDefaultSettingsFolder().getAbsolutePath()).isEqualTo(settings.getAbsolutePath());
+	}
+
+	@Test
+	public void whenConstellioThemesImagesThenObtainCorrectFolder() {
+		assertThat(foldersLocator.getConstellioThemeImages().getAbsolutePath())
+				.isEqualTo(themesConstellioImages.getAbsolutePath());
+	}
+
+	private Condition<? super File> samePath(final File expectedPath) {
+		return new Condition<File>() {
+			@Override
+			public boolean matches(File value) {
+				return expectedPath.getAbsolutePath().equals(value.getAbsolutePath());
+			}
+		};
 	}
 
 }

@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.extensions;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +18,9 @@ import org.mockito.Mock;
 
 import com.constellio.app.api.APlugin;
 import com.constellio.app.api.pluginManagerTestResources.pluginImplementation.APluginImplementation;
+import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
+import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -49,13 +35,13 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 	static File pluginsDirectory;
 	@Mock AppLayerFactory appLayerFactory;
 	@Mock ModelLayerFactory modelLayerFactory;
-	@Mock DataLayerFactory dataLayerFactory;
+	@Mock ConstellioPluginConfigurationManager pluginConfigManger;
 	JSPFConstellioPluginManager pluginManager;
 	@Mock CollectionsListManager collectionsListManager;
 
 	@Before
 	public void setUp() {
-		pluginManager = spy(new JSPFConstellioPluginManager(pluginsDirectory, modelLayerFactory, dataLayerFactory));
+		pluginManager = spy(new JSPFConstellioPluginManager(pluginsDirectory, modelLayerFactory, pluginConfigManger));
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList("firstCollection", "secondCollection"));
 		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
 		assertThat(APluginImplementation.isStarted()).isFalse();
@@ -81,19 +67,19 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 	@Test(expected = RuntimeException.class)
 	public void givenUnstartedPluginManagerWhenGetPluginsThenRuntimeExceptionThrown()
 			throws Exception {
-		pluginManager.getPlugins(APlugin.class);
+		pluginManager.getActivePlugins();
 	}
 
-	@Test
+	/* No more valid @Test
 	public void givenStartedPluginManagerWhenGetPluginsDirectoryThenPluginImplementationFound()
 			throws Exception {
 		pluginManager.detectPlugins();
 		pluginManager.initialize();
 
-		List<APlugin> plugins = pluginManager.getPlugins(APlugin.class);
+		List<InstallableModule> plugins = pluginManager.getActivePlugins(false, false);
 
 		assertThat(plugins).extractingResultOf("getName").containsOnly(APluginImplementation.NAME);
-	}
+	}*/
 
 	@Test
 	public void givenStartedPluginManagerWhenStopingThenStopPlugins()
@@ -113,6 +99,6 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 		pluginManager.initialize();
 		pluginManager.close();
 
-		pluginManager.getPlugins(APlugin.class);
+		pluginManager.getActivePlugins();
 	}
 }

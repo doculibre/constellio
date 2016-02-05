@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.systemSetup;
 
 import java.io.FileReader;
@@ -139,13 +122,13 @@ public class SystemSetupService {
 
 			if (!modulesManager.isInstalled(module)) {
 				try {
-					modulesManager.installModule(module, collectionsListManager);
+					modulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
 				} catch (FailedToInstall failedToInstall) {
 					throw new RuntimeException(failedToInstall);
 				}
 			}
 			try {
-				modulesManager.enableModule(collectionCode, module);
+				modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module);
 			} catch (FailedToStart failedToStart) {
 				throw new RuntimeException(failedToStart);
 			}
@@ -167,7 +150,7 @@ public class SystemSetupService {
 		boolean isSystemAdmin = true;
 
 		UserCredential adminCredentials = new UserCredential(username, firstName, lastName, email, serviceKey, isSystemAdmin,
-				globalGroups, collections, new HashMap<String, LocalDateTime>(), status, domain);
+				globalGroups, collections, new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
 		modelLayerFactory.newUserServices().addUpdateUserCredential(adminCredentials);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		if (authenticationService.supportPasswordChange()) {

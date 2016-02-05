@@ -1,24 +1,9 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.util;
 
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
@@ -26,17 +11,23 @@ import com.vaadin.ui.UI;
 
 public class ThemeUtils implements Serializable {
 
+	private static Map<String, Boolean> cache = new HashMap<>();
+
 	public static boolean resourceExists(String resourcePath) {
-		boolean resourceExists; 
-		UI ui = UI.getCurrent();
-		InputStream resourceStream = ui.getSession().getService().getThemeResourceAsStream(ui, ui.getTheme(), resourcePath);
-		if (resourceStream != null) {
-			resourceExists = true;
-			IOUtils.closeQuietly(resourceStream);
-		} else {
-			resourceExists = false;
+		if (!cache.containsKey(resourcePath)) {
+			boolean resourceExists;
+			UI ui = UI.getCurrent();
+			InputStream resourceStream = ui.getSession().getService().getThemeResourceAsStream(ui, ui.getTheme(), resourcePath);
+			if (resourceStream != null) {
+				resourceExists = true;
+				IOUtils.closeQuietly(resourceStream);
+			} else {
+				resourceExists = false;
+			}
+			cache.put(resourcePath, resourceExists);
 		}
-		return resourceExists;
+
+		return cache.containsKey(resourcePath);
 	}
 
 }

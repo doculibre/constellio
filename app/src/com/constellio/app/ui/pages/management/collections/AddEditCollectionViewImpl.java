@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.management.collections;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -26,6 +9,7 @@ import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionV
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
@@ -89,6 +73,15 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 		code.addStyleName("code");
 		code.addStyleName("code-" + collectionVO.getCode());
 		code.setEnabled(!presenter.getActionEdit());
+		code.addValidator(new Validator() {
+			@Override
+			public void validate(Object value)
+					throws InvalidValueException {
+				if (code.getValue() != null && code.getValue().contains("-")) {
+					throw new InvalidValueException($("AddEditCollectionView.validate.invalidCode"));
+				}
+			}
+		});
 
 		name = new TextField($("AddEditCollectionView.name"));
 		name.addStyleName(NAME_FIELD_STYLE);
@@ -109,9 +102,10 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 		modules.setMultiSelect(true);
 		for (String module : presenter.getAvailableModules()) {
 			modules.addItem(module);
+			modules.setItemEnabled(module, !presenter.isModuleSelected(module, collectionVO));
 			modules.setItemCaption(module, presenter.getModuleCaption(module));
 		}
-		modules.setEnabled(!presenter.getActionEdit());
+		//modules.setEnabled(!presenter.getActionEdit());
 
 		BaseForm<CollectionVO> baseFormComponent = new BaseForm<CollectionVO>(collectionVO, this, code, name, modules) {
 			@Override

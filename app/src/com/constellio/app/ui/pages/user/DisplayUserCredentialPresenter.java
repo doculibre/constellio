@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.user;
 
 import java.io.IOException;
@@ -178,5 +161,17 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 		UserCredential userInEdition = userServices.getUserCredential(usernameInEdition);
 		UserCredential currentUser = userServices.getUserCredential(view.getSessionContext().getCurrentUser().getUsername());
 		return userServices.canModifyPassword(userInEdition, currentUser);
+	}
+
+	public String getServiceKey(String username) {
+		String serviceKey = userServices.getUser(username).getServiceKey();
+		if (serviceKey == null) {
+			serviceKey = userServices.giveNewServiceToken(userServices.getUser(username));
+		}
+		return serviceKey;
+	}
+
+	public String generateToken(String username, String unitTime, int duration) {
+		return userServices.generateToken(username, unitTime, duration);
 	}
 }

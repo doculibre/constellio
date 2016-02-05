@@ -1,29 +1,25 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.dao.services.factories;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
 
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.SolrServerType;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
@@ -31,6 +27,8 @@ import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
+import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.contents.ContentDao;
@@ -61,7 +59,6 @@ public class DataLayerFactory extends LayerFactory {
 	static final String NOTIFICATIONS_COLLECTION = "notifications";
 
 	private final IOServicesFactory ioServicesFactory;
-	private final SolrServerFactory solrServerFactory;
 	private final SolrServers solrServers;
 	private final ConfigManager configManager;
 	private final UniqueIdGenerator idGenerator;
@@ -82,8 +79,7 @@ public class DataLayerFactory extends LayerFactory {
 		// TODO Possibility to configure the logger
 		this.bigVaultLogger = BigVaultLogger.disabled();
 		this.ioServicesFactory = ioServicesFactory;
-		this.solrServerFactory = newSolrServerFactory();
-		this.solrServers = new SolrServers(solrServerFactory, bigVaultLogger, dataLayerExtensions);
+		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions);
 		this.dataLayerLogger = new DataLayerLogger();
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration));
@@ -197,7 +193,6 @@ public class DataLayerFactory extends LayerFactory {
 	@Override
 	public void close() {
 		super.close();
-		solrServerFactory.clear();
 		solrServers.close();
 	}
 
@@ -205,7 +200,7 @@ public class DataLayerFactory extends LayerFactory {
 		return solrServers;
 	}
 
-	SolrServerFactory newSolrServerFactory() {
+	private SolrServerFactory newSolrServerFactory() {
 		SolrServerType solrServerType = dataLayerConfiguration.getRecordsDaoSolrServerType();
 
 		if (SolrServerType.HTTP == solrServerType) {
@@ -241,11 +236,30 @@ public class DataLayerFactory extends LayerFactory {
 		return secondTransactionLogManager;
 	}
 
-	public SolrServerFactory getSolrServerFactory() {
-		return solrServerFactory;
-	}
-
 	public DataLayerConfiguration getDataLayerConfiguration() {
 		return dataLayerConfiguration;
+	}
+
+	public String readEncryptionKey()
+			throws BigVaultException {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "id:the_private_key");
+		SolrDocument solrDocument = getRecordsVaultServer().querySingleResult(params);
+		return (String) solrDocument.getFieldValue("value_s");
+	}
+
+	public void saveEncryptionKey() {
+		Random random = new Random();
+		String solrKeyPart = random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);
+		RecordDao recordDao = newRecordDao();
+		Map<String, Object> fields = new HashMap<>();
+		fields.put("value_s", solrKeyPart);
+		RecordDTO record = new RecordDTO("the_private_key", -1L, null, fields);
+		try {
+			recordDao.execute(new TransactionDTO(UUID.randomUUID().toString(), RecordsFlushing.NOW, Arrays.asList(record),
+					new ArrayList<RecordDeltaDTO>()));
+		} catch (RecordDaoException.OptimisticLocking e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

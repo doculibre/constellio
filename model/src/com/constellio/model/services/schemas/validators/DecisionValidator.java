@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.schemas.validators;
 
 import java.util.HashMap;
@@ -32,7 +15,7 @@ public class DecisionValidator implements RecordMetadataValidator<String> {
 
 	@Override
 	public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
-		if (!value.equals("") && !value.equals(DECISION_APPROVED) && !value.equals(DECISION_REFUSED)) {
+		if (value != null && !DECISION_APPROVED.equals(DECISION_APPROVED) && !DECISION_REFUSED.equals(value)) {
 			Map<String, String> parameters = new HashMap<>();
 			parameters.put("DECISION", value);
 			validationErrors.add(this.getClass(), "INVALID_DECISION_VALUE", parameters);

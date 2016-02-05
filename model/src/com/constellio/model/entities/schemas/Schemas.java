@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.entities.schemas;
 
 import java.util.ArrayList;
@@ -57,6 +40,9 @@ public class Schemas {
 					false));
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", MetadataValueType.STRING, true));
 	public static final Metadata MANUAL_TOKENS = add(new Metadata("manualTokens_ss", MetadataValueType.STRING, true));
+	public static final Metadata DENY_TOKENS = add(new Metadata("denyTokens_ss", MetadataValueType.STRING, true));
+	public static final Metadata SHARE_TOKENS = add(new Metadata("shareTokens_ss", MetadataValueType.STRING, true));
+	public static final Metadata SHARE_DENY_TOKENS = add(new Metadata("shareDenyTokens_ss", MetadataValueType.STRING, true));
 	public static final Metadata COLLECTION = add(new Metadata("collection_s", MetadataValueType.STRING, false));
 	public static final Metadata LOGICALLY_DELETED_STATUS = add(new Metadata("deleted_s", MetadataValueType.BOOLEAN, false));
 
@@ -71,15 +57,27 @@ public class Schemas {
 	public static final Metadata FOLLOWERS = add(new Metadata("followers_ss", MetadataValueType.STRING, true));
 
 	public static final Metadata CODE = new Metadata("code_s", MetadataValueType.STRING, false);
+	public static final Metadata DESCRIPTION_TEXT = new Metadata("description_t", MetadataValueType.TEXT, false);
+	public static final Metadata DESCRIPTION_STRING = new Metadata("description_s", MetadataValueType.STRING, false);
 
 	public static final Metadata LINKABLE = new Metadata("linkable_s", MetadataValueType.BOOLEAN, false);
 
 	public static final Metadata LEGACY_ID = add(
 			new Metadata("legacyIdentifier_s", MetadataValueType.STRING, false));
 
+	public static final Metadata MARKED_FOR_PREVIEW_CONVERSION = add(
+			new Metadata("markedForPreviewConversion_s", MetadataValueType.BOOLEAN, false));
 	public static final Metadata VISIBLE_IN_TREES = add(new Metadata("visibleInTrees_s", MetadataValueType.BOOLEAN, false));
+	public static final Metadata SEARCHABLE = add(new Metadata("searchable_s", MetadataValueType.BOOLEAN, false));
+
+	public static final Metadata URL = add(new Metadata("url_s", MetadataValueType.STRING, false));
+	public static final Metadata FETCHED = new Metadata("fetched_s", MetadataValueType.BOOLEAN, false);
 
 	public static Metadata add(Metadata metadata) {
+		String localCode = metadata.getLocalCode();
+		if (localCode.startsWith("USR") || localCode.startsWith("MAP")) {
+			throw new RuntimeException("Invalid local code for global metadata : " + localCode);
+		}
 		allGlobalMetadatas.add(metadata);
 		return metadata;
 	}
@@ -93,10 +91,14 @@ public class Schemas {
 		if (code.contains(cratedOnCodeWithoutType)) {
 			return CREATED_ON;
 		} else {
-			//TODO
+			String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(code);
+			for (Metadata globalMetadata : getAllGlobalMetadatas()) {
+				if (globalMetadata.getLocalCode().equals(metadataLocalCode)) {
+					return globalMetadata;
+				}
+			}
 			return null;
 		}
-
 	}
 
 	public static List<Metadata> getAllGlobalMetadatas() {
@@ -128,10 +130,18 @@ public class Schemas {
 	public static Metadata getSearchableMetadata(Metadata metadata, String languageCode) {
 
 		String dataStoreCode = metadata.getDataStoreCode();
-		dataStoreCode = dataStoreCode.replace("_t", "_t_" + languageCode);
-		dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
-		dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
-		dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
+
+		if (metadata.isMultivalue()) {
+			dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
+			dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
+		} else {
+			dataStoreCode = dataStoreCode.replace("_t", "_t_" + languageCode);
+			if (metadata.getType() == MetadataValueType.CONTENT) {
+				dataStoreCode = dataStoreCode.replace("_s", "_txt_" + languageCode);
+			} else {
+				dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
+			}
+		}
 
 		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
 		return new Metadata(schemaCode, dataStoreCode, MetadataValueType.TEXT, metadata.isMultivalue());

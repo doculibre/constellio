@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.sdk.tests.TestUtils.noDuplicates;
@@ -22,13 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -42,6 +19,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
@@ -55,22 +33,34 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
-@RunWith(Parameterized.class)
 public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 	RMSchemasRecordsServices rm;
 
-	@Test
-	public void testAll()
+	protected void validateZeCollectionState()
 			throws Exception {
+		if (getModelLayerFactory().getCollectionsListManager().getCollections().contains(zeCollection)) {
+			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+			if (types.hasType(RetentionRule.SCHEMA_TYPE))  {
+				whenMigratingToCurrentVersionThenValidSchemas();
+				whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly();
+				whenMigratingToCurrentVersionThenHasValueListWithDefaultItems();
+				whenMigratingToCurrentVersionThenHasEssentialMetadatas();
+				whenMigratingToCurrentVersionThenHasRolesWithRightPermissions();
+				whenMigratingToCurrentVersionThenConfigHasValidDefaultValue();
+				whenMigratingToCurrentVersionThenTaskModuleIsEnabledAndExtraRMMetadatasAreCreated();
+				whenMigratingToCurrentVersionThenMarkedForReindexingIfVersionIsBefore5_1_3();
+			}
+		}
+	}
 
-		whenMigratingToCurrentVersionThenValidSchemas();
-		whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly();
-		whenMigratingToCurrentVersionThenHasValueListWithDefaultItems();
-		whenMigratingToCurrentVersionThenHasEssentialMetadatas();
-		whenMigratingToCurrentVersionThenHasRolesWithRightPermissions();
-		whenMigratingToCurrentVersionThenConfigHasValidDefaultValue();
-		whenMigratingToCurrentVersionThenTaskModuleIsEnabledAndExtraRMMetadatasAreCreated();
+	private void whenMigratingToCurrentVersionThenMarkedForReindexingIfVersionIsBefore5_1_3() {
+		boolean requireReindexing = version != null && (
+				version.startsWith("5.0") || version.equals("5.1") || version.startsWith("5.1.1") || version.startsWith("5.1.2"));
+
+		if (requireReindexing) {
+			assertThat(getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()).isEqualTo(true);
+		}
 	}
 
 	private void whenMigratingToCurrentVersionThenTaskModuleIsEnabledAndExtraRMMetadatasAreCreated() {
@@ -101,30 +91,29 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
+		if (testCase.contains("rm") && !testCase.contains("es")) {
 		assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
 				ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE);
+		}
 
 		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel()).isEqualTo("Date de l'événement");
 
 		MetadataSchema filingSpaceSchema = metadataSchemaTypes.getSchema(FilingSpace.DEFAULT_SCHEMA);
 		MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
 		MetadataSchema decommissioningListSchema = metadataSchemaTypes.getSchema(DecommissioningList.DEFAULT_SCHEMA);
+		MetadataSchema retentionRuleSchema = metadataSchemaTypes.getSchema(RetentionRule.DEFAULT_SCHEMA);
 
-		assertThat(filingSpaceSchema.getMetadata(FilingSpace.USERS).isWriteNullValues()).isTrue();
-		assertThat(folderSchema.getMetadata(Folder.DESCRIPTION).isWriteNullValues()).isFalse();
-		assertThat(folderSchema.getMetadata(Folder.LINEAR_SIZE).isWriteNullValues()).isFalse();
-		assertThat(folderSchema.getMetadata(Folder.COMMENTS).isWriteNullValues()).isFalse();
-		assertThat(folderSchema.getMetadata(Folder.BORROW_DATE).isWriteNullValues()).isTrue();
-		assertThat(folderSchema.getMetadata(Folder.MAIN_COPY_RULE).isWriteNullValues()).isFalse();
-		assertThat(decommissioningListSchema.getMetadata(DecommissioningList.VALIDATIONS).isWriteNullValues()).isTrue();
+		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
 	}
 
 	private List<String> allSchemaTypesWithSecurity() {
 		List<String> types = new ArrayList<>();
-		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(zeCollection).getSchemaTypes()) {
-			if (type.hasSecurity()) {
-				types.add(type.getCode());
+		for(String collection : getModelLayerFactory().getCollectionsListManager().getCollections()) {
+			for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager()
+					.getSchemaTypes(collection).getSchemaTypes()) {
+				if (type.hasSecurity()) {
+					types.add(type.getCode());
+				}
 			}
 		}
 		return types;
@@ -147,6 +136,10 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROW_PREVIEW_RETURN_DATE,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.BORROWING_TYPE,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_CREATED_BY,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_CREATED_ON,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_MODIFIED_BY,
+				Folder.DEFAULT_SCHEMA + "_" + Folder.FORM_MODIFIED_ON,
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COMMENTS);
 
 		//		SchemaDisplayConfig categoryDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
@@ -155,6 +148,15 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		//		assertThat(folderDisplayConfig.getDisplayMetadataCodes()).containsExactly(
 		//				Folder.DEFAULT_SCHEMA + "_" + Category.CODE,
 		//				Folder.DEFAULT_SCHEMA + "_" + "title");
+
+		SchemaDisplayConfig retentionRuleDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
+				.getSchema(zeCollection, RetentionRule.DEFAULT_SCHEMA);
+
+		assertThat(retentionRuleDisplayConfig.getDisplayMetadataCodes())
+				.contains("retentionRule_default_scope",
+						"retentionRule_default_principalDefaultDocumentCopyRetentionRule",
+						"retentionRule_default_secondaryDefaultDocumentCopyRetentionRule",
+						"retentionRule_default_documentCopyRetentionRules");
 
 	}
 
@@ -176,7 +178,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 	public void whenMigratingToCurrentVersionThenHasEssentialMetadatas()
 			throws Exception {
 
-		assertThat(rm.administrativeUnitFilingSpaces().isEssential()).isTrue();
+		assertThat(rm.administrativeUnitFilingSpaces().isEssential()).isFalse();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.CATEGORY_ENTERED).isEssential()).isTrue();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).isEssential()).isTrue();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.RETENTION_RULE_ENTERED).isEssential()).isTrue();
@@ -206,8 +208,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(userRole.getOperationPermissions()).doesNotContain(CorePermissions.MANAGE_SEARCH_REPORTS);
 
 		assertThat(managerRole.getOperationPermissions()).containsAll(userRole.getOperationPermissions());
-		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
-		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
+		assertThat(managerRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
+		assertThat(managerRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_FOLDER);
@@ -222,46 +224,40 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 	}
 	//--------------------------------------------------------------
 
-	String testCase;
+	String testCase, version;
 
 	public RMMigrationsAcceptanceTest(String testCase) {
 		this.testCase = testCase;
-	}
-
-	@Parameterized.Parameters(name = "{0}")
-	public static Collection<Object[]> testCases() {
-		List<Object[]> states = new ArrayList<>();
-		states.add(new Object[] { "givenNewInstallation" });
-
-		for (String state : new SDKFoldersLocator().getInitialStatesFolder().list()) {
-			if (state.endsWith(".zip")) {
-				states.add(new Object[] { state.replace(".zip", "") });
-			}
+		if (!testCase.equals("givenNewInstallation")) {
+			version = testCase.substring(testCase.indexOf("_in_") + 4, testCase.indexOf("_with_"));
 		}
-
-		return states;
-
 	}
 
-	@Before
-	public void setUp()
+	public void setUp(boolean old)
 			throws Exception {
 
 		givenDisabledAfterTestValidations();
 
 		if ("givenNewInstallation".equals(testCase)) {
 			givenTransactionLogIsEnabled();
-			givenCollection(zeCollection).withAllTestUsers().withConstellioRMModule();
-
+			//givenCollection(zeCollection).withAllTestUsers().withConstellioRMModule();
+			prepareSystem(withZeCollection().withAllTestUsers().withConstellioRMModule());
 		} else {
 
 			givenTransactionLogIsEnabled();
-			File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-			File state = new File(statesFolder, testCase + ".zip");
+			File state = new File(getStatesFolder(old), testCase + ".zip");
 
 			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 		}
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+	}
+
+	protected static File getStatesFolder(boolean old) {
+		if (old) {
+			return new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");
+		} else {
+			return new SDKFoldersLocator().getInitialStatesFolder();
+		}
 	}
 }

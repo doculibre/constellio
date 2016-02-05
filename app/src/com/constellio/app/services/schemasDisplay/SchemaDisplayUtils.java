@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.schemasDisplay;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
@@ -61,7 +44,7 @@ public class SchemaDisplayUtils {
 		MetadataListFilter filter = new MetadataListFilter() {
 			@Override
 			public boolean isReturned(Metadata metadata) {
-				return notAComment(metadata) && notIdentifier(metadata);
+				return notAComment(metadata) && notIdentifier(metadata) && notSystemReserved(metadata);
 			}
 
 			private boolean notIdentifier(Metadata metadata) {
@@ -71,6 +54,10 @@ public class SchemaDisplayUtils {
 			private boolean notAComment(Metadata metadata) {
 				return metadata.getStructureFactory() == null
 						|| !CommentFactory.class.equals(metadata.getStructureFactory().getClass());
+			}
+
+			private boolean notSystemReserved(Metadata metadata) {
+				return !metadata.isSystemReserved();
 			}
 		};
 
@@ -210,7 +197,8 @@ public class SchemaDisplayUtils {
 		filteredMetadatas.add(Schemas.MODIFIED_ON);
 
 		for (Metadata metadata : allMetadatas) {
-			if (!Schemas.isGlobalMetadata(metadata.getLocalCode()) && isDisplayedMetadata(metadata)) {
+			if (!Schemas.isGlobalMetadata(metadata.getLocalCode()) && isDisplayedMetadata(metadata) && !metadata
+					.isSystemReserved()) {
 				filteredMetadatas.add(metadata);
 			}
 		}
@@ -244,6 +232,8 @@ public class SchemaDisplayUtils {
 				defaultSchemaConfig.getFormMetadataCodes());
 		List<String> searchMetadatasCodes = toCustomMetadataCodes(schemaCode, defaultSchema,
 				defaultSchemaConfig.getSearchResultsMetadataCodes());
+		List<String> tableMetadatasCodes = toCustomMetadataCodes(schemaCode, defaultSchema,
+				defaultSchemaConfig.getTableMetadataCodes());
 
 		int commentIndex = displayMetadataCodes.indexOf(schemaCode + "_comments");
 
@@ -260,7 +250,7 @@ public class SchemaDisplayUtils {
 		}
 
 		return new SchemaDisplayConfig(types.getCollection(), schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchMetadatasCodes);
+				searchMetadatasCodes, tableMetadatasCodes);
 	}
 
 	private static List<String> toCustomMetadataCodes(String schemaCode, String defaultSchema,
@@ -286,9 +276,9 @@ public class SchemaDisplayUtils {
 		String lastModificationDate = schema.getCode() + "_" + Schemas.MODIFIED_ON.getLocalCode();
 
 		List<String> searchMetadatasCodes = asList(title, lastModificationDate);
+		List<String> tableMetadatasCodes = asList(title, lastModificationDate);
 
 		return new SchemaDisplayConfig(types.getCollection(), schemaCode, displayMetadataCodes, formMetadataCodes,
-				searchMetadatasCodes);
+				searchMetadatasCodes, tableMetadatasCodes);
 	}
-
 }

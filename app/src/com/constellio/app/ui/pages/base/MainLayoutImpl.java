@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -22,10 +5,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONException;
+import elemental.json.JsonArray;
 
-import com.constellio.app.api.extensions.PagesComponentsExtensions;
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.ui.components.userDocument.UserDocumentsWindow;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -34,13 +18,11 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
-import com.constellio.data.utils.Factory;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ExternalResource;
-import com.vaadin.server.Responsive;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
@@ -65,9 +47,8 @@ import com.vaadin.ui.themes.ValoTheme;
  * left and creates a simple container for the navigator on the right.
  */
 @SuppressWarnings("serial")
-@com.vaadin.annotations.JavaScript("Constellio.js")
+@com.vaadin.annotations.JavaScript("theme://Constellio.js")
 public class MainLayoutImpl extends VerticalLayout implements MainLayout {
-
 	private MainLayoutPresenter presenter;
 
 	private HorizontalLayout mainMenuContentFooterLayout;
@@ -76,25 +57,17 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private ConstellioHeaderImpl header;
 	private Component mainMenu;
 	private SingleComponentContainer contentViewWrapper;
-	private Component footer;
-	private Component license;
-
 	private DragAndDropWrapper dragAndDropWrapper;
 	private UserDocumentsWindow userDocumentsWindow;
 
 	public MainLayoutImpl(AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
 
-		setSizeFull();
-		addStyleName("constellio-layout");
-
 		mainMenuContentFooterLayout = new HorizontalLayout();
 		mainMenuContentFooterLayout.setSizeFull();
 		mainMenuContentFooterLayout.addStyleName("main-menu-content-footer");
 
 		contentViewWrapper = new Panel();
-		contentViewWrapper.addStyleName("content-view-wrapper");
-		contentViewWrapper.setSizeFull();
 
 		Navigator navigator = new Navigator(UI.getCurrent(), contentViewWrapper);
 		NavigatorConfigurationService navigatorConfigurationService = appLayerFactory.getNavigatorConfigurationService();
@@ -102,30 +75,15 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		UI.getCurrent().setNavigator(navigator);
 
 		contentFooterWrapperLayout = new CssLayout();
-		contentFooterWrapperLayout.addStyleName("content-footer-wrapper");
 		contentFooterWrapperLayout.setId("content-footer-wrapper");
-		contentFooterWrapperLayout.setSizeFull();
-		Responsive.makeResponsive(contentFooterWrapperLayout);
 
 		contentFooterLayout = new VerticalLayout();
 		contentFooterLayout.addStyleName("content-footer");
 
 		header = buildHeader();
-		header.addStyleName("header");
 		header.setSizeUndefined();
 
 		mainMenu = buildMainMenu();
-		mainMenu.addStyleName("main-menu");
-
-		footer = buildFooter();
-		if (footer != null) {
-			footer.addStyleName("footer");
-		}
-
-		license = buildLicense();
-		if (license != null) {
-			license.addStyleName("license");
-		}
 
 		userDocumentsWindow = new UserDocumentsWindow();
 		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout);
@@ -170,17 +128,30 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		contentFooterWrapperLayout.addComponent(contentFooterLayout);
 
 		contentFooterLayout.addComponent(contentViewWrapper);
+
+		Component message = buildMessage();
+		if (message != null) {
+			message.addStyleName("message");
+			contentFooterLayout.addComponent(message);
+		}
+
+		contentFooterLayout.setExpandRatio(contentViewWrapper, 1);
+
+		Component footer = buildFooter();
 		if (footer != null) {
 			contentFooterLayout.addComponent(footer);
 		}
+
+		Component license = buildLicense();
 		if (license != null) {
-			contentFooterLayout.addComponent(license);
+			license.addStyleName("license");
 		}
-		contentFooterLayout.setExpandRatio(contentViewWrapper, 1);
+
+		PagesComponentsExtensionParams params = new PagesComponentsExtensionParams(header, mainMenu, contentFooterLayout, this,
+				contentViewWrapper, contentFooterWrapperLayout);
+		appLayerFactory.getExtensions().getSystemWideExtensions().decorateView(params);
 
 		buildInitJavascript();
-
-		presenter.viewAssembled();
 	}
 
 	protected ConstellioHeaderImpl buildHeader() {
@@ -201,52 +172,48 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	protected List<ConstellioMenuButton> buildMainMenuButtons() {
 		List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 
-		for (NavigationItem item : presenter.getNavigationIems()) {
+		for (NavigationItem item : presenter.getNavigationItems()) {
 			mainMenuButtons.add(buildButton(item));
 		}
 
 		return mainMenuButtons;
 	}
 
+	private Component buildMessage() {
+		String messageText = presenter.getMessage();
+		if (StringUtils.isEmpty(messageText)) {
+			return null;
+		}
+		Label message = new Label(messageText);
+		message.addStyleName("footer-warning");
+		message.addStyleName(ValoTheme.LABEL_LARGE);
+		message.addStyleName(ValoTheme.LABEL_BOLD);
+		return message;
+	}
+
 	protected Component buildFooter() {
 
-		PagesComponentsExtensions extensions = presenter.getPagesComponentsExtensions();
-		Factory<Component> footerFactory = extensions.getFooterComponentFactory();
-
-		if (footerFactory == null) {
-
-			Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + ")",
-					new ExternalResource("http://www.constellio.com"));
-			poweredByConstellioLink.setTargetName("_blank");
-			poweredByConstellioLink.addStyleName(ValoTheme.LINK_LARGE);
-			return poweredByConstellioLink;
-		} else {
-			return footerFactory.get();
-		}
+		Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + ")",
+				new ExternalResource("http://www.constellio.com"));
+		poweredByConstellioLink.setTargetName("_blank");
+		poweredByConstellioLink.addStyleName(ValoTheme.LINK_LARGE);
+		poweredByConstellioLink.addStyleName("footer");
+		return poweredByConstellioLink;
 	}
 
 	protected Component buildLicense() {
-
-		PagesComponentsExtensions extensions = presenter.getPagesComponentsExtensions();
-		Factory<Component> licenseFactory = extensions.getLicenseComponentFactory();
-
-		if (licenseFactory == null) {
-
-			Label licenseLabel = new Label($("MainLayout.footerLicense"));
-			licenseLabel.addStyleName(ValoTheme.LABEL_TINY);
-			licenseLabel.setContentMode(ContentMode.HTML);
-			licenseLabel.setVisible(presenter.t());
-			return licenseLabel;
-		} else {
-			return licenseFactory.get();
-		}
+		boolean showFooter = !"true".equals(System.getProperty("no_footer_message"));
+		Label licenseLabel = new Label($("MainLayout.footerLicense"));
+		licenseLabel.addStyleName(ValoTheme.LABEL_TINY);
+		licenseLabel.setContentMode(ContentMode.HTML);
+		licenseLabel.setVisible(showFooter);
+		return licenseLabel;
 	}
 
 	protected void buildInitJavascript() {
 		JavaScript.getCurrent().addFunction("constellio_easter_egg_code", new JavaScriptFunction() {
 			@Override
-			public void call(JSONArray arguments)
-					throws JSONException {
+			public void call(JsonArray arguments) {
 				((ConstellioMenuImpl) mainMenu).getUserSettingsItem().setIcon(new ThemeResource("images/profiles/egg.jpg"));
 			}
 		});

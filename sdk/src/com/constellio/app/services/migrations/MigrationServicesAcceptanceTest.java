@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.services.migrations;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
@@ -26,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.junit.Before;
@@ -38,8 +22,9 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
-import com.constellio.app.services.extensions.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
@@ -59,6 +44,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 	PropertiesConfiguration propertiesConfig;
 	com.constellio.app.services.migrations.MigrationServices migrationServices;
 
+	@Mock SystemGlobalConfigsManager systemGlobalConfigsManager;
 	@Mock ConstellioEIM constellioEIM;
 	@Mock MigrationScript coreMigrationTo100;
 	@Mock MigrationScript coreMigrationTo103;
@@ -135,7 +121,8 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		CollectionsManager collectionsManager = spy(
-				new CollectionsManager(getModelLayerFactory(), moduleManager, new Delayed<>(migrationServices)));
+				new CollectionsManager(getModelLayerFactory(), moduleManager, new Delayed<>(migrationServices),
+						systemGlobalConfigsManager));
 		collectionsManager.createCollectionConfigs("collection1");
 		collectionsListManager.addCollection("collection1", Arrays.asList("fr"));
 		try {

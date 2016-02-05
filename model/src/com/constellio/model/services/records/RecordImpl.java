@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import java.util.ArrayList;
@@ -26,8 +9,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
@@ -42,13 +28,13 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordImplRuntimeException.CannotGetListForSingleValue;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotBuildStructureValue;
-import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotChangeSchemaOfSavedRecord;
-import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotChangeTypeOfRecord;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_PopulatorReturnedNullValue;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_RecordCannotHaveTwoParents;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_UnsupportedOperationOnUnsavedRecord;
@@ -57,6 +43,8 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class RecordImpl implements Record {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordImpl.class);
 
 	protected final Map<String, Object> modifiedValues = new HashMap<String, Object>();
 	private String schemaCode;
@@ -134,6 +122,10 @@ public class RecordImpl implements Record {
 	@Override
 	public Record set(Metadata metadata, Object value) {
 
+		if ("".equals(value)) {
+			value = null;
+		}
+
 		// Get may parse some metadata, and this is required later
 		get(metadata);
 		validateMetadata(metadata);
@@ -206,7 +198,13 @@ public class RecordImpl implements Record {
 	private boolean isSameValueThanDTO(Object value, String codeAndType) {
 		boolean sameAsDTOValue = false;
 		if (recordDTO != null) {
-			sameAsDTOValue = Objects.equals(recordDTO.getFields().get(codeAndType), value);
+			Object dtoValue = recordDTO.getFields().get(codeAndType);
+			if (value instanceof List && ((List) value).isEmpty()) {
+
+				sameAsDTOValue = dtoValue == null || (dtoValue instanceof List && ((List) dtoValue).isEmpty());
+			} else {
+				sameAsDTOValue = Objects.equals(dtoValue, value);
+			}
 		}
 		return sameAsDTOValue;
 	}
@@ -267,6 +265,7 @@ public class RecordImpl implements Record {
 	}
 
 	private Object getConvertedValue(Object rawValue, Metadata metadata) {
+
 		if (!isConvertedValue(metadata)) {
 			return rawValue;
 		}
@@ -275,13 +274,23 @@ public class RecordImpl implements Record {
 			return null;
 		}
 
+		if (metadata.isEncrypted()) {
+			EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
+			return encryptionServices.decrypt(rawValue);
+		}
+
 		if (structuredValues == null) {
 			structuredValues = new HashMap<>();
 		}
 
 		Object convertedValue = structuredValues.get(metadata.getDataStoreCode());
 		if (convertedValue == null) {
-			convertedValue = convertToStructuredValue(rawValue, metadata);
+			try {
+				convertedValue = convertToStructuredValue(rawValue, metadata);
+			} catch (RecordImplException_CannotBuildStructureValue e) {
+				LOGGER.error("Error while building a structure value", e);
+				convertedValue = null;
+			}
 			structuredValues.put(metadata.getDataStoreCode(), convertedValue);
 		}
 		return convertedValue;
@@ -291,7 +300,11 @@ public class RecordImpl implements Record {
 		if (rawValue instanceof List) {
 			List<Object> convertedValues = new ArrayList<>();
 			for (Object value : (List) rawValue) {
-				convertedValues.add(convertToStructuredValue(value, metadata));
+				if (value == null) {
+					convertedValues.add(null);
+				} else {
+					convertedValues.add(convertToStructuredValue(value, metadata));
+				}
 			}
 			return convertedValues;
 		} else {
@@ -317,7 +330,7 @@ public class RecordImpl implements Record {
 	}
 
 	private boolean isConvertedValue(Metadata metadata) {
-		return metadata.getStructureFactory() != null;
+		return metadata.getStructureFactory() != null || metadata.isEncrypted();
 	}
 
 	@Override
@@ -427,7 +440,7 @@ public class RecordImpl implements Record {
 		if (value instanceof List) {
 			for (Object structureMetadataValueItem : (List) value) {
 				ModifiableStructure modifiableStructure = (ModifiableStructure) structureMetadataValueItem;
-				if (modifiableStructure.isDirty()) {
+				if (modifiableStructure != null && modifiableStructure.isDirty()) {
 					return true;
 				}
 			}
@@ -453,12 +466,6 @@ public class RecordImpl implements Record {
 
 		if (recordDTO != null) {
 			fields.putAll(recordDTO.getFields());
-		} else {
-			for (Metadata metadata : schema.getMetadatas()) {
-				if (metadata.isWriteNullValues()) {
-					fields.put(metadata.getDataStoreCode(), null);
-				}
-			}
 		}
 
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
@@ -466,8 +473,13 @@ public class RecordImpl implements Record {
 			Metadata metadata = schema.getMetadata(metadataAtomicCode);
 			Object value = entry.getValue();
 
-			if (metadata.getStructureFactory() != null) {
+			if (metadata.isEncrypted() && value != null) {
+				EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
+				fields.put(entry.getKey(), encryptionServices.encrypt(value));
+
+			} else if (metadata.getStructureFactory() != null) {
 				fields.put(entry.getKey(), convertStructuredValueToString(value, metadata));
+
 			} else {
 				fields.put(entry.getKey(), value);
 			}
@@ -502,7 +514,10 @@ public class RecordImpl implements Record {
 
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
 			String metadataCode = schemaCode + "_" + SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
-			modifiedMetadatas.add(schemaTypes.getMetadata(metadataCode));
+			try {
+				modifiedMetadatas.add(schemaTypes.getMetadata(metadataCode));
+			} catch (NoSuchMetadata e) {
+			}
 		}
 
 		return modifiedMetadatas.unModifiable();
@@ -548,17 +563,26 @@ public class RecordImpl implements Record {
 
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String localCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
-			Metadata metadata = schema.getMetadata(localCode);
-			Object value = entry.getValue();
+			try {
+				Metadata metadata = schema.getMetadata(localCode);
+				Object value = entry.getValue();
 
-			if (!metadata.isWriteNullValues() && value == null) {
+				if (metadata.isEncrypted() && value != null) {
+					EncryptionServices encryptionServices = metadata.getEncryptionServicesFactory().get();
+					convertedValues.put(entry.getKey(), encryptionServices.encrypt(value));
+				}
+
+				if (metadata.getStructureFactory() != null) {
+					convertedValues.put(entry.getKey(), convertStructuredValueToString(value, metadata));
+				}
+			} catch (NoSuchMetadata e) {
 				convertedValues.put(entry.getKey(), "");
 			}
 
-			if (metadata.getStructureFactory() != null) {
-				convertedValues.put(entry.getKey(), convertStructuredValueToString(value, metadata));
-			}
+		}
 
+		if (!schemaCode.equals(recordDTO.getFields().get("schema_s"))) {
+			convertedValues.put("schema_s", schemaCode);
 		}
 
 		return new RecordDeltaDTO(id, version, convertedValues, recordDTO.getFields(), copyfields);
@@ -670,7 +694,8 @@ public class RecordImpl implements Record {
 					version);
 			refresh(version, dto);
 		} else {
-			RecordDTO dto = recordDTO.createCopyWithDelta(toRecordDeltaDTO(schema, new ArrayList<FieldsPopulator>()))
+			RecordDTO dto = recordDTO
+					.createCopyWithDelta(toRecordDeltaDTO(schema, new ArrayList<FieldsPopulator>()))
 					.withVersion(version);
 			refresh(version, dto);
 		}
@@ -753,25 +778,112 @@ public class RecordImpl implements Record {
 		modifiedValues.put(metadata.getDataStoreCode(), get(metadata));
 	}
 
+	//	@Override
+	//	public void changeSchemaTo(String newSchemaCodeOrLocalCode) {
+	//		SchemaUtils schemaUtils = new SchemaUtils();
+	//		if (isSaved()) {
+	//			throw new RecordImplException_CannotChangeSchemaOfSavedRecord(id);
+	//		}
+	//		String currentType = schemaUtils.getSchemaTypeCode(schemaCode);
+	//		String newSchemaCode;
+	//		if (newSchemaCodeOrLocalCode.contains("_")) {
+	//			String newType = schemaUtils.getSchemaTypeCode(newSchemaCodeOrLocalCode);
+	//			if (!currentType.equals(newType)) {
+	//				throw new RecordImplException_CannotChangeTypeOfRecord(id);
+	//			}
+	//			newSchemaCode = newSchemaCodeOrLocalCode;
+	//		} else {
+	//			newSchemaCode = currentType + "_" + newSchemaCodeOrLocalCode;
+	//		}
+	//
+	//		this.schemaCode = newSchemaCode;
+	//	}
+
 	@Override
-	public void changeSchemaTo(String newSchemaCodeOrLocalCode) {
-		SchemaUtils schemaUtils = new SchemaUtils();
-		if (isSaved()) {
-			throw new RecordImplException_CannotChangeSchemaOfSavedRecord(id);
+	public void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
+		System.out.println("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
+		for (Metadata metadata : newSchema.getMetadatas()) {
+			newSchemasMetadatas.put(metadata.getLocalCode(), metadata);
 		}
-		String currentType = schemaUtils.getSchemaTypeCode(schemaCode);
-		String newSchemaCode;
-		if (newSchemaCodeOrLocalCode.contains("_")) {
-			String newType = schemaUtils.getSchemaTypeCode(newSchemaCodeOrLocalCode);
-			if (!currentType.equals(newType)) {
-				throw new RecordImplException_CannotChangeTypeOfRecord(id);
+		for (Metadata wasMetadata : wasSchema.getMetadatas()) {
+			if (wasMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				Metadata newMetadata = newSchemasMetadatas.get(wasMetadata.getLocalCode());
+				if (newMetadata == null || !newMetadata.isSameValueThan(wasMetadata)) {
+					set(wasMetadata, null);
+				} else {
+					Object value = get(wasMetadata);
+					if (value == null || isBlankString(value) || isEmptyList(value) || isDefaultValue(value, wasMetadata)) {
+						set(wasMetadata, null);
+					}
+				}
 			}
-			newSchemaCode = newSchemaCodeOrLocalCode;
-		} else {
-			newSchemaCode = currentType + "_" + newSchemaCodeOrLocalCode;
 		}
 
-		this.schemaCode = newSchemaCode;
+		this.schemaCode = newSchema.getCode();
+
+		for (Metadata metadata : newSchema.getMetadatas()) {
+			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (metadata.isMultivalue()) {
+					List<Object> value = getList(metadata);
+					if (value.isEmpty()) {
+						set(metadata, metadata.getDefaultValue());
+					}
+				} else {
+					Object value = get(metadata);
+					if (value == null) {
+						set(metadata, metadata.getDefaultValue());
+					}
+				}
+			}
+		}
 	}
 
+	private static boolean isDefaultValue(Object value, Metadata metadata) {
+		if (metadata.isMultivalue()) {
+			Object defaultValue = metadata.getDefaultValue();
+			if (defaultValue == null || isEmptyList(defaultValue)) {
+				return isEmptyList(value);
+			} else {
+				List<Object> defaultListValues = new ArrayList<>((List<?>) metadata.getDefaultValue());
+
+				if (isEmptyList(value)) {
+					return false;
+				} else if (value instanceof List) {
+					List<?> listValue = new ArrayList<>((List<?>) value);
+					return listValue.equals(defaultListValues);
+				} else {
+					return false;
+				}
+
+			}
+
+		} else {
+			return LangUtils.isEqual(value, metadata.getDefaultValue());
+		}
+	}
+
+	public static boolean isListWithSameContentEqual(Object value1, Object value2) {
+		if (value1 == null) {
+			return value2 == null;
+		} else {
+			if (value2 == null) {
+				return false;
+			} else {
+				if (value1 instanceof List)
+					;
+
+			}
+
+			return value1.equals(value2);
+		}
+	}
+
+	private static boolean isEmptyList(Object value) {
+		return (value instanceof List) && ((List) value).isEmpty();
+	}
+
+	private boolean isBlankString(Object value) {
+		return (value instanceof String) && StringUtils.isBlank((String) value);
+	}
 }

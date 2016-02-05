@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.data.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,12 +7,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.commons.collections.BufferUnderflowException;
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.hpsf.MarkUnsupportedException;
 import org.apache.poi.hpsf.NoPropertySetStreamException;
 import org.apache.poi.hpsf.UnexpectedPropertySetTypeException;
 import org.apache.poi.hpsf.WritingNotSupportedException;
 import org.apache.tika.mime.MimeTypeException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -363,7 +348,7 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 		officeDocumentsServices.setProperty(inputStream, outputStream, "malik", "12345", "doc");
 	}
 
-	@Test(expected = IOException.class)
+	@Test
 	public void whenGetPropertyOfFirstByteOfFileThenException()
 			throws IOException, CannotReadDocumentsProperties, PropertyDoesntExist, NotCompatibleExtension,
 			RTFFileIsNotCompatible {
@@ -372,6 +357,13 @@ public class OfficeDocumentsServicesRealTest extends ConstellioTest {
 		IOUtils.read(inputStream.create(SDK_STREAM), arrayByte);
 
 		inputStream = getTestResourceInputStreamFactory(arrayByte);
-		officeDocumentsServices.getProperty(inputStream, "property", "ppt");
+
+
+		try {
+			officeDocumentsServices.getProperty(inputStream, "property", "ppt");
+			Assert.fail("Exception expected");
+		} catch(java.nio.BufferUnderflowException | IOException e) {
+			//OK
+		}
 	}
 }

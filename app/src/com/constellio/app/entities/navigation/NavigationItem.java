@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.entities.navigation;
 
 import java.io.Serializable;
@@ -39,12 +22,15 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 	ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory);
 
 	abstract class BaseNavigationItem implements NavigationItem {
-
 		@Override
 		public int compareTo(NavigationItem o) {
 			return new Integer(getOrderValue()).compareTo(o.getOrderValue());
 		}
 
+		@Override
+		public int getOrderValue() {
+			return 999;
+		}
 	}
 
 	abstract class Active extends BaseNavigationItem implements NavigationItem {
@@ -68,11 +54,6 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 
 		public Active(String code) {
 			this(code, null, null);
-		}
-
-		@Override
-		public int getOrderValue() {
-			return 999;
 		}
 
 		@Override
@@ -107,6 +88,11 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		}
 
 		@Override
+		public int getOrderValue() {
+			return item.getOrderValue();
+		}
+
+		@Override
 		public Class<? extends MenuViewGroup> getViewGroup() {
 			return item.getViewGroup();
 		}
@@ -125,11 +111,6 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		@Override
 		public void activate(ConstellioNavigator navigateTo) {
 			// Nothing to be done here
-		}
-
-		@Override
-		public int getOrderValue() {
-			return 999;
 		}
 
 		@Override

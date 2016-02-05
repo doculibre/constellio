@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.controller;
 
 import java.util.ArrayList;
@@ -23,6 +6,7 @@ import java.util.List;
 
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
@@ -30,7 +14,6 @@ import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -70,24 +53,25 @@ public class CreateSubTaskModificationImpactHandler implements RecordModificatio
 	void handleModificationImpact(ModificationImpact modificationImpact) {
 		List<String> metadatas = newSchemaUtils().toMetadataCodes(modificationImpact.getMetadataToReindex());
 
-		Iterator<List<String>> batchIterator = getBatchOfIdsIterator(modificationImpact);
+		Iterator<List<Record>> batchIterator = getBatchsIterator(modificationImpact);
 		while (batchIterator.hasNext()) {
-			createSubTask(batchIterator.next(), metadatas);
+			List<Record> records = batchIterator.next();
+			createSubTask(records, metadatas);
 		}
 	}
 
-	void createSubTask(List<String> subRecordIds, List<String> metadatas) {
+	void createSubTask(List<Record> subRecords, List<String> metadatas) {
 		BatchProcessAction action = new ReindexMetadatasBatchProcessAction(metadatas);
-		BatchProcessTask task = new BatchProcessTask(taskList, subRecordIds, action, recordServices,
+		BatchProcessTask task = new BatchProcessTask(taskList, subRecords, action, recordServices,
 				metadataSchemaTypes, searchServices);
 		taskList.addSubTask(task);
 	}
 
-	Iterator<List<String>> getBatchOfIdsIterator(ModificationImpact modificationImpact) {
+	Iterator<List<Record>> getBatchsIterator(ModificationImpact modificationImpact) {
 		LogicalSearchCondition condition = modificationImpact.getLogicalSearchCondition();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
-		Iterator<String> iterator = searchServices.optimizedRecordsIdsIterator(query, 10000);
+		//Iterator<Record> iterator = searchServices.optimizedRecordsIterator(query, 10000);
+		Iterator<Record> iterator = searchServices.recordsIterator(query, 10000);
 		return new BatchBuilderIterator<>(iterator, 1000);
 	}
 

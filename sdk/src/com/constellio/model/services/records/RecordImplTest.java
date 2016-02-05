@@ -1,26 +1,10 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.records;
 
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.unmodifiableCollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -41,6 +25,7 @@ import org.mockito.Mock;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordRuntimeException.CannotMerge;
@@ -52,6 +37,7 @@ import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_UnsupportedOperationOnUnsavedRecord;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.testimpl.ZeModifiableStructure;
@@ -106,6 +92,8 @@ public class RecordImplTest extends ConstellioTest {
 
 	@Mock FieldsPopulator copyfieldsPopulator, copyfieldsPopulator2;
 
+	@Mock Factory<EncryptionServices> encryptionServicesFactory;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -119,7 +107,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(zeSchema.getMetadatas()).thenReturn(zeSchemaMetadatas);
 
 		when(zeSchema.getMetadata(multipleTextMetadataCode)).thenReturn(multipleTextMetadata);
-		when(multipleTextMetadata.isWriteNullValues()).thenReturn(true);
 		when(multipleTextMetadata.getLocalCode()).thenReturn(multipleTextMetadataCode);
 		when(multipleTextMetadata.getCode()).thenReturn(theSchemaCode + "_" + multipleTextMetadataCode);
 		when(multipleTextMetadata.isMultivalue()).thenReturn(true);
@@ -128,7 +115,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(multipleTextMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(dateMetadataCode)).thenReturn(dateMetadata);
-		when(dateMetadata.isWriteNullValues()).thenReturn(true);
 		when(dateMetadata.getLocalCode()).thenReturn(dateMetadataCode);
 		when(dateMetadata.getCode()).thenReturn(theSchemaCode + "_" + dateMetadataCode);
 		when(dateMetadata.getDataStoreType()).thenReturn("dt");
@@ -136,7 +122,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(dateMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(multipleBooleanMetadataCode)).thenReturn(multipleBooleanMetadata);
-		when(multipleBooleanMetadata.isWriteNullValues()).thenReturn(true);
 		when(multipleBooleanMetadata.getLocalCode()).thenReturn(multipleBooleanMetadataCode);
 		when(multipleBooleanMetadata.getCode()).thenReturn(theSchemaCode + "_" + multipleBooleanMetadataCode);
 		when(multipleBooleanMetadata.isMultivalue()).thenReturn(true);
@@ -145,7 +130,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(multipleBooleanMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(numberMetadataCode)).thenReturn(numberMetadata);
-		when(numberMetadata.isWriteNullValues()).thenReturn(true);
 		when(numberMetadata.getLocalCode()).thenReturn(numberMetadataCode);
 		when(numberMetadata.getCode()).thenReturn(theSchemaCode + "_" + numberMetadataCode);
 		when(numberMetadata.getDataStoreType()).thenReturn("d");
@@ -153,7 +137,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(numberMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(otherNumberMetadataCode)).thenReturn(otherNumberMetadata);
-		when(otherNumberMetadata.isWriteNullValues()).thenReturn(true);
 		when(otherNumberMetadata.getLocalCode()).thenReturn(otherNumberMetadataCode);
 		when(otherNumberMetadata.getCode()).thenReturn(theSchemaCode + "_" + otherNumberMetadataCode);
 		when(otherNumberMetadata.getDataStoreType()).thenReturn("d");
@@ -161,7 +144,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(otherNumberMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(textMetadataCode)).thenReturn(textMetadata);
-		when(textMetadata.isWriteNullValues()).thenReturn(true);
 		when(textMetadata.getLocalCode()).thenReturn(textMetadataCode);
 		when(textMetadata.getCode()).thenReturn(theSchemaCode + "_" + textMetadataCode);
 		when(textMetadata.getDataStoreType()).thenReturn("s");
@@ -169,7 +151,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(textMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(copyMetadataCode)).thenReturn(copyMetadata);
-		when(copyMetadata.isWriteNullValues()).thenReturn(true);
 		when(copyMetadata.getLocalCode()).thenReturn(copyMetadataCode);
 		when(copyMetadata.getCode()).thenReturn(theSchemaCode + "_" + copyMetadataCode);
 		when(copyMetadata.getDataStoreType()).thenReturn("s");
@@ -177,7 +158,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(copyMetadata.getDataEntry()).thenReturn(new CopiedDataEntry(aString(), aString()));
 
 		when(zeSchema.getMetadata(calculatedMetadataCode)).thenReturn(calculatedMetadata);
-		when(calculatedMetadata.isWriteNullValues()).thenReturn(true);
 		when(calculatedMetadata.getLocalCode()).thenReturn(calculatedMetadataCode);
 		when(calculatedMetadata.getCode()).thenReturn(theSchemaCode + "_" + calculatedMetadataCode);
 		when(calculatedMetadata.getDataStoreType()).thenReturn("s");
@@ -185,7 +165,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(calculatedMetadata.getDataEntry()).thenReturn(new CalculatedDataEntry(null));
 
 		when(zeSchema.getMetadata(factoredMetadataCode)).thenReturn(factoredMetadata);
-		when(factoredMetadata.isWriteNullValues()).thenReturn(true);
 		when(factoredMetadata.getLocalCode()).thenReturn(factoredMetadataCode);
 		when(factoredMetadata.getCode()).thenReturn(theSchemaCode + "_" + factoredMetadataCode);
 		when(factoredMetadata.getDataStoreType()).thenReturn("s");
@@ -195,7 +174,6 @@ public class RecordImplTest extends ConstellioTest {
 		when(factoredMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		when(zeSchema.getMetadata(factoredListMetadataCode)).thenReturn(factoredListMetadata);
-		when(factoredListMetadata.isWriteNullValues()).thenReturn(true);
 		when(factoredListMetadata.getLocalCode()).thenReturn(factoredListMetadataCode);
 		when(factoredListMetadata.getCode()).thenReturn(theSchemaCode + "_" + factoredListMetadataCode);
 		when(factoredListMetadata.getDataStoreType()).thenReturn("s");
@@ -296,11 +274,17 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(recordDTO.getId()).isNotNull();
 		assertThat(recordDTO.getLoadedFields()).isNull();
 		assertThat(recordDTO.getVersion()).isEqualTo(-1L);
-		assertThat(recordDTO.getFields()).hasSize(5).containsEntry(multipleTextMetadataCodeAndType, asList("firstValue"))
-				.containsEntry(dateMetadataCodeAndType, "secondValue").containsEntry("schema_s", theSchemaCode)
-				.containsEntry("collection_s", "zeCollection").containsEntry(textMetadataCodeAndType, null);
-		assertThat(recordDTO.getCopyFields()).hasSize(3).containsEntry("copiedField1",
-				"copiedValue1").containsEntry("copiedField2", "copiedValue2").containsEntry("copiedField3", "copiedValue3");
+		assertThat(recordDTO.getFields()).containsOnly(
+				entry(multipleTextMetadataCodeAndType, asList("firstValue")),
+				entry(dateMetadataCodeAndType, "secondValue"),
+				entry("collection_s", "zeCollection"),
+				entry("schema_s", "a_b"));
+
+		assertThat(recordDTO.getCopyFields()).containsOnly(
+				entry("copiedField1", "copiedValue1"),
+				entry("copiedField2", "copiedValue2"),
+				entry("copiedField3", "copiedValue3"));
+
 	}
 
 	@Test
@@ -409,7 +393,8 @@ public class RecordImplTest extends ConstellioTest {
 		record.set(dateMetadata, "secondValue");
 		record.set(multipleBooleanMetadata, null);
 
-		RecordDeltaDTO deltaDTO = record.toRecordDeltaDTO(zeSchema, asList(copyfieldsPopulator, copyfieldsPopulator2));
+		RecordDeltaDTO deltaDTO = record
+				.toRecordDeltaDTO(zeSchema, asList(copyfieldsPopulator, copyfieldsPopulator2));
 		assertThat(deltaDTO.getId()).isEqualTo(record.getId());
 		assertThat(deltaDTO.getFromVersion()).isEqualTo(1L);
 		assertThat(deltaDTO.getModifiedFields()).hasSize(2).containsEntry(dateMetadataCodeAndType, "secondValue")

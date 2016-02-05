@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm;
 
 import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
@@ -28,9 +11,11 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent
 
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
+import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
@@ -48,10 +33,11 @@ import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.home.EventTable;
 import com.constellio.app.ui.pages.home.HomeView;
+import com.constellio.app.ui.pages.home.RecentItemProvider;
 import com.constellio.app.ui.pages.home.TaxonomyTabSheet;
 import com.constellio.app.ui.pages.management.AdminView;
+import com.constellio.app.ui.pages.viewGroups.CartViewGroup;
 import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
 import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
 import com.constellio.model.entities.CorePermissions;
@@ -73,9 +59,15 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String RETENTION_CALENDAR = "retentionCalendar";
 	public static final String RETENTION_CALENDAR_ICON = "images/icons/config/calendar.png";
 
+	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
+	public static final String ADMINISTRATIVE_UNIT_ICON = "images/icons/config/administrative-unit.png";
+	public static final String CLASSIFICATION_PLAN = "classificationPlan";
+	public static final String CLASSIFICATION_PLAN_ICON = "images/icons/config/classification-plan.png";
+
 	public static final String ARCHIVES_MANAGEMENT = "archivesManagement";
 	public static final String AGENT = "agent";
 	public static final String USER_DOCUMENTS = "userDocuments";
+	public static final String CART = "cart";
 	public static final String LOGS = "logs";
 
 	public void configureNavigation(NavigationConfig config) {
@@ -94,7 +86,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).globally());
+				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).onSomething());
 			}
 		});
 		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
@@ -105,22 +97,23 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).globally());
+				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
 			}
 		});
 	}
 
 	private void configureHomeFragments(NavigationConfig config) {
-		config.add(HomeView.TABS, new RecordTable(LAST_VIEWED_FOLDERS) {
+		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
 			@Override
-			public RecordVODataProvider getDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-				return new EventTable(modelLayerFactory, sessionContext, Folder.SCHEMA_TYPE, "view_folder").getDataProvider();
+			public List<RecentItem> getItems(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
+				return new RecentItemProvider(modelLayerFactory, sessionContext, Folder.SCHEMA_TYPE, "view_folder").getItems();
 			}
 		});
-		config.add(HomeView.TABS, new RecordTable(LAST_VIEWED_DOCUMENTS) {
+		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_DOCUMENTS) {
 			@Override
-			public RecordVODataProvider getDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-				return new EventTable(modelLayerFactory, sessionContext, Document.SCHEMA_TYPE, "view_document").getDataProvider();
+			public List<RecentItem> getItems(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
+				return new RecentItemProvider(modelLayerFactory, sessionContext, Document.SCHEMA_TYPE, "view_document")
+						.getItems();
 			}
 		});
 		config.add(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
@@ -129,7 +122,7 @@ public class RMNavigationConfiguration implements Serializable {
 				return new CheckedOutDocumentsTable(modelLayerFactory, sessionContext).getDataProvider();
 			}
 		});
-		config.add(HomeView.TABS, new RecordTree(TAXONOMIES) {
+		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
 			private int defaultTab;
 
 			@Override
@@ -157,10 +150,47 @@ public class RMNavigationConfiguration implements Serializable {
 				});
 				return menu;
 			}
-		});
+		};
+		if (!config.hasNavigationItem(HomeView.TABS, TAXONOMIES)) {
+			config.add(HomeView.TABS, taxonomyTree);
+		} else {
+			config.replace(HomeView.TABS, taxonomyTree);
+		}
 	}
 
 	private void configureCollectionAdmin(NavigationConfig config) {
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ADMINISTRATIVE_UNIT, ADMINISTRATIVE_UNIT_ICON) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.taxonomyManagement(RMTaxonomies.ADMINISTRATIVE_UNITS);
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 1;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+			}
+		});
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(CLASSIFICATION_PLAN, CLASSIFICATION_PLAN_ICON) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.taxonomyManagement(RMTaxonomies.CLASSIFICATION_PLAN);
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 2;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return visibleIf(user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
+			}
+		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(UNIFORM_SUBDIVISIONS, UNIFORM_SUBDIVISIONS_ICON) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
@@ -217,27 +247,10 @@ public class RMNavigationConfiguration implements Serializable {
 						DecommissioningSecurityService service = new DecommissioningSecurityService(
 								user.getCollection(), modelLayerFactory);
 						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
-								user.hasAny(RMPermissionsTo.MANAGE_CONTAINERS, RMPermissionsTo.MANAGE_ROBOTS).globally());
+								user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething() ||
+								user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
 					}
 				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(AGENT, AgentViewGroup.class) {
-			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.agentSetup();
-			}
-
-			@Override
-			public int getOrderValue() {
-				return 70;
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-				return visibleIf(rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported());
-			}
-		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(USER_DOCUMENTS, UserDocumentsViewGroup.class) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
@@ -247,6 +260,22 @@ public class RMNavigationConfiguration implements Serializable {
 			@Override
 			public int getOrderValue() {
 				return 40;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return ComponentState.ENABLED;
+			}
+		});
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(CART, CartViewGroup.class) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.cart();
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 45;
 			}
 
 			@Override

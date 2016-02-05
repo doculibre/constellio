@@ -43,4 +43,6 @@
     
 
     <inherits name="com.lexaden.breadcrumb.gwt.BreadcrumbWidgetset" />
+
+    
 </module>

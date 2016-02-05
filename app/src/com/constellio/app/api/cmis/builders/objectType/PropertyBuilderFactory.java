@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.builders.objectType;
 
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
@@ -24,12 +7,14 @@ import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AbstractPropertyDefinition;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDateTimeDefinitionImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDecimalDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerDefinitionImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringDefinitionImpl;
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class PropertyBuilderFactory {
 
@@ -58,13 +43,15 @@ public class PropertyBuilderFactory {
 	}
 
 	public static PropertyDefinition<?> getPropertyFor(Metadata metadata) {
-		String id = metadata.getCode();
-		String displayName = metadata.getCode();
+		String metadataCode = metadata.getCode();
+		String metadataLocalCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadataCode);
+		String id = metadataLocalCode;
+		String displayName = metadataLocalCode;
 		PropertyType datatype;
 		if (metadata.getType() == MetadataValueType.DATE_TIME || metadata.getType() == MetadataValueType.DATE) {
 			datatype = PropertyType.DATETIME;
 		} else if (metadata.getType() == MetadataValueType.NUMBER) {
-			datatype = PropertyType.INTEGER;
+			datatype = PropertyType.DECIMAL;
 		} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
 			datatype = PropertyType.BOOLEAN;
 		} else {
@@ -90,6 +77,8 @@ public class PropertyBuilderFactory {
 			propertyDefinition = new PropertyDateTimeDefinitionImpl();
 		} else if (datatype == PropertyType.INTEGER) {
 			propertyDefinition = new PropertyIntegerDefinitionImpl();
+		} else if (datatype == PropertyType.DECIMAL) {
+			propertyDefinition = new PropertyDecimalDefinitionImpl();
 		} else if (datatype == PropertyType.BOOLEAN) {
 			propertyDefinition = new PropertyBooleanDefinitionImpl();
 		} else {

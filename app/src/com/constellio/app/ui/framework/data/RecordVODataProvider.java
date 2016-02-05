@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.data;
 
 import java.io.IOException;
@@ -49,7 +32,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	transient MetadataSchemaVO schema;
 	protected transient ModelLayerFactory modelLayerFactory;
 	RecordToVOBuilder voBuilder;
-	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<DataRefreshListener>();
+	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 	SessionContext sessionContext;
 
 	@Deprecated
@@ -57,7 +40,6 @@ public abstract class RecordVODataProvider implements DataProvider {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
-		validateDefaultSchema();
 		init(modelLayerFactory);
 	}
 
@@ -74,15 +56,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = sessionContext;
-		validateDefaultSchema();
 		init(modelLayerFactory);
-	}
-
-	private void validateDefaultSchema() {
-		if (!schema.getCode().endsWith("_default")) {
-			throw new RuntimeException(
-					"RecordVODataProvider must use default schema. Schema '" + schema.getCode() + "' is forbidden");
-		}
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -126,7 +100,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	public RecordVO getRecordVO(int index) {
 		Record record = cache.get(index);
 		if (record == null) {
-			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
+			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
 			List<Record> recordList = searchServices.search(query);
 			if (!recordList.isEmpty()) {
 				record = recordList.get(index);
@@ -139,30 +113,18 @@ public abstract class RecordVODataProvider implements DataProvider {
 	}
 
 	public int size() {
-		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
 		if (size == null) {
 			size = searchServices.search(query).size();
 		}
 		return size;
 	}
 
-	//	public List<Integer> list(int startIndex, int numberOfItems) {
-	//		List<Integer> indexes = new ArrayList<>();
-	//		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
-	//		List<Record> recordList = searchServices.search(query);
-	//		for (int i = startIndex; i < numberOfItems && (startIndex + i) < size(); i++) {
-	//			indexes.add(i);
-	//			Record record = recordList.get(i);
-	//			cache.put(i, record);
-	//		}
-	//		return indexes;
-	//	}
-
 	public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
 		List<RecordVO> recordVOs = new ArrayList<>();
-		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache);
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
 		List<Record> recordList = searchServices.search(query);
-		for (int i = startIndex; i < numberOfItems && i < recordList.size(); i++) {
+		for (int i = startIndex; i < startIndex + numberOfItems && i < recordList.size(); i++) {
 			Record record = recordList.get(i);
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.TABLE, schema, sessionContext);
 			recordVOs.add(recordVO);
@@ -172,6 +134,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {
 		query.clearSort();
+		cache.clear();
 
 		for (int i = 0; i < propertyId.length; i++) {
 			Metadata metadata;

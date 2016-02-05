@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.conf.ldap.services;
 
 import java.util.ArrayList;
@@ -38,6 +21,8 @@ import javax.naming.ldap.PagedResultsResponseControl;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.model.conf.ldap.Filter;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
@@ -45,12 +30,9 @@ import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
 import com.constellio.model.services.users.sync.LDAPFastBind;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LDAPServices {
 	Logger LOGGER = LoggerFactory.getLogger(LDAPServices.class);
-
 
 	public Set<LDAPGroup> getAllGroups(LdapContext ctx, List<String> baseContextList) {
 		Set<LDAPGroup> returnList = new HashSet<>();
@@ -118,7 +100,7 @@ public class LDAPServices {
 						}
 					}
 				} else {
-					System.out.println("No controls were sent from the server");
+					LOGGER.info("No controls were sent from the server");
 				}
 				// Re-activate paged results
 				ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
@@ -170,15 +152,14 @@ public class LDAPServices {
 						}
 					}
 				} else {
-					System.out.println("No controls were sent from the server");
+					LOGGER.warn("No controls were sent from the server");
 				}
 				// Re-activate paged results
 				ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
 
 			} while (cookie != null);
 		} catch (Exception e) {
-			System.err.println("PagedSearch failed.");
-			e.printStackTrace();
+			LOGGER.error("PagedSearch failed.", e);
 		}
 		Collections.sort(usersIds);
 		return usersIds;
@@ -221,13 +202,13 @@ public class LDAPServices {
 		return null;
 	}
 
-	public LdapContext connectToLDAP(List<String> domains, String url, String user, String password) {
-		LDAPFastBind ldapFastBind = new LDAPFastBind(url);
+	public LdapContext connectToLDAP(List<String> domains, String url, String user, String password, Boolean followReferences,
+			boolean activeDirectory) {
+		LDAPFastBind ldapFastBind = new LDAPFastBind(url, followReferences, activeDirectory);
 		boolean authenticated = false;
 		for (String domain : domains) {
 			String username = user + "@" + domain;
-			authenticated = ldapFastBind.authenticate(username,
-					password);
+			authenticated = ldapFastBind.authenticate(username, password);
 			if (authenticated) {
 				break;
 			}
@@ -242,11 +223,12 @@ public class LDAPServices {
 		return ldapFastBind.ctx;
 	}
 
-	public LdapContext connectToLDAP(List<String> domains, List<String> urls, String user, String password) {
+	public LdapContext connectToLDAP(List<String> domains, List<String> urls, String user, String password,
+			Boolean followReferences, boolean activeDirectory) {
 		for (String url : urls) {
 			LdapContext ctx;
 			try {
-				ctx = connectToLDAP(domains, url, user, password);
+				ctx = connectToLDAP(domains, url, user, password, followReferences, activeDirectory);
 				if (ctx != null) {
 					return ctx;
 				}
@@ -270,6 +252,30 @@ public class LDAPServices {
 		}
 	}
 
+	public LDAPUser getUser(LDAPDirectoryType directoryType, String username, LdapContext ctx, List<String> searchBases) {
+		// TODO: Verify the behaviour of this method
+		String searchFilter = "(&(objectClass=user)(sAMAccountName=" + username + "))";
+
+		SearchControls searchControls = new SearchControls();
+		searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+		for (String searchBase : searchBases) {
+			try {
+				NamingEnumeration<SearchResult> results = ctx.search(searchBase, searchFilter, searchControls);
+				if (results.hasMoreElements()) {
+					SearchResult searchResult = results.nextElement();
+					LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
+					Attributes attributes = searchResult.getAttributes();
+					return userBuilder.buildUser(attributes.get("objectSid").get().toString(), attributes);
+				}
+			} catch (NamingException e) {
+				// Try next search base
+			}
+		}
+
+		return null;
+	}
+
 	public String extractUsername(String userId) {
 		return StringUtils.substringBetween(userId, "=", ",");
 	}
@@ -283,7 +289,7 @@ public class LDAPServices {
 			String searchFilter = "(&(objectClass=person)(" + userBuilder.getUserIdAttribute() + "=" + groupMemberId + "))";
 
 			SearchControls searchControls = new SearchControls();
-			searchControls.setReturningAttributes(new String[] { });
+			searchControls.setReturningAttributes(new String[] {});
 
 			// specify the search scope
 			searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);

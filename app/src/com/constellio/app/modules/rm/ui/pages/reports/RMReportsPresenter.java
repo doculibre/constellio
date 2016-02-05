@@ -1,21 +1,7 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.reports;
+
+import java.util.Arrays;
+import java.util.List;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportViewImpl;
@@ -23,17 +9,16 @@ import com.constellio.app.modules.rm.reports.builders.administration.plan.Classi
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportViewImpl;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactoryWithoutRecords;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class RMReportsPresenter extends BasePresenter<RMReportsView> implements ReportPresenter {
 
-	private static final boolean withAdministrativeUnit = true;
+	private static final boolean BY_ADMINISTRATIVE_UNIT = true;
+	private String schemaTypeValue;
 
 	public RMReportsPresenter(RMReportsView view) {
 		super(view);
@@ -43,6 +28,7 @@ public class RMReportsPresenter extends BasePresenter<RMReportsView> implements 
 	public List<String> getSupportedReports() {
 		return Arrays.asList("Reports.ClassificationPlan",
 				"Reports.DetailedClassificationPlan",
+				"Reports.ClassificationPlanByAdministrativeUnit",
 				"Reports.ConservationRulesList",
 				"Reports.ConservationRulesListByAdministrativeUnit",
 				"Reports.AdministrativeUnits",
@@ -61,15 +47,43 @@ public class RMReportsPresenter extends BasePresenter<RMReportsView> implements 
 		case "Reports.ConservationRulesList":
 			return new ConservationRulesReportViewImpl();
 		case "Reports.ConservationRulesListByAdministrativeUnit":
-			return new ConservationRulesReportViewImpl(withAdministrativeUnit);
+			return new ConservationRulesReportViewImpl(BY_ADMINISTRATIVE_UNIT, schemaTypeValue);
 		case "Reports.AdministrativeUnits":
 			return new AdministrativeUnitReportViewImpl();
 		case "Reports.AdministrativeUnitsAndUsers":
 			return new AdministrativeUnitReportViewImpl(true);
 		case "Reports.Users":
 			return new UserReportViewImpl();
+		case "Reports.ClassificationPlanByAdministrativeUnit":
+			return new ClassificationPlanReportViewImpl(false, schemaTypeValue);
 		}
+
 		throw new RuntimeException("BUG: Unknown report: " + report);
+
+	}
+
+	public boolean isWithSchemaType(String report) {
+		switch (report) {
+		case "Reports.ConservationRulesListByAdministrativeUnit":
+		case "Reports.ClassificationPlanByAdministrativeUnit":
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	public String getSchemaTypeValue(String report) {
+		switch (report) {
+		case "Reports.ConservationRulesListByAdministrativeUnit":
+		case "Reports.ClassificationPlanByAdministrativeUnit":
+			return AdministrativeUnit.SCHEMA_TYPE;
+		default:
+			return null;
+		}
+	}
+
+	public void setSchemaTypeValue(String schemaTypeValue) {
+		this.schemaTypeValue = schemaTypeValue;
 	}
 
 	public void backButtonClicked() {
@@ -80,5 +94,4 @@ public class RMReportsPresenter extends BasePresenter<RMReportsView> implements 
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(RMPermissionsTo.MANAGE_REPORTS).globally();
 	}
-
 }

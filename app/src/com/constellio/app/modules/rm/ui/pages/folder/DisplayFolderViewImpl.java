@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -29,23 +12,34 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.ButtonsContainer;
+import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -61,7 +55,11 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -74,10 +72,13 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
+
 	public static final String STYLE_NAME = "display-folder";
 	public static final String USER_LOOKUP = "user-lookup";
 	private RecordVO recordVO;
@@ -90,10 +91,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Component tasksComponent;
 	private DisplayFolderPresenter presenter;
 	private boolean dragNDropAllowed;
-	private Button deleteFolderButton, duplicateFolderButton,
-			editFolderButton, addSubFolderButton, addDocumentButton, addAuthorizationButton, shareFolderButton,
-			printLabelButton, linkToFolderButton, borrowButton, returnFolderButton, reminderReturnFolderButton, alertWhenAvailableButton;
+	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
+			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton;
 	private Label borrowedLabel;
+
+	private Window documentVersionWindow;
 
 	public DisplayFolderViewImpl() {
 		presenter = new DisplayFolderPresenter(this);
@@ -116,7 +119,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected String getTitle() {
-		//		return $("DisplayFolderView.viewTitle") + " " + presenter.getFolderTitle();
 		return null;
 	}
 
@@ -158,6 +160,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		borrowedLabel.setVisible(false);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+		documentVersionWindow = new BaseWindow($("DocumentContentVersionWindow.windowTitle"));
+		documentVersionWindow.setWidth("400px");
+		documentVersionWindow.center();
+		documentVersionWindow.setModal(true);
 
 		mainLayout.addComponents(borrowedLabel, uploadField, tabSheet);
 		presenter.selectInitialTabForUser();
@@ -215,39 +222,43 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
 			@Override
 			protected Component buildWindowContent() {
-
-				HorizontalLayout layout = new HorizontalLayout();
-
-				BaseButton folderButton = new BaseButton($("DisplayFolderView.folderOnly")) {
+				BaseButton folder = new BaseButton($("DisplayFolderView.folderOnly")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.duplicateFolderButtonClicked();
 						getWindow().close();
 					}
 				};
-				folderButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-				BaseButton structureButton = new BaseButton($("DisplayFolderView.hierarchy")) {
+				BaseButton structure = new BaseButton($("DisplayFolderView.hierarchy")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.duplicateStructureButtonClicked();
 						getWindow().close();
 					}
 				};
-				structureButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-				BaseButton cancelButton = new BaseButton($("cancel")) {
+				BaseButton cancel = new BaseButton($("cancel")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						getWindow().close();
 					}
 				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				cancel.addStyleName(ValoTheme.BUTTON_LINK);
 
-				layout.addComponents(folderButton, structureButton, cancelButton);
+				HorizontalLayout layout = new HorizontalLayout(folder, structure, cancel);
+				layout.setComponentAlignment(folder, Alignment.TOP_LEFT);
+				layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
+				layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
+				layout.setExpandRatio(cancel, 1);
+
+				layout.setWidth("95%");
 				layout.setSpacing(true);
 
-				return layout;
+				VerticalLayout wrapper = new VerticalLayout(layout);
+				wrapper.setSizeFull();
+
+				return wrapper;
 			}
 		};
 
@@ -270,6 +281,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.shareFolderButtonClicked();
+			}
+		};
+
+		addToCartButton = new LinkButton($("DisplayFolderView.addToCart")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addToCartRequested();
 			}
 		};
 
@@ -314,6 +332,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(linkToFolderButton);
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(shareFolderButton);
+		actionMenuButtons.add(addToCartButton);
 		actionMenuButtons.add(printLabelButton);
 		actionMenuButtons.add(borrowButton);
 		actionMenuButtons.add(returnFolderButton);
@@ -324,10 +343,57 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void setDocuments(RecordVODataProvider dataProvider) {
-		Table documentsTable = new RecordVOTable(dataProvider);
-		documentsTable.setSizeFull();
-		documentsTable.addItemClickListener(new ItemClickListener() {
+	public void setDocuments(final RecordVODataProvider dataProvider) {
+		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(new RecordVOLazyContainer(dataProvider));
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(Object itemId) {
+				int index = (int) itemId;
+				final RecordVO record = dataProvider.getRecordVO(index);
+				Button button = new EditButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.editDocumentButtonClicked(record);
+					}
+				};
+				button.setEnabled(presenter.canModifyDocument(record));
+				return button;
+			}
+		});
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(Object itemId) {
+				int index = (int) itemId;
+				final RecordVO record = dataProvider.getRecordVO(index);
+				Button button = new IconButton(new ThemeResource("images/icons/actions/save.png"),
+						$("DisplayFolderView.download")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.downloadDocumentButtonClicked(record);
+					}
+				};
+				button.setEnabled(record.get(Document.CONTENT) != null);
+				return button;
+			}
+		});
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(Object itemId) {
+				int index = (int) itemId;
+				final RecordVO record = dataProvider.getRecordVO(index);
+				Button button = new DisplayButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.displayDocumentButtonClicked(record);
+					}
+				};
+				return button;
+			}
+		});
+		Table table = new RecordVOTable(null, container);
+		table.setSizeFull();
+		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		table.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				if (event.getButton() == MouseButton.LEFT) {
@@ -337,9 +403,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			}
 		});
-		Component oldDocumentsComponent = documentsComponent;
-		documentsComponent = documentsTable;
-		tabSheet.replaceComponent(oldDocumentsComponent, documentsComponent);
+//		table.setPageLength(Math.min(15, dataProvider.size()));
+		tabSheet.replaceComponent(documentsComponent, table);
+		documentsComponent = table;
 	}
 
 	@Override
@@ -350,9 +416,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setSubFolders(RecordVODataProvider dataProvider) {
-		Table subFoldersTable = new RecordVOTable(dataProvider);
-		subFoldersTable.setSizeFull();
-		subFoldersTable.addItemClickListener(new ItemClickListener() {
+		Table table = new RecordVOTable(dataProvider);
+		table.setSizeFull();
+		table.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				RecordVOItem item = (RecordVOItem) event.getItem();
@@ -360,16 +426,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				presenter.subFolderClicked(recordVO);
 			}
 		});
-		Component oldSubFoldersComponent = subFoldersComponent;
-		subFoldersComponent = subFoldersTable;
-		tabSheet.replaceComponent(oldSubFoldersComponent, subFoldersComponent);
+		table.setPageLength(Math.min(15, dataProvider.size()));
+		tabSheet.replaceComponent(subFoldersComponent, table);
+		subFoldersComponent = table;
 	}
 
 	@Override
 	public void setTasks(RecordVODataProvider dataProvider) {
-		Table tasksTable = new RecordVOTable(dataProvider);
-		tasksTable.setSizeFull();
-		tasksTable.addItemClickListener(new ItemClickListener() {
+		Table table = new RecordVOTable(dataProvider);
+		table.setSizeFull();
+		table.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				RecordVOItem item = (RecordVOItem) event.getItem();
@@ -377,9 +443,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				presenter.taskClicked(recordVO);
 			}
 		});
-		Component oldTasksComponent = tasksComponent;
-		tasksComponent = tasksTable;
-		tabSheet.replaceComponent(oldTasksComponent, tasksComponent);
+		table.setPageLength(Math.min(15, dataProvider.size()));
+		tabSheet.replaceComponent(tasksComponent, table);
+		tasksComponent = table;
 	}
 
 	@Override
@@ -658,6 +724,29 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			borrowedLabel.setVisible(false);
 			borrowedLabel.setValue(null);
 		}
+	}
+
+	@Override
+	public void openDocumenContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
+		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO));
+		UI.getCurrent().addWindow(documentVersionWindow);
+	}
+
+	@Override
+	public void closeDocumentContentVersionWindow() {
+		documentVersionWindow.close();
+	}
+
+	@Override
+	public void openAgentURL(String agentURL) {
+		Page.getCurrent().open(agentURL, null);
+	}
+
+	@Override
+	public void downloadContentVersion(RecordVO recordVO, ContentVersionVO contentVersionVO) {
+		ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
+		Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
+		Page.getCurrent().open(downloadedResource, null, false);
 	}
 
 }

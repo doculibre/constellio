@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.ui.framework.components;
 
 import java.util.ArrayList;
@@ -28,6 +11,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -43,18 +27,33 @@ public class SearchResultDisplay extends VerticalLayout {
 	public static final String SEPARATOR = " ... ";
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
+		init(searchResultVO, componentFactory);
+	}
+
+	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
+		addComponents(newTitleComponent(searchResultVO),
+				newHighlightsLabel(searchResultVO),
+				newMetadataComponent(searchResultVO, componentFactory));
+		addStyleName(RECORD_STYLE);
+		setWidth("100%");
+	}
+
+	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		ReferenceDisplay title = new ReferenceDisplay(searchResultVO.getRecordVO());
 		title.addStyleName(TITLE_STYLE);
+		return title;
+	}
 
-		Label highlights = new Label(formatHighlights(searchResultVO.getHighlights()), ContentMode.HTML);
-		highlights.addStyleName(HIGHLIGHTS_STYLE);
-
+	protected Component newMetadataComponent(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
 		Component metadata = buildMetadataComponent(searchResultVO.getRecordVO(), componentFactory);
 		metadata.addStyleName(METADATA_STYLE);
+		return metadata;
+	}
 
-		addComponents(title, highlights, metadata);
-		addStyleName(RECORD_STYLE);
-		setWidthUndefined();
+	protected Label newHighlightsLabel(SearchResultVO searchResultVO) {
+		Label highlights = new Label(formatHighlights(searchResultVO.getHighlights()), ContentMode.HTML);
+		highlights.addStyleName(HIGHLIGHTS_STYLE);
+		return highlights;
 	}
 
 	private String formatHighlights(Map<String, List<String>> highlights) {
@@ -70,9 +69,9 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	private Layout buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
 		VerticalLayout layout = new VerticalLayout();
-		for (MetadataValueVO metadataValue : recordVO.getTableMetadataValues()) {
+		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 			MetadataVO metadataVO = metadataValue.getMetadata();
-			if (metadataVO.getCode().endsWith("_title")) {
+			if (metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
 				continue;
 			}
 

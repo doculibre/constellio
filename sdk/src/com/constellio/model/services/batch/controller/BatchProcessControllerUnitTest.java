@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.controller;
 
 import static org.mockito.Mockito.doReturn;
@@ -25,7 +8,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
+import com.constellio.model.conf.ModelLayerConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +21,7 @@ import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.utils.LoggerUncaughtExceptionHandler;
 import com.constellio.model.services.batch.controller.BatchProcessControllerRuntimeException.ControllerAlreadyStarted;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -48,13 +34,20 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 	@Mock BatchProcessesManager batchProcessesManager;
 	@Mock RecordServices recordServices;
 	@Mock SearchServices searchServices;
+	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock ModelLayerConfiguration configuration;
 	BatchProcessController controller;
 	BatchProcessController unspiedController;
 
 	@Before
 	public void setUp() {
-		unspiedController = new BatchProcessController(batchProcessesManager, recordServices, anInteger(), schemasManager,
-				searchServices);
+		when(modelLayerFactory.getConfiguration()).thenReturn(configuration);
+		when(modelLayerFactory.getBatchProcessesManager()).thenReturn(batchProcessesManager);
+		when(modelLayerFactory.newRecordServices()).thenReturn(recordServices);
+		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(schemasManager);
+		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
+		when(configuration.isBatchProcessesThreadEnabled()).thenReturn(true);
+		unspiedController = new BatchProcessController(modelLayerFactory, anInteger());
 		controller = spy(unspiedController);
 		doReturn(thread).when(controller).newBatchProcessControllerThread();
 	}
@@ -136,7 +129,7 @@ public class BatchProcessControllerUnitTest extends ConstellioTest {
 
 	private void givenStartedController() {
 		controller = spy(
-				new BatchProcessController(batchProcessesManager, recordServices, anInteger(), schemasManager, searchServices));
+				new BatchProcessController(modelLayerFactory, anInteger()));
 		doReturn(thread).when(controller).newBatchProcessControllerThread();
 		controller.initialize();
 		reset(controller);

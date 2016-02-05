@@ -1,32 +1,20 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.app.api.cmis.utils;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.GregorianCalendar;
 import java.util.List;
 
-import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_TargetIsNotInPrincipalTaxonomy;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class CmisRecordUtils {
 
@@ -36,16 +24,23 @@ public class CmisRecordUtils {
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	public void setParentOfRecord(Record record, Record targetRecord, MetadataSchema schema) {
+	public void setParentOfRecord(Record record, Record newParentRecord, MetadataSchema schema) {
 		List<Metadata> parentReferencesMetadatas = schema.getParentReferences();
-		List<Metadata> referencesMetadatas = schema.getTaxonomyRelationshipReferences(Arrays.asList(modelLayerFactory
-				.getTaxonomiesManager().getPrincipalTaxonomy(record.getCollection())));
-		MetadataSchema targetSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection())
-				.getSchema(targetRecord.getSchemaCode());
+		List<Metadata> referencesMetadatas = new ArrayList<>();
+		MetadataSchema targetSchema = null;
 
-		String principalPathTargetRecord = targetRecord.get(Schemas.PRINCIPAL_PATH);
-		if (principalPathTargetRecord == null) {
-			throw new CmisExceptions_TargetIsNotInPrincipalTaxonomy(targetRecord.getId());
+		if (newParentRecord != null) {
+			String schemaType = new SchemaUtils().getSchemaTypeCode(newParentRecord.getSchemaCode());
+			Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager().getTaxonomyFor(record.getCollection(), schemaType);
+
+			if (taxonomy != null) {
+				referencesMetadatas = schema.getTaxonomyRelationshipReferences(asList(taxonomy));
+			}
+
+		}
+		if (newParentRecord != null) {
+			targetSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection())
+					.getSchema(newParentRecord.getSchemaCode());
 		}
 
 		List<Metadata> allReferencesMetadatas = new ArrayList<>();
@@ -53,11 +48,21 @@ public class CmisRecordUtils {
 		allReferencesMetadatas.addAll(referencesMetadatas);
 
 		for (Metadata referenceMetadata : allReferencesMetadatas) {
-			if (referenceMetadata.getAllowedReferences().isAllowed(targetSchema)) {
-				record.set(referenceMetadata, targetRecord);
-			} else {
-				record.set(referenceMetadata, null);
+			if (targetSchema != null && referenceMetadata.getAllowedReferences().isAllowed(targetSchema)) {
+				record.set(referenceMetadata, newParentRecord);
 			}
+		}
+	}
+
+	public static GregorianCalendar toGregorianCalendar(Object value) {
+		if (value != null && value instanceof LocalDateTime) {
+			return ((LocalDateTime) value).toDateTime().toGregorianCalendar();
+
+		} else if (value != null && value instanceof LocalDate) {
+			return ((LocalDate) value).toDateTimeAtStartOfDay().toGregorianCalendar();
+
+		} else {
+			return null;
 		}
 	}
 }

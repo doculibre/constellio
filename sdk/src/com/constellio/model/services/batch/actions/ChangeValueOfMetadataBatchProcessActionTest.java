@@ -1,20 +1,3 @@
-/*Constellio Enterprise Information Management
-
-Copyright (c) 2015 "Constellio inc."
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
 package com.constellio.model.services.batch.actions;
 
 import static java.util.Arrays.asList;
@@ -37,9 +20,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class ChangeValueOfMetadataBatchProcessActionTest extends ConstellioTest {
-
-	String changedMetadataCode1 = "code1";
-	String changedMetadataCode2 = "code2";
+	String changedMetadataCode1 = "type_default_code1";
+	String changedMetadataCode2 = "type_default_code2";
 	@Mock Metadata changedMetadata1;
 	@Mock Metadata changedMetadata2;
 	@Mock MetadataSchemaTypes schemaTypes;
@@ -68,6 +50,9 @@ public class ChangeValueOfMetadataBatchProcessActionTest extends ConstellioTest 
 		when(record1.getId()).thenReturn(aString());
 		when(record2.getId()).thenReturn(aString());
 		when(record3.getId()).thenReturn(aString());
+		when(record1.getSchemaCode()).thenReturn("type_default");
+		when(record2.getSchemaCode()).thenReturn("type_default");
+		when(record3.getSchemaCode()).thenReturn("type_default");
 
 		when(schemaTypes.getMetadata(changedMetadataCode1)).thenReturn(changedMetadata1);
 		when(schemaTypes.getMetadata(changedMetadataCode2)).thenReturn(changedMetadata2);
@@ -92,6 +77,8 @@ public class ChangeValueOfMetadataBatchProcessActionTest extends ConstellioTest 
 			verify(record).set(changedMetadata1, changedValue1);
 			verify(record).set(changedMetadata2, changedValue2);
 		}
+
+		assertThat(transaction.isSkippingRequiredValuesValidation()).isTrue();
 	}
 
 }
