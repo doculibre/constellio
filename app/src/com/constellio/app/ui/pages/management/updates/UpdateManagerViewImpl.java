@@ -187,12 +187,12 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Button update = new LinkButton($("UpdateManagerViewImpl.updateButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				new Thread(UpdateManagerViewImpl.class.getName() + "-updateFromServer") {
+				UI.getCurrent().access(new Thread(UpdateManagerViewImpl.class.getName() + "-updateFromServer") {
 					@Override
 					public void run() {
 						presenter.updateFromServer();
 					}
-				}.start();
+				});
 			}
 		};
 

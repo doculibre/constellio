@@ -65,7 +65,7 @@ public class AppManagementService {
 	public static final String RESTART_COMMAND = "RESTART";
 	//public static final String URL_CHANGELOG = "http://update.constellio.com/changelog5_1";
 	//public static final String URL_WAR = "http://update.constellio.com/constellio5_1.war";
-	private static String SERVER_URL = "http://192.168.1.98:8080";
+	private static String SERVER_URL = "http://updatecenter.constellio.com:8080";
 	private static final int MAX_VERSION_TO_KEEP = 4;
 
 	private final ConstellioPluginManager pluginManager;
@@ -439,8 +439,6 @@ public class AppManagementService {
 		}
 		in.close();
 
-		System.out.println("POST RESPONSE => " + response.toString());
-
 		return response.toString();
 	}
 
@@ -502,7 +500,7 @@ public class AppManagementService {
 
 		try {
 			serverUrl = sendPost(serverUrl, getLicenseInfo().getSignature());
-		} catch (IOException | RuntimeException ioe) {
+		} catch (IOException ioe) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
 		}
 
