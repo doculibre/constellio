@@ -56,6 +56,7 @@ benckmarks/
 !/connectors/*/libs/*.jar
 /.idea
 .benchmarks.mv.db
+sdk.properties
 
 /sdk/src/com/intelligid/DeveloperTestSuite.*
 /sdk/intelligid.log*
