@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<authorizations>
+    <authorization id="zeId">
+        <access>r|w|d|rw|rd|rwd</access>
+        <principals>
+            <item type="user" username="username1"/>
+            <item type="group" groupCode="groupCode1"/>
+        </principals>
+        <targets>
+            <item type="folder" legacyId="legacyId3"/>
+            <item type="document" legacyId="legacyId3"/>
+            <item type="administrativeUnit" legacyId="legacyId4"/>
+            <item type="userTask" legacyId="legacyId6"/>
+        </targets>
+    </authorization>
+    <authorization id="anotherId">
+        <roles>u|g|rgd</roles>
+        <principals>
+            <item type="user" username="username1"/>
+            <item type="group" groupCode="groupCode1"/>
+        </principals>
+        <targets>
+            <item type="folder" legacyId="legacyId3"/>
+            <item type="document" legacyId="legacyId3"/>
+            <item type="administrativeUnit" legacyId="legacyId4"/>
+            <item type="userTask" legacyId="legacyId6"/>
+        </targets>
+    </authorization>
+</authorizations>

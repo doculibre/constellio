@@ -1,0 +1,118 @@
+package com.constellio.app.services.schemas.bulkImport.authorization;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationPrincipal;
+import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationTarget;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+
+public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends ConstellioTest {
+	RMTestRecords records = new RMTestRecords(zeCollection);
+	Users users = new Users();
+
+	ImportedAuthorizationToAuthorizationBuilder builder;
+	ImportedAuthorization validAuthorization;
+	User aliceHavingLegacyId;
+	Group heroes;
+	Folder folderHavingLegacyId;
+	Document documentHavingLegacyId;
+	AdministrativeUnit administrativeUnitHavingLegacyId;
+	Task userTaskHavingLegacyId;
+
+	@Before
+	public void setUp()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers().withDocumentsHavingContent()
+		);
+		users.setUp(getModelLayerFactory().newUserServices());
+
+		builder = new ImportedAuthorizationToAuthorizationBuilder(zeCollection, getModelLayerFactory());
+
+		initTestRecords();
+
+		initValidAuthorization();
+	}
+
+	private void initTestRecords()
+			throws RecordServicesException {
+		aliceHavingLegacyId = users.aliceIn(zeCollection);
+		heroes = users.heroesIn(zeCollection);
+		folderHavingLegacyId = records.getFolder_A01();
+		documentHavingLegacyId = records.getDocumentWithContent_A19();
+		administrativeUnitHavingLegacyId = records.getUnit10();
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		userTaskHavingLegacyId = tasksSchemas.newTask();
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		Transaction transaction = new Transaction();
+		recordServices.add(userTaskHavingLegacyId.setTitle("taskTitle"));
+		transaction.add(folderHavingLegacyId.setLegacyId("folderLegacyId"));
+		transaction.add(documentHavingLegacyId.setLegacyId("documentLegacyId"));
+		transaction.add(administrativeUnitHavingLegacyId.setLegacyId("administrativeUnitLegacyId"));
+		transaction.add(userTaskHavingLegacyId.setLegacyId("userTaskLegacyId"));
+		recordServices.execute(transaction);
+	}
+
+	private void initValidAuthorization() {
+		List<ImportedAuthorizationPrincipal> validPrincipals = asList(
+				new ImportedAuthorizationPrincipal("user", "alice"),
+				new ImportedAuthorizationPrincipal("group", "heroes"));
+
+		List<ImportedAuthorizationTarget> validTargets = asList(
+				new ImportedAuthorizationTarget("folder", "folderLegacyId"),
+				new ImportedAuthorizationTarget("document", "documentLegacyId"),
+				new ImportedAuthorizationTarget("administrativeUnit", "administrativeUnitLegacyId"),
+				new ImportedAuthorizationTarget("userTask", "userTaskLegacyId"));
+
+		validAuthorization = new ImportedAuthorization().setId("id").setPrincipals(validPrincipals)
+				.setTargets(validTargets).setAccess("rwd");
+	}
+
+	@Test
+	public void givenValidAuthorizationWithAccessWhenBuildThenBuiltCorrectly()
+			throws Exception {
+		Authorization authorization = builder.build(validAuthorization);
+		assertThat(authorization.getGrantedToPrincipals())
+				.containsExactly(aliceHavingLegacyId.getId(), heroes.getId());
+		assertThat(authorization.getGrantedOnRecords())
+				.containsExactly(folderHavingLegacyId.getId(), documentHavingLegacyId.getId(),
+						administrativeUnitHavingLegacyId.getId(), userTaskHavingLegacyId.getId());
+		AuthorizationDetails detail = authorization.getDetail();
+		assertThat(detail.getId()).isEqualTo("rwd__id");
+		assertThat(detail.getStartDate()).isNull();
+		assertThat(detail.getEndDate()).isNull();
+		assertThat(detail.getCollection()).isEqualTo(zeCollection);
+		assertThat(detail.getRoles()).containsOnly(Role.READ, Role.WRITE, Role.DELETE);
+	}
+
+	@Test
+	public void givenValidAuthorizationWithRolesWhenBuildThenBuiltCorrectly()
+			throws Exception {
+		validAuthorization.setAccess(null).setRoles(asList("u", "rgd"));
+		Authorization authorization = builder.build(validAuthorization);
+		AuthorizationDetails detail = authorization.getDetail();
+		assertThat(detail.getRoles()).containsExactly("u", "rgd");
+	}
+}

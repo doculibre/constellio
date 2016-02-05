@@ -1,0 +1,2 @@
+Modified singes.txt (replaced F by $)
+Modified dk.html (replaced Gorille by DK)

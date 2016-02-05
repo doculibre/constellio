@@ -1,0 +1,199 @@
+========
+Scénario 1
+La rubrique a une seule règle
+- Délai principal 888-2-C
+- Délai secondaire : 2-0-D
+- Aucun délai pour les types de documents
+
+Donc, Pour un dossier principal et secondaire, les documents ont le même statut (P/S) et les mêmes dates
+
+========
+Scénario 2
+La rubrique a une seule règle
+- Délai principal 888-1-C
+- Délai secondaire : 888-2-C
+- Un délai 888-3-C pour le type1
+- Un délai 888-4-C pour le type2
+
+Pour un dossier principal :
+- Un document avec le type1 a le délai 888-3-C
+- Un document avec le type2 a le délai 888-4-C
+- Un document avec le type3 a le délai 888-1-C
+
+Pour un dossier secondaire :
+- Un document avec le type1 a le délai 888-2-C
+- Un document avec le type2 a le délai 888-2-C
+- Un document avec le type3 a le délai 888-2-C
+
+========
+Scénario 3
+La rubrique a une seule règle
+- Un délai 888-3-C pour le type1
+- Un délai 888-4-C pour le type2
+- Un délai 888-2-C par défaut pour les documents principaux
+- Un délai 888-1-C pour les documents secondaires
+
+Le dossier est actif et n’a pas de dates de transfert prévue
+
+Pour un dossier principal :
+- Le dossier est actif et n’a pas de dates de transfert prévue
+- Un document avec le type1 a le délai 888-3-C
+- Un document avec le type2 a le délai 888-4-C
+- Un document avec le type3 a le délai 888-2-D
+
+Pour un document secondaire :
+- Le dossier est actif et n’a pas de dates de transfert prévue
+- Un document avec le type1 a le délai 888-1-C
+- Un document avec le type2 a le délai 888-1-C
+- Un document avec le type3 a le délai 888-1-C
+
+========
+Scénario 4
+La rubrique a trois règles
+
+R1 :
+- Délai principal 888-1-C
+- Délai secondaire : 888-2-C
+- Un délai 888-3-C pour le type1
+
+R2 :
+- Délai principal 888-4-C
+- Délai secondaire : 888-5-C
+- Un délai 888-6-C pour le type1
+- Un délai 888-7-C pour le type2
+
+R3 :
+- Un délai 888-8-C pour le type1
+- Un délai 888-9-C pour le type3
+- Un délai 888-10-C par défaut pour les documents principaux
+- Un délai 888-11-C pour les documents secondaires
+
+Pour un dossier principal ayant la règle R1 :
+- Un document avec le type1 a le délai 888-3-C (R1)
+- Un document avec le type2 a le délai 888-1-C (R1)
+- Un document avec le type3 a le délai 888-9-C (R3)
+- Un document avec le type4 a le délai 888-1-C (R1)
+
+Pour un dossier principal ayant la règle R2 :
+- Un document avec le type1 a le délai 888-6-C (R2)
+- Un document avec le type2 a le délai 888-7-C (R2)
+- Un document avec le type3 a le délai 888-9-C (R3)
+- Un document avec le type4 a le délai 888-4-C (R2)
+
+Pour un dossier principal ayant la règle R3 :
+- Le dossier est actif et n’a pas de dates de transfert prévue
+- Un document avec le type1 a le délai 888-8-C (R3)
+- Un document avec le type2 a le délai 888-10-C (R3)
+- Un document avec le type3 a le délai 888-9-C (R3)
+- Un document avec le type4 a le délai 888-10-C (R3)
+
+========
+Scénario 5
+
+Trois rubriques W > W100 > W110 & W120
+
+R1 (attribué à W):
+- Un délai 888-1-C pour le type1
+- Un délai 888-2-C pour le type2
+- Un délai 888-3-C pour le type3
+- Un délai 888-4-C par défaut pour les documents principaux
+- Un délai 888-5-C pour les documents secondaires
+
+R2 (attribué à W100) :
+- Délai principal 888-6-C
+- Délai secondaire : 888-7-C
+- Un délai 888-8-C pour le type1
+- Un délai 888-9-C pour le type4
+
+R3 (attribué à W100):
+- Un délai 888-10-C pour le type3
+- Un délai 888-11-C par défaut pour les documents principaux
+- Un délai 888-12-C pour les documents secondaires
+
+R4 (attribué à W110) :
+- Délai principal 888-14-C
+- Délai secondaire : 888—15C
+- Un délai 888-16-C pour le type1
+- Un délai 888-17-C pour le type2
+
+
+R5 (attribué à W110) :
+- Un délai 888-19-C pour le type1
+- Un délai 888-20-C pour le type5
+- Un délai 888-21-C par défaut pour les documents principaux
+- Un délai 888-22-C pour les documents secondaires
+
+[X120 n’a pas de règle]
+
+Pour un dossier principal ayant la rubrique W et la règle R1 :
+- Le dossier est actif et n’a pas de dates de transfert prévue
+- Un document sans type a le délai 888-4-C (R1)
+- Un document avec le type1 a le délai 888-1-C (R1)
+- Un document avec le type2 a le délai 888-2-C (R1)
+- Un document avec le type3 a le délai 888-3-C (R1)
+- Un document avec le type4 a le délai 888-4-C (R1)
+- Un document avec le type5 a le délai 888-4-C (R1)
+
+Pour un dossier principal ayant la rubrique W100 et la règle R2 :
+- Un document sans type a le délai 888-6-C (R2)
+- Un document avec le type1 a le délai 888-10-C (R2)
+- Un document avec le type2 a le délai 888-2-C (R1)
+- *Un document avec le type3 a le délai 888-3-C (R3)*
+- Un document avec le type4 a le délai 888-9-C (R2)
+- Un document avec le type5 a le délai 888-6-C (R2)
+
+Pour un dossier principal ayant la rubrique W100 et la règle R3
+- Le dossier est actif et n’a pas de dates de transfert prévue
+- Un document sans type a le délai 888-11-C (R3)
+- Un document avec le type1 a le délai 888-1-C (R1)
+- Un document avec le type2 a le délai 888-2-C (R1)
+- Un document avec le type3 a le délai 888-10-C (R3)
+- *Un document avec le type4 a le délai 888-11-C (R3)* TODO RIDA On n’utilise pas R2 à cause que c’est une règle de 2e type?
+- Un document avec le type5 a le délai 888-11-C (R3)
+
+Pour un dossier principal ayant la rubrique W110 et la règle R2
+- Cet état est possible, mais le système ne proposera pas R2 dans le formulaire du dossiers
+- Un document sans type a le délai 888-6-C (R2)
+- Un document avec le type1 a le délai 888-19-C (R5) On prend R5 qui est une règle de premier niveau plus spécifique que la règle choisie.
+- Un document avec le type2 a le délai 888-2-C (R1) On ne prend pas la R4 (plus spécifique), car elle est de second niveau.
+- Un document avec le type3 a le délai 888-10-C (R3)
+- Un document avec le type4 a le délai 888-9-C (R2)
+- Un document avec le type5 a le délai 888-20-C (R5)
+
+Pour un dossier principal ayant la rubrique W110 et la règle R3
+- Cet état est possible, mais le système ne proposera pas R2 dans le formulaire du dossiers
+- Le dossier est actif et n’a pas de dates de transfert prévue
+- Un document sans type a le délai 888-10-C (R3)
+- Un document avec le type1 a le délai 888-19-C (R5) On prend R5 qui est une règle de premier niveau plus spécifique que la règle choisie.
+- Un document avec le type2 a le délai 888-2-C (R1) On ne prend pas la R4 (plus spécifique), car elle est de second niveau.
+- Un document avec le type3 a le délai 888-10-C (R3)
+- Un document avec le type4 a le délai 888-10-C (R3)
+- Un document avec le type5 a le délai 888-20-C (R5)
+
+Pour un dossier principal ayant la rubrique W110 et la règle R4
+- Un document sans type a le délai 888-14-C (R4)
+- Un document avec le type1 a le délai 888-16-C (R5)
+- Un document avec le type2 a le délai 888-17-C (R4)
+- Un document avec le type3 a le délai 888-9-C (R3)
+- Un document avec le type4 a le délai 888-14-C (R4)
+- Un document avec le type5 a le délai 888-20-C (R5)
+
+
+Pour un dossier principal ayant la rubrique W120 et la règle R2
+- Cet état est possible, mais le système ne proposera pas R2 dans le formulaire du dossiers
+- Un document sans type a le délai 888-6-C (R2)
+- Un document avec le type1 a le délai 888-8-C (R2)
+- Un document avec le type2 a le délai 888-2-C (R1) On ne prend pas la R4 (plus spécifique), car elle est de second niveau.
+- Un document avec le type3 a le délai 888-10-C (R3)
+- Un document avec le type4 a le délai 888-9-C (R2)
+- Un document avec le type5 a le délai 888-6-C (R2)
+
+Pour un dossier principal ayant la rubrique W120 et la règle R3
+- Cet état est possible, mais le système ne proposera pas R2 dans le formulaire du dossiers
+- Le dossier est actif et n’a pas de dates de transfert prévue
+- Un document sans type a le délai 888-10-C (R3)
+- Un document avec le type1 a le délai 888-1-C (R1)
+- Un document avec le type2 a le délai 888-2-C (R1) On ne prend pas la R4 (plus spécifique), car elle est de second niveau.
+- Un document avec le type3 a le délai 888-10-C (R3)
+- Un document avec le type4 a le délai 888-10-C (R3)
+- Un document avec le type5 a le délai 888-11-C (R3)

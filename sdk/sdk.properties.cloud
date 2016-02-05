@@ -1,0 +1,29 @@
+# === WEB DRIVERS CONFIGURATION ===
+#firefoxBinary=detect
+phantomJSBinary=phantomjs
+port=7171
+
+
+# === DATASTORE CONFIGURATION ===
+# *** WARNING : collections will be deleted ***
+#solr.type=embedded
+#solr.embedded.path=solrdata/automated-test
+
+solr.type=cloud
+#solr.http.url=http://localhost:8983/solr/
+#solr.http.url=http://SOLR:8983/solr/
+solr.zkHost=192.168.1.100:2281
+
+# === RUN/SKIP TESTS CONFIGURATION ===
+skip.realTests=false
+skip.slowTests=false
+skip.uitests=false
+skip.loadtests=false
+skip.drivertests=false
+#skip.alltests=false
+skip.indevelopment=true
+run.performancetests=true
+
+# === MASSIVE BIGVAULT LOGGER (empty bigVaultLogger_loggedFields => all fields)
+bigVaultLogger_enabled=false
+bigVaultLogger_loggedFields=path_ss

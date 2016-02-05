@@ -1,0 +1,20 @@
+____ ___ __ _ 
+
+Les trois singes 
+____ ___ __ _ 
+
+Un homme entre dans un boutique d'animaux et regarde ce qu'il y a. A un 
+moment, il voit un singe étiquette "Singe C: 100.000 F". 
+- Dites-moi, c'est cher pour un singe 100.000 F 
+- Oui, mais il sait programmer en C. Du bon code, optimisé, sans trop de 
+bug, commenté et tout. 
+Le client, étonné, continue et voit un autre singe: "Singe C++: 200.000 F" 
+- et celui-ci ? c'est énorme 200.000 F ! 
+- il programme en C++, Java, Visual C++, ... tous les langages intéressants, 
+quoi. 
+Le client s'arrête devant une cage dorée dans laquelle un singe repus lit le 
+journal. 
+- Non, ça c'est trop. 500.000 F pour un singe. Et qu'est-ce qu'il sait faire 
+celui-ci ? c'est lui qui a programmé Linux peut-être ? 
+- Ben non. En fait je l'ai rarement vu travailler, mais il dit qu'il est 
+consultant... 

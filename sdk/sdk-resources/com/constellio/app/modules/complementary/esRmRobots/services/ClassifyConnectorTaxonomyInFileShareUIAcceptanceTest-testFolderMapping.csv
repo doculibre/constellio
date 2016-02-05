@@ -1,0 +1,7 @@
+foldername,title,retentionRuleEntered,copyStatusEntered,openingDate,keywords,aCustomRequiredMetadata
+A,Le dossier A,1,P,2015-11-04,mot1;mot2;mot3,valeur
+AA,Le dossier AA,1,P,2015-11-04,mot1;mot2,valeur
+AB,Le dossier AB,1,P,2015-11-04,mot1;mot2,valeur
+AAA,Le dossier AAA,1,P,2015-11-04,mot1;mot2,valeur
+AAB,Le dossier AAB,1,P,2015-11-04,mot1;mot2,valeur
+B,Le dossier B,2,P,2015-12-14,mot2;mot4,valeur

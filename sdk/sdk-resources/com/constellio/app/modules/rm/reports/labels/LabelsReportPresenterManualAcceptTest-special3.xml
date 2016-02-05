@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<labelTemplate>
+    <key>SAAQ</key>
+    <name>SAAQ</name>
+    <schemaType>folder</schemaType>
+    <layout>AVERY_5159_V2</layout>
+    <columns>100</columns>
+    <lines>6</lines>
+
+    <!-- Line 1  -->
+    <field>
+        <metadataCode>folder_default_category</metadataCode>
+        <referenceMetadataCode>category_default_code</referenceMetadataCode>
+        <concatenateMetadataCode>folder_default_uniformSubdivision</concatenateMetadataCode>
+        <concatenateReferenceMetadataCode>uniformSubdivision_default_code</concatenateReferenceMetadataCode>
+        <x>5</x>
+        <y>0</y>
+        <width>24</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <italic>false</italic>
+        <maxLength>200</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+        <separator xml:space="preserve"> - </separator>
+    </field>
+
+    <field>
+        <metadataCode>folder_default_USRvolume</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>29</x>
+        <y>0</y>
+        <width>40</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <italic>false</italic>
+        <maxLength>100</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+        <prefix xml:space="preserve">Vol. :  </prefix>
+        <empty>true</empty>
+    </field>
+
+    <field>
+        <metadataCode>folder_default_id</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>69</x>
+        <y>0</y>
+        <width>31</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <italic>false</italic>
+        <maxLength>100</maxLength>
+        <horizontalAlignment>RIGHT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+        <prefix xml:space="preserve">[</prefix>
+        <suffix xml:space="preserve">]</suffix>
+    </field>
+
+    <!-- Line 2  -->
+    <field>
+        <metadataCode>folder_default_USRsuiteSequence</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>5</x>
+        <y>1</y>
+        <width>95</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>500</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+    </field>
+
+    <!-- Line 3 and 4  -->
+    <field>
+        <metadataCode>folder_default_title</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>5</x>
+        <y>2</y>
+        <width>94</width>
+        <height>2</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>400</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+    </field>
+    <field>
+        <metadataCode></metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>94</x>
+        <y>2</y>
+        <width>1</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>100</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>BOTTOM</verticalAlignment>
+        <prefix xml:space="preserve"> </prefix>
+    </field>
+
+    <!-- Line 5  -->
+    <field>
+        <metadataCode>folder_default_openingDate</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <concatenateMetadataCode>folder_default_closingDate</concatenateMetadataCode>
+        <concatenateReferenceMetadataCode></concatenateReferenceMetadataCode>
+        <x>5</x>
+        <y>4</y>
+        <width>53</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>100</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+        <prefix xml:space="preserve">Ouv. :  </prefix>
+        <separator xml:space="preserve"> - </separator>
+        <pattern>yyyy</pattern>
+    </field>
+
+    <field>
+        <metadataCode>folder_default_administrativeUnit</metadataCode>
+        <referenceMetadataCode>administrativeUnit_default_code</referenceMetadataCode>
+        <x>62</x>
+        <y>4</y>
+        <width>38</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>10</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+        <prefix xml:space="preserve">CR :  </prefix>
+    </field>
+
+    <!-- Line 6  -->
+    <field>
+        <metadataCode>folder_default_retentionRule</metadataCode>
+        <referenceMetadataCode>retentionRule_default_code</referenceMetadataCode>
+        <x>5</x>
+        <y>5</y>
+        <width>38</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>200</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+        <prefix xml:space="preserve">Règle :  </prefix>
+    </field>
+
+    <field>
+        <metadataCode>folder_default_copyStatus</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>38</x>
+        <y>5</y>
+        <width>24</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <maxLength>20</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+        <prefix xml:space="preserve">Ex :  </prefix>
+        <uppercase>true</uppercase>
+    </field>
+
+    <field>
+        <metadataCode>folder_default_mainCopyRule</metadataCode>
+        <referenceMetadataCode></referenceMetadataCode>
+        <x>62</x>
+        <y>5</y>
+        <width>38</width>
+        <height>1</height>
+        <fontName>UNDEFINED</fontName>
+        <fontSize>8</fontSize>
+        <bold>false</bold>
+        <italic>false</italic>
+        <uppercase>true</uppercase>
+        <maxLength>10</maxLength>
+        <horizontalAlignment>LEFT</horizontalAlignment>
+        <verticalAlignment>CENTER</verticalAlignment>
+    </field>
+
+</labelTemplate>

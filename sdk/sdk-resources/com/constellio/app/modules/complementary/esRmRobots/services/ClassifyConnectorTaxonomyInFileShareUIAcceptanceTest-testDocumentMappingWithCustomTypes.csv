@@ -1,0 +1,8 @@
+filename,title,author,type,customMeta,aCustomRequiredMetadata
+1.txt,Le document 1,Rob Robinson,customDocument,valeur 1,valeur
+2.txt,Le document 2,Rob Robinson,customDocument,valeur 2,valeur
+3.txt,Le document 3,Dan Danielson,,,valeur
+4.txt,Le document 4,Rob Robinson,customDocument,valeur 4,valeur
+5.txt,Le document 5,Rob Robinson,customDocument,valeur 5,valeur
+6.txt,Le document 6,Rob Robinson,customDocument,valeur 6,valeur
+7.txt,Le document 7,Dan Danielson,,,valeur

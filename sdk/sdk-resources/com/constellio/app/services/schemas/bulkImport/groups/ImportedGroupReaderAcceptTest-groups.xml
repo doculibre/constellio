@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<groups>
+    <group>
+        <code>001</code>
+        <title>group 001</title>
+    </group>
+    <group>
+        <code>002</code>
+        <parent>001</parent>
+        <title>group 002</title>
+    </group>
+    <group>
+        <code>003</code>
+        <parent>002</parent>
+        <title>group 003</title>
+    </group>
+</groups>

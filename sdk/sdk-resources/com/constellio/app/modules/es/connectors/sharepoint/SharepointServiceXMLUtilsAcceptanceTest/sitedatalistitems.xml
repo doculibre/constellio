@@ -1,0 +1,265 @@
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <soap:Body>
+      <GetListItemsResponse xmlns="http://schemas.microsoft.com/sharepoint/soap/">
+         <GetListItemsResult><![CDATA[<xml xmlns:s='uuid:BDC6E3F0-6DA3-11d1-A2A3-00AA00C14882'
+     xmlns:dt='uuid:C2F41010-65B3-11d1-A29F-00AA00C14882'
+     xmlns:rs='urn:schemas-microsoft-com:rowset'
+     xmlns:z='#RowsetSchema'>
+<s:Schema id='RowsetSchema'>
+   <s:ElementType name='row' content='eltOnly' rs:CommandTimeout='30'>
+      <s:AttributeType name='ows_ContentTypeId' rs:name='Content Type ID' rs:number='1'>
+         <s:datatype dt:type='int' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__ModerationComments' rs:name='Approver Comments' rs:number='2'>
+         <s:datatype dt:type='string' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_FileLeafRef' rs:name='Name' rs:number='3'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Modified_x0020_By' rs:name='Document Modified By' rs:number='4'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Created_x0020_By' rs:name='Document Created By' rs:number='5'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_File_x0020_Type' rs:name='File Type' rs:number='6'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_HTML_x0020_File_x0020_Type' rs:name='HTML File Type' rs:number='7'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__SourceUrl' rs:name='Source URL' rs:number='8'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__SharedFileIndex' rs:name='Shared File Index' rs:number='9'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Title' rs:name='Title' rs:number='10'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_TemplateUrl' rs:name='Template Link' rs:number='11'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_xd_ProgID' rs:name='HTML File Link' rs:number='12'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_xd_Signature' rs:name='Is Signed' rs:number='13'>
+         <s:datatype dt:type='boolean' dt:maxLength='1' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_test1' rs:name='test1' rs:number='14'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_IconOverlay' rs:name='IconOverlay' rs:number='15'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__vti_ItemDeclaredRecord' rs:name='Declared Record' rs:number='16'>
+         <s:datatype dt:type='datetime' dt:maxLength='8' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__vti_ItemHoldRecordStatus' rs:name='Hold and Record Status' rs:number='17'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_DocumentSetDescription' rs:name='Description' rs:number='18'>
+         <s:datatype dt:type='string' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_ID' rs:name='ID' rs:number='19'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_ContentType' rs:name='Content Type' rs:number='20'>
+         <s:datatype dt:type='string' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Created' rs:name='Created' rs:number='21'>
+         <s:datatype dt:type='datetime' dt:maxLength='8' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Author' rs:name='Created By' rs:number='22'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Modified' rs:name='Modified' rs:number='23'>
+         <s:datatype dt:type='datetime' dt:maxLength='8' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Editor' rs:name='Modified By' rs:number='24'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__HasCopyDestinations' rs:name='Has Copy Destinations' rs:number='25'>
+         <s:datatype dt:type='boolean' dt:maxLength='1' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__CopySource' rs:name='Copy Source' rs:number='26'>
+         <s:datatype dt:type='string' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__ModerationStatus' rs:name='Approval Status' rs:number='27'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_FileRef' rs:name='URL Path' rs:number='28'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_FileDirRef' rs:name='Path' rs:number='29'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Last_x0020_Modified' rs:name='Modified' rs:number='30'>
+         <s:datatype dt:type='datetime' dt:lookup='true' dt:maxLength='8' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Created_x0020_Date' rs:name='Created' rs:number='31'>
+         <s:datatype dt:type='datetime' dt:lookup='true' dt:maxLength='8' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_File_x0020_Size' rs:name='File Size' rs:number='32'>
+         <s:datatype dt:type='i4' dt:lookup='true' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_FSObjType' rs:name='Item Type' rs:number='33'>
+         <s:datatype dt:type='ui1' dt:lookup='true' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_SortBehavior' rs:name='Sort Type' rs:number='34'>
+         <s:datatype dt:type='ui1' dt:lookup='true' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_PermMask' rs:name='Effective Permissions Mask' rs:number='35'>
+         <s:datatype dt:type='string' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_CheckedOutUserId' rs:name='ID of the User who has the item Checked Out' rs:number='36'>
+         <s:datatype dt:type='i4' dt:lookup='true' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_IsCheckedoutToLocal' rs:name='Is Checked out to local' rs:number='37'>
+         <s:datatype dt:type='i4' dt:lookup='true' dt:maxLength='1' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_CheckoutUser' rs:name='Checked Out To' rs:number='38'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_UniqueId' rs:name='Unique Id' rs:number='39'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='38' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_SyncClientId' rs:name='Client Id' rs:number='40'>
+         <s:datatype dt:type='int' dt:lookup='true' dt:maxLength='2147483646' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_ProgId' rs:name='ProgId' rs:number='41'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_ScopeId' rs:name='ScopeId' rs:number='42'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='38' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_VirusStatus' rs:name='Virus Status' rs:number='43'>
+         <s:datatype dt:type='i4' dt:lookup='true' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_CheckedOutTitle' rs:name='Checked Out To' rs:number='44'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__CheckinComment' rs:name='Check In Comment' rs:number='45'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_LinkCheckedOutTitle' rs:name='Checked Out To' rs:number='46'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__EditMenuTableStart' rs:name='Edit Menu Table Start' rs:number='47'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__EditMenuTableStart2' rs:name='Edit Menu Table Start' rs:number='48'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__EditMenuTableEnd' rs:name='Edit Menu Table End' rs:number='49'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_LinkFilenameNoMenu' rs:name='Name' rs:number='50'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_LinkFilename' rs:name='Name' rs:number='51'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_LinkFilename2' rs:name='Name' rs:number='52'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_DocIcon' rs:name='Type' rs:number='53'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_ServerUrl' rs:name='Server Relative URL' rs:number='54'>
+         <s:datatype dt:type='string' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_EncodedAbsUrl' rs:name='Encoded Absolute URL' rs:number='55'>
+         <s:datatype dt:type='string' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_BaseName' rs:name='Name' rs:number='56'>
+         <s:datatype dt:type='string' dt:maxLength='1073741823' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_FileSizeDisplay' rs:name='File Size' rs:number='57'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_MetaInfo' rs:name='Property Bag' rs:number='58'>
+         <s:datatype dt:type='int' dt:lookup='true' dt:maxLength='2147483646' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__Level' rs:name='Level' rs:number='59'>
+         <s:datatype dt:type='ui1' dt:maxLength='1' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__IsCurrentVersion' rs:name='Is Current Version' rs:number='60'>
+         <s:datatype dt:type='boolean' dt:maxLength='1' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_ItemChildCount' rs:name='Item Child Count' rs:number='61'>
+         <s:datatype dt:type='i4' dt:lookup='true' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_FolderChildCount' rs:name='Folder Child Count' rs:number='62'>
+         <s:datatype dt:type='i4' dt:lookup='true' dt:maxLength='510' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_AppAuthor' rs:name='App Created By' rs:number='63'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_AppEditor' rs:name='App Modified By' rs:number='64'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_SelectTitle' rs:name='Select' rs:number='65'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_SelectFilename' rs:name='Select' rs:number='66'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Edit' rs:name='Edit' rs:number='67'>
+         <s:datatype dt:type='i4' dt:maxLength='1' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_owshiddenversion' rs:name='owshiddenversion' rs:number='68'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__UIVersion' rs:name='UI Version' rs:number='69'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows__UIVersionString' rs:name='Version' rs:number='70'>
+         <s:datatype dt:type='string' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_InstanceID' rs:name='Instance ID' rs:number='71'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Order' rs:name='Order' rs:number='72'>
+         <s:datatype dt:type='float' dt:maxLength='8' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_GUID' rs:name='GUID' rs:number='73'>
+         <s:datatype dt:type='string' dt:maxLength='38' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_WorkflowVersion' rs:name='Workflow Version' rs:number='74'>
+         <s:datatype dt:type='i4' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_WorkflowInstanceID' rs:name='Workflow Instance ID' rs:number='75'>
+         <s:datatype dt:type='string' dt:maxLength='38' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_ParentVersionString' rs:name='Source Version (Converted Document)' rs:number='76'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_ParentLeafName' rs:name='Source Name (Converted Document)' rs:number='77'>
+         <s:datatype dt:type='string' dt:lookup='true' dt:maxLength='512' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_DocConcurrencyNumber' rs:name='Document Concurrency Number' rs:number='78'>
+         <s:datatype dt:type='i4' dt:lookup='true' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_Combine' rs:name='Merge' rs:number='79'>
+         <s:datatype dt:type='ui1' dt:maxLength='4' />
+      </s:AttributeType>
+      <s:AttributeType name='ows_RepairDocument' rs:name='Relink' rs:number='80'>
+         <s:datatype dt:type='ui1' dt:maxLength='4' />
+      </s:AttributeType>
+   </s:ElementType></s:Schema><rs:data ItemCount="10">
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='2;#Projet_vitrine.pdf' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='pdf' ows_IconOverlay='|pdf|lockoverlay.png' ows__vti_ItemDeclaredRecord='2015-05-27T18:29:33Z' ows__vti_ItemHoldRecordStatus='273' ows_ID='2' ows_ContentType='Document' ows_Created='2015-05-19T17:10:43Z' ows_Author='2;#Administrator' ows_Modified='2015-05-27T18:29:11Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='2;#Constellio EIM/Admin/Projet_vitrine.pdf' ows_FileDirRef='2;#Constellio EIM/Admin' ows_Last_x0020_Modified='2;#2015-05-27T18:29:11Z' ows_Created_x0020_Date='2;#2015-05-19T17:10:44Z' ows_File_x0020_Size='2;#7583' ows_FSObjType='2;#0' ows_SortBehavior='2;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='2;#1073741823' ows_IsCheckedoutToLocal='2;#0' ows_CheckoutUser='1073741823;#System Account' ows_UniqueId='2;#{DDCAB466-D24F-4CF0-BF41-D4C884EA2F8C}' ows_ProgId='2;#' ows_ScopeId='2;#{37198CFD-14F8-4E10-A34C-E2458C7CFC27}' ows_VirusStatus='2;#7583' ows_CheckedOutTitle='2;#System Account' ows__CheckinComment='2;#' ows_LinkCheckedOutTitle='System Account' ows__EditMenuTableStart='Projet_vitrine.pdf' ows__EditMenuTableStart2='2' ows__EditMenuTableEnd='2' ows_LinkFilenameNoMenu='Projet_vitrine.pdf' ows_LinkFilename='Projet_vitrine.pdf' ows_LinkFilename2='Projet_vitrine.pdf' ows_DocIcon='pdf' ows_ServerUrl='/Constellio EIM/Admin/Projet_vitrine.pdf' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/Admin/Projet_vitrine.pdf' ows_BaseName='Projet_vitrine' ows_FileSizeDisplay='7583' ows_MetaInfo='2;#vti_parserversion:SR|15.0.0.4667&#13;&#10;vti_folderitemcount:IR|0&#13;&#10;_vti_ItemDeclaredRecord:SW|2015-05-27T14:29:33Z&#13;&#10;_vti_ItemHoldRecordStatus:IW|273&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;IconOverlay:SW||pdf|lockoverlay.png&#13;&#10;ecm_ItemDeleteBlockHolders:SW|ecm_InPlaceRecordLock&#13;&#10;vti_foldersubfolderitemcount:IR|0&#13;&#10;test1:SW|&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;ecm_RecordRestrictions:SW|BlockDelete, BlockEdit&#13;&#10;ContentTypeId:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_title:SW|&#13;&#10;ecm_ItemLockHolders:SW|ecm_InPlaceRecordLock&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='2;#0' ows_FolderChildCount='2;#0' ows_SelectTitle='2' ows_SelectFilename='2' ows_Edit='0' ows_owshiddenversion='6' ows__UIVersion='513' ows__UIVersionString='1.1' ows_Order='200.000000000000' ows_GUID='{902A8BC5-1015-475C-894E-051D06CDFAE0}' ows_WorkflowVersion='1' ows_ParentVersionString='2;#' ows_ParentLeafName='2;#' Etag="{DDCAB466-D24F-4CF0-BF41-D4C884EA2F8C},6" ows_Combine='0' ows_RepairDocument='0' />
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='6;#Run_a_custom_report_2015-06-08T104606.xlsx' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='xlsx' ows_ID='6' ows_ContentType='Document' ows_Created='2015-06-08T14:46:06Z' ows_Author='2;#Administrator' ows_Modified='2015-06-08T14:46:06Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='6;#Constellio EIM/Admin/Run_a_custom_report_2015-06-08T104606.xlsx' ows_FileDirRef='6;#Constellio EIM/Admin' ows_Last_x0020_Modified='6;#2015-06-08T14:46:06Z' ows_Created_x0020_Date='6;#2015-06-08T14:46:06Z' ows_File_x0020_Size='6;#25177' ows_FSObjType='6;#0' ows_SortBehavior='6;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='6;#' ows_IsCheckedoutToLocal='6;#0' ows_UniqueId='6;#{F8DE7895-21CA-4C93-9A41-CB8545780004}' ows_ProgId='6;#' ows_ScopeId='6;#{4838018D-748A-4E6F-AFF2-5FD2F89FC03B}' ows_VirusStatus='6;#25177' ows_CheckedOutTitle='6;#' ows__CheckinComment='6;#' ows__EditMenuTableStart='Run_a_custom_report_2015-06-08T104606.xlsx' ows__EditMenuTableStart2='6' ows__EditMenuTableEnd='6' ows_LinkFilenameNoMenu='Run_a_custom_report_2015-06-08T104606.xlsx' ows_LinkFilename='Run_a_custom_report_2015-06-08T104606.xlsx' ows_LinkFilename2='Run_a_custom_report_2015-06-08T104606.xlsx' ows_DocIcon='xlsx' ows_ServerUrl='/Constellio EIM/Admin/Run_a_custom_report_2015-06-08T104606.xlsx' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/Admin/Run_a_custom_report_2015-06-08T104606.xlsx' ows_BaseName='Run_a_custom_report_2015-06-08T104606' ows_FileSizeDisplay='25177' ows_MetaInfo='6;#Subject:EW|&#13;&#10;vti_previewexists:BW|false&#13;&#10;Keywords:EW|&#13;&#10;_Status:EW|&#13;&#10;vti_thumbnailexists:BW|false&#13;&#10;vti_parserversion:SR|15.0.0.4667&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;vti_title:EW|&#13;&#10;_Author:EW|&#13;&#10;_Category:EW|&#13;&#10;ContentType:EW|&#13;&#10;ContentTypeId:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_pluggableparserversion:SR|15.0.0.4665&#13;&#10;vti_stickycachedpluggableparserprops:VX|Subject Keywords _Status vti_title _Author _Category ContentType _Comments&#13;&#10;_Comments:EW|&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='6;#0' ows_FolderChildCount='6;#0' ows_SelectTitle='6' ows_SelectFilename='6' ows_Edit='0' ows_owshiddenversion='1' ows__UIVersion='1' ows__UIVersionString='0.1' ows_Order='600.000000000000' ows_GUID='{E81599E7-71BD-41CD-89A2-1884006EA5BF}' ows_WorkflowVersion='1' ows_ParentVersionString='6;#' ows_ParentLeafName='6;#' Etag="{F8DE7895-21CA-4C93-9A41-CB8545780004},1" ows_Combine='0' ows_RepairDocument='0' />
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='7;#Run_a_custom_report_2015-06-08T105002.xlsx' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='xlsx' ows_ID='7' ows_ContentType='Document' ows_Created='2015-06-08T14:50:02Z' ows_Author='2;#Administrator' ows_Modified='2015-06-08T14:50:02Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='7;#Constellio EIM/Admin/Run_a_custom_report_2015-06-08T105002.xlsx' ows_FileDirRef='7;#Constellio EIM/Admin' ows_Last_x0020_Modified='7;#2015-06-08T14:50:03Z' ows_Created_x0020_Date='7;#2015-06-08T14:50:03Z' ows_File_x0020_Size='7;#26198' ows_FSObjType='7;#0' ows_SortBehavior='7;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='7;#' ows_IsCheckedoutToLocal='7;#0' ows_UniqueId='7;#{AC3D1A89-3B68-4629-87B6-07BB17A41E21}' ows_ProgId='7;#' ows_ScopeId='7;#{4838018D-748A-4E6F-AFF2-5FD2F89FC03B}' ows_VirusStatus='7;#26198' ows_CheckedOutTitle='7;#' ows__CheckinComment='7;#' ows__EditMenuTableStart='Run_a_custom_report_2015-06-08T105002.xlsx' ows__EditMenuTableStart2='7' ows__EditMenuTableEnd='7' ows_LinkFilenameNoMenu='Run_a_custom_report_2015-06-08T105002.xlsx' ows_LinkFilename='Run_a_custom_report_2015-06-08T105002.xlsx' ows_LinkFilename2='Run_a_custom_report_2015-06-08T105002.xlsx' ows_DocIcon='xlsx' ows_ServerUrl='/Constellio EIM/Admin/Run_a_custom_report_2015-06-08T105002.xlsx' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/Admin/Run_a_custom_report_2015-06-08T105002.xlsx' ows_BaseName='Run_a_custom_report_2015-06-08T105002' ows_FileSizeDisplay='26198' ows_MetaInfo='7;#Subject:EW|&#13;&#10;vti_previewexists:BW|false&#13;&#10;Keywords:EW|&#13;&#10;_Status:EW|&#13;&#10;vti_thumbnailexists:BW|false&#13;&#10;vti_parserversion:SR|15.0.0.4667&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;vti_title:EW|&#13;&#10;_Author:EW|&#13;&#10;_Category:EW|&#13;&#10;ContentType:EW|&#13;&#10;ContentTypeId:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_pluggableparserversion:SR|15.0.0.4665&#13;&#10;vti_stickycachedpluggableparserprops:VX|Subject Keywords _Status vti_title _Author _Category ContentType _Comments&#13;&#10;_Comments:EW|&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='7;#0' ows_FolderChildCount='7;#0' ows_SelectTitle='7' ows_SelectFilename='7' ows_Edit='0' ows_owshiddenversion='1' ows__UIVersion='1' ows__UIVersionString='0.1' ows_Order='700.000000000000' ows_GUID='{BA23D794-29CD-4AB4-BA7C-E143B3C94C22}' ows_WorkflowVersion='1' ows_ParentVersionString='7;#' ows_ParentLeafName='7;#' Etag="{AC3D1A89-3B68-4629-87B6-07BB17A41E21},1" ows_Combine='0' ows_RepairDocument='0' />
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='8;#Run_a_custom_report_2015-06-08T105302.xlsx' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='xlsx' ows_ID='8' ows_ContentType='Document' ows_Created='2015-06-08T14:53:03Z' ows_Author='2;#Administrator' ows_Modified='2015-06-08T14:53:03Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='8;#Constellio EIM/Admin/Run_a_custom_report_2015-06-08T105302.xlsx' ows_FileDirRef='8;#Constellio EIM/Admin' ows_Last_x0020_Modified='8;#2015-06-08T14:53:03Z' ows_Created_x0020_Date='8;#2015-06-08T14:53:03Z' ows_File_x0020_Size='8;#27012' ows_FSObjType='8;#0' ows_SortBehavior='8;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='8;#' ows_IsCheckedoutToLocal='8;#0' ows_UniqueId='8;#{5BE1C608-E2F8-4EAF-8DD2-6A3CAD51E64E}' ows_ProgId='8;#' ows_ScopeId='8;#{4838018D-748A-4E6F-AFF2-5FD2F89FC03B}' ows_VirusStatus='8;#27012' ows_CheckedOutTitle='8;#' ows__CheckinComment='8;#' ows__EditMenuTableStart='Run_a_custom_report_2015-06-08T105302.xlsx' ows__EditMenuTableStart2='8' ows__EditMenuTableEnd='8' ows_LinkFilenameNoMenu='Run_a_custom_report_2015-06-08T105302.xlsx' ows_LinkFilename='Run_a_custom_report_2015-06-08T105302.xlsx' ows_LinkFilename2='Run_a_custom_report_2015-06-08T105302.xlsx' ows_DocIcon='xlsx' ows_ServerUrl='/Constellio EIM/Admin/Run_a_custom_report_2015-06-08T105302.xlsx' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/Admin/Run_a_custom_report_2015-06-08T105302.xlsx' ows_BaseName='Run_a_custom_report_2015-06-08T105302' ows_FileSizeDisplay='27012' ows_MetaInfo='8;#Subject:EW|&#13;&#10;vti_previewexists:BW|false&#13;&#10;Keywords:EW|&#13;&#10;_Status:EW|&#13;&#10;vti_thumbnailexists:BW|false&#13;&#10;vti_parserversion:SR|15.0.0.4667&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;vti_title:EW|&#13;&#10;_Author:EW|&#13;&#10;_Category:EW|&#13;&#10;ContentType:EW|&#13;&#10;ContentTypeId:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_pluggableparserversion:SR|15.0.0.4665&#13;&#10;vti_stickycachedpluggableparserprops:VX|Subject Keywords _Status vti_title _Author _Category ContentType _Comments&#13;&#10;_Comments:EW|&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='8;#0' ows_FolderChildCount='8;#0' ows_SelectTitle='8' ows_SelectFilename='8' ows_Edit='0' ows_owshiddenversion='1' ows__UIVersion='1' ows__UIVersionString='0.1' ows_Order='800.000000000000' ows_GUID='{D4156007-DEE6-43D8-80BD-6B0F55918C74}' ows_WorkflowVersion='1' ows_ParentVersionString='8;#' ows_ParentLeafName='8;#' Etag="{5BE1C608-E2F8-4EAF-8DD2-6A3CAD51E64E},1" ows_Combine='0' ows_RepairDocument='0' />
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='9;#Run_a_custom_report_2015-06-08T105446.xlsx' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='xlsx' ows_ID='9' ows_ContentType='Document' ows_Created='2015-06-08T14:54:46Z' ows_Author='2;#Administrator' ows_Modified='2015-06-08T14:54:46Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='9;#Constellio EIM/Admin/Run_a_custom_report_2015-06-08T105446.xlsx' ows_FileDirRef='9;#Constellio EIM/Admin' ows_Last_x0020_Modified='9;#2015-06-08T14:54:46Z' ows_Created_x0020_Date='9;#2015-06-08T14:54:46Z' ows_File_x0020_Size='9;#27588' ows_FSObjType='9;#0' ows_SortBehavior='9;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='9;#' ows_IsCheckedoutToLocal='9;#0' ows_UniqueId='9;#{A00CFB09-0904-4D08-BB24-127774BCA70E}' ows_ProgId='9;#' ows_ScopeId='9;#{4838018D-748A-4E6F-AFF2-5FD2F89FC03B}' ows_VirusStatus='9;#27588' ows_CheckedOutTitle='9;#' ows__CheckinComment='9;#' ows__EditMenuTableStart='Run_a_custom_report_2015-06-08T105446.xlsx' ows__EditMenuTableStart2='9' ows__EditMenuTableEnd='9' ows_LinkFilenameNoMenu='Run_a_custom_report_2015-06-08T105446.xlsx' ows_LinkFilename='Run_a_custom_report_2015-06-08T105446.xlsx' ows_LinkFilename2='Run_a_custom_report_2015-06-08T105446.xlsx' ows_DocIcon='xlsx' ows_ServerUrl='/Constellio EIM/Admin/Run_a_custom_report_2015-06-08T105446.xlsx' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/Admin/Run_a_custom_report_2015-06-08T105446.xlsx' ows_BaseName='Run_a_custom_report_2015-06-08T105446' ows_FileSizeDisplay='27588' ows_MetaInfo='9;#Subject:EW|&#13;&#10;vti_previewexists:BW|false&#13;&#10;Keywords:EW|&#13;&#10;_Status:EW|&#13;&#10;vti_thumbnailexists:BW|false&#13;&#10;vti_parserversion:SR|15.0.0.4667&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;vti_title:EW|&#13;&#10;_Author:EW|&#13;&#10;_Category:EW|&#13;&#10;ContentType:EW|&#13;&#10;ContentTypeId:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_pluggableparserversion:SR|15.0.0.4665&#13;&#10;vti_stickycachedpluggableparserprops:VX|Subject Keywords _Status vti_title _Author _Category ContentType _Comments&#13;&#10;_Comments:EW|&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='9;#0' ows_FolderChildCount='9;#0' ows_SelectTitle='9' ows_SelectFilename='9' ows_Edit='0' ows_owshiddenversion='1' ows__UIVersion='1' ows__UIVersionString='0.1' ows_Order='900.000000000000' ows_GUID='{213BD9D9-75A7-417F-BCC0-D8C11E953E75}' ows_WorkflowVersion='1' ows_ParentVersionString='9;#' ows_ParentLeafName='9;#' Etag="{A00CFB09-0904-4D08-BB24-127774BCA70E},1" ows_Combine='0' ows_RepairDocument='0' />
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='10;#Run_a_custom_report_2015-06-08T105755.xlsx' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='xlsx' ows_ID='10' ows_ContentType='Document' ows_Created='2015-06-08T14:57:56Z' ows_Author='2;#Administrator' ows_Modified='2015-06-08T14:57:56Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='10;#Constellio EIM/Admin/Run_a_custom_report_2015-06-08T105755.xlsx' ows_FileDirRef='10;#Constellio EIM/Admin' ows_Last_x0020_Modified='10;#2015-06-08T14:57:56Z' ows_Created_x0020_Date='10;#2015-06-08T14:57:56Z' ows_File_x0020_Size='10;#28633' ows_FSObjType='10;#0' ows_SortBehavior='10;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='10;#' ows_IsCheckedoutToLocal='10;#0' ows_UniqueId='10;#{0115B84C-0EC7-4E72-8B0A-ED1F407E1375}' ows_ProgId='10;#' ows_ScopeId='10;#{4838018D-748A-4E6F-AFF2-5FD2F89FC03B}' ows_VirusStatus='10;#28633' ows_CheckedOutTitle='10;#' ows__CheckinComment='10;#' ows__EditMenuTableStart='Run_a_custom_report_2015-06-08T105755.xlsx' ows__EditMenuTableStart2='10' ows__EditMenuTableEnd='10' ows_LinkFilenameNoMenu='Run_a_custom_report_2015-06-08T105755.xlsx' ows_LinkFilename='Run_a_custom_report_2015-06-08T105755.xlsx' ows_LinkFilename2='Run_a_custom_report_2015-06-08T105755.xlsx' ows_DocIcon='xlsx' ows_ServerUrl='/Constellio EIM/Admin/Run_a_custom_report_2015-06-08T105755.xlsx' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/Admin/Run_a_custom_report_2015-06-08T105755.xlsx' ows_BaseName='Run_a_custom_report_2015-06-08T105755' ows_FileSizeDisplay='28633' ows_MetaInfo='10;#Subject:EW|&#13;&#10;vti_previewexists:BW|false&#13;&#10;Keywords:EW|&#13;&#10;_Status:EW|&#13;&#10;vti_thumbnailexists:BW|false&#13;&#10;vti_parserversion:SR|15.0.0.4667&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;vti_title:EW|&#13;&#10;_Author:EW|&#13;&#10;_Category:EW|&#13;&#10;ContentType:EW|&#13;&#10;ContentTypeId:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_pluggableparserversion:SR|15.0.0.4665&#13;&#10;vti_stickycachedpluggableparserprops:VX|Subject Keywords _Status vti_title _Author _Category ContentType _Comments&#13;&#10;_Comments:EW|&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='10;#0' ows_FolderChildCount='10;#0' ows_SelectTitle='10' ows_SelectFilename='10' ows_Edit='0' ows_owshiddenversion='1' ows__UIVersion='1' ows__UIVersionString='0.1' ows_Order='1000.00000000000' ows_GUID='{039601EF-52D4-42C9-AD96-8FD1668EA020}' ows_WorkflowVersion='1' ows_ParentVersionString='10;#' ows_ParentLeafName='10;#' Etag="{0115B84C-0EC7-4E72-8B0A-ED1F407E1375},1" ows_Combine='0' ows_RepairDocument='0' />
+   <z:row ows_ContentTypeId='0x0120D52000504DC35FB809CB48BE20995312A09449009096C1DB7D8B6249861B42F9DD632241' ows_FileLeafRef='17;#TestDocumentSet' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_HTML_x0020_File_x0020_Type='Sharepoint.DocumentSet' ows_Title='TestDocumentSet' ows_ID='17' ows_ContentType='MyDocumentSet' ows_Created='2015-06-09T20:15:53Z' ows_Author='2;#Administrator' ows_Modified='2015-06-09T20:15:54Z' ows_Editor='2;#Administrator' ows__ModerationStatus='0' ows_FileRef='17;#Constellio EIM/TestDocumentSet' ows_FileDirRef='17;#Constellio EIM' ows_Last_x0020_Modified='17;#2015-06-09T20:16:12Z' ows_Created_x0020_Date='17;#2015-06-09T20:15:53Z' ows_File_x0020_Size='17;#' ows_FSObjType='17;#1' ows_SortBehavior='17;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='17;#' ows_IsCheckedoutToLocal='17;#0' ows_UniqueId='17;#{D76DAC90-69BC-4A7A-9B1C-C2790452EC63}' ows_ProgId='17;#Sharepoint.DocumentSet' ows_ScopeId='17;#{4838018D-748A-4E6F-AFF2-5FD2F89FC03B}' ows_VirusStatus='17;#' ows_CheckedOutTitle='17;#' ows__CheckinComment='17;#' ows__EditMenuTableStart='TestDocumentSet' ows__EditMenuTableStart2='17' ows__EditMenuTableEnd='17' ows_LinkFilenameNoMenu='TestDocumentSet' ows_LinkFilename='TestDocumentSet' ows_LinkFilename2='TestDocumentSet' ows_ServerUrl='/Constellio EIM/TestDocumentSet' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/TestDocumentSet' ows_BaseName='TestDocumentSet' ows_MetaInfo='17;#vti_isexecutable:BW|false&#13;&#10;vti_contenttypeorder:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_folderitemcount:IW|0&#13;&#10;vti_hassubdirs:BW|true&#13;&#10;vti_dirlateststamp:TW|09 Jun 2015 20:10:49 -0000&#13;&#10;vti_listservertemplate:IW|101&#13;&#10;vti_listname:SW|{65347826-7F14-4664-A051-4800DE3448F0}&#13;&#10;docset_LastRefresh:SW|06/09/2015 20:15:53&#13;&#10;docset_SkipProvision:SW|True&#13;&#10;vti_foldersubfolderitemcount:IW|0&#13;&#10;vti_listbasetype:IW|1&#13;&#10;vti_isbrowsable:BW|true&#13;&#10;vti_isscriptable:BW|false&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;' ows__Level='1' ows__IsCurrentVersion='1' ows_ItemChildCount='17;#1' ows_FolderChildCount='17;#0' ows_SelectTitle='17' ows_SelectFilename='17' ows_Edit='0' ows_owshiddenversion='2' ows__UIVersion='512' ows__UIVersionString='1.0' ows_Order='1700.00000000000' ows_GUID='{1EAD1584-562D-40C9-95A7-CA4E9E29AFEE}' ows_WorkflowVersion='1' ows_ParentVersionString='17;#' ows_ParentLeafName='17;#' Etag="{D76DAC90-69BC-4A7A-9B1C-C2790452EC63}," ows_Combine='1' ows_RepairDocument='1' />
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='18;#Custom_report.xlsx' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='xlsx' ows_Title='Custom Report' ows_test1='meta1' ows_ID='18' ows_ContentType='Document' ows_Created='2015-06-09T20:16:12Z' ows_Author='2;#Administrator' ows_Modified='2015-06-12T16:52:48Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='18;#Constellio EIM/TestDocumentSet/Custom_report.xlsx' ows_FileDirRef='18;#Constellio EIM/TestDocumentSet' ows_Last_x0020_Modified='18;#2015-06-12T16:52:49Z' ows_Created_x0020_Date='18;#2015-06-09T20:16:12Z' ows_File_x0020_Size='18;#33357' ows_FSObjType='18;#0' ows_SortBehavior='18;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='18;#' ows_IsCheckedoutToLocal='18;#0' ows_UniqueId='18;#{D2A90CC2-44A5-4A50-BF53-569D375CCEA9}' ows_ProgId='18;#' ows_ScopeId='18;#{4838018D-748A-4E6F-AFF2-5FD2F89FC03B}' ows_VirusStatus='18;#33357' ows_CheckedOutTitle='18;#' ows__CheckinComment='18;#' ows__EditMenuTableStart='Custom_report.xlsx' ows__EditMenuTableStart2='18' ows__EditMenuTableEnd='18' ows_LinkFilenameNoMenu='Custom_report.xlsx' ows_LinkFilename='Custom_report.xlsx' ows_LinkFilename2='Custom_report.xlsx' ows_DocIcon='xlsx' ows_ServerUrl='/Constellio EIM/TestDocumentSet/Custom_report.xlsx' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/TestDocumentSet/Custom_report.xlsx' ows_BaseName='Custom_report' ows_FileSizeDisplay='33357' ows_MetaInfo='18;#vti_thumbnailexists:BW|false&#13;&#10;vti_parserversion:SR|15.0.0.4667&#13;&#10;_Category:EW|&#13;&#10;vti_pluggableparserversion:SR|15.0.0.4665&#13;&#10;vti_stickycachedpluggableparserprops:VX|Subject IconOverlay Keywords _Status test1 vti_title _Author _Category ContentType ContentTypeId _Comments&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;IconOverlay:EW|&#13;&#10;vti_previewexists:BW|false&#13;&#10;Keywords:EW|&#13;&#10;_Status:EW|&#13;&#10;test1:SW|meta1&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;vti_foldersubfolderitemcount:IR|0&#13;&#10;vti_title:SW|Custom Report&#13;&#10;_Author:EW|&#13;&#10;ContentType:EW|&#13;&#10;ContentTypeId:LW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;_Comments:EW|&#13;&#10;Subject:EW|&#13;&#10;vti_folderitemcount:IR|0&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='18;#0' ows_FolderChildCount='18;#0' ows_SelectTitle='18' ows_SelectFilename='18' ows_Edit='0' ows_owshiddenversion='3' ows__UIVersion='2' ows__UIVersionString='0.2' ows_Order='1800.00000000000' ows_GUID='{518CECE9-DEA1-4D8D-AD6A-ADC6B20CC78D}' ows_WorkflowVersion='1' ows_ParentVersionString='18;#' ows_ParentLeafName='18;#' Etag="{D2A90CC2-44A5-4A50-BF53-569D375CCEA9},4" ows_Combine='0' ows_RepairDocument='0' />
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='23;#report.txt' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='txt' ows_test1='blah' ows_ID='23' ows_ContentType='Document' ows_Created='2015-08-27T20:02:51Z' ows_Author='2;#Administrator' ows_Modified='2015-12-01T16:38:05Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='23;#Constellio EIM/report.txt' ows_FileDirRef='23;#Constellio EIM' ows_Last_x0020_Modified='23;#2015-12-01T16:38:06Z' ows_Created_x0020_Date='23;#2015-08-27T20:02:52Z' ows_File_x0020_Size='23;#17' ows_FSObjType='23;#0' ows_SortBehavior='23;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='23;#' ows_IsCheckedoutToLocal='23;#0' ows_UniqueId='23;#{31F5E85C-A557-4ABD-AD86-7C374354E070}' ows_ProgId='23;#' ows_ScopeId='23;#{4838018D-748A-4E6F-AFF2-5FD2F89FC03B}' ows_VirusStatus='23;#17' ows_CheckedOutTitle='23;#' ows__CheckinComment='23;#' ows__EditMenuTableStart='report.txt' ows__EditMenuTableStart2='23' ows__EditMenuTableEnd='23' ows_LinkFilenameNoMenu='report.txt' ows_LinkFilename='report.txt' ows_LinkFilename2='report.txt' ows_DocIcon='txt' ows_ServerUrl='/Constellio EIM/report.txt' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/report.txt' ows_BaseName='report' ows_FileSizeDisplay='17' ows_MetaInfo='23;#vti_parserversion:SR|15.0.0.4667&#13;&#10;vti_folderitemcount:IR|0&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;test1:SW|blah&#13;&#10;vti_foldersubfolderitemcount:IR|0&#13;&#10;ContentTypeId:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_title:SW|&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='23;#0' ows_FolderChildCount='23;#0' ows_SelectTitle='23' ows_SelectFilename='23' ows_Edit='0' ows_owshiddenversion='3' ows__UIVersion='2' ows__UIVersionString='0.2' ows_Order='2300.00000000000' ows_GUID='{91FDB49A-694D-4E24-96B1-B57DD057050E}' ows_WorkflowVersion='1' ows_ParentVersionString='23;#' ows_ParentLeafName='23;#' Etag="{31F5E85C-A557-4ABD-AD86-7C374354E070},3" ows_Combine='0' ows_RepairDocument='0' ows__vti_ItemDeclaredRecord='2015-05-27T18:29:33Z'/>
+   <z:row ows_ContentTypeId='0x01010079EEF41625B2944099707CD4F020C46E' ows_FileLeafRef='31;#installation_linux.odt' ows_Modified_x0020_By='i:0#.w|test\administrator' ows_Created_x0020_By='i:0#.w|test\administrator' ows_File_x0020_Type='odt' ows_ID='31' ows_ContentType='Document' ows_Created='2015-11-26T14:29:14Z' ows_Author='2;#Administrator' ows_Modified='2015-11-26T14:29:14Z' ows_Editor='2;#Administrator' ows__ModerationStatus='3' ows_FileRef='31;#Constellio EIM/Admin/subfolder/subsubfolder/installation_linux.odt' ows_FileDirRef='31;#Constellio EIM/Admin/subfolder/subsubfolder' ows_Last_x0020_Modified='31;#2015-11-26T14:29:15Z' ows_Created_x0020_Date='31;#2015-11-26T14:29:15Z' ows_File_x0020_Size='31;#22968' ows_FSObjType='31;#0' ows_SortBehavior='31;#0' ows_PermMask='0x7fffffffffffffff' ows_CheckedOutUserId='31;#' ows_IsCheckedoutToLocal='31;#0' ows_UniqueId='31;#{DF85FD1A-B8BB-45B6-B626-4264BC3CCB8F}' ows_ProgId='31;#' ows_ScopeId='31;#{7705AF27-5B83-4A37-9427-8F0BACF6DDE8}' ows_VirusStatus='31;#22968' ows_CheckedOutTitle='31;#' ows__CheckinComment='31;#' ows__EditMenuTableStart='installation_linux.odt' ows__EditMenuTableStart2='31' ows__EditMenuTableEnd='31' ows_LinkFilenameNoMenu='installation_linux.odt' ows_LinkFilename='installation_linux.odt' ows_LinkFilename2='installation_linux.odt' ows_DocIcon='odt' ows_ServerUrl='/Constellio EIM/Admin/subfolder/subsubfolder/installation_linux.odt' ows_EncodedAbsUrl='http://sp2013.constellio.com/Constellio%20EIM/Admin/subfolder/subsubfolder/installation_linux.odt' ows_BaseName='installation_linux' ows_FileSizeDisplay='22968' ows_MetaInfo='31;#vti_parserversion:SR|15.0.0.4667&#13;&#10;vti_modifiedby:SR|i:0#.w|test\\administrator&#13;&#10;ContentTypeId:SW|0x01010079EEF41625B2944099707CD4F020C46E&#13;&#10;vti_author:SR|i:0#.w|test\\administrator&#13;&#10;' ows__Level='2' ows__IsCurrentVersion='1' ows_ItemChildCount='31;#0' ows_FolderChildCount='31;#0' ows_SelectTitle='31' ows_SelectFilename='31' ows_Edit='0' ows_owshiddenversion='1' ows__UIVersion='1' ows__UIVersionString='0.1' ows_Order='3100.00000000000' ows_GUID='{A66ACDBF-CD31-44B3-A24F-9F1F661C385B}' ows_WorkflowVersion='1' ows_ParentVersionString='31;#' ows_ParentLeafName='31;#' Etag="{DF85FD1A-B8BB-45B6-B626-4264BC3CCB8F},1" ows_Combine='0' ows_RepairDocument='0' />
+</rs:data>
+</xml>]]></GetListItemsResult>
+      </GetListItemsResponse>
+   </soap:Body>
+</soap:Envelope>

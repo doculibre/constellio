@@ -1,0 +1,47 @@
+package com.constellio.app.modules.robots.ui.pages;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+public class ListRootRobotsPresenter extends BaseRobotPresenter<ListRootRobotsView> {
+	private RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
+	private final MetadataSchemaVO schemaVO;
+
+	public ListRootRobotsPresenter(ListRootRobotsView view) {
+		super(view, Robot.DEFAULT_SCHEMA);
+		schemaVO = new MetadataSchemaToVOBuilder().build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+	}
+
+	public RecordVODataProvider getRootRobotsDataProvider() {
+		return new RecordVODataProvider(schemaVO, recordToVOBuilder, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Robot.PARENT)).isNull())
+						.filteredByStatus(StatusFilter.ACTIVES).sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	public void displayButtonClicked(RecordVO recordVO) {
+		view.navigateTo().robotConfiguration(recordVO.getId());
+	}
+
+	public void deleteButtonClicked(RecordVO recordVO) {
+		robotsService().deleteRobotHierarchy(recordVO.getId());
+		view.navigateTo().listRootRobots();
+	}
+
+	public void addButtonClicked() {
+		view.navigateTo().addRobot(null);
+	}
+}

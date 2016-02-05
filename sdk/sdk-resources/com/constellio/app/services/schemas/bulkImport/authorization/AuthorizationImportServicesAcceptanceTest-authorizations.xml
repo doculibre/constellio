@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<authorizations>
+    <!-->Not supported yet
+    <authorization id="existingAuthorizationToUpdate">
+        <access>rwd</access>
+        <principals>
+            <item type="user" username="alice"/>
+        </principals>
+        <targets>
+            <item type="document" legacyId="documentLegacyId"/>
+        </targets>
+    </authorization>
+    <authorization id="existingAuthorizationToDelete"/>
+
+
+    <authorization id="redundantAuthorization">
+        <roles>
+            <item>u</item>
+        </roles>
+        <principals>
+            <item type="user" username="alice"/>
+        </principals>
+        <targets>
+            <item type="folder" legacyId="folderLegacyId"/>
+        </targets>
+    </authorization>
+    <authorization id="redundantAuthorization">
+        <roles>
+            <item>rgd</item>
+        </roles>
+        <principals>
+            <item type="user" username="alice"/>
+        </principals>
+        <targets>
+            <item type="document" legacyId="documentLegacyId"/>
+        </targets>
+    </authorization>
+    </!-->
+    <authorization id="newInvalidAuthorizationWithInvalidRole">
+        <roles>
+            <item>role</item>
+        </roles>
+        <principals>
+            <item type="user" username="alice"/>
+        </principals>
+        <targets>
+            <item type="document" legacyId="documentLegacyId"/>
+        </targets>
+    </authorization>
+    <authorization id="newInvalidAuthorizationWithInvalidAccess">
+        <access>
+            lol
+        </access>
+        <principals>
+            <item type="user" username="alice"/>
+            <item type="group" groupCode="heroes"/>
+        </principals>
+        <targets>
+            <item type="document" legacyId="documentLegacyId"/>
+        </targets>
+    </authorization>
+    <!-->authorization with missing id</!-->
+    <authorization/>
+
+    <authorization id="newInvalidAuthorizationWithMissingTargets">
+        <access>
+            r
+        </access>
+        <principals>
+            <item type="user" username="alice"/>
+        </principals>
+        <targets>
+        </targets>
+    </authorization>
+    <authorization id="newInvalidAuthorizationWithMissingPrincipals">
+        <access>
+            r
+        </access>
+        <principals>
+        </principals>
+        <targets>
+            <item type="administrativeUnit" legacyId="administrativeUnitLegacyId"/>
+        </targets>
+    </authorization>
+    <authorization id="newInvalidAuthorizationWithInvalidTargetType">
+        <access>
+            r
+        </access>
+        <principals>
+            <item type="user" username="alice"/>
+        </principals>
+        <targets>
+            <item type="administrativeUnits" legacyId="administrativeUnitLegacyId"/>
+        </targets>
+    </authorization>
+    <authorization id="newInvalidAuthorizationWithInvalidPrincipalType">
+        <access>
+            r
+        </access>
+        <principals>
+            <item type="users" username="alice"/>
+        </principals>
+        <targets>
+            <item type="administrativeUnit" legacyId="administrativeUnitLegacyId"/>
+        </targets>
+    </authorization>
+    <authorization id="newInvalidAuthorizationWithAccessAndRoles">
+        <access>
+            r
+        </access>
+        <roles>
+            <item>u</item>
+        </roles>
+        <principals>
+            <item type="users" username="alice"/>
+        </principals>
+        <targets>
+            <item type="administrativeUnit" legacyId="administrativeUnitLegacyId"/>
+        </targets>
+    </authorization>
+    <authorization id="newValidAuthorization">
+        <roles>
+            <item>u</item>
+            <item>m</item>
+            <item>rgd</item>
+        </roles>
+        <principals>
+            <item type="user" username="alice"/>
+            <item type="group" groupCode="heroes"/>
+        </principals>
+        <targets>
+            <item type="document" legacyId="documentLegacyId"/>
+        </targets>
+    </authorization>
+</authorizations>

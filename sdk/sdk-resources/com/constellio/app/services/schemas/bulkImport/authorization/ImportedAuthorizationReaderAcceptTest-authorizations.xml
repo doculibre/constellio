@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<authorizations>
+    <authorization/>
+    <authorization id="authorizationId">
+        <access>rwd</access>
+        <roles>
+            <item>u</item>
+            <item>g</item>
+            <item>rgd</item>
+        </roles>
+        <principals>
+            <item type="user" username="alice"/>
+            <item type="group" groupCode="heroes"/>
+        </principals>
+        <targets>
+            <item type="folder" legacyId="folderLegacyId"/>
+            <item type="document" legacyId="documentLegacyId"/>
+            <item type="administrativeUnit" legacyId="administrativeUnitLegacyId"/>
+            <item type="userTask" legacyId="userTaskLegacyId"/>
+        </targets>
+    </authorization>
+</authorizations>

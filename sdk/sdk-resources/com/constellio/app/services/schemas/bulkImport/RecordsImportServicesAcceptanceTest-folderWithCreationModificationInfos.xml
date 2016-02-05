@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records datePattern="yyyy-MM-dd" datetimePattern="yyyy-MM-dd HH:mm:ss">
+    <record id="660">
+        <administrativeUnitEntered>code:2014AKA</administrativeUnitEntered>
+        <categoryEntered>22231</categoryEntered>
+        <copyStatusEntered>P</copyStatusEntered>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords multivalue="true">
+            <item>frozen</item>
+            <item>wonderland</item>
+        </keywords>
+        <mediumTypes multivalue="true">
+            <item>code:PA</item>
+            <item>code:DM</item>
+        </mediumTypes>
+        <deleted>true</deleted>
+        <actualTransferDate type="date">2010-05-29</actualTransferDate>
+        <retentionRuleEntered>code:1</retentionRuleEntered>
+        <title>A Wonderful and Cold Folder</title>
+        <createdOn type="datetime">2001-01-01 01:01:01</createdOn>
+        <createdBy>username:alice</createdBy>
+        <modifiedOn type="datetime">2002-02-02 02:02:02</modifiedOn>
+        <modifiedBy>username:bob</modifiedBy>
+    </record>
+    <record id="670">
+        <administrativeUnitEntered>code:2014AKA</administrativeUnitEntered>
+        <categoryEntered>code:X2223</categoryEntered>
+        <copyStatusEntered>S</copyStatusEntered>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords></keywords>
+        <mediumTypes>null</mediumTypes>
+        <actualTransferDate type="date">2010-05-29</actualTransferDate>
+        <retentionRuleEntered>code:3</retentionRuleEntered>
+        <title>A Wonderful |#!/$%?*()_+ Folder</title>
+        <formCreatedOn type="datetime">2001-01-01 01:01:01</formCreatedOn>
+        <formCreatedBy>username:charles</formCreatedBy>
+        <formModifiedOn type="datetime">2002-02-02 02:02:02</formModifiedOn>
+        <formModifiedBy>username:dakota</formModifiedBy>
+    </record>
+    <record id="661">
+        <parentFolder>660</parentFolder>
+        <title>A Wonderful and Cold (Sub)Folder</title>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords></keywords>
+        <formCreatedOn type="datetime">2003-03-03 03:03:03</formCreatedOn>
+        <formCreatedBy>username:edouard</formCreatedBy>
+        <formModifiedOn type="datetime">2004-04-04 04:04:04</formModifiedOn>
+        <formModifiedBy>username:gandalf</formModifiedBy>
+    </record>
+    <record id="662">
+        <parentFolder>660</parentFolder>
+        <openingDate type="date">2015-04-16</openingDate>
+        <title>A Wonderful and Cold (Sub)Folder Again</title>
+        <keywords></keywords>
+    </record>
+</records>

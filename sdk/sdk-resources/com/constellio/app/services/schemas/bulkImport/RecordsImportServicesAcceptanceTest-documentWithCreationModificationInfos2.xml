@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records datetimePattern="yyyy-MM-dd HH:mm:ss">
+    <record id="00000000001">
+        <title>The wonderful life of Dakota : An unexpected Journey</title>
+        <folder>662</folder>
+        <createdOn type="datetime">3001-01-01 01:01:01</createdOn>
+        <createdBy>username:chuck</createdBy>
+        <modifiedOn type="datetime">3002-02-02 02:02:02</modifiedOn>
+        <modifiedBy>username:chuck</modifiedBy>
+        <content type="content">
+            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg338.txt" filename="An unexpected Journey"
+                            major="true"/>
+        </content>
+    </record>
+    <record id="00000000003">
+        <title>The wonderful life of Dakota : The Kings Return</title>
+        <folder>662</folder>
+        <formCreatedOn type="datetime">3001-01-01 01:01:01</formCreatedOn>
+        <formCreatedBy>username:chuck</formCreatedBy>
+        <formModifiedOn type="datetime">3002-02-02 02:02:02</formModifiedOn>
+        <formModifiedBy>username:chuck</formModifiedBy>
+        <content type="content">
+            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg338.txt" filename="The Kings Return4" major="true"/>
+            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg339.txt" filename="The Kings Return5"
+                            major="false"/>
+            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg340.txt" filename="The Kings Return6" major="true"/>
+        </content>
+    </record>
+    <record id="00000000002">
+        <title>The wonderful life of Dakota : The Return of the Jedi</title>
+        <folder>662</folder>
+        <content type="content">
+            <contentVersion url="https://dl.dropboxusercontent.com/u/422508/pg338.txt" filename="The Return of the Jedi"/>
+        </content>
+        <createdOn type="datetime">2001-01-01 01:01:01</createdOn>
+        <createdBy>username:alice</createdBy>
+        <modifiedOn type="datetime">2002-02-02 02:02:02</modifiedOn>
+        <modifiedBy>username:bob</modifiedBy>
+    </record>
+</records>

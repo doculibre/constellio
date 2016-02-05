@@ -1,0 +1,2 @@
+dk.html is a duplicate of gorille.html
+all pages are also duplicated in the copy folder
