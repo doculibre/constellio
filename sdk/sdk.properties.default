@@ -15,9 +15,9 @@ dao.settings.type=filesystem
 
 # === RUN/SKIP TESTS CONFIGURATION ===
 skip.realTests=false
-skip.slowtests=false
-skip.uitests=false
-skip.drivertests=false
+skip.slowtests=true
+skip.uitests=true
+skip.drivertests=true
 skip.loadtests=true
 skip.alltests=false
 skip.indevelopment=true

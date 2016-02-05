@@ -6,7 +6,7 @@ include "data",
 
 if (new File("../constellio-plugins").exists()) {
     // Add new plugins below with the right name
-    include "plugins",
+    include "plugins"
 
 }
 
