@@ -1,8 +1,11 @@
 package com.constellio.sdk.tests;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
 
 import com.constellio.data.utils.PropertyFileUtils;
 
@@ -18,6 +21,12 @@ public class SDKPropertiesLoader {
 		}
 		if (sdkProperties == null) {
 			sdkProperties = loadSDKProperties();
+
+			for (String propertyName : System.getProperties().stringPropertyNames()) {
+				if (propertyName.startsWith("skip.")) {
+					sdkProperties.put(propertyName, System.getProperty(propertyName));
+				}
+			}
 		}
 		return sdkProperties;
 	}
@@ -26,7 +35,12 @@ public class SDKPropertiesLoader {
 		File sdkProperties = new SDKFoldersLocator().getSDKProperties();
 
 		if (!sdkProperties.exists()) {
-			throw new RuntimeException("'" + sdkProperties.getAbsolutePath() + "' does not exist in project 'sdk'.");
+			File defaultSdkProperties = new File(sdkProperties.getParentFile(), "sdk.properties.default");
+			try {
+				FileUtils.copyFile(defaultSdkProperties, sdkProperties);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 		return PropertyFileUtils.loadKeyValues(sdkProperties);

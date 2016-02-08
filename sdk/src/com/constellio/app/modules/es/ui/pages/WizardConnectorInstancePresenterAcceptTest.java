@@ -132,8 +132,7 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 			titles.add(recordVODataProvider.getRecordVO(i).getTitle());
 		}
 
-		assertThat(titles).containsOnly("Connecteur HTTP", "Connecteur SMB", "Connecteur LDAP", "Connecteur MS Exchange",
-				"Connecteur Sharepoint");
+		assertThat(titles).containsOnly("Connecteur HTTP", "Connecteur SMB", "Connecteur LDAP");
 	}
 
 	@Test
