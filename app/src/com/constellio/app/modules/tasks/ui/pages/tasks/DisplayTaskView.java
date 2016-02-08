@@ -1,4 +1,4 @@
-package com.constellio.app.modules.tasks.ui.pages;
+package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.tasks.ui.pages.viewGroups.TasksViewGroup;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;

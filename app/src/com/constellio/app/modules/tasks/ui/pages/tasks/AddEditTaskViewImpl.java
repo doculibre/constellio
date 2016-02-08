@@ -1,4 +1,4 @@
-package com.constellio.app.modules.tasks.ui.pages;
+package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
@@ -16,11 +16,11 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView {
-	
+
 	private final AddEditTaskPresenter presenter;
 
 	private TaskFormImpl recordForm;
-	
+
 	private TaskVO taskVO;
 
 	public AddEditTaskViewImpl() {
@@ -90,7 +90,7 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 				});
 			}
 		}
-		
+
 		return recordForm;
 	}
 

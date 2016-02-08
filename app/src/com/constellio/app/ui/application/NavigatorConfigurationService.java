@@ -42,8 +42,8 @@ import com.constellio.app.modules.robots.ui.pages.AddEditRobotViewImpl;
 import com.constellio.app.modules.robots.ui.pages.ListRootRobotsViewImpl;
 import com.constellio.app.modules.robots.ui.pages.RobotConfigurationViewImpl;
 import com.constellio.app.modules.robots.ui.pages.RobotLogsViewImpl;
-import com.constellio.app.modules.tasks.ui.pages.AddEditTaskViewImpl;
-import com.constellio.app.modules.tasks.ui.pages.DisplayTaskViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.TaskManagementViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.TasksLogsViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
@@ -404,7 +404,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(ROBOT_CONFIGURATION, RobotConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_ROBOT, AddEditRobotViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ROBOT_LOGS, RobotLogsViewImpl.class));
-		
+
 		viewProviders.add(new ClassBasedViewProvider(ADD_EMAIL_ATTACHMENTS_TO_FOLDER, AddEmailAttachmentsToFolderViewImpl.class));
 	}
 
