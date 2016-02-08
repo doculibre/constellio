@@ -354,6 +354,11 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		return returnList;
 	}
 
+	@Override
+	public boolean isRegistered(String id) {
+		return registeredPlugins.keySet().contains(id) || validUploadedPlugins.containsValue(id);
+	}
+
 	private void ensureStarted() {
 		if (pluginManager == null) {
 			throw new ConstellioPluginManagerRuntimeException("Cannot use plugin manager until it has been started");
