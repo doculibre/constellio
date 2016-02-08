@@ -114,20 +114,23 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		factory = new ConditionTemplateFactory(getModelLayerFactory(), zeCollection);
 	}
 
-	@Test
-	public void givenAListOfDocumentsWhenModifyingOneOfThemAndSearchItThenTheOldVersionIsReturned() throws Exception{
+	//TODO Majid @Test
+	public void givenAListOfDocumentsWhenModifyingOneOfThemAndSearchItThenTheOldVersionIsReturned()
+			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable));
 
-		
 		Record documentA, documentB, documentC, documentCNewVersion;
-		
+
 		transaction.addUpdate(documentA = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "This is a document A"));
-		transaction.addUpdate(documentB = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "This is an another document without misspelling"));
-		transaction.addUpdate(documentC = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Document with misspelling: this is a frist version of this document."));
-		transaction.addUpdate(documentCNewVersion = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Document without misspelling: this is a second version of this document."));
-		
+		transaction.addUpdate(documentB = newRecordOfZeSchema()
+				.set(zeSchema.stringMetadata(), "This is an another document without misspelling"));
+		transaction.addUpdate(documentC = newRecordOfZeSchema()
+				.set(zeSchema.stringMetadata(), "Document with misspelling: this is a frist version of this document."));
+		transaction.addUpdate(documentCNewVersion = newRecordOfZeSchema()
+				.set(zeSchema.stringMetadata(), "Document without misspelling: this is a second version of this document."));
+
 		recordServices.execute(transaction);
-		
+
 		condition = fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(documentCNewVersion);
 
 		//when
@@ -135,53 +138,54 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		query.setQueryCondition(condition);
 		query.setMoreLikeThis(true);
 		query.addMoreLikeThisField(zeSchema.stringMetadata());
-		
+
 		Map<Record, Map<Record, Double>> resutls = searchServices.searchWithMoreLikeThis(query);
-		
+
 		assertThat(resutls).hasSize(1);
 		Map<Record, Double> similarDocs = resutls.entrySet().iterator().next().getValue();
-		
+
 		List<Record> docsInOrder = new ArrayList<>();
-		for (Entry<Record, Double> record: similarDocs.entrySet()){
+		for (Entry<Record, Double> record : similarDocs.entrySet()) {
 			docsInOrder.add(record.getKey());
 		}
-		
+
 		assertThat(docsInOrder).containsExactly(documentC, documentB, documentA);
 	}
-	
-	public String createAContentWithWords(Random random, String[] words){
+
+	public String createAContentWithWords(Random random, String[] words) {
 
 		final int WORD_DOC_CNT = 10;
 		StringBuilder sb = new StringBuilder();
-		
-		for (int i = 0; i < WORD_DOC_CNT; i++){
+
+		for (int i = 0; i < WORD_DOC_CNT; i++) {
 			if (sb.length() != 0)
 				sb.append(" ");
 			sb.append(words[random.nextInt(words.length)]);
 		}
 		return sb.toString();
 	}
-	
-	@Test
-	public void givenTwoTopicsWhenSearchingForADocumentThenItsTopicIsAutomaticallyIdentifiedFromSearchResult() throws Exception{
+
+	//TODO Magid @Test
+	public void givenTwoTopicsWhenSearchingForADocumentThenItsTopicIsAutomaticallyIdentifiedFromSearchResult()
+			throws Exception {
 		//given
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
-		String[] politicsWords = new String[]{"party", "democrat", "president", "election", "vote"};
-		String[] sportWords = new String[]{"hockey", "team", "game", "play", "league"};
-		String[][] topics = new String[][]{politicsWords, sportWords};
-		String[] topicNames = new String[]{"POLICTICS", "SPORT"};
-		
+		String[] politicsWords = new String[] { "party", "democrat", "president", "election", "vote" };
+		String[] sportWords = new String[] { "hockey", "team", "game", "play", "league" };
+		String[][] topics = new String[][] { politicsWords, sportWords };
+		String[] topicNames = new String[] { "POLICTICS", "SPORT" };
+
 		final int TOPIC_DOC_CNT = 10;
 		Random random = new Random(77655467554l);
-		for (int topicIdx = 0; topicIdx < topicNames.length; topicIdx++){
+		for (int topicIdx = 0; topicIdx < topicNames.length; topicIdx++) {
 			String topicName = topicNames[topicIdx];
 			String[] words = topics[topicIdx];
-			for (int i = 0 ; i < TOPIC_DOC_CNT; i++){
+			for (int i = 0; i < TOPIC_DOC_CNT; i++) {
 				transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
 						, createAContentWithWords(random, words)).set(zeSchema.anotherStringMetadata(), topicName));
 			}
 		}
-		
+
 		int docTopicIdx = 1;
 		Record docToBeClassified;
 		transaction.addUpdate(docToBeClassified = newRecordOfZeSchema().set(
@@ -195,25 +199,26 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		query.setQueryCondition(condition);
 		query.setMoreLikeThis(true);
 		query.addMoreLikeThisField(zeSchema.stringMetadata());
-		
+
 		Map<Record, Map<Record, Double>> resutls = searchServices.searchWithMoreLikeThis(query);
-		
+
 		assertThat(resutls).hasSize(1);
 		assertThat(resutls.entrySet().iterator().next().getValue()).isNotEmpty();
 		//then
 
-		MoreLikeThisClustering facet = new MoreLikeThisClustering(resutls.get(docToBeClassified), new MoreLikeThisClustering.StringConverter<Record>() {
+		MoreLikeThisClustering facet = new MoreLikeThisClustering(resutls.get(docToBeClassified),
+				new MoreLikeThisClustering.StringConverter<Record>() {
 
-			@Override
-			public String converToString(Record record) {
-				return record.get(zeSchema.anotherStringMetadata());
-			}
-		});
-		
-		String suggestedTopic = facet.getClusterScore().entrySet().iterator().next().getKey(); 
+					@Override
+					public String converToString(Record record) {
+						return record.get(zeSchema.anotherStringMetadata());
+					}
+				});
+
+		String suggestedTopic = facet.getClusterScore().entrySet().iterator().next().getKey();
 		assertThat(suggestedTopic).isEqualTo(topicNames[docTopicIdx]);
 	}
-	
+
 	@Test
 	public void whenSearchingRecordsReturningWithFullValueContainingSpacesAsteriskAndQuestionMarkThenFindResult()
 			throws Exception {
