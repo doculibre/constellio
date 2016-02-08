@@ -208,7 +208,7 @@ public class MetadataFieldFactory implements Serializable {
 				}
 				break;
 			case CONTENT:
-				// Two input types : CONTENT OR CONTENT_CHECK_IN_CHECK_OUT
+				// Two input types : CONTENTS OR CONTENT_CHECK_IN_CHECK_OUT
 				switch (metadataInputType) {
 				case CONTENT_CHECK_IN_CHECK_OUT:
 					field = new ContentVersionUploadField();

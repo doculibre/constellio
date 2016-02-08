@@ -106,4 +106,6 @@ public class EventType {
 
 	public static final String DELETE_TASK = "delete_userTask";
 
+	//workflows
+	public static final String WORKFLOW_STARTED = "start_workflow";
 }

@@ -174,7 +174,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				for (MetadataBuilder metadata : typeBuilder.getAllMetadatas()) {
 					if (metadata.getLocalCode().equals("comments")) {
-						//Vaults started in version 5.0.1 has a CONTENT type instead of STRUCTURE
+						//Vaults started in version 5.0.1 has a CONTENTS type instead of STRUCTURE
 						metadata.setTypeWithoutValidation(MetadataValueType.STRUCTURE);
 					}
 

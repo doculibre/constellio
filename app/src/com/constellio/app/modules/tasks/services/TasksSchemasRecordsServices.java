@@ -1,6 +1,9 @@
 package com.constellio.app.modules.tasks.services;
 
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -10,6 +13,8 @@ import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -17,7 +22,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -169,8 +173,16 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("assigner");
 		}
 
-		public Metadata content() {
-			return metadata("content");
+		public Metadata comments() {
+			return metadata("comments");
+		}
+
+		public Metadata contents() {
+			return metadata("contents");
+		}
+
+		public Metadata decision() {
+			return metadata("decision");
 		}
 
 		public Metadata description() {
@@ -185,12 +197,36 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("endDate");
 		}
 
+		public Metadata isModel() {
+			return metadata("isModel");
+		}
+
+		public Metadata modelTask() {
+			return metadata("modelTask");
+		}
+
 		public Metadata nextReminderOn() {
 			return metadata("nextReminderOn");
 		}
 
+		public Metadata nextTaskCreated() {
+			return metadata("nextTaskCreated");
+		}
+
+		public Metadata nextTasks() {
+			return metadata("nextTasks");
+		}
+
+		public Metadata nextTasksDecisions() {
+			return metadata("nextTasksDecisions");
+		}
+
 		public Metadata parentTask() {
 			return metadata("parentTask");
+		}
+
+		public Metadata parentTaskDueDate() {
+			return metadata("parentTaskDueDate");
 		}
 
 		public Metadata progressPercentage() {
@@ -209,12 +245,160 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("status");
 		}
 
+		public Metadata statusType() {
+			return metadata("statusType");
+		}
+
 		public Metadata taskFollowers() {
 			return metadata("taskFollowers");
 		}
 
 		public Metadata taskFollowersIds() {
 			return metadata("taskFollowersIds");
+		}
+
+		public Metadata type() {
+			return metadata("type");
+		}
+
+		public Metadata workflow() {
+			return metadata("workflow");
+		}
+
+		public Metadata workflowInstance() {
+			return metadata("workflowInstance");
+		}
+
+		public Metadata workflowTaskSort() {
+			return metadata("workflowTaskSort");
+		}
+	}
+
+	public Workflow wrapWorkflow(Record record) {
+		return record == null ? null : new Workflow(record, getTypes());
+	}
+
+	public List<Workflow> wrapWorkflows(List<Record> records) {
+		List<Workflow> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new Workflow(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<Workflow> searchWorkflows(LogicalSearchQuery query) {
+		return wrapWorkflows(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	}
+
+	public List<Workflow> searchWorkflows(LogicalSearchCondition condition) {
+		MetadataSchemaType type = workflow.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapWorkflows(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	}
+
+	public Workflow getWorkflow(String id) {
+		return wrapWorkflow(get(id));
+	}
+
+	public List<Workflow> getWorkflows(List<String> ids) {
+		return wrapWorkflows(get(ids));
+	}
+
+	public Workflow getWorkflowWithCode(String code) {
+		return wrapWorkflow(getByCode(workflow.schemaType(), code));
+	}
+
+	public Workflow getWorkflowWithLegacyId(String legacyId) {
+		return wrapWorkflow(getByLegacyId(workflow.schemaType(), legacyId));
+	}
+
+	public Workflow newWorkflow() {
+		return wrapWorkflow(create(workflow.schema()));
+	}
+
+	public Workflow newWorkflowWithId(String id) {
+		return wrapWorkflow(create(workflow.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_workflow_default workflow
+			= new SchemaTypeShortcuts_workflow_default("workflow_default");
+
+	public class SchemaTypeShortcuts_workflow_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_workflow_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata code() {
+			return metadata("code");
+		}
+	}
+
+	public WorkflowInstance wrapWorkflowInstance(Record record) {
+		return record == null ? null : new WorkflowInstance(record, getTypes());
+	}
+
+	public List<WorkflowInstance> wrapWorkflowInstances(List<Record> records) {
+		List<WorkflowInstance> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new WorkflowInstance(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<WorkflowInstance> searchWorkflowInstances(LogicalSearchQuery query) {
+		return wrapWorkflowInstances(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	}
+
+	public List<WorkflowInstance> searchWorkflowInstances(LogicalSearchCondition condition) {
+		MetadataSchemaType type = workflowInstance.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapWorkflowInstances(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	}
+
+	public WorkflowInstance getWorkflowInstance(String id) {
+		return wrapWorkflowInstance(get(id));
+	}
+
+	public List<WorkflowInstance> getWorkflowInstances(List<String> ids) {
+		return wrapWorkflowInstances(get(ids));
+	}
+
+	public WorkflowInstance getWorkflowInstanceWithLegacyId(String legacyId) {
+		return wrapWorkflowInstance(getByLegacyId(workflowInstance.schemaType(), legacyId));
+	}
+
+	public WorkflowInstance newWorkflowInstance() {
+		return wrapWorkflowInstance(create(workflowInstance.schema()));
+	}
+
+	public WorkflowInstance newWorkflowInstanceWithId(String id) {
+		return wrapWorkflowInstance(create(workflowInstance.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_workflowInstance_default workflowInstance
+			= new SchemaTypeShortcuts_workflowInstance_default("workflowInstance_default");
+
+	public class SchemaTypeShortcuts_workflowInstance_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_workflowInstance_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata startedBy() {
+			return metadata("startedBy");
+		}
+
+		public Metadata startedOn() {
+			return metadata("startedOn");
+		}
+
+		public Metadata status() {
+			return metadata("status");
+		}
+
+		public Metadata workflow() {
+			return metadata("workflow");
 		}
 	}
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
@@ -277,4 +461,21 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return new Task(record, getTypes()).setType(typeId);
 	}
 
+	public Task newWorkflowModelTask(Workflow workflow) {
+		return wrapTask(create(userTask.schema())).setModel(true).setWorkflow(workflow);
+	}
+
+	public Task newWorkflowModelTaskWithType(Workflow workflow, String typeId) {
+		Task task = wrapTask(create(taskSchemaFor(typeId))).setModel(true).setWorkflow(workflow);
+		TaskType taskType = getTaskType(typeId);
+		task.setType(taskType);
+		return task;
+	}
+
+	public List<TaskStatus> getFinishedOrClosedStatuses() {
+		List<TaskStatus> status = new ArrayList<>();
+		status.addAll(searchTaskStatuss(where(ddvTaskStatus.statusType()).is(FINISHED)));
+		status.add(getTaskStatusWithCode(CLOSED_CODE));
+		return status;
+	}
 }
