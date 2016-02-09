@@ -141,7 +141,7 @@ public class TaskTable extends RecordVOTable {
 
 		void closeButtonClicked(RecordVO record);
 
-		boolean isTaskOverDue(TaskVO taskVO);
+		boolean isTaskOverdue(TaskVO taskVO);
 
 		boolean isFinished(TaskVO taskVO);
 
@@ -172,7 +172,7 @@ public class TaskTable extends RecordVOTable {
 				TaskVO taskVO = new TaskVO(item.getRecord());
 				if (presenter.isFinished(taskVO)) {
 					style = FINISHED_TASK_STYLE;
-				} else if (presenter.isTaskOverDue(taskVO)) {
+				} else if (presenter.isTaskOverdue(taskVO)) {
 					style = OVER_DUE_TASK_STYLE;
 				} else {
 					style = null;

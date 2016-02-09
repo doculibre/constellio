@@ -117,8 +117,8 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	@Override
-	public boolean isTaskOverDue(TaskVO taskVO) {
-		return taskPresenterServices.isTaskOverDue(taskVO);
+	public boolean isTaskOverdue(TaskVO taskVO) {
+		return taskPresenterServices.isTaskOverdue(taskVO);
 	}
 
 	@Override
