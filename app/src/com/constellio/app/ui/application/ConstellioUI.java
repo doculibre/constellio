@@ -60,16 +60,16 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 
 	private List<RecordContextMenuHandler> recordContextMenuHandlers = new ArrayList<>();
 
-    public final RequestHandler requestHandler = new ConstellioResourceHandler();
+	public final RequestHandler requestHandler = new ConstellioResourceHandler();
 
-    private KerberosServices kerberosServices;
+	private KerberosServices kerberosServices;
 
-		@Override
+	@Override
 	protected void init(VaadinRequest request) {
-        getSession().addRequestHandler(requestHandler);
+		getSession().addRequestHandler(requestHandler);
 
 		kerberosServices = KerberosServices.getInstance();
-		
+
 		Page.getCurrent().setTitle($("ConstellioUI.pageTitle"));
 
 		// Important to allow update of components in current UI from another Thread
@@ -86,7 +86,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		}
 
 		Responsive.makeResponsive(this);
-//		addStyleName(ValoTheme.UI_WITH_MENU);
+		//		addStyleName(ValoTheme.UI_WITH_MENU);
 		addStyleName("ui-with-top-menu");
 
 		// Some views need to be aware of browser resize events so a
@@ -115,12 +115,12 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		}
 	}
 
-    @Override
-    public void detach() {
-        super.detach();
-        getSession().removeRequestHandler(requestHandler);
-    }
-	
+	@Override
+	public void detach() {
+		super.detach();
+		getSession().removeRequestHandler(requestHandler);
+	}
+
 	private UserVO ssoAuthenticate() {
 		UserVO currentUserVO;
 
@@ -128,19 +128,19 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		
+
 		VaadinRequest vaadinRequest = VaadinService.getCurrentRequest();
 		Principal userPrincipal = vaadinRequest.getUserPrincipal();
 		String username = userPrincipal.getName();
-		
+
 		UserCredential userCredential = userServices.getUserCredential(username);
 		if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
 			List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
-			
+
 			String lastCollection = null;
 			User userInLastCollection = null;
 			LocalDateTime lastLogin = null;
-			
+
 			for (String collection : collections) {
 				User userInCollection = userServices.getUserInCollection(username, collection);
 				if (userInLastCollection == null) {
@@ -172,7 +172,8 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 				}
 
 				modelLayerFactory.newLoggingServices().login(userInLastCollection);
-				currentUserVO = new UserToVOBuilder().build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
+				currentUserVO = new UserToVOBuilder()
+						.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 				sessionContext.setCurrentUser(currentUserVO);
 				sessionContext.setCurrentCollection(lastCollection);
 			} else {
@@ -192,7 +193,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		} else {
 			ConstellioFactories constellioFactories = getConstellioFactories();
 			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-			
+
 			UserVO currentUserVO = sessionContext.getCurrentUser();
 			if (currentUserVO == null && kerberosServices.isEnabled()) {
 				currentUserVO = ssoAuthenticate();
@@ -225,18 +226,18 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 							enterViewListener.enterView(newView);
 						}
 
-//						if (enterViewListeners.isEmpty() && !isProductionMode()) {
-//							try {
-//								ConstellioSerializationUtils.validateSerializable(event.getOldView());
-//							} catch (Exception e) {
-//								LOGGER.warn(e.getMessage(), e);
-//							}
-//							try {
-//								ConstellioSerializationUtils.validateSerializable(event.getNewView());
-//							} catch (Exception e) {
-//								LOGGER.warn(e.getMessage(), e);
-//							}
-//						}
+						//						if (enterViewListeners.isEmpty() && !isProductionMode()) {
+						//							try {
+						//								ConstellioSerializationUtils.validateSerializable(event.getOldView());
+						//							} catch (Exception e) {
+						//								LOGGER.warn(e.getMessage(), e);
+						//							}
+						//							try {
+						//								ConstellioSerializationUtils.validateSerializable(event.getNewView());
+						//							} catch (Exception e) {
+						//								LOGGER.warn(e.getMessage(), e);
+						//							}
+						//						}
 					}
 				});
 

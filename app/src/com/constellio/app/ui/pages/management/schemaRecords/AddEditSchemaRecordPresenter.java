@@ -40,9 +40,9 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 
 	public RecordVO getRecordVO(String id) {
 		if (StringUtils.isNotBlank(id)) {
-			return presenterService().getRecordVO(id, VIEW_MODE.FORM);
+			return presenterService().getRecordVO(id, VIEW_MODE.FORM, view.getSessionContext());
 		} else {
-			return new RecordToVOBuilder().build(newRecord(), VIEW_MODE.FORM);
+			return new RecordToVOBuilder().build(newRecord(), VIEW_MODE.FORM, view.getSessionContext());
 		}
 	}
 

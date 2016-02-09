@@ -21,13 +21,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class DocumentContentVersionPresenter implements Serializable {
-	
+
 	private DocumentContentVersionWindow window;
-	
+
 	private DocumentVO documentVO;
-	
+
 	private ContentVersionVO contentVersionVO;
-	
+
 	private String agentURL;
 
 	private SchemaPresenterUtils presenterUtils;
@@ -35,27 +35,27 @@ public class DocumentContentVersionPresenter implements Serializable {
 	private DocumentToVOBuilder documentVOBuilder;
 
 	private transient ConstellioFactories constellioFactories;
-	
+
 	private transient ModelLayerFactory modelLayerFactory;
-	
+
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
 	public DocumentContentVersionPresenter(DocumentContentVersionWindow window) {
 		this.window = window;
 
 		initTransientObjects();
-		
+
 		RecordVO recordVO = window.getRecordVO();
 		Record record = rmSchemasRecordsServices.get(recordVO.getId());
-		documentVO = documentVOBuilder.build(record, VIEW_MODE.DISPLAY);
+		documentVO = documentVOBuilder.build(record, VIEW_MODE.DISPLAY, window.getSessionContext());
 		contentVersionVO = documentVO.getContent();
 
 		SessionContext sessionContext = window.getSessionContext();
 		presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, constellioFactories, sessionContext);
-		
+
 		boolean checkOutLinkVisible = isCheckOutLinkVisible();
 		window.setCheckOutLinkVisible(checkOutLinkVisible);
-		
+
 		String readOnlyMessage;
 		if (!hasWritePermission()) {
 			readOnlyMessage = $("DocumentContentVersionWindow.noWritePermission");
@@ -69,7 +69,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 			readOnlyMessage = null;
 		}
 		window.setReadOnlyMessage(readOnlyMessage);
-		
+
 		if (ConstellioAgentUtils.isAgentSupported()) {
 			agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
 		} else {
@@ -83,18 +83,18 @@ public class DocumentContentVersionPresenter implements Serializable {
 		stream.defaultReadObject();
 		initTransientObjects();
 	}
-	
+
 	private void initTransientObjects() {
 		SessionContext sessionContext = window.getSessionContext();
 		String collection = sessionContext.getCurrentCollection();
-		
+
 		constellioFactories = window.getConstellioFactories();
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
-		
+
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		documentVOBuilder = new DocumentToVOBuilder(modelLayerFactory);
 	}
-	
+
 	private boolean hasWritePermission() {
 		User currentUser = presenterUtils.getCurrentUser();
 		Record record = presenterUtils.getRecord(documentVO.getId());
@@ -126,14 +126,14 @@ public class DocumentContentVersionPresenter implements Serializable {
 		String documentId = documentVO.getId();
 		window.navigateTo().displayDocument(documentId);
 	}
-	
+
 	void checkOutLinkClicked() {
 		if (!isCheckedOut()) {
 			User currentUser = presenterUtils.getCurrentUser();
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			document.getContent().checkOut(currentUser);
 			presenterUtils.addOrUpdate(document.getWrappedRecord());
-			
+
 			window.closeWindow();
 			if (agentURL != null) {
 				window.open(agentURL);

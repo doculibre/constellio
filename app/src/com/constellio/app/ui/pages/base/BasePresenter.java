@@ -113,7 +113,8 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 					//Switching to other collection
 					UserToVOBuilder voBuilder = new UserToVOBuilder();
 					SessionContext sessionContext = presenterUtils.sessionContext;
-					UserVO newUserVO = voBuilder.build(userInOtherCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
+					UserVO newUserVO = voBuilder
+							.build(userInOtherCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 					sessionContext.setCurrentCollection(restrictedRecordsCollection);
 					sessionContext.setCurrentUser(newUserVO);
 					view.updateUI();
@@ -191,7 +192,7 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 	protected User getCurrentUser() {
 		return presenterUtils.getCurrentUser();
 	}
-	
+
 	public final void clearCurrentUserCache() {
 		presenterUtils.clearCurrentUserCache();
 	}

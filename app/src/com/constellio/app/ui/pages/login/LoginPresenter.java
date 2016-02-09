@@ -14,7 +14,6 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.LogoUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
@@ -120,7 +119,8 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 
 					modelLayerFactory.newLoggingServices().login(userInLastCollection);
 					SessionContext sessionContext = view.getSessionContext();
-					UserVO currentUser = voBuilder.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
+					UserVO currentUser = voBuilder
+							.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 					sessionContext.setCurrentUser(currentUser);
 					sessionContext.setCurrentCollection(userInLastCollection.getCollection());
 					view.updateUIContent();

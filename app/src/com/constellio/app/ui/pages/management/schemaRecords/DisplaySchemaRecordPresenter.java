@@ -30,7 +30,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	}
 
 	public RecordVO getRecordVO(String id) {
-		return presenterService().getRecordVO(id, VIEW_MODE.DISPLAY);
+		return presenterService().getRecordVO(id, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public void backButtonClicked() {

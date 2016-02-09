@@ -75,7 +75,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		List<UserDocumentVO> userDocumentVOs = new ArrayList<UserDocumentVO>();
 		List<Record> matches = searchServices.search(query);
 		for (Record match : matches) {
-			UserDocumentVO userDocumentVO = (UserDocumentVO) voBuilder.build(match, VIEW_MODE.FORM);
+			UserDocumentVO userDocumentVO = (UserDocumentVO) voBuilder.build(match, VIEW_MODE.FORM, view.getSessionContext());
 			userDocumentVOs.add(userDocumentVO);
 		}
 		return userDocumentVOs;
@@ -109,7 +109,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 				file.deleteOnExit();
 			}
 		};
-		UserDocumentVO newUserDocumentVO = (UserDocumentVO) voBuilder.build(newRecord, VIEW_MODE.FORM);
+		UserDocumentVO newUserDocumentVO = (UserDocumentVO) voBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
 		ContentVersionVO contentVersionVO = new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null,
 				null, null, null, inputStreamProvider);
 		contentVersionVO.setMajorVersion(true);
@@ -123,7 +123,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 			addOrUpdate(newRecord);
 			contentVersionVO.getInputStreamProvider().deleteTemp();
 
-			newUserDocumentVO = (UserDocumentVO) voBuilder.build(newRecord, VIEW_MODE.FORM);
+			newUserDocumentVO = (UserDocumentVO) voBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
 			view.addUserDocument(newUserDocumentVO);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);

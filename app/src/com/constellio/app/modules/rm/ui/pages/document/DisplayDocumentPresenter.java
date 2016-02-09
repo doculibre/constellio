@@ -113,7 +113,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			if (ObjectUtils.notEqual(contentVersionNumber, currentContentVersionNumber)
 					|| ObjectUtils.notEqual(checkoutUserId, currentCheckoutUserId)
 					|| ObjectUtils.notEqual(length, currentLength)) {
-				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY);
+				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
 				view.setDocumentVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();

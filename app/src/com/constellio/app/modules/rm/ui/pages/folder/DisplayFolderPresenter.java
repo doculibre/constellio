@@ -577,7 +577,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					Document document = rmSchemasRecordsServices.newDocument();
 					newRecord = document.getWrappedRecord();
 				}
-				DocumentVO documentVO = documentVOBuilder.build(newRecord, VIEW_MODE.FORM);
+				DocumentVO documentVO = documentVOBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
 				documentVO.setFolder(folderVO);
 				documentVO.setTitle(fileName);
 				documentVO.setContent(uploadedContentVO);
