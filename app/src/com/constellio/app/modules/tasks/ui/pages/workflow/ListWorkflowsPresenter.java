@@ -17,11 +17,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 
 public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkflowsView> {
-	
 	private transient WorkflowServices workflowServices;
-	
 	private WorkflowToVoBuilder voBuilder;
-	
 	private List<WorkflowVO> workflowVOs = new ArrayList<WorkflowVO>();
 
 	public ListWorkflowsPresenter(ListWorkflowsView view) {
@@ -51,23 +48,23 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
 	}
-	
+
 	void backButtonClicked() {
 		view.navigateTo().tasksManagement();
 	}
-	
+
 	void addButtonClicked() {
 		view.navigateTo().addWorkflow();
 	}
-	
+
 	void displayButtonClicked(WorkflowVO workflowVO) {
 		view.navigateTo().displayWorkflow(workflowVO.getId());
 	}
-	
+
 	void editButtonClicked(WorkflowVO workflowVO) {
 		view.navigateTo().editWorkflow(workflowVO.getId());
 	}
-	
+
 	void deleteButtonClicked(WorkflowVO workflowVO) {
 		try {
 			Record workflowRecord = toRecord(workflowVO);
@@ -79,6 +76,6 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
 			view.showErrorMessage(MessageUtils.toMessage(exception));
 		}
-	}	
+	}
 
 }

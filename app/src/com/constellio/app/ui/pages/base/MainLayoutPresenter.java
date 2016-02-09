@@ -38,8 +38,7 @@ public class MainLayoutPresenter implements Serializable {
 		ConstellioModulesManagerImpl manager = (ConstellioModulesManagerImpl) mainLayout.getHeader().getConstellioFactories()
 				.getAppLayerFactory().getModulesManager();
 		NavigationConfig config = manager.getNavigationConfig(mainLayout.getHeader().getCollection());
-		items.addAll(config.getNavigation(MainLayout.MAIN_LAYOUT_NAVIGATION1));
-		items.addAll(config.getNavigation(MainLayout.MAIN_LAYOUT_NAVIGATION2));
+		items.addAll(config.getNavigation(MainLayout.MAIN_LAYOUT_NAVIGATION));
 
 		Collections.sort(items);
 

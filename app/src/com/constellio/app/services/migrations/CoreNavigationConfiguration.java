@@ -25,7 +25,6 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String CONFIG = "config";
 	public static final String CONFIG_ICON = "images/icons/config/configuration.png";
 	public static final String LDAP_CONFIG = "ldapConfig";
-	public static final String PLUGIN_CONFIG = "pluginConfig";
 	public static final String LDAP_CONFIG_ICON = "images/icons/config/address_book3.png";
 	public static final String GROUPS = "groups";
 	public static final String GROUPS_ICON = "images/icons/config/group.png";
@@ -361,7 +360,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	}
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION1,
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(RECORDS_MANAGEMENT, RecordsManagementViewGroup.class) {
 					@Override
 					public void activate(ConstellioNavigator navigateTo) {
@@ -379,7 +378,7 @@ public class CoreNavigationConfiguration implements Serializable {
 					}
 				});
 
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(ADMIN_MODULE, AdminViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(ADMIN_MODULE, AdminViewGroup.class) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
 				navigateTo.adminModule();
@@ -405,5 +404,4 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 		});
 	}
-
 }
