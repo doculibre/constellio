@@ -16,6 +16,7 @@ import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_0_7;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_2;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_3;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo6_0;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -31,9 +32,10 @@ public class TaskModule implements InstallableModule {
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
 		return Arrays.asList(
-				(MigrationScript) new TasksMigrationTo5_0_7(),
+				new TasksMigrationTo5_0_7(),
 				new TasksMigrationTo5_1_2(),
-				new TasksMigrationTo5_1_3());
+				new TasksMigrationTo5_1_3(),
+				new TasksMigrationTo6_0());
 	}
 
 	@Override
@@ -65,7 +67,6 @@ public class TaskModule implements InstallableModule {
 
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		cache.configureCache(CacheConfig.volatileCache(taskSchemas.userTask.schemaType(), 1000));
-		//cache.configureCache(CacheConfig.permanentCache(taskSchemas.ddvTaskStatus.schemaType()));
 	}
 
 	@Override
