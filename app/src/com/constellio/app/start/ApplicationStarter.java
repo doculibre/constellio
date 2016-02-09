@@ -69,7 +69,7 @@ public class ApplicationStarter {
 				Filter filter = filters.get(pathSpec);
 				handler.addFilter(new FilterHolder(filter), pathSpec, EnumSet.allOf(DispatcherType.class));
 			}
-			
+
 			for (String pathSpec : servlets.keySet()) {
 				Servlet servlet = servlets.get(pathSpec);
 				handler.addServlet(new ServletHolder(servlet), pathSpec);
@@ -118,21 +118,29 @@ public class ApplicationStarter {
 	}
 
 	public static void registerServlet(String pathRelativeToConstellioContext, Servlet servlet) {
-		if (!servlets.containsKey(pathRelativeToConstellioContext)){
-			servlets.put(pathRelativeToConstellioContext, servlet);
+		if (handler == null) {
+			if (!servlets.containsKey(pathRelativeToConstellioContext)) {
+				servlets.put(pathRelativeToConstellioContext, servlet);
+			}
+		} else {
+			handler.addServlet(new ServletHolder(servlet), pathRelativeToConstellioContext);
 		}
 	}
 
 	public static void registerFilter(String pathRelativeToConstellioContext, Filter filter) {
-		if (!filters.containsKey(pathRelativeToConstellioContext)){
-			filters.put(pathRelativeToConstellioContext, filter);
+		if (handler == null) {
+			if (!filters.containsKey(pathRelativeToConstellioContext)) {
+				filters.put(pathRelativeToConstellioContext, filter);
+			}
+		} else {
+			handler.addFilter(new FilterHolder(filter), pathRelativeToConstellioContext, EnumSet.allOf(DispatcherType.class));
 		}
 	}
-	
+
 	public static void resetServlets() {
 		servlets.clear();
 	}
-	
+
 	public static void resetFilters() {
 		filters.clear();
 	}
