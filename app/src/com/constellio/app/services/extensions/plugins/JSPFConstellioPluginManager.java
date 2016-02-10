@@ -183,8 +183,6 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		int pluginsWithPluginIdCount = 0;
 		InstallableModule newInstallableModule = null;
 		for (InstallableModule plugin : pluginsAfter) {
-			String id = plugin.getId();
-			System.out.println(id);
 			if (plugin.getId() != null && plugin.getId().equals(pluginId)) {
 				newInstallableModule = plugin;
 				pluginsWithPluginIdCount++;

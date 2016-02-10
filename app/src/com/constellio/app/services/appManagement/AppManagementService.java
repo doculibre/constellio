@@ -135,6 +135,7 @@ public class AppManagementService {
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
 			if (VersionsComparator.isFirstVersionBeforeSecond(warVersion, currentWarVersion)) {
+				LOGGER.warn("Trying to install lower version " + warVersion + "\n\tCurrent version is " + currentWarVersion);
 				throw new WarFileVersionMustBeHigher();
 			}
 

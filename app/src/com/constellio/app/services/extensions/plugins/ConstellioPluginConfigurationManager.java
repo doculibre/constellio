@@ -78,6 +78,7 @@ public class ConstellioPluginConfigurationManager {
 			throw new RuntimeException("Unsupported status " + status);
 		}
 		setPluginAttributeValue(pluginId, STATUS_ATTRIBUTE, ENABLED.toString());
+		setPluginAttributeValue(pluginId, STACK_TRACE, "");
 	}
 
 	private ConstellioPluginStatus prValidateModule(String pluginId)
