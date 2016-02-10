@@ -243,7 +243,8 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		return plugins;
 	}
 
-	private List<InstallableModule> getActivePluginModules() {
+	@Override
+	public List<InstallableModule> getActivePluginModules() {
 		List<InstallableModule> returnList = new ArrayList<>();
 		List<String> activePluginModulesIds = pluginConfigManger.getActivePluginsIds();
 		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
