@@ -6,17 +6,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
-import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.extensions.impl.DefaultPagesComponentsExtension;
 import com.constellio.app.modules.complementary.ESRMRobotsModule;
