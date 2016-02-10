@@ -31,6 +31,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	}
 
 	@Override
+	protected String getTitle() {
+		return $("TasksManagementView.viewTitle");
+	}
+
+	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
 		buttons.add(new AddButton($("TasksManagementView.add")) {
@@ -64,11 +69,6 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	@Override
 	public void reloadCurrentTab() {
 		presenter.tabSelected(sheet.getSelectedTab().getId());
-	}
-
-	@Override
-	protected String getTitle() {
-		return $("TasksManagementView.viewTitle");
 	}
 
 	@Override

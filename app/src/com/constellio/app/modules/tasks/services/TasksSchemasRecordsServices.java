@@ -472,6 +472,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return task;
 	}
 
+	public Task newWorkflowModelTaskWithId(String id, Workflow workflow) {
+		return wrapTask(create(userTask.schema(), id)).setModel(true).setWorkflow(workflow);
+	}
+
 	public List<TaskStatus> getFinishedOrClosedStatuses() {
 		List<TaskStatus> status = new ArrayList<>();
 		status.addAll(searchTaskStatuss(where(ddvTaskStatus.statusType()).is(FINISHED)));

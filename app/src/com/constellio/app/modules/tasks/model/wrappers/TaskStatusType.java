@@ -3,7 +3,6 @@ package com.constellio.app.modules.tasks.model.wrappers;
 import com.constellio.model.entities.EnumWithSmallCode;
 
 public enum TaskStatusType implements EnumWithSmallCode {
-
 	STANDBY("S"), IN_PROGRESS("I"), FINISHED("F"), CLOSED("C");
 
 	private String code;
@@ -18,6 +17,10 @@ public enum TaskStatusType implements EnumWithSmallCode {
 
 	public boolean isFinished() {
 		return this == FINISHED;
+	}
+
+	public boolean isFinishedOrClosed() {
+		return this == FINISHED || this == CLOSED;
 	}
 
 	public boolean isAfterFinished() {

@@ -470,16 +470,29 @@ public class TestUtils {
 			super(actual);
 		}
 
-		public RecordWrapperAssert hasMetadata(final String metadataLocalCode, final Object expectedValue) {
+		public RecordWrapperAssert hasMetadata(final Metadata metadata, final Object expectedValue) {
+			//return hasMetadata(metadata.getLocalCode(), expectedValue);
 			assertThat(actual).isNotNull();
 			return (RecordWrapperAssert) super.has(new Condition<RecordWrapper>() {
 				@Override
 				public boolean matches(RecordWrapper value) {
-					Metadata metadata = value.getSchema().getMetadata(metadataLocalCode);
 					assertThat(actual.getWrappedRecord().get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
 					return true;
 				}
 			});
+		}
+
+		public RecordWrapperAssert hasMetadata(final String metadataLocalCode, final Object expectedValue) {
+			return hasMetadata(actual.getSchema().getMetadata(metadataLocalCode), expectedValue);
+			//			assertThat(actual).isNotNull();
+			//			return (RecordWrapperAssert) super.has(new Condition<RecordWrapper>() {
+			//				@Override
+			//				public boolean matches(RecordWrapper value) {
+			//					Metadata metadata = value.getSchema().getMetadata(metadataLocalCode);
+			//					assertThat(actual.getWrappedRecord().get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+			//					return true;
+			//				}
+			//			});
 		}
 	}
 }

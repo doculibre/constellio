@@ -72,8 +72,8 @@ public class WorkflowServices {
 				.sortAsc(Schemas.TITLE);
 	}
 
-	public List<WorkflowTaskProgressionVO> getFlattenModelTaskProgressionVOs(WorkflowInstance workflowInstance,
-			SessionContext sessionContext) {
+	public List<WorkflowTaskProgressionVO> getFlattenModelTaskProgressionVOs(
+			WorkflowInstance workflowInstance, SessionContext sessionContext) {
 		List<WorkflowTaskProgressionVO> taskProgressionVOs = new ArrayList<>();
 		Workflow workflow = tasks.getWorkflow(workflowInstance.getWorkflow());
 
@@ -651,7 +651,6 @@ public class WorkflowServices {
 	}
 
 	public void cancel(WorkflowInstance workflowInstance) {
-
 		try {
 			recordServices.update(workflowInstance.setWorkflowStatus(WorkflowInstanceStatus.CANCELLED));
 		} catch (RecordServicesException e) {
@@ -663,13 +662,5 @@ public class WorkflowServices {
 			recordServices.logicallyDelete(currentTask.getWrappedRecord(), User.GOD);
 			recordServices.physicallyDelete(currentTask.getWrappedRecord(), User.GOD);
 		}
-	}
-
-	public WorkflowTaskVO getTaskVO(Task task, SessionContext context) {
-		return newWorkflowTaskVO(task, context);
-	}
-
-	public WorkflowTaskVO getTaskVO(Task task, String decision, SessionContext context) {
-		return newWorkflowTaskVO(task, decision, context);
 	}
 }
