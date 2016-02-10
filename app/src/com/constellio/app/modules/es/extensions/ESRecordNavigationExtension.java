@@ -105,6 +105,10 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 						.substringAfterLast(url, "/");
 				clickListener = prepareFileDownloader(url, title, id, collection, component, filename);
 			} else {
+				/*final String url = recordVO.get(schemaCode + "_url");
+				String title = recordVO.get(schemaCode + "_title");
+				String id = recordVO.getId();
+				clickListener = prepareFileDownloader(url, title, id, collection, component, title);*/
 				ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 				ConnectorManager connectorManager = es.getConnectorManager();
 				for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
