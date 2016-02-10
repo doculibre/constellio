@@ -25,6 +25,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyNumberCalculator2;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyReferenceNumberCalculator;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
 
@@ -50,7 +51,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		typesFactory = new FakeDataStoreTypeFactory();
 
-		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion("zeUltimateCollection", 0);
+		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion("zeUltimateCollection", 0, new DefaultClassProvider());
 
 		zeType = typesBuilder.createNewSchemaType("zeType");
 		zeTypeDefaultSchema = zeType.getDefaultSchema();
@@ -78,7 +79,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataSchemaTypes types = typesBuilder.build(typesFactory, modelLayerFactory);
-		assertThat(MetadataSchemaTypesBuilder.modify(types).getCollection()).isEqualTo("zeUltimateCollection");
+		assertThat(MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider()).getCollection())
+				.isEqualTo("zeUltimateCollection");
 
 	}
 

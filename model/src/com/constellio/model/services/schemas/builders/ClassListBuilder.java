@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.utils.ClassProvider;
+
 public class ClassListBuilder<T> {
 
 	private static Map<String, Object> cache = new HashMap<>();
@@ -15,12 +17,16 @@ public class ClassListBuilder<T> {
 
 	Set<String> implementationsClassname = new HashSet<>();
 
-	public ClassListBuilder(Class<?> implementedClass) {
+	private ClassProvider classProvider;
+
+	public ClassListBuilder(ClassProvider classProvider, Class<?> implementedClass) {
+		this.classProvider = classProvider;
 		this.implementedClass = implementedClass;
 	}
 
-	public ClassListBuilder(Class<?> implementedClass, Set<T> implementations) {
+	public ClassListBuilder(ClassProvider classProvider, Class<?> implementedClass, Set<T> implementations) {
 		this.implementedClass = implementedClass;
+		this.classProvider = classProvider;
 		for (T implementation : implementations) {
 			this.implementationsClassname.add(implementation.getClass().getName());
 		}
@@ -61,7 +67,7 @@ public class ClassListBuilder<T> {
 
 		if (object == null) {
 			object = createObjectWithClassname(implementationClassname);
-			cache.put(implementationClassname, object);
+			//cache.put(implementationClassname, object);
 		}
 
 		return object;
@@ -69,7 +75,8 @@ public class ClassListBuilder<T> {
 
 	private T createObjectWithClassname(String implementationClassname) {
 		try {
-			Class<T> implementationClass = (Class<T>) Class.forName(implementationClassname);
+
+			Class<T> implementationClass = classProvider.loadClass(implementationClassname);
 			if (!implementedClass.isAssignableFrom(implementationClass)) {
 				throw new ClassListBuilderRuntimeException.ClassDoesntImplementInterface(implementationClass.getName(),
 						implementedClass);

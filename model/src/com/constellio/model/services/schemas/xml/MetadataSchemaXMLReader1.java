@@ -26,16 +26,24 @@ import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBui
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
 
 public class MetadataSchemaXMLReader1 {
 
+	ClassProvider classProvider;
+
+	public MetadataSchemaXMLReader1(ClassProvider classProvider) {
+		this.classProvider = classProvider;
+	}
+
 	public MetadataSchemaTypesBuilder read(String collection, Document document, DataStoreTypesFactory typesFactory,
 			ModelLayerFactory modelLayerFactory) {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(collection, version);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
+				.createWithVersion(collection, version, classProvider);
 
 		for (Element schemaTypeElement : rootElement.getChildren("schemaType")) {
 			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
@@ -215,7 +223,7 @@ public class MetadataSchemaXMLReader1 {
 	@SuppressWarnings("unchecked")
 	private Class<? extends RecordMetadataValidator<?>> parseRecordMetadataValidator(Element validatorElement) {
 		try {
-			return (Class<? extends RecordMetadataValidator<?>>) Class.forName(validatorElement.getText());
+			return classProvider.loadClass(validatorElement.getText());
 		} catch (ClassNotFoundException e) {
 			throw new MetadataSchemasManagerRuntimeException.NoSuchValidatorClass(validatorElement.getText(), e);
 		}
@@ -290,7 +298,7 @@ public class MetadataSchemaXMLReader1 {
 	@SuppressWarnings("unchecked")
 	private Class<? extends RecordValidator> parseSchemaValidator(Element validatorElement) {
 		try {
-			return (Class<? extends RecordValidator>) Class.forName(validatorElement.getText());
+			return classProvider.loadClass(validatorElement.getText());
 		} catch (ClassNotFoundException e) {
 			throw new MetadataSchemasManagerRuntimeException.NoSuchValidatorClass(validatorElement.getText(), e);
 		}

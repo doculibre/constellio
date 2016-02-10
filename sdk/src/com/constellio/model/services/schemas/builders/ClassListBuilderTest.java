@@ -16,6 +16,8 @@ import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidato
 import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator2;
 import com.constellio.model.services.schemas.testimpl.problems.AbstractTestMetadataValidator;
 import com.constellio.model.services.schemas.testimpl.problems.TestRecordMetadataValidatorWithoutDefaultConstructor;
+import com.constellio.model.utils.ClassProvider;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -27,24 +29,28 @@ public class ClassListBuilderTest extends ConstellioTest {
 
 	@Before
 	public void setUp() {
-		builder = new ClassListBuilder<RecordMetadataValidator<?>>(RecordMetadataValidator.class);
+		ClassProvider classProvider = new DefaultClassProvider();
+		builder = new ClassListBuilder<RecordMetadataValidator<?>>(classProvider, RecordMetadataValidator.class);
 
 		Set<RecordMetadataValidator<?>> elements = new HashSet<>();
 		elements.add(new TestRecordMetadataValidator1());
-		builderWithElement = new ClassListBuilder<RecordMetadataValidator<?>>(RecordMetadataValidator.class, elements);
+		builderWithElement = new ClassListBuilder<RecordMetadataValidator<?>>(classProvider, RecordMetadataValidator.class,
+				elements);
 
-		builderWithAbstractImplementation = new ClassListBuilder<RecordMetadataValidator<?>>(RecordMetadataValidator.class);
+		builderWithAbstractImplementation = new ClassListBuilder<RecordMetadataValidator<?>>(classProvider,
+				RecordMetadataValidator.class);
 		builderWithAbstractImplementation.add(AbstractTestMetadataValidator.class);
 
-		builderWithoutDefaultConstructor = new ClassListBuilder<RecordMetadataValidator<?>>(RecordMetadataValidator.class);
+		builderWithoutDefaultConstructor = new ClassListBuilder<RecordMetadataValidator<?>>(classProvider,
+				RecordMetadataValidator.class);
 		builderWithoutDefaultConstructor.add(TestRecordMetadataValidatorWithoutDefaultConstructor.class);
 
 		builderWithInvalidImplementationClassname = new ClassListBuilder<RecordMetadataValidator<?>>(
-				RecordMetadataValidator.class);
+				classProvider, RecordMetadataValidator.class);
 		builderWithInvalidImplementationClassname.add("toto");
 
 		builderWithImplementationNotImplementingInterface = new ClassListBuilder<RecordMetadataValidator<?>>(
-				RecordMetadataValidator.class);
+				classProvider, RecordMetadataValidator.class);
 		builderWithImplementationNotImplementingInterface.add((Class<?>) ConstellioTest.class);
 
 		assertThat(builderWithElement.implementationsClassname.size()).isEqualTo(1);

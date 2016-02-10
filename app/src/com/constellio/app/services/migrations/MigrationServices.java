@@ -190,7 +190,7 @@ public class MigrationServices {
 
 	private void ensureSchemasHaveCommonMetadata(String collection) {
 		MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypesBuilder types = MetadataSchemaTypesBuilder.modify(manager.getSchemaTypes(collection));
+		MetadataSchemaTypesBuilder types = manager.modify(collection);
 		new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(types);
 		try {
 			manager.saveUpdateSchemaTypes(types);
