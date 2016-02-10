@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.ui.builders.WorkflowToVoBuilder;
 import com.constellio.app.modules.tasks.ui.entities.WorkflowVO;
@@ -13,7 +14,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class AddEditWorkflowPresenter extends SingleSchemaBasePresenter<AddEditWorkflowView> {
-
 	private boolean addView;
 
 	private WorkflowVO workflowVO;
@@ -37,7 +37,7 @@ public class AddEditWorkflowPresenter extends SingleSchemaBasePresenter<AddEditW
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return true;
+		return user.has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
 	}
 
 	void forParams(String params) {

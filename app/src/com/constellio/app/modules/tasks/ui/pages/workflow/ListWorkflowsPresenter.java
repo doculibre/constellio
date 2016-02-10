@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.ui.pages.workflow;
 
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -53,8 +54,7 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		// TODO: Handle permissions
-		return true;
+		return user.has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
 	}
 
 	private WorkflowServices workflowServices() {

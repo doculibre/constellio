@@ -67,8 +67,7 @@ public class TasksNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				// TODO: Permissions
-				return ComponentState.ENABLED;
+				return ComponentState.visibleIf(user.has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally());
 			}
 		});
 	}

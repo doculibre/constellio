@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
@@ -55,7 +56,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return true;
+		return user.has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
 	}
 
 	void forParams(String params) {

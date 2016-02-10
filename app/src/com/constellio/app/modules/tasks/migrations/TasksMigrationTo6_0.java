@@ -2,9 +2,13 @@ package com.constellio.app.modules.tasks.migrations;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.calculators.DecisionsTasksCalculator;
 import com.constellio.app.modules.tasks.model.calculators.WorkflowTaskSortCalculator;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -14,15 +18,18 @@ import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.roles.RolesManager;
 
 public class TasksMigrationTo6_0 implements MigrationScript {
 	@Override
@@ -35,6 +42,7 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 			throws Exception {
 		new SchemaAlterationsFor6_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		configureDisplayConfig(collection, appLayerFactory);
+		updatePermissions(collection, appLayerFactory);
 	}
 
 	private void configureDisplayConfig(String collection, AppLayerFactory appLayerFactory) {
@@ -47,6 +55,16 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 				.addToDisplay(Task.DECISION, Task.WORKFLOW, Task.WORKFLOW_INSTANCE, Task.RELATIVE_DUE_DATE)
 				.atTheEnd();
 		manager.execute(transactionBuilder.build());
+	}
+
+	private void updatePermissions(String collection, AppLayerFactory factory) {
+		RolesManager roleManager = factory.getModelLayerFactory().getRolesManager();
+
+		Role administrator = roleManager.getRole(collection, CoreRoles.ADMINISTRATOR);
+		List<String> permissions = new ArrayList<>(administrator.getOperationPermissions());
+		permissions.add(TasksPermissionsTo.MANAGE_WORKFLOWS);
+
+		roleManager.updateRole(administrator.withPermissions(permissions));
 	}
 
 	private class SchemaAlterationsFor6_0 extends MetadataSchemasAlterationHelper {
