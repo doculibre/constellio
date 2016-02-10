@@ -14,6 +14,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.ClassProvider;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
 
@@ -78,7 +80,8 @@ public class MetadataBuilderTest extends ConstellioTest {
 	protected void buildAndModify() {
 		Metadata inheritedMetadata = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory);
 		Metadata metadataWithInheritance = metadataWithInheritanceBuilder.buildWithInheritance(inheritedMetadata);
-		metadataWithoutInheritanceBuilder = MetadataBuilder.modifyMetadataWithoutInheritance(inheritedMetadata);
+		ClassProvider classProvider = new DefaultClassProvider();
+		metadataWithoutInheritanceBuilder = MetadataBuilder.modifyMetadataWithoutInheritance(inheritedMetadata, classProvider);
 		inheritedMetadataBuilder = metadataWithoutInheritanceBuilder;
 		metadataWithInheritanceBuilder = MetadataBuilder.modifyMetadataWithInheritance(metadataWithInheritance,
 				inheritedMetadataBuilder);

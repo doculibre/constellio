@@ -173,6 +173,7 @@ public class AppLayerFactory extends LayerFactory {
 
 		appLayerExtensions.getSystemWideExtensions().pagesComponentsExtensions.add(new DefaultPagesComponentsExtension(this));
 		this.pluginManager.detectPlugins();
+
 		Set<String> invalidPlugins = new HashSet<>();
 		super.initialize();
 

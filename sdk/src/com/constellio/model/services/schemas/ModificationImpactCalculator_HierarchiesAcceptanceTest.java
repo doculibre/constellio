@@ -86,8 +86,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		}
 		records = schemas.givenTaxonomyRecords(recordServices);
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("zeCollection"));
+		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify("zeCollection");
 		typesBuilder.getSchema(taxonomy1FirstSchema.code()).create("taxo1FirstSchemaMetaWithTaxoDependency")
 				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		typesBuilder.getSchema(taxonomy1SecondSchema.code()).create("taxo1SecondSchemaMetaWithTaxoDependency")

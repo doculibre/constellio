@@ -40,7 +40,6 @@ import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocuments
 
 public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends ConstellioTest {
 
-
 	TwoTaxonomiesContainingFolderAndDocumentsSetup schemas =
 			new TwoTaxonomiesContainingFolderAndDocumentsSetup(zeCollection);
 	FolderSchema folderSchema = schemas.new FolderSchema();
@@ -102,7 +101,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 
 		defineSchemasManager().using(schemas);
 
-		MetadataSchemaTypesBuilder types = MetadataSchemaTypesBuilder.modify(schemaManager.getSchemaTypes(zeCollection));
+		MetadataSchemaTypesBuilder types = schemaManager.modify(zeCollection);
 		types.getSchema(taxonomy1FirstSchema.code()).create("taxo1FirstSchemaMetaWithTaxoDependency")
 				.setType(MetadataValueType.STRING).defineDataEntry().asCalculated(DummyCalculatorWithTaxonomyDependency.class);
 		types.getSchema(taxonomy1SecondSchema.code()).create("taxo1SecondSchemaMetaWithTaxoDependency")

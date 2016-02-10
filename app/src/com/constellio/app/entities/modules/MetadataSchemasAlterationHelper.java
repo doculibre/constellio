@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.entities.modules.MigrationResourcesProviderRuntimeException.MigrationResourcesProviderRuntimeException_NoBundle;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
@@ -35,9 +34,8 @@ public abstract class MetadataSchemasAlterationHelper {
 
 	public final void migrate() {
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = metadataSchemasManager.modify(collection);
 		migrate(typesBuilder);
 		try {
 			try {

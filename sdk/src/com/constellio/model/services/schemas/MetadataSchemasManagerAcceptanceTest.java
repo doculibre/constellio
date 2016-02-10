@@ -89,6 +89,8 @@ import com.constellio.model.services.schemas.testimpl.TestRecordValidator3;
 import com.constellio.model.services.schemas.testimpl.TestStructureFactory1;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.ClassProvider;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -119,12 +121,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	BatchProcessesManager batchProcessesManager;
 	SearchServices searchServices;
 
+	ClassProvider classProvider;
+
 	@Mock MetadataSchemasManagerListener schemasManagerFirstCollection1Listener, schemasManagerSecondCollection1Listener, otherSchemasManagerFirstCollection1Listener, otherSchemasManagerSecondCollection1Listener, schemasManagerCollection2Listener, otherSchemasManagerCollection2Listener;
 
 	@Before
 	public void setUp()
 			throws Exception {
-
+		classProvider = new DefaultClassProvider();
 		prepareSystem(withZeCollection());
 
 		configManager = getDataLayerFactory().getConfigManager();
@@ -146,10 +150,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		givenCollection("collection1");
 		givenCollection("collection2");
-		MetadataSchemaTypesBuilder collection1Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("collection1"));
-		MetadataSchemaTypesBuilder collection2Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("collection2"));
+		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify("collection1");
+		MetadataSchemaTypesBuilder collection2Builder = schemasManager.modify("collection2");
 		collection1Builder.createNewSchemaType("a");
 		collection2Builder.createNewSchemaType("b");
 
@@ -173,8 +175,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void whenSavingSchemaTypeThenSaveTransactionLogStatus()
 			throws Exception {
 
-		MetadataSchemaTypesBuilder collection1Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes(zeCollection));
+		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify(zeCollection);
 		collection1Builder.createNewSchemaType("a");
 		collection1Builder.createNewSchemaType("b").setInTransactionLog(true);
 		collection1Builder.createNewSchemaType("c").setInTransactionLog(false);
@@ -194,10 +195,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		givenCollection("collection1");
 		givenCollection("collection2");
-		MetadataSchemaTypesBuilder collection1Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("collection1"));
-		MetadataSchemaTypesBuilder collection2Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("collection2"));
+		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify("collection1");
+		MetadataSchemaTypesBuilder collection2Builder = schemasManager.modify("collection2");
 		collection1Builder.createNewSchemaType("a");
 		collection2Builder.createNewSchemaType("b");
 
@@ -226,10 +225,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		givenCollection("collection1");
 		givenCollection("collection2");
-		MetadataSchemaTypesBuilder collection1Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("collection1"));
-		MetadataSchemaTypesBuilder collection2Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("collection2"));
+		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify("collection1");
+		MetadataSchemaTypesBuilder collection2Builder = schemasManager.modify("collection2");
 		collection1Builder.createNewSchemaType("a");
 		collection2Builder.createNewSchemaType("b");
 
@@ -264,7 +261,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		otherManager.registerListener(otherSchemasManagerCollection2Listener);
 
 		MetadataSchemaTypesBuilder collection1Builder = MetadataSchemaTypesBuilder
-				.modify(schemasManager.getSchemaTypes("collection1"));
+				.modify(schemasManager.getSchemaTypes("collection1"), new DefaultClassProvider());
 		collection1Builder.createNewSchemaType("a");
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 
@@ -955,14 +952,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setEnabled(false);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("folder_default_rule").isEnabled()).isTrue();
 		assertThat(types.getMetadata("folder_employee_rule").isEnabled()).isFalse();
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setEnabled(null);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -975,14 +972,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setDefaultRequirement(true);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("folder_default_rule").isDefaultRequirement()).isFalse();
 		assertThat(types.getMetadata("folder_employee_rule").isDefaultRequirement()).isTrue();
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setDefaultRequirement(null);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -995,21 +992,21 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setLabel("a custom rule");
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo("Rule");
 		assertThat(types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("a custom rule");
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_default_rule").setLabel("Ze Rule");
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo("Ze Rule");
 		assertThat(types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("a custom rule");
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_employee_rule").setLabel(null);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -1021,7 +1018,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void whenModifyUndeletableOnInheritingMetadataThenUnmodifiableAttributeException()
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 
 		typesBuilder.getMetadata("folder_employee_rule").setUndeletable(false);
 		typesBuilder.getSchema("folder_employee").getMetadata("rule").setUndeletable(false);
@@ -1031,7 +1028,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void whenModifyReferencesOnInheritingMetadataThenUnmodifiableAttributeException()
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 
 		typesBuilder.getMetadata("folder_employee_rule").defineReferences();
 	}
@@ -1041,7 +1038,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_default_rule").defineValidators().add(TestRecordMetadataValidator1.class)
 				.add(TestRecordMetadataValidator2.class);
 		typesBuilder.getMetadata("folder_employee_rule").defineValidators().add(TestMetadataValidator3.class);
@@ -1052,7 +1049,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getElementsClasses(types.getMetadata("folder_employee_rule").getValidators())).containsOnly(
 				TestRecordMetadataValidator1.class, TestRecordMetadataValidator2.class, TestMetadataValidator3.class);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 		typesBuilder.getMetadata("folder_default_rule").defineValidators().remove(TestRecordMetadataValidator2.class);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -1061,7 +1058,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getElementsClasses(types.getMetadata("folder_employee_rule").getValidators())).containsOnly(
 				TestRecordMetadataValidator1.class, TestMetadataValidator3.class);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getMetadata("folder_default_rule").defineValidators().add(TestRecordMetadataValidator2.class);
 		typesBuilder.getMetadata("folder_employee_rule").defineValidators().remove(TestMetadataValidator3.class);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
@@ -1077,7 +1074,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataSchemaTypes types = createTwoSchemas();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getSchema("folder_default").defineValidators().add(TestRecordValidator1.class)
 				.add(TestRecordValidator2.class);
 		typesBuilder.getSchema("folder_employee").defineValidators().add(TestRecordValidator3.class);
@@ -1088,7 +1085,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getElementsClasses(types.getSchema("folder_employee").getValidators())).containsOnly(
 				TestRecordValidator1.class, TestRecordValidator2.class, TestRecordValidator3.class);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getSchema("folder_default").defineValidators().remove(TestRecordValidator2.class);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
@@ -1097,7 +1094,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(getElementsClasses(types.getSchema("folder_employee").getValidators())).containsOnly(
 				TestRecordValidator1.class, TestRecordValidator3.class);
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
 		typesBuilder.getSchema("folder_default").defineValidators().add(TestRecordValidator2.class);
 		typesBuilder.getSchema("folder_employee").defineValidators().remove(TestRecordValidator3.class);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
@@ -1116,7 +1113,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(types.getSchemaType("folder").hasSecurity()).isTrue();
 		assertThat(types.getSchemaType("rule").hasSecurity()).isFalse();
 
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
 		assertThat(types.getSchemaType("folder").hasSecurity()).isTrue();
@@ -1258,7 +1255,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	private MetadataSchemaTypes modifyDefaultMetadata(MetadataSchemaTypes types)
 			throws MetadataSchemasManagerException {
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 		MetadataBuilder rule = typesBuilder.getMetadata("folder_default_rule");
 		rule.setEnabled(false).setLabel("Ze Rule").setDefaultRequirement(true);
 		// rule.defineReferences().add(types.getDefaultSchema("rule"));
@@ -1269,7 +1266,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	private MetadataSchemaTypesBuilder modifySchemaTypesAddingTwoNewTypes()
 			throws Exception {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes("zeCollection");
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 		MetadataSchemaTypeBuilder folderType = addFolderSchemaTypeBuilderWithoutRuleMetadatas(typesBuilder);
 		MetadataSchemaTypeBuilder ruleType = addRuleSchemaTypeBuilder(typesBuilder);
 

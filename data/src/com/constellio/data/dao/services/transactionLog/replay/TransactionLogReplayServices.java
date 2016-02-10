@@ -36,6 +36,13 @@ public class TransactionLogReplayServices {
 
 	}
 
+	private void replayTransactionLog(Iterator<BigVaultServerTransaction> transactionIterator, BigVaultLogAddUpdater addUpdater) {
+		while (transactionIterator.hasNext()) {
+			addUpdater.add(transactionIterator.next());
+		}
+
+	}
+
 	public void replayTransactionLogs(List<File> tLogs) {
 		TransactionsLogImportHandler transactionsLogImportHandler = new TransactionsLogImportHandler(
 				bigVaultServer, dataLayerLogger, PARALLELISM);
@@ -48,13 +55,6 @@ public class TransactionLogReplayServices {
 		}
 		addUpdater.close();
 		transactionsLogImportHandler.join();
-	}
-
-	private void replayTransactionLog(Iterator<BigVaultServerTransaction> transactionIterator, BigVaultLogAddUpdater addUpdater) {
-		while (transactionIterator.hasNext()) {
-			addUpdater.add(transactionIterator.next());
-		}
-
 	}
 
 	private static class BigVaultLogAddUpdater {

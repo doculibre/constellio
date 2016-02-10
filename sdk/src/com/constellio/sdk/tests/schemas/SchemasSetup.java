@@ -14,6 +14,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.utils.DefaultClassProvider;
 
 public abstract class SchemasSetup {
 
@@ -54,7 +55,7 @@ public abstract class SchemasSetup {
 							new ArrayList<String>(), new ArrayList<String>());
 				}
 
-				setup.typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+				setup.typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 				setup.setUp();
 				setup.wasSetUp = true;
 			}

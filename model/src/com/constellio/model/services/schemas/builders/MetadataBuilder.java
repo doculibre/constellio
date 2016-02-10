@@ -30,6 +30,7 @@ import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeExce
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.MetadataCannotBeUniqueAndMultivalue;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 
 public class MetadataBuilder {
@@ -66,12 +67,14 @@ public class MetadataBuilder {
 	private Metadata originalMetadata;
 	private Object defaultValue = null;
 	private MetadataPopulateConfigsBuilder populateConfigsBuilder;
+	private ClassProvider classProvider;
 
 	MetadataBuilder() {
 	}
 
 	static MetadataBuilder createCustomMetadataFromDefault(MetadataBuilder defaultMetadata, String codeSchema) {
 		MetadataBuilder builder = new MetadataBuilder();
+		builder.classProvider = defaultMetadata.classProvider;
 		builder.setLocalCode(defaultMetadata.localCode);
 		builder.setCollection(defaultMetadata.collection);
 		builder.setCode(defaultMetadata.getCode().replace(UNDERSCORE + "default" + UNDERSCORE,
@@ -82,7 +85,7 @@ public class MetadataBuilder {
 		builder.type = defaultMetadata.getType();
 		builder.dataEntry = defaultMetadata.dataEntry;
 		builder.defaultValue = copy(defaultMetadata.defaultValue);
-		builder.recordMetadataValidators = new ClassListBuilder<>(RecordMetadataValidator.class);
+		builder.recordMetadataValidators = new ClassListBuilder<>(builder.classProvider, RecordMetadataValidator.class);
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(defaultMetadata.getPopulateConfigsBuilder());
 
 		return builder;
@@ -97,20 +100,22 @@ public class MetadataBuilder {
 
 	static MetadataBuilder createMetadataWithoutInheritance(String localCode, MetadataSchemaBuilder schemaBuilder) {
 		MetadataBuilder builder = new MetadataBuilder();
+		builder.classProvider = schemaBuilder.getClassProvider();
 		builder.setCollection(schemaBuilder.getCollection());
 		builder.setLocalCode(localCode);
 		builder.setLabel(localCode);
 		builder.setEnabled(true);
 		builder.setDefaultRequirement(false);
 		builder.setCode(schemaBuilder.getCode() + UNDERSCORE + localCode);
-		builder.recordMetadataValidators = new ClassListBuilder<>(RecordMetadataValidator.class);
+		builder.recordMetadataValidators = new ClassListBuilder<>(builder.classProvider, RecordMetadataValidator.class);
 		builder.accessRestrictionBuilder = MetadataAccessRestrictionBuilder.create();
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
 		return builder;
 	}
 
-	static MetadataBuilder modifyMetadataWithoutInheritance(Metadata defaultMetadata) {
+	static MetadataBuilder modifyMetadataWithoutInheritance(Metadata defaultMetadata, ClassProvider classProvider) {
 		MetadataBuilder builder = new MetadataBuilder();
+		builder.classProvider = classProvider;
 		setBuilderPropertiesOfMetadataWithoutInheritance(defaultMetadata, builder);
 		return builder;
 	}
@@ -147,8 +152,8 @@ public class MetadataBuilder {
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.defaultValue = metadata.getDefaultValue();
 		builder.dataEntry = metadata.getDataEntry();
-		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(RecordMetadataValidator.class,
-				metadata.getValidators());
+		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(builder.classProvider,
+				RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadata.getAccessRestrictions());
 		if (metadata.getStructureFactory() != null) {
 			builder.structureFactoryClass = (Class) metadata.getStructureFactory().getClass();
@@ -163,6 +168,7 @@ public class MetadataBuilder {
 	@SuppressWarnings("unchecked")
 	private static void setBuilderPropertiesOfMetadataWithInheritance(Metadata metadata, MetadataBuilder inheritanceMetadata,
 			MetadataBuilder builder) {
+		builder.classProvider = inheritanceMetadata.classProvider;
 		builder.originalMetadata = metadata;
 		builder.localCode = metadata.getLocalCode();
 		builder.code = metadata.getCode();
@@ -182,8 +188,8 @@ public class MetadataBuilder {
 		builder.essentialInSummary = metadata.isEssentialInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
-		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(RecordMetadataValidator.class,
-				metadata.getValidators());
+		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
+				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = null;
 		builder.defaultValue = metadata.getDefaultValue();
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
@@ -817,5 +823,9 @@ public class MetadataBuilder {
 
 	public void setAllowedReferenceBuilder(AllowedReferencesBuilder allowedReferencesBuilder) {
 		this.allowedReferencesBuilder = allowedReferencesBuilder;
+	}
+
+	public ClassProvider getClassProvider() {
+		return classProvider;
 	}
 }

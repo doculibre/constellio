@@ -10,7 +10,6 @@ import org.junit.Test;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -271,8 +270,7 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 	public void givenCreatedByIsRequiredWhenCreatingRecordWithCreatorThenOk()
 			throws Exception {
 
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
 		typesBuilder.getSchema(zeSchema.code()).getMetadata(Schemas.CREATED_BY.getLocalCode()).setDefaultRequirement(true);
 		getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 
@@ -286,8 +284,7 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 	public void givenModifiedByIsRequiredWhenUpdatingRecordWithModifierThenOk()
 			throws Exception {
 
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+		MetadataSchemaTypesBuilder typesBuilder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
 		typesBuilder.getSchema(zeSchema.code()).getMetadata(Schemas.MODIFIED_BY.getLocalCode()).setDefaultRequirement(true);
 		getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 

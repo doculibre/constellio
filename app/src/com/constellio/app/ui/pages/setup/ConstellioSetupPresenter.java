@@ -1,12 +1,14 @@
 package com.constellio.app.ui.pages.setup;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -21,7 +23,14 @@ import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.Const
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_MustSelectAtLeastOneModule;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.services.DataLayerLogger;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.transactionLog.TransactionLogReadWriteServices;
+import com.constellio.data.dao.services.transactionLog.replay.TransactionLogReplayServices;
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
@@ -101,7 +110,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 		setSystemLanguage(setupLocaleCode);
 		Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
-				collectionCode, Arrays.asList(setupLocaleCode));
+				collectionCode, asList(setupLocaleCode));
 		Collection collection = new Collection(collectionRecord,
 				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
 		collection.setTitle(collectionTitle);
@@ -126,7 +135,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 		UserCredential adminCredential = new UserCredential("admin", "System", "Admin", "admin@administration.com",
-				new ArrayList<String>(), Arrays.asList(collectionCode),
+				new ArrayList<String>(), asList(collectionCode),
 				UserCredentialStatus.ACTIVE).withSystemAdminPermission();
 		userServices.addUpdateUserCredential(adminCredential);
 		userServices.addUserToCollection(adminCredential, collectionCode);
@@ -159,31 +168,61 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			throws ConstellioSetupPresenterException {
 		try {
 			File tempFolder = createTempFolder();
-
 			try {
-				extractSaveState(saveStateFile, tempFolder);
-				copyExtractedFiles(tempFolder);
-				loadTransactionLog();
+				ZipService zipService = modelLayerFactory.getIOServicesFactory().newZipService();
+				DataLayerConfiguration dataLayerConfiguration = modelLayerFactory.getDataLayerFactory()
+						.getDataLayerConfiguration();
+				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+				File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
+				File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
+				BigVaultServer bigVaultServer = modelLayerFactory.getDataLayerFactory().getContentsVaultServer();
+				DataLayerSystemExtensions dataLayerSystemExtensions = modelLayerFactory
+						.getDataLayerFactory().getExtensions().getSystemWideExtensions();
+				ConstellioFactories.clear();
+
+				try {
+					extractSaveState(zipService, saveStateFile, tempFolder);
+					copyExtractedFiles(tempFolder, ioServices, settingsFolder, contentsFolder);
+					List<File> tLogFiles = getTLogs(tempFolder);
+
+					TransactionLogReadWriteServices readWriteServices = new TransactionLogReadWriteServices(ioServices,
+							dataLayerConfiguration, dataLayerSystemExtensions);
+					new TransactionLogReplayServices(readWriteServices, bigVaultServer, new DataLayerLogger())
+							.replayTransactionLogs(tLogFiles);
+				} catch (Throwable t) {
+					revertState(ioServices, settingsFolder, contentsFolder);
+					ConstellioFactories.start();
+					throw new ConstellioSetupPresenterException_CannotLoadSaveState();
+				}
+
 				view.updateUI();
 
 			} finally {
 				modelLayerFactory.getIOServicesFactory().newIOServices().deleteQuietly(tempFolder);
 			}
 		} catch (Throwable t) {
+			LOGGER.info("Error when trying to load system from a saved state", t);
 			throw new ConstellioSetupPresenterException_CannotLoadSaveState();
 		}
+	}
+
+	private List<File> getTLogs(File tempFolder) {
+		File tlogsFolder = new File(new File(tempFolder, "content"), "tlogs");
+		return new ArrayList<>(FileUtils.listFiles(tlogsFolder, new String[] { "tlog" }, false));
+	}
+
+	private void revertState(IOServices ioServices, File settingsFolder, File contentsFolder) {
+		ioServices.deleteDirectoryWithoutExpectableIOException(settingsFolder);
+		ioServices.deleteDirectoryWithoutExpectableIOException(contentsFolder);
+		new File(settingsFolder.getPath()).mkdirs();
+		new File(contentsFolder.getPath()).mkdirs();
 	}
 
 	private File createTempFolder() {
 		return modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder(TEMP_UNZIP_FOLDER);
 	}
 
-	private void copyExtractedFiles(File tempFolder) {
-		DataLayerConfiguration dataLayerConfiguration = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration();
-		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-		File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
-		File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-
+	private void copyExtractedFiles(File tempFolder, IOServices ioServices, File settingsFolder, File contentsFolder) {
 		ioServices.deleteDirectoryWithoutExpectableIOException(settingsFolder);
 		ioServices.deleteDirectoryWithoutExpectableIOException(contentsFolder);
 
@@ -194,9 +233,9 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		ioServices.moveFolder(contentsFolderInSaveState, contentsFolder);
 	}
 
-	private void extractSaveState(File saveStateFile, File tempFolder)
+	private void extractSaveState(ZipService zipService, File saveStateFile, File tempFolder)
 			throws ZipServiceException {
-		modelLayerFactory.getIOServicesFactory().newZipService().unzip(saveStateFile, tempFolder);
+		zipService.unzip(saveStateFile, tempFolder);
 	}
 
 	private void loadTransactionLog()
