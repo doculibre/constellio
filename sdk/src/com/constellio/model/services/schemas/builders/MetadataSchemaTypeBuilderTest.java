@@ -51,6 +51,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	@Before
 	public void setup() {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
+		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType("zeUltimateCollection", CODE_SCHEMA_TYPE, typesBuilder)
 				.setLabel("aLabel");

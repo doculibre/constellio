@@ -24,7 +24,7 @@ public class MetadataSchemasMigrationHelperTest extends ConstellioTest {
 
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock MetadataSchemasManager metadataSchemasManager;
-	@Mock MetadataSchemaTypes metadataSchemaTypes;
+	@Mock MetadataSchemaTypesBuilder metadataSchemaTypesBuilder;
 	@Mock MetadataSchemaTypes newMetadataSchemaTypes;
 	@Mock AppLayerFactory appLayerFactory;
 	@Mock DataLayerFactory dataLayerFactory;
@@ -37,7 +37,7 @@ public class MetadataSchemasMigrationHelperTest extends ConstellioTest {
 			throws Exception {
 		when(appLayerFactory.getModelLayerFactory()).thenReturn(modelLayerFactory);
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
-		when(metadataSchemasManager.getSchemaTypes(zeCollection)).thenReturn(metadataSchemaTypes);
+		when(metadataSchemasManager.modify(zeCollection)).thenReturn(metadataSchemaTypesBuilder);
 
 		script = spy(new MetadataSchemasAlterationHelper(zeCollection, migrationResourcesProvider, appLayerFactory) {
 
@@ -54,10 +54,10 @@ public class MetadataSchemasMigrationHelperTest extends ConstellioTest {
 	public void givenOptimisticLockingWhenSavingSchemaThenRetry()
 			throws Exception {
 
-		doThrow(MetadataSchemasManagerException.OptimistickLocking.class).doThrow(
-				MetadataSchemasManagerException.OptimistickLocking.class).doReturn(newMetadataSchemaTypes).when(
-				metadataSchemasManager)
-				.saveUpdateSchemaTypes(any(MetadataSchemaTypesBuilder.class));
+		doThrow(MetadataSchemasManagerException.OptimistickLocking.class)
+				.doThrow(MetadataSchemasManagerException.OptimistickLocking.class)
+				.doReturn(newMetadataSchemaTypes)
+				.when(metadataSchemasManager).saveUpdateSchemaTypes(any(MetadataSchemaTypesBuilder.class));
 
 		script.migrate();
 
