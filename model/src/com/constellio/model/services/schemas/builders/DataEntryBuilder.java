@@ -61,6 +61,7 @@ public class DataEntryBuilder {
 			try {
 				metadata.dataEntry = new CalculatedDataEntry(calculatorClass.newInstance());
 			} catch (InstantiationException | IllegalAccessException e) {
+				//
 				throw new MetadataBuilderRuntimeException.InvalidAttribute(metadata.getLocalCode(), "calculator", e);
 			}
 		} else {
