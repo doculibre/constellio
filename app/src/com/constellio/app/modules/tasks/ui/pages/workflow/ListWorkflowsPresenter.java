@@ -1,81 +1,66 @@
 package com.constellio.app.modules.tasks.ui.pages.workflow;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
-import com.constellio.app.modules.tasks.ui.builders.WorkflowToVoBuilder;
-import com.constellio.app.modules.tasks.ui.entities.WorkflowVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkflowsView> {
 	private transient WorkflowServices workflowServices;
-	private WorkflowToVoBuilder voBuilder;
-	private List<WorkflowVO> workflowVOs = new ArrayList<WorkflowVO>();
 
 	public ListWorkflowsPresenter(ListWorkflowsView view) {
 		super(view, Workflow.DEFAULT_SCHEMA);
-		initTransientObjects();
-		voBuilder = new WorkflowToVoBuilder();
-		SessionContext sessionContext = view.getSessionContext();
-		List<Workflow> workflows = workflowServices.getWorkflows();
-		for (Workflow workflow : workflows) {
-			WorkflowVO workflowVO = voBuilder.build(workflow.getWrappedRecord(), VIEW_MODE.TABLE, sessionContext);
-			workflowVOs.add(workflowVO);
-		}
-		view.setWorkflowVOs(workflowVOs);
 	}
 
-	private void readObject(java.io.ObjectInputStream stream)
-			throws IOException, ClassNotFoundException {
-		stream.defaultReadObject();
-		initTransientObjects();
+	public void addButtonClicked() {
+		view.navigateTo().addWorkflow();
 	}
 
-	private void initTransientObjects() {
-		workflowServices = new WorkflowServices(collection, appLayerFactory);
+	public void backButtonClicked() {
+		view.navigateTo().adminModule();
+	}
+
+	public RecordVODataProvider getWorkflows() {
+		MetadataSchemaVO schema = new MetadataSchemaToVOBuilder()
+				.build(schema(Workflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(schema, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return workflowServices().getWorkflowsQuery();
+			}
+		};
+	}
+
+	public void displayButtonClicked(RecordVO record) {
+		view.navigateTo().displayWorkflow(record.getId());
+	}
+
+	public void editButtonClicked(RecordVO record) {
+		view.navigateTo().editWorkflow(record.getId());
+	}
+
+	public void deleteButtonClicked(RecordVO record) {
+		delete(toRecord(record), false);
+		view.navigateTo().listWorkflows();
 	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
+		// TODO: Handle permissions
 		return true;
 	}
 
-	void backButtonClicked() {
-		view.navigateTo().tasksManagement();
-	}
-
-	void addButtonClicked() {
-		view.navigateTo().addWorkflow();
-	}
-
-	void displayButtonClicked(WorkflowVO workflowVO) {
-		view.navigateTo().displayWorkflow(workflowVO.getId());
-	}
-
-	void editButtonClicked(WorkflowVO workflowVO) {
-		view.navigateTo().editWorkflow(workflowVO.getId());
-	}
-
-	void deleteButtonClicked(WorkflowVO workflowVO) {
-		try {
-			Record workflowRecord = toRecord(workflowVO);
-			User god = User.GOD;
-			recordServices().logicallyDelete(workflowRecord, god);
-			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(workflowRecord, getCurrentUser(), null);
-			recordServices().physicallyDelete(workflowRecord, god);
-			view.remove(workflowVO);
-		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
-			view.showErrorMessage(MessageUtils.toMessage(exception));
+	private WorkflowServices workflowServices() {
+		if (workflowServices == null) {
+			workflowServices = new WorkflowServices(view.getCollection(), appLayerFactory);
 		}
+		return workflowServices;
 	}
-
 }
