@@ -307,7 +307,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		);
 		pluginManager = getAppLayerFactory().getPluginManager();
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
-		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(30);
+		assertThat(manager.getSchemaTypes("zeCollection").getSchemaTypes()).hasSize(32);
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Cart.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(Task.SCHEMA_TYPE)).isNotNull();
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType(TaskType.SCHEMA_TYPE)).isNotNull();
