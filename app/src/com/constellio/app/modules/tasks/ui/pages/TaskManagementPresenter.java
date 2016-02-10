@@ -8,9 +8,12 @@ import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -152,6 +155,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
+	public void displayWorkflowInstanceRequested(RecordVO recordVO) {
+		view.navigateTo().displayWorkflowInstance(recordVO.getId());
+	}
+
+	@Override
 	public void cancelWorkflowInstanceRequested(RecordVO record) {
 		WorkflowInstance instance = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
 				.getWorkflowInstance(record.getId());
@@ -159,9 +167,23 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		refreshCurrentTab();
 	}
 
-	@Override
-	public void displayWorkflowInstanceRequested(RecordVO recordVO) {
-		view.navigateTo().displayWorkflowInstance(recordVO.getId());
+	public RecordVODataProvider getWorkflows() {
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
+				schema(Workflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+
+		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return workflowServices.getWorkflowsQuery();
+			}
+		};
+	}
+
+	public void workflowStartRequested(RecordVO record) {
+		Workflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getWorkflow(record.getId());
+		Map<String, List<String>> parameters = new HashMap<>();
+		workflowServices.start(workflow, getCurrentUser(), parameters);
+		refreshCurrentTab();
 	}
 
 	private RecordVODataProvider getTasks(String tabId) {

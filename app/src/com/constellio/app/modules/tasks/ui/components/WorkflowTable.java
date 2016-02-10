@@ -61,8 +61,8 @@ public class WorkflowTable extends RecordVOTable {
 	}
 
 	public interface WorkflowPresenter {
-		void cancelWorkflowInstanceRequested(RecordVO recordVO);
-
 		void displayWorkflowInstanceRequested(RecordVO recordVO);
+
+		void cancelWorkflowInstanceRequested(RecordVO recordVO);
 	}
 }
