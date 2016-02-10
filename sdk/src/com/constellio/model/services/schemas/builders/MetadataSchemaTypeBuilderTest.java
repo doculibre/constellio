@@ -19,6 +19,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -391,7 +392,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 
 	private void buildAndModify() {
 		MetadataSchemaType schemaType = schemaTypeBuilder.build(typesFactory, modelLayerFactory);
-		schemaTypeBuilder = MetadataSchemaTypeBuilder.modifySchemaType(schemaType);
+		schemaTypeBuilder = MetadataSchemaTypeBuilder.modifySchemaType(schemaType, new DefaultClassProvider());
 	}
 
 	private void validateSchemaTypeHasCustomSchemaWithMetadata() {

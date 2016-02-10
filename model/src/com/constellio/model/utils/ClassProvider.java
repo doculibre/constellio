@@ -2,6 +2,7 @@ package com.constellio.model.utils;
 
 public interface ClassProvider {
 
-	Class<?> loadClass(String name);
+	<T> Class<T> loadClass(String name)
+			throws ClassNotFoundException;
 
 }

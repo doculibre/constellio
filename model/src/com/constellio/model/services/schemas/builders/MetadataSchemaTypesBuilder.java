@@ -46,22 +46,24 @@ public class MetadataSchemaTypesBuilder {
 	private final String collection;
 	private ClassProvider classProvider;
 
-	private MetadataSchemaTypesBuilder(String collection, int version) {
+	private MetadataSchemaTypesBuilder(String collection, int version, ClassProvider classProvider) {
 		super();
 		this.collection = collection;
 		this.version = version;
+		this.classProvider = classProvider;
 	}
 
-	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types) {
-		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollection(), types.getVersion());
+	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ClassProvider classProvider) {
+		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollection(), types.getVersion(),
+				classProvider);
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
-			typesBuilder.schemaTypes.add(MetadataSchemaTypeBuilder.modifySchemaType(type));
+			typesBuilder.schemaTypes.add(MetadataSchemaTypeBuilder.modifySchemaType(type, classProvider));
 		}
 		return typesBuilder;
 	}
 
-	public static MetadataSchemaTypesBuilder createWithVersion(String collection, int version) {
-		return new MetadataSchemaTypesBuilder(collection, version);
+	public static MetadataSchemaTypesBuilder createWithVersion(String collection, int version, ClassProvider classProvider) {
+		return new MetadataSchemaTypesBuilder(collection, version, classProvider);
 	}
 
 	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {

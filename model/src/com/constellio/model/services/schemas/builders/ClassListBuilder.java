@@ -67,7 +67,7 @@ public class ClassListBuilder<T> {
 
 		if (object == null) {
 			object = createObjectWithClassname(implementationClassname);
-			cache.put(implementationClassname, object);
+			//cache.put(implementationClassname, object);
 		}
 
 		return object;
@@ -75,7 +75,8 @@ public class ClassListBuilder<T> {
 
 	private T createObjectWithClassname(String implementationClassname) {
 		try {
-			Class<T> implementationClass = (Class<T>) Class.forName(implementationClassname);
+
+			Class<T> implementationClass = classProvider.loadClass(implementationClassname);
 			if (!implementedClass.isAssignableFrom(implementationClass)) {
 				throw new ClassListBuilderRuntimeException.ClassDoesntImplementInterface(implementationClass.getName(),
 						implementedClass);

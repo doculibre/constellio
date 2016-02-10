@@ -49,16 +49,18 @@ public class MetadataSchemaTypeBuilder {
 	static MetadataSchemaTypeBuilder createNewSchemaType(String collection, String code,
 			MetadataSchemaTypesBuilder typesBuilder, boolean initialize) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
+		builder.classProvider = typesBuilder.getClassProvider();
 		builder.code = code;
 		builder.collection = collection;
 		builder.label = code;
-		builder.customSchemas = new HashSet<MetadataSchemaBuilder>();
+		builder.customSchemas = new HashSet<>();
 		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(builder, typesBuilder, initialize);
 		return builder;
 	}
 
-	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType) {
+	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType, ClassProvider classProvider) {
 		MetadataSchemaTypeBuilder builder = new MetadataSchemaTypeBuilder();
+		builder.classProvider = classProvider;
 		builder.code = schemaType.getCode();
 		builder.collection = schemaType.getCollection();
 		builder.label = schemaType.getLabel();
@@ -66,7 +68,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.defaultSchema = MetadataSchemaBuilder.modifyDefaultSchema(schemaType.getDefaultSchema(), builder);
 		builder.security = schemaType.hasSecurity();
 		builder.inTransactionLog = schemaType.isInTransactionLog();
-		builder.customSchemas = new HashSet<MetadataSchemaBuilder>();
+		builder.customSchemas = new HashSet<>();
 		for (MetadataSchema schema : schemaType.getSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
 		}

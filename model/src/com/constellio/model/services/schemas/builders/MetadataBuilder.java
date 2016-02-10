@@ -822,4 +822,8 @@ public class MetadataBuilder {
 	public void setAllowedReferenceBuilder(AllowedReferencesBuilder allowedReferencesBuilder) {
 		this.allowedReferencesBuilder = allowedReferencesBuilder;
 	}
+
+	public ClassProvider getClassProvider() {
+		return classProvider;
+	}
 }
