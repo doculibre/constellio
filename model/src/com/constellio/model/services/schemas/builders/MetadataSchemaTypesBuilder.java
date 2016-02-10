@@ -31,6 +31,7 @@ import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaTypeSinceItHasRecords;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 
@@ -43,6 +44,7 @@ public class MetadataSchemaTypesBuilder {
 	private final int version;
 	private final Set<MetadataSchemaTypeBuilder> schemaTypes = new HashSet<MetadataSchemaTypeBuilder>();
 	private final String collection;
+	private ClassProvider classProvider;
 
 	private MetadataSchemaTypesBuilder(String collection, int version) {
 		super();
@@ -441,4 +443,7 @@ public class MetadataSchemaTypesBuilder {
 		}
 	}
 
+	public ClassProvider getClassProvider() {
+		return classProvider;
+	}
 }

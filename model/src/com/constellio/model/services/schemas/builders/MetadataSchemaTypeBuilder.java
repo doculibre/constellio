@@ -20,6 +20,7 @@ import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.CannotDeleteSchema;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaTypeSinceItHasRecords;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.utils.ClassProvider;
 
 public class MetadataSchemaTypeBuilder {
 
@@ -35,6 +36,7 @@ public class MetadataSchemaTypeBuilder {
 	private MetadataSchemaBuilder defaultSchema;
 	private Set<MetadataSchemaBuilder> customSchemas = new HashSet<MetadataSchemaBuilder>();
 	private Boolean undeletable = false;
+	private ClassProvider classProvider;
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -251,5 +253,9 @@ public class MetadataSchemaTypeBuilder {
 		} else {
 			customSchemas.remove(getSchema(schema.getLocalCode()));
 		}
+	}
+
+	public ClassProvider getClassProvider() {
+		return classProvider;
 	}
 }
