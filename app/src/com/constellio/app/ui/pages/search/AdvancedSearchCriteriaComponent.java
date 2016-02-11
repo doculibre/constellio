@@ -273,6 +273,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		private Component buildHierarchyValueCriterion(final Criterion criterion) {
 			final PathLookupField lookup = new PathLookupField();
+			lookup.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			lookup.setValue((String) criterion.getValue());
 
 			lookup.addValueChangeListener(new ValueChangeListener() {

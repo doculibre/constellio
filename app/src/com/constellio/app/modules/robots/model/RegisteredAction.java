@@ -1,6 +1,6 @@
 package com.constellio.app.modules.robots.model;
 
-import java.util.List;
+import java.util.Collection;
 
 public class RegisteredAction {
 
@@ -8,19 +8,19 @@ public class RegisteredAction {
 
 	String parametersSchemaLocalCode;
 
-	List<String> supportedSchemaTypes;
+	Collection<String> supportedSchemaTypes;
 
 	ActionExecutor executor;
 
 	public RegisteredAction(String code, String parametersSchemaLocalCode,
-			ActionExecutor executor, List<String> supportedSchemaTypes) {
+			ActionExecutor executor, Collection<String> supportedSchemaTypes) {
 		this.code = code;
 		this.parametersSchemaLocalCode = parametersSchemaLocalCode;
 		this.executor = executor;
 		this.supportedSchemaTypes = supportedSchemaTypes;
 	}
 
-	public List<String> getSupportedSchemaTypes() {
+	public Collection<String> getSupportedSchemaTypes() {
 		return supportedSchemaTypes;
 	}
 

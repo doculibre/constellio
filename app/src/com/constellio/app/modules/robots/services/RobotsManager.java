@@ -7,6 +7,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -55,7 +56,7 @@ public class RobotsManager implements StatefulService {
 		this.robotsService = new RobotsService(robotSchemas.getCollection(), robotSchemas.getAppLayerFactory());
 	}
 
-	public RegisteredAction registerAction(String code, String parametersSchemaLocalCode, List<String> types,
+	public RegisteredAction registerAction(String code, String parametersSchemaLocalCode, Collection<String> types,
 			ActionExecutor executor) {
 		RegisteredAction registeredAction = new RegisteredAction(code, parametersSchemaLocalCode, executor, types);
 		actions.put(code, registeredAction);

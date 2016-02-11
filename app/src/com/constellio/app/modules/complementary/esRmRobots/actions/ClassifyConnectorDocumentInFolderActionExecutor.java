@@ -1,10 +1,9 @@
 package com.constellio.app.modules.complementary.esRmRobots.actions;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -34,7 +33,11 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 
 	public final static String PARAMETER_SCHEMA = ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE;
 
-	public final static List<String> SUPPORTED_TYPES = asList(ConnectorSmbDocument.SCHEMA_TYPE/*, ConnectorSharepointDocument.SCHEMA_TYPE*/);
+	public final static Set<String> SUPPORTED_TYPES = new HashSet<>();
+
+	static {
+		SUPPORTED_TYPES.add(ConnectorSmbDocument.SCHEMA_TYPE);
+	}
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(ClassifyConnectorDocumentInFolderActionExecutor.class);
 
@@ -90,7 +93,7 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 	}
 
 	public static void registerIn(RobotsManager robotsManager) {
-		robotsManager
-				.registerAction(ID, PARAMETER_SCHEMA, SUPPORTED_TYPES, new ClassifyConnectorDocumentInFolderActionExecutor());
+		robotsManager.registerAction(ID, PARAMETER_SCHEMA, SUPPORTED_TYPES,
+				new ClassifyConnectorDocumentInFolderActionExecutor());
 	}
 }

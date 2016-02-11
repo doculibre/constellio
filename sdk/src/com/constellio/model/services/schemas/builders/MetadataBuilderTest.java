@@ -49,6 +49,7 @@ public class MetadataBuilderTest extends ConstellioTest {
 	public void setup() {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
+		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(COLLECTION, "codeSchema", typesBuilder);
 		schemaBuilder = schemaTypeBuilder.getDefaultSchema();
 
