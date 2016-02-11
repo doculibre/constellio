@@ -75,7 +75,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		System.out.println("http://localhost:7070/constellio/select?token=" + token + "&serviceKey=" + serviceKey
 				+ "&fq=-type_s:index" + "&q=*:*");
 
-		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		//givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override

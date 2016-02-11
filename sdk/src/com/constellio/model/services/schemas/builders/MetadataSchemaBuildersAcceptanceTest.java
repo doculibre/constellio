@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
+import com.constellio.model.utils.DefaultClassProvider;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -31,6 +32,7 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
+		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 
 	}
