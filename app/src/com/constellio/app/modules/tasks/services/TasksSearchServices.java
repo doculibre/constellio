@@ -32,20 +32,25 @@ public class TasksSearchServices {
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assigner()).isEqualTo(user)
 						.andWhere(tasksSchemas.userTask.assignee()).isNotEqual(user)
-						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
+						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
+						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
 
 	public LogicalSearchQuery getUnassignedTasksQuery(User user) {
-		return new LogicalSearchQuery(from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assignee()).isNull()
-				.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
-				.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
-				.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
+		return new LogicalSearchQuery(
+				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assignee()).isNull()
+						.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
+						.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
+						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
+						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
 
 	public LogicalSearchQuery getTasksAssignedToUserQuery(User user) {
-		LogicalSearchCondition userInAssignation = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
+		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
+				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),
+				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
 				anyConditions(
 						where(tasksSchemas.userTask.assignee()).isEqualTo(user),
 						allConditions(
@@ -56,8 +61,7 @@ public class TasksSearchServices {
 								)
 						)
 				));
-		return new LogicalSearchQuery(userInAssignation.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
-				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
+		return new LogicalSearchQuery(condition).filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
 
 	public LogicalSearchQuery getDirectSubTasks(String taskId, User user) {
@@ -69,7 +73,9 @@ public class TasksSearchServices {
 
 	public LogicalSearchQuery getRecentlyCompletedTasks(User user) {
 		return new LogicalSearchQuery(
-				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.status()).isIn(getFinishedStatuses()))
+				from(tasksSchemas.userTask.schemaType())
+						.where(tasksSchemas.userTask.status()).isIn(getFinishedStatuses())
+						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
 	}
 
