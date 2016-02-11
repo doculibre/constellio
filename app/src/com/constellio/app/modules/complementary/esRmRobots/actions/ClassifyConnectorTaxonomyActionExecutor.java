@@ -1,8 +1,8 @@
 package com.constellio.app.modules.complementary.esRmRobots.actions;
 
-import static java.util.Arrays.asList;
-
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +26,11 @@ public class ClassifyConnectorTaxonomyActionExecutor implements ActionExecutor {
 
 	public final static String PARAMETER_SCHEMA = ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE;
 
-	public final static List<String> SUPPORTED_TYPES = asList(ConnectorSmbFolder.SCHEMA_TYPE/*,
-			ConnectorSharepointFolder.SCHEMA_TYPE, ConnectorSharepointDocumentSet.SCHEMA_TYPE*/);
+	public final static Set<String> SUPPORTED_TYPES = new HashSet<>();
+
+	static {
+		SUPPORTED_TYPES.add(ConnectorSmbFolder.SCHEMA_TYPE);
+	}
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(ClassifyConnectorTaxonomyActionExecutor.class);
 
