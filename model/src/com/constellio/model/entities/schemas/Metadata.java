@@ -1,5 +1,7 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.schemas.builders.ClassListBuilder.combine;
 
 import java.util.Collections;
@@ -10,6 +12,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.entities.schemas.sort.DefaultStringSortFieldNormalizer;
+import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -268,6 +272,11 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isSchemaAutocomplete();
 	}
 
+	public StringSortFieldNormalizer getSortFieldNormalizer() {
+		boolean normalizedSort = isSortable() && type == STRING && !IDENTIFIER.getDataStoreCode().equals(getDataStoreCode());
+		return normalizedSort ? new DefaultStringSortFieldNormalizer() : null;
+	}
+
 	public Object getDefaultValue() {
 		return defaultValue;
 	}
@@ -358,6 +367,10 @@ public class Metadata implements DataStoreField {
 
 	public Metadata getAnalyzedField(String languageCode) {
 		return Schemas.getSearchableMetadata(this, languageCode);
+	}
+
+	public Metadata getSortField() {
+		return getSortFieldNormalizer() == null ? null : Schemas.getSortMetadata(this);
 	}
 
 	public boolean isSameValueThan(Metadata otherMetadata) {

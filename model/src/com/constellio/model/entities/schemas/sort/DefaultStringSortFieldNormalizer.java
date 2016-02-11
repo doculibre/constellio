@@ -29,6 +29,6 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 
 	@Override
 	public String normalizeNull() {
-		return "";
+		return null;
 	}
 }

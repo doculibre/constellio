@@ -19,7 +19,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
-import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -57,7 +56,6 @@ public class MetadataBuilder {
 	private boolean sortable = false;
 	private boolean encrypted = false;
 	private boolean essentialInSummary = false;
-	private Class<? extends StringSortFieldNormalizer> stringSortFieldNormalizer;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
 	private ClassListBuilder<RecordMetadataValidator<?>> recordMetadataValidators;
