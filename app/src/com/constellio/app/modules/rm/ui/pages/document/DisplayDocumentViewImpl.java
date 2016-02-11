@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.InputStream;
@@ -413,6 +414,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(alertWhenAvailableButton);
 		actionMenuButtons.add(checkOutButton);
 		actionMenuButtons.add(finalizeButton);
+		actionMenuButtons.add(new StartWorkflowButton());
 
 		return actionMenuButtons;
 	}
@@ -543,4 +545,24 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		Page.getCurrent().open(agentURL, null);
 	}
 
+	private class StartWorkflowButton extends WindowButton {
+		public StartWorkflowButton() {
+			super($("TasksManagementView.startWorkflow"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
+		}
+
+		@Override
+		protected Component buildWindowContent() {
+			RecordVOTable table = new RecordVOTable(presenter.getWorkflows());
+			table.setWidth("98%");
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					presenter.workflowStartRequested(item.getRecord());
+					getWindow().close();
+				}
+			});
+			return table;
+		}
+	}
 }

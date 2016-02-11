@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
@@ -78,7 +79,6 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
-
 	public static final String STYLE_NAME = "display-folder";
 	public static final String USER_LOOKUP = "user-lookup";
 	private RecordVO recordVO;
@@ -338,6 +338,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(returnFolderButton);
 		actionMenuButtons.add(reminderReturnFolderButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
+		actionMenuButtons.add(new StartWorkflowButton());
 
 		return actionMenuButtons;
 	}
@@ -403,7 +404,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			}
 		});
-//		table.setPageLength(Math.min(15, dataProvider.size()));
+		//		table.setPageLength(Math.min(15, dataProvider.size()));
 		tabSheet.replaceComponent(documentsComponent, table);
 		documentsComponent = table;
 	}
@@ -749,4 +750,24 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		Page.getCurrent().open(downloadedResource, null, false);
 	}
 
+	private class StartWorkflowButton extends WindowButton {
+		public StartWorkflowButton() {
+			super($("TasksManagementView.startWorkflow"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
+		}
+
+		@Override
+		protected Component buildWindowContent() {
+			RecordVOTable table = new RecordVOTable(presenter.getWorkflows());
+			table.setWidth("98%");
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					presenter.workflowStartRequested(item.getRecord());
+					getWindow().close();
+				}
+			});
+			return table;
+		}
+	}
 }

@@ -62,7 +62,7 @@ public class WorkflowServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenSearchingWorflowModelTaskThenOnlyReturnGivenWorkflowModelTask()
+	public void whenSearchingWorkflowModelTaskThenOnlyReturnGivenWorkflowModelTask()
 			throws Exception {
 
 		Workflow approvalWorkflow = tasks.getWorkflowWithCode("approval");

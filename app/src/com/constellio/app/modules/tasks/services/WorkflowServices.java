@@ -84,6 +84,15 @@ public class WorkflowServices {
 		return taskProgressionVOs;
 	}
 
+	public List<WorkflowTaskVO> getFlattenModelTaskVOs(Workflow workflow, SessionContext sessionContext) {
+		List<WorkflowTaskVO> tasks = new ArrayList<>();
+
+		for (WorkflowTaskVO task : getRootModelTaskVOs(workflow, sessionContext)) {
+			tasks.addAll(getAllTasksInHierarchy(task, sessionContext));
+		}
+		return tasks;
+	}
+
 	private WorkflowTaskProgressionVO getTaskProgression(WorkflowInstance workflowInstance, WorkflowTaskVO workflowTaskVO) {
 		Task instanceTask = tasks.wrapTask(searchServices.searchSingleResult(from(tasks.userTask.schemaType())
 				.where(tasks.userTask.workflowInstance()).isEqualTo(workflowInstance)
@@ -102,17 +111,6 @@ public class WorkflowServices {
 
 		return workflowTaskProgressionVO;
 
-	}
-
-	public List<WorkflowTaskVO> getFlattenModelTaskVOs(Workflow workflow, SessionContext sessionContext) {
-
-		List<WorkflowTaskVO> tasks = new ArrayList<>();
-
-		for (WorkflowTaskVO task : getRootModelTaskVOs(workflow, sessionContext)) {
-			tasks.addAll(getAllTasksInHierarchy(task, sessionContext));
-		}
-
-		return tasks;
 	}
 
 	private List<WorkflowTaskVO> getAllTasksInHierarchy(WorkflowTaskVO task, SessionContext sessionContext) {
