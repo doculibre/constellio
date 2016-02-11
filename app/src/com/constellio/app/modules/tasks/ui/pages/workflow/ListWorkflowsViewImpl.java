@@ -63,6 +63,8 @@ public class ListWorkflowsViewImpl extends BaseViewImpl implements ListWorkflows
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		Container workflows = buildContainer(presenter.getWorkflows());
 		Table table = new RecordVOTable($("ListWorkflowsView.workflows", workflows.size()), workflows);
+		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 130);
 		table.setPageLength(Math.min(15, workflows.size()));
 		table.setWidth("100%");
 
