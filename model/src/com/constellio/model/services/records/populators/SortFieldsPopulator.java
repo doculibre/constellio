@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.services.records.FieldsPopulator;
 
 public class SortFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
@@ -23,14 +24,15 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 	@Override
 	public Map<String, Object> populateCopyfields(Metadata metadata, Object value) {
 
+		StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
 		Metadata sortField = metadata.getSortField();
 
-		if (sortField != null) {
+		if (normalizer != null) {
 			Object normalizedValue;
 			if (value == null) {
-				normalizedValue = metadata.getSortFieldNormalizer().normalizeNull();
+				normalizedValue = normalizer.normalizeNull();
 			} else {
-				normalizedValue = metadata.getSortFieldNormalizer().normalize((String) value);
+				normalizedValue = normalizer.normalize((String) value);
 			}
 			if (normalizedValue == null) {
 				normalizedValue = "";

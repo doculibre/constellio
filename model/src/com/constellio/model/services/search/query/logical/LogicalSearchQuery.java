@@ -209,8 +209,10 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery sortAsc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();
-			String fieldCode = sortField == null ? field.getDataStoreCode() : sortField.getDataStoreCode();
-			sortFields.add(new LogicalSearchQuerySort(fieldCode, true));
+			if (sortField != null) {
+				sortFields.add(new LogicalSearchQuerySort(sortField.getDataStoreCode(), true));
+			}
+			sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), true));
 		}
 		return this;
 	}
@@ -218,8 +220,10 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery sortDesc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();
-			String fieldCode = sortField == null ? field.getDataStoreCode() : sortField.getDataStoreCode();
-			sortFields.add(new LogicalSearchQuerySort(fieldCode, false));
+			if (sortField != null) {
+				sortFields.add(new LogicalSearchQuerySort(sortField.getDataStoreCode(), false));
+			}
+			sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), false));
 		}
 		return this;
 	}
