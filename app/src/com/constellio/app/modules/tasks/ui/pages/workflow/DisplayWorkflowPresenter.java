@@ -99,11 +99,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 
 	void deleteButtonClicked() {
 		try {
-			Record workflowRecord = toRecord(workflowVO);
-			User god = User.GOD;
-			recordServices().logicallyDelete(workflowRecord, god);
-			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(workflowRecord, getCurrentUser(), null);
-			recordServices().physicallyDelete(workflowRecord, god);
+			delete(toRecord(workflowVO), false);
 			view.navigateTo().listWorkflows();
 		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
 			view.showErrorMessage(MessageUtils.toMessage(exception));
