@@ -204,9 +204,11 @@ public class SchemaUtils {
 	}
 
 	public String getLocalCodeFromMetadataCode(String metadataCode) {
+		if (!metadataCode.contains("_")) {
+			return metadataCode;
+		}
 		String schemaCode = getSchemaCode(metadataCode);
 		return getLocalCode(metadataCode, schemaCode);
-
 	}
 
 	public String getLocalCode(String codeOrLocalCode, String schemaCode) {
