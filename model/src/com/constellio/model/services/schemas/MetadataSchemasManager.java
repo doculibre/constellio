@@ -37,6 +37,8 @@ import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.ClassProvider;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
@@ -120,10 +122,12 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 				MetadataSchemaTypesBuilder typesBuilder;
 				if (formatVersion == null) {
-					typesBuilder = new MetadataSchemaXMLReader1().read(collection, document, typesFactory, modelLayerFactory);
+					typesBuilder = new MetadataSchemaXMLReader1(getClassProvider())
+							.read(collection, document, typesFactory, modelLayerFactory);
 
 				} else if (MetadataSchemaXMLReader2.FORMAT_VERSION.equals(formatVersion)) {
-					typesBuilder = new MetadataSchemaXMLReader2().read(collection, document, typesFactory, modelLayerFactory);
+					typesBuilder = new MetadataSchemaXMLReader2(getClassProvider())
+							.read(collection, document, typesFactory, modelLayerFactory);
 
 				} else {
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
@@ -147,7 +151,12 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public MetadataSchemaTypesBuilder modify(String collection) {
-		return MetadataSchemaTypesBuilder.modify(getSchemaTypes(collection));
+		return MetadataSchemaTypesBuilder.modify(getSchemaTypes(collection), getClassProvider());
+	}
+
+	private ClassProvider getClassProvider() {
+		//TODO Nouha
+		return new DefaultClassProvider();
 	}
 
 	public void modify(String collection, MetadataSchemaTypesAlteration alteration) {
