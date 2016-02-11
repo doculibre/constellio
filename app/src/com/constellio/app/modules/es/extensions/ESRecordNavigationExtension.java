@@ -105,10 +105,6 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 						.substringAfterLast(url, "/");
 				clickListener = prepareFileDownloader(url, title, id, collection, component, filename);
 			} else {
-				/*final String url = recordVO.get(schemaCode + "_url");
-				String title = recordVO.get(schemaCode + "_title");
-				String id = recordVO.getId();
-				clickListener = prepareFileDownloader(url, title, id, collection, component, title);*/
 				ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 				ConnectorManager connectorManager = es.getConnectorManager();
 				for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
@@ -133,6 +129,10 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 			component.addStyleName(SearchResultDisplay.TITLE_STYLE);
 			component.setEnabled(true);
 			if (clickListener == null) {
+				//to fix null titles
+				if (StringUtils.isBlank(title)) {
+					title = url;
+				}
 				clickListener = prepareFileDownloader(url, title, id, collection, component, title);
 			}
 			component.addClickListener(clickListener);
@@ -165,7 +165,8 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 					ConnectorDocument<?> document = es.getConnectorDocument(id);
 					ConnectorUtilsServices services = ConnectorServicesFactory
 							.forConnectorDocument(appLayerFactory, document);
-					return services.newContentInputStream(document, DOWNLOAD_DOCUMENT);
+					InputStream inputStream = services.newContentInputStream(document, DOWNLOAD_DOCUMENT);
+					return inputStream;
 				} catch (Exception e) {
 					e.printStackTrace();
 					return null;
