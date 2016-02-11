@@ -111,7 +111,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 		records = schemas.givenTaxonomyRecords(recordServices);
 
-		MetadataSchemaTypesBuilder types = MetadataSchemaTypesBuilder.modify(schemasManager.getSchemaTypes("zeCollection"));
+		MetadataSchemaTypesBuilder types = schemasManager.modify("zeCollection");
 
 		services = getModelLayerFactory().newTaxonomiesSearchService();
 

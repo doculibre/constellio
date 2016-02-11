@@ -23,6 +23,10 @@ import org.junit.Test;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.SaveStateFeature;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import com.constellio.sdk.tests.annotations.UiTest;
 
 public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends ConstellioTest {
 	private ConstellioPluginManager pluginManager;
@@ -54,7 +58,6 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 
 	@Test
 	public void givenInvalidModuleWhenDetectPluginsThenPluginWithAdequateErrorStatus() {
-
 		List<ConstellioPluginInfo> invalidPlugins = pluginManager.getPlugins(INVALID);
 		assertThat(invalidPlugins).extracting("code", "pluginActivationFailureCause").containsOnly(
 				//tuple("InvalidModuleInMigrate", "INVALID_MIGRATION_SCRIPT"),
@@ -76,6 +79,7 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 		);
 
 	}
+
 
 	@After
 	public void deletePreviousPluginsFolder() {

@@ -14,6 +14,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.FactoriesTestFeatures;
 
 public class SchemaTestFeatures {
@@ -55,7 +56,7 @@ public class SchemaTestFeatures {
 			ModelLayerFactory modelLayerFactory = mock(ModelLayerFactory.class);
 			TaxonomiesManager taxonomiesManager = mock(TaxonomiesManager.class);
 			MetadataSchemaTypes types = spy(typesBuilder.build(new FakeDataStoreTypeFactory(), modelLayerFactory));
-			typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+			typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 			reset(manager);
 			when(manager.getSchemaTypes(collection)).thenReturn(types);
 			return types;
@@ -66,7 +67,7 @@ public class SchemaTestFeatures {
 				}
 				manager.saveUpdateSchemaTypes(typesBuilder);
 				MetadataSchemaTypes types = manager.getSchemaTypes(collection);
-				typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+				typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 				return types;
 			} catch (MetadataSchemasManagerException e) {
 				throw new RuntimeException(e);

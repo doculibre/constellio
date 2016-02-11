@@ -183,8 +183,6 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		int pluginsWithPluginIdCount = 0;
 		InstallableModule newInstallableModule = null;
 		for (InstallableModule plugin : pluginsAfter) {
-			String id = plugin.getId();
-			System.out.println(id);
 			if (plugin.getId() != null && plugin.getId().equals(pluginId)) {
 				newInstallableModule = plugin;
 				pluginsWithPluginIdCount++;
@@ -243,7 +241,8 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		return plugins;
 	}
 
-	private List<InstallableModule> getActivePluginModules() {
+	@Override
+	public List<InstallableModule> getActivePluginModules() {
 		List<InstallableModule> returnList = new ArrayList<>();
 		List<String> activePluginModulesIds = pluginConfigManger.getActivePluginsIds();
 		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
@@ -352,6 +351,11 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			returnList.addAll(pluginConfigManger.getPlugins(status));
 		}
 		return returnList;
+	}
+
+	@Override
+	public boolean isRegistered(String id) {
+		return registeredPlugins.keySet().contains(id) || validUploadedPlugins.containsValue(id);
 	}
 
 	private void ensureStarted() {

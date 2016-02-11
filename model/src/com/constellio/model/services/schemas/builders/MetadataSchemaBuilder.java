@@ -25,6 +25,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.NoSuchMetadata;
+import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 
@@ -52,6 +53,8 @@ public class MetadataSchemaBuilder {
 
 	private boolean undeletable = false;
 
+	private ClassProvider classProvider;
+
 	private ClassListBuilder<RecordValidator> schemaValidators;
 
 	MetadataSchemaBuilder() {
@@ -59,6 +62,7 @@ public class MetadataSchemaBuilder {
 
 	static MetadataSchemaBuilder modifySchema(MetadataSchema schema, MetadataSchemaTypeBuilder schemaType) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
+		builder.classProvider = schemaType.getClassProvider();
 		builder.setDefaultSchema(schemaType.getDefaultSchema());
 		builder.setSchemaTypeBuilder(schemaType);
 		builder.setLocalCode(schema.getLocalCode());
@@ -72,7 +76,7 @@ public class MetadataSchemaBuilder {
 				MetadataBuilder inheritance = builder.defaultSchema.getMetadata(metadata.getLocalCode());
 				builder.metadatas.add(MetadataBuilder.modifyMetadataWithInheritance(metadata, inheritance));
 			} else {
-				builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata));
+				builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata, builder.classProvider));
 			}
 		}
 
@@ -87,14 +91,14 @@ public class MetadataSchemaBuilder {
 				customValidators.add(validator);
 			}
 		}
-		builder.schemaValidators = new ClassListBuilder<>(RecordValidator.class, customValidators);
+		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class, customValidators);
 
 		return builder;
 	}
 
 	static MetadataSchemaBuilder modifyDefaultSchema(MetadataSchema defaultSchema, MetadataSchemaTypeBuilder typeBuilder) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
-
+		builder.classProvider = typeBuilder.getClassProvider();
 		builder.label = defaultSchema.getLabel();
 		builder.setLocalCode(defaultSchema.getLocalCode());
 		builder.setCode(defaultSchema.getCode());
@@ -103,14 +107,16 @@ public class MetadataSchemaBuilder {
 		builder.setSchemaTypeBuilder(typeBuilder);
 		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
-			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata));
+			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(metadata, builder.classProvider));
 		}
-		builder.schemaValidators = new ClassListBuilder<>(RecordValidator.class, defaultSchema.getValidators());
+		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class,
+				defaultSchema.getValidators());
 		return builder;
 	}
 
 	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
+		builder.classProvider = defaultSchema.classProvider;
 		builder.setDefaultSchema(defaultSchema);
 		builder.metadatas = new ArrayList<>();
 		builder.setCollection(defaultSchema.getCollection());
@@ -122,13 +128,14 @@ public class MetadataSchemaBuilder {
 			builder.metadatas.add(MetadataBuilder.createCustomMetadataFromDefault(metadata, localCode));
 		}
 
-		builder.schemaValidators = new ClassListBuilder<>(RecordValidator.class);
+		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class);
 		return builder;
 	}
 
 	static MetadataSchemaBuilder createDefaultSchema(MetadataSchemaTypeBuilder schemaTypeBuilder,
 			MetadataSchemaTypesBuilder schemaTypesBuilder, boolean initialize) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
+		builder.classProvider = schemaTypeBuilder.getClassProvider();
 		builder.setSchemaTypeBuilder(schemaTypeBuilder);
 		builder.setLocalCode(DEFAULT);
 		builder.setCollection(schemaTypeBuilder.getCollection());
@@ -136,7 +143,7 @@ public class MetadataSchemaBuilder {
 		builder.setCode(schemaTypeBuilder.getCode() + UNDERSCORE + DEFAULT);
 		builder.setUndeletable(true);
 		builder.metadatas = new ArrayList<>();
-		builder.schemaValidators = new ClassListBuilder<>(RecordValidator.class);
+		builder.schemaValidators = new ClassListBuilder<>(builder.classProvider, RecordValidator.class);
 		if (initialize) {
 			new CommonMetadataBuilder().addCommonMetadataToNewSchema(builder, schemaTypesBuilder);
 		}
@@ -477,5 +484,9 @@ public class MetadataSchemaBuilder {
 		} catch (NoSuchMetadata e1) {
 			//OK
 		}
+	}
+
+	public ClassProvider getClassProvider() {
+		return classProvider;
 	}
 }

@@ -67,12 +67,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		createModulesConfigFileIfNotExist();
 	}
 
-	public void startModules() {
+	/*public void startModules() {
 		CollectionsListManager collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		for (String collection : collectionsListManager.getCollections()) {
 			startModules(collection);
 		}
-	}
+	}*/
 
 	public List<InstallableModule> getInstalledModules() {
 		List<InstallableModule> installedModules = new ArrayList<>();
@@ -90,6 +90,10 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public List<InstallableModule> getEnabledModules(String collection) {
 		List<InstallableModule> enabledModules = new ArrayList<>();
+
+		for (InstallableModule module : this.constellioPluginManager.getRegisteredPlugins()) {
+			installDependentPluginModules(module, collection);
+		}
 		XMLConfiguration xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 
@@ -100,7 +104,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 			if (moduleElement != null && isEnabled(moduleElement, collection)) {
 				enabledModules.add(module);
-				dependencies.put(module.getId(), new HashSet<String>(module.getDependencies()));
+				dependencies.put(module.getId(), new HashSet<>(module.getDependencies()));
 			}
 		}
 
@@ -151,7 +155,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	private Map<String, Element> parseModulesDocument(Document document) {
-		Map<String, Element> moduleElements = new HashMap<String, Element>();
+		Map<String, Element> moduleElements = new HashMap<>();
 		for (Element moduleElement : document.getRootElement().getChildren()) {
 			moduleElements.put(moduleElement.getAttributeValue("id"), moduleElement);
 		}
@@ -159,7 +163,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public List<InstallableModule> getDisabledModules(String collection) {
-		List<InstallableModule> disabledModules = new ArrayList<InstallableModule>();
+		List<InstallableModule> disabledModules = new ArrayList<>();
 		XMLConfiguration xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 		for (InstallableModule module : getAllModules()) {
@@ -172,7 +176,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public List<InstallableModule> getModulesAvailableForInstallation() {
-		List<InstallableModule> availableModules = new ArrayList<InstallableModule>();
+		List<InstallableModule> availableModules = new ArrayList<>();
 		XMLConfiguration xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 
@@ -287,10 +291,15 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public List<InstallableModule> getComplementaryModules() {
 		List<InstallableModule> complementaryModules = new ArrayList<>();
+		LOGGER.info("Complementary modules");
 		List<InstallableModule> allModules = getAllModules();
 		for (InstallableModule module : allModules) {
+
 			if (module.isComplementary()) {
+				LOGGER.info("Complementary " + module.getId());
 				complementaryModules.add(module);
+			} else {
+				LOGGER.info("Not complementary " + module.getId());
 			}
 		}
 		return complementaryModules;
@@ -444,4 +453,17 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			}
 		});
 	}
+
+	private void installDependentPluginModules(Module module, String collection) {
+		List<InstallableModule> pluginModules = this.constellioPluginManager.getActivePluginModules();
+		for (InstallableModule pluginModule : pluginModules) {
+			if (PluginUtil.getDependencies(pluginModule).contains(module.getId())) {
+				if (!isInstalled(pluginModule)) {
+					markAsInstalled(pluginModule, appLayerFactory.getModelLayerFactory().getCollectionsListManager());
+				}
+				markAsEnabled(pluginModule, collection);
+			}
+		}
+	}
+
 }

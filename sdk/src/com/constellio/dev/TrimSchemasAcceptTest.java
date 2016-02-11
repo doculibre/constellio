@@ -12,7 +12,6 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.junit.Before;
-import org.junit.Test;
 
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
@@ -24,6 +23,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader1;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader2;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class TrimSchemasAcceptTest extends ConstellioTest {
@@ -53,7 +53,7 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 		Document originalDocument = getDocumentFromFile(inputFile);
 		long fileLength = inputFile.length();
 		System.out.println("fileLength before " + fileLength);
-		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaXMLReader1()
+		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaXMLReader1(new DefaultClassProvider())
 				.read("collection", originalDocument, new SolrDataStoreTypesFactory(), getModelLayerFactory());
 		MetadataSchemaTypes types = typesBuilder.build(new SolrDataStoreTypesFactory(), getModelLayerFactory());
 
@@ -67,7 +67,7 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 		System.out.println("fileLength after " + newFileLength);
 		System.out.println(fileLength / newFileLength);
 
-		MetadataSchemaTypesBuilder types2Builder = new MetadataSchemaXMLReader2()
+		MetadataSchemaTypesBuilder types2Builder = new MetadataSchemaXMLReader2(new DefaultClassProvider())
 				.read("collection", getDocumentFromFile(outputFile), new SolrDataStoreTypesFactory(), getModelLayerFactory());
 		MetadataSchemaTypes types2 = types2Builder.build(new SolrDataStoreTypesFactory(), getModelLayerFactory());
 

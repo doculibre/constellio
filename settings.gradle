@@ -4,7 +4,7 @@ include "data",
         "custom",
         "sdk"
 
-if (new File("../constellio-plugins").exists()) {
+if (new File(rootDir, "../constellio-plugins").exists()) {
     // Add new plugins below with the right name
     include "plugins",
             "plugins:sdk",
@@ -26,7 +26,7 @@ project(":app").projectDir = file("./app")
 project(":custom").projectDir = file("./custom")
 project(":sdk").projectDir = file("./sdk")
 
-if (new File("../constellio-plugins").exists()) {
+if (new File(rootDir, "../constellio-plugins").exists()) {
     // Add new plugins below with the right folder
     project(":plugins").projectDir = file("../constellio-plugins")
     project(":plugins:sdk").projectDir = file("../constellio-plugins/sdk")

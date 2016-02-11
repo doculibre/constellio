@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 
 @RunWith(Parameterized.class)
@@ -58,7 +59,7 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 
-		typesBuilder = MetadataSchemaTypesBuilder.modify(manager.getSchemaTypes("zeCollection"));
+		typesBuilder = MetadataSchemaTypesBuilder.modify(manager.getSchemaTypes("zeCollection"), new DefaultClassProvider());
 
 		MetadataSchemaTypeBuilder type1Builder = typesBuilder.getOrCreateNewSchemaType("type1").setLabel("type1");
 		MetadataSchemaTypeBuilder type2Builder = typesBuilder.getOrCreateNewSchemaType("type2").setLabel("type2");
@@ -86,7 +87,7 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 		if (testCase.equals(givenBuilderObtainedFromManager) || testCase.equals(givenFinalEnityObtainedFromManager)) {
 			manager.saveUpdateSchemaTypes(typesBuilder);
 			types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes("zeCollection");
-			typesBuilder = MetadataSchemaTypesBuilder.modify(types);
+			typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 		}
 		builderMode = testCase.equals(givenBuilder) || testCase.equals(givenBuilderObtainedFromManager);
 	}

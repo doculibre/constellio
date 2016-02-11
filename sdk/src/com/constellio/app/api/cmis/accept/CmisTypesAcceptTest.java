@@ -208,7 +208,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(categoryDefault.getDescription()).isEqualTo("category_default");
 		assertThat(categoryDefault.getDisplayName()).isEqualTo("category_default");
 		assertThat(categoryDefault.getLocalName()).isEqualTo("category_default");
-//		assertThat(categoryDefault.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(categoryDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(categoryDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType collectionType = iterator.next();
@@ -217,7 +217,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(collectionType.getDescription()).isEqualTo("collection_default");
 		assertThat(collectionType.getDisplayName()).isEqualTo("collection_default");
 		assertThat(collectionType.getLocalName()).isEqualTo("collection_default");
-//		assertThat(collectionType.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(collectionType.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(collectionType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType documentFondDefault = iterator.next();
@@ -226,7 +226,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(documentFondDefault.getDescription()).isEqualTo("documentFond_default");
 		assertThat(documentFondDefault.getDisplayName()).isEqualTo("documentFond_default");
 		assertThat(documentFondDefault.getLocalName()).isEqualTo("documentFond_default");
-//		assertThat(documentFondDefault.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(documentFondDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(documentFondDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType documentDefault = iterator.next();
@@ -235,7 +235,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(documentDefault.getDescription()).isEqualTo("document_default");
 		assertThat(documentDefault.getDisplayName()).isEqualTo("document_default");
 		assertThat(documentDefault.getLocalName()).isEqualTo("document_default");
-//		assertThat(documentDefault.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(documentDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(documentDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType emailToSendDefault = iterator.next();
@@ -248,7 +248,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(eventDefault.getDescription()).isEqualTo("event_default");
 		assertThat(eventDefault.getDisplayName()).isEqualTo("event_default");
 		assertThat(eventDefault.getLocalName()).isEqualTo("event_default");
-//		assertThat(eventDefault.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(eventDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(eventDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType facetDefault = iterator.next();
@@ -272,7 +272,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(folderDefault.getDescription()).isEqualTo("folder_default");
 		assertThat(folderDefault.getDisplayName()).isEqualTo("folder_default");
 		assertThat(folderDefault.getLocalName()).isEqualTo("folder_default");
-//		assertThat(folderDefault.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(folderDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(folderDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType groupDefault = iterator.next();
@@ -281,7 +281,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(groupDefault.getDescription()).isEqualTo("group_default");
 		assertThat(groupDefault.getDisplayName()).isEqualTo("group_default");
 		assertThat(groupDefault.getLocalName()).isEqualTo("group_default");
-//		assertThat(groupDefault.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(groupDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(groupDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType report = iterator.next();
@@ -290,7 +290,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(report.getDescription()).isEqualTo("report_default");
 		assertThat(report.getDisplayName()).isEqualTo("report_default");
 		assertThat(report.getLocalName()).isEqualTo("report_default");
-//		assertThat(report.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(report.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(report.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType savedSearch = iterator.next();
@@ -303,7 +303,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(approvalTask.getDescription()).isEqualTo("task_approval");
 		assertThat(approvalTask.getDisplayName()).isEqualTo("task_approval");
 		assertThat(approvalTask.getLocalName()).isEqualTo("task_approval");
-//		assertThat(approvalTask.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(approvalTask.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(approvalTask.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType taskType = iterator.next();
@@ -312,7 +312,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(taskType.getDescription()).isEqualTo("task_default");
 		assertThat(taskType.getDisplayName()).isEqualTo("task_default");
 		assertThat(taskType.getLocalName()).isEqualTo("task_default");
-//		assertThat(taskType.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(taskType.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(taskType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType taxonomyType = iterator.next();
@@ -321,7 +321,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(taxonomyType.getDescription()).isEqualTo("taxonomy");
 		assertThat(taxonomyType.getDisplayName()).isEqualTo("taxonomy");
 		assertThat(taxonomyType.getLocalName()).isEqualTo("taxonomy");
-//		assertThat(taxonomyType.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(taxonomyType.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(taxonomyType.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType userDocument = iterator.next();
@@ -330,7 +330,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(userDocument.getDescription()).isEqualTo("userDocument_default");
 		assertThat(userDocument.getDisplayName()).isEqualTo("userDocument_default");
 		assertThat(userDocument.getLocalName()).isEqualTo("userDocument_default");
-//		assertThat(userDocument.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(userDocument.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(userDocument.getParentTypeId()).isEqualTo(baseFolderType.getId());
 
 		ObjectType userDefault = iterator.next();
@@ -339,13 +339,12 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(userDefault.getDescription()).isEqualTo("user_default");
 		assertThat(userDefault.getDisplayName()).isEqualTo("user_default");
 		assertThat(userDefault.getLocalName()).isEqualTo("user_default");
-//		assertThat(userDefault.getPropertyDefinitions().get("parent")).isNull();
+		//		assertThat(userDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(userDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
 	}
 
 	private void whenChangeTypeDefinitionThenRefreshProperties() {
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(metadataSchemasManager
-				.getSchemaTypes(zeCollection));
+		MetadataSchemaTypesBuilder typesBuilder = metadataSchemasManager.modify(zeCollection);
 		typesBuilder.getSchema("administrativeUnit_classificationStation").create("newMetadata")
 				.setType(MetadataValueType.STRING);
 		try {

@@ -311,8 +311,7 @@ public class SchemasServicesAPI {
 	}
 
 	MetadataSchemaTypesBuilder typesBuilder(String collection) {
-		MetadataSchemaTypes types = types(collection);
-		return MetadataSchemaTypesBuilder.modify(types);
+		return metadataSchemasManager().modify(collection);
 	}
 
 	void save(MetadataSchemaTypesBuilder typesBuilder) {

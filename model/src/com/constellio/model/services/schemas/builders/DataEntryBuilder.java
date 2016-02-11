@@ -9,14 +9,18 @@ import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotInstanciateClass;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotCopyUsingACustomMetadata;
+import com.constellio.model.utils.ClassProvider;
 
 public class DataEntryBuilder {
+
+	ClassProvider classProvider;
 
 	MetadataBuilder metadata;
 
 	public DataEntryBuilder(MetadataBuilder metadata) {
 		super();
 		this.metadata = metadata;
+		this.classProvider = metadata.getClassProvider();
 	}
 
 	public MetadataBuilder asManual() {
@@ -45,7 +49,7 @@ public class DataEntryBuilder {
 	public MetadataBuilder asCalculated(String calculatorClassName) {
 		Class<? extends MetadataValueCalculator<?>> calculatorClass;
 		try {
-			calculatorClass = (Class<? extends MetadataValueCalculator<?>>) Class.forName(calculatorClassName);
+			calculatorClass = classProvider.loadClass(calculatorClassName);
 		} catch (ClassNotFoundException e) {
 			throw new CannotInstanciateClass(calculatorClassName, e);
 		}
@@ -57,6 +61,7 @@ public class DataEntryBuilder {
 			try {
 				metadata.dataEntry = new CalculatedDataEntry(calculatorClass.newInstance());
 			} catch (InstantiationException | IllegalAccessException e) {
+				//
 				throw new MetadataBuilderRuntimeException.InvalidAttribute(metadata.getLocalCode(), "calculator", e);
 			}
 		} else {

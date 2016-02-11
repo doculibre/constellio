@@ -21,6 +21,8 @@ public interface ConstellioPluginManager extends StatefulService {
 
 	List<InstallableModule> getRegisteredPlugins();
 
+	List<InstallableModule> getActivePluginModules();
+
 	PluginActivationFailureCause prepareInstallablePlugin(File file);
 
 	void markPluginAsDisabled(String pluginId);
@@ -35,4 +37,5 @@ public interface ConstellioPluginManager extends StatefulService {
 
 	List<ConstellioPluginInfo> getPlugins(ConstellioPluginStatus... statuses);
 
+	boolean isRegistered(String id);
 }

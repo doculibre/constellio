@@ -30,6 +30,7 @@ import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBui
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
 
@@ -39,11 +40,19 @@ public class MetadataSchemaXMLReader2 {
 
 	public static final String FORMAT_VERSION = "2";
 
+	ClassProvider classProvider;
+
+	public MetadataSchemaXMLReader2(ClassProvider classProvider) {
+		this.classProvider = classProvider;
+	}
+
 	public MetadataSchemaTypesBuilder read(String collection, Document document, DataStoreTypesFactory typesFactory,
 			ModelLayerFactory modelLayerFactory) {
+
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
-		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(collection, version);
+		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
+				.createWithVersion(collection, version, classProvider);
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
 			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
@@ -385,7 +394,7 @@ public class MetadataSchemaXMLReader2 {
 
 		if (validator == null) {
 			try {
-				validator = (Class<? extends RecordMetadataValidator<?>>) Class.forName(validatorClassName);
+				validator = classProvider.loadClass(validatorClassName);
 				validatorsCache.put(validatorClassName, validator);
 			} catch (ClassNotFoundException e) {
 				throw new MetadataSchemasManagerRuntimeException.NoSuchValidatorClass(validatorClassName, e);
