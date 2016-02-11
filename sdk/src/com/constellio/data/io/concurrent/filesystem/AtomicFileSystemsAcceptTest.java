@@ -27,7 +27,7 @@ import com.constellio.model.conf.FoldersLocator;
 
 @InDevelopmentTest
 @RunWith(value = Parameterized.class)
-public class AtomicFileSystemsTest {
+public class AtomicFileSystemsAcceptTest {
 	private static NIOServerCnxnFactory serverFactory;
 	private static ZooKeeperServer zks;
 	
@@ -73,7 +73,7 @@ public class AtomicFileSystemsTest {
 	private Object invalidVersion;
 	private Object updatedVersion;
 	
-	public AtomicFileSystemsTest(AtomicFileSystem fileSystemUnderTest) {
+	public AtomicFileSystemsAcceptTest(AtomicFileSystem fileSystemUnderTest) {
 		this.fileSystemUnderTest = fileSystemUnderTest;
 	}
 

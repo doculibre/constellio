@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.utils.DefaultClassProvider;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -58,6 +59,7 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 	public void setUp() {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
+		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
 		metadataSchemaTypeBuilder = MetadataSchemaTypeBuilder
 				.createNewSchemaType("zeUltimateCollection", "aSchemaType", typesBuilder);
 		defaultSchemaBuilder = spy(metadataSchemaTypeBuilder.getDefaultSchema());
