@@ -141,9 +141,6 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		document.setSize(size);
 		document.setLastModified(new LocalDateTime(lastModified));
 
-		LocalDateTime ldt = new LocalDateTime();
-		document.setLastModified(ldt);
-
 		recordService.update(document.getWrappedRecord());
 		recordService.flush();
 
