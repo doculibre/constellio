@@ -6,7 +6,6 @@ import static com.constellio.app.services.extensions.plugins.pluginInfo.Constell
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -16,12 +15,13 @@ import net.xeoh.plugins.base.util.PluginManagerUtil;
 
 import org.apache.hadoop.util.StringUtils;
 
+import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.ConstellioPluginManagerRuntimeException_NoSuchModule;
 import com.constellio.app.services.extensions.plugins.PluginActivationFailureCause;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
-import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.modules.ConstellioPlugin;
 import com.constellio.model.entities.modules.Module;
@@ -102,5 +102,13 @@ public class PluginManagementPresenter extends BasePresenter<PluginManagementVie
 
 	public Boolean isEnabled(ConstellioPluginInfo info) {
 		return info.getPluginStatus().equals(ENABLED);
+	}
+
+	public void restartRequested() {
+		try {
+			appLayerFactory.newApplicationService().restart();
+		} catch (AppManagementServiceException e) {
+			view.showErrorMessage(MessageUtils.toMessage(e));
+		}
 	}
 }
