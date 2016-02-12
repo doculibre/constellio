@@ -62,7 +62,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	private final File pluginsDirectory;
 	private PluginManager pluginManager;
 	private final ConstellioPluginConfigurationManager pluginConfigManger;
-	private Map<String, InstallableModule> registeredPlugins = new HashMap<>();
+	private Map<String, InstallableModule> registeredModules = new HashMap<>();
 	private Map<String, InstallableModule> validUploadedPlugins = new HashMap<>();
 
 	public JSPFConstellioPluginManager(File pluginsDirectory, ModelLayerFactory modelLayerFactory,
@@ -116,7 +116,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			List<String> dependencies = pluginModule.getDependencies();
 			if (dependencies != null) {
 				for (String dependency : dependencies) {
-					if (!registeredPlugins.keySet().contains(dependency)) {
+					if (!registeredModules.keySet().contains(dependency)) {
 						InstallableModule dependOnModule = validUploadedPlugins.get(dependency);
 						if (dependOnModule == null
 								|| pluginConfigManger.getPluginInfo(dependency).getPluginStatus() == DISABLED) {
@@ -200,7 +200,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			throws InvalidId {
 		if (plugin != null) {
 			validateId(plugin.getId());
-			registeredPlugins.put(plugin.getId(), plugin);
+			registeredModules.put(plugin.getId(), plugin);
 		}
 	}
 
@@ -209,7 +209,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		if (StringUtils.isBlank(id)) {
 			throw new InvalidId_BlankId(id);
 		}
-		if (registeredPlugins.keySet().contains(id) || validUploadedPlugins.containsValue(id)) {
+		if (registeredModules.keySet().contains(id) || validUploadedPlugins.containsValue(id)) {
 			throw new InvalidId_ExistingId(id);
 		}
 		Pattern pattern = Pattern.compile("(\\w)*");
@@ -228,7 +228,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public List<InstallableModule> getActivePlugins() {
 		ensureStarted();
 		List<InstallableModule> plugins = new ArrayList<>();
-		plugins.addAll(registeredPlugins.values());
+		plugins.addAll(registeredModules.values());
 		plugins.addAll(getActivePluginModules());
 		return plugins;
 	}
@@ -237,7 +237,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public List<InstallableModule> getRegisteredPlugins() {
 		ensureStarted();
 		List<InstallableModule> plugins = new ArrayList<>();
-		plugins.addAll(registeredPlugins.values());
+		plugins.addAll(registeredModules.values());
 		return plugins;
 	}
 
@@ -326,17 +326,14 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	private boolean isPluginModule(String id) {
-		if (registeredPlugins.keySet().contains(id)) {
-			return false;
-		} else {
-			return true;
-		}
+		return !registeredModules.keySet().contains(id);
 	}
 
 	@Override
 	public void handleModuleNotMigratedCorrectly(String moduleId, String collection, Throwable throwable) {
 		if (isPluginModule(moduleId)) {
-			pluginConfigManger.invalidateModule(moduleId, INVALID_MIGRATION_SCRIPT, null);
+			throwable.printStackTrace();
+			pluginConfigManger.invalidateModule(moduleId, INVALID_MIGRATION_SCRIPT, throwable);
 		} else {
 			LOGGER.error("module not migrated correctly", throwable);
 			throw new RuntimeException(throwable);
@@ -355,7 +352,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 
 	@Override
 	public boolean isRegistered(String id) {
-		return registeredPlugins.keySet().contains(id) || validUploadedPlugins.containsValue(id);
+		return registeredModules.keySet().contains(id) || validUploadedPlugins.containsValue(id);
 	}
 
 	private void ensureStarted() {
