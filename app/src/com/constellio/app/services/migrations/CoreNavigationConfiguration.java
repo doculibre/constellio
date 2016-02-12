@@ -32,8 +32,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String USERS_ICON = "images/icons/config/user.png";
 	public static final String COLLECTIONS = "collections";
 	public static final String COLLECTIONS_ICON = "images/icons/config/collections.png";
-	public static final String MODULES = "modules";
-	public static final String MODULES_ICON = "images/icons/config/module.png";
+	public static final String PLUGINS = "plugins";
+	public static final String PLUGINS_ICON = "images/icons/config/module.png";
 	public static final String IMPORT_USERS = "importUsers";
 	public static final String IMPORT_USERS_ICON = "images/icons/config/import-users.png";
 	public static final String EXPORT = "export";
@@ -145,7 +145,7 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS));
 			}
 		});
-		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(MODULES, MODULES_ICON) {
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(PLUGINS, PLUGINS_ICON) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
 				navigateTo.pluginManagement();
