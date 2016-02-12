@@ -204,13 +204,17 @@ public class FoldersLocator {
 		String lowercaseJavaRootFolder = javaRootFolder.getName().toLowerCase();
 
 		// TODO Remove intelligid
-		if ("constellio".equals(lowercaseJavaRootFolder) || "intelligid".equals(lowercaseJavaRootFolder)
-				|| lowercaseJavaRootFolder.startsWith("constellio-") || lowercaseJavaRootFolder.startsWith("constellio_")
-				|| lowercaseJavaRootFolder.startsWith("intelligid-")) {
+		if (!"constellio-plugins".equals(lowercaseJavaRootFolder) && ("constellio".equals(lowercaseJavaRootFolder) || "intelligid"
+				.equals(lowercaseJavaRootFolder) || lowercaseJavaRootFolder.startsWith("constellio-") || lowercaseJavaRootFolder
+				.startsWith("constellio_") || lowercaseJavaRootFolder.startsWith("intelligid-"))) {
 			return javaRootFolder;
 
 		} else if (gitSubProjects.contains(lowercaseJavaRootFolder)) {
-			return javaRootFolder.getParentFile();
+			if (javaRootFolder.getParentFile().equals("constellio-plugins")) {
+				return new File(javaRootFolder.getParentFile().getParentFile(), "constellio");
+			} else {
+				return javaRootFolder.getParentFile();
+			}
 
 		} else {
 			throw new IllegalStateException("Cannot find project folder for java root folder '" + javaRootFolder.getName()

@@ -17,7 +17,8 @@ if (new File(rootDir, "../constellio-plugins").exists()) {
             "plugins:plugin006",
             "plugins:plugin007",
             "plugins:plugin008",
-            "plugins:plugin009"
+            "plugins:plugin009",
+            "plugins:plugin010"
 }
 
 project(":data").projectDir = file("./data")
@@ -40,6 +41,7 @@ if (new File(rootDir, "../constellio-plugins").exists()) {
     project(":plugins:plugin007").projectDir = file("../constellio-plugins/plugin007")
     project(":plugins:plugin008").projectDir = file("../constellio-plugins/plugin008")
     project(":plugins:plugin009").projectDir = file("../constellio-plugins/plugin009")
+    project(":plugins:plugin010").projectDir = file("../constellio-plugins/plugin010")
 
 
 }
