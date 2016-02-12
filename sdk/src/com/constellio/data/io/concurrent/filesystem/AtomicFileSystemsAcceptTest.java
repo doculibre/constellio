@@ -26,7 +26,7 @@ import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.conf.FoldersLocator;
 
 @InDevelopmentTest
-@RunWith(value = Parameterized.class)
+//@RunWith(value = Parameterized.class)
 public class AtomicFileSystemsAcceptTest {
 	//	private static NIOServerCnxnFactory serverFactory;
 	//	private static ZooKeeperServer zks;

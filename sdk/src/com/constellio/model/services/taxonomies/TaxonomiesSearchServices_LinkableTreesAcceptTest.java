@@ -262,7 +262,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_X)
 				.has(numFoundAndListSize(2))
 				.has(linkable(records.categoryId_X100, records.categoryId_X13))
-				.has(resultsInOrder(records.categoryId_X100, records.categoryId_X13))
+				.has(resultsInOrder(records.categoryId_X13, records.categoryId_X100))
 				.has(itemsWithChildren(records.categoryId_X100));
 
 		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(withoutFilters, records.categoryId_X100)

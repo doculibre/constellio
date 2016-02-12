@@ -8,8 +8,8 @@
         <TITRESER>Rule #1</TITRESER>
         <REFLEGALE>Juridic reference Rule 1</REFLEGALE>
         <NO_RECUEIL/>
-        <PROCACTIVI>Xe category; Ze X100; Ze X110; Agent Secreet; Ze 42</PROCACTIVI>
-        <CODECLASS>X; X100; X110; X13; ZE42</CODECLASS>
+        <PROCACTIVI>Xe category; Agent Secreet; Ze X100; Ze X110; Ze 42</PROCACTIVI>
+        <CODECLASS>X; X13; X100; X110; ZE42</CODECLASS>
         <NOMUNITE>Ze 10; Ze 20</NOMUNITE>
         <DESCSERIE>Description Rule 1</DESCSERIE>
         <TYPESDOC>Livre de recettes; Typologie; Petit guide</TYPESDOC>
@@ -51,8 +51,8 @@
         <TITRESER>Rule #2</TITRESER>
         <REFLEGALE/>
         <NO_RECUEIL/>
-        <PROCACTIVI>Ze X110; Agent Secreet; Z110; Ze 42</PROCACTIVI>
-        <CODECLASS>X110; X13; Z110; ZE42</CODECLASS>
+        <PROCACTIVI>Agent Secreet; Ze X110; Z110; Ze 42</PROCACTIVI>
+        <CODECLASS>X13; X110; Z110; ZE42</CODECLASS>
         <NOMUNITE>unités administratives responsables</NOMUNITE>
         <DESCSERIE/>
         <TYPESDOC>Livre de recettes; Typologie; Petit guide; Histoire</TYPESDOC>
@@ -90,8 +90,8 @@
         <TITRESER>Rule #3</TITRESER>
         <REFLEGALE/>
         <NO_RECUEIL/>
-        <PROCACTIVI>X120; Agent Secreet; Z112; Z120; Ze 42</PROCACTIVI>
-        <CODECLASS>X120; X13; Z112; Z120; ZE42</CODECLASS>
+        <PROCACTIVI>Agent Secreet; X120; Z112; Z120; Ze 42</PROCACTIVI>
+        <CODECLASS>X13; X120; Z112; Z120; ZE42</CODECLASS>
         <NOMUNITE>unités administratives responsables</NOMUNITE>
         <DESCSERIE/>
         <TYPESDOC>Livre de recettes; Typologie</TYPESDOC>
@@ -130,8 +130,8 @@
         <TITRESER>Rule #4</TITRESER>
         <REFLEGALE/>
         <NO_RECUEIL/>
-        <PROCACTIVI>X120; Agent Secreet; Ze 42</PROCACTIVI>
-        <CODECLASS>X120; X13; ZE42</CODECLASS>
+        <PROCACTIVI>Agent Secreet; X120; Ze 42</PROCACTIVI>
+        <CODECLASS>X13; X120; ZE42</CODECLASS>
         <NOMUNITE>unités administratives responsables</NOMUNITE>
         <DESCSERIE/>
         <TYPESDOC>Livre de recettes; Petit guide; Histoire</TYPESDOC>
