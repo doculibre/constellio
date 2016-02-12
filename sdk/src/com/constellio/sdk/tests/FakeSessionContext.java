@@ -22,6 +22,7 @@ public class FakeSessionContext implements SessionContext {
 	UserVO user;
 	String collection;
 	Locale locale;
+	boolean forcedSignOut;
 
 	private static FakeSessionContext current;
 
@@ -192,6 +193,16 @@ public class FakeSessionContext implements SessionContext {
 	@Override
 	public String getCurrentUserIPAddress() {
 		return "127.0.0.1";
+	}
+
+	@Override
+	public boolean isForcedSignOut() {
+		return forcedSignOut;
+	}
+
+	@Override
+	public void setForcedSignOut(boolean forcedSignOut) {
+		this.forcedSignOut = forcedSignOut;
 	}
 
 }

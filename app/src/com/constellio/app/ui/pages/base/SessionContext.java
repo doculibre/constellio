@@ -20,4 +20,8 @@ public interface SessionContext extends Serializable {
 	void setCurrentLocale(Locale locale);
 
 	String getCurrentUserIPAddress();
+	
+	boolean isForcedSignOut();
+	
+	void setForcedSignOut(boolean forcedSignOut);
 }

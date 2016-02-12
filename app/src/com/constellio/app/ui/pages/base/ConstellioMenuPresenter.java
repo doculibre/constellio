@@ -38,8 +38,6 @@ public class ConstellioMenuPresenter implements Serializable {
 
 	private transient UserServices userServices;
 	
-	private KerberosServices kerberosServices;
-
 	public ConstellioMenuPresenter(ConstellioMenu constellioMenu) {
 		this.constellioMenu = constellioMenu;
 
@@ -49,11 +47,9 @@ public class ConstellioMenuPresenter implements Serializable {
 		username = userVO.getUsername();
 
 		initTransientObjects();
-		kerberosServices = KerberosServices.getInstance();
 
 		List<String> collections = userServices.getUser(userVO.getUsername()).getCollections();
 		constellioMenu.setCollections(collections);
-		constellioMenu.setSignOutLinkVisible(!kerberosServices.isEnabled());
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -145,6 +141,7 @@ public class ConstellioMenuPresenter implements Serializable {
 
 		sessionContext.setCurrentCollection(null);
 		sessionContext.setCurrentUser(null);
+		sessionContext.setForcedSignOut(true);
 		constellioMenu.updateUIContent();
 	}
 

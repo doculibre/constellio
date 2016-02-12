@@ -175,6 +175,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 				currentUserVO = new UserToVOBuilder().build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
 				sessionContext.setCurrentUser(currentUserVO);
 				sessionContext.setCurrentCollection(lastCollection);
+				sessionContext.setForcedSignOut(false);
 			} else {
 				throw new RuntimeException("User " + username + " doesn't exist in Constellio");
 			}
@@ -194,7 +195,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 			
 			UserVO currentUserVO = sessionContext.getCurrentUser();
-			if (currentUserVO == null && kerberosServices.isEnabled()) {
+			if (currentUserVO == null && kerberosServices.isEnabled() && !sessionContext.isForcedSignOut()) {
 				currentUserVO = ssoAuthenticate();
 			}
 			if (currentUserVO != null) {

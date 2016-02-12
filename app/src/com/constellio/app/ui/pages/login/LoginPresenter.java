@@ -14,7 +14,6 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.LogoUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
@@ -69,6 +68,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 
 		sessionContext.setCurrentCollection(null);
 		sessionContext.setCurrentUser(null);
+		sessionContext.setForcedSignOut(true);
 	}
 
 	public void signInAttempt(String enteredUsername, String password) {
@@ -123,6 +123,8 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					UserVO currentUser = voBuilder.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
 					sessionContext.setCurrentUser(currentUser);
 					sessionContext.setCurrentCollection(userInLastCollection.getCollection());
+					sessionContext.setForcedSignOut(false);
+					
 					view.updateUIContent();
 					String currentState = view.navigateTo().getState();
 					if (StringUtils.contains(currentState, "/")) {
