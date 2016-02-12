@@ -192,7 +192,9 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 				.flush();
 
 		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-		assertThat(smbRecordService.isModified(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, lastModified, permissionHash, size)).isTrue();
+		assertThat(smbRecordService
+				.isModified(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, lastModified, permissionHash, size))
+				.isTrue();
 	}
 
 	@Test
@@ -213,7 +215,9 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 				.flush();
 
 		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-		assertThat(smbRecordService.isModified(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, lastModified, permissionsHash, size)).isFalse();
+		assertThat(smbRecordService
+				.isModified(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, lastModified, permissionsHash, size))
+				.isFalse();
 	}
 
 	@Test
@@ -223,7 +227,9 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		long size = 321;
 
 		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-		assertThat(smbRecordService.isModified(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, lastModified, permissionsHash, size)).isTrue();
+		assertThat(smbRecordService
+				.isModified(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, lastModified, permissionsHash, size))
+				.isTrue();
 	}
 
 	@Test

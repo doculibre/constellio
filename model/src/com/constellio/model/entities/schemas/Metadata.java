@@ -1,5 +1,9 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.CODE;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.schemas.builders.ClassListBuilder.combine;
 
 import java.util.Collections;
@@ -10,6 +14,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.entities.schemas.sort.DefaultStringSortFieldNormalizer;
+import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -268,6 +274,10 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isSchemaAutocomplete();
 	}
 
+	public StringSortFieldNormalizer getSortFieldNormalizer() {
+		return hasNormalizedSortField() ? new DefaultStringSortFieldNormalizer() : null;
+	}
+
 	public Object getDefaultValue() {
 		return defaultValue;
 	}
@@ -358,6 +368,17 @@ public class Metadata implements DataStoreField {
 
 	public Metadata getAnalyzedField(String languageCode) {
 		return Schemas.getSearchableMetadata(this, languageCode);
+	}
+
+	public boolean hasNormalizedSortField() {
+		boolean globalMetadataWithNormalizedSortField =
+				CODE.getLocalCode().equals(getLocalCode()) || TITLE.getLocalCode().equals(getLocalCode());
+		boolean isIdentifier = IDENTIFIER.getDataStoreCode().equals(getDataStoreCode());
+		return (isSortable() || globalMetadataWithNormalizedSortField) && type == STRING && !isMultivalue() && !isIdentifier;
+	}
+
+	public Metadata getSortField() {
+		return hasNormalizedSortField() ? Schemas.getSortMetadata(this) : null;
 	}
 
 	public boolean isSameValueThan(Metadata otherMetadata) {
