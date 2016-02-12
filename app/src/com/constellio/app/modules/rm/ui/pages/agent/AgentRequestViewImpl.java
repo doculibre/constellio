@@ -22,7 +22,7 @@ public class AgentRequestViewImpl extends BaseViewImpl implements AgentRequestVi
 		Label message = new Label($("AgentRequestView.message"), ContentMode.HTML);
 
 		Link request = new Link($("AgentRequestView.requestAgent"),
-				new ExternalResource("mailto:sales@constellio.com?Subject=Activation de l'agent"));
+				new ExternalResource("mailto:sales@constellio.com?Subject=" + $("AgentRequestView.subject")));
 
 		VerticalLayout layout = new VerticalLayout(message, request);
 		layout.setSpacing(true);
