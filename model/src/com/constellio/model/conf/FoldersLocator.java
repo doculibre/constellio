@@ -210,7 +210,7 @@ public class FoldersLocator {
 			return javaRootFolder;
 
 		} else if (gitSubProjects.contains(lowercaseJavaRootFolder)) {
-			if (javaRootFolder.getParentFile().equals("constellio-plugins")) {
+			if (javaRootFolder.getParentFile().getName().equals("constellio-plugins")) {
 				return new File(javaRootFolder.getParentFile().getParentFile(), "constellio");
 			} else {
 				return javaRootFolder.getParentFile();

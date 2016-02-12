@@ -45,7 +45,8 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] { { givenJavaRootFolderIsConstellioProject }, { givenJavaRootFolderIsUIProject },
+		return Arrays.asList(new Object[][] {
+				{ givenJavaRootFolderIsConstellioProject }, { givenJavaRootFolderIsUIProject },
 				{ givenJavaRootFolderIsServicesProject }, { givenJavaRootFolderIsDaoProject },
 				{ givenJavaRootFolderIsCustomProject }, { givenJavaRootFolderIsSDKProject },
 				{ givenJavaRootFolderIsPluginsSDKProject } });
