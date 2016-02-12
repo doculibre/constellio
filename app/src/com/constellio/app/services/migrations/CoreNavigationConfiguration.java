@@ -25,7 +25,6 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String CONFIG = "config";
 	public static final String CONFIG_ICON = "images/icons/config/configuration.png";
 	public static final String LDAP_CONFIG = "ldapConfig";
-	public static final String PLUGIN_CONFIG = "pluginConfig";
 	public static final String LDAP_CONFIG_ICON = "images/icons/config/address_book3.png";
 	public static final String GROUPS = "groups";
 	public static final String GROUPS_ICON = "images/icons/config/group.png";
@@ -47,6 +46,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String BIG_DATA_ICON = "images/icons/config/big-data.png";
 	public static final String UPDATE_CENTER = "updateCenter";
 	public static final String UPDATE_CENTER_ICON = "images/icons/config/update-center.png";
+	public static final String EMAIL_SERVER = "emailServer";
+	public static final String EMAIL_SERVER_ICON = "images/icons/config/mail_server.png";
 
 	public static final String TAXONOMIES = "taxonomies";
 	public static final String TAXONOMIES_ICON = "images/icons/config/taxonomy.png";
@@ -68,15 +69,13 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String IMPORT_SCHEMA_TYPES_ICON = "images/icons/config/import-metadata.png";
 	public static final String TRASH_BIN = "trashBin";
 	public static final String TRASH_BIN_ICON = "images/icons/config/garbage.png";
-	public static final String EMAIL_SERVER = "emailServer";
-	public static final String EMAIL_SERVER_ICON = "images/icons/config/mail_server.png";
-
-	public static final String ADMIN_MODULE = "adminModule";
-	public static final String RECORDS_MANAGEMENT = "recordsManagement";
 	public static final String SEARCH_BOOST_BY_METADATA = "searchBoostByMetadata";
 	public static final String SEARCH_BOOST_BY_METADATA_ICON = "images/icons/config/boost-metadata-search.png";
 	public static final String SEARCH_BOOST_BY_QUERY = "searchBoostByQuery";
 	public static final String SEARCH_BOOST_BY_QUERY_ICON = "images/icons/config/boost-text-search.png";
+
+	public static final String ADMIN_MODULE = "adminModule";
+	public static final String HOME = "home";
 
 	public void configureNavigation(NavigationConfig config) {
 		configureSystemAdmin(config);
@@ -362,7 +361,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION1,
-				new NavigationItem.Active(RECORDS_MANAGEMENT, RecordsManagementViewGroup.class) {
+				new NavigationItem.Active(HOME, RecordsManagementViewGroup.class) {
 					@Override
 					public void activate(ConstellioNavigator navigateTo) {
 						navigateTo.home();
