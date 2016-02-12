@@ -443,23 +443,19 @@ public class AppManagementService {
 		return response.toString();
 	}
 
-	InputStream getInputForPost(String url, String signature) {
-		try {
-			URL obj = new URL(url);
+	InputStream getInputForPost(String url, String signature) throws IOException {
+		URL obj = new URL(url);
 
-			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-			con.setRequestMethod("POST");
-			con.setDoOutput(true);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("POST");
+		con.setDoOutput(true);
 
-			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-			wr.writeBytes(signature);
-			wr.flush();
-			wr.close();
+		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+		wr.writeBytes(signature);
+		wr.flush();
+		wr.close();
 
-			return con.getInputStream();
-		} catch (IOException ioe) {
-			throw new RuntimeException("Error in post request for server " + url, ioe);
-		}
+		return con.getInputStream();
 	}
 
 	public String getChangelogFromServer()
