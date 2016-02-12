@@ -21,7 +21,6 @@ import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMe
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
@@ -42,7 +41,6 @@ import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
 import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class RMNavigationConfiguration implements Serializable {
@@ -297,6 +295,22 @@ public class RMNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
 				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).globally());
+			}
+		});
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(AGENT, AgentViewGroup.class) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.agentRequestPage();
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 70;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return ComponentState.ENABLED;
 			}
 		});
 	}

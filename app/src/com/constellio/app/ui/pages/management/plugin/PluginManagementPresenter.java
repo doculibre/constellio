@@ -74,7 +74,7 @@ public class PluginManagementPresenter extends BasePresenter<PluginManagementVie
 	}
 
 	public void enablePlugin(ConstellioPluginInfo info, boolean value) {
-		if (value == true) {
+		if (value) {
 			pluginManager().markPluginAsEnabled(info.getCode());
 		} else {
 			pluginManager().markPluginAsDisabled(info.getCode());

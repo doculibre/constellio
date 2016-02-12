@@ -501,6 +501,10 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.EXPORTER);
 	}
 
+	public void agentRequestPage() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.REQUEST_AGENT);
+	}
+
 	public void agentSetup() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.AGENT_SETUP);
 	}
@@ -670,12 +674,11 @@ public class ConstellioNavigator {
 	public void displayRobotLogs(String entityId) {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.ROBOT_LOGS + "/" + entityId);
 	}
-	
+
 	public void addEmailAttachmentsToFolder(String userDocumentId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("userDocumentId", userDocumentId);
 		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EMAIL_ATTACHMENTS_TO_FOLDER, params);
 		vaadinNavigator.navigateTo(viewPath);
 	}
-	
 }

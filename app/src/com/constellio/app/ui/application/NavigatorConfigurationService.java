@@ -11,6 +11,7 @@ import com.constellio.app.modules.es.ui.pages.ListConnectorInstancesViewImpl;
 import com.constellio.app.modules.es.ui.pages.WizardConnectorInstanceViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.AddEditMappingViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.DisplayConnectorMappingsViewImpl;
+import com.constellio.app.modules.rm.ui.pages.agent.AgentRequestViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.cart.CartViewImpl;
@@ -205,6 +206,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String IMPORT_GROUPS = "importGroups";
 	public static final String EDIT_CONTAINER = "editContainer";
 	public static final String IMPORT_SCHEMA_TYPES = "importSchemaTypes";
+	public static final String REQUEST_AGENT = "requestAgent";
 	public static final String AGENT_SETUP = "agentSetup";
 	public static final String LIST_AGENT_LOGS = "listAgentLogs";
 	public static final String EXPORTER = "export";
@@ -366,6 +368,7 @@ public class NavigatorConfigurationService implements Serializable {
 
 		viewProviders.add(new ClassBasedViewProvider(UPDATE_MANAGER, UpdateManagerViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_CONTAINER, AddEditContainerViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(REQUEST_AGENT, AgentRequestViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(AGENT_SETUP, AgentSetupViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_AGENT_LOGS, ListAgentLogsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_SAVED_SEARCHES, SavedSearchViewImpl.class));
@@ -404,7 +407,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(ROBOT_CONFIGURATION, RobotConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_ROBOT, AddEditRobotViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ROBOT_LOGS, RobotLogsViewImpl.class));
-		
+
 		viewProviders.add(new ClassBasedViewProvider(ADD_EMAIL_ATTACHMENTS_TO_FOLDER, AddEmailAttachmentsToFolderViewImpl.class));
 	}
 
