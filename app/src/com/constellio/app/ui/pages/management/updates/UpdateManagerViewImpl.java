@@ -243,8 +243,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Label message = new Label($("UpdateManagerViewImpl.unlicensed"));
 		message.addStyleName(ValoTheme.LABEL_BOLD);
 
-		Link request = new Link(
-				$("UpdateManagerViewImpl.requestLicense"), new ExternalResource("mailto:info@constellio.com"));
+		Link request = new Link($("UpdateManagerViewImpl.requestLicense"),
+				new ExternalResource("mailto:sales@constellio.com?Subject=Demande de license Constellio"));
 
 		VerticalLayout layout = new VerticalLayout(message, request);
 		layout.setSpacing(true);

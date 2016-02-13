@@ -76,7 +76,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery(LogicalSearchQuery query) {
 		condition = query.condition;
-		queryCondition = query.queryCondition;	
+		queryCondition = query.queryCondition;
 		facetFilters = new LogicalSearchQueryFacetFilters(query.facetFilters);
 		freeTextQuery = query.freeTextQuery;
 		userFilter = query.userFilter;
@@ -208,6 +208,10 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery sortAsc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
+			DataStoreField sortField = field.getSortField();
+			if (sortField != null) {
+				sortFields.add(new LogicalSearchQuerySort(sortField.getDataStoreCode(), true));
+			}
 			sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), true));
 		}
 		return this;
@@ -215,6 +219,10 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery sortDesc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
+			DataStoreField sortField = field.getSortField();
+			if (sortField != null) {
+				sortFields.add(new LogicalSearchQuerySort(sortField.getDataStoreCode(), false));
+			}
 			sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), false));
 		}
 		return this;
@@ -394,18 +402,18 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public void addMoreLikeThisField(DataStoreField... fields) {
 		for (DataStoreField field : fields) {
-//			String dataStoreType;
-//			switch (field.getDataStoreType()) {
-//			case "ss":
-//				dataStoreType = "txt";
-//				break;
-//			case "s":
-//				dataStoreType = "t";
-//				break;
-//			default:
-//				dataStoreType = field.getDataStoreType();
-//				break;
-//			}
+			//			String dataStoreType;
+			//			switch (field.getDataStoreType()) {
+			//			case "ss":
+			//				dataStoreType = "txt";
+			//				break;
+			//			case "s":
+			//				dataStoreType = "t";
+			//				break;
+			//			default:
+			//				dataStoreType = field.getDataStoreType();
+			//				break;
+			//			}
 
 			for (String lang : new String[] { "en", "fr", "ar" }) {
 				moreLikeThisFields.add(field.getAnalyzedField(lang).getDataStoreCode());
@@ -424,11 +432,10 @@ public class LogicalSearchQuery implements SearchQuery {
 	public void setQueryCondition(LogicalSearchCondition queryCondition) {
 		this.queryCondition = queryCondition;
 	}
-	
+
 	public LogicalSearchCondition getQueryCondition() {
 		return queryCondition;
 	}
-
 
 	public static class UserFilter {
 		private final User user;
