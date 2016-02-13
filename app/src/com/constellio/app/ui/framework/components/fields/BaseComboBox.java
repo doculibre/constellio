@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.management.configs;
+package com.constellio.app.ui.framework.components.fields;
 
 import com.vaadin.ui.ComboBox;
 

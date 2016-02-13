@@ -11,7 +11,7 @@ public class SystemConfigurationToVOBuilder implements Serializable {
 	public SystemConfigurationVO build(SystemConfiguration config, Object value) {
 		return new SystemConfigurationVO(config.getCode(),
 				value, config.getType(),
-				config.getEnumClass());
+				config.getEnumClass(), config.isRebootRequired(), config.isHiddenValue());
 
 	}
 

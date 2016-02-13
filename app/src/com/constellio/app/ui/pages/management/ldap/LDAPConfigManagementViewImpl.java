@@ -1,23 +1,35 @@
 package com.constellio.app.ui.pages.management.ldap;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.List;
+
+import org.joda.time.Duration;
+
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
 import com.constellio.app.ui.framework.components.DurationPanel;
 import com.constellio.app.ui.framework.components.StringListComponent;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.configs.BaseComboBox;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.RegexFilter;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.joda.time.Duration;
-
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPConfigManagementView {
     private LDAPConfigManagementPresenter presenter;

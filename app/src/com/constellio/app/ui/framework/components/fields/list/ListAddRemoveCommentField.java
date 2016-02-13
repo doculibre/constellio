@@ -3,9 +3,9 @@ package com.constellio.app.ui.framework.components.fields.list;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.CommentField;
