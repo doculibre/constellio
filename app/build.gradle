@@ -85,7 +85,7 @@ dependencies {
 
 war {
     baseName = "constellio-app"
-    version = "5.2.0.12"
+    version = "5.2.0.13"
 
     webInf {
         from 'WebContent/'
