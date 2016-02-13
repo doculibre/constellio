@@ -17,12 +17,16 @@ public class SystemConfiguration {
 
 	Object defaultValue;
 
+	boolean rebootRequired;
+	boolean hiddenValue;
+
 	Class<? extends Enum<?>> enumClass;
 
 	Class<? extends SystemConfigurationScript> scriptClass;
 
 	SystemConfiguration(SystemConfigurationType type, String module, String configGroupCode, String code, Object defaultValue,
-			Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass, boolean hidden) {
+			Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass, boolean hidden,
+			boolean rebootRequired, boolean hiddenValue) {
 		this.type = type;
 		this.configGroupCode = configGroupCode;
 		this.code = code;
@@ -31,6 +35,8 @@ public class SystemConfiguration {
 		this.enumClass = enumClass;
 		this.scriptClass = scriptClass;
 		this.hidden = hidden;
+		this.rebootRequired = rebootRequired;
+		this.hiddenValue = hiddenValue;
 	}
 
 	public SystemConfigurationType getType() {
@@ -62,12 +68,14 @@ public class SystemConfiguration {
 	}
 
 	public SystemConfiguration withDefaultValue(Object value) {
-		return new SystemConfiguration(type, module, configGroupCode, code, value, enumClass, scriptClass, hidden);
+		return new SystemConfiguration(type, module, configGroupCode, code, value, enumClass, scriptClass, hidden, rebootRequired,
+				hiddenValue);
 
 	}
 
 	public SystemConfiguration scriptedBy(Class<? extends SystemConfigurationScript> scriptClass) {
-		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden);
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+				rebootRequired, hiddenValue);
 	}
 
 	public <T> ConfigDependency<T> dependency() {
@@ -94,11 +102,30 @@ public class SystemConfiguration {
 	}
 
 	public SystemConfiguration whichIsHidden() {
-		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, true);
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, true,
+				rebootRequired, hiddenValue);
+	}
+
+	public SystemConfiguration whichRequiresReboot() {
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+				true, hiddenValue);
+	}
+
+	public SystemConfiguration whichHasHiddenValue() {
+		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+				rebootRequired, true);
 	}
 
 	public boolean isHidden() {
 		return hidden;
+	}
+
+	public boolean isHiddenValue() {
+		return hiddenValue;
+	}
+
+	public boolean isRebootRequired() {
+		return rebootRequired;
 	}
 }
 
