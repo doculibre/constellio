@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -127,9 +128,8 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		ArgumentCaptor<File> installedPluginsCaptor = ArgumentCaptor.forClass(File.class);
 		verify(pluginManager, times(2)).prepareInstallablePlugin(installedPluginsCaptor.capture());
 
-		List<File> installedPlugins = installedPluginsCaptor.getAllValues();
-		assertThat(installedPlugins.get(0).getName()).isEqualTo("plugin1.jar");
-		assertThat(installedPlugins.get(1).getName()).isEqualTo("PLUGIN2.JAR");
+		assertThat(installedPluginsCaptor.getAllValues()).extracting("name")
+				.containsOnly("plugin1.jar", "PLUGIN2.JAR");
 
 		assertThat(newWebappUpdatedPlugins).doesNotExist();
 
@@ -213,7 +213,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		InvalidJarsTest.loadJarsToPluginsFolder(pluginsFolder);
 
 		File fileBeforeLastWeek = getTestResourceFile("initial-wrapper.conf");
-
+		givenTimeIs(new LocalDateTime(pluginsFolder.lastModified()).plusDays(6));
 		assertThat(appManagementService.isModifiedBeforeLastWeek(fileBeforeLastWeek)).isTrue();
 		addVersion("5.0");
 		addVersion("5.0.7");

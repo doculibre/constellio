@@ -332,7 +332,9 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	@Override
 	public void handleModuleNotMigratedCorrectly(String moduleId, String collection, Throwable throwable) {
 		if (isPluginModule(moduleId)) {
-			throwable.printStackTrace();
+			if (throwable != null) {
+				throwable.printStackTrace();
+			}
 			pluginConfigManger.invalidateModule(moduleId, INVALID_MIGRATION_SCRIPT, throwable);
 		} else {
 			LOGGER.error("module not migrated correctly", throwable);

@@ -328,7 +328,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		List<AdministrativeUnit> rootAdministrativeUnits = new ArrayList<>();
 		for (int i = 1; i <= 100; i++) {
-			String code = toTitle(i);
+			String code = toTitle(1000+i);
 			rootAdministrativeUnits.add(rm.newAdministrativeUnitWithId(code).setCode(code)
 					.setTitle("Title " + toTitle(20000 - i)));
 		}
@@ -365,9 +365,9 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		for (int i = 0; i < rootAdministrativeUnits.size() - 25; i += 25) {
 			LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
-					admin, zeCollection, ADMINISTRATIVE_UNITS, new TaxonomiesSearchOptions().setStartRow(i).setRows(25));
+					admin, zeCollection, ADMINISTRATIVE_UNITS, new TaxonomiesSearchOptions().setStartRow(2+i).setRows(25));
 			List<String> expectedIds = new RecordUtils().toWrappedRecordIdsList(rootAdministrativeUnits.subList(i, i + 25));
-			assertThat(response.getNumFound()).isEqualTo(rootAdministrativeUnits.size() + 3);
+			assertThat(response.getNumFound()).isEqualTo(rootAdministrativeUnits.size() + 2);
 			assertThat(response.getRecords()).extracting("id").isEqualTo(expectedIds);
 		}
 
