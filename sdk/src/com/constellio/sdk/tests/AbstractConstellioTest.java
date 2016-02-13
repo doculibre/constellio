@@ -1294,7 +1294,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throw new RuntimeException(e);
 		}
 
-		if (getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
+		if (!getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
 			getAppLayerFactory().getPluginManager().register(module);
 		}
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);

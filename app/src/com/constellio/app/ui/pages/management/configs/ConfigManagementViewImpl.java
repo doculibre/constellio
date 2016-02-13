@@ -134,7 +134,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 						new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator_withoutLimits"), null,
 								null));
 			} else {
-				textField.setValue(config.getValue().toString());
+				Object value = config.getValue();
+				textField.setValue(value == null ? "" : value.toString());
 			}
 			return textField;
 		} else if (type == SystemConfigurationType.BOOLEAN) {
