@@ -111,10 +111,11 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 	}
 
 	private Table createPluginsTable() {
-		Table table = new Table($("PluginManagementView.plugins"));
+		List<ConstellioPluginInfo> plugins = presenter.getAllPlugins();
+		Table table = new Table($("PluginManagementView.plugins", plugins.size()));
 		Container beanContainer = new BeanItemContainer<>(ConstellioPluginInfo.class);
 		table.setContainerDataSource(beanContainer);
-		List<ConstellioPluginInfo> plugins = presenter.getAllPlugins();
+
 		table.addItems(plugins);
 		table.addGeneratedColumn("enable", new ColumnGenerator() {
 			@Override
@@ -137,11 +138,12 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 		});
 		table.setPageLength(Math.min(15, plugins.size()));
 		table.setWidth("100%");
-		table.setColumnHeader("code", $("PluginManagementView.code"));
+		//table.setColumnHeader("code", $("PluginManagementView.code"));
+		table.setColumnHeader("title", $("PluginManagementView.title"));
 		table.setColumnHeader("lastInstallDate", $("PluginManagementView.lastInstallDate"));
 		table.setColumnHeader("pluginActivationFailureCause", $("PluginManagementView.pluginActivationFailureCause"));
 		table.setColumnHeader("pluginStatus", $("PluginManagementView.pluginStatus"));
-		table.setColumnHeader("requiredConstellioVersion", $("PluginManagementView.requiredConstellioVersion"));
+		//table.setColumnHeader("requiredConstellioVersion", $("PluginManagementView.requiredConstellioVersion"));
 		table.setColumnHeader("version", $("PluginManagementView.version"));
 		table.setColumnHeader("enable", "");
 		table.setColumnWidth("enable", 40);
@@ -168,8 +170,8 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 		});
 		table.setConverter("pluginActivationFailureCause", newConstellioPluginStatusFailureCauseConverter());
 		table.setConverter("pluginStatus", newConstellioPluginStatusConverter());
-		table.setVisibleColumns("code", "lastInstallDate", "pluginActivationFailureCause", "pluginStatus",
-				"requiredConstellioVersion", "version", "enable");
+		table.setVisibleColumns("title", "lastInstallDate", "pluginActivationFailureCause", "pluginStatus",
+				/*"requiredConstellioVersion",*/ "version", "enable");
 		return table;
 	}
 

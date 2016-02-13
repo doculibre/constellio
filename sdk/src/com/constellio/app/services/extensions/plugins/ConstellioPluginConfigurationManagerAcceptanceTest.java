@@ -96,7 +96,7 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 			throws Exception {
 		LocalDate now = LocalDate.now();
 		givenTimeIs(now);
-		pluginConfigManger.installPlugin("zePluginId", "version", "rVersion");
+		pluginConfigManger.installPlugin("zePluginId", "zePluginTitle", "version", "rVersion");
 		ConstellioPluginInfo pluginInfo = pluginConfigManger.getPluginInfo("zePluginId");
 		assertThat(pluginInfo.getLastInstallDate()).isEqualTo(now);
 		assertThat(pluginInfo.getVersion()).isEqualTo("version");
@@ -111,14 +111,14 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 		//first install
 		LocalDate now = LocalDate.now();
 		givenTimeIs(now);
-		pluginConfigManger.installPlugin("zePluginId", "version", "rVersion");
+		pluginConfigManger.installPlugin("zePluginId", "zePluginTitle", "version", "rVersion");
 		//update of status
 		pluginConfigManger.markPluginAsEnabled("zePluginId");
 
 		//second install
 		LocalDate after = now.plusDays(1);
 		givenTimeIs(after);
-		pluginConfigManger.installPlugin("zePluginId", "version2", "rVersion2");
+		pluginConfigManger.installPlugin("zePluginId", "zePluginTitle", "version2", "rVersion2");
 
 		ConstellioPluginInfo pluginInfo = pluginConfigManger.getPluginInfo("zePluginId");
 		assertThat(pluginInfo.getLastInstallDate()).isEqualTo(after);

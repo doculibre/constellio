@@ -200,6 +200,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return constellioPluginManager.getRegisteredPlugins();
 	}
 
+	@Override
+	public <T> Class<T> getModuleClass(String name)
+			throws ClassNotFoundException {
+		return constellioPluginManager.getModuleClass(name);
+	}
+
 	public void markAsInstalled(final Module module, CollectionsListManager collectionsListManager) {
 		for (String dependentModuleId : getDependencies(module)) {
 			InstallableModule dependentModule = getInstalledModule(dependentModuleId);

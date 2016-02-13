@@ -29,4 +29,6 @@ public interface ConstellioModulesManager {
 
 	public List<? extends Module> getBuiltinModules();
 
+	<T> Class<T> getModuleClass(String name)
+			throws ClassNotFoundException;
 }

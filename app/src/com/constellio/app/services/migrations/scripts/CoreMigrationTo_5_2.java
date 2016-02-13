@@ -22,6 +22,7 @@ public class CoreMigrationTo_5_2 implements MigrationScript {
 
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection, boost);
 
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 }

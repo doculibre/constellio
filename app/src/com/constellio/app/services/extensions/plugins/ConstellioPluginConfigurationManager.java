@@ -6,13 +6,9 @@ import static com.constellio.app.services.extensions.plugins.pluginInfo.Constell
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
-import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
@@ -32,6 +28,7 @@ import com.constellio.data.utils.TimeProvider;
 public class ConstellioPluginConfigurationManager {
 	public static final String PLUGINS_CONFIG_PATH = "/plugins.xml";
 	public static final String STATUS_ATTRIBUTE = "status";
+	public static final String TITLE = "title";
 	public static final String LAST_VERSION_ATTRIBUTE = "lastVersion";
 	public static final String LAST_VERSION_INSTALLATION_DATE = "lastVersionInstallDate";
 	public static final String REQUIRED_CONSTELLIO_VERSION = "requiredConstellioVersion";
@@ -136,11 +133,12 @@ public class ConstellioPluginConfigurationManager {
 		}
 	}
 
-	public void installPlugin(String pluginId, String version, String requiredConstellioVersion) {
+	public void installPlugin(String pluginId, String pluginTitle, String version, String requiredConstellioVersion) {
 		final ConstellioPluginInfo pluginInfo = new ConstellioPluginInfo()
 				.setLastInstallDate(TimeProvider.getLocalDate())
 				.setPluginStatus(READY_TO_INSTALL)
 				.setCode(pluginId)
+				.setTitle(pluginTitle)
 				.setRequiredConstellioVersion(requiredConstellioVersion)
 				.setVersion(version);
 		addOrUpdatePlugin(pluginInfo);
@@ -167,6 +165,7 @@ public class ConstellioPluginConfigurationManager {
 
 	private Element populateElementFromInfo(Element pluginInfoElement, ConstellioPluginInfo pluginInfo) {
 		pluginInfoElement = setAttributeValue(pluginInfoElement, STATUS_ATTRIBUTE, pluginInfo.getPluginStatus());
+		pluginInfoElement = setAttributeValue(pluginInfoElement, TITLE, pluginInfo.getTitle());
 		pluginInfoElement = setAttributeValue(pluginInfoElement, LAST_VERSION_ATTRIBUTE, pluginInfo.getVersion());
 		pluginInfoElement = setAttributeValue(pluginInfoElement, REQUIRED_CONSTELLIO_VERSION,
 				pluginInfo.getRequiredConstellioVersion());
@@ -193,6 +192,8 @@ public class ConstellioPluginConfigurationManager {
 			constellioVersion = null;
 		}
 
+		String title = pluginElement.getAttributeValue(TITLE);
+
 		String installationDateAsString = pluginElement.getAttributeValue(LAST_VERSION_INSTALLATION_DATE);
 		LocalDate lastInstallDate = null;
 		if (StringUtils.isNotBlank(installationDateAsString)) {
@@ -209,7 +210,12 @@ public class ConstellioPluginConfigurationManager {
 			stackTrace = null;
 		}
 
-		return new ConstellioPluginInfo().setCode(pluginElement.getName()).setPluginStatus(pluginStatus).setVersion(version)
+		String code = pluginElement.getName();
+		if (StringUtils.isBlank(title)) {
+			title = code;
+		}
+
+		return new ConstellioPluginInfo().setCode(code).setTitle(title).setPluginStatus(pluginStatus).setVersion(version)
 				.setRequiredConstellioVersion(constellioVersion).setLastInstallDate(lastInstallDate)
 				.setPluginActivationFailureCause(cause).setStackTrace(stackTrace);
 	}
