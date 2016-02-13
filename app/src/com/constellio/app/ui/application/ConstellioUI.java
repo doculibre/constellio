@@ -131,56 +131,60 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		
 		VaadinRequest vaadinRequest = VaadinService.getCurrentRequest();
 		Principal userPrincipal = vaadinRequest.getUserPrincipal();
-		String username = userPrincipal.getName();
-		
-		UserCredential userCredential = userServices.getUserCredential(username);
-		if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
-			List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
+		if (userPrincipal != null) {
+			String username = userPrincipal.getName();
 			
-			String lastCollection = null;
-			User userInLastCollection = null;
-			LocalDateTime lastLogin = null;
-			
-			for (String collection : collections) {
-				User userInCollection = userServices.getUserInCollection(username, collection);
-				if (userInLastCollection == null) {
-					if (userInCollection != null) {
-						lastCollection = collection;
-						userInLastCollection = userInCollection;
-						lastLogin = userInCollection.getLastLogin();
-					}
-				} else {
-					if (lastLogin == null && userInCollection.getLastLogin() != null) {
-						lastCollection = collection;
-						userInLastCollection = userInCollection;
-						lastLogin = userInCollection.getLastLogin();
-					} else if (lastLogin != null && userInCollection.getLastLogin() != null && userInCollection.getLastLogin()
-							.isAfter(lastLogin)) {
-						lastCollection = collection;
-						userInLastCollection = userInCollection;
-						lastLogin = userInCollection.getLastLogin();
+			UserCredential userCredential = userServices.getUserCredential(username);
+			if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
+				List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
+				
+				String lastCollection = null;
+				User userInLastCollection = null;
+				LocalDateTime lastLogin = null;
+				
+				for (String collection : collections) {
+					User userInCollection = userServices.getUserInCollection(username, collection);
+					if (userInLastCollection == null) {
+						if (userInCollection != null) {
+							lastCollection = collection;
+							userInLastCollection = userInCollection;
+							lastLogin = userInCollection.getLastLogin();
+						}
+					} else {
+						if (lastLogin == null && userInCollection.getLastLogin() != null) {
+							lastCollection = collection;
+							userInLastCollection = userInCollection;
+							lastLogin = userInCollection.getLastLogin();
+						} else if (lastLogin != null && userInCollection.getLastLogin() != null && userInCollection.getLastLogin()
+								.isAfter(lastLogin)) {
+							lastCollection = collection;
+							userInLastCollection = userInCollection;
+							lastLogin = userInCollection.getLastLogin();
+						}
 					}
 				}
-			}
-			if (userInLastCollection != null) {
-				try {
-					recordServices.update(userInLastCollection
-							.setLastLogin(TimeProvider.getLocalDateTime())
-							.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
+				if (userInLastCollection != null) {
+					try {
+						recordServices.update(userInLastCollection
+								.setLastLogin(TimeProvider.getLocalDateTime())
+								.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
 
-				modelLayerFactory.newLoggingServices().login(userInLastCollection);
-				currentUserVO = new UserToVOBuilder().build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
-				sessionContext.setCurrentUser(currentUserVO);
-				sessionContext.setCurrentCollection(lastCollection);
-				sessionContext.setForcedSignOut(false);
+					modelLayerFactory.newLoggingServices().login(userInLastCollection);
+					currentUserVO = new UserToVOBuilder().build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
+					sessionContext.setCurrentUser(currentUserVO);
+					sessionContext.setCurrentCollection(lastCollection);
+					sessionContext.setForcedSignOut(false);
+				} else {
+					currentUserVO = null;
+				}
 			} else {
-				throw new RuntimeException("User " + username + " doesn't exist in Constellio");
+				currentUserVO = null;
 			}
 		} else {
-			throw new RuntimeException("User " + username + " is not active in Constellio");
+			currentUserVO = null;
 		}
 		return currentUserVO;
 	}

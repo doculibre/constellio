@@ -1,0 +1,26 @@
+# === WEB DRIVERS CONFIGURATION ===
+# if both are specified, phantomjs is used, unless you call newFirefoxWebDriver() in the test
+#firefoxBinary=detect
+firefoxBinary=C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe
+#phantomJSBinary=
+port=7070
+
+
+# === DATASTORE CONFIGURATION ===
+# *** WARNING : collections will be deleted ***3
+dao.records.type=http
+dao.records.http.url=http://localhost:8984/solr/
+dao.contents.type=filesystem
+dao.settings.type=filesystem
+
+# === RUN/SKIP TESTS CONFIGURATION ===
+skip.slowtests=true
+skip.uitests=true
+skip.drivertests=true
+skip.loadtests=true
+skip.internettests=true
+skip.indevelopment=true
+
+
+tests.whitelist=
+tests.blacklist=
