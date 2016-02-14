@@ -22,7 +22,7 @@ public class KerberosServices implements Serializable {
 
 	public String acceptSecurityContext(final byte[] serviceTicket) {
 		String clientName;
-		if (enabled) {
+		if (enabled && authenticator != null) {
 			clientName = authenticator.acceptSecurityContext(serviceTicket);;
 		} else {
 			clientName = null;
