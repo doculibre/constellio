@@ -129,8 +129,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		
-		VaadinRequest vaadinRequest = VaadinService.getCurrentRequest();
-		Principal userPrincipal = vaadinRequest.getUserPrincipal();
+		Principal userPrincipal = sessionContext.getUserPrincipal();
 		if (userPrincipal != null) {
 			String username = userPrincipal.getName();
 			

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
 import java.io.Serializable;
+import java.security.Principal;
 import java.util.Locale;
 
 import com.constellio.app.ui.entities.UserVO;
@@ -24,4 +25,7 @@ public interface SessionContext extends Serializable {
 	boolean isForcedSignOut();
 	
 	void setForcedSignOut(boolean forcedSignOut);
+	
+	Principal getUserPrincipal();
+	
 }
