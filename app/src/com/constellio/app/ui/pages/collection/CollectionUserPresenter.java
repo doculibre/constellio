@@ -26,7 +26,7 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 	public RecordVO getUser() {
-		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY);
+		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public String getRoleTitle(String roleCode) {

@@ -59,12 +59,13 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	public void setUp()
 			throws Exception {
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
-		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		SessionContext context = FakeSessionContext.gandalfInCollection(zeCollection);
+		when(view.getSessionContext()).thenReturn(context);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.navigateTo()).thenReturn(navigator);
 
 		when(factories.getAppLayerFactory().newPresenterService()).thenReturn(presenterService);
-		when(presenterService.getRecordVO(ZE_PRINCIPAL, VIEW_MODE.DISPLAY)).thenReturn(principal);
+		when(presenterService.getRecordVO(ZE_PRINCIPAL, VIEW_MODE.DISPLAY, context)).thenReturn(principal);
 		when(presenterService.getCurrentUser(isA(SessionContext.class))).thenReturn(user);
 
 		when(factories.getModelLayerFactory().newAuthorizationsServices()).thenReturn(authorizationsServices);

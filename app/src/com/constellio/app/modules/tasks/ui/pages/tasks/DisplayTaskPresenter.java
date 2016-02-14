@@ -1,4 +1,4 @@
-package com.constellio.app.modules.tasks.ui.pages;
+package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
@@ -117,8 +117,8 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	@Override
-	public boolean isTaskOverDue(TaskVO taskVO) {
-		return taskPresenterServices.isTaskOverDue(taskVO);
+	public boolean isTaskOverdue(TaskVO taskVO) {
+		return taskPresenterServices.isTaskOverdue(taskVO);
 	}
 
 	@Override

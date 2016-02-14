@@ -13,7 +13,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<DocumentContextMenu> {
 
 	private DocumentContextMenu contextMenu;
-	
+
 	public DocumentContextMenuPresenter(DocumentContextMenu contextMenu) {
 		super(contextMenu);
 		this.contextMenu = contextMenu;
@@ -48,7 +48,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 		Record record = presenterUtils.getRecord(recordId);
 		String recordSchemaCode = record.getSchemaCode();
 		String recordSchemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordSchemaCode);
-		
+
 		if (Event.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
 			Event event = new Event(record, presenterUtils.types());
 			recordSchemaCode = event.getType().split("_")[1];
@@ -56,9 +56,9 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 			String linkedRecordId = event.getRecordId();
 			record = presenterUtils.getRecord(linkedRecordId);
 		}
-		
+
 		if (Document.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
-			this.documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY);
+			this.documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, contextMenu.getSessionContext());
 			contextMenu.setDocumentVO(documentVO);
 			updateActionsComponent();
 			showContextMenu = true;

@@ -1,4 +1,4 @@
-package com.constellio.app.modules.tasks.ui.pages;
+package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 

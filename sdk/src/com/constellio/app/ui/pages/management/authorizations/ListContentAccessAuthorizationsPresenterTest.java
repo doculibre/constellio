@@ -63,12 +63,13 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	public void setUp()
 			throws Exception {
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
-		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		SessionContext context = FakeSessionContext.gandalfInCollection(zeCollection);
+		when(view.getSessionContext()).thenReturn(context);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.navigateTo()).thenReturn(navigator);
 
 		when(factories.getAppLayerFactory().newPresenterService()).thenReturn(presenterService);
-		when(presenterService.getRecordVO(ZE_SECURED_OBJECT, VIEW_MODE.DISPLAY)).thenReturn(object);
+		when(presenterService.getRecordVO(ZE_SECURED_OBJECT, VIEW_MODE.DISPLAY, context)).thenReturn(object);
 		when(presenterService.getCurrentUser(isA(SessionContext.class))).thenReturn(user);
 
 		when(factories.getModelLayerFactory().newAuthorizationsServices()).thenReturn(authorizationsServices);

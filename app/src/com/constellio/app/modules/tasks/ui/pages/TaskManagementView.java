@@ -6,7 +6,9 @@ import com.constellio.app.ui.pages.base.BaseView;
 
 public interface TaskManagementView extends BaseView, TasksViewGroup {
 
-	void displayTasks(RecordVODataProvider dataProvider);
+	void displayTasks(RecordVODataProvider provider);
 
-	void refreshCurrentTabTasksPanel();
+	void reloadCurrentTab();
+
+	void displayWorkflows(RecordVODataProvider provider);
 }

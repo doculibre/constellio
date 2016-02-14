@@ -19,7 +19,6 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
-import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -63,7 +62,6 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String CLASSIFICATION_PLAN_ICON = "images/icons/config/classification-plan.png";
 
 	public static final String ARCHIVES_MANAGEMENT = "archivesManagement";
-	public static final String AGENT = "agent";
 	public static final String USER_DOCUMENTS = "userDocuments";
 	public static final String CART = "cart";
 	public static final String LOGS = "logs";
@@ -228,7 +226,7 @@ public class RMNavigationConfiguration implements Serializable {
 	}
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION1,
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(ARCHIVES_MANAGEMENT, ArchivesManagementViewGroup.class) {
 					@Override
 					public void activate(ConstellioNavigator navigateTo) {
@@ -249,7 +247,7 @@ public class RMNavigationConfiguration implements Serializable {
 								user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
 					}
 				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(USER_DOCUMENTS, UserDocumentsViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(USER_DOCUMENTS, UserDocumentsViewGroup.class) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
 				navigateTo.listUserDocuments();
@@ -265,7 +263,7 @@ public class RMNavigationConfiguration implements Serializable {
 				return ComponentState.ENABLED;
 			}
 		});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(CART, CartViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(CART, CartViewGroup.class) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
 				navigateTo.cart();
@@ -281,7 +279,7 @@ public class RMNavigationConfiguration implements Serializable {
 				return ComponentState.ENABLED;
 			}
 		});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(LOGS, LogsViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, LogsViewGroup.class) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
 				navigateTo.listEvents();

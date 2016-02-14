@@ -16,6 +16,8 @@ import org.mockito.Mock;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskPresenter;
+import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskView;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO;

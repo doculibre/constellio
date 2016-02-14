@@ -13,9 +13,11 @@ import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
 import com.constellio.app.modules.tasks.extensions.TaskSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
+import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_0_7;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_2;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_3;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo6_0;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -31,9 +33,10 @@ public class TaskModule implements InstallableModule {
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
 		return Arrays.asList(
-				(MigrationScript) new TasksMigrationTo5_0_7(),
+				new TasksMigrationTo5_0_7(),
 				new TasksMigrationTo5_1_2(),
-				new TasksMigrationTo5_1_3());
+				new TasksMigrationTo5_1_3(),
+				new TasksMigrationTo6_0());
 	}
 
 	@Override
@@ -60,12 +63,12 @@ public class TaskModule implements InstallableModule {
 				.forCollection(collection);
 		extensions.recordExtensions.add(new TaskSchemasExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new TaskStatusSchemasExtension(collection, appLayerFactory));
-
-		RecordsCache cache = appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(collection);
+		extensions.recordExtensions.add(new WorkflowRecordExtension(collection, appLayerFactory));
 
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+
+		RecordsCache cache = appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(collection);
 		cache.configureCache(CacheConfig.volatileCache(taskSchemas.userTask.schemaType(), 1000));
-		//cache.configureCache(CacheConfig.permanentCache(taskSchemas.ddvTaskStatus.schemaType()));
 	}
 
 	@Override

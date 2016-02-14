@@ -42,7 +42,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	public abstract boolean isAttached();
 
 	public RecordVO getRecordVO() {
-		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY);
+		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public List<AuthorizationVO> getInheritedAuthorizations() {

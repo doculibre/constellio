@@ -10,6 +10,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.MainLayout;
@@ -378,7 +379,7 @@ public class CoreNavigationConfiguration implements Serializable {
 					}
 				});
 
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION2, new NavigationItem.Active(ADMIN_MODULE, AdminViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(ADMIN_MODULE, AdminViewGroup.class) {
 			@Override
 			public void activate(ConstellioNavigator navigateTo) {
 				navigateTo.adminModule();
@@ -391,9 +392,11 @@ public class CoreNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				// TODO: This must be done cleanly
 				List<String> permissions = new ArrayList<>();
 				permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
 				permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);
+				permissions.add(TasksPermissionsTo.MANAGE_WORKFLOWS);
 
 				boolean canManageCollection = user.hasAny(permissions).globally();
 
@@ -404,5 +407,4 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 		});
 	}
-
 }

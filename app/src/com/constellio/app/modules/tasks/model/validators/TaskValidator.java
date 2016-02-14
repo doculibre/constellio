@@ -11,6 +11,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 public class TaskValidator implements RecordValidator {
 	public static final String ASSIGNATION_DATE_AND_ASSIGNED_ON_ASSIGNER_SHOULD_BE_ALL_NULL_OR_ALL_NOT_NULL = "assignationDateAndAssignedOnAndAssignerShouldBeAllNullOrAllNotNull";
 	public static final String DUE_DATE_MUST_BE_LESSER_OR_EQUAL_THAN_PARENT_DUE_DATE = "dueDateMustBeLesserOrEqualThanParentDueDate";
+	public static final String TASK_DECISION_IS_REQUIRED = "taskDecisionIsRequired";
 
 	@Override
 	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema, ConfigProvider configProvider,
@@ -30,6 +31,12 @@ public class TaskValidator implements RecordValidator {
 		if (task.getDueDate() != null && task.getParentTaskDueDate() != null
 				&& task.getDueDate().isAfter(task.getParentTaskDueDate())) {
 			validationErrors.add(getClass(), DUE_DATE_MUST_BE_LESSER_OR_EQUAL_THAN_PARENT_DUE_DATE);
+		}
+
+		if (task.getWorkflowInstance() != null && task.getStatusType().isFinishedOrClosed()) {
+			if (task.hasDecisions() && !task.getNextTasksDecisionsCodes().contains(task.getDecision())) {
+				validationErrors.add(getClass(), TASK_DECISION_IS_REQUIRED);
+			}
 		}
 	}
 

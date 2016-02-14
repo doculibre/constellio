@@ -1,4 +1,4 @@
-package com.constellio.app.modules.tasks.ui.pages;
+package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -10,5 +10,5 @@ public interface AddEditTaskView extends BaseView, TasksViewGroup {
 	TaskForm getForm();
 
 	void setRecord(TaskVO taskVO);
-	
+
 }

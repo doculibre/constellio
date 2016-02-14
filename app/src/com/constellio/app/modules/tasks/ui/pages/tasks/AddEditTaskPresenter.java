@@ -1,4 +1,4 @@
-package com.constellio.app.modules.tasks.ui.pages;
+package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -34,7 +34,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.logging.LoggingServices;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
-	
+
 	TaskVO taskVO;
 	transient TasksSearchServices tasksSearchServices;
 	transient private TasksSchemasRecordsServices tasksSchemas;
@@ -162,7 +162,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
 		progressPercentageField.setVisible(editMode);
 	}
-	
+
 	void reloadFormAfterFieldChanged() {
 		commitForm();
 		reloadForm();
@@ -214,7 +214,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	void reloadFormAfterTaskTypeChange() {
 		String taskTypeId = getTypeFieldValue();
-		
+
 		String newSchemaCode;
 		if (taskTypeId != null) {
 			newSchemaCode = tasksSearchServices.getSchemaCodeForTaskTypeRecordId(taskTypeId);
@@ -224,7 +224,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		if (newSchemaCode == null) {
 			newSchemaCode = Task.DEFAULT_SCHEMA;
 		}
- 
+
 		Record taskRecord = toRecord(taskVO);
 		Task task = new Task(taskRecord, types());
 

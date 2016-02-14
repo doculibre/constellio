@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -23,16 +22,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 @SuppressWarnings("serial")
 public class RecordToVOBuilder implements Serializable {
-
-	@Deprecated
-	public RecordVO build(Record record, VIEW_MODE viewMode) {
-		return build(record, viewMode, null, ConstellioUI.getCurrentSessionContext());
-	}
-
-	@Deprecated
-	public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO) {
-		return build(record, viewMode, schemaVO, ConstellioUI.getCurrentSessionContext());
-	}
 
 	public RecordVO build(Record record, VIEW_MODE viewMode, SessionContext sessionContext) {
 		return build(record, viewMode, null, sessionContext);
