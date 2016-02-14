@@ -361,7 +361,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	}
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION1,
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(HOME, RecordsManagementViewGroup.class) {
 					@Override
 					public void activate(ConstellioNavigator navigateTo) {

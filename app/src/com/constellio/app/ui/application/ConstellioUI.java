@@ -172,7 +172,8 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 				}
 
 				modelLayerFactory.newLoggingServices().login(userInLastCollection);
-				currentUserVO = new UserToVOBuilder().build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY);
+				currentUserVO = new UserToVOBuilder()
+						.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 				sessionContext.setCurrentUser(currentUserVO);
 				sessionContext.setCurrentCollection(lastCollection);
 				sessionContext.setForcedSignOut(false);
