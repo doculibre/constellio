@@ -44,6 +44,7 @@ public class KerberosServices implements Serializable {
 
 	public static KerberosServices init(KerberosAuthenticator authenticator, boolean debug) {
 		instance = new KerberosServices();
+		instance.authenticator = authenticator;
 		instance.debug = debug;
 		instance.enabled = authenticator != null && authenticator.isEnabled();
 		return instance;

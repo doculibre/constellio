@@ -135,7 +135,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 			String username = userPrincipal.getName();
 			
 			UserCredential userCredential = userServices.getUserCredential(username);
-			if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
+			if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
 				List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
 				
 				String lastCollection = null;
