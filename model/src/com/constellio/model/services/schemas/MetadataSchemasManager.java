@@ -19,6 +19,7 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -26,6 +27,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -55,14 +57,16 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private BatchProcessesManager batchProcessesManager;
 	private SearchServices searchServices;
 	private ModelLayerFactory modelLayerFactory;
+	private Delayed<ConstellioModulesManager> modulesManagerDelayed;
 
-	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory) {
+	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory, Delayed<ConstellioModulesManager> modulesManagerDelayed) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.typesFactory = modelLayerFactory.getDataLayerFactory().newTypesFactory();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		this.searchServices = modelLayerFactory.newSearchServices();
+		this.modulesManagerDelayed = modulesManagerDelayed;
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
@@ -155,8 +159,21 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	private ClassProvider getClassProvider() {
-		//TODO Nouha
-		return new DefaultClassProvider();
+		final DefaultClassProvider defaultClassProvider = new DefaultClassProvider();
+		return new ClassProvider() {
+
+			@Override
+			public <T> Class<T> loadClass(String name)
+					throws ClassNotFoundException {
+				try {
+					return defaultClassProvider.loadClass(name);
+
+				} catch (ClassNotFoundException e) {
+					return modulesManagerDelayed.get().getModuleClass(name);
+				}
+
+			}
+		};
 	}
 
 	public void modify(String collection, MetadataSchemaTypesAlteration alteration) {

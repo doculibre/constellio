@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.base;
 
+import java.security.Principal;
 import java.util.Locale;
 
 import com.constellio.app.ui.application.ConstellioUI;
@@ -10,6 +11,8 @@ public class VaadinSessionContext implements SessionContext {
 
 	public static final String CURRENT_USER_ATTRIBUTE = VaadinSessionContext.class.getName() + ".currentUser";
 	public static final String CURRENT_COLLECTION_ATTRIBUTE = VaadinSessionContext.class.getName() + ".currentCollection";
+	public static final String USER_PRINCIPAL_ATTRIBUTE = VaadinSessionContext.class.getName() + ".userPrincipal";
+	public static final String FORCED_SIGN_OUT_ATTRIBUTE = VaadinSessionContext.class.getName() + ".forcedSignOut";
 
 	public VaadinSessionContext() {
 	}
@@ -57,6 +60,21 @@ public class VaadinSessionContext implements SessionContext {
 	@Override
 	public String getCurrentUserIPAddress() {
 		return ConstellioUI.getCurrent().getPage().getWebBrowser().getAddress();
+	}
+
+	@Override
+	public Principal getUserPrincipal() {
+		return (Principal) getAttribute(USER_PRINCIPAL_ATTRIBUTE);
+	}
+
+	@Override
+	public boolean isForcedSignOut() {
+		return Boolean.TRUE.equals(getAttribute(FORCED_SIGN_OUT_ATTRIBUTE));
+	}
+
+	@Override
+	public void setForcedSignOut(boolean forcedSignOut) {
+		setAttribute(FORCED_SIGN_OUT_ATTRIBUTE, forcedSignOut);
 	}
 
 }

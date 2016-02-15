@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
+import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -63,6 +64,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 	public static final String ARCHIVES_MANAGEMENT = "archivesManagement";
 	public static final String USER_DOCUMENTS = "userDocuments";
+	public static final String AGENT = "agent";
 	public static final String CART = "cart";
 	public static final String LOGS = "logs";
 
@@ -293,6 +295,22 @@ public class RMNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
 				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).globally());
+			}
+		});
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(AGENT, AgentViewGroup.class) {
+			@Override
+			public void activate(ConstellioNavigator navigateTo) {
+				navigateTo.agentRequestPage();
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 70;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return ComponentState.ENABLED;
 			}
 		});
 	}

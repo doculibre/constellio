@@ -503,6 +503,10 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.EXPORTER);
 	}
 
+	public void agentRequestPage() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.REQUEST_AGENT);
+	}
+
 	public void agentSetup() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.AGENT_SETUP);
 	}

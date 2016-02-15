@@ -4,7 +4,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,10 +23,10 @@ import com.vaadin.data.util.converter.Converter;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
@@ -40,8 +39,6 @@ import com.vaadin.ui.themes.ValoTheme;
 public class PluginManagementViewImpl extends BaseViewImpl implements PluginManagementView {
 	PluginManagementPresenter presenter;
 	private BaseUploadField fileUpload;
-	final private Label restartMessage = new Label("<p style=\"color:red\">" + $("PluginManagementView.restart") + "</p>",
-			ContentMode.HTML);
 
 	public PluginManagementViewImpl() {
 		super();
@@ -58,12 +55,20 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 
-		restartMessage.setVisible(presenter.isRestartMessageVisible());
+		Label restartMessage = new Label($("PluginManagementView.restartRequired"));
+		restartMessage.addStyleName(ValoTheme.LABEL_COLORED);
+		restartMessage.addStyleName(ValoTheme.LABEL_BOLD);
 
-		Label restartMessageLabel = new Label();
-		restartMessageLabel.setVisible(false);
-		restartMessageLabel.addStyleName(ValoTheme.LABEL_COLORED);
-		restartMessageLabel.addStyleName(ValoTheme.LABEL_BOLD);
+		Button restart = new BaseButton($("PluginManagementView.restart")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.restartRequested();
+			}
+		};
+
+		HorizontalLayout restartPanel = new HorizontalLayout(restartMessage, restart);
+		restartPanel.setSpacing(true);
+		restartPanel.setVisible(presenter.isRestartMessageVisible());
 
 		fileUpload = new BaseUploadField();
 		fileUpload.setMultiValue(true);
@@ -89,7 +94,7 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 			}
 
 		};
-		layout.addComponents(restartMessage, uploadButton);
+		layout.addComponents(restartPanel, uploadButton);
 
 		Table table = createPluginsTable();
 
@@ -106,10 +111,11 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 	}
 
 	private Table createPluginsTable() {
-		Table table = new Table($("PluginManagementView.plugins"));
+		List<ConstellioPluginInfo> plugins = presenter.getAllPlugins();
+		Table table = new Table($("PluginManagementView.plugins", plugins.size()));
 		Container beanContainer = new BeanItemContainer<>(ConstellioPluginInfo.class);
 		table.setContainerDataSource(beanContainer);
-		List<ConstellioPluginInfo> plugins = presenter.getAllPlugins();
+
 		table.addItems(plugins);
 		table.addGeneratedColumn("enable", new ColumnGenerator() {
 			@Override
@@ -132,11 +138,12 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 		});
 		table.setPageLength(Math.min(15, plugins.size()));
 		table.setWidth("100%");
-		table.setColumnHeader("code", $("PluginManagementView.code"));
+		//table.setColumnHeader("code", $("PluginManagementView.code"));
+		table.setColumnHeader("title", $("PluginManagementView.title"));
 		table.setColumnHeader("lastInstallDate", $("PluginManagementView.lastInstallDate"));
 		table.setColumnHeader("pluginActivationFailureCause", $("PluginManagementView.pluginActivationFailureCause"));
 		table.setColumnHeader("pluginStatus", $("PluginManagementView.pluginStatus"));
-		table.setColumnHeader("requiredConstellioVersion", $("PluginManagementView.requiredConstellioVersion"));
+		//table.setColumnHeader("requiredConstellioVersion", $("PluginManagementView.requiredConstellioVersion"));
 		table.setColumnHeader("version", $("PluginManagementView.version"));
 		table.setColumnHeader("enable", "");
 		table.setColumnWidth("enable", 40);
@@ -163,8 +170,8 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 		});
 		table.setConverter("pluginActivationFailureCause", newConstellioPluginStatusFailureCauseConverter());
 		table.setConverter("pluginStatus", newConstellioPluginStatusConverter());
-		table.setVisibleColumns("code", "lastInstallDate", "pluginActivationFailureCause", "pluginStatus",
-				"requiredConstellioVersion", "version", "enable");
+		table.setVisibleColumns("title", "lastInstallDate", "pluginActivationFailureCause", "pluginStatus",
+				/*"requiredConstellioVersion",*/ "version", "enable");
 		return table;
 	}
 

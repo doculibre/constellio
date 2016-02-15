@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,8 @@ public class FakeSessionContext implements SessionContext {
 	UserVO user;
 	String collection;
 	Locale locale;
+	Principal userPrincipal;
+	boolean forcedSignOut;
 
 	private static FakeSessionContext current;
 
@@ -192,6 +195,25 @@ public class FakeSessionContext implements SessionContext {
 	@Override
 	public String getCurrentUserIPAddress() {
 		return "127.0.0.1";
+	}
+
+	@Override
+	public Principal getUserPrincipal() {
+		return userPrincipal;
+	}
+	
+	public void setUserPrincipal(Principal userPrincipal) {
+		this.userPrincipal = userPrincipal;
+	}
+
+	@Override
+	public boolean isForcedSignOut() {
+		return forcedSignOut;
+	}
+
+	@Override
+	public void setForcedSignOut(boolean forcedSignOut) {
+		this.forcedSignOut = forcedSignOut;
 	}
 
 }

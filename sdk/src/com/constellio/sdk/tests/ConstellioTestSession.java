@@ -26,6 +26,7 @@ public class ConstellioTestSession {
 	private FactoriesTestFeatures factoriesTestFeatures;
 	private AfterTestValidationsTestFeature afterTestValidationsTestFeature;
 	private SaveStateFeature saveStateFeature;
+	private ToggleTestFeature toggleTestFeature;
 	private SkipTestsRule skipTestsRule;
 
 	//It is singletone pattern for all the test cases
@@ -40,6 +41,8 @@ public class ConstellioTestSession {
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());
 		session.sdkProperties = sdkProperties;
 		session.skipTestsRule = skipTestsRule;
+		session.toggleTestFeature = new ToggleTestFeature(session.sdkProperties);
+
 		if (!isUniTest) {
 
 			ensureLog4jAndRepositoryProperties();
@@ -188,5 +191,9 @@ public class ConstellioTestSession {
 
 	public String getProperty(String key) {
 		return sdkProperties.get(key);
+	}
+
+	public ToggleTestFeature getToggleTestFeature() {
+		return toggleTestFeature;
 	}
 }

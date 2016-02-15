@@ -11,6 +11,7 @@ import org.junit.Test;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
+import com.constellio.data.utils.Delayed;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -99,7 +100,8 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 		BatchProcessesManager batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-		otherMetadataSchemasManager = new MetadataSchemasManager(getModelLayerFactory());
+		otherMetadataSchemasManager = new MetadataSchemasManager(getModelLayerFactory(),
+				new Delayed<>(getAppLayerFactory().getModulesManager()));
 
 	}
 }

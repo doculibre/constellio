@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.ConstellioPluginManagerRuntimeException_NoSuchModule;
@@ -43,6 +44,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	private final Delayed<MigrationServices> migrationServicesDelayed;
 	private final ModelLayerFactory modelLayerFactory;
 	private final ConstellioPluginManager constellioPluginManager;
+	private Set<String> startedModulesInAnyCollections = new HashSet<>();
 
 	public ConstellioModulesManagerImpl(AppLayerFactory appLayerFactory,
 			ConstellioPluginManager constellioPluginManager, Delayed<MigrationServices> migrationServicesDelayed) {
@@ -198,6 +200,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return constellioPluginManager.getRegisteredPlugins();
 	}
 
+	@Override
+	public <T> Class<T> getModuleClass(String name)
+			throws ClassNotFoundException {
+		return constellioPluginManager.getModuleClass(name);
+	}
+
 	public void markAsInstalled(final Module module, CollectionsListManager collectionsListManager) {
 		for (String dependentModuleId : getDependencies(module)) {
 			InstallableModule dependentModule = getInstalledModule(dependentModuleId);
@@ -334,6 +342,14 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	public boolean startModule(String collection, Module module) {
+
+		if (module instanceof InstallableSystemModule) {
+			if (!startedModulesInAnyCollections.contains(module.getId())) {
+				((InstallableSystemModule) module).start(appLayerFactory);
+				startedModulesInAnyCollections.add(module.getId());
+			}
+		}
+
 		try {
 			((InstallableModule) module).start(collection, appLayerFactory);
 		} catch (Throwable e) {
@@ -356,6 +372,13 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			((InstallableModule) module).stop(collection, appLayerFactory);
 		} catch (Throwable e) {
 			throw new ConstellioModulesManagerRuntimeException.FailedToStop((InstallableModule) module, e);
+		}
+
+		if (module instanceof InstallableSystemModule) {
+			if (startedModulesInAnyCollections.contains(module.getId())) {
+				((InstallableSystemModule) module).stop(appLayerFactory);
+				startedModulesInAnyCollections.remove(module.getId());
+			}
 		}
 	}
 

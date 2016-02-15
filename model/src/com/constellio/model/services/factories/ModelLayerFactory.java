@@ -128,7 +128,7 @@ public class ModelLayerFactory extends LayerFactory {
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
 						recordsCaches));
 
-		this.schemasManager = add(new MetadataSchemasManager(this));
+		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
 
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));

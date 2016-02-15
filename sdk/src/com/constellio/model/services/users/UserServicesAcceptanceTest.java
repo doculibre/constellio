@@ -26,6 +26,7 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -110,11 +111,14 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		//userServices.removeGroupFromCollections();
 	}
 
-	//@Test
-	//@SlowTest
+	@Test
+	@SlowTest
 	public void whenEveryoneGetsInHereThenStillNotLetal()
 			throws Exception {
 
+		onlyWhen(Toggle.NEW_USERCREDENTIAL_SERVICES).isEnabled();
+
+		//TODO Tom : Add grim patrons in batch of 100
 		givenCollection1And2();
 
 		for (int i = 0; i < 10000; i++) {

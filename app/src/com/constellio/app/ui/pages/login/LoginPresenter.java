@@ -68,6 +68,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 
 		sessionContext.setCurrentCollection(null);
 		sessionContext.setCurrentUser(null);
+		sessionContext.setForcedSignOut(true);
 	}
 
 	public void signInAttempt(String enteredUsername, String password) {
@@ -123,6 +124,8 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 							.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 					sessionContext.setCurrentUser(currentUser);
 					sessionContext.setCurrentCollection(userInLastCollection.getCollection());
+					sessionContext.setForcedSignOut(false);
+					
 					view.updateUIContent();
 					String currentState = view.navigateTo().getState();
 					if (StringUtils.contains(currentState, "/")) {

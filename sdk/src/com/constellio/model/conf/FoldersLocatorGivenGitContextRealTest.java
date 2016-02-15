@@ -31,7 +31,8 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	static String givenJavaRootFolderIsDaoProject = "givenJavaRootFolderIsDaoProject";
 	static String givenJavaRootFolderIsCustomProject = "givenJavaRootFolderIsCustomProject";
 	static String givenJavaRootFolderIsSDKProject = "givenJavaRootFolderIsSDKProject";
-	static File constellio, constellioApp, constellioData, constellioModel, webinf, conf, buildLibs, constellioProperties,
+	static String givenJavaRootFolderIsPluginsSDKProject = "givenJavaRootFolderIsPluginsSDKProject";
+	static File constellioWorkspace, constellioPlugins, constellioPluginsSdk, constellio, constellioApp, constellioData, constellioModel, webinf, conf, buildLibs, constellioProperties,
 			constellioSetupProperties, deploy, cmdTxt, uploadConstellioWar, temp, importation, custom, settings, sdk,
 			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, resourcesReports,
 			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt;
@@ -44,9 +45,11 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] { { givenJavaRootFolderIsConstellioProject }, { givenJavaRootFolderIsUIProject },
+		return Arrays.asList(new Object[][] {
+				{ givenJavaRootFolderIsConstellioProject }, { givenJavaRootFolderIsUIProject },
 				{ givenJavaRootFolderIsServicesProject }, { givenJavaRootFolderIsDaoProject },
-				{ givenJavaRootFolderIsCustomProject }, { givenJavaRootFolderIsSDKProject } });
+				{ givenJavaRootFolderIsCustomProject }, { givenJavaRootFolderIsSDKProject },
+				{ givenJavaRootFolderIsPluginsSDKProject } });
 	}
 
 	@Before
@@ -62,7 +65,10 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 			throws Exception {
 		File tmp = newTempFolder();
 		anotherTemp = newTempFolder();
-		constellio = new File(tmp, "consteLlio-dev-1-p");
+		constellioWorkspace = new File(tmp, "consteLlio-dev-1-p");
+		constellio = new File(constellioWorkspace, "constellio");
+		constellioPlugins = new File(constellioWorkspace, "constellio-plugins");
+		constellioPluginsSdk = new File(constellioPlugins, "sdk");
 		constellioApp = new File(constellio, "app");
 		constellioData = new File(constellio, "data");
 		constellioModel = new File(constellio, "model");
@@ -95,6 +101,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		themesConstellioImages = new File(themesConstellio, "images");
 		crypt = new File(settings, "key.txt");
 
+		constellioWorkspace.mkdir();
 		constellio.mkdir();
 		constellioApp.mkdir();
 		constellioData.mkdir();
@@ -135,6 +142,10 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 			doReturn(custom).when(locator).getJavaRootFolder();
 		} else if (testCase == givenJavaRootFolderIsSDKProject) {
 			doReturn(sdk).when(locator).getJavaRootFolder();
+
+		} else if (testCase == givenJavaRootFolderIsPluginsSDKProject) {
+			doReturn(constellioPluginsSdk).when(locator).getJavaRootFolder();
+
 		}
 		return locator;
 	}

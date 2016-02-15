@@ -58,7 +58,13 @@ public class ClassificationPlanReportPresenterManualAcceptTest extends ReportBui
 		assertThat(xeCategory.getDescription()).isEqualTo("Ze ultimate category X");
 		assertThat(xeCategory.getLabel()).isEqualTo("Xe category");
 
-		ClassificationPlanReportModel_Category x100Category = xeCategory.getCategories().get(0);
+		ClassificationPlanReportModel_Category x13Category = xeCategory.getCategories().get(0);
+		assertThat(x13Category.getCode()).isEqualTo("X13");
+		assertThat(x13Category.getDescription()).isEqualTo("218. Requiem pour un espion");
+		assertThat(x13Category.getLabel()).isEqualTo("Agent Secreet");
+		assertThat(x13Category.getCategories()).isEmpty();
+
+		ClassificationPlanReportModel_Category x100Category = xeCategory.getCategories().get(1);
 		assertThat(x100Category.getCode()).isEqualTo("X100");
 		assertThat(x100Category.getDescription()).isEqualTo("Ze category X100");
 		assertThat(x100Category.getLabel()).isEqualTo("X100");
@@ -75,11 +81,6 @@ public class ClassificationPlanReportPresenterManualAcceptTest extends ReportBui
 		assertThat(x120Category.getLabel()).isEqualTo("X120");
 		assertThat(x120Category.getCategories()).isEmpty();
 
-		ClassificationPlanReportModel_Category x13Category = xeCategory.getCategories().get(1);
-		assertThat(x13Category.getCode()).isEqualTo("X13");
-		assertThat(x13Category.getDescription()).isEqualTo("218. Requiem pour un espion");
-		assertThat(x13Category.getLabel()).isEqualTo("Agent Secreet");
-		assertThat(x13Category.getCategories()).isEmpty();
 
 		ClassificationPlanReportModel_Category zeCategory = categories.get(1);
 		assertThat(zeCategory.getCode()).isEqualTo("Z");

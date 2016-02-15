@@ -17,7 +17,5 @@ public interface ConstellioMenu extends Serializable {
 	void setCollections(List<String> collections);
 
 	ConstellioFactories getConstellioFactories();
-	
-	void setSignOutLinkVisible(boolean visible);
 
 }

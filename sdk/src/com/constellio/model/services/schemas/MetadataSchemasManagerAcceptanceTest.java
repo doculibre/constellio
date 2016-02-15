@@ -50,6 +50,7 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.utils.Delayed;
 import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBeforeOrEqualToLastModificationDateValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -200,7 +201,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		collection1Builder.createNewSchemaType("a");
 		collection2Builder.createNewSchemaType("b");
 
-		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory());
+		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory(),
+				new Delayed<>(getAppLayerFactory().getModulesManager()));
 		otherManager.initialize();
 
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
@@ -220,7 +222,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void givenSchemasInMultipleCollectionsModifiedThenOtherManagerNotified()
 			throws Exception {
 
-		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory());
+		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory(),
+				new Delayed<>(getAppLayerFactory().getModulesManager()));
 		otherManager.initialize();
 
 		givenCollection("collection1");
@@ -247,7 +250,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void givenSchemasInMultipleCollectionsModifiedThenAllListenersNotified()
 			throws Exception {
 
-		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory());
+		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory(),
+				new Delayed<>(getAppLayerFactory().getModulesManager()));
 		otherManager.initialize();
 
 		givenCollection("collection1");

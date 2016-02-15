@@ -67,7 +67,7 @@ public class ClassListBuilder<T> {
 
 		if (object == null) {
 			object = createObjectWithClassname(implementationClassname);
-			//cache.put(implementationClassname, object);
+			cache.put(implementationClassname, object);
 		}
 
 		return object;

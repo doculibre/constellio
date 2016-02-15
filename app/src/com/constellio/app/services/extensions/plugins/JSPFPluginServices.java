@@ -34,7 +34,9 @@ public class JSPFPluginServices implements PluginServices {
 	static final String NEW_JAR_EXTENSION = "jar.new";
 	private static final String CODE_ATTRIBUTE_NAME = "code";
 	private static final String VERSION_ATTRIBUTE_NAME = "version";
-	private static final String REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME = "requiered-Constellio-Version";
+	private static final String IMPLEMENTATION_TITLE = "Implementation-Title";
+	private static final String REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME = "Required-Constellio-Version";
+	private static final String REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME_WITH_TYPO = "Requiered-Constellio-Version";
 	private static final String REQUIRED_CONSTELLIO_VERSION_NULL_VALUE = "null";
 
 	@Override
@@ -62,8 +64,8 @@ public class JSPFPluginServices implements PluginServices {
 
 	private ConstellioPluginInfo extractPluginInfoFromManifest(Attributes attributes)
 			throws InvalidPluginJarException {
-		String code = null, requiredConstellioVersion = null, version = null;
-		boolean codeFound = false, versionFound = false, requiredConstellioVersionFound = false;
+		String code = null, requiredConstellioVersion = null, version = null, title = null;
+		boolean codeFound = false, versionFound = false, requiredConstellioVersionFound = false, titleFound = false;
 
 		for (Entry<Object, Object> att : attributes.entrySet()) {
 			String key = att.getKey().toString();
@@ -73,19 +75,26 @@ public class JSPFPluginServices implements PluginServices {
 					code = att.getValue().toString();
 				}
 			}
+			if (key.equalsIgnoreCase(IMPLEMENTATION_TITLE)) {
+				titleFound = true;
+				if (att.getValue() != null && StringUtils.isNotBlank(att.getValue().toString())) {
+					title = att.getValue().toString();
+				}
+			}
 			if (key.equalsIgnoreCase(VERSION_ATTRIBUTE_NAME)) {
 				versionFound = true;
 				if (att.getValue() != null && StringUtils.isNotBlank(att.getValue().toString())) {
 					version = att.getValue().toString();
 				}
 			}
-			if (key.equalsIgnoreCase(REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME)) {
+			if (key.equalsIgnoreCase(REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME) ||
+					key.equalsIgnoreCase(REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME_WITH_TYPO)) {
 				requiredConstellioVersionFound = true;
 				if (att.getValue() != null && StringUtils.isNotBlank(att.getValue().toString())) {
 					requiredConstellioVersion = att.getValue().toString();
 				}
 			}
-			if (codeFound && versionFound && requiredConstellioVersionFound) {
+			if (codeFound && versionFound && requiredConstellioVersionFound && titleFound) {
 				break;
 			}
 		}
@@ -101,7 +110,11 @@ public class JSPFPluginServices implements PluginServices {
 		} else if (requiredConstellioVersion.equalsIgnoreCase(REQUIRED_CONSTELLIO_VERSION_NULL_VALUE)) {
 			requiredConstellioVersion = "";
 		}
-		return new ConstellioPluginInfo().setCode(code).setRequiredConstellioVersion(requiredConstellioVersion)
+		if (title == null) {
+			title = code;
+		}
+
+		return new ConstellioPluginInfo().setCode(code).setTitle(title).setRequiredConstellioVersion(requiredConstellioVersion)
 				.setVersion(version);
 	}
 

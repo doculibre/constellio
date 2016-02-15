@@ -275,8 +275,8 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 
 		try {
 			helperService.saveNewPlugin(pluginsDirectory, jarFile, newPluginInfo.getCode());
-			pluginConfigManger.installPlugin(newPluginInfo.getCode(), newPluginInfo.getVersion(),
-					newPluginInfo.getRequiredConstellioVersion());
+			pluginConfigManger.installPlugin(newPluginInfo.getCode(), newPluginInfo.getTitle(),
+					newPluginInfo.getVersion(), newPluginInfo.getRequiredConstellioVersion());
 		} catch (IOException e) {
 			LOGGER.error("Exception when saving new plugin", e);
 			return JAR_NOT_SAVED_CORRECTLY;
@@ -332,7 +332,9 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	@Override
 	public void handleModuleNotMigratedCorrectly(String moduleId, String collection, Throwable throwable) {
 		if (isPluginModule(moduleId)) {
-			throwable.printStackTrace();
+			if (throwable != null) {
+				throwable.printStackTrace();
+			}
 			pluginConfigManger.invalidateModule(moduleId, INVALID_MIGRATION_SCRIPT, throwable);
 		} else {
 			LOGGER.error("module not migrated correctly", throwable);
@@ -353,6 +355,19 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	@Override
 	public boolean isRegistered(String id) {
 		return registeredModules.keySet().contains(id) || validUploadedPlugins.containsValue(id);
+	}
+
+	@Override
+	public <T> Class<T> getModuleClass(String name)
+			throws ClassNotFoundException {
+		for (InstallableModule module : getActivePluginModules()) {
+			try {
+				return (Class<T>) module.getClass().getClassLoader().loadClass(name);
+			} catch (ClassNotFoundException e) {
+				//OK
+			}
+		}
+		throw new ClassNotFoundException(name);
 	}
 
 	private void ensureStarted() {

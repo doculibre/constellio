@@ -9,6 +9,9 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BasePasswordField;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -18,6 +21,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -29,7 +33,6 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -67,7 +70,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 				Label currentLabel = new Label(presenter.getLabel(groupCode, currentConfigurationVO.getCode()));
 				currentLabel.setSizeFull();
 				gridLayout.addComponent(currentLabel, 0, i);
-				Field field = createField(currentConfigurationVO);
+				Field<?> field = createField(currentConfigurationVO);
 				field.setId(groupCode + i);
 				field.addStyleName(CONFIG_ELEMENT_VALUE);
 				field.addValueChangeListener(new ValueChangeListener() {
@@ -120,11 +123,16 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 		return layout;
 	}
 
-	private Field createField(SystemConfigurationVO config) {
+	private Field<?> createField(SystemConfigurationVO config) {
 		SystemConfigurationType type = config.getType();
 		if (type == SystemConfigurationType.STRING ||
 				config.getType() == SystemConfigurationType.INTEGER) {
-			TextField textField = new TextField();
+			AbstractField<String> textField;
+			if (config.isHiddenValue()) {
+				textField = new BasePasswordField();
+			} else {
+				textField = new BaseTextField();
+			}
 			textField.setRequired(true);
 
 			if (config.getType() == SystemConfigurationType.INTEGER) {
@@ -134,7 +142,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 						new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator_withoutLimits"), null,
 								null));
 			} else {
-				textField.setValue(config.getValue().toString());
+				Object value = config.getValue();
+				textField.setValue(value == null ? "" : value.toString());
 			}
 			return textField;
 		} else if (type == SystemConfigurationType.BOOLEAN) {
@@ -144,11 +153,11 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 		} else if (type == SystemConfigurationType.ENUM) {
 			ComboBox combobox = new BaseComboBox();
 			combobox.setNullSelectionAllowed(false);
-			for (Enum value : config.getValues().getEnumConstants()) {
+			for (Enum<?> value : config.getValues().getEnumConstants()) {
 				combobox.addItem(value.name());
 				combobox.setItemCaption(value.name(), $(value.getClass().getSimpleName() + "." + value.name()));
 			}
-			Enum value = (Enum) config.getValue();
+			Enum<?> value = (Enum<?>) config.getValue();
 			combobox.setValue(value.name());
 			combobox.setRequired(true);
 			return combobox;

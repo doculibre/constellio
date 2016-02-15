@@ -21,6 +21,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
@@ -30,6 +31,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.security.roles.RolesManagerRuntimeException.RolesManagerRuntimeException_Validation;
 
 public class TasksMigrationTo6_0 implements MigrationScript {
 	@Override
@@ -60,7 +62,14 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 	private void updatePermissions(String collection, AppLayerFactory factory) {
 		RolesManager roleManager = factory.getModelLayerFactory().getRolesManager();
 
-		Role administrator = roleManager.getRole(collection, CoreRoles.ADMINISTRATOR);
+		Role administrator;
+
+		try {
+			administrator = roleManager.getRole(collection, CoreRoles.ADMINISTRATOR);
+		} catch (RolesManagerRuntimeException_Validation e) {
+			administrator = roleManager.addRole(
+					new Role(collection, CoreRoles.ADMINISTRATOR, CoreRoles.ADMINISTRATOR, CorePermissions.PERMISSIONS.getAll()));
+		}
 		List<String> permissions = new ArrayList<>(administrator.getOperationPermissions());
 		permissions.add(TasksPermissionsTo.MANAGE_WORKFLOWS);
 

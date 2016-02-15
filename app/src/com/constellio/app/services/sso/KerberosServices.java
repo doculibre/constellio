@@ -22,8 +22,8 @@ public class KerberosServices implements Serializable {
 
 	public String acceptSecurityContext(final byte[] serviceTicket) {
 		String clientName;
-		if (enabled) {
-			clientName = authenticator.acceptSecurityContext(serviceTicket);;
+		if (enabled && authenticator != null) {
+			clientName = authenticator.acceptSecurityContext(serviceTicket);
 		} else {
 			clientName = null;
 		}
@@ -44,6 +44,7 @@ public class KerberosServices implements Serializable {
 
 	public static KerberosServices init(KerberosAuthenticator authenticator, boolean debug) {
 		instance = new KerberosServices();
+		instance.authenticator = authenticator;
 		instance.debug = debug;
 		instance.enabled = authenticator != null && authenticator.isEnabled();
 		return instance;

@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.server.support.query.CmisQlExtParser.value_expression_return;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -22,7 +21,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -35,7 +33,6 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
@@ -51,7 +48,6 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.Elevations;
 import com.constellio.model.services.search.ElevationsView;
-import com.constellio.model.services.search.services.ElevationServiceImpl;
 import com.constellio.sdk.FakeEncryptionServices;
 
 public class FactoriesTestFeatures {
@@ -89,7 +85,9 @@ public class FactoriesTestFeatures {
 			DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
 			for (BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
 				deleteServerRecords(server);
-				cleanElevateFile(server);
+
+				//TODO Majid : Tests are 3% slower when this line is activated
+				//cleanElevateFile(server);
 			}
 
 			if (ContentDaoType.HADOOP == conf.getContentDaoType()) {
@@ -112,7 +110,10 @@ public class FactoriesTestFeatures {
 		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
 		DataWrapper<Elevations> elevationView = new ElevationsView()
 				.setData(new Elevations());
+
+		//This is the slowest line of this method
 		readData.setDataFromView(elevationView);
+
 		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
 	}
 
@@ -275,9 +276,9 @@ public class FactoriesTestFeatures {
 			File configManagerFolder = fileSystemTestFeatures.newTempFolderWithName("configManagerFolder");
 			File contentFolder = fileSystemTestFeatures.newTempFolderWithName("contentFolder");
 			File pluginsFolder;
-			if(useSDKPluginFolder){
+			if (useSDKPluginFolder) {
 				pluginsFolder = new SDKFoldersLocator().getPluginsJarsFolder();
-			}else{
+			} else {
 				pluginsFolder = fileSystemTestFeatures.newTempFolderWithName("plugins");
 			}
 
@@ -297,7 +298,8 @@ public class FactoriesTestFeatures {
 					File tempFolder = fileSystemTestFeatures.newTempFolder();
 					try {
 						SaveStateFeature
-								.loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder, pluginsFolder, dummyPasswords);
+								.loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder, pluginsFolder,
+										dummyPasswords);
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

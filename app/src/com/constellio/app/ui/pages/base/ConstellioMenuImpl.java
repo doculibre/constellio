@@ -45,8 +45,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private static final String STYLE_VISIBLE = "valo-menu-visible";
 	public static final String STYLE_USER_SETTINGS = "user-settings";
 
-	private boolean signOutLinkVisible;
-
 	private ConstellioMenuPresenter presenter;
 
 	private MenuItem userSettingsItem;
@@ -87,11 +85,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		} else {
 			compositionRoot.addStyleName(STYLE_VISIBLE);
 		}
-	}
-
-	@Override
-	public void setSignOutLinkVisible(boolean logoutLinkVisible) {
-		this.signOutLinkVisible = logoutLinkVisible;
 	}
 
 	private Component buildContent() {
@@ -279,15 +272,13 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//				presenter.preferencesButtonClicked();
 		//			}
 		//		});
-		if (signOutLinkVisible) {
-			userSettingsItem.addSeparator();
-			userSettingsItem.addItem($("ConstellioMenu.signOut"), new Command() {
-				@Override
-				public void menuSelected(final MenuItem selectedItem) {
-					presenter.signOutButtonClicked();
-				}
-			}).setStyleName("disconnect-item");
-		}
+		userSettingsItem.addSeparator();
+		userSettingsItem.addItem($("ConstellioMenu.signOut"), new Command() {
+			@Override
+			public void menuSelected(final MenuItem selectedItem) {
+				presenter.signOutButtonClicked();
+			}
+		}).setStyleName("disconnect-item");
 	}
 
 	public MenuItem getUserSettingsItem() {

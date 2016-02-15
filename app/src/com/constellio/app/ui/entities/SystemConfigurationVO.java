@@ -22,13 +22,18 @@ public class SystemConfigurationVO implements Serializable {
 	private boolean updated;
 	private String tmpFilePath;
 
+	boolean rebootRequired;
+	boolean hiddenValue;
+
 	public SystemConfigurationVO(String code, Object value,
-			SystemConfigurationType type, Class<? extends Enum<?>> values) {
+			SystemConfigurationType type, Class<? extends Enum<?>> values, boolean rebootRequired, boolean hiddenValue) {
 		this.code = code;
 		this.value = value;
 		this.type = type;
 		this.values = values;
 		this.updated = false;
+		this.rebootRequired = rebootRequired;
+		this.hiddenValue = hiddenValue;
 	}
 
 	public String getCode() {
@@ -112,6 +117,22 @@ public class SystemConfigurationVO implements Serializable {
 
 	void setUpdated(Boolean updated) {
 		this.updated = updated;
+	}
+
+	public boolean isHiddenValue() {
+		return hiddenValue;
+	}
+
+	public void setHiddenValue(boolean hiddenValue) {
+		this.hiddenValue = hiddenValue;
+	}
+
+	public void setRebootRequired(boolean rebootRequired) {
+		this.rebootRequired = rebootRequired;
+	}
+
+	public boolean isRebootRequired() {
+		return rebootRequired;
 	}
 
 	public void afterSetValue() {

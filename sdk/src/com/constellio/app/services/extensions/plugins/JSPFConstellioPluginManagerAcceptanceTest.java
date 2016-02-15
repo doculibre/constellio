@@ -360,7 +360,7 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 		ConfigManager configManager = getModelLayerFactory().getDataLayerFactory()
 				.getConfigManager();
 		ConstellioPluginConfigurationManager pluginConfigManger = new ConstellioPluginConfigurationManager(configManager);
-		pluginConfigManger.installPlugin(info.getCode(), info.getVersion(), info.getRequiredConstellioVersion());
+		pluginConfigManger.installPlugin(info.getCode(), info.getTitle(), info.getVersion(), info.getRequiredConstellioVersion());
 		switch (info.getPluginStatus()) {
 		case ENABLED:
 			pluginConfigManger.markPluginAsEnabled(info.getCode());

@@ -6,6 +6,8 @@ public interface ConstellioPlugin extends Plugin {
 
 	String DOCULIBRE = "DocuLibre";
 
+	String CONSTELLIO = "Constellio";
+
 	String getId();
 
 	String getName();

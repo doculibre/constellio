@@ -70,7 +70,7 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 	@Test
 	public void givenPluginInfoWithNullValuesWhenAddPluginAndGetItThenPluginInfoLoadedCorrectly()
 			throws Exception {
-		ConstellioPluginInfo expectedPluginInfo = new ConstellioPluginInfo().setCode("zeCode");
+		ConstellioPluginInfo expectedPluginInfo = new ConstellioPluginInfo().setCode("zeCode").setTitle("zeTitle");
 		pluginConfigManger.addOrUpdatePlugin(expectedPluginInfo);
 		ConstellioPluginInfo pluginInfo = pluginConfigManger.getPluginInfo("zeCode");
 		assertThat(pluginInfo).isEqualToComparingFieldByField(expectedPluginInfo);
@@ -81,6 +81,7 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 			throws Exception {
 		ConstellioPluginInfo expectedPluginInfo = new ConstellioPluginInfo()
 				.setCode("zeCode")
+				.setTitle("zeTitle")
 				.setPluginActivationFailureCause(CANNOT_INSTALL_OLDER_VERSION)
 				.setPluginStatus(INVALID)
 				.setLastInstallDate(new LocalDate())
@@ -96,7 +97,7 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 			throws Exception {
 		LocalDate now = LocalDate.now();
 		givenTimeIs(now);
-		pluginConfigManger.installPlugin("zePluginId", "version", "rVersion");
+		pluginConfigManger.installPlugin("zePluginId", "zePluginTitle", "version", "rVersion");
 		ConstellioPluginInfo pluginInfo = pluginConfigManger.getPluginInfo("zePluginId");
 		assertThat(pluginInfo.getLastInstallDate()).isEqualTo(now);
 		assertThat(pluginInfo.getVersion()).isEqualTo("version");
@@ -111,14 +112,14 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 		//first install
 		LocalDate now = LocalDate.now();
 		givenTimeIs(now);
-		pluginConfigManger.installPlugin("zePluginId", "version", "rVersion");
+		pluginConfigManger.installPlugin("zePluginId", "zePluginTitle", "version", "rVersion");
 		//update of status
 		pluginConfigManger.markPluginAsEnabled("zePluginId");
 
 		//second install
 		LocalDate after = now.plusDays(1);
 		givenTimeIs(after);
-		pluginConfigManger.installPlugin("zePluginId", "version2", "rVersion2");
+		pluginConfigManger.installPlugin("zePluginId", "zePluginTitle", "version2", "rVersion2");
 
 		ConstellioPluginInfo pluginInfo = pluginConfigManger.getPluginInfo("zePluginId");
 		assertThat(pluginInfo.getLastInstallDate()).isEqualTo(after);
@@ -133,6 +134,7 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 			throws Exception {
 		ConstellioPluginInfo expectedPluginInfo = new ConstellioPluginInfo()
 				.setCode("zeCode")
+				.setTitle("zeTitle")
 				.setPluginActivationFailureCause(CANNOT_INSTALL_OLDER_VERSION)
 				.setPluginStatus(INVALID)
 				.setLastInstallDate(new LocalDate())
@@ -144,12 +146,15 @@ public class ConstellioPluginConfigurationManagerAcceptanceTest extends Constell
 	}
 
 	ConstellioPluginInfo pluginWithDisabledStatus = new ConstellioPluginInfo().setCode("pluginWithDisabledStatus")
-			.setPluginStatus(DISABLED),
-			pluginWithEnabledStatus = new ConstellioPluginInfo().setCode("pluginWithEnabledStatus").setPluginStatus(ENABLED),
-			pluginWithReadyToInstallStatus = new ConstellioPluginInfo().setCode("pluginWithReadyToInstallStatus")
-					.setPluginStatus(READY_TO_INSTALL),
-			pluginWithInvalidStatus = new ConstellioPluginInfo().setCode("pluginWithInvalidStatus").setPluginStatus(INVALID),
-			pluginWithNullStatus = new ConstellioPluginInfo().setCode("pluginWithNullStatus");
+			.setPluginStatus(DISABLED).setTitle("pluginWithDisabledStatus");
+	ConstellioPluginInfo pluginWithEnabledStatus = new ConstellioPluginInfo().setCode("pluginWithEnabledStatus")
+			.setPluginStatus(ENABLED).setTitle("pluginWithEnabledStatus");
+	ConstellioPluginInfo pluginWithReadyToInstallStatus = new ConstellioPluginInfo().setCode("pluginWithReadyToInstallStatus")
+			.setPluginStatus(READY_TO_INSTALL).setTitle("pluginWithReadyToInstallStatus");
+	ConstellioPluginInfo pluginWithInvalidStatus = new ConstellioPluginInfo().setCode("pluginWithInvalidStatus")
+			.setPluginStatus(INVALID).setTitle("pluginWithInvalidStatus");
+	ConstellioPluginInfo pluginWithNullStatus = new ConstellioPluginInfo().setCode("pluginWithNullStatus")
+			.setTitle("pluginWithNullStatus");
 
 	@Test
 	public void whenSaveSeveralPluginsThenSavedCorrectly()

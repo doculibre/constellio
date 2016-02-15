@@ -16,4 +16,6 @@ public interface DataStoreField {
 
 	DataStoreField getAnalyzedField(String languageCode);
 
+	DataStoreField getSortField();
+
 }

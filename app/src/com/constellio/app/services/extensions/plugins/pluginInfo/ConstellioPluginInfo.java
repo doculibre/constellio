@@ -5,7 +5,7 @@ import org.joda.time.LocalDate;
 import com.constellio.app.services.extensions.plugins.PluginActivationFailureCause;
 
 public class ConstellioPluginInfo {
-	String code, version, requiredConstellioVersion;
+	String code, title, version, requiredConstellioVersion;
 	ConstellioPluginStatus pluginStatus;
 	LocalDate lastInstallDate;
 	PluginActivationFailureCause pluginActivationFailureCause;
@@ -13,6 +13,11 @@ public class ConstellioPluginInfo {
 
 	public ConstellioPluginInfo setCode(String code) {
 		this.code = code;
+		return this;
+	}
+
+	public ConstellioPluginInfo setTitle(String title) {
+		this.title = title;
 		return this;
 	}
 
@@ -47,6 +52,10 @@ public class ConstellioPluginInfo {
 
 	public String getCode() {
 		return code;
+	}
+
+	public String getTitle() {
+		return title;
 	}
 
 	public String getVersion() {

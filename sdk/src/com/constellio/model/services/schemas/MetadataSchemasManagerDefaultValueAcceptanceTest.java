@@ -10,6 +10,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.data.utils.Delayed;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -402,7 +403,8 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	public void setUp()
 			throws Exception {
 
-		otherMetadataSchemasManager = new MetadataSchemasManager(getModelLayerFactory());
+		otherMetadataSchemasManager = new MetadataSchemasManager(getModelLayerFactory(),
+				new Delayed<>(getAppLayerFactory().getModulesManager()));
 
 	}
 
