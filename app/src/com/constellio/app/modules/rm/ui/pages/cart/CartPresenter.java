@@ -10,6 +10,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -81,8 +82,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 			view.showErrorMessage($("CartView.cannotDuplicate"));
 			return;
 		}
-		// TODO: Implement duplication
-		view.navigateTo().cart();
+		DecommissioningService service = new DecommissioningService(view.getCollection(), modelLayerFactory);
+		for (Folder folder : getCartFolders()) {
+			service.duplicate(folder);
+		}
+		view.showMessage($("CartView.duplicated"));
 	}
 
 	public boolean canDelete() {
