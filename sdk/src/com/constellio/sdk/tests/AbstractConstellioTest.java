@@ -72,6 +72,7 @@ import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ConsoleLogger;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
+import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
@@ -85,6 +86,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
+import com.constellio.sdk.tests.ToggleTestFeature.ToggleCondition;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.concurrent.ConcurrentJob;
 import com.constellio.sdk.tests.concurrent.OngoingConcurrentExecution;
@@ -1326,5 +1328,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
 
 		}
+	}
+
+	public ToggleCondition onlyWhen(AvailableToggle toggle) {
+		getCurrentTestSession().getToggleTestFeature().onlyWhen(toggle);
+		ToggleCondition toggleCondition = new ToggleCondition();
+		toggleCondition.toggle = toggle;
+		return toggleCondition;
 	}
 }
