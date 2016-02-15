@@ -84,7 +84,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 		}
 		DecommissioningService service = new DecommissioningService(view.getCollection(), modelLayerFactory);
 		for (Folder folder : getCartFolders()) {
-			service.duplicate(folder);
+			service.duplicateStructureAndSave(folder);
 		}
 		view.showMessage($("CartView.duplicated"));
 	}
