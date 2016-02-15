@@ -68,6 +68,9 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	@Override
 	public void initialize() {
 		createModulesConfigFileIfNotExist();
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+			enableComplementaryModules(collection);
+		}
 	}
 
 	public List<InstallableModule> getInstalledModules() {
@@ -263,7 +266,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return returnList;
 	}
 
-	private Set<String> enableComplementaryModules(String collection) {
+	public Set<String> enableComplementaryModules(String collection) {
 		Set<String> returnList = new HashSet<>();
 		List<String> enabledModuleIds = new ArrayList<>();
 		for (InstallableModule enabledModule : getEnabledModules(collection)) {
