@@ -2,7 +2,9 @@ package com.constellio.data.utils.dev;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
@@ -13,6 +15,22 @@ public class Toggle {
 
 	// ------------------------------------------------
 
+	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
+
+	static {
+		for (Field field : Toggle.class.getDeclaredFields()) {
+			if (AvailableToggle.class.equals(field.getType())) {
+				try {
+					AvailableToggle availableToggle = (AvailableToggle) field.get(null);
+					availableToggle.id = field.getName();
+					toggleMap.put(field.getName(), availableToggle);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
+
 	public static void toggleAll() {
 		for (AvailableToggle toggle : toggles) {
 			toggle.enable();
@@ -20,16 +38,7 @@ public class Toggle {
 	}
 
 	public static AvailableToggle getToggle(String id) {
-		for (Field field : Toggle.class.getDeclaredFields()) {
-			if (field.getName().equals(id)) {
-				try {
-					return (AvailableToggle) field.get(null);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-		return null;
+		return toggleMap.get(id);
 	}
 
 	private static List<AvailableToggle> toggles;
@@ -57,19 +66,21 @@ public class Toggle {
 
 		private boolean enabled;
 
+		private String id;
+
 		public boolean isEnabled() {
 			return enabled;
 		}
 
 		public void ensureDisabled() {
-			if (!enabled) {
-				throw new ImpossibleRuntimeException("This feature is not supported with this toggle");
+			if (enabled) {
+				throw new ImpossibleRuntimeException("Unsupported with toggle '" + id + "'");
 			}
 		}
 
 		public void ensureEnabled() {
-			if (enabled) {
-				throw new ImpossibleRuntimeException("This feature is not available");
+			if (!enabled) {
+				throw new ImpossibleRuntimeException("Only supported with toggle '" + id + "'");
 			}
 		}
 
