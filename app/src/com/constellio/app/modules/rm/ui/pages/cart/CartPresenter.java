@@ -22,6 +22,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.StatusFilter;
@@ -71,9 +72,22 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 		view.startDownload(stream);
 	}
 
+	public boolean canDuplicate() {
+		return cartHasOnlyFolders() && canDuplicateFolders(getCurrentUser());
+	}
+
+	public void duplicationRequested() {
+		if (!canDuplicate()) {
+			view.showErrorMessage($("CartView.cannotDuplicate"));
+			return;
+		}
+		// TODO: Implement duplication
+		view.navigateTo().cart();
+	}
+
 	public boolean canDelete() {
-		// TODO: Add permission test for folders and documents
-		return cartHasRecords() && cart.getContainers().isEmpty();
+		return cartHasRecords() && cart().getContainers().isEmpty()
+				&& canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
 	}
 
 	public void deletionRequested() {
@@ -118,8 +132,37 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 		return !cart().isEmpty();
 	}
 
+	private boolean cartHasOnlyFolders() {
+		return !cart().getFolders().isEmpty() && cart().getDocuments().isEmpty() && cart().getContainers().isEmpty();
+	}
+
+	private boolean canDuplicateFolders(User user) {
+		for (Folder folder : getCartFolders()) {
+			RecordWrapper parent = folder.getParentFolder() != null ?
+					rm().getFolder(folder.getParentFolder()) :
+					rm().getAdministrativeUnit(folder.getAdministrativeUnitEntered());
+			if (!user.hasWriteAccess().on(parent)) {
+				return false;
+			}
+			switch (folder.getPermissionStatus()) {
+			case SEMI_ACTIVE:
+				if (!user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
+					return false;
+				}
+				break;
+			case INACTIVE_DEPOSITED:
+			case INACTIVE_DESTROYED:
+				if (!user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
+					return false;
+				}
+				break;
+			}
+		}
+		return true;
+	}
+
 	private boolean canDeleteFolders(User user) {
-		for (Folder folder : rm.wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()))) {
+		for (Folder folder : getCartFolders()) {
 			if (!user.hasDeleteAccess().on(folder)) {
 				return false;
 			}
@@ -134,13 +177,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 				if (!user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder)) {
 					return false;
 				}
+				break;
 			}
 		}
 		return true;
 	}
 
 	private boolean canDeleteDocuments(User user) {
-		for (Document document : rm.wrapDocuments(recordServices().getRecordsById(view.getCollection(), cart().getDocuments()))) {
+		for (Document document : getCartDocuments()) {
 			if (!user.hasDeleteAccess().on(document)) {
 				return false;
 			}
@@ -158,6 +202,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 			}
 		}
 		return true;
+	}
+
+	private List<Folder> getCartFolders() {
+		return rm().wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()));
+	}
+
+	private List<Document> getCartDocuments() {
+		return rm().wrapDocuments(recordServices().getRecordsById(view.getCollection(), cart().getDocuments()));
 	}
 
 	private RMSchemasRecordsServices rm() {
