@@ -12,4 +12,8 @@ public interface AppLayerConfiguration {
 
 	File getSetupProperties();
 
+	boolean isRecoveryModeActive();
+
+	void setRecoveryModeActive(boolean recoveryModeActive);
+
 }

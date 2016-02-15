@@ -39,6 +39,7 @@ import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
+import com.constellio.data.dao.services.factories.RecoveryManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotRegroupAndMoveInVault;
@@ -92,9 +93,12 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	private DataLayerSystemExtensions dataLayerSystemExtensions;
 
+	private final RecoveryManager recoveryManager;
+	private boolean automaticRegroup = true;
+
 	public XMLSecondTransactionLogManager(DataLayerConfiguration configuration, IOServices ioServices, RecordDao recordDao,
 			ContentDao contentDao, BackgroundThreadsManager backgroundThreadsManager, DataLayerLogger dataLayerLogger,
-			DataLayerSystemExtensions dataLayerSystemExtensions) {
+			DataLayerSystemExtensions dataLayerSystemExtensions, RecoveryManager recoveryManager) {
 		this.configuration = configuration;
 		this.folder = configuration.getSecondTransactionLogBaseFolder();
 		this.ioServices = ioServices;
@@ -104,6 +108,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		this.backgroundThreadsManager = backgroundThreadsManager;
 		this.dataLayerLogger = dataLayerLogger;
 		this.dataLayerSystemExtensions = dataLayerSystemExtensions;
+		this.recoveryManager = recoveryManager;
 	}
 
 	@Override
@@ -129,6 +134,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	@Override
 	public void destroyAndRebuildSolrCollection() {
+		this.recoveryManager.disableRollbackModeDuringSolrRestore();
 		File recoveryFolder = ioServices.newTemporaryFolder(RECOVERY_FOLDER);
 		try {
 			List<File> tLogs = recoverTransactionLogs(recoveryFolder);
@@ -197,7 +203,9 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		return new Runnable() {
 			@Override
 			public void run() {
-				regroupAndMoveInVault();
+				if (isAutomaticRegroup()) {
+					regroupAndMoveInVault();
+				}
 			}
 		};
 	}
@@ -514,4 +522,11 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		}
 	}
 
+	synchronized public boolean isAutomaticRegroup() {
+		return automaticRegroup;
+	}
+
+	public void setAutomaticLog(boolean automaticMode) {
+		this.automaticRegroup = automaticMode;
+	}
 }

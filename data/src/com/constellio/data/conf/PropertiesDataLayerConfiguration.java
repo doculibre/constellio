@@ -24,7 +24,6 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	private Boolean secondTransactionLogEnabled;
 
-
 	public PropertiesDataLayerConfiguration(Map<String, String> configs, File defaultTempFolder,
 			File defaultFileSystemBaseFolder, File constellioProperties) {
 		super(configs, constellioProperties);

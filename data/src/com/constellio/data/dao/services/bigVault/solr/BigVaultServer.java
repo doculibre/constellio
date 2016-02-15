@@ -83,7 +83,9 @@ public class BigVaultServer implements Cloneable {
 	public SolrServerFactory getSolrServerFactory() {
 		return solrServerFactory;
 	}
-	
+
+
+	//chargement
 	public QueryResponse query(SolrParams params)
 			throws BigVaultException.CouldNotExecuteQuery {
 		int currentAttempt = 0;

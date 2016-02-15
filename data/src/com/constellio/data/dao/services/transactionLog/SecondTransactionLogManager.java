@@ -18,4 +18,6 @@ public interface SecondTransactionLogManager extends StatefulService {
 	void moveTLOGToBackup();
 
 	void deleteLastTLOGBackup();
+
+	void setAutomaticLog(boolean automaticMode);
 }

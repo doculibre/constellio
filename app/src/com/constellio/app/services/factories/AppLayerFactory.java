@@ -45,6 +45,7 @@ import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactory;
+import com.constellio.data.dao.services.factories.RecoveryManager;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -170,7 +171,43 @@ public class AppLayerFactory extends LayerFactory {
 
 	@Override
 	public void initialize() {
+		RecoveryAppLayerService recoveryAppLayerService = new RecoveryAppLayerService(dataLayerFactory.getRecoveryManager());
+		recoveryAppLayerService.deletePreviousWarCausingFailure();
+		if (appLayerConfiguration.isRecoveryModeActive()) {
+			recoveryStartup(recoveryAppLayerService);
+		} else {
+			normalStartup();
+		}
+	}
 
+	private void recoveryStartup(RecoveryAppLayerService recoveryService) {
+		if (dataLayerFactory.getSecondTransactionLogManager() != null) {
+			recoveryService.startRollbackMode();
+			try {
+				normalStartup();
+				recoveryService.stopRollbackMode();
+			} catch (Throwable exception) {
+				if (recoveryService.isInRollbackMode()) {
+					LOGGER.error("Error when trying to start application", exception);
+					recoveryService.rollback();
+					recoveryService.prepareNextStartup(exception);
+					try {
+						newApplicationService().restart();
+					} catch (AppManagementServiceException e) {
+						throw new RuntimeException(e);
+					}
+				} else {
+					throw exception;
+				}
+			}
+		} else {
+			//rare case in tests
+			normalStartup();
+		}
+
+	}
+
+	private void normalStartup() {
 		appLayerExtensions.getSystemWideExtensions().pagesComponentsExtensions.add(new DefaultPagesComponentsExtension(this));
 		this.pluginManager.detectPlugins();
 

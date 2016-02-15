@@ -69,6 +69,7 @@ public class DataLayerFactory extends LayerFactory {
 	private final BackgroundThreadsManager backgroundThreadsManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
+	final RecoveryManager recoveryManager;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator) {
@@ -119,10 +120,12 @@ public class DataLayerFactory extends LayerFactory {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
 		}
 
+		recoveryManager = new RecoveryManager(this);
+
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
 			secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
 					ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
-					dataLayerExtensions.getSystemWideExtensions()));
+					dataLayerExtensions.getSystemWideExtensions(), recoveryManager));
 		} else {
 			secondTransactionLogManager = null;
 		}
@@ -248,6 +251,7 @@ public class DataLayerFactory extends LayerFactory {
 		return (String) solrDocument.getFieldValue("value_s");
 	}
 
+
 	public void saveEncryptionKey() {
 		Random random = new Random();
 		String solrKeyPart = random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);
@@ -261,5 +265,9 @@ public class DataLayerFactory extends LayerFactory {
 		} catch (RecordDaoException.OptimisticLocking e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public RecoveryManager getRecoveryManager() {
+		return this.recoveryManager;
 	}
 }

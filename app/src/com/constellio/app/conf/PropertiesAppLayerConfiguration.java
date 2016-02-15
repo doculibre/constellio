@@ -13,6 +13,8 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 
 	private final ModelLayerConfiguration modelLayerConfiguration;
 
+	private boolean recoveryModeActive = false;
+
 	public PropertiesAppLayerConfiguration(Map<String, String> configs, ModelLayerConfiguration modelLayerConfiguration,
 			FoldersLocator foldersLocator, File constellioProperties) {
 		super(configs, constellioProperties);
@@ -38,6 +40,16 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 	@Override
 	public File getSetupProperties() {
 		return foldersLocator.getConstellioSetupProperties();
+	}
+
+	@Override
+	public boolean isRecoveryModeActive() {
+		return recoveryModeActive;
+	}
+
+	@Override
+	public void setRecoveryModeActive(boolean recoveryModeActive) {
+		this.recoveryModeActive = recoveryModeActive;
 	}
 
 }
