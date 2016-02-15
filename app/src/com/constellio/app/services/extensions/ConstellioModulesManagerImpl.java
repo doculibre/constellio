@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.ConstellioModulesManagerRuntimeException_ModuleIsNotInstalled;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.ConstellioPluginManagerRuntimeException_NoSuchModule;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -69,13 +70,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		createModulesConfigFileIfNotExist();
 	}
 
-	/*public void startModules() {
-		CollectionsListManager collectionsListManager = modelLayerFactory.getCollectionsListManager();
-		for (String collection : collectionsListManager.getCollections()) {
-			startModules(collection);
-		}
-	}*/
-
 	public List<InstallableModule> getInstalledModules() {
 		List<InstallableModule> installedModules = new ArrayList<>();
 		XMLConfiguration xmlConfig;
@@ -93,9 +87,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	public List<InstallableModule> getEnabledModules(String collection) {
 		List<InstallableModule> enabledModules = new ArrayList<>();
 
-		for (InstallableModule module : this.constellioPluginManager.getRegisteredPlugins()) {
-			installDependentPluginModules(module, collection);
-		}
 		XMLConfiguration xmlConfig = configManager.getXML(MODULES_CONFIG_PATH);
 		Map<String, Element> moduleElements = parseModulesDocument(xmlConfig.getDocument());
 
@@ -401,7 +392,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public boolean isInstalled(Module module) {
 		for (Module anInstalledModule : getInstalledModules()) {
-			if (anInstalledModule.getClass().equals(module.getClass())) {
+			if (anInstalledModule.getId().equals(module.getId())) {
 				return true;
 			}
 		}
@@ -472,21 +463,13 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			@Override
 			public void alter(Document document) {
 				Map<String, Element> moduleElements = parseModulesDocument(document);
-				moduleElements.get(module.getId()).setAttribute("enabled_in_collection_" + collection, "true");
+				Element moduleElement = moduleElements.get(module.getId());
+				if (moduleElement == null) {
+					throw new ConstellioModulesManagerRuntimeException_ModuleIsNotInstalled(module);
+				}
+				moduleElement.setAttribute("enabled_in_collection_" + collection, "true");
 			}
 		});
-	}
-
-	private void installDependentPluginModules(Module module, String collection) {
-		List<InstallableModule> pluginModules = this.constellioPluginManager.getActivePluginModules();
-		for (InstallableModule pluginModule : pluginModules) {
-			if (PluginUtil.getDependencies(pluginModule).contains(module.getId())) {
-				if (!isInstalled(pluginModule)) {
-					markAsInstalled(pluginModule, appLayerFactory.getModelLayerFactory().getCollectionsListManager());
-				}
-				markAsEnabled(pluginModule, collection);
-			}
-		}
 	}
 
 }
