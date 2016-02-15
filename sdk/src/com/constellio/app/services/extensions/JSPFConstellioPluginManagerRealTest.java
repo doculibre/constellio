@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -16,13 +15,10 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 
-import com.constellio.app.api.APlugin;
 import com.constellio.app.api.pluginManagerTestResources.pluginImplementation.APluginImplementation;
-import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
@@ -67,19 +63,8 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 	@Test(expected = RuntimeException.class)
 	public void givenUnstartedPluginManagerWhenGetPluginsThenRuntimeExceptionThrown()
 			throws Exception {
-		pluginManager.getActivePlugins();
+		pluginManager.getRegistredModulesAndActivePlugins();
 	}
-
-	/* No more valid @Test
-	public void givenStartedPluginManagerWhenGetPluginsDirectoryThenPluginImplementationFound()
-			throws Exception {
-		pluginManager.detectPlugins();
-		pluginManager.initialize();
-
-		List<InstallableModule> plugins = pluginManager.getActivePlugins(false, false);
-
-		assertThat(plugins).extractingResultOf("getName").containsOnly(APluginImplementation.NAME);
-	}*/
 
 	@Test
 	public void givenStartedPluginManagerWhenStopingThenStopPlugins()
@@ -99,6 +84,6 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 		pluginManager.initialize();
 		pluginManager.close();
 
-		pluginManager.getActivePlugins();
+		pluginManager.getRegistredModulesAndActivePlugins();
 	}
 }

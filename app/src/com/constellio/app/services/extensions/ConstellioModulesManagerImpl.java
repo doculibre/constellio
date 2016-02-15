@@ -186,12 +186,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	@Override
 	public List<InstallableModule> getAllModules() {
-		return constellioPluginManager.getActivePlugins();
+		return constellioPluginManager.getRegistredModulesAndActivePlugins();
 	}
 
 	@Override
 	public List<InstallableModule> getBuiltinModules() {
-		return constellioPluginManager.getRegisteredPlugins();
+		return constellioPluginManager.getRegisteredModules();
 	}
 
 	@Override

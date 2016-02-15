@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -66,7 +65,7 @@ public class DemoUtils {
 		ConstellioFactories factories = ConstellioFactories.getInstance(configFile, getFactoriesDecorator(false, language));
 
 		ConstellioPluginManager pluginManager = factories.getAppLayerFactory().getPluginManager();
-		when(pluginManager.getActivePlugins()).thenReturn(initScript.getModules());
+		when(pluginManager.getRegistredModulesAndActivePlugins()).thenReturn(initScript.getModules());
 		ConstellioModulesManager modulesManager = factories.getAppLayerFactory().getModulesManager();
 		for (InstallableModule module : initScript.getModules()) {
 			if (!modulesManager.isInstalled(module)) {
