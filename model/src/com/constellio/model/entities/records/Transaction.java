@@ -299,4 +299,13 @@ public class Transaction {
 			}
 		}
 	}
+
+	public Record getRecord(String id) {
+		for (Record record : records) {
+			if (id.equals(record.getId())) {
+				return record;
+			}
+		}
+		return null;
+	}
 }

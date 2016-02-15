@@ -322,6 +322,7 @@ public class WorkflowServices {
 
 		Transaction transaction = new Transaction();
 
+
 		replaceRelationShip(transaction, taskBeforeSelected, taskAfterSelected);
 		replaceRelationShip(transaction, newTaskBeforeSelected, selectedWorkflowTaskVO);
 		replaceRelationShip(transaction, selectedWorkflowTaskVO, newTaskAfterSelected);
@@ -376,7 +377,12 @@ public class WorkflowServices {
 
 		String newNextNodeTaskId = newNextNode == null ? null : newNextNode.getId();
 
-		Task task = tasks.getTask(node.getId());
+		Task task = tasks.wrapTask(transaction.getRecord(node.getId()));
+
+		if (task == null) {
+			task =  tasks.getTask(node.getId());
+		}
+
 		if (node.getDecision() == null) {
 			task.setNextTask(newNextNodeTaskId);
 
