@@ -23,10 +23,6 @@ import org.junit.Test;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
-import com.constellio.sdk.tests.SaveStateFeature;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
-import com.constellio.sdk.tests.annotations.UiTest;
 
 public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends ConstellioTest {
 	private ConstellioPluginManager pluginManager;
@@ -72,7 +68,7 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 				"InvalidModuleInMigrate", "InvalidModuleInStart",
 				"ValidModule", "ValidModuleThrowingExceptionInMethodsDifferentFromStartAndMigrate"
 				, "WithoutConstellioVersion");
-		assertThat(pluginManager.getActivePlugins()).extracting("id").contains(
+		assertThat(pluginManager.getRegistredModulesAndActivePlugins()).extracting("id").contains(
 				"InvalidModuleInMigrate", "InvalidModuleInStart",
 				"ValidModule", "ValidModuleThrowingExceptionInMethodsDifferentFromStartAndMigrate"
 				, "WithoutConstellioVersion"

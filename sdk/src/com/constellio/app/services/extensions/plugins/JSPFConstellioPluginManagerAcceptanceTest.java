@@ -113,7 +113,7 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 		List<ConstellioPluginInfo> validPluginsUntilMigration = pluginManager.getPlugins(ENABLED);
 		assertThat(validPluginsUntilMigration).extracting("code").contains(
 				"InvalidModuleInMigrate", "InvalidModuleInStart");
-		assertThat(pluginManager.getActivePlugins()).extracting("id").contains(
+		assertThat(pluginManager.getRegistredModulesAndActivePlugins()).extracting("id").contains(
 				"InvalidModuleInMigrate", "InvalidModuleInStart"
 		);
 
@@ -137,7 +137,7 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 		assertThat(validPlugins).extracting("code").contains(
 				"ValidModule", "ValidModuleThrowingExceptionInMethodsDifferentFromStartAndMigrate"
 				, "WithoutConstellioVersion");
-		assertThat(pluginManager.getActivePlugins()).extracting("id").contains(
+		assertThat(pluginManager.getRegistredModulesAndActivePlugins()).extracting("id").contains(
 				"ValidModule", "ValidModuleThrowingExceptionInMethodsDifferentFromStartAndMigrate"
 				, "WithoutConstellioVersion"
 		);
@@ -146,38 +146,38 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenRegisterThenBehavesAsExpected() {
-		List<InstallableModule> modulesBefore = pluginManager.getActivePlugins();
+		List<InstallableModule> modulesBefore = pluginManager.getRegistredModulesAndActivePlugins();
 		try {
-			pluginManager.register(new TestInstallableModule("rm"));
+			pluginManager.registerModule(new TestInstallableModule("rm"));
 			fail("Could not register two modules with same id");
 		} catch (InvalidId_ExistingId e) {
 			//ok
 		}
 
 		try {
-			pluginManager.register(new TestInstallableModule("<"));
+			pluginManager.registerModule(new TestInstallableModule("<"));
 			fail("Could not register module with non alpha numeric id");
 		} catch (InvalidId_NonAlphaNumeric e) {
 			//ok
 		}
 
 		try {
-			pluginManager.register(new TestInstallableModule(null));
+			pluginManager.registerModule(new TestInstallableModule(null));
 			fail("Could not register module with blank id");
 		} catch (InvalidId_BlankId e) {
 			//ok
 		}
 
 		try {
-			pluginManager.register(new TestInstallableModule(" "));
+			pluginManager.registerModule(new TestInstallableModule(" "));
 			fail("Could not register module with blank id");
 		} catch (InvalidId_BlankId e) {
 			//ok
 		}
 
 		InstallableModule validModule = new TestInstallableModule("validNonregistredId");
-		pluginManager.register(validModule);
-		List<InstallableModule> modulesAfter = pluginManager.getActivePlugins();
+		pluginManager.registerModule(validModule);
+		List<InstallableModule> modulesAfter = pluginManager.getRegistredModulesAndActivePlugins();
 		List<InstallableModule> expectedModules = new ArrayList<>(modulesBefore);
 		expectedModules.add(validModule);
 		assertThat(modulesAfter).containsAll(expectedModules).extracting("id");
@@ -258,10 +258,6 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 		verify(mockedPluginManager, times(1)).invalidateModule("id", INVALID_MIGRATION_SCRIPT, null);
 	}
 
-	//TODO
-	//getActivePlugins
-	//isPluginModule
-	//getPlugins
 
 	@Test
 	public void whenPrepareInstallablePluginThenBehavesAsExpected() {

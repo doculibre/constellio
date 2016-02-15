@@ -14,12 +14,12 @@ public interface ConstellioPluginManager extends StatefulService {
 
 	void detectPlugins();
 
-	void register(InstallableModule plugin)
+	void registerModule(InstallableModule plugin)
 			throws InvalidId;
 
-	List<InstallableModule> getActivePlugins();
+	List<InstallableModule> getRegistredModulesAndActivePlugins();
 
-	List<InstallableModule> getRegisteredPlugins();
+	List<InstallableModule> getRegisteredModules();
 
 	List<InstallableModule> getActivePluginModules();
 

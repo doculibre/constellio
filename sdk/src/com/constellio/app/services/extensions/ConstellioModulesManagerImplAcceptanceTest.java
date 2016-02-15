@@ -74,9 +74,13 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		pluginManager = getAppLayerFactory().getPluginManager();
 		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB, complementaryPluginDependentOfModuleAB,
 				complementaryPluginWithoutDependencies,
-				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManager).getActivePlugins();
+				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManager).getRegistredModulesAndActivePlugins();
 
-		//doReturn(Arrays.asList(moduleA, moduleB)).when(pluginManager).getActivePlugins();
+		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB)).when(pluginManager).getRegisteredModules();
+
+		doReturn(Arrays.asList(complementaryPluginDependentOfModuleAB,
+				complementaryPluginWithoutDependencies,
+				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManager).getActivePluginModules();
 
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 		manager = (ConstellioModulesManagerImpl) getAppLayerFactory().getModulesManager();
@@ -174,7 +178,6 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenEnablingAllDependenciesThenComplementaryModuleEnabled()
 			throws Exception {
-		//doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB)).when(pluginManager).getActivePlugins();
 		collectionsManager
 				.createCollectionInCurrentVersion("collection1", Arrays.asList("fr"));
 		migrationServices.setCurrentDataVersion("zeCollection", "11.1.2");
@@ -260,7 +263,7 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenInstallModuleWithDependenciesThenInstallDependencies()
 			throws Exception {
-		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getActivePlugins();
+		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getRegistredModulesAndActivePlugins();
 		when(moduleC.getDependencies()).thenReturn(asList("moduleB_Id"));
 		givenCollection("zeCollection");
 		givenCollection("anotherCollection");
@@ -283,7 +286,7 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenInstallDependentModuleBeforeModuleWithDependenciesThenOnlyInstalledOnce()
 			throws Exception {
-		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getActivePlugins();
+		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getRegistredModulesAndActivePlugins();
 		when(moduleC.getDependencies()).thenReturn(asList("moduleB_Id"));
 		givenCollection("zeCollection");
 		givenCollection("anotherCollection");
