@@ -108,12 +108,12 @@ public class AppLayerFactory extends LayerFactory {
 
 		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), modelLayerFactory,
 				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager())));
-		pluginManager.register(new ConstellioRMModule());
+		pluginManager.registerModule(new ConstellioRMModule());
 
-		pluginManager.register(new ConstellioESModule());
-		pluginManager.register(new TaskModule());
-		pluginManager.register(new ConstellioRobotsModule());
-		pluginManager.register(new ESRMRobotsModule());
+		pluginManager.registerModule(new ConstellioESModule());
+		pluginManager.registerModule(new TaskModule());
+		pluginManager.registerModule(new ConstellioRobotsModule());
+		pluginManager.registerModule(new ESRMRobotsModule());
 
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
