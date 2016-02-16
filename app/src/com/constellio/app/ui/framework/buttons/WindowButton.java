@@ -33,9 +33,14 @@ public abstract class WindowButton extends Button implements Button.ClickListene
 	}
 
 	public WindowButton(Resource icon, String caption, boolean iconOnly, WindowConfiguration configuration) {
+		this(icon, caption, caption, iconOnly, configuration);
+	}
+
+	public WindowButton(
+			Resource icon, String caption, String windowCaption, boolean iconOnly, WindowConfiguration configuration) {
 		super(caption, icon);
 		this.configuration = configuration;
-		windowCaption = caption;
+		this.windowCaption = windowCaption;
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		if (iconOnly) {
