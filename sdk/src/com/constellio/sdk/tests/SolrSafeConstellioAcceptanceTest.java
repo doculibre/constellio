@@ -5,7 +5,6 @@ import static org.mockito.Mockito.spy;
 import java.io.File;
 import java.util.Arrays;
 
-import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +47,9 @@ public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 		return null;
 	}
 
-	@Before
-	public void setUp() throws Exception{
+	// TODO @Before
+	public void setUp()
+			throws Exception {
 		DataLayerFactory dataLayerFactory = getDataLayerFactory();
 		for (BigVaultServer server : dataLayerFactory.getSolrServers().getServers()) {
 			AtomicFileSystem serverFileSystem = server.getSolrFileSystem();
