@@ -1,6 +1,7 @@
 package com.constellio.app.services.extensions;
 
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.model.entities.modules.Module;
 
 @SuppressWarnings("serial")
 public class ConstellioModulesManagerRuntimeException extends RuntimeException {
@@ -45,6 +46,15 @@ public class ConstellioModulesManagerRuntimeException extends RuntimeException {
 
 		public FailedToInstall(InstallableModule module, Exception e) {
 			super("Module '" + module.getName() + "' of publisher '" + module.getPublisher() + "' failed to install", e);
+		}
+
+	}
+
+	public static class ConstellioModulesManagerRuntimeException_ModuleIsNotInstalled
+			extends ConstellioModulesManagerRuntimeException {
+
+		public ConstellioModulesManagerRuntimeException_ModuleIsNotInstalled(Module module) {
+			super("Module '" + module.getName() + "' of publisher '" + module.getPublisher() + "' is not installed");
 		}
 
 	}

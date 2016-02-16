@@ -30,10 +30,8 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.ConstellioPluginManagerRuntimeException_NoSuchModule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.MigrationServices;
-import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
@@ -58,6 +56,12 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 
 	@Mock InstallableModule complementaryModuleAB;
 
+	@Mock InstallableModule complementaryPluginDependentOfModuleAB;
+	@Mock InstallableModule complementaryPluginWithoutDependencies;
+
+	@Mock InstallableModule pluginDependentOfModuleAB;
+	@Mock InstallableModule pluginWithoutDependencies;
+
 	ConstellioModulesManagerImpl manager;
 
 	InOrder inOrder;
@@ -65,10 +69,18 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		withSpiedServices(ConfigManager.class, ConstellioModulesManager.class, ConstellioPluginManager.class);
+		withSpiedServices(ConstellioPluginManager.class);
 
 		pluginManager = getAppLayerFactory().getPluginManager();
-		doReturn(Arrays.asList(moduleA, moduleB)).when(pluginManager).getActivePlugins();
+		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB, complementaryPluginDependentOfModuleAB,
+				complementaryPluginWithoutDependencies,
+				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManager).getRegistredModulesAndActivePlugins();
+
+		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB)).when(pluginManager).getRegisteredModules();
+
+		doReturn(Arrays.asList(complementaryPluginDependentOfModuleAB,
+				complementaryPluginWithoutDependencies,
+				pluginDependentOfModuleAB, pluginWithoutDependencies)).when(pluginManager).getActivePluginModules();
 
 		collectionsManager = getAppLayerFactory().getCollectionsManager();
 		manager = (ConstellioModulesManagerImpl) getAppLayerFactory().getModulesManager();
@@ -95,6 +107,26 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		when(complementaryModuleAB.getName()).thenReturn("compModuleAB");
 		when(complementaryModuleAB.isComplementary()).thenReturn(true);
 		when(complementaryModuleAB.getDependencies()).thenReturn(Arrays.asList("moduleA_Id", "moduleB_Id"));
+
+		when(complementaryPluginDependentOfModuleAB.getId()).thenReturn("compPluginDependentOfAB_id");
+		when(complementaryPluginDependentOfModuleAB.getName()).thenReturn("compPluginDependentOfAB_name");
+		when(complementaryPluginDependentOfModuleAB.isComplementary()).thenReturn(true);
+		when(complementaryPluginDependentOfModuleAB.getDependencies()).thenReturn(Arrays.asList("moduleA_Id", "moduleB_Id"));
+
+		when(complementaryPluginWithoutDependencies.getId()).thenReturn("compPluginWithoutDependencies_id");
+		when(complementaryPluginWithoutDependencies.getName()).thenReturn("compPluginWithoutDependencies_name");
+		when(complementaryPluginWithoutDependencies.isComplementary()).thenReturn(true);
+		when(complementaryPluginWithoutDependencies.getDependencies()).thenReturn(new ArrayList<String>());
+
+		when(pluginDependentOfModuleAB.getId()).thenReturn("pluginDependentOfAB_id");
+		when(pluginDependentOfModuleAB.getName()).thenReturn("pluginDependentOfAB_name");
+		when(pluginDependentOfModuleAB.isComplementary()).thenReturn(false);
+		when(pluginDependentOfModuleAB.getDependencies()).thenReturn(Arrays.asList("moduleA_Id", "moduleB_Id"));
+
+		when(pluginWithoutDependencies.getId()).thenReturn("pluginWithoutDependencies_id");
+		when(pluginWithoutDependencies.getName()).thenReturn("pluginWithoutDependencies_name");
+		when(pluginWithoutDependencies.isComplementary()).thenReturn(false);
+		when(pluginWithoutDependencies.getDependencies()).thenReturn(new ArrayList<String>());
 
 		inOrder = inOrder(moduleAMigrationScript111, moduleAMigrationScript112, moduleBMigrationScript111,
 				moduleBMigrationScript112, moduleCMigrationScript111, moduleCMigrationScript112);
@@ -129,22 +161,23 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleA);
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleB);
 		manager.enableValidModuleAndGetInvalidOnes("collection2", moduleB);
-		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB);
-		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB);
+		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB, complementaryModuleAB,
+				complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
+		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB, complementaryPluginWithoutDependencies);
 
 		ConstellioModulesManagerImpl otherManager = new ConstellioModulesManagerImpl(getAppLayerFactory(),
 				pluginManager, new Delayed<>(migrationServices));
 		otherManager.initialize();
 
-		assertThat(otherManager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB);
-		assertThat(otherManager.getEnabledModules("collection2")).containsOnly(moduleB);
+		assertThat(otherManager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB, complementaryModuleAB,
+				complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
+		assertThat(otherManager.getEnabledModules("collection2")).containsOnly(moduleB, complementaryPluginWithoutDependencies);
 
 	}
 
 	@Test
 	public void whenEnablingAllDependenciesThenComplementaryModuleEnabled()
 			throws Exception {
-		doReturn(Arrays.asList(moduleA, moduleB, complementaryModuleAB)).when(pluginManager).getActivePlugins();
 		collectionsManager
 				.createCollectionInCurrentVersion("collection1", Arrays.asList("fr"));
 		migrationServices.setCurrentDataVersion("zeCollection", "11.1.2");
@@ -154,10 +187,12 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		manager.installValidModuleAndGetInvalidOnes(complementaryModuleAB, collectionsListManager);
 
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleA);
-		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA);
+		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, complementaryPluginWithoutDependencies);
+		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, complementaryPluginWithoutDependencies);
 
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleB);
-		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB, complementaryModuleAB);
+		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB, complementaryModuleAB,
+				complementaryPluginDependentOfModuleAB, complementaryPluginWithoutDependencies);
 	}
 
 	@Test
@@ -177,12 +212,14 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleA);
 		manager.enableValidModuleAndGetInvalidOnes("collection1", moduleB);
 		manager.enableValidModuleAndGetInvalidOnes("collection2", moduleB);
-		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB);
-		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB);
+		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleA, moduleB, complementaryModuleAB,
+				complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
+		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB, complementaryPluginWithoutDependencies);
 
 		manager.disableModule("collection1", moduleA);
-		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleB);
-		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB);
+		assertThat(manager.getEnabledModules("collection1")).containsOnly(moduleB, complementaryModuleAB,
+				complementaryPluginWithoutDependencies, complementaryPluginDependentOfModuleAB);
+		assertThat(manager.getEnabledModules("collection2")).containsOnly(moduleB, complementaryPluginWithoutDependencies);
 	}
 
 	@Test
@@ -226,7 +263,7 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenInstallModuleWithDependenciesThenInstallDependencies()
 			throws Exception {
-		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getActivePlugins();
+		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getRegistredModulesAndActivePlugins();
 		when(moduleC.getDependencies()).thenReturn(asList("moduleB_Id"));
 		givenCollection("zeCollection");
 		givenCollection("anotherCollection");
@@ -249,7 +286,7 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenInstallDependentModuleBeforeModuleWithDependenciesThenOnlyInstalledOnce()
 			throws Exception {
-		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getActivePlugins();
+		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getRegistredModulesAndActivePlugins();
 		when(moduleC.getDependencies()).thenReturn(asList("moduleB_Id"));
 		givenCollection("zeCollection");
 		givenCollection("anotherCollection");
@@ -332,11 +369,12 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 
 		manager.installValidModuleAndGetInvalidOnes(moduleA, collectionsListManager);
 		manager.enableValidModuleAndGetInvalidOnes(zeCollection, moduleA);
+		assertThat(manager.getEnabledModules(zeCollection)).containsOnly(moduleA, complementaryPluginWithoutDependencies);
 		manager.disableModule(zeCollection, moduleA);
 
 		assertThat(manager.getAllModules()).contains(moduleA, moduleB);
 		assertThat(manager.getModulesAvailableForInstallation()).contains(moduleB);
-		assertThat(manager.getEnabledModules(zeCollection)).isEmpty();
+		assertThat(manager.getEnabledModules(zeCollection)).containsOnly(complementaryPluginWithoutDependencies);
 		assertThat(manager.getDisabledModules(zeCollection)).contains(moduleA);
 		assertThat(manager.isModuleEnabled(zeCollection, moduleA)).isFalse();
 		assertThat(manager.isModuleEnabled(zeCollection, moduleB)).isFalse();
