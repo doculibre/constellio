@@ -63,7 +63,7 @@ public class TransactionWriterV1 {
 		}
 	}
 
-	private void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrInputDocument document) {
+	protected void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrInputDocument document) {
 		String id = (String) document.getFieldValue("id");
 		Object version = document.getFieldValue("_version_");
 

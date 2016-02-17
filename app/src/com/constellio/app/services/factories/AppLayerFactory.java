@@ -171,26 +171,29 @@ public class AppLayerFactory extends LayerFactory {
 
 	@Override
 	public void initialize() {
-		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(dataLayerFactory.getTransactionLogRecoveryManager());
+		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(this);
 		upgradeAppRecoveryServiceImpl.deletePreviousWarCausingFailure();
 		if (appLayerConfiguration.isRecoveryModeActive()) {
 			recoveryStartup(upgradeAppRecoveryServiceImpl);
 		} else {
 			normalStartup();
 		}
+		upgradeAppRecoveryServiceImpl.close();
 	}
 
 	private void recoveryStartup(UpgradeAppRecoveryServiceImpl recoveryService) {
 		if (dataLayerFactory.getSecondTransactionLogManager() != null) {
+			//FIXME batch process stop
 			recoveryService.startRollbackMode();
 			try {
 				normalStartup();
 				recoveryService.stopRollbackMode();
+				//TODO restart batch process
 			} catch (Throwable exception) {
 				if (recoveryService.isInRollbackMode()) {
 					LOGGER.error("Error when trying to start application", exception);
 					recoveryService.rollback(exception);
-
+					//TODO restart batch process
 					try {
 						newApplicationService().restart();
 					} catch (AppManagementServiceException e) {
