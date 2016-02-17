@@ -16,10 +16,10 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteResponse;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
-import org.apache.solr.client.solrj.request.CoreAdminRequest;
+import org.apache.solr.client.solrj.request.SolrPing;
 import org.apache.solr.client.solrj.request.UpdateRequest;
-import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -43,7 +43,7 @@ import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.solr.DateUtils;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.VersioningAtomicFileSystem;
 import com.constellio.data.utils.TimeProvider;
 import com.google.common.annotations.VisibleForTesting;
 
@@ -62,7 +62,7 @@ public class BigVaultServer implements Cloneable {
 	private final String name;
 	private final SolrServerFactory solrServerFactory;
 	private final SolrClient server;
-	private final AtomicFileSystem fileSystem;
+	private final VersioningAtomicFileSystem fileSystem;
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
 		, DataLayerSystemExtensions extensions) {
@@ -463,7 +463,7 @@ public class BigVaultServer implements Cloneable {
 		return server;
 	}
 	
-	public AtomicFileSystem getSolrFileSystem(){
+	public VersioningAtomicFileSystem getSolrFileSystem(){
 		return fileSystem;
 	}
 
@@ -535,5 +535,13 @@ public class BigVaultServer implements Cloneable {
 			server.shutdown();
 			throw e;
 		}
+	}
+
+	public void recover() {
+		fileSystem.forceToRecoverAll();
+	}
+
+	public boolean isHealthy() {
+		return solrServerFactory.isHealthy(name);
 	}
 }

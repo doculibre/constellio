@@ -38,11 +38,12 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.B
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.VersioningAtomicFileSystem;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class BigVaultServerUnitTest extends ConstellioTest {
 	@Mock DataLayerSystemExtensions extensions;
-	@Mock AtomicFileSystem solrFileSystem;
+	@Mock VersioningAtomicFileSystem solrFileSystem;
 	@Mock SolrParams solrParams;
 	@Mock SolrClient server;
 	@Mock SolrServerFactory solrServerFactory;

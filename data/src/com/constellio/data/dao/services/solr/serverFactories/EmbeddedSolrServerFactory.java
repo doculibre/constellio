@@ -10,6 +10,7 @@ import org.apache.solr.core.CoreContainer;
 import com.constellio.data.dao.services.solr.FileSystemSolrManagerException;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.VersioningAtomicFileSystem;
 
 public class EmbeddedSolrServerFactory implements SolrServerFactory {
 
@@ -85,7 +86,7 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
 	}
 
 	@Override
-	public AtomicFileSystem getConfigFileSystem(String core) {
+	public VersioningAtomicFileSystem getConfigFileSystem(String core) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
@@ -97,6 +98,11 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
 
 	@Override
 	public void reloadSolrServer(String core) {
+		throw new UnsupportedOperationException("TODO");
+	}
+
+	@Override
+	public boolean isHealthy(String name) {
 		throw new UnsupportedOperationException("TODO");
 	}
 }

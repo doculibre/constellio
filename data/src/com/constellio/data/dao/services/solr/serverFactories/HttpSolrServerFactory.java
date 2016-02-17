@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.solr.client.solrj.SolrClient;
@@ -24,6 +25,7 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.data.io.concurrent.filesystem.AtomicLocalFileSystem;
 import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.VersioningAtomicFileSystem;
 
 public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	private List<AtomicFileSystem> atomicFileSystems = new ArrayList<>();
@@ -57,12 +59,12 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	}
 
 	@Override
-	public synchronized AtomicFileSystem getConfigFileSystem(String core) {
+	public synchronized VersioningAtomicFileSystem getConfigFileSystem(String core) {
 		try {
 			URL urlToSolrServer = new URL(url);
 			String host = urlToSolrServer.getHost();
 			if (host.equals("localhost") || host.equals("127.0.0.1")){
-				AtomicFileSystem fileSystem = getAtomicFileSystem(core);
+				VersioningAtomicFileSystem fileSystem = getAtomicFileSystem(core);
 				atomicFileSystems.add(fileSystem);
 				return fileSystem;
 			}
@@ -129,9 +131,10 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	}
 
 	@Override
-	protected AtomicFileSystem getAtomicFileSystem(String core) {
+	protected VersioningAtomicFileSystem getAtomicFileSystem(String core) {
 		try {
-			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService()), getRootFolder(core));
+			return new VersioningAtomicFileSystem(new ChildAtomicFileSystem(
+					new AtomicLocalFileSystem(ioServicesFactory.newHashingService()), getRootFolder(core)));
 		} catch (SolrServerException | IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -139,18 +142,31 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 
 	@Override
 	public void reloadSolrServer(String core) {
-		CoreAdminResponse adminResponse;
 		try {
-			adminResponse = CoreAdminRequest.reloadCore(core, getAdminServer());
-		} catch (SolrServerException | IOException e) {
-			throw new RuntimeException(e);
+			CoreAdminRequest.reloadCore(core, getAdminServer());
+		} catch (SolrServerException | RemoteSolrException | IOException e) {
+			throw new ServerReloadException(e);
 		}
-		adminResponse.getCoreStatus();
 	}
 
 	@Override
 	protected SolrClient getSolrClient(String core) {
 		return new HttpSolrClient(url + "/" + core);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean isHealthy(String name) {
+		CoreAdminResponse status;
+		try {
+			status = CoreAdminRequest.getStatus(name, getAdminServer());
+			Map<String, Exception> failedCores =
+					 (Map<String, Exception>) status.getResponse().get("initFailures");
+			return failedCores == null || failedCores.get(name) == null;
+		} catch (SolrServerException | IOException e) {
+			throw new RuntimeException(e);
+		}
+		
 	}
 
 }

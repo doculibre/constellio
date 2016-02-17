@@ -3,8 +3,12 @@ package com.constellio.data.io.concurrent.filesystem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 
@@ -15,12 +19,71 @@ import com.constellio.data.io.concurrent.exception.UnsupportedPathException;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 
+class LocalFileSystemLock implements DistributedLock{
+	RandomAccessFile randomAccessFile;
+	FileChannel channel;
+	FileLock lock;
+	File file;
+	
+	public LocalFileSystemLock(File file){
+		this.file = file;
+	}
+	
+	public void lock(){
+		try {
+			prepare();
+			lock = channel.lock();
+		} catch (IOException e) {
+			throw new DistributedLock.LockingException("Cannot create the lock", e);
+		}
+	}
+
+	private void prepare()
+			throws FileNotFoundException {
+		if (!file.getParentFile().exists())
+			file.getParentFile().mkdirs();
+		
+		randomAccessFile = new RandomAccessFile(file, "rw");
+		channel = randomAccessFile.getChannel();
+	}
+	
+	public void release() throws IOException{
+		lock.release();
+		channel.close();
+		randomAccessFile.close();
+	}
+	
+	@Override
+	public boolean tryLock(long timeout, TimeUnit unit) {
+		try {
+			prepare();
+			lock = channel.tryLock();
+			return lock != null;
+		} catch (IOException e) {
+			throw new DistributedLock.LockingException("Cannot create the lock", e);
+		}
+	}
+
+	@Override
+	public void unlock()
+			throws LockingException {
+		try {
+			lock.release();
+			channel.close();
+			randomAccessFile.close();
+		} catch (IOException e) {
+			throw new DistributedLock.LockingException("Cannot close the lock", e);
+		}
+	}
+}
+
+
 /**
  * A {@link AtomicFileSystem} that works on the local fileSystem
  * @author doculibre
  *
  */
-public class AtomicLocalFileSystem implements AtomicFileSystem {
+public class AtomicLocalFileSystem extends AbstractAtomicFileSystem{
 	private HashingService hashingService;
 
 	public AtomicLocalFileSystem(HashingService hashingService) {
@@ -117,11 +180,20 @@ public class AtomicLocalFileSystem implements AtomicFileSystem {
 	@Override
 	public synchronized boolean mkdirs(String path) {
 		path = checkPath(path, null);
-		return makeFile(path).mkdir();
+		return makeFile(path).mkdirs();
 	}
 
 	@Override
 	public void close() {
+		super.close();
+	}
+
+	@Override
+	public DistributedLock getLock(String path) {
+		path = checkPath(path, null);
+		LocalFileSystemLock localFileSystemLock = new LocalFileSystemLock(makeFile(path));
+		
+		return localFileSystemLock;
 	}
 
 }
