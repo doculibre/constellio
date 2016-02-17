@@ -152,7 +152,6 @@ public class DeclareRMRecordPresenter extends BasePresenter<DeclareRMRecordView>
 
 	private Map<Record, Double> findSimilarDocuments(Set<String> toFilterRecordIds) {
 		String recordId = recordVO.getId();
-		//		MetadataSchemaType documentSchemaType = schemaType(Document.SCHEMA_TYPE);
 
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				fromAllSchemasIn(collection).where(Schemas.COLLECTION).isEqualTo(collection));
