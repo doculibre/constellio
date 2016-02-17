@@ -61,10 +61,12 @@ public class RMConfigs {
 	public static final SystemConfiguration OPEN_HOLDER;
 
 	static {
+		SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
+
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, "decommissioning");
 
 		// Allow to enter retention rules for documents
-		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules").whichIsHidden());
+		add(DOCUMENT_RETENTION_RULES = beta.createBooleanFalseByDefault("documentRetentionRules").whichIsHidden());
 
 		// Is the closing date calculated or manual?
 		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate"));
