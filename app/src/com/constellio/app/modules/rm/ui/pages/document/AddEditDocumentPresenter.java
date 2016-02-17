@@ -116,7 +116,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 
 		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
-		if (addView && userDocumentId != null) {
+		if (userDocumentId != null) {
 			populateFromUserDocument(userDocumentId);
 		}
 		if (addViewWithCopy) {
