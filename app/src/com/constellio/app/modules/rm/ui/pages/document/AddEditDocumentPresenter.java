@@ -53,22 +53,15 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.users.UserServices;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
-
-	private DocumentToVOBuilder voBuilder;
-
 	private transient ContentVersionToVOBuilder contentVersionToVOBuilder;
 
+	private DocumentToVOBuilder voBuilder;
 	private boolean addView;
 	private boolean addViewWithCopy;
-
 	private DocumentVO documentVO;
-
 	private String userDocumentId;
-
 	private SchemaPresenterUtils userDocumentPresenterUtils;
-
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
-
 	private boolean newFile;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
