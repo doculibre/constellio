@@ -22,9 +22,6 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 	@Test
 	public void givenSynonymFeatureDiabeledWhenIndexingDocumentsAndSearchForAWordThenNoDocumentContainTheWordsSynonymIsReturned()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		//given
 		String synonymFileContent = "";
 		setUpSynonymTests(synonymFileContent);
