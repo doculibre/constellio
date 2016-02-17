@@ -42,6 +42,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class DeclareRMRecordViewImpl extends BaseViewImpl implements DeclareRMRecordView {
 	private static final String PATH_SEP = " / ";
+
 	private UserDocumentVO userDocumentVO;
 	private String newVersionDocumentId;
 	private String folderId;
