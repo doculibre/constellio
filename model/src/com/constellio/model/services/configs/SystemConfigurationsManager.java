@@ -5,10 +5,16 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import net.sf.cglib.core.CollectionUtils;
+import net.sf.cglib.core.Predicate;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
@@ -412,5 +418,27 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		}
 
 		return configs;
+	}
+
+	public List<SystemConfiguration> getNonHiddenGroupConfigurationsWithCodeOrdredByName(String groupCode) {
+		List<SystemConfiguration> allGroupConfigs = getGroupConfigurationsWithCode(groupCode);
+		List<SystemConfiguration> nonHidden = new ArrayList<>();
+		for (SystemConfiguration config : getAllConfigurations()) {
+			SystemConfigurationGroup group = new SystemConfigurationGroup(config.getModule(), config.getConfigGroupCode());
+			if (group.getCode().equals(groupCode)) {
+				if (!config.isHidden()) {
+					nonHidden.add(config);
+				}
+			}
+		}
+
+		Collections.sort(nonHidden, new Comparator<SystemConfiguration>() {
+			@Override
+			public int compare(SystemConfiguration o1, SystemConfiguration o2) {
+				return o1.getCode().compareTo(o2.getCode());
+			}
+		});
+
+		return nonHidden;
 	}
 }

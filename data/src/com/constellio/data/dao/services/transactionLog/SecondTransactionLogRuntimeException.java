@@ -2,6 +2,8 @@ package com.constellio.data.dao.services.transactionLog;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 public class SecondTransactionLogRuntimeException extends RuntimeException {
 
 	public SecondTransactionLogRuntimeException(String message) {
@@ -77,6 +79,19 @@ public class SecondTransactionLogRuntimeException extends RuntimeException {
 				stringBuilder.append("\n\t" + line);
 			}
 			return stringBuilder.toString();
+		}
+	}
+
+	public static class SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException extends SecondTransactionLogRuntimeException {
+		final List<String> notDeletedFiles;
+
+		public SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException(List<String> notDeletedFiles) {
+			super("Not all tLog files were deleted, remaining :" + StringUtils.join(notDeletedFiles, ", "));
+			this.notDeletedFiles = notDeletedFiles;
+		}
+
+		public List<String> getNotDeletedFiles() {
+			return notDeletedFiles;
 		}
 	}
 }

@@ -36,10 +36,10 @@ public class SystemConfigurationGroupdataProvider implements DataProvider {
 		for (SystemConfigurationGroup group : sysConfigGroup) {
 			List<SystemConfigurationVO> sysConfigGroupVOList = new ArrayList<>();
 
-			for (SystemConfiguration config : systemConfigurationsManager.getGroupConfigurationsWithCode(group.getCode())){
-				if (!config.isHidden()) {
+			for (SystemConfiguration config : systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrdredByName(group.getCode())){
+				//if (!config.isHidden()) {
 					sysConfigGroupVOList.add(builder.build(config, systemConfigurationsManager.getValue(config)));
-				}
+				//}
 			}
 			systemConfigurationGroupVOSortedMap.put(group.getCode(), new SystemConfigurationGroupVO(group.getCode(), sysConfigGroupVOList));
 		}

@@ -31,6 +31,7 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.services.systemSetup.SystemSetupService;
@@ -45,7 +46,6 @@ import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactory;
-import com.constellio.data.dao.services.factories.RecoveryManager;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -171,16 +171,16 @@ public class AppLayerFactory extends LayerFactory {
 
 	@Override
 	public void initialize() {
-		RecoveryAppLayerService recoveryAppLayerService = new RecoveryAppLayerService(dataLayerFactory.getRecoveryManager());
-		recoveryAppLayerService.deletePreviousWarCausingFailure();
+		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(dataLayerFactory.getTransactionLogRecoveryManager());
+		upgradeAppRecoveryServiceImpl.deletePreviousWarCausingFailure();
 		if (appLayerConfiguration.isRecoveryModeActive()) {
-			recoveryStartup(recoveryAppLayerService);
+			recoveryStartup(upgradeAppRecoveryServiceImpl);
 		} else {
 			normalStartup();
 		}
 	}
 
-	private void recoveryStartup(RecoveryAppLayerService recoveryService) {
+	private void recoveryStartup(UpgradeAppRecoveryServiceImpl recoveryService) {
 		if (dataLayerFactory.getSecondTransactionLogManager() != null) {
 			recoveryService.startRollbackMode();
 			try {
@@ -189,8 +189,8 @@ public class AppLayerFactory extends LayerFactory {
 			} catch (Throwable exception) {
 				if (recoveryService.isInRollbackMode()) {
 					LOGGER.error("Error when trying to start application", exception);
-					recoveryService.rollback();
-					recoveryService.prepareNextStartup(exception);
+					recoveryService.rollback(exception);
+
 					try {
 						newApplicationService().restart();
 					} catch (AppManagementServiceException e) {

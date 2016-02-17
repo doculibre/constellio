@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.transactionLog;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
 
 public interface SecondTransactionLogManager extends StatefulService {
 
@@ -20,4 +21,8 @@ public interface SecondTransactionLogManager extends StatefulService {
 	void deleteLastTLOGBackup();
 
 	void setAutomaticLog(boolean automaticMode);
+
+	void deleteUnregroupedLog() throws SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
+
+
 }

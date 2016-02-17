@@ -10,7 +10,6 @@ import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -28,7 +27,7 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			return;
 		}
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-		List<SystemConfiguration> previousConfigs = systemConfigurationsManager.getGroupConfigurationsWithCode(groupCode);
+		List<SystemConfiguration> previousConfigs = systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrdredByName(groupCode);
 		ValidationErrors errors = new ValidationErrors();
 		for (int i = 0; i < previousConfigs.size(); i++) {
 			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);

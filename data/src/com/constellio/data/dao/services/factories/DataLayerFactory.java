@@ -38,6 +38,7 @@ import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
@@ -69,7 +70,7 @@ public class DataLayerFactory extends LayerFactory {
 	private final BackgroundThreadsManager backgroundThreadsManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
-	final RecoveryManager recoveryManager;
+	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator) {
@@ -120,12 +121,12 @@ public class DataLayerFactory extends LayerFactory {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
 		}
 
-		recoveryManager = new RecoveryManager(this);
+		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
 
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
 			secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
 					ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
-					dataLayerExtensions.getSystemWideExtensions(), recoveryManager));
+					dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
 		} else {
 			secondTransactionLogManager = null;
 		}
@@ -267,7 +268,7 @@ public class DataLayerFactory extends LayerFactory {
 		}
 	}
 
-	public RecoveryManager getRecoveryManager() {
-		return this.recoveryManager;
+	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
+		return this.transactionLogRecoveryManager;
 	}
 }

@@ -105,10 +105,10 @@ public class SaveStateFeatureAcceptTest extends ConstellioTest {
 		getIOLayerFactory().newZipService().unzip(state1, state1TempFolder);
 		getIOLayerFactory().newZipService().unzip(state2, state2TempFolder);
 
-		verifySameContent(state1TempFolder, state2TempFolder);
+		verifySameContentOfUnzippedSaveState(state1TempFolder, state2TempFolder);
 	}
 
-	private void verifySameContent(File state1TempFolder, File state2TempFolder)
+	public static void verifySameContentOfUnzippedSaveState(File state1TempFolder, File state2TempFolder)
 			throws IOException {
 		if (state1TempFolder.isDirectory()) {
 
@@ -118,7 +118,7 @@ public class SaveStateFeatureAcceptTest extends ConstellioTest {
 			assertThat(filesInFolder1).isEqualTo(filesInFolder2);
 
 			for (String file : filesInFolder1) {
-				verifySameContent(new File(state1TempFolder, file), new File(state2TempFolder, file));
+				verifySameContentOfUnzippedSaveState(new File(state1TempFolder, file), new File(state2TempFolder, file));
 			}
 
 		} else {
@@ -128,7 +128,7 @@ public class SaveStateFeatureAcceptTest extends ConstellioTest {
 		}
 	}
 
-	private List<String> getFilesIn(File folder) {
+	public static List<String> getFilesIn(File folder) {
 		String[] files = folder.list();
 		if (files == null) {
 			return new ArrayList<>();

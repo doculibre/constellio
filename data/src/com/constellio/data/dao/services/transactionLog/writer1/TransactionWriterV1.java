@@ -158,7 +158,7 @@ public class TransactionWriterV1 {
 		return !id.endsWith("ZZ");
 	}
 
-	private void appendDeletedByQuery(StringBuilder stringBuilder, String deletedByQuery) {
+	protected void appendDeletedByQuery(StringBuilder stringBuilder, String deletedByQuery) {
 		stringBuilder.append("deletequery " + deletedByQuery + "\n");
 	}
 
