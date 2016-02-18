@@ -38,6 +38,7 @@ import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
@@ -55,7 +56,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.Users;
@@ -108,6 +108,8 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 
+		notAUnitItest = true;
+
 		classifyServices = new SmbClassifyServices(zeCollection, getAppLayerFactory(), users.adminIn(zeCollection));
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -127,10 +129,10 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		share = SDKPasswords.testSmbShare();
-		domain = SDKPasswords.testSmbDomain();
-		username = SDKPasswords.testSmbUsername();
-		password = SDKPasswords.testSmbPassword();
+		share = "zeShare";//= SDKPasswords.testSmbShare();
+		domain = "domain";//SDKPasswords.testSmbDomain();
+		username = "username";//SDKPasswords.testSmbUsername();
+		password = "password";//SDKPasswords.testSmbPassword();
 
 		recordServices.update(users.bobIn(zeCollection).setManualTokens("rtoken1"));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setManualTokens("rtoken1", "rtoken2"));
@@ -188,7 +190,7 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 		});
 
 		robotsSchemas = new RobotSchemaRecordServices(zeCollection, getAppLayerFactory());
-		notAUnitItest = false;
+		notAUnitItest = true;
 	}
 
 	@Test
@@ -210,7 +212,7 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 		smbConnectorDocumentsIds.add(connectorSmbDocumentAA5.getId());
 		smbConnectorDocumentsIds.add(connectorSmbDocumentB3.getId());
 
-		assertThat(classifyServices.classifyConnectorDocuments(records.folder_A01, smbConnectorDocumentsIds, true, true))
+		assertThat(classifyServices.classifyConnectorDocuments(records.folder_A01, null, smbConnectorDocumentsIds, true, true))
 				.hasSize(5);
 		validateAAAndB3SmbDocumentsAreClassifiedIn(records.folder_A01);
 	}
@@ -303,10 +305,89 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		List<String> documents = classifyServices.classifyConnectorDocuments(records.folder_A01, smbConnectorDocumentsIds, false,
-				true);
-		assertThat(documents).hasSize(5);
-		assertThat(rm.wrapDocument(record(documents.get(0))).getContent().getCurrentVersion().isMajor()).isFalse();
+		List<String> smbConnectorDocumentsTitles = new ArrayList<>();
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentA1.getTitle());
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentA2.getTitle());
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentAA4.getTitle());
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentAA5.getTitle());
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentB3.getTitle());
+
+		MetadataSchemaType documentSchemaType = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(Document.SCHEMA_TYPE);
+		LogicalSearchCondition condition = from(documentSchemaType)
+				.where(Schemas.TITLE).isIn(smbConnectorDocumentsTitles);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		List<Record> newDocumentsRecords = searchServices.search(query.sortAsc(Schemas.TITLE));
+		List<Document> newDocumentsWrappers = rm.wrapDocuments(newDocumentsRecords);
+		assertThat(newDocumentsWrappers).hasSize(5);
+		for (Document document : newDocumentsWrappers) {
+			assertThat(document.getContent().getCurrentVersion().isMajor()).isFalse();
+			assertThat(document.getType()).isNull();
+			assertThat(document.getSchemaCode()).isEqualTo(Document.DEFAULT_SCHEMA);
+		}
+
+		validateAAAndB3SmbDocumentsAreClassifiedIn(records.folder_A01);
+	}
+
+	@Test
+	public void givenConnectorSmbDocumentsWhenClassifyUsingARobotThenCreateRMDocumentsWithGoodTypeAndSchemas()
+			throws Exception {
+
+		givenFetchedFoldersAndDocuments();
+
+		ConnectorSmbDocument connectorSmbDocumentA1 = es.getConnectorSmbDocument(documentA1);
+		ConnectorSmbDocument connectorSmbDocumentA2 = es.getConnectorSmbDocument(documentA2);
+		ConnectorSmbDocument connectorSmbDocumentAA4 = es.getConnectorSmbDocument(documentAA4);
+		ConnectorSmbDocument connectorSmbDocumentAA5 = es.getConnectorSmbDocument(documentAA5);
+		ConnectorSmbDocument connectorSmbDocumentB3 = es.getConnectorSmbDocument(documentB3);
+
+		List<String> smbConnectorDocumentsIds = new ArrayList<>();
+		smbConnectorDocumentsIds.add(connectorSmbDocumentA1.getId());
+		smbConnectorDocumentsIds.add(connectorSmbDocumentA2.getId());
+		smbConnectorDocumentsIds.add(connectorSmbDocumentAA4.getId());
+		smbConnectorDocumentsIds.add(connectorSmbDocumentAA5.getId());
+		smbConnectorDocumentsIds.add(connectorSmbDocumentB3.getId());
+
+		ClassifyConnectorDocumentInFolderActionParameters parameters = ClassifyConnectorDocumentInFolderActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setInFolder(records.folder_A01).setMajorVersions(true)
+				.setDocumentType(rm.emailDocumentType()));
+
+		recordServices.add(robotsSchemas.newRobot().setActionParameters(parameters)
+				.setSchemaFilter(ConnectorSmbDocument.SCHEMA_TYPE).setSearchCriteria(asList(
+						new CriterionBuilder(ConnectorSmbDocument.SCHEMA_TYPE).booleanOperator(OR)
+								.where(es.connectorSmbDocument.url()).isContainingText("smb").build(),
+						new CriterionBuilder(ConnectorSmbDocument.SCHEMA_TYPE)
+								.where(es.connectorSmbDocument.url()).isContainingText("smb://B/3").build()
+				)).setAction(ClassifyConnectorDocumentInFolderActionExecutor.ID).setCode("robocop").setTitle("robocop"));
+
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		List<String> smbConnectorDocumentsTitles = new ArrayList<>();
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentA1.getTitle());
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentA2.getTitle());
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentAA4.getTitle());
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentAA5.getTitle());
+		smbConnectorDocumentsTitles.add(connectorSmbDocumentB3.getTitle());
+
+		MetadataSchemaType documentSchemaType = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(Document.SCHEMA_TYPE);
+		LogicalSearchCondition condition = from(documentSchemaType)
+				.where(Schemas.TITLE).isIn(smbConnectorDocumentsTitles);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(condition);
+		List<Record> newDocumentsRecords = searchServices.search(query.sortAsc(Schemas.TITLE));
+		List<Document> newDocumentsWrappers = rm.wrapDocuments(newDocumentsRecords);
+
+		assertThat(newDocumentsWrappers).hasSize(5);
+		for (Document document : newDocumentsWrappers) {
+			assertThat(document.getContent().getCurrentVersion().isMajor()).isTrue();
+			assertThat(document.getType()).isEqualTo(rm.emailDocumentType().getId());
+			assertThat(document.getSchemaCode()).isEqualTo(Email.SCHEMA);
+		}
+
 		validateAAAndB3SmbDocumentsAreClassifiedIn(records.folder_A01);
 	}
 
