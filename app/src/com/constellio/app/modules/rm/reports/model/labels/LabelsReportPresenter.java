@@ -2,13 +2,21 @@ package com.constellio.app.modules.rm.reports.model.labels;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.krysalis.barcode4j.impl.code39.Code39Bean;
+import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
+import org.krysalis.barcode4j.tools.UnitConv;
 
+import com.constellio.app.modules.rm.model.labelTemplate.BarCodeLabelTemplateField;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -72,8 +80,64 @@ public class LabelsReportPresenter {
 
 		return labelsReportModel;
 	}
+	
+	private File createBarCode(String value) {
+		File tempFile;
+		try {
+			tempFile = File.createTempFile(LabelsReportPresenter.class.getSimpleName(), ".png");
+			tempFile.deleteOnExit();
+			
+			//Create the barcode bean
+			Code39Bean bean = new Code39Bean();
+
+			final int dpi = 300;
+
+			//Configure the barcode generator
+			bean.setModuleWidth(UnitConv.in2mm(1.0f / dpi)); //makes the narrow bar 
+			                                                 //width exactly one pixel
+			bean.setWideFactor(3);
+			bean.doQuietZone(false);
+
+			//Open output file
+			OutputStream out = new FileOutputStream(tempFile);
+			try {
+			    //Set up the canvas provider for monochrome PNG output 
+			    BitmapCanvasProvider canvas = new BitmapCanvasProvider(
+			            out, "image/x-png", dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
+
+			    //Generate the barcode
+			    bean.generateBarcode(canvas, value);
+
+			    //Signal end of generation
+			    canvas.finish();
+			} finally {
+			    out.close();
+			}
+		} catch (Throwable t) {
+			tempFile = null;
+		}
+		return tempFile;
+	}
 
 	private LabelsReportField buildField(LabelTemplateField fieldInfo, String value) {
+		LabelsReportField labelsReportField;
+		if (fieldInfo instanceof BarCodeLabelTemplateField) {
+			labelsReportField = new ImageLabelsReportField();
+			File barCode = createBarCode(value);
+			if (barCode != null) {
+				labelsReportField.setValue(barCode.getAbsolutePath());
+				int width = fieldInfo.getWidth() != 0 ? fieldInfo.getWidth() : value.length();
+				labelsReportField.width = width;
+			} else {
+				labelsReportField = buildLabelField(fieldInfo, value);
+			}
+		} else {
+			labelsReportField = buildLabelField(fieldInfo, value);
+		}
+		return labelsReportField;
+	}
+
+	private LabelsReportField buildLabelField(LabelTemplateField fieldInfo, String value) {
 		FontFamily fontFamily = FontFamily.valueOf(fieldInfo.getFontName());
 		LabelsReportFont font = new LabelsReportFont().setFontFamily(fontFamily)
 				.setSize(fieldInfo.getFontSize()).setBold(fieldInfo.isBold()).setItalic(fieldInfo.isItalic());
