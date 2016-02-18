@@ -244,6 +244,7 @@ public class DeclareRMRecordPresenter extends BasePresenter<DeclareRMRecordView>
 		String newVersionDocumentId = view.getNewVersionDocumentId();
 		String folderId = view.getFolderId();
 		UserDocumentVO userDocumentVO = (UserDocumentVO) recordVO;
+		view.closeWindow();
 		if (newVersionDocumentId != null) {
 			view.navigateTo().editDocument(newVersionDocumentId, userDocumentVO.getId());
 		} else {

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -238,10 +239,34 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			view.navigateTo().displayDocument(documentVO.getId());
 		}
 	}
+	
+	private void setAsNewVersionOfContent(Document document) {
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		Document documentBeforeChange = rmSchemasRecordsServices.getDocument(document.getId());
+		Content contentBeforeChange = documentBeforeChange.getContent();
+		ContentVersionVO contentVersionVO = documentVO.getContent();
+		String filename = contentVersionVO.getFileName();
+		InputStream in = contentVersionVO.getInputStreamProvider().getInputStream("AddEditDocumentPresenter.saveButtonClicked");
+		boolean majorVersion = Boolean.TRUE.equals(contentVersionVO.isMajorVersion());
+		
+		ContentVersionDataSummary contentVersionSummary;
+		try {
+			contentVersionSummary = contentManager.upload(in);
+		} finally {
+			IOUtils.closeQuietly(in);
+		}
+		contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
+		document.setContent(contentBeforeChange);
+	}
 
 	public void saveButtonClicked() {
 		Record record = toRecord(documentVO, newFile);
 		Document document = rmSchemas().wrapDocument(record);
+		
+		boolean editWithUserDocument = !addView && userDocumentId != null; 
+		if (editWithUserDocument) {
+			setAsNewVersionOfContent(document);
+		}
 
 		if (!canSaveDocument(document, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
