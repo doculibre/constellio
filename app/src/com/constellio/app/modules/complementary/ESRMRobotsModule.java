@@ -19,6 +19,7 @@ import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobots
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_6;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_7;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_9;
+import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo6_0;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -49,8 +50,16 @@ public class ESRMRobotsModule implements InstallableModule {
 
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
-		return asList(new ESRMRobotsMigrationTo5_1_2(), new ESRMRobotsMigrationTo5_1_5(), new ESRMRobotsMigrationTo5_1_6(),
-				new ESRMRobotsMigrationTo5_1_7(), new ESRMRobotsMigrationTo5_1_9());
+		List<MigrationScript> migrations = new ArrayList<>();
+
+		migrations.add(new ESRMRobotsMigrationTo5_1_2());
+		migrations.add(new ESRMRobotsMigrationTo5_1_5());
+		migrations.add(new ESRMRobotsMigrationTo5_1_6());
+		migrations.add(new ESRMRobotsMigrationTo5_1_7());
+		migrations.add(new ESRMRobotsMigrationTo5_1_9());
+		migrations.add(new ESRMRobotsMigrationTo6_0());
+
+		return migrations;
 	}
 
 	@Override

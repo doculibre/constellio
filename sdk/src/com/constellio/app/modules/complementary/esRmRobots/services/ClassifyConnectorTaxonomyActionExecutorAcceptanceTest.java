@@ -74,7 +74,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -176,10 +175,10 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		recordServices = getModelLayerFactory().newRecordServices();
 		connectorManager = es.getConnectorManager();
 
-		share = SDKPasswords.testSmbShare();
-		domain = SDKPasswords.testSmbDomain();
-		username = SDKPasswords.testSmbUsername();
-		password = SDKPasswords.testSmbPassword();
+		share = "zeShare";//SDKPasswords.testSmbShare();
+		domain = "zeDomain";//SDKPasswords.testSmbDomain();
+		username = "zeUsername";//SDKPasswords.testSmbUsername();
+		password = "zePassword";//SDKPasswords.testSmbPassword();
 
 		recordServices.update(users.bobIn(zeCollection).setManualTokens("rtoken1"));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setManualTokens("rtoken1", "rtoken2"));

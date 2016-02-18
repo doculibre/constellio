@@ -13,9 +13,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
-import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
-import com.constellio.model.services.records.RecordUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,20 +73,22 @@ public class SmbClassifyServices {
 		this.connectorServicesFactory = new ConnectorServicesFactory();
 	}
 
-	public SmbClassifyServices(String collection, AppLayerFactory appLayerFactory, User currentUser, ConnectorServicesFactory connectorServicesFactory) {
-		this(collection,appLayerFactory, currentUser);
+	public SmbClassifyServices(String collection, AppLayerFactory appLayerFactory, User currentUser,
+			ConnectorServicesFactory connectorServicesFactory) {
+		this(collection, appLayerFactory, currentUser);
 		this.connectorServicesFactory = connectorServicesFactory;
 	}
 
-
-	public List<String> classifyConnectorDocuments(String inRmFolder, List<String> connectorDocumentIds, Boolean majorVersions,
+	public List<String> classifyConnectorDocuments(String inRmFolder, String documentType, List<String> connectorDocumentIds,
+			Boolean majorVersions,
 			boolean excludeDocuments) {
 
 		List<String> createdRecordIds = new ArrayList<>();
 		for (String connectorDocumentId : connectorDocumentIds) {
 			ConnectorDocument connectorDocument = es.getConnectorDocument(connectorDocumentId);
 			try {
-				createdRecordIds.add(classifyDocument(connectorDocument, inRmFolder, majorVersions, excludeDocuments, ""));
+				createdRecordIds.add(classifyDocument(connectorDocument, inRmFolder, documentType, majorVersions,
+						excludeDocuments, ""));
 			} catch (ClassifyServicesRuntimeException_CannotClassifyAsDocument e) {
 				LOGGER.warn("Cannot classify '" + connectorDocument.getURL() + "'", e);
 			}
@@ -97,22 +96,22 @@ public class SmbClassifyServices {
 		return createdRecordIds;
 	}
 
-	public String classifyDocument(ConnectorDocument connectorDocument, String inRmFolder, Boolean majorVersions,
-			boolean excludeDocuments, String versions) {
+	public String classifyDocument(ConnectorDocument connectorDocument, String inRmFolder, String documentTypeId,
+			Boolean majorVersions, boolean excludeDocuments, String versions) {
 
 		ContentVersionDataSummary newVersionDataSummary = null;
 
 		ConnectorUtilsServices<?> connectorUtilsServices = connectorServicesFactory
 				.forConnectorDocumentNonStatic(appLayerFactory, connectorDocument);
 		try {
-			Document document = rmSchemasRecordsServices.newDocument();
+			Document document = rmSchemasRecordsServices.newDocumentWithType(documentTypeId);
+
 			document.setTitle(connectorDocument.getTitle());
 			document.setFolder(inRmFolder);
 			document.setLegacyId(connectorDocument.getUrl());
 
 			Content content;
-			if (StringUtils.isEmpty(versions))
-			{
+			if (StringUtils.isEmpty(versions)) {
 				InputStream inputStream = connectorUtilsServices.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT);
 				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
 				//Content content;
@@ -121,13 +120,13 @@ public class SmbClassifyServices {
 				} else {
 					content = contentManager.createMinor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
 				}
-			}
-			else
-			{
+			} else {
 				// Process versions? Info should come from config, empty is do not check for versions, possibly regex , ex for major .*\.0
 				// If so, which ones?
-				List<String> availableVersions = connectorUtilsServices.getAvailableVersions(connectorDocument.getConnector(), connectorDocument);
-				Map<String, ContentVersion> historyMap = getContentVersions(connectorDocument, connectorUtilsServices, availableVersions);
+				List<String> availableVersions = connectorUtilsServices
+						.getAvailableVersions(connectorDocument.getConnector(), connectorDocument);
+				Map<String, ContentVersion> historyMap = getContentVersions(connectorDocument, connectorUtilsServices,
+						availableVersions);
 				ContentVersion currentContentVersion = removeFromHistoryAndReturnCurrentContentVersion(historyMap);
 				List<ContentVersion> history = new ArrayList<>(historyMap.values());
 
@@ -156,21 +155,24 @@ public class SmbClassifyServices {
 		}
 	}
 
-	private Map<String, ContentVersion> getContentVersions(ConnectorDocument connectorDocument, ConnectorUtilsServices<?> connectorUtilsServices,
+	private Map<String, ContentVersion> getContentVersions(ConnectorDocument connectorDocument,
+			ConnectorUtilsServices<?> connectorUtilsServices,
 			List<String> availableVersions) {
 		Map<String, ContentVersion> historyMap = new HashMap<>();
-		for (String availableVersion : availableVersions)
-		{
+		for (String availableVersion : availableVersions) {
 			// TODO Filter which version make it to the record
 
-			InputStream availableVersionInputStream = connectorUtilsServices.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
-			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(availableVersionInputStream, false, true, null);
+			InputStream availableVersionInputStream = connectorUtilsServices
+					.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
+			ContentVersionDataSummary contentVersionDataSummary = contentManager
+					.upload(availableVersionInputStream, false, true, null);
 			String filename = "zFileName";
 			String version = availableVersion;
 			String lastModifiedBy = currentUser.getUsername();
 			LocalDateTime lastModificationDateTime = TimeProvider.getLocalDateTime();
 			String comment = "";
-			ContentVersion contentVersion = new ContentVersion(contentVersionDataSummary, filename, version, lastModifiedBy, lastModificationDateTime, comment);
+			ContentVersion contentVersion = new ContentVersion(contentVersionDataSummary, filename, version, lastModifiedBy,
+					lastModificationDateTime, comment);
 			historyMap.put(version, contentVersion);
 		}
 		return historyMap;
@@ -178,8 +180,7 @@ public class SmbClassifyServices {
 
 	private ContentVersion removeFromHistoryAndReturnCurrentContentVersion(Map<String, ContentVersion> historyMap) {
 		LinkedList<String> keys = new LinkedList<>(historyMap.keySet());
-		if (keys.isEmpty())
-		{
+		if (keys.isEmpty()) {
 			// TODO Do something if empty
 		}
 		Collections.sort(keys);
@@ -218,13 +219,14 @@ public class SmbClassifyServices {
 
 			addUpdateRecordSkippingRequiredValueValidation(folder);
 
-			createdDocumentsIds.addAll(classifyConnectorDocuments(folder.getId(), newDocumentsRecordsIds, majorVersions, true));
+			createdDocumentsIds
+					.addAll(classifyConnectorDocuments(folder.getId(), null, newDocumentsRecordsIds, majorVersions, true));
 
 			classifyFolder(childConnectorSmbFolderId, folder.getId(), createdDocumentsIds, majorVersions);
 		}
 
 		List<String> newDocumentsRecordsIds = getChildrenDocuments(smbFolderId);
-		createdDocumentsIds.addAll(classifyConnectorDocuments(rmFolderId, newDocumentsRecordsIds, majorVersions, true));
+		createdDocumentsIds.addAll(classifyConnectorDocuments(rmFolderId, null, newDocumentsRecordsIds, majorVersions, true));
 
 		ConnectorSmbFolder connectorSmbFolderToDelete = es
 				.getConnectorSmbFolder(smbFolderId);
