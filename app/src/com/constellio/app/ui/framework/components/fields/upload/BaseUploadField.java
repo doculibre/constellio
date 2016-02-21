@@ -21,15 +21,19 @@ import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
+import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
 
+@SuppressWarnings("serial")
 public class BaseUploadField extends CustomField<Object> implements DropHandler {
 
 	public static final String STYLE_NAME = "base-upload-field";
@@ -47,9 +51,12 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	private Table fileUploadsTable;
 	
 	private Map<Object, Component> itemCaptions = new HashMap<>();
+	
+	private ViewChangeListener viewChangeListener;
 
 	public BaseUploadField() {
 		super();
+		
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();
@@ -170,6 +177,27 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		mainLayout.addComponents(multiFileUpload, fileUploadsTable);
 	}
 	
+	@Override
+	public void attach() {
+		super.attach();
+		
+		if (viewChangeListener == null) {
+			viewChangeListener = new ViewChangeListener() {
+				@Override
+				public boolean beforeViewChange(ViewChangeEvent event) {
+					return true;
+				}
+				
+				@Override
+				public void afterViewChange(ViewChangeEvent event) {
+					deleteTempFiles();
+					UI.getCurrent().getNavigator().removeViewChangeListener(viewChangeListener);
+				}
+			};
+			UI.getCurrent().getNavigator().addViewChangeListener(viewChangeListener);
+		}
+	}
+
 	protected VerticalLayout getMainLayout() {
 		return mainLayout;
 	}
@@ -241,18 +269,6 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		} else if (currentValue != null) {
 			deleteTempFile(currentValue);
 		}
-	}
-
-	@Override
-	public void detach() {
-		super.detach();
-		if (isDeleteTempFilesOnDetach()) {
-			deleteTempFiles();
-		}
-	}
-	
-	protected boolean isDeleteTempFilesOnDetach() {
-		return true;
 	}
 
 	@Override
