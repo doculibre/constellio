@@ -594,4 +594,8 @@ public class BigVaultServer implements Cloneable {
 			throw e;
 		}
 	}
+
+	public void unregisterAllListeners() {
+		this.listeners.clear();
+	}
 }

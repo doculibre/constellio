@@ -56,6 +56,7 @@ public class FactoriesTestFeatures {
 	private boolean useSDKPluginFolder;
 	private boolean instanciated = false;
 	private boolean backgroundThreadsEnabled = false;
+	private boolean checkRollback;
 	private List<String> loggingOfRecords = new ArrayList<>();
 	private boolean dummyPasswords;
 
@@ -73,8 +74,9 @@ public class FactoriesTestFeatures {
 	private Map<String, String> configs = new HashMap<>();
 	private String systemLanguage;
 
-	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties) {
+	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties, boolean checkRollback) {
 		this.fileSystemTestFeatures = fileSystemTestFeatures;
+		this.checkRollback = checkRollback;
 		//		this.sdkProperties = sdkProperties;
 	}
 
@@ -153,6 +155,7 @@ public class FactoriesTestFeatures {
 	private void deleteServerRecords(BigVaultServer server) {
 
 		BigVaultServer vaultServer = server.clone();
+		vaultServer.unregisterAllListeners();
 		vaultServer.disableLogger();
 		vaultServer.setExtensions(new DataLayerSystemExtensions());
 
@@ -185,7 +188,7 @@ public class FactoriesTestFeatures {
 			setupPropertiesContent.append("admin.password=password\n");
 			File setupProperties = fileSystemTestFeatures.newTempFileWithContent(setupPropertiesContent.toString());
 
-			decorator = new TestConstellioFactoriesDecorator(backgroundThreadsEnabled) {
+			decorator = new TestConstellioFactoriesDecorator(backgroundThreadsEnabled, checkRollback) {
 
 				@Override
 				public DataLayerFactory decorateDataLayerFactory(DataLayerFactory dataLayerFactory) {
@@ -413,6 +416,11 @@ public class FactoriesTestFeatures {
 		backgroundThreadsEnabled = true;
 	}
 
+	public FactoriesTestFeatures withoutCheckForRollback() {
+		checkRollback = false;
+		return this;
+	}
+
 	public FactoriesTestFeatures withFakeEncryptionServices() {
 		fakeEncryptionServices = true;
 		return this;
@@ -423,4 +431,7 @@ public class FactoriesTestFeatures {
 		return this;
 	}
 
+	public boolean isCheckRollback() {
+		return checkRollback;
+	}
 }

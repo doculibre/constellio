@@ -252,11 +252,9 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 		}
 	}
 
-	/*
-	void startRollbackMode();
-	void stopRollbackMode();
-	void rollback(Throwable t);
-	boolean isInRollbackMode();
-	* */
+	@Override
+	protected boolean checkRollback() {
+		return false;
+	}
 
 }

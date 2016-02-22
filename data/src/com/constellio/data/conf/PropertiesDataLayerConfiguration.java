@@ -155,4 +155,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 						.contains("127.0.0.1"));
 	}
 
+	@Override
+	public boolean isInRollbackTestMode() {
+		if (secondTransactionLogEnabled != null) {
+			return secondTransactionLogEnabled;
+		}
+		return getBoolean("secondTransactionLog.checkRollback", false);
+	}
+
 }

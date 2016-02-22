@@ -35,7 +35,7 @@ public class ConstellioTestSession {
 	}
 
 	public static ConstellioTestSession build(boolean isUniTest, Map<String, String> sdkProperties,
-			SkipTestsRule skipTestsRule, Class<? extends AbstractConstellioTest> constellioTest) {
+			SkipTestsRule skipTestsRule, Class<? extends AbstractConstellioTest> constellioTest, boolean checkRollback) {
 		ConstellioTestSession session = new ConstellioTestSession();
 		i18n.setLocale(Locale.FRENCH);
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());
@@ -49,7 +49,7 @@ public class ConstellioTestSession {
 
 			session.fileSystemTestFeatures = new FileSystemTestFeatures("temp-test", sdkProperties,
 					constellioTest);
-			session.factoriesTestFeatures = new FactoriesTestFeatures(session.fileSystemTestFeatures, sdkProperties);
+			session.factoriesTestFeatures = new FactoriesTestFeatures(session.fileSystemTestFeatures, sdkProperties, checkRollback);
 			session.afterTestValidationsTestFeature = new AfterTestValidationsTestFeature(session.fileSystemTestFeatures,
 					session.factoriesTestFeatures, sdkProperties);
 			session.streamsTestFeatures = new StreamsTestFeatures();

@@ -71,7 +71,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	private void createRecoveryFile() {
 		recoveryWorkDir = ioServices.newTemporaryFolder(RECOVERY_WORK_DIR);
-		this.recoveryFile = new File(recoveryWorkDir, "recordsBefore");
+		this.recoveryFile = new File(recoveryWorkDir, "rollbackLogs");
 		readWriteServices = new RecoveryTransactionReadWriteServices(ioServices, dataLayerFactory.getDataLayerConfiguration());
 	}
 
@@ -189,11 +189,17 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	@Override
 	public void beforeAdd(BigVaultServerTransaction transaction) {
 		if (transaction.getDeletedQueries() != null && !transaction.getDeletedQueries().isEmpty()) {
-			throw new RuntimeException("Delete by query not supported in recovery mode");
+			if(!isTestMode()){
+				throw new RuntimeException("Delete by query not supported in recovery mode");
+			}
 		}
 		handleNewDocuments(transaction.getNewDocuments());
 		handleUpdatedDocuments(transaction.getUpdatedDocuments());
 		handleDeletedDocuments(transaction.getDeletedRecords());
+	}
+
+	private boolean isTestMode() {
+		return dataLayerFactory.getDataLayerConfiguration().isInRollbackTestMode();
 	}
 
 	void handleDeletedDocuments(List<String> deletedRecords) {
@@ -289,4 +295,5 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	public void close() {
 		deleteRecoveryFile();
 	}
+
 }

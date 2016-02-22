@@ -41,6 +41,7 @@ public class SkipTestsRule implements TestRule {
 	boolean skipImportTests;
 	boolean skipTestsWithGradle;
 	boolean skipInternetTest;
+	boolean checkRollback = false;
 	private boolean inDevelopmentTest;
 	private boolean mainTest;
 	private List<String> whiteList;
@@ -73,6 +74,7 @@ public class SkipTestsRule implements TestRule {
 			this.skipImportTests = skipAllTests || !"false".equals(properties.get("skip.importtests"));
 			this.skipReal = skipAllTests || "true".equals(properties.get("skip.realtests"));
 			this.skipLoad = skipAllTests || "true".equals(properties.get("skip.loadtests"));
+			this.checkRollback = "true".equals(properties.get("skip.checkRollback"));
 			this.skipInternetTest = skipAllTests || "true".equals(properties.get("skip.internettests"));
 			this.skipInDevelopment = skipAllTests || "true".equals(properties.get("skip.indevelopment")) || "true"
 					.equals(properties.get("skip.indevelopmenttests"));
