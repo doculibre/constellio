@@ -178,6 +178,9 @@ public class AppLayerFactory extends LayerFactory {
 		} else {
 			normalStartup();
 		}
+		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
+			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
+		}
 		upgradeAppRecoveryServiceImpl.close();
 	}
 
@@ -237,9 +240,7 @@ public class AppLayerFactory extends LayerFactory {
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
 
-		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
-			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
-		}
+
 
 		if (!invalidPlugins.isEmpty()) {
 			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));

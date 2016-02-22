@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.recovery.transactionReader.RecoveryTransactionReader;
 import com.constellio.data.dao.services.recovery.transactionWriter.RecoveryTransactionWriter;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.io.services.facades.IOServices;
@@ -35,8 +38,8 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	private static final String RECOVERY_WORK_DIR = TransactionLogRecoveryManager.class.getName() + "recoveryWorkDir";
 
 	final DataLayerFactory dataLayerFactory;
-	File recoveryWorkDir;
-	RecoveryTransactionWriter transactionReaderWriter;
+	File recoveryWorkDir, recoveryFile;
+	RecoveryTransactionReadWriteServices readWriteServices;
 	private final IOServices ioServices;
 	private boolean inRollbackMode;
 	Set<String> loadedRecordsIds, newRecordsIds, deletedRecordsIds, updatedRecordsIds;
@@ -69,7 +72,8 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	private void createRecoveryFile() {
 		recoveryWorkDir = ioServices.newTemporaryFolder(RECOVERY_WORK_DIR);
-		transactionReaderWriter = new RecoveryTransactionWriter(new File(recoveryWorkDir, "recordsBefore"));
+		this.recoveryFile = new File(recoveryWorkDir, "recordsBefore");
+		readWriteServices = new RecoveryTransactionReadWriteServices(ioServices, dataLayerFactory.getDataLayerConfiguration());
 	}
 
 	@Override
@@ -121,34 +125,52 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	private void recover() {
-		SolrClient server = dataLayerFactory.getContentsVaultServer().getNestedSolrServer();
+		SolrClient server = dataLayerFactory.getRecordsVaultServer().getNestedSolrServer();
 		this.deletedRecordsIds.removeAll(this.newRecordsIds);
 		this.updatedRecordsIds.removeAll(this.newRecordsIds);
 		removeNewRecords(server);
-		restore(server, this.deletedRecordsIds);
-		restore(server, this.updatedRecordsIds);
+		Set<String> alteredDocuments = new HashSet<>(this.deletedRecordsIds);
+		alteredDocuments.addAll(this.updatedRecordsIds);
+		restore(server, alteredDocuments);
 	}
 
 	private void restore(SolrClient server, Set<String> alteredRecordsIds) {
 		//TODO by batch
-		if(alteredRecordsIds== null ||alteredRecordsIds.isEmpty()){
+		if (alteredRecordsIds == null || alteredRecordsIds.isEmpty()) {
 			return;
 		}
-		List<SolrInputDocument> documents = new ArrayList<>();
-		for(String recordId : alteredRecordsIds){
-			documents.add(this.transactionReaderWriter.getDocument(recordId));
-		}
-		try {
-			server.add(documents);
-		} catch (SolrServerException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		Iterator<BigVaultServerTransaction> operationIterator = this.readWriteServices
+				.newOperationsIterator(recoveryFile);
+		while (operationIterator.hasNext()) {
+			List<SolrInputDocument> currentAlteredDocuments = new ArrayList<>();
+			BigVaultServerTransaction currentTransaction = operationIterator.next();
+			for (SolrInputDocument newDocument : currentTransaction.getNewDocuments()) {
+				String currentDocumentId = (String) newDocument.getFieldValue("id");
+				if (alteredRecordsIds.contains(currentDocumentId)) {
+					currentAlteredDocuments.add(newDocument);
+				}
+			}
+			for (SolrInputDocument document : currentTransaction.getUpdatedDocuments()) {
+				String currentDocumentId = (String) document.getFieldValue("id");
+				if (alteredRecordsIds.contains(currentDocumentId)) {
+					currentAlteredDocuments.add(document);
+				}
+			}
+			try {
+				server.add(currentAlteredDocuments);
+			} catch (SolrServerException e) {
+				throw new RuntimeException(e);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
 	private void removeNewRecords(SolrClient server) {
 		//TODO by batch
+		if(this.newRecordsIds.isEmpty()){
+			return;
+		}
 		try {
 			server.deleteById(new ArrayList<>(this.newRecordsIds));
 		} catch (SolrServerException e) {
@@ -165,12 +187,12 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	@Override
 	public void beforeAdd(BigVaultServerTransaction transaction) {
+		if (transaction.getDeletedQueries() != null && !transaction.getDeletedQueries().isEmpty()) {
+			throw new RuntimeException("Delete by query not supported in recovery mode");
+		}
 		handleNewDocuments(transaction.getNewDocuments());
 		handleUpdatedDocuments(transaction.getUpdatedDocuments());
 		handleDeletedDocuments(transaction.getDeletedRecords());
-		if (!transaction.getDeletedQueries().isEmpty()) {
-			throw new RuntimeException("Delete by query not supported in recovery mode");
-		}
 	}
 
 	void handleDeletedDocuments(List<String> deletedRecords) {
@@ -196,15 +218,17 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		//do not reload
 		Set<String> recordsToLoadIds = new HashSet<>(recordsIds);
 		recordsToLoadIds.removeAll(this.loadedRecordsIds);
+		if(recordsToLoadIds.isEmpty()){
+			return;
+		}
 		//query solr to load non loaded
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		//field:(value1 OR value2 OR value3)
-		solrParams.set("id", "(" + StringUtils.join(recordsToLoadIds, " OR ") + ")");
+		solrParams.set("q", "id:(" + StringUtils.join(recordsToLoadIds, " OR ") + ")");
 		try {
 			dataLayerFactory.getRecordsVaultServer().query(solrParams);
-		} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
-			//TODO replace with appropriate exception
-			throw new RuntimeException(couldNotExecuteQuery);
+		} catch (CouldNotExecuteQuery e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -237,15 +261,23 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		SolrDocumentList results = response.getResults();
 		List<SolrDocument> documentsToSave = new ArrayList<>();
 		List<String> loadedDocuments = new ArrayList<>();
-		for(SolrDocument document : results){
+		for (SolrDocument document : results) {
 			String currentId = (String) document.get("id");
-			if(!this.loadedRecordsIds.contains(currentId)){
+			if (!this.loadedRecordsIds.contains(currentId)) {
 				documentsToSave.add(document);
 				loadedDocuments.add(currentId);
 			}
 		}
-		this.transactionReaderWriter.addAll(documentsToSave);
+		appendLoadedRecordsFile(this.readWriteServices.toLogEntry(documentsToSave));
 		this.loadedRecordsIds.addAll(loadedDocuments);
+	}
+
+	private void appendLoadedRecordsFile(String transaction) {
+		try {
+			FileUtils.fileAppend(this.recoveryFile.getPath(), transaction);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import java.io.File;
 
 import org.joda.time.LocalDateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -110,6 +111,13 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 		someModification();
 		transactionLogRecoveryManager.stopRollbackMode();
 		validateRecordsModifiedAsExpected();
+	}
+
+
+
+	@After
+	public void afterTest() {
+		getDataLayerFactory().getRecordsVaultServer().unregisterListener(transactionLogRecoveryManager);
 	}
 
 	@Test
