@@ -24,6 +24,7 @@ import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -149,7 +150,7 @@ public class SystemSetupService {
 		List<String> collections = new ArrayList<>();
 		boolean isSystemAdmin = true;
 
-		UserCredential adminCredentials = new UserCredential(username, firstName, lastName, email, serviceKey, isSystemAdmin,
+		UserCredential adminCredentials = new XmlUserCredential(username, firstName, lastName, email, serviceKey, isSystemAdmin,
 				globalGroups, collections, new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
 		modelLayerFactory.newUserServices().addUpdateUserCredential(adminCredentials);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();

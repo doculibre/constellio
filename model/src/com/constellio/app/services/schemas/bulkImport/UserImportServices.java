@@ -7,6 +7,7 @@ import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -96,7 +97,7 @@ public class UserImportServices implements ImportServices {
         if(status.equals("p")){
             userCredentialStatus = UserCredentialStatus.PENDING;
         }else if(status.equals("s")){
-            userCredentialStatus = UserCredentialStatus.SUPENDED;
+            userCredentialStatus = UserCredentialStatus.SUSPENDED;
         }else if(status.equals("d")){
             userCredentialStatus = UserCredentialStatus.DELETED;
         }else{
@@ -107,9 +108,9 @@ public class UserImportServices implements ImportServices {
         if(systemAdmin != null){
             boolean systemAdminBoolean = Boolean.valueOf((String)systemAdmin);
             Map<String, LocalDateTime > tokens = new HashMap<>();
-            userCredential = new UserCredential(username, firstName, lastName, email, null, systemAdminBoolean, globalGroups,collections, tokens, userCredentialStatus);
+            userCredential = new XmlUserCredential(username, firstName, lastName, email, null, systemAdminBoolean, globalGroups,collections, tokens, userCredentialStatus);
         }else{
-            userCredential = new UserCredential(username, firstName, lastName, email, globalGroups,collections, userCredentialStatus);
+            userCredential = new XmlUserCredential(username, firstName, lastName, email, globalGroups,collections, userCredentialStatus);
         }
         try{
             userServices.addUpdateUserCredential(userCredential);

@@ -24,6 +24,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
@@ -171,7 +172,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		}
 		UserCredentialStatus status = userCredentialVO.getStatus();
 		String domain = userCredentialVO.getDomain();
-		UserCredential newUserCredential = new UserCredential(userCredentialVO.getUsername(), userCredentialVO.getFirstName(),
+		UserCredential newUserCredential = new XmlUserCredential(userCredentialVO.getUsername(), userCredentialVO.getFirstName(),
 				userCredentialVO.getLastName(), userCredentialVO.getEmail(), userCredentialVO.getServiceKey(),
 				userCredentialVO.isSystemAdmin(), globalGroups, collections, tokens, status, domain, Arrays.asList(""), null);
 		return newUserCredential;

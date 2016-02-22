@@ -12,6 +12,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -64,7 +65,7 @@ public class ListGlobalGroupsPresenterAcceptanceTest extends ConstellioTest {
 	//
 
 	private void createUser() {
-		UserCredential userCredential = new UserCredential("dakota", "Dakota", "Indien", "dakota@gmail.com",
+		UserCredential userCredential = new XmlUserCredential("dakota", "Dakota", "Indien", "dakota@gmail.com",
 				Arrays.asList("AGroup", "BGroup"),
 				Arrays.asList(zeCollection), UserCredentialStatus.ACTIVE, null, Arrays.asList(""), null);
 		userServices.addUpdateUserCredential(userCredential);

@@ -41,8 +41,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustBeCheckedOut;
@@ -134,12 +134,12 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 					taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
 					getModelLayerFactory().newUserServices().addUpdateUserCredential(
-							new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
+							new XmlUserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
 									asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE, "domain", Arrays
 									.asList(""), null));
 
 					getModelLayerFactory().newUserServices().addUpdateUserCredential(
-							new UserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
+							new XmlUserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
 									asList(zeCollection), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null));
 
 					bob = spy(getModelLayerFactory().newUserServices().getUserInCollection("bob", zeCollection));

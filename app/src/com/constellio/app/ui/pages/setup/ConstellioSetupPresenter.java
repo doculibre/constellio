@@ -5,7 +5,6 @@ import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -27,7 +26,6 @@ import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.transactionLog.TransactionLogReadWriteServices;
 import com.constellio.data.dao.services.transactionLog.replay.TransactionLogReplayServices;
-import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -39,6 +37,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -134,7 +133,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential adminCredential = new UserCredential("admin", "System", "Admin", "admin@administration.com",
+		UserCredential adminCredential = new XmlUserCredential("admin", "System", "Admin", "admin@administration.com",
 				new ArrayList<String>(), asList(collectionCode),
 				UserCredentialStatus.ACTIVE).withSystemAdminPermission();
 		userServices.addUpdateUserCredential(adminCredential);

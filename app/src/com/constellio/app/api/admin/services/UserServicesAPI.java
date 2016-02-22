@@ -26,6 +26,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.users.UserServices;
 
 @Path("users")
@@ -195,7 +196,7 @@ public class UserServicesAPI {
 			tokens.put(token.getKey(), LocalDateTime.parse(token.getValue()));
 
 		}
-		return new UserCredential(userResource.getUsername(), userResource.getFirstName(), userResource.getLastName(),
+		return new XmlUserCredential(userResource.getUsername(), userResource.getFirstName(), userResource.getLastName(),
 				userResource
 						.getEmail(),
 				userResource.getServiceKey(), userResource.isSystemAdmin(), userResource.getGlobalGroups(),
@@ -213,7 +214,7 @@ public class UserServicesAPI {
 		userResource.setServiceKey(userCredential.getServiceKey());
 		userResource.setSystemAdmin(userCredential.isSystemAdmin());
 		Map<String, String> tokens = new HashMap<String, String>();
-		for (Entry<String, LocalDateTime> token : userCredential.getTokens().entrySet()) {
+		for (Entry<String, LocalDateTime> token : userCredential.getAccessTokens().entrySet()) {
 			tokens.put(token.getKey(), token.getValue().toString());
 		}
 		userResource.setTokens(tokens);

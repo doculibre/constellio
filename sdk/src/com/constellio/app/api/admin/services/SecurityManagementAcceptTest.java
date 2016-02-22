@@ -21,6 +21,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
@@ -418,7 +419,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 			//			status = (UserCredentialStatus) EnumWithSmallCodeUtils
 			//					.toEnumWithSmallCode(UserCredentialStatus.class, wrappedUser.getStatus());
 		}
-		return new UserCredential(wrappedUser.getUsername(), wrappedUser.getFirstName(), wrappedUser.getLastName(),
+		return new XmlUserCredential(wrappedUser.getUsername(), wrappedUser.getFirstName(), wrappedUser.getLastName(),
 				wrappedUser.getEmail(), wrappedUser.getGroupsAuthorizations(), Arrays.asList(wrappedUser.getCollection()),
 				status, null, Arrays.asList(""), null);
 	}

@@ -38,6 +38,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactoryUtils;
@@ -122,7 +123,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1And2();
 
 		for (int i = 0; i < 10000; i++) {
-			user = new UserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
+			user = new XmlUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
 					noCollections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null).withSystemAdminPermission();
 			userServices.addUpdateUserCredential(user);
 		}
@@ -302,9 +303,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		}
 		assertThat(userInCollection.get(collection1).getWrappedRecord().isActive()).isFalse();
 		assertThat(userInCollection.get(collection2).getWrappedRecord().isActive()).isFalse();
-		assertThat(userInCollection.get(collection1).getStatus()).isEqualTo(UserCredentialStatus.SUPENDED);
-		assertThat(userInCollection.get(collection2).getStatus()).isEqualTo(UserCredentialStatus.SUPENDED);
-		assertThat(userServices.getUser(user.getUsername()).getStatus()).isEqualTo(UserCredentialStatus.SUPENDED);
+		assertThat(userInCollection.get(collection1).getStatus()).isEqualTo(UserCredentialStatus.SUSPENDED);
+		assertThat(userInCollection.get(collection2).getStatus()).isEqualTo(UserCredentialStatus.SUSPENDED);
+		assertThat(userServices.getUser(user.getUsername()).getStatus()).isEqualTo(UserCredentialStatus.SUSPENDED);
 	}
 
 	@Test
@@ -580,7 +581,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		userServices = spy(userServices);
 		doThrow(new UserServicesRuntimeException_CannotExcuteTransaction(new RuntimeException()))
-				.when(userServices).sync(any(UserCredential.class));
+				.when(userServices).sync(any(XmlUserCredential.class));
 
 		try {
 			userServices.addUserToCollection(user, collection1);
@@ -657,7 +658,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
 
 		user = userServices.getUser(user.getUsername());
-		assertThat(user.getTokens()).containsKey(token);
+		assertThat(user.getAccessTokens()).containsKey(token);
 	}
 
 	@Test
@@ -672,11 +673,11 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		String token = userServices.getToken(serviceKey, user.getUsername(), "1qaz2wsx");
 
 		user = userServices.getUser(user.getUsername());
-		for (int i = 0; i < 2000 && !userServices.getUser(user.getUsername()).getTokens().isEmpty(); i++) {
+		for (int i = 0; i < 2000 && !userServices.getUser(user.getUsername()).getAccessTokens().isEmpty(); i++) {
 			Thread.sleep(50);
 		}
 
-		assertThat(userServices.getUser(user.getUsername()).getTokens()).isEmpty();
+		assertThat(userServices.getUser(user.getUsername()).getAccessTokens()).isEmpty();
 	}
 
 	@Test
@@ -695,7 +696,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			last50Tokens.add(userServices.generateToken(user.getUsername()));
 		}
 
-		assertThat(userServices.getUser(user.getUsername()).getTokensKeys()).containsOnly(last50Tokens.toArray(new String[0]));
+		assertThat(userServices.getUser(user.getUsername()).getTokenKeys()).containsOnly(last50Tokens.toArray(new String[0]));
 	}
 
 	@Test(expected = UserServicesRuntimeException_InvalidUserNameOrPassword.class)
@@ -753,8 +754,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		String newToken = userServices.getToken(serviceKey, token);
 		user = userServices.getUser(user.getUsername());
-		assertThat(user.getTokens()).containsKey(newToken);
-		assertThat(user.getTokens()).doesNotContainKey(token);
+		assertThat(user.getAccessTokens()).containsKey(newToken);
+		assertThat(user.getAccessTokens()).doesNotContainKey(token);
 
 	}
 
@@ -773,7 +774,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			userServices.getToken(serviceKey, "wrongToken");
 			fail();
 		} catch (Exception e) {
-			assertThat(user.getTokens()).containsKey(token);
+			assertThat(user.getAccessTokens()).containsKey(token);
 		}
 	}
 
@@ -1010,7 +1011,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenUserAndPassword() {
-		user = new UserCredential(chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(),
+		user = new XmlUserCredential(chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(),
 				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(user);
 		authenticationService.changePassword(user.getUsername(), "1qaz2wsx");
@@ -1018,19 +1019,19 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenUserWith(List<String> groups, List<String> collections) {
-		user = new UserCredential(chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections,
+		user = new XmlUserCredential(chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections,
 				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null).withSystemAdminPermission();
 		userServices.addUpdateUserCredential(user);
 	}
 
 	private void givenAnotherUserWith(List<String> groups, List<String> collections) {
-		anotherUser = new UserCredential("gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups,
+		anotherUser = new XmlUserCredential("gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups,
 				collections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(anotherUser);
 	}
 
 	private void givenAThirdUserWith(List<String> groups, List<String> collections) {
-		thirdUser = new UserCredential("edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups,
+		thirdUser = new XmlUserCredential("edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups,
 				collections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(thirdUser);
 	}

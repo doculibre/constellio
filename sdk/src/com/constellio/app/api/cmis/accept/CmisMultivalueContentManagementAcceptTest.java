@@ -32,6 +32,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -90,11 +91,11 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
 		getModelLayerFactory().newUserServices().addUpdateUserCredential(
-				new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection),
+				new XmlUserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection),
 						ACTIVE, null, Arrays.asList(""), null).withServiceKey("bob_key").withSystemAdminPermission());
 
 		getModelLayerFactory().newUserServices().addUpdateUserCredential(
-				new UserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
+				new XmlUserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
 						asList(zeCollection), ACTIVE, null, Arrays.asList(""), null).withServiceKey("alice_key")
 						.withSystemAdminPermission());
 

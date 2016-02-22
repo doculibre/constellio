@@ -26,6 +26,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
@@ -212,7 +213,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		} else {
 			userStatus = UserCredentialStatus.DELETED;
 		}
-		UserCredential returnUserCredentials = new UserCredential(username, firstName, lastName, email, globalGroups,
+		UserCredential returnUserCredentials = new XmlUserCredential(username, firstName, lastName, email, globalGroups,
 				new ArrayList<>(collections), userStatus, "", msExchDelegateListBL, ldapUser.getId());
 
 		try {
@@ -220,7 +221,7 @@ public class LDAPUserSyncManager implements StatefulService {
 			if (currentUserCredential.isSystemAdmin()) {
 				returnUserCredentials = returnUserCredentials.withSystemAdminPermission();
 			}
-			returnUserCredentials = returnUserCredentials.withTokens(currentUserCredential.getTokens());
+			returnUserCredentials = returnUserCredentials.withAccessTokens(currentUserCredential.getAccessTokens());
 		} catch (UserServicesRuntimeException_NoSuchUser e) {
 			//OK
 		}

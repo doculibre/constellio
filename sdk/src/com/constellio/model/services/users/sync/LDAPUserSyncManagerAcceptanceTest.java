@@ -19,6 +19,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
@@ -240,7 +241,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential bfay = userServices.getUser("bfay");
 		assertThat(bfay.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
 
-		bfay = bfay.withStatus(UserCredentialStatus.SUPENDED);
+		bfay = bfay.withStatus(UserCredentialStatus.SUSPENDED);
 		userServices.addUpdateUserCredential(bfay);
 
 		ldapUserSyncManager.synchronize();
@@ -272,11 +273,11 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		String token = userServices.generateToken(bfay.getUsername());
 
 		bfay = userServices.getUser("bfay");
-		assertThat(bfay.getTokensKeys()).containsOnly(token);
+		assertThat(bfay.getTokenKeys()).containsOnly(token);
 
 		ldapUserSyncManager.synchronize();
 		bfay = userServices.getUser("bfay");
-		assertThat(bfay.getTokensKeys()).containsOnly(token);
+		assertThat(bfay.getTokenKeys()).containsOnly(token);
 	}
 
 	@Test
@@ -287,11 +288,11 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential bfay = userServices.getUser("bfay");
 		userServices.generateToken(bfay.getUsername());
 		bfay = userServices.getUser("bfay");
-		assertThat(bfay.getTokensKeys()).isNotEmpty();
+		assertThat(bfay.getTokenKeys()).isNotEmpty();
 
 		ldapUserSyncManager.synchronize();
 		bfay = userServices.getUser("bfay");
-		assertThat(bfay.getTokensKeys()).isNotEmpty();
+		assertThat(bfay.getTokenKeys()).isNotEmpty();
 	}
 
 	@Test
@@ -303,7 +304,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
 		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 
-		UserCredential userCredential = new UserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
+		UserCredential userCredential = new XmlUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
 				inactiveUserInLDAP + "@doculibre.com",
 				asList(new String[] { }), asList(new String[] { }), UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(userCredential);

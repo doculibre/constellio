@@ -263,7 +263,7 @@ public class UserServices {
 
 	public void suspendUserCredentialAndUser(UserCredential userCredential) {
 
-		userCredential = userCredential.withStatus(UserCredentialStatus.SUPENDED);
+		userCredential = userCredential.withStatus(UserCredentialStatus.SUSPENDED);
 		addUpdateUserCredential(userCredential);
 	}
 
@@ -656,7 +656,7 @@ public class UserServices {
 		String token = UUID.randomUUID().toString();
 		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 		tokens.put(token, TimeProvider.getLocalDateTime().plus(modelLayerConfiguration.getTokenDuration()));
-		UserCredential userCredential = getUser(username).withTokens(tokens);
+		UserCredential userCredential = getUser(username).withAccessTokens(tokens);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;
 	}
@@ -669,7 +669,7 @@ public class UserServices {
 		} else {
 			tokens.put(token, TimeProvider.getLocalDateTime().plusDays(duration));
 		}
-		UserCredential userCredential = getUser(username).withTokens(tokens);
+		UserCredential userCredential = getUser(username).withAccessTokens(tokens);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;
 	}

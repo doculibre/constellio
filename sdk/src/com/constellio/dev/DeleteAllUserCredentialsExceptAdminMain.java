@@ -25,6 +25,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -81,7 +82,7 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 				}
 			}
 		}
-		
+
 		List<UserCredential> userCredentials = userServices.getAllUserCredentials();
 		for (UserCredential userCredential : userCredentials) {
 			String username = userCredential.getUsername();
@@ -91,18 +92,18 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 					userServices.removeUserFromGlobalGroup(username, globalGroup);
 				}
 				globalGroups = new ArrayList<>();
-				
+
 				List<String> userCollections = userCredential.getCollections();
 				for (String userCollection : userCollections) {
 					userServices.removeUserFromCollection(userCredential, userCollection);
 				}
 				userCollections = new ArrayList<>();
-				
+
 				System.out.println("Deleting user " + userCredential.getUsername());
-				UserCredential newUserCredential = new UserCredential(username, userCredential.getFirstName(),
+				UserCredential newUserCredential = new XmlUserCredential(username, userCredential.getFirstName(),
 						userCredential.getLastName(), userCredential.getEmail(), userCredential.getServiceKey(),
-						userCredential.isSystemAdmin(), globalGroups, userCollections, 
-						userCredential.getTokens(), UserCredentialStatus.DELETED, 
+						userCredential.isSystemAdmin(), globalGroups, userCollections,
+						userCredential.getAccessTokens(), UserCredentialStatus.DELETED,
 						userCredential.getDomain(), Arrays.asList(""), null);
 				userCredential = newUserCredential;
 				userServices.removeUserCredentialAndUser(userCredential);
@@ -111,9 +112,9 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 
 		ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
 		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-		
+
 		File tempXmlFile = File.createTempFile(DeleteAllUserCredentialsExceptAdminMain.class.getSimpleName(), ".xml");
-		
+
 		ConfigManager configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 
 		String userCredentialsXmlFilePath = "/userCredentialsConfig.xml";
@@ -126,17 +127,17 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 				it.remove();
 			}
 		}
-		
+
 		XMLOutputter xmlOutput = new XMLOutputter();
 		// display nice nice
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		xmlOutput.output(userCredentialsDocument, new FileWriter(tempXmlFile));
-		
+
 		String hash = configManager.getBinary(userCredentialsXmlFilePath).getHash();
 		InputStream tempXmlFileIn = new FileInputStream(tempXmlFile);
 		configManager.update(userCredentialsXmlFilePath, hash, tempXmlFileIn);
 		IOUtils.closeQuietly(tempXmlFileIn);
-		
+
 		System.out.println("End of script");
 	}
 
