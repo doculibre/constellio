@@ -113,8 +113,6 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 		validateRecordsModifiedAsExpected();
 	}
 
-
-
 	@After
 	public void afterTest() {
 		getDataLayerFactory().getRecordsVaultServer().unregisterListener(transactionLogRecoveryManager);
@@ -128,7 +126,6 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 
 		File state1 = folder.newFile("state1.zip");
 		File state2 = folder.newFile("state2.zip");
-
 
 		givenTimeIs(beforeStartRollBack.plusDays(1));
 		getSaveStateFeature().saveCurrentStateTo(state1);
@@ -150,7 +147,6 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 
 		verifySameContentOfUnzippedSaveState(state1TempFolder, state2TempFolder);
 	}
-
 
 	private void initTestRecords()
 			throws RecordServicesException {
@@ -238,20 +234,20 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 		Folder folderDeltedLogically = rm.getFolder(recordCreatedToBeDeletedLogicallyId);
 		assertThat(folderDeltedLogically.isLogicallyDeletedStatus()).isTrue();
 
-		try{
+		try {
 			rm.getFolder(recordCreatedToBeDeletedPhysicallyId);
 			fail("Expecting record to be deleted physically " + recordCreatedToBeDeletedPhysicallyId);
-		}catch(NoSuchRecordWithId e){
+		} catch (NoSuchRecordWithId e) {
 			//ok
 		}
 
 		Folder existingFolderDeltedLogically = rm.getFolder(existingRecordToBeDeletedLogicallyId);
 		assertThat(existingFolderDeltedLogically.isLogicallyDeletedStatus()).isTrue();
 
-		try{
+		try {
 			rm.getFolder(existingRecordToBeDeletedPhysicallyId);
 			fail("Expecting record to be deleted physically " + existingRecordToBeDeletedPhysicallyId);
-		}catch(NoSuchRecordWithId e){
+		} catch (NoSuchRecordWithId e) {
 			//ok
 		}
 	}

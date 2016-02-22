@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.transactionLog.writer1;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -165,6 +166,10 @@ public class TransactionWriterV1 {
 	private String correct(Object value) {
 		if (value == null || "null".equals(value)) {
 			return "";
+
+		} else if (value instanceof Date) {
+			LocalDateTime dateTime = new LocalDateTime(value);
+			return dateTime.toString().replace("Z", "");
 
 		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
 			return value.toString().replace("Z", "");

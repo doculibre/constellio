@@ -12,6 +12,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -27,8 +28,6 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.dao.services.recovery.transactionReader.RecoveryTransactionReader;
-import com.constellio.data.dao.services.recovery.transactionWriter.RecoveryTransactionWriter;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.io.services.facades.IOServices;
 
@@ -156,19 +155,21 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 					currentAlteredDocuments.add(document);
 				}
 			}
-			try {
-				server.add(currentAlteredDocuments);
-			} catch (SolrServerException e) {
-				throw new RuntimeException(e);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			if (!currentAlteredDocuments.isEmpty()) {
+				try {
+					server.add(currentAlteredDocuments);
+				} catch (SolrServerException | HttpSolrClient.RemoteSolrException e) {
+					throw new RuntimeException(e);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 	}
 
 	private void removeNewRecords(SolrClient server) {
 		//TODO by batch
-		if(this.newRecordsIds.isEmpty()){
+		if (this.newRecordsIds.isEmpty()) {
 			return;
 		}
 		try {
@@ -218,7 +219,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		//do not reload
 		Set<String> recordsToLoadIds = new HashSet<>(recordsIds);
 		recordsToLoadIds.removeAll(this.loadedRecordsIds);
-		if(recordsToLoadIds.isEmpty()){
+		if (recordsToLoadIds.isEmpty()) {
 			return;
 		}
 		//query solr to load non loaded
