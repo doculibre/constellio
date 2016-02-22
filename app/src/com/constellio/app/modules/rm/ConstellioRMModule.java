@@ -49,6 +49,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_4_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_7;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_9;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo666;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -105,7 +106,8 @@ public class ConstellioRMModule implements InstallableModule {
 				new RMMigrationTo5_1_4_1(),
 				new RMMigrationTo5_1_5(),
 				new RMMigrationTo5_1_7(),
-				new RMMigrationTo5_1_9()
+				new RMMigrationTo5_1_9(),
+				new RMMigrationTo666()
 		);
 	}
 
