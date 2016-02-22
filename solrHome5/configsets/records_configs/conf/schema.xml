@@ -145,12 +145,12 @@
                   termPositions="false" termOffsets="false" omitNorms="true"/>
     <dynamicField name="*_t" type="text_general" indexed="true" stored="true" omitNorms="true"/>
     <dynamicField name="*_txt" type="text_general" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-    <dynamicField name="*_t_en" type="text_en" indexed="true" stored="true" omitNorms="true"/>
-    <dynamicField name="*_txt_en" type="text_en" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-    <dynamicField name="*_t_fr" type="text_fr" indexed="true" stored="true" omitNorms="true"/>
-    <dynamicField name="*_txt_fr" type="text_fr" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-    <dynamicField name="*_t_ar" type="text_ar" indexed="true" stored="true" omitNorms="true"/>
-    <dynamicField name="*_txt_ar" type="text_ar" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+    <dynamicField name="*_t_en" type="text_en" indexed="true" stored="true" omitNorms="false" termVectors="true" termOffsets="true" termPositions="true"/>
+    <dynamicField name="*_t_fr" type="text_fr" indexed="true" stored="true" omitNorms="false" termVectors="true" termOffsets="true" termPositions="true"/>
+    <dynamicField name="*_t_ar" type="text_ar" indexed="true" stored="true" omitNorms="false" termVectors="true" termOffsets="true" termPositions="true"/>
+    <dynamicField name="*_txt_en" type="text_en" multiValued="true" indexed="true" stored="true" omitNorms="false" termVectors="true" termOffsets="true" termPositions="true"/>
+    <dynamicField name="*_txt_fr" type="text_fr" multiValued="true" indexed="true" stored="true" omitNorms="false" termVectors="true" termOffsets="true" termPositions="true"/>
+    <dynamicField name="*_txt_ar" type="text_ar" multiValued="true" indexed="true" stored="true" omitNorms="false" termVectors="true" termOffsets="true" termPositions="true"/>
     <dynamicField name="*_b" type="boolean" indexed="true" stored="true" termVectors="false" termPositions="false"
                   termOffsets="false" omitNorms="true"/>
     <dynamicField name="*_bs" type="boolean" indexed="true" stored="true" multiValued="true" termVectors="false"
@@ -745,7 +745,6 @@
             <filter class="solr.ArabicNormalizationFilterFactory"/>
             <filter class="solr.ArabicStemFilterFactory"/>
         </analyzer>
-		
     </fieldType>
 
     <!-- Bulgarian -->
