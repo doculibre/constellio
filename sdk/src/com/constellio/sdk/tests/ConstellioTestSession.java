@@ -49,14 +49,16 @@ public class ConstellioTestSession {
 
 			session.fileSystemTestFeatures = new FileSystemTestFeatures("temp-test", sdkProperties,
 					constellioTest);
-			session.factoriesTestFeatures = new FactoriesTestFeatures(session.fileSystemTestFeatures, sdkProperties, checkRollback);
-			session.afterTestValidationsTestFeature = new AfterTestValidationsTestFeature(session.fileSystemTestFeatures,
-					session.factoriesTestFeatures, sdkProperties);
+			session.factoriesTestFeatures = new FactoriesTestFeatures(session.fileSystemTestFeatures, sdkProperties,
+					checkRollback);
+
 			session.streamsTestFeatures = new StreamsTestFeatures();
 			session.streamsTestFeatures.beforeTest(skipTestsRule);
 			session.seleniumTestFeatures = new SeleniumTestFeatures();
 			session.schemaTestFeatures = new SchemaTestFeatures(session.factoriesTestFeatures);
 			session.batchProcessTestFeature = new BatchProcessTestFeature(session.factoriesTestFeatures);
+			session.afterTestValidationsTestFeature = new AfterTestValidationsTestFeature(session.fileSystemTestFeatures,
+					session.batchProcessTestFeature, session.factoriesTestFeatures, sdkProperties);
 			session.seleniumTestFeatures.beforeTest(sdkProperties, session.factoriesTestFeatures, skipTestsRule);
 			session.saveStateFeature = new SaveStateFeature(session.factoriesTestFeatures, session.fileSystemTestFeatures);
 		} else {
@@ -196,4 +198,5 @@ public class ConstellioTestSession {
 	public ToggleTestFeature getToggleTestFeature() {
 		return toggleTestFeature;
 	}
+
 }

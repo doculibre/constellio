@@ -94,11 +94,11 @@ public class BigVaultServer implements Cloneable {
 		this.listeners.add(listener);
 	}
 
-	public void unregisterListener(BigVaultServerListener listener) {
+	public void unregisterListener(String listenerId) {
 		Iterator<BigVaultServerListener> iterator = this.listeners.iterator();
 		while (iterator.hasNext()) {
 			BigVaultServerListener existingListener = iterator.next();
-			if (existingListener.getListenerUniqueId().equals(listener.getListenerUniqueId())) {
+			if (existingListener.getListenerUniqueId().equals(listenerId)) {
 				iterator.remove();
 				//only one
 				return;
@@ -569,7 +569,6 @@ public class BigVaultServer implements Cloneable {
 	public BigVaultServer clone() {
 		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions, this.listeners);
 	}
-
 
 	public void disableLogger() {
 		bigVaultLogger = BigVaultLogger.disabled();

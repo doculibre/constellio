@@ -115,7 +115,7 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 
 	@After
 	public void afterTest() {
-		getDataLayerFactory().getRecordsVaultServer().unregisterListener(transactionLogRecoveryManager);
+		getDataLayerFactory().getRecordsVaultServer().unregisterListener(transactionLogRecoveryManager.getListenerUniqueId());
 	}
 
 	@Test

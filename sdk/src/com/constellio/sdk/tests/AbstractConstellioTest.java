@@ -37,7 +37,6 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -66,7 +65,6 @@ import com.constellio.app.ui.tools.vaadin.TestInitUIListener;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
@@ -234,16 +232,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			FileUtils.write(new File("constellio.log"), "Test '" + getTestName() + "' has started", true);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
-		}
-	}
-
-	@Before
-	public void checkRollbackInit()
-			throws Exception {
-		if (checkRollback()) {
-			RecordDao recordDao = getDataLayerFactory().newRecordDao();
-			SolrSDKToolsServices tools = new SolrSDKToolsServices(recordDao);
-			getCurrentTestSession().getAfterTestValidationsTestFeature().setSaveStateBeforeTest(tools);
 		}
 	}
 
@@ -1158,7 +1146,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			preparationNames.put(preparators.hashCode(), taskName);
 		}
 		stats.add(this, getTestName(), taskName, end - start);
-
+		getCurrentTestSession().getAfterTestValidationsTestFeature().startRollbackNow();
 	}
 
 	public static class CollectionPreparator {

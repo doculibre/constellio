@@ -83,7 +83,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	void realStopRollback() {
-		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
+		dataLayerFactory.getRecordsVaultServer().unregisterListener(this.getListenerUniqueId());
 		deleteRecoveryFile();
 		inRollbackMode = false;
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
@@ -113,7 +113,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	void realRollback(Throwable t) {
-		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
+		dataLayerFactory.getRecordsVaultServer().unregisterListener(this.getListenerUniqueId());
 		recover();
 		deleteRecoveryFile();
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
@@ -189,13 +189,13 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	@Override
 	public void beforeAdd(BigVaultServerTransaction transaction) {
 		if (transaction.getDeletedQueries() != null && !transaction.getDeletedQueries().isEmpty()) {
-			if(!isTestMode()){
-				throw new RuntimeException("Delete by query not supported in recovery mode");
+			if (!isTestMode()) {
+				//throw new ImpossibleRuntimeException("Delete by query not supported in recovery mode");
 			}
 		}
-		handleNewDocuments(transaction.getNewDocuments());
-		handleUpdatedDocuments(transaction.getUpdatedDocuments());
-		handleDeletedDocuments(transaction.getDeletedRecords());
+		//handleNewDocuments(transaction.getNewDocuments());
+		//handleUpdatedDocuments(transaction.getUpdatedDocuments());
+		//handleDeletedDocuments(transaction.getDeletedRecords());
 	}
 
 	private boolean isTestMode() {
@@ -275,7 +275,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 				loadedDocuments.add(currentId);
 			}
 		}
-		appendLoadedRecordsFile(this.readWriteServices.toLogEntry(documentsToSave));
+		//appendLoadedRecordsFile(this.readWriteServices.toLogEntry(documentsToSave));
 		this.loadedRecordsIds.addAll(loadedDocuments);
 	}
 
