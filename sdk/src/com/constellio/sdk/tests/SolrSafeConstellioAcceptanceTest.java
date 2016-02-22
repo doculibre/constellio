@@ -5,6 +5,8 @@ import static org.mockito.Mockito.spy;
 import java.io.File;
 import java.util.Arrays;
 
+import org.junit.After;
+import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +26,9 @@ import com.constellio.model.services.search.SearchServiceAcceptanceTestSchemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
+@SlowTest
 public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 	private static Logger LOGGER = LoggerFactory.getLogger(SolrSafeConstellioAcceptanceTest.class);
 	protected SearchServiceAcceptanceTestSchemas schema = new SearchServiceAcceptanceTestSchemas(zeCollection);
@@ -47,22 +51,10 @@ public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 		return null;
 	}
 
-	// TODO @Before
+	@Before
 	public void setUp()
 			throws Exception {
-		DataLayerFactory dataLayerFactory = getDataLayerFactory();
-		for (BigVaultServer server : dataLayerFactory.getSolrServers().getServers()) {
-			AtomicFileSystem serverFileSystem = server.getSolrFileSystem();
-			AtomicFileSystem defaultConfiguration = new ChildAtomicFileSystem(
-					new AtomicLocalFileSystem(dataLayerFactory.getIOServicesFactory().newHashingService()),
-					getServerConfigurations(server.getName()));
-
-			LOGGER.info("Syncing the configuration of solr server...");
-			if (AtomicFileSystemUtils.sync(defaultConfiguration, serverFileSystem)) {
-				server.reload();
-			}
-			LOGGER.info("Solr server has been synced");
-		}
+		syncSolrConfigurationFiles();
 
 		givenCollection(zeCollection, Arrays.asList(Language.French.getCode(), Language.English.getCode()));
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -71,6 +63,29 @@ public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 
 		transaction = new Transaction();
 		factory = new ConditionTemplateFactory(getModelLayerFactory(), zeCollection);
+	}
+	
+	@After
+	public void cleanup(){
+		syncSolrConfigurationFiles();
+	}
+
+	private void syncSolrConfigurationFiles() {
+		DataLayerFactory dataLayerFactory = getDataLayerFactory();
+		for (BigVaultServer server : dataLayerFactory.getSolrServers().getServers()) {
+			AtomicFileSystem serverFileSystem = server.getSolrFileSystem();
+			AtomicFileSystem defaultConfiguration = new ChildAtomicFileSystem(
+					new AtomicLocalFileSystem(dataLayerFactory.getIOServicesFactory().newHashingService()),
+					getServerConfigurations(server.getName()));
+
+			LOGGER.info("Syncing the <{}> configurations...", server.getName());
+			if (!AtomicFileSystemUtils.sync(defaultConfiguration, serverFileSystem)) {
+				server.reload();
+				LOGGER.info("Reloading the <{}> server", server.getName());
+			} else 
+				LOGGER.info("No reloading for the <{}> server", server.getName());
+
+		}
 	}
 
 	protected Record newRecordOfZeSchema() {
