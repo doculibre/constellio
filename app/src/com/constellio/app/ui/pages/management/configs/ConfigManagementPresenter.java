@@ -27,7 +27,7 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			return;
 		}
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-		List<SystemConfiguration> previousConfigs = systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrdredByName(groupCode);
+		List<SystemConfiguration> previousConfigs = systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrderedByName(groupCode);
 		ValidationErrors errors = new ValidationErrors();
 		for (int i = 0; i < previousConfigs.size(); i++) {
 			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);

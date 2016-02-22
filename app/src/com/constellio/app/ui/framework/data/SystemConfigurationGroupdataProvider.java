@@ -36,7 +36,7 @@ public class SystemConfigurationGroupdataProvider implements DataProvider {
 		for (SystemConfigurationGroup group : sysConfigGroup) {
 			List<SystemConfigurationVO> sysConfigGroupVOList = new ArrayList<>();
 
-			for (SystemConfiguration config : systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrdredByName(group.getCode())){
+			for (SystemConfiguration config : systemConfigurationsManager.getNonHiddenGroupConfigurationsWithCodeOrderedByName(group.getCode())){
 				//if (!config.isHidden()) {
 					sysConfigGroupVOList.add(builder.build(config, systemConfigurationsManager.getValue(config)));
 				//}

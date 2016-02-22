@@ -54,11 +54,12 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public final void enter(ViewChangeEvent event) {
-		for (ViewEnterListener viewEnterListener : viewEnterListeners) {
-			viewEnterListener.viewEntered(event.getParameters());
+		if (event != null) {
+			for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+				viewEnterListener.viewEntered(event.getParameters());
+			}
 		}
 
-		//if (!(this instanceof RecordsManagementViewImpl)) {
 		try {
 			initBeforeCreateComponents(event);
 		} catch (Exception e) {
@@ -71,10 +72,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			}
 			return;
 		}
-		//}
 
-		for (ViewEnterListener viewEnterListener : viewEnterListeners) {
-			viewEnterListener.afterInit(event.getParameters());
+		if (event != null) {
+			for (ViewEnterListener viewEnterListener : viewEnterListeners) {
+				viewEnterListener.afterInit(event.getParameters());
+			}
 		}
 
 		addStyleName("main-component-wrapper");

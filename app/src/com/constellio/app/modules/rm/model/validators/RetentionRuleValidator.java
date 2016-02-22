@@ -72,11 +72,14 @@ public class RetentionRuleValidator implements RecordValidator {
 		validateAdministrativeUnits(retentionRule, schema, configProvider, validationErrors);
 		validateCopyRetentionRules(retentionRule, schema, validationErrors, configProvider);
 		validateDocumentCopyRetentionRules(retentionRule, schema, validationErrors, configProvider);
-		validateDefaultDocumentCopyRetentionRules(retentionRule, schema, validationErrors);
+		validateDefaultDocumentCopyRetentionRules(retentionRule, schema, validationErrors, configProvider);
 	}
 
 	private void validateDefaultDocumentCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
-			ValidationErrors validationErrors) {
+			ValidationErrors validationErrors, ConfigProvider configProvider) {
+		if (!configProvider.<Boolean>get(RMConfigs.DOCUMENT_RETENTION_RULES)) {
+			return;
+		}
 		if (retentionRule.getScope() == RetentionRuleScope.DOCUMENTS) {
 			if (retentionRule.getPrincipalDefaultDocumentCopyRetentionRule() == null) {
 				validationErrors.add(getClass(), PRINCIPAL_DEFAULT_COPY_RETENTION_RULE_REQUIRED_IN_DOCUMENT_RULE);

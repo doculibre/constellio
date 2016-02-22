@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -53,22 +54,15 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.users.UserServices;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
-
-	private DocumentToVOBuilder voBuilder;
-
 	private transient ContentVersionToVOBuilder contentVersionToVOBuilder;
 
+	private DocumentToVOBuilder voBuilder;
 	private boolean addView;
 	private boolean addViewWithCopy;
-
 	private DocumentVO documentVO;
-
 	private String userDocumentId;
-
 	private SchemaPresenterUtils userDocumentPresenterUtils;
-
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
-
 	private boolean newFile;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
@@ -116,7 +110,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 
 		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
-		if (addView && userDocumentId != null) {
+		if (userDocumentId != null) {
 			populateFromUserDocument(userDocumentId);
 		}
 		if (addViewWithCopy) {
@@ -245,10 +239,34 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			view.navigateTo().displayDocument(documentVO.getId());
 		}
 	}
+	
+	private void setAsNewVersionOfContent(Document document) {
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		Document documentBeforeChange = rmSchemasRecordsServices.getDocument(document.getId());
+		Content contentBeforeChange = documentBeforeChange.getContent();
+		ContentVersionVO contentVersionVO = documentVO.getContent();
+		String filename = contentVersionVO.getFileName();
+		InputStream in = contentVersionVO.getInputStreamProvider().getInputStream("AddEditDocumentPresenter.saveButtonClicked");
+		boolean majorVersion = Boolean.TRUE.equals(contentVersionVO.isMajorVersion());
+		
+		ContentVersionDataSummary contentVersionSummary;
+		try {
+			contentVersionSummary = contentManager.upload(in);
+		} finally {
+			IOUtils.closeQuietly(in);
+		}
+		contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
+		document.setContent(contentBeforeChange);
+	}
 
 	public void saveButtonClicked() {
 		Record record = toRecord(documentVO, newFile);
 		Document document = rmSchemas().wrapDocument(record);
+		
+		boolean editWithUserDocument = !addView && userDocumentId != null; 
+		if (editWithUserDocument) {
+			setAsNewVersionOfContent(document);
+		}
 
 		if (!canSaveDocument(document, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));

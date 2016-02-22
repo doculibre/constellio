@@ -175,7 +175,6 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 				mainLayout.addComponent(formLayout);
 			}
 		});
-		preSetupButtonsLayout.addComponent(loadSaveStateButton);
 	}
 
 	private void buildFields() {
