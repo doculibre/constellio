@@ -112,6 +112,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	// CHECKSTYLE:OFF
 	// Junit requires this field to be public
 	@Rule public SkipTestsRule skipTestRule;
+	@Rule public CloseResources closeResources;
 
 	@Rule public FailureDetectionTestWatcher failureDetectionTestWatcher = new FailureDetectionTestWatcher(this);
 
