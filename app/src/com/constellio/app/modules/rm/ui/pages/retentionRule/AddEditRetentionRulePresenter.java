@@ -240,7 +240,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			RetentionRuleScope scope = rule.getScope();
 			defaultDocumentsCopyRetentionRulesVisible = scope == RetentionRuleScope.DOCUMENTS;
 		} else {
-			defaultDocumentsCopyRetentionRulesVisible = true;
+			defaultDocumentsCopyRetentionRulesVisible = false;
 		}
 		return defaultDocumentsCopyRetentionRulesVisible;
 	}

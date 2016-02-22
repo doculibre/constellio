@@ -2,6 +2,7 @@ package com.constellio.app.modules.complementary.esRmRobots.model;
 
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -13,6 +14,7 @@ public class ClassifyConnectorDocumentInFolderActionParameters extends ActionPar
 	public static final String SCHEMA = SCHEMA_TYPE + "_" + SCHEMA_LOCAL_CODE;
 
 	public static final String IN_FOLDER = "inFolder";
+	public static final String DOCUMENT_TYPE = "documentType";
 	public static final String MAJOR_VERSIONS = "majorVersions";
 	public static final String VERSIONS = "versions";
 	public static final String ACTION_AFTER_CLASSIFICATION = "actionAfterClassification";
@@ -41,6 +43,25 @@ public class ClassifyConnectorDocumentInFolderActionParameters extends ActionPar
 		return this;
 	}
 
+	public ClassifyConnectorDocumentInFolderActionParameters setDocumentType(String documentTypeId) {
+		set(DOCUMENT_TYPE, documentTypeId);
+		return this;
+	}
+
+	public ClassifyConnectorDocumentInFolderActionParameters setDocumentType(Record documentType) {
+		set(DOCUMENT_TYPE, documentType);
+		return this;
+	}
+
+	public ClassifyConnectorDocumentInFolderActionParameters setDocumentType(DocumentType documentType) {
+		set(DOCUMENT_TYPE, documentType);
+		return this;
+	}
+
+	public String getDocumentType() {
+		return get(DOCUMENT_TYPE);
+	}
+
 	public boolean isMajorVersions() {
 		return getBooleanWithDefaultValue(MAJOR_VERSIONS, true);
 	}
@@ -48,12 +69,12 @@ public class ClassifyConnectorDocumentInFolderActionParameters extends ActionPar
 	public Boolean getMajorVersions() {
 		return get(MAJOR_VERSIONS);
 	}
-	
+
 	public ClassifyConnectorDocumentInFolderActionParameters setVersions(String versions) {
-		set(VERSIONS,versions);
+		set(VERSIONS, versions);
 		return this;
 	}
-	
+
 	public String getVersions() {
 		return get(VERSIONS);
 	}

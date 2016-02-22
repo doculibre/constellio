@@ -5,10 +5,13 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
+import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleDisplayFactory.RetentionRuleDisplayPresenter;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -25,7 +28,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<DisplayRetentionRuleView> {
+public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<DisplayRetentionRuleView>
+		implements RetentionRuleDisplayPresenter {
 	private RetentionRuleVO retentionRuleVO;
 	private transient DecommissioningService decommissioningService;
 
@@ -36,13 +40,10 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	public void forParams(String params) {
 		Record record = getRecord(params);
-		retentionRuleVO = new RetentionRuleToVOBuilder(appLayerFactory, types().getDefaultSchema(Category.SCHEMA_TYPE),
-				schema(UniformSubdivision.DEFAULT_SCHEMA))
+		retentionRuleVO = new RetentionRuleToVOBuilder(
+				appLayerFactory, types().getDefaultSchema(Category.SCHEMA_TYPE), schema(UniformSubdivision.DEFAULT_SCHEMA))
 				.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setRetentionRule(retentionRuleVO);
-	}
-
-	public void viewAssembled() {
 	}
 
 	public void backButtonClicked() {
@@ -59,11 +60,6 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 		view.navigateTo().listRetentionRules();
 	}
 
-	@Override
-	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
-	}
-
 	public String getFoldersNumber() {
 		return String.valueOf(decommissioningService.getFoldersForRetentionRule(retentionRuleVO.getId()).size());
 	}
@@ -76,6 +72,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 		return recordService.isLogicallyDeletable(record, user);
 	}
 
+	@Override
 	public List<VariableRetentionPeriodVO> getOpenActivePeriodsDDVList() {
 		List<String> variablePeriodCodes = new ArrayList<>();
 		for (CopyRetentionRule copyRetentionRule : retentionRuleVO.getCopyRetentionRules()) {
@@ -94,5 +91,34 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 			returnList.add(variableRetentionPeriodVO);
 		}
 		return returnList;
+	}
+
+	@Override
+	public boolean shouldDisplayFolderRetentionRules() {
+		return !areDocumentRetentionRulesEnabled() || retentionRuleVO.getScope() == RetentionRuleScope.DOCUMENTS_AND_FOLDER;
+	}
+
+	@Override
+	public boolean shouldDisplayDocumentRetentionRules() {
+		return areDocumentRetentionRulesEnabled();
+	}
+
+	@Override
+	public boolean shouldDisplayDefaultDocumentRetentionRules() {
+		return areDocumentRetentionRulesEnabled() && retentionRuleVO.getScope() == RetentionRuleScope.DOCUMENTS;
+	}
+
+	@Override
+	public boolean shouldDisplayDocumentTypeDetails() {
+		return !areDocumentRetentionRulesEnabled();
+	}
+
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+	}
+
+	private boolean areDocumentRetentionRulesEnabled() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
 	}
 }

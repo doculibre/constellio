@@ -46,11 +46,6 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 	}
 
 	@Override
-	protected void afterViewAssembled(ViewChangeEvent event) {
-		presenter.viewAssembled();
-	}
-
-	@Override
 	public void setRetentionRule(RetentionRuleVO retentionRuleVO) {
 		this.retentionRuleVO = retentionRuleVO;
 	}
@@ -65,7 +60,7 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 
-		recordDisplay = new RetentionRuleDisplay(retentionRuleVO, presenter.getOpenActivePeriodsDDVList());
+		recordDisplay = new RetentionRuleDisplay(presenter, retentionRuleVO);
 		recordDisplay.setWidth("100%");
 
 		mainLayout.addComponent(recordDisplay);

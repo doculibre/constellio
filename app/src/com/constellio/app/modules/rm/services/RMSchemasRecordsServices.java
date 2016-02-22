@@ -370,6 +370,14 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return new Document(get(id), getTypes());
 	}
 
+	public List<Document> getDocuments(List<String> recordIds) {
+		List<Document> documents = new ArrayList<>();
+		for (String recordId : recordIds) {
+			documents.add(getDocument(recordId));
+		}
+		return documents;
+	}
+
 	public Document newDocument() {
 		return new Document(create(defaultDocumentSchema()), getTypes());
 	}
@@ -452,7 +460,7 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	public DocumentType getDocumentType(String id) {
-		return new DocumentType(get(id), getTypes());
+		return wrapDocumentType(id == null ? null : get(id));
 	}
 
 	public DocumentType getDocumentTypeByCode(String code) {
@@ -1489,5 +1497,9 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		}
 
 		return returnedTypes;
+	}
+
+	public DocumentType emailDocumentType() {
+		return getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE);
 	}
 }

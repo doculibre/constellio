@@ -52,7 +52,7 @@ public class ModulesAndMigrationsTestFeatures {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-			doReturn(modules).when(pluginManager).getActivePlugins();
+			doReturn(modules).when(pluginManager).getRegistredModulesAndActivePlugins();
 		}
 		ConstellioModulesManager modulesManager = appFactory.getModulesManager();
 		try {

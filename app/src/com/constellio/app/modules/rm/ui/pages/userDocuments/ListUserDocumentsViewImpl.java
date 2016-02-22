@@ -45,50 +45,33 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
-	
 	public static final String STYLE_NAME = "user-documents";
-	
 	public static final String STYLE_LAYOUT = STYLE_NAME + "-layout";
-	
 	public static final String TABLE_STYLE_NAME = STYLE_NAME + "-table";
-	
-	private static final String SELECT_PROPERTY_ID = "select";
-	
-	private static final String CAPTION_PROPERTY_ID = "caption";
-	
-	private static final String FOLDER_PROPERTY_ID = "folder";
-	
+	public static final String SELECT_PROPERTY_ID = "select";
+	public static final String CAPTION_PROPERTY_ID = "caption";
+	public static final String FOLDER_PROPERTY_ID = "folder";
+
 	private DragAndDropWrapper dragAndDropWrapper;
-	
 	private VerticalLayout mainLayout;
-	
 	private MultiFileUpload multiFileUpload;
-	
 	private HorizontalLayout setFolderLayout;
-	
 	private LookupRecordField setFolderLookupField;
-	
 	private Button setFolderButton;
-	
 	private List<UserDocumentVO> selectedUserDocuments = new ArrayList<>();
-	
 	private ButtonsContainer<IndexedContainer> userDocumentsContainer;
-	
 	private RecordVOTable userDocumentsTable;
-	
 	private ListUserDocumentsPresenter presenter;
-	
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
-	
+
 	public ListUserDocumentsViewImpl() {
 		addStyleName(STYLE_NAME);
 		setCaption($("UserDocumentsWindow.title"));
-		
+
 		mainLayout = new VerticalLayout();
 		mainLayout.addStyleName(STYLE_LAYOUT);
 		mainLayout.setSpacing(true);
-//		mainLayout.setSizeFull();
-		
+
 		multiFileUpload = new BaseMultiFileUpload() {
 			@Override
 			protected void handleFile(File file, String fileName, String mimeType, long length) {
@@ -96,12 +79,12 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			}
 		};
 		multiFileUpload.setWidth("100%");
-		
+
 		setFolderLayout = new HorizontalLayout();
 		setFolderLayout.setSpacing(true);
-		
+
 		setFolderLookupField = new LookupRecordField(Folder.SCHEMA_TYPE);
-		
+
 		setFolderButton = new Button($("ListUserDocumentsView.setFolder"));
 		setFolderButton.addClickListener(new ClickListener() {
 			@Override
@@ -109,7 +92,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				presenter.setFolderButtonClicked();
 			}
 		});
-		
+
 		userDocumentsContainer = new ButtonsContainer<IndexedContainer>(new IndexedContainer()) {
 			@Override
 			public Collection<?> getContainerPropertyIds() {
@@ -171,7 +154,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		};
 		userDocumentsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
 		userDocumentsContainer.addContainerProperty(FOLDER_PROPERTY_ID, Component.class, null);
-		
+
 		userDocumentsContainer.addButton(new DeclareUserDocumentContainerButton());
 		userDocumentsContainer.addButton(new ContainerButton() {
 			@Override
@@ -196,17 +179,17 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		userDocumentsTable.setColumnHeader(FOLDER_PROPERTY_ID, $("ListUserDocumentsView.folderColumnTitle"));
 		userDocumentsTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		userDocumentsTable.setColumnExpandRatio(CAPTION_PROPERTY_ID, 1);
-		
+
 		mainLayout.addComponents(multiFileUpload, setFolderLayout, userDocumentsTable);
 		setFolderLayout.addComponents(setFolderLookupField, setFolderButton);
-		
+
 		mainLayout.setComponentAlignment(setFolderLayout, Alignment.MIDDLE_CENTER);
 
 		dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
 		dragAndDropWrapper.setDropHandler(multiFileUpload);
 	}
-	
+
 	@Override
 	public String getFolderId() {
 		return setFolderLookupField.getValue();
@@ -233,16 +216,16 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {	
+	protected Component buildMainComponent(ViewChangeEvent event) {
 		return dragAndDropWrapper;
 	}
-	
+
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
 		presenter = new ListUserDocumentsPresenter(this);
 		presenter.viewAssembled();
 	}
-	
+
 	protected Component newCaptionComponent(UserDocumentVO userDocumentVO) {
 		ContentVersionVO contentVersionVO = userDocumentVO.getContent();
 		return new ContentVersionDisplay(userDocumentVO, contentVersionVO, contentVersionVO.getFileName());

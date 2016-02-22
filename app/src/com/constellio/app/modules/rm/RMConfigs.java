@@ -61,6 +61,8 @@ public class RMConfigs {
 	public static final SystemConfiguration OPEN_HOLDER;
 
 	static {
+		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
+
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, "decommissioning");
 
 		// Allow to enter retention rules for documents
