@@ -13,6 +13,7 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 
 public class CollectionsListManager implements StatefulService, ConfigUpdatedEventListener {
@@ -22,6 +23,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	private final ConfigManager configManager;
 
 	List<String> collections = new ArrayList<>();
+	List<String> collectionsExcludingSystem = new ArrayList<>();
 
 	List<CollectionsListManagerListener> listeners = new ArrayList<>();
 
@@ -37,10 +39,18 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 		if (configManager.exist(CONFIG_FILE_PATH)) {
 			// Config manager not mocked
-			collections = readCollections();
+			setCollections(readCollections());
 		} else {
-			collections = new ArrayList<>();
+			setCollections(new ArrayList<String>());
 		}
+
+	}
+
+	private void setCollections(List<String> collections) {
+		this.collections = Collections.unmodifiableList(collections);
+		this.collectionsExcludingSystem = new ArrayList<>(collections);
+		this.collectionsExcludingSystem.remove(Collection.SYSTEM_COLLECTION);
+		this.collectionsExcludingSystem = Collections.unmodifiableList(collectionsExcludingSystem);
 	}
 
 	public List<CollectionsListManagerListener> getListeners() {
@@ -53,6 +63,10 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 	public List<String> getCollections() {
 		return collections;
+	}
+
+	public List<String> getCollectionsExcludingSystem() {
+		return collectionsExcludingSystem;
 	}
 
 	public void registerCollectionsListener(CollectionsListManagerListener listener) {
@@ -70,7 +84,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 				}
 			}
 		}
-		this.collections = newCollectionList;
+		setCollections(newCollectionList);
 	}
 
 	public List<String> readCollections() {
@@ -84,7 +98,6 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 	public void remove(String collection) {
 		Document document = configManager.getXML(CONFIG_FILE_PATH).getDocument();
-		List<String> collections = new ArrayList<>();
 		for (Element collectionElement : document.getRootElement().getChildren()) {
 			if (collection.equals(collectionElement.getName())) {
 				configManager.updateXML(CONFIG_FILE_PATH, removeCollectionDocumentAlteration(collection));

@@ -187,7 +187,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	}
 
 	public List<String> getAllCollections() {
-		return collectionsListManager.getCollections();
+		return collectionsListManager.getCollectionsExcludingSystem();
 	}
 
 	public void setParamsMap(Map<String, String> paramsMap) {

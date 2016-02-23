@@ -1,5 +1,6 @@
 package com.constellio.app.services.systemSetup;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -89,19 +90,19 @@ public class SystemSetupServicesAcceptTest extends ConstellioTest {
 		systemSetupService.setup();
 
 		thenHasAdminUserWithCorrectServiceKeyAndPassword();
-		thenHasNoCollection();
+		thenHasNoCollectionExceptSystem();
 
 	}
 
-	private void thenHasNoCollection() {
-		assertThat(getModelLayerFactory().getCollectionsListManager().getCollections()).isEmpty();
+	private void thenHasNoCollectionExceptSystem() {
+		assertThat(getModelLayerFactory().getCollectionsListManager().getCollections()).containsOnly(SYSTEM_COLLECTION);
 	}
 
 	private void thenMyCollectionIsCreatedWithModulesAndAdminUser() {
 
 		Record aRecord = mock(Record.class);
 		assertThat(getModelLayerFactory().getCollectionsListManager().getCollections())
-				.containsOnly("myCollection1", "myCollection2");
+				.containsOnly("myCollection1", "myCollection2", SYSTEM_COLLECTION);
 
 		List<? extends Module> modules = getAppLayerFactory().getModulesManager().getEnabledModules("myCollection1");
 		assertThat(modules).hasSize(2);

@@ -1,6 +1,7 @@
 package com.constellio.app.services.collections;
 
-import java.util.ArrayList;
+import static java.util.Arrays.asList;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +13,6 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotCreateCollectionRecord;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotMigrateCollection;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotRemoveCollection;
@@ -80,10 +80,23 @@ public class CollectionsManager implements StatefulService {
 	@Override
 	public void initialize() {
 		// No initialization required.
+		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
+			createSystemCollection();
+		}
+	}
+
+	private void createSystemCollection() {
+		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		List<String> languages = asList(mainDataLanguage);
+		createCollectionInCurrentVersion(Collection.SYSTEM_COLLECTION, languages);
 	}
 
 	public List<String> getCollectionCodes() {
 		return collectionsListManager.getCollections();
+	}
+
+	public List<String> getCollectionCodesExcludingSystem() {
+		return collectionsListManager.getCollectionsExcludingSystem();
 	}
 
 	void addGlobalGroupsInCollection(String code) {
@@ -286,9 +299,11 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	private void validateCode(String code) {
-		String pattern = "([a-zA-Z0-9])+";
-		if (code == null || !code.matches(pattern)) {
-			throw new CollectionsManagerRuntimeException_InvalidCode(code);
+		if (!Collection.SYSTEM_COLLECTION.equals(code)) {
+			String pattern = "([a-zA-Z0-9])+";
+			if (code == null || !code.matches(pattern)) {
+				throw new CollectionsManagerRuntimeException_InvalidCode(code);
+			}
 		}
 	}
 

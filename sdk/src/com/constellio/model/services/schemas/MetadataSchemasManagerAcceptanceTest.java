@@ -159,11 +159,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 		schemasManager.saveUpdateSchemaTypes(collection2Builder);
 
+		MetadataSchemaTypes systemTypes = schemasManager.getSchemaTypes("_system_");
 		MetadataSchemaTypes typesCollection1 = schemasManager.getSchemaTypes("collection1");
 		MetadataSchemaTypes typesCollection2 = schemasManager.getSchemaTypes("collection2");
 		MetadataSchemaTypes zeCollectionTypes = schemasManager.getSchemaTypes(zeCollection);
 		assertThat(schemasManager.getAllCollectionsSchemaTypes())
-				.containsOnly(typesCollection1, typesCollection2, zeCollectionTypes);
+				.containsOnly(typesCollection1, typesCollection2, zeCollectionTypes, systemTypes);
 		assertThat(typesCollection1.getCollection()).isEqualTo("collection1");
 		assertThat(typesCollection1.getSchemaTypes()).hasSize(11);
 		assertThat(typesCollection1.getSchemaType("a")).isNotNull();
