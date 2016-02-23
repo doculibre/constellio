@@ -12,6 +12,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -29,7 +30,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	public SolrUserCredentialsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		searchServices = modelLayerFactory.newSearchServices();
-		schemas = new SchemasRecordsServices("system", modelLayerFactory);
+		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
 	@Override
@@ -204,12 +205,12 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 
 	@Override
 	public void rewrite() {
-
+		// Nothing to be done
 	}
 
 	@Override
 	public void onConfigUpdated(String configPath) {
-
+		// Nothing to be done, I believe
 	}
 
 	@Override
