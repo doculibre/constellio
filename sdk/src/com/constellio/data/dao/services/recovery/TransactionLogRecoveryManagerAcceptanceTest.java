@@ -46,6 +46,7 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 	public void setUp()
 			throws Exception {
 		givenTransactionLogIsEnabled();
+		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()

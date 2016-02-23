@@ -170,7 +170,7 @@ public class AfterTestValidationsTestFeature {
 	}
 
 	public void startRollbackNow() {
-		if (isValidatingRollbackLog()) {
+		if (isValidatingRollbackLog() && !disabledInCurrentTest) {
 
 			if (factoriesTestFeatures.isInitialized()) {
 				DataLayerFactory dataLayerFactory = factoriesTestFeatures.getConstellioFactories().getDataLayerFactory();
