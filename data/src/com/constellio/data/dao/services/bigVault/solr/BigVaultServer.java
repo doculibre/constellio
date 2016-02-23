@@ -94,11 +94,11 @@ public class BigVaultServer implements Cloneable {
 		this.listeners.add(listener);
 	}
 
-	public void unregisterListener(String listenerId) {
+	public void unregisterListener(BigVaultServerListener listener) {
 		Iterator<BigVaultServerListener> iterator = this.listeners.iterator();
 		while (iterator.hasNext()) {
 			BigVaultServerListener existingListener = iterator.next();
-			if (existingListener.getListenerUniqueId().equals(listenerId)) {
+			if (existingListener.getListenerUniqueId().equals(listener.getListenerUniqueId())) {
 				iterator.remove();
 				//only one
 				return;

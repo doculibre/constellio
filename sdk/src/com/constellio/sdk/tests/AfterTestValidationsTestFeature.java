@@ -108,9 +108,10 @@ public class AfterTestValidationsTestFeature {
 	}
 
 	private void checkRecovery(SolrSDKToolsServices tools, TransactionLogRecoveryManager transactionLogRecoveryManager) {
-		transactionLogRecoveryManager.rollback(null);
-
-		tools.ensureSameSnapshots(rollbackReplayMessage, snapshotBeforeReplay, tools.snapshot());
+		if (snapshotBeforeReplay != null) {
+			transactionLogRecoveryManager.rollback(null);
+			tools.ensureSameSnapshots(rollbackReplayMessage, snapshotBeforeReplay, tools.snapshot());
+		}
 	}
 
 	private void validateSecondTransactionLog(SolrSDKToolsServices tools)

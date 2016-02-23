@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.transactionLog.writer1;
 
+import static com.constellio.data.dao.services.solr.DateUtils.correctDate;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -169,7 +171,7 @@ public class TransactionWriterV1 {
 
 		} else if (value instanceof Date) {
 			LocalDateTime dateTime = new LocalDateTime(value);
-			return dateTime.toString().replace("Z", "");
+			return correctDate(dateTime).toString().replace("Z", "");
 
 		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
 			return value.toString().replace("Z", "");

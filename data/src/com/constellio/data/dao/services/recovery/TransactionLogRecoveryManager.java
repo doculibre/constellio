@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
 import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
@@ -83,7 +84,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	void realStopRollback() {
-		dataLayerFactory.getRecordsVaultServer().unregisterListener(this.getListenerUniqueId());
+		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
 		deleteRecoveryFile();
 		inRollbackMode = false;
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
@@ -102,7 +103,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	public void disableRollbackModeDuringSolrRestore() {
-		this.inRollbackMode = false;
+		stopRollbackMode();
 	}
 
 	@Override
@@ -113,7 +114,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	void realRollback(Throwable t) {
-		dataLayerFactory.getRecordsVaultServer().unregisterListener(this.getListenerUniqueId());
+		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
 		recover();
 		deleteRecoveryFile();
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
@@ -124,13 +125,21 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	private void recover() {
-		SolrClient server = dataLayerFactory.getRecordsVaultServer().getNestedSolrServer();
+		BigVaultServer bigVaultServer = dataLayerFactory.getRecordsVaultServer();
+		SolrClient server = bigVaultServer.getNestedSolrServer();
 		this.deletedRecordsIds.removeAll(this.newRecordsIds);
 		this.updatedRecordsIds.removeAll(this.newRecordsIds);
 		removeNewRecords(server);
 		Set<String> alteredDocuments = new HashSet<>(this.deletedRecordsIds);
 		alteredDocuments.addAll(this.updatedRecordsIds);
 		restore(server, alteredDocuments);
+		try {
+			bigVaultServer.softCommit();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void restore(SolrClient server, Set<String> alteredRecordsIds) {
@@ -193,9 +202,9 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 				//throw new ImpossibleRuntimeException("Delete by query not supported in recovery mode");
 			}
 		}
-		//handleNewDocuments(transaction.getNewDocuments());
-		//handleUpdatedDocuments(transaction.getUpdatedDocuments());
-		//handleDeletedDocuments(transaction.getDeletedRecords());
+		handleNewDocuments(transaction.getNewDocuments());
+		handleUpdatedDocuments(transaction.getUpdatedDocuments());
+		handleDeletedDocuments(transaction.getDeletedRecords());
 	}
 
 	private boolean isTestMode() {
@@ -275,7 +284,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 				loadedDocuments.add(currentId);
 			}
 		}
-		//appendLoadedRecordsFile(this.readWriteServices.toLogEntry(documentsToSave));
+		appendLoadedRecordsFile(this.readWriteServices.toLogEntry(documentsToSave));
 		this.loadedRecordsIds.addAll(loadedDocuments);
 	}
 
@@ -293,6 +302,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	public void close() {
+		stopRollbackMode();
 		deleteRecoveryFile();
 	}
 
