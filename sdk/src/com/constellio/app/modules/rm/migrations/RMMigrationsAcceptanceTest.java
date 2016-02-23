@@ -41,7 +41,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		if (getModelLayerFactory().getCollectionsListManager().getCollections().contains(zeCollection)) {
 			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-			if (types.hasType(RetentionRule.SCHEMA_TYPE))  {
+			if (types.hasType(RetentionRule.SCHEMA_TYPE)) {
 				whenMigratingToCurrentVersionThenValidSchemas();
 				whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly();
 				whenMigratingToCurrentVersionThenHasValueListWithDefaultItems();
@@ -92,8 +92,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
 		if (testCase.contains("rm") && !testCase.contains("es")) {
-		assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
-				ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE);
+			assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
+					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE);
 		}
 
 		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel()).isEqualTo("Date de l'événement");
@@ -108,7 +108,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 	private List<String> allSchemaTypesWithSecurity() {
 		List<String> types = new ArrayList<>();
-		for(String collection : getModelLayerFactory().getCollectionsListManager().getCollections()) {
+		for (String collection : getModelLayerFactory().getCollectionsListManager().getCollections()) {
 			for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaTypes()) {
 				if (type.hasSecurity()) {

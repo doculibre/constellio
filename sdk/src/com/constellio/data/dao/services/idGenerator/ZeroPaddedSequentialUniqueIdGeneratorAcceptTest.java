@@ -90,9 +90,9 @@ public class ZeroPaddedSequentialUniqueIdGeneratorAcceptTest extends ConstellioT
 	public void whenGetIdsThenZeroPadded()
 			throws Exception {
 
-		assertThat(zeroPaddedSequentialUniqueIdGenerator.next()).isEqualTo("00000000001");
-		assertThat(zeroPaddedSequentialUniqueIdGenerator.next()).isEqualTo("00000000002");
-		assertThat(zeroPaddedSequentialUniqueIdGenerator.next()).isEqualTo("00000000003");
+		assertThat(zeroPaddedSequentialUniqueIdGenerator.next()).isEqualTo("00000001001");
+		assertThat(zeroPaddedSequentialUniqueIdGenerator.next()).isEqualTo("00000001002");
+		assertThat(zeroPaddedSequentialUniqueIdGenerator.next()).isEqualTo("00000001003");
 
 	}
 
@@ -105,14 +105,14 @@ public class ZeroPaddedSequentialUniqueIdGeneratorAcceptTest extends ConstellioT
 		ZeroPaddedSequentialUniqueIdGenerator generator2 = new ZeroPaddedSequentialUniqueIdGenerator(
 				getDataLayerFactory().getConfigManager(), 3);
 
-		assertThat(generator1.next()).isEqualTo("00000000001");
-		assertThat(generator2.next()).isEqualTo("00000000004");
-		assertThat(generator1.next()).isEqualTo("00000000002");
-		assertThat(generator2.next()).isEqualTo("00000000005");
-		assertThat(generator1.next()).isEqualTo("00000000003");
-		assertThat(generator2.next()).isEqualTo("00000000006");
-		assertThat(generator2.next()).isEqualTo("00000000007");
-		assertThat(generator1.next()).isEqualTo("00000000010");
+		assertThat(generator1.next()).isEqualTo("00000001001");
+		assertThat(generator2.next()).isEqualTo("00000001004");
+		assertThat(generator1.next()).isEqualTo("00000001002");
+		assertThat(generator2.next()).isEqualTo("00000001005");
+		assertThat(generator1.next()).isEqualTo("00000001003");
+		assertThat(generator2.next()).isEqualTo("00000001006");
+		assertThat(generator2.next()).isEqualTo("00000001007");
+		assertThat(generator1.next()).isEqualTo("00000001010");
 
 	}
 }
