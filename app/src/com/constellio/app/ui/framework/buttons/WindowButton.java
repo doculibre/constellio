@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.buttons;
 import java.io.Serializable;
 
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -33,9 +34,14 @@ public abstract class WindowButton extends Button implements Button.ClickListene
 	}
 
 	public WindowButton(Resource icon, String caption, boolean iconOnly, WindowConfiguration configuration) {
+		this(icon, caption, caption, iconOnly, configuration);
+	}
+
+	public WindowButton(
+			Resource icon, String caption, String windowCaption, boolean iconOnly, WindowConfiguration configuration) {
 		super(caption, icon);
 		this.configuration = configuration;
-		windowCaption = caption;
+		this.windowCaption = windowCaption;
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		if (iconOnly) {
@@ -55,6 +61,9 @@ public abstract class WindowButton extends Button implements Button.ClickListene
 		window.setHeight(configuration.getHeight());
 		Component windowContent = buildWindowContent();
 		windowContent.addStyleName(WINDOW_CONTENT_STYLE_NAME);
+		if (windowContent instanceof BaseViewImpl) {
+			((BaseViewImpl) windowContent).enter(null);
+		}
 		window.setContent(windowContent);
 		if (zIndex != null) {
 			window.setZIndex(zIndex);

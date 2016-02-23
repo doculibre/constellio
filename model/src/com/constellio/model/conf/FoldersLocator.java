@@ -370,6 +370,14 @@ public class FoldersLocator {
 		return new File(getConstellioProject(), "sdk");
 	}
 
+	public File getPluginsRepository() {
+		return new File(getConstellioProject().getParentFile(), "constellio-plugins");
+	}
+
+	public File getPluginsSDKProject() {
+		return new File(getPluginsRepository(), "sdk");
+	}
+
 	public File getLanguageProfiles() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			return new File(getConstellioWebinfFolder(), "languageProfiles");

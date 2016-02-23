@@ -52,7 +52,7 @@ public class SystemSetupServicesAcceptTest extends ConstellioTest {
 		modules.add(new TaskModule());
 
 		pluginManager = getAppLayerFactory().getPluginManager();
-		when(pluginManager.getActivePlugins()).thenReturn(modules);
+		when(pluginManager.getRegistredModulesAndActivePlugins()).thenReturn(modules);
 	}
 
 	@Test

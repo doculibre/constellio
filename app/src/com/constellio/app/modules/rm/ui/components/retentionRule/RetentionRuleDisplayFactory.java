@@ -17,10 +17,12 @@ import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.vaadin.ui.Component;
 
 public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
-	private List<VariableRetentionPeriodVO> openPeriodsDDVList;
+	private final RetentionRuleDisplayPresenter presenter;
+	private final List<VariableRetentionPeriodVO> openPeriodsDDVList;
 
-	public RetentionRuleDisplayFactory(List<VariableRetentionPeriodVO> openPeriodsDDVList) {
-		this.openPeriodsDDVList = openPeriodsDDVList;
+	public RetentionRuleDisplayFactory(RetentionRuleDisplayPresenter presenter) {
+		this.presenter = presenter;
+		this.openPeriodsDDVList = presenter.getOpenActivePeriodsDDVList();
 	}
 
 	@Override
@@ -31,18 +33,34 @@ public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 		RetentionRuleVO retentionRuleVO = (RetentionRuleVO) recordVO;
 		if (COPY_RETENTION_RULES.equals(metadataCode)) {
 			component = new FolderCopyRetentionRuleTable(retentionRuleVO, false, openPeriodsDDVList);
+			component.setVisible(presenter.shouldDisplayFolderRetentionRules());
 		} else if (DOCUMENT_COPY_RETENTION_RULES.equals(metadataCode)) {
 			component = new DocumentCopyRetentionRuleTable(retentionRuleVO, false, openPeriodsDDVList);
+			component.setVisible(presenter.shouldDisplayDocumentRetentionRules());
 		} else if (PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE.equals(metadataCode)) {
 			component = new DocumentDefaultCopyRetentionRuleTable(retentionRuleVO, false, openPeriodsDDVList);
+			component.setVisible(presenter.shouldDisplayDefaultDocumentRetentionRules());
 		} else if (SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE.equals(metadataCode)) {
 			component = null;
 		} else if (DOCUMENT_TYPES_DETAILS.equals(metadataCode)) {
 			component = new RetentionRuleDocumentTypeDisplay(retentionRuleVO);
+			component.setVisible(presenter.shouldDisplayDocumentTypeDetails());
 		} else {
 			component = super.build(recordVO, metadataValueVO);
 		}
 		return component;
 	}
 
+	public interface RetentionRuleDisplayPresenter {
+
+		List<VariableRetentionPeriodVO> getOpenActivePeriodsDDVList();
+
+		boolean shouldDisplayFolderRetentionRules();
+
+		boolean shouldDisplayDocumentRetentionRules();
+
+		boolean shouldDisplayDefaultDocumentRetentionRules();
+
+		boolean shouldDisplayDocumentTypeDetails();
+	}
 }

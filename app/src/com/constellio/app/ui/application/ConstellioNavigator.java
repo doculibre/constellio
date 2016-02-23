@@ -90,6 +90,14 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(viewPath);
 	}
 
+	public void editDocument(String id, String userDocumentId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("userDocumentId", userDocumentId);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params);
+		vaadinNavigator.navigateTo(viewPath);
+	}
+
 	public void displayDocument(String id) {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
 	}
@@ -446,6 +454,17 @@ public class ConstellioNavigator {
 
 	public void listUserDocuments() {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_USER_DOCUMENTS);
+	}
+
+	public void declareUserDocument(String userDocumentId, String folderId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("userDocumentId", userDocumentId);
+		if (folderId != null) {
+			params.put("parentId", folderId);
+		}
+
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_DOCUMENT, params);
+		vaadinNavigator.navigateTo(viewPath);
 	}
 
 	public void declareUserDocument(String userDocumentId) {

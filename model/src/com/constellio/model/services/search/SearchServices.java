@@ -224,10 +224,10 @@ public class SearchServices {
 		}
 
 		String userCondition = "";
-		if (query.getQueryCondition() != null){
+		if (query.getQueryCondition() != null) {
 			userCondition = " AND " + query.getQueryCondition().getSolrQuery(new SolrQueryBuilderParams(false, "?"));
 		}
-		
+
 		params.add(CommonParams.Q, String.format("%s%s", StringUtils.defaultString(query.getFreeTextQuery(), "*:*")
 				, userCondition));
 
@@ -312,17 +312,16 @@ public class SearchServices {
 			params.add(MoreLikeThisParams.MIN_DOC_FREQ, "0");
 			params.add(MoreLikeThisParams.MIN_TERM_FREQ, "0");
 			List<String> moreLikeThisFields = query.getMoreLikeThisFields();
-			if (moreLikeThisFields.size() == 0) {
-				moreLikeThisFields.addAll(Arrays.asList(new String[] { "content_txt_fr", "content_txt_en", "content_txt_ar" }));
+			if (moreLikeThisFields.isEmpty()) {
+				moreLikeThisFields.addAll(Arrays.asList("content_txt_fr", "content_txt_en", "content_txt_ar"));
 			}
 
 			StringBuilder similarityFields = new StringBuilder();
 			for (String aSimilarityField : moreLikeThisFields) {
 				if (similarityFields.length() != 0)
 					similarityFields.append(",");
-				if (!aSimilarityField.contains("_txt_") && !aSimilarityField.contains("_t_")){
+				if (!aSimilarityField.contains("_txt_") && !aSimilarityField.contains("_t_")) {
 					System.err.printf("The %s does not support term vector. It may cause performance issue.\n", aSimilarityField);
-					
 				}
 				similarityFields.append(aSimilarityField);
 			}

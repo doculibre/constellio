@@ -196,7 +196,8 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		return null;
 	}
 
-	public void register(InstallableModule plugin)
+	@Override
+	public void registerModule(InstallableModule plugin)
 			throws InvalidId {
 		if (plugin != null) {
 			validateId(plugin.getId());
@@ -225,7 +226,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	@Override
-	public List<InstallableModule> getActivePlugins() {
+	public List<InstallableModule> getRegistredModulesAndActivePlugins() {
 		ensureStarted();
 		List<InstallableModule> plugins = new ArrayList<>();
 		plugins.addAll(registeredModules.values());
@@ -234,7 +235,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	@Override
-	public List<InstallableModule> getRegisteredPlugins() {
+	public List<InstallableModule> getRegisteredModules() {
 		ensureStarted();
 		List<InstallableModule> plugins = new ArrayList<>();
 		plugins.addAll(registeredModules.values());

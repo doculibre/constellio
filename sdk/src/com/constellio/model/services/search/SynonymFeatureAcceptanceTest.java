@@ -6,8 +6,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.Test;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.data.TextView;
@@ -19,7 +17,7 @@ import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
 public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	Record tv, television;
 
-	@Test
+	// TODO @Test
 	public void givenSynonymFeatureDiabeledWhenIndexingDocumentsAndSearchForAWordThenNoDocumentContainTheWordsSynonymIsReturned()
 			throws Exception {
 		//given
@@ -36,7 +34,7 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 		assertThat(results).containsOnly(tv);
 	}
 
-	@Test
+	// TODO @Test
 	public void givenSynonymFeatureEnabledWhenIndexingDocumentsAndSearchForAWordThenAllDocumentsContainTheWordAndItsSynonymAreReturned()
 			throws Exception {
 		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
