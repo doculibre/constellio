@@ -3,6 +3,7 @@ package com.constellio.data.dao.services.recovery;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +44,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	RecoveryTransactionReadWriteServices readWriteServices;
 	private final IOServices ioServices;
 	private boolean inRollbackMode;
-	Set<String> loadedRecordsIds, newRecordsIds, deletedRecordsIds, updatedRecordsIds;
+	Set<String> loadedRecordsIds, fullyLoadedRecordsIds, newRecordsIds, deletedRecordsIds, updatedRecordsIds;
 
 	public TransactionLogRecoveryManager(DataLayerFactory dataLayerFactory) {
 		this.dataLayerFactory = dataLayerFactory;
@@ -58,6 +60,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	void realStartRollback() {
 		loadedRecordsIds = new HashSet<>();
+		fullyLoadedRecordsIds = new HashSet<>();
 		newRecordsIds = new HashSet<>();
 		deletedRecordsIds = new HashSet<>();
 		updatedRecordsIds = new HashSet<>();
@@ -202,8 +205,8 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 				//throw new ImpossibleRuntimeException("Delete by query not supported in recovery mode");
 			}
 		}
-		handleNewDocuments(transaction.getNewDocuments());
-		handleUpdatedDocuments(transaction.getUpdatedDocuments());
+		handleAddUpdateFullDocuments(transaction.getNewDocuments());
+		handleUpdatedPartialDocuments(transaction.getUpdatedDocuments());
 		handleDeletedDocuments(transaction.getDeletedRecords());
 	}
 
@@ -224,16 +227,16 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	void ensureRecordLoaded(Set<String> recordsIds) {
 		provokeRecordsLoad(recordsIds);
-		if (!this.loadedRecordsIds.containsAll(recordsIds)) {
+		if (!this.fullyLoadedRecordsIds.containsAll(recordsIds)) {
 			throw new RuntimeException("Records not loaded after their load request : " +
-					StringUtils.join(CollectionUtils.subtract(this.loadedRecordsIds, recordsIds), ", "));
+					StringUtils.join(CollectionUtils.subtract(this.fullyLoadedRecordsIds, recordsIds), ", "));
 		}
 	}
 
 	private void provokeRecordsLoad(Set<String> recordsIds) {
 		//do not reload
 		Set<String> recordsToLoadIds = new HashSet<>(recordsIds);
-		recordsToLoadIds.removeAll(this.loadedRecordsIds);
+		recordsToLoadIds.removeAll(this.fullyLoadedRecordsIds);
 		if (recordsToLoadIds.isEmpty()) {
 			return;
 		}
@@ -248,7 +251,15 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 	}
 
-	void handleUpdatedDocuments(List<SolrInputDocument> updatedDocuments) {
+	void handleUpdatedPartialDocuments(List<SolrInputDocument> updatedDocuments) {
+		handleUpdatedDocuments(updatedDocuments, true);
+	}
+
+	void handleUpdatedFullDocuments(List<SolrInputDocument> updatedDocuments) {
+		handleUpdatedDocuments(updatedDocuments, false);
+	}
+
+	void handleUpdatedDocuments(List<SolrInputDocument> updatedDocuments, boolean partialDocument) {
 		if (updatedDocuments == null || updatedDocuments.isEmpty()) {
 			return;
 		}
@@ -256,36 +267,108 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		for (SolrInputDocument document : updatedDocuments) {
 			String id = (String) document.getFieldValue("id");
 			updatedDocumentsIds.add(id);
-
 		}
-		ensureRecordLoaded(updatedDocumentsIds);
+		if (partialDocument) {
+			ensureRecordLoaded(updatedDocumentsIds);
+		}
 		this.updatedRecordsIds.addAll(updatedDocumentsIds);
 	}
 
-	void handleNewDocuments(List<SolrInputDocument> newDocuments) {
-		if (newDocuments == null || newDocuments.isEmpty()) {
+	void handleAddUpdateFullDocuments(List<SolrInputDocument> addUpdateFullDocuments) {
+		if (addUpdateFullDocuments == null || addUpdateFullDocuments.isEmpty()) {
 			return;
 		}
-		for (SolrInputDocument document : newDocuments) {
+		Set<String> possiblyNewDocumentsIds = new HashSet<>();
+		Set<String> addUpdateFullDocumentsIds = new HashSet<>();
+		for	(SolrInputDocument document : addUpdateFullDocuments) {
 			String id = (String) document.getFieldValue("id");
-			this.newRecordsIds.add(id);
+			addUpdateFullDocumentsIds.add(id);
+			if (!this.loadedRecordsIds.contains(id)) {
+				possiblyNewDocumentsIds.add(id);
+			}
+		}
+		Collection<String> updatedFullDocuments;
+		if(!possiblyNewDocumentsIds.isEmpty()){
+			Set<String> newDocuments = getOnlyNewDocuments(possiblyNewDocumentsIds);
+			this.newRecordsIds.addAll(newDocuments);
+			updatedFullDocuments = CollectionUtils.removeAll(addUpdateFullDocumentsIds, newDocuments);
+		}else{
+			updatedFullDocuments = addUpdateFullDocumentsIds;
+		}
+		handleUpdatedFullDocuments(getDocumentsHavingIds(addUpdateFullDocuments, updatedFullDocuments));
+	}
+
+	//TODO test me
+	private List<SolrInputDocument> getDocumentsHavingIds(List<SolrInputDocument> solrInputDocuments,
+			final Collection<String> ids) {
+		List<SolrInputDocument> returnList = new ArrayList<>();
+		for(SolrInputDocument document : solrInputDocuments){
+			String id = (String) document.getFieldValue("id");
+			if(ids.contains(id)){
+				returnList.add(document);
+			}
+		}
+		return returnList;
+	}
+
+	//TODO test me
+	Set<String> getOnlyNewDocuments(Set<String> possiblyNewDocumentsIds) {
+		BigVaultServer bigVaultServer = dataLayerFactory.getRecordsVaultServer();
+		SolrClient server = bigVaultServer.getNestedSolrServer();
+		ModifiableSolrParams solrParams = new ModifiableSolrParams();
+		//field:(value1 OR value2 OR value3)
+		solrParams.set("q", "id:(" + StringUtils.join(possiblyNewDocumentsIds, " OR ") + ")");
+		solrParams.set("fl", "id");
+		//
+		try {
+			QueryResponse response = server.query(solrParams);
+			SolrDocumentList result = response.getResults();
+			if (result.getNumFound() == 0) {
+				return possiblyNewDocumentsIds;
+			}
+			if (result.getNumFound() == possiblyNewDocumentsIds.size()) {
+				return new HashSet<>();
+			}
+			return getIdsNotInResult(possiblyNewDocumentsIds, result);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
+	private Set<String> getIdsNotInResult(Set<String> possiblyNewDocumentsIds, SolrDocumentList result) {
+		Set<String> returnSet = new HashSet<>();
+		for (SolrDocument document : result) {
+			String id = (String) document.get("id");
+			if(!possiblyNewDocumentsIds.contains(id)){
+				returnSet.add(id);
+			}
+		}
+		return returnSet;
+	}
+
 	@Override
-	public void onQuery(QueryResponse response) {
+	public void onQuery(SolrParams params, QueryResponse response) {
+		boolean fullSearch = isFullSearch(params);
 		SolrDocumentList results = response.getResults();
 		List<SolrDocument> documentsToSave = new ArrayList<>();
 		List<String> loadedDocuments = new ArrayList<>();
 		for (SolrDocument document : results) {
 			String currentId = (String) document.get("id");
-			if (!this.loadedRecordsIds.contains(currentId)) {
+			if (!this.fullyLoadedRecordsIds.contains(currentId)) {
 				documentsToSave.add(document);
 				loadedDocuments.add(currentId);
 			}
 		}
-		appendLoadedRecordsFile(this.readWriteServices.toLogEntry(documentsToSave));
+		if (fullSearch) {
+			appendLoadedRecordsFile(this.readWriteServices.toLogEntry(documentsToSave));
+			this.fullyLoadedRecordsIds.addAll(loadedDocuments);
+		}
 		this.loadedRecordsIds.addAll(loadedDocuments);
+	}
+
+	//TODO test me
+	boolean isFullSearch(SolrParams params) {
+		return StringUtils.isBlank(params.get("fl"));
 	}
 
 	private void appendLoadedRecordsFile(String transaction) {

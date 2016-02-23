@@ -45,6 +45,7 @@ public class SystemPropertiesServices {
 	}
 
 	public long getFreeMemoryInMo() {
+		System.gc();
 		long freeMemoryInBytes = Runtime.getRuntime().freeMemory();
 		return freeMemoryInBytes/1048576;//1024*1024
 	}

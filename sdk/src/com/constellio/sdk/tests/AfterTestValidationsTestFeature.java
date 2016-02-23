@@ -110,7 +110,8 @@ public class AfterTestValidationsTestFeature {
 	private void checkRecovery(SolrSDKToolsServices tools, TransactionLogRecoveryManager transactionLogRecoveryManager) {
 		if (snapshotBeforeReplay != null) {
 			transactionLogRecoveryManager.rollback(null);
-			tools.ensureSameSnapshots(rollbackReplayMessage, snapshotBeforeReplay, tools.snapshot());
+			VaultSnapshot currentSnapShot = tools.snapshot();
+			tools.ensureSameSnapshots(rollbackReplayMessage, snapshotBeforeReplay, currentSnapShot);
 		}
 	}
 

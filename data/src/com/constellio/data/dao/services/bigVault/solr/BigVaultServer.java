@@ -125,7 +125,7 @@ public class BigVaultServer implements Cloneable {
 		extensions.afterQuery(params, end - start);
 		for (BigVaultServerListener listener : this.listeners) {
 			if (listener instanceof BigVaultServerQueryListener) {
-				((BigVaultServerQueryListener) listener).onQuery(response);
+				((BigVaultServerQueryListener) listener).onQuery(params, response);
 			}
 		}
 		return response;
