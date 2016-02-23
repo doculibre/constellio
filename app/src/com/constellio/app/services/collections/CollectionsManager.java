@@ -1,6 +1,5 @@
 package com.constellio.app.services.collections;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +11,6 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotCreateCollectionRecord;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotMigrateCollection;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotRemoveCollection;
@@ -285,8 +283,10 @@ public class CollectionsManager implements StatefulService {
 		return returnList;
 	}
 
-	private void validateCode(String code) {
-		String pattern = "([a-zA-Z0-9])+";
+
+
+	public void validateCode(String code) {
+		String pattern = "[a-zA-Z]([a-zA-Z0-9])+";
 		if (code == null || !code.matches(pattern)) {
 			throw new CollectionsManagerRuntimeException_InvalidCode(code);
 		}
