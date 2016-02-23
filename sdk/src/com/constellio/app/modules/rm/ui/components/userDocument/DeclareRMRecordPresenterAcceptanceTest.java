@@ -62,8 +62,6 @@ public class DeclareRMRecordPresenterAcceptanceTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-
-
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

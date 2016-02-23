@@ -177,7 +177,6 @@ public class AppLayerFactory extends LayerFactory {
 		if (appLayerConfiguration.isRecoveryModeActive()) {
 			recoveryStartup(upgradeAppRecoveryServiceImpl);
 		} else {
-
 			normalStartup();
 		}
 		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {

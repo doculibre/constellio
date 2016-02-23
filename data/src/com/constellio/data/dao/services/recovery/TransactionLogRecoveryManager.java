@@ -33,6 +33,7 @@ import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQu
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class TransactionLogRecoveryManager implements RecoveryService, BigVaultServerAddEditListener,
 													  BigVaultServerQueryListener {
@@ -201,8 +202,8 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	@Override
 	public void beforeAdd(BigVaultServerTransaction transaction) {
 		if (transaction.getDeletedQueries() != null && !transaction.getDeletedQueries().isEmpty()) {
-			if (!isTestMode()) {
-				//throw new ImpossibleRuntimeException("Delete by query not supported in recovery mode");
+			if (!transaction.isInTestRollbackMode()) {
+				throw new ImpossibleRuntimeException("Delete by query not supported in recovery mode");
 			}
 		}
 		handleAddUpdateFullDocuments(transaction.getNewDocuments());
@@ -223,6 +224,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 			deletedRecordsIds.add(deletedRecordId);
 		}
 		ensureRecordLoaded(deletedRecordsIds);
+		this.deletedRecordsIds.addAll(deletedRecords);
 	}
 
 	void ensureRecordLoaded(Set<String> recordsIds) {
