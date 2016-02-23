@@ -644,7 +644,7 @@ public class UserServices {
 	public String getToken(String serviceKey, String token) {
 		if (userCredentialsManager.getServiceKeyByToken(token) != null) {
 			userCredentialsManager.removeToken(token);
-			String username = userCredentialsManager.getUserCredentialByServiceKey(serviceKey);
+			String username = userCredentialsManager.getUsernameByServiceKey(serviceKey);
 			String newToken = generateToken(username);
 			return newToken;
 		} else {
@@ -685,7 +685,7 @@ public class UserServices {
 		if (retrivedServiceKey == null || !retrivedServiceKey.equals(serviceKey)) {
 			throw new UserServicesRuntimeException_InvalidToken();
 		}
-		return userCredentialsManager.getUserCredentialByServiceKey(serviceKey);
+		return userCredentialsManager.getUsernameByServiceKey(serviceKey);
 	}
 
 	public String getServiceKeyByToken(String token) {
@@ -702,7 +702,7 @@ public class UserServices {
 	}
 
 	public String getUserCredentialByServiceKey(String serviceKey) {
-		return userCredentialsManager.getUserCredentialByServiceKey(serviceKey);
+		return userCredentialsManager.getUsernameByServiceKey(serviceKey);
 	}
 
 	public UserCredential getUserCredential(String username) {

@@ -36,6 +36,8 @@ public interface UserCredential {
 
 	UserCredential withCollections(List<String> collections);
 
+	UserCredential withRemovedCollection(String collection);
+
 	UserCredential withNewGlobalGroup(String newGroup);
 
 	UserCredential withRemovedGlobalGroup(String removedGroup);

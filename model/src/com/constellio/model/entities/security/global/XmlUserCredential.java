@@ -158,6 +158,13 @@ public class XmlUserCredential implements UserCredential {
 	}
 
 	@Override
+	public UserCredential withRemovedCollection(String collection) {
+		List<String> newCollections = new ArrayList<>(collections);
+		collections.remove(collection);
+		return withCollections(newCollections);
+	}
+
+	@Override
 	public UserCredential withNewGlobalGroup(String newGroup) {
 
 		List<String> groups = new ArrayList<>(this.globalGroups);

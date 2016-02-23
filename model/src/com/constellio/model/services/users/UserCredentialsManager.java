@@ -31,7 +31,7 @@ public interface UserCredentialsManager extends StatefulService, ConfigUpdatedEv
 
 	void removeGroup(String codeGroup);
 
-	String getUserCredentialByServiceKey(String serviceKey);
+	String getUsernameByServiceKey(String serviceKey);
 
 	String getServiceKeyByToken(String token);
 

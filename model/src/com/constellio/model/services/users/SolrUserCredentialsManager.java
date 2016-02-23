@@ -1,0 +1,229 @@
+package com.constellio.model.services.users;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.joda.time.LocalDateTime;
+
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+public class SolrUserCredentialsManager implements UserCredentialsManager {
+	private final ModelLayerFactory modelLayerFactory;
+	private final SearchServices searchServices;
+	private final SchemasRecordsServices schemas;
+
+	public SolrUserCredentialsManager(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+		searchServices = modelLayerFactory.newSearchServices();
+		schemas = new SchemasRecordsServices("system", modelLayerFactory);
+	}
+
+	@Override
+	public void addUpdate(UserCredential userCredential) {
+		try {
+			modelLayerFactory.newRecordServices().add((SolrUserCredential) userCredential);
+		} catch (RecordServicesException e) {
+			// TODO: Exception
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public UserCredential getUserCredential(String username) {
+		Record record = searchServices.searchSingleResult(
+				from(schemas.credentialSchemaType()).where(schemas.credentialUsername()).isEqualTo(username));
+		return record != null ? schemas.wrapCredential(record) : null;
+	}
+
+	public LogicalSearchQuery getUserCredentialsQuery() {
+		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll()).sortAsc(schemas.credentialUsername());
+	}
+
+	@Override
+	public List<UserCredential> getUserCredentials() {
+		return schemas.wrapCredentials(searchServices.search(getUserCredentialsQuery()));
+	}
+
+	public LogicalSearchQuery getActiveUserCredentialsQuery() {
+		return getQueryFilteredByStatus(UserCredentialStatus.ACTIVE);
+	}
+
+	@Override
+	public List<UserCredential> getActiveUserCredentials() {
+		return schemas.wrapCredentials(searchServices.search(getActiveUserCredentialsQuery()));
+	}
+
+	public LogicalSearchQuery getSuspendedUserCredentialsQuery() {
+		return getQueryFilteredByStatus(UserCredentialStatus.SUSPENDED);
+	}
+
+	@Override
+	public List<UserCredential> getSuspendedUserCredentials() {
+		return schemas.wrapCredentials(searchServices.search(getSuspendedUserCredentialsQuery()));
+	}
+
+	public LogicalSearchQuery getPendingApprovalUserCredentialsQuery() {
+		return getQueryFilteredByStatus(UserCredentialStatus.PENDING);
+	}
+
+	@Override
+	public List<UserCredential> getPendingApprovalUserCredentials() {
+		return schemas.wrapCredentials(searchServices.search(getPendingApprovalUserCredentialsQuery()));
+	}
+
+	public LogicalSearchQuery getDeletedUserCredentialsQuery() {
+		return getQueryFilteredByStatus(UserCredentialStatus.DELETED);
+	}
+
+	@Override
+	public List<UserCredential> getDeletedUserCredentials() {
+		return schemas.wrapCredentials(searchServices.search(getDeletedUserCredentialsQuery()));
+	}
+
+	public LogicalSearchQuery getUserCredentialsInGlobalGroupQuery(String group) {
+		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialGroups()).isEqualTo(group))
+				.sortAsc(schemas.credentialUsername());
+	}
+
+	@Override
+	public List<UserCredential> getUserCredentialsInGlobalGroup(String group) {
+		return schemas.wrapCredentials(searchServices.search(getUserCredentialsInGlobalGroupQuery(group)));
+	}
+
+	public LogicalSearchQuery getUserCredentialsInCollectionQuery(String collection) {
+		return new LogicalSearchQuery(
+				from(schemas.credentialSchemaType()).where(schemas.credentialCollections()).isEqualTo(collection))
+				.sortAsc(schemas.credentialUsername());
+	}
+
+	@Override
+	public void removeCollection(String collection) {
+		Transaction transaction = new Transaction();
+		for (Record record : searchServices.search(getUserCredentialsInCollectionQuery(collection))) {
+			transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedCollection(collection));
+		}
+		try {
+			modelLayerFactory.newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			// TODO: Exception
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void removeToken(String token) {
+		UserCredential credential = getUserCredentialByToken(token);
+		if (credential != null) {
+			addUpdate(credential.withRemovedToken(token));
+		}
+	}
+
+	@Override
+	public void removeUserCredentialFromCollection(UserCredential userCredential, String collection) {
+		addUpdate(userCredential.withRemovedCollection(collection));
+	}
+
+	@Override
+	public void removeGroup(String group) {
+		Transaction transaction = new Transaction();
+		for (Record record : searchServices.search(getUserCredentialsInGlobalGroupQuery(group))) {
+			transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedGlobalGroup(group));
+		}
+		try {
+			modelLayerFactory.newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			// TODO: Exception
+			e.printStackTrace();
+		}
+	}
+
+	public UserCredential getUserCredentialByServiceKey(String serviceKey) {
+		Record record = searchServices.searchSingleResult(
+				from(schemas.credentialSchemaType()).where(schemas.credentialServiceKey()).isEqualTo(serviceKey));
+		return record != null ? schemas.wrapCredential(record) : null;
+	}
+
+	@Override
+	public String getUsernameByServiceKey(String serviceKey) {
+		UserCredential credential = getUserCredentialByServiceKey(serviceKey);
+		return credential != null ? credential.getUsername() : null;
+	}
+
+	public UserCredential getUserCredentialByToken(String token) {
+		Record record = searchServices.searchSingleResult(
+				from(schemas.credentialSchemaType()).where(schemas.credentialTokenKeys()).isEqualTo(token));
+		return record != null ? schemas.wrapCredential(record) : null;
+	}
+
+	@Override
+	public String getServiceKeyByToken(String token) {
+		UserCredential credential = getUserCredentialByToken(token);
+		return credential != null ? credential.getServiceKey() : null;
+	}
+
+	@Override
+	public void removedTimedOutTokens() {
+		LocalDateTime now = TimeProvider.getLocalDateTime();
+		Transaction transaction = new Transaction();
+		for (Record record : searchServices.search(getUserCredentialsWithExpiredTokensQuery(now))) {
+			UserCredential credential = schemas.wrapCredential(record);
+			Map<String, LocalDateTime> validTokens = new HashMap<>();
+			for (Entry<String, LocalDateTime> token : credential.getAccessTokens().entrySet()) {
+				if (token.getValue().isBefore(now)) {
+					validTokens.put(token.getKey(), token.getValue());
+				}
+			}
+			transaction.add((SolrUserCredential) credential.withAccessTokens(validTokens));
+		}
+		try {
+			modelLayerFactory.newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			// TODO: Exception
+			e.printStackTrace();
+		}
+	}
+
+	public LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
+		return new LogicalSearchQuery(
+				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isGreaterThan(now));
+	}
+
+	@Override
+	public void rewrite() {
+
+	}
+
+	@Override
+	public void onConfigUpdated(String configPath) {
+
+	}
+
+	@Override
+	public void initialize() {
+		// Nothing to be done
+	}
+
+	@Override
+	public void close() {
+		// Nothing to be done
+	}
+
+	private LogicalSearchQuery getQueryFilteredByStatus(UserCredentialStatus status) {
+		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialStatus()).isEqualTo(status))
+				.sortAsc(schemas.credentialUsername());
+	}
+}

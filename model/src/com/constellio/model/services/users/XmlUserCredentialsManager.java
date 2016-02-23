@@ -273,7 +273,7 @@ public class XmlUserCredentialsManager implements UserCredentialsManager {
 	}
 
 	@Override
-	public String getUserCredentialByServiceKey(String serviceKey) {
+	public String getUsernameByServiceKey(String serviceKey) {
 		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		initIfRequired();
 		for (String usernameWithServiceKey : usersWithServiceKey) {

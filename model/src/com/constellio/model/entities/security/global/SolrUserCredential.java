@@ -1,8 +1,11 @@
 package com.constellio.model.entities.security.global;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.joda.time.LocalDateTime;
@@ -20,6 +23,8 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String LAST_NAME = "lastName";
 	public static final String EMAIL = "email";
 	public static final String SERVICE_KEY = "serviceKey";
+	public static final String TOKEN_KEYS = "tokenKeys";
+	public static final String TOKEN_EXPIRATIONS = "tokenExpirations";
 	public static final String SYSTEM_ADMIN = "systemAdmin";
 	public static final String COLLECTIONS = "collections";
 	public static final String GLOBAL_GROUPS = "globalGroups";
@@ -84,19 +89,33 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 
 	@Override
 	public Map<String, LocalDateTime> getAccessTokens() {
-		// TODO: Handle this
-		return null;
+		HashMap<String, LocalDateTime> result = new HashMap<>();
+		Iterator<LocalDateTime> expirations = getTokenExpirations().iterator();
+		for (String token : getTokenKeys()) {
+			result.put(token, expirations.next());
+		}
+		return result;
 	}
 
 	public SolrUserCredential setAccessTokens(Map<String, LocalDateTime> tokens) {
-		// TODO: Handle this
+		List<String> keys = new ArrayList<>(tokens.size());
+		List<LocalDateTime> expirations = new ArrayList<>(tokens.size());
+		for (Entry<String, LocalDateTime> token : tokens.entrySet()) {
+			keys.add(token.getKey());
+			expirations.add(token.getValue());
+		}
+		set(TOKEN_KEYS, keys);
+		set(TOKEN_EXPIRATIONS, expirations);
 		return this;
 	}
 
 	@Override
 	public List<String> getTokenKeys() {
-		// TODO: Handle this
-		return null;
+		return getList(TOKEN_KEYS);
+	}
+
+	public List<LocalDateTime> getTokenExpirations() {
+		return getList(TOKEN_EXPIRATIONS);
 	}
 
 	@Override
@@ -171,6 +190,13 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 
 	@Override
 	public UserCredential withCollections(List<String> collections) {
+		return setCollections(collections);
+	}
+
+	@Override
+	public UserCredential withRemovedCollection(String collection) {
+		List<String> collections = new ArrayList<>(getCollections());
+		collections.remove(collection);
 		return setCollections(collections);
 	}
 
