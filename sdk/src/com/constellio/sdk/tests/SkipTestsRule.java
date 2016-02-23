@@ -292,7 +292,7 @@ public class SkipTestsRule implements TestRule {
 	}
 
 	@Override
-	public Statement apply(Statement base, Description description) {
+	public Statement apply(final Statement base, Description description) {
 
 		if (isUnitMode) {
 			return base;

@@ -570,7 +570,6 @@ public class BigVaultServer implements Cloneable {
 		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions, this.listeners);
 	}
 
-
 	public void disableLogger() {
 		bigVaultLogger = BigVaultLogger.disabled();
 	}
