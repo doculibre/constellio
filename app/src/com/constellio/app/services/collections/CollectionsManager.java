@@ -95,6 +95,10 @@ public class CollectionsManager implements StatefulService {
 		return collectionsListManager.getCollections();
 	}
 
+	public List<String> getCollectionCodesExcludingSystem() {
+		return collectionsListManager.getCollectionsExcludingSystem();
+	}
+
 	void addGlobalGroupsInCollection(String code) {
 		modelLayerFactory.newUserServices().addGlobalGroupsInCollection(code);
 	}
