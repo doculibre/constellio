@@ -231,7 +231,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		provokeRecordsLoad(recordsIds);
 		if (!this.fullyLoadedRecordsIds.containsAll(recordsIds)) {
 			throw new RuntimeException("Records not loaded after their load request : " +
-					StringUtils.join(CollectionUtils.subtract(this.fullyLoadedRecordsIds, recordsIds), ", "));
+					StringUtils.join(CollectionUtils.subtract(recordsIds, this.fullyLoadedRecordsIds), ", "));
 		}
 	}
 
@@ -272,6 +272,10 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 		if (partialDocument) {
 			ensureRecordLoaded(updatedDocumentsIds);
+		}else{
+			List<Object> updatedDocumentsAsObjects = new ArrayList<>();
+			updatedDocumentsAsObjects.addAll(updatedDocuments);
+			appendLoadedRecordsFile(updatedDocumentsAsObjects);
 		}
 		this.updatedRecordsIds.addAll(updatedDocumentsIds);
 	}
@@ -352,7 +356,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	public void onQuery(SolrParams params, QueryResponse response) {
 		boolean fullSearch = isFullSearch(params);
 		SolrDocumentList results = response.getResults();
-		List<SolrDocument> documentsToSave = new ArrayList<>();
+		List<Object> documentsToSave = new ArrayList<>();
 		List<String> loadedDocuments = new ArrayList<>();
 		for (SolrDocument document : results) {
 			String currentId = (String) document.get("id");
@@ -362,8 +366,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 			}
 		}
 		if (fullSearch) {
-			appendLoadedRecordsFile(this.readWriteServices.toLogEntry(documentsToSave));
-			this.fullyLoadedRecordsIds.addAll(loadedDocuments);
+			appendLoadedRecordsFile(documentsToSave);
 		}
 		this.loadedRecordsIds.addAll(loadedDocuments);
 	}
@@ -373,11 +376,36 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		return StringUtils.isBlank(params.get("fl"));
 	}
 
-	private void appendLoadedRecordsFile(String transaction) {
+	private void appendLoadedRecordsFile(List<Object> documentsToSave) {
+		List<Object> notAlreadySavedDocuments = new ArrayList<>();
+		List<String> notAlreadyLoadedDocumentsIds = new ArrayList<>();
+		for(Object document : documentsToSave){
+			String id = getDocumentId(document);
+			if(!this.fullyLoadedRecordsIds.contains(id)){
+				notAlreadySavedDocuments.add(document);
+				notAlreadyLoadedDocumentsIds.add(id);
+			}
+		}
+		if(notAlreadySavedDocuments.isEmpty()){
+			return;
+		}
+		this.fullyLoadedRecordsIds.addAll(notAlreadyLoadedDocumentsIds);
+		String transaction = this.readWriteServices.toLogEntry(notAlreadySavedDocuments);
+
 		try {
 			FileUtils.fileAppend(this.recoveryFile.getPath(), transaction);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private String getDocumentId(Object document) {
+		if(document instanceof SolrDocument){
+			return (String)((SolrDocument) document).getFieldValue("id");
+		}else if(document instanceof  SolrInputDocument){
+			return (String)((SolrInputDocument) document).getFieldValue("id");
+		}else {
+			throw new ImpossibleRuntimeException("Expecting solr document or solr input document : " + document.getClass().getName());
 		}
 	}
 

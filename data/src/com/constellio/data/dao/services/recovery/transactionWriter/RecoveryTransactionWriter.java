@@ -19,6 +19,7 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRunti
 import com.constellio.data.dao.services.transactionLog.writer1.TransactionWriterV1;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.utils.KeyListMap;
+import com.sun.image.codec.jpeg.ImageFormatException;
 
 public class RecoveryTransactionWriter extends TransactionWriterV1 {
 
@@ -45,13 +46,20 @@ public class RecoveryTransactionWriter extends TransactionWriterV1 {
 		return stringBuilder.toString();
 	}
 
-	public String addAll(List<SolrDocument> documents) {
+	public String addAllSolrDocuments(List<Object> documents) {
 		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
 
-		for (SolrDocument document : documents) {
-			appendAddUpdateSolrDocument(stringBuilder, toSolrInputDocument(document));
+		for (Object document : documents) {
+			if(document instanceof  SolrInputDocument){
+				appendAddUpdateSolrDocument(stringBuilder, (SolrInputDocument) document);
+			}else if(document instanceof SolrDocument){
+				appendAddUpdateSolrDocument(stringBuilder, toSolrInputDocument((SolrDocument) document));
+			}else{
+				throw new ImageFormatException("Expecting solr document or solr input document : " + document.getClass().getName());
+			}
 		}
 		return stringBuilder.toString();
 	}
+
 
 }

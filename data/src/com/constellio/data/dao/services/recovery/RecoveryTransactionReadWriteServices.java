@@ -3,6 +3,7 @@ package com.constellio.data.dao.services.recovery;
 import java.util.List;
 
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
@@ -22,8 +23,8 @@ public class RecoveryTransactionReadWriteServices extends TransactionLogReadWrit
 		return new RecoveryTransactionWriter(new AcceptAllExtension()).toLogEntry(transaction);
 	}
 
-	public String toLogEntry(List<SolrDocument> documents) {
-		return new RecoveryTransactionWriter(new AcceptAllExtension()).addAll(documents);
+	public String toLogEntry(List<Object> documents) {
+		return new RecoveryTransactionWriter(new AcceptAllExtension()).addAllSolrDocuments(documents);
 	}
 
 	private static class AcceptAllExtension extends DataLayerSystemExtensions {
