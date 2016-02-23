@@ -1,33 +1,36 @@
 package com.constellio.app.services.recovery;
 
-import java.io.File;
+import static com.constellio.app.services.recovery.InvalidWarCause.TOO_SHORT_MEMORY;
+import static com.constellio.app.services.recovery.InvalidWarCause.TOO_SHORT_SPACE;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.systemProperties.SystemPropertiesServices;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.conf.FoldersLocator;
 
-public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService{
+public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService {
+	private final static Logger LOGGER = LoggerFactory.getLogger(UpgradeAppRecoveryServiceImpl.class);
+	public static long REQUIRED_MEMORY_IN_MO = 200;
+	public static double REQUIRED_SPACE_IN_GIG = 0.5;
 	private final TransactionLogRecoveryManager transactionLogRecoveryManager;
 	private final AppLayerFactory appLayerFactory;
+	private final SystemPropertiesServices systemPropertiesServices;
 
-	public UpgradeAppRecoveryServiceImpl(AppLayerFactory appLayerFactory) {
+	public UpgradeAppRecoveryServiceImpl(AppLayerFactory appLayerFactory, IOServices ioServices) {
 		this.appLayerFactory = appLayerFactory;
-		this.transactionLogRecoveryManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getTransactionLogRecoveryManager();
+		this.transactionLogRecoveryManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
+				.getTransactionLogRecoveryManager();
+		systemPropertiesServices = new SystemPropertiesServices(new FoldersLocator(), ioServices);
 	}
 
-	private void prepareNextStartup(Throwable exception) {
+	void prepareNextStartup(Throwable exception) {
 		saveExceptionStack(exception);
-		pointToPreviousWebapp();
-		writeTheCurrentWebappPathInAFileToInformTheNextRebootToDeleteIt();
-	}
-
-	private void writeTheCurrentWebappPathInAFileToInformTheNextRebootToDeleteIt() {
-	}
-
-	private void pointToPreviousWebapp() {
-	}
-
-	private void saveExceptionStack(Throwable exception) {
-		//Displayed in update center page(sauvegardé dans un fichier par exemple et est supprimée uniquement si un nouveau war est loadé)
+		pointToPreviousWebApp();
+		writeTheCurrentWebAppPathInAFileToInformTheNextRebootToDeleteIt();
 	}
 
 	public void deletePreviousWarCausingFailure() {
@@ -41,18 +44,10 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService{
 		transactionLogRecoveryManager.startRollbackMode();
 	}
 
-	private void saveSettings() {
-
-	}
-
 	@Override
 	public void stopRollbackMode() {
 		deleteSavedSettings();
 		transactionLogRecoveryManager.stopRollbackMode();
-	}
-
-	private void deleteSavedSettings() {
-		//TODO
 	}
 
 	@Override
@@ -68,19 +63,19 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService{
 		this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 	}
 
-	private void closeLayersExceptData() {
-		appLayerFactory.getModelLayerFactory().close(false);
-		appLayerFactory.close(false);
-	}
-
-	private void replaceSettingsByTheSavedOne() {
-		//TODO
-	}
-
 	@Override
-	public InvalidWarCause isValidWar(File war) {
-		//TODO
+	public InvalidWarCause isUpdateWithRecoveryPossible() {
+		if(this.systemPropertiesServices.isAvailableMemoryLowerThan(REQUIRED_MEMORY_IN_MO)){
+			return TOO_SHORT_MEMORY;
+		}
+		if(this.systemPropertiesServices.isFreeSpaceInTempFolderLowerThan(getTransactionLogFileSizeInGig() + REQUIRED_SPACE_IN_GIG)){
+			return TOO_SHORT_SPACE;
+		}
 		return null;
+	}
+
+	double getTransactionLogFileSizeInGig() {
+		return 0;
 	}
 
 	@Override
@@ -90,5 +85,38 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService{
 
 	public void close() {
 		this.transactionLogRecoveryManager.close();
+	}
+
+	private void deleteSavedSettings() {
+		//TODO
+	}
+
+	private void writeTheCurrentWebAppPathInAFileToInformTheNextRebootToDeleteIt() {
+		//TODO
+	}
+
+	private void pointToPreviousWebApp() {
+		//TODO
+	}
+
+	private void saveExceptionStack(Throwable exception) {
+		//TODO
+		if(exception != null){
+			LOGGER.warn("Rollback without exception");
+		}
+		//Displayed in update center page(sauvegardé dans un fichier par exemple et est supprimée uniquement si un nouveau war est loadé)
+	}
+
+	void saveSettings() {
+
+	}
+
+	private void closeLayersExceptData() {
+		appLayerFactory.getModelLayerFactory().close(false);
+		appLayerFactory.close(false);
+	}
+
+	private void replaceSettingsByTheSavedOne() {
+		//TODO
 	}
 }

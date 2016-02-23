@@ -63,7 +63,12 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		});
 		buttons.add(restart);
 
-		Button reindex = new Button($("UpdateManagerViewImpl.restartAndReindexButton"));
+		Button reindex = new Button($("UpdateManagerViewImpl.restartAndReindexButton")){
+			@Override
+			public boolean isEnabled() {
+				return presenter.isRestartWithReindexButtonEnabled();
+			}
+		};
 		reindex.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {

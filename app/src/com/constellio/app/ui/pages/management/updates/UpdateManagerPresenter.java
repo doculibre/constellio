@@ -141,4 +141,12 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	protected boolean hasPageAccess(String params, final User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
 	}
+
+	public boolean isRestartWithReindexButtonEnabled() {
+		return !newWarUploaded();
+	}
+
+	private boolean newWarUploaded() {
+		return false;
+	}
 }

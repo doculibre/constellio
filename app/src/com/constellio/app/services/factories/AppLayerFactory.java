@@ -171,11 +171,13 @@ public class AppLayerFactory extends LayerFactory {
 
 	@Override
 	public void initialize() {
-		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(this);
+		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(this,
+				dataLayerFactory.getIOServicesFactory().newIOServices());
 		upgradeAppRecoveryServiceImpl.deletePreviousWarCausingFailure();
 		if (appLayerConfiguration.isRecoveryModeActive()) {
 			recoveryStartup(upgradeAppRecoveryServiceImpl);
 		} else {
+
 			normalStartup();
 		}
 		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
@@ -239,8 +241,6 @@ public class AppLayerFactory extends LayerFactory {
 			systemGlobalConfigsManager.setReindexingRequired(false);
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
-
-
 
 		if (!invalidPlugins.isEmpty()) {
 			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));
