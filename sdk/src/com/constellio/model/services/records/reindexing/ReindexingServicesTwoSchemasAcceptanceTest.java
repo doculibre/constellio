@@ -64,6 +64,7 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setup()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withAllTest(users)
 		);

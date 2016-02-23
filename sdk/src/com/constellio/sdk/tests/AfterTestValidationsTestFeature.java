@@ -162,7 +162,8 @@ public class AfterTestValidationsTestFeature {
 	}
 
 	private boolean isValidatingRollbackLog() {
-		return "true".equals(sdkProperties.get("validateRollback"));
+		String validateRollback = sdkProperties.get("validateRollback");
+		return validateRollback != null && "true".equals(validateRollback.trim());
 	}
 
 	public void disableInCurrentTest() {
