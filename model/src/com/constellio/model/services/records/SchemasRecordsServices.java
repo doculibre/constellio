@@ -139,6 +139,10 @@ public class SchemasRecordsServices {
 		return credentialSchema().getMetadata(SolrUserCredential.SERVICE_KEY);
 	}
 
+	public UserCredential newCredential() {
+		return new SolrUserCredential(create(credentialSchema()), getTypes());
+	}
+
 	public UserCredential wrapCredential(Record record) {
 		return new SolrUserCredential(record, getTypes());
 	}

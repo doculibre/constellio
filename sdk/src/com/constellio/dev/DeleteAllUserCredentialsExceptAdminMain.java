@@ -25,7 +25,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -100,7 +99,7 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 				userCollections = new ArrayList<>();
 
 				System.out.println("Deleting user " + userCredential.getUsername());
-				UserCredential newUserCredential = new XmlUserCredential(username, userCredential.getFirstName(),
+				UserCredential newUserCredential = userServices.createUserCredential(username, userCredential.getFirstName(),
 						userCredential.getLastName(), userCredential.getEmail(), userCredential.getServiceKey(),
 						userCredential.isSystemAdmin(), globalGroups, userCollections,
 						userCredential.getAccessTokens(), UserCredentialStatus.DELETED,
@@ -120,7 +119,7 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 		String userCredentialsXmlFilePath = "/userCredentialsConfig.xml";
 		Document userCredentialsDocument = configManager.getXML(userCredentialsXmlFilePath).getDocument();
 		Element rootElement = userCredentialsDocument.getRootElement();
-		for (Iterator<Element> it = rootElement.getChildren().iterator(); it.hasNext();) {
+		for (Iterator<Element> it = rootElement.getChildren().iterator(); it.hasNext(); ) {
 			Element userCredentialElement = it.next();
 			String username = userCredentialElement.getAttributeValue("username");
 			if (!username.equals(User.ADMIN)) {

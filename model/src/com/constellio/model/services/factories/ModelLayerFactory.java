@@ -134,7 +134,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
-		//				new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
+		//						new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
 		this.userCredentialsManager = add(new SolrUserCredentialsManager(this));
 		this.globalGroupsManager = add(new GlobalGroupsManager(configManager));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));

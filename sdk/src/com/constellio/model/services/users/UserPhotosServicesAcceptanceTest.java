@@ -19,7 +19,6 @@ import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -41,10 +40,10 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		services = getModelLayerFactory().newUserPhotosServices();
 
-		UserCredential user = new XmlUserCredential("zeUser", "ze", "user", "ze.user@gmail.com", new ArrayList<String>(),
+		UserCredential user = userCredentialsManager.create("zeUser", "ze", "user", "ze.user@gmail.com", new ArrayList<String>(),
 				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
-
 		userCredentialsManager.addUpdate(user);
+
 		zipService = getIOLayerFactory().newZipService();
 	}
 

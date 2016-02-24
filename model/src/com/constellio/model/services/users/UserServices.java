@@ -87,6 +87,27 @@ public class UserServices {
 		this.rolesManager = rolesManager;
 	}
 
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			List<String> globalGroups, List<String> collections, UserCredentialStatus status) {
+		return userCredentialsManager.create(username, firstName, lastName, email, globalGroups, collections, status);
+	}
+
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			List<String> globalGroups, List<String> collections, UserCredentialStatus status, String domain,
+			List<String> msExchDelegateListBL, String dn) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, globalGroups, collections, status, domain, msExchDelegateListBL, dn);
+	}
+
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+			String dn) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status, domain,
+				msExchDelegateListBL, dn);
+	}
+
 	public void addUpdateUserCredential(UserCredential userCredential) {
 		validateAdminIsActive(userCredential);
 		UserCredential savedUserCredential = userCredential;

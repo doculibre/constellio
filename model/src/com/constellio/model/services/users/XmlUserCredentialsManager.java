@@ -25,6 +25,7 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -87,6 +88,27 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 				.repeatingAction("removedTimedOutTokens", removedTimedOutTokens)
 				.handlingExceptionWith(CONTINUE)
 				.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));
+	}
+
+	@Override
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> globalGroups,
+			List<String> collections, UserCredentialStatus status) {
+		return new XmlUserCredential(username, firstName, lastName, email, globalGroups, collections, status);
+	}
+
+	@Override
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> globalGroups,
+			List<String> collections, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+		return new XmlUserCredential(
+				username, firstName, lastName, email, globalGroups, collections, status, domain, msExchDelegateListBL, dn);
+	}
+
+	@Override
+	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
+			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+		return new XmlUserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
+				tokens, status, domain, msExchDelegateListBL, dn);
 	}
 
 	@Override

@@ -13,7 +13,6 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
@@ -240,8 +239,9 @@ public class Users {
 		String email = (username + "@doculibre.com").toLowerCase();
 		List<String> globalGroups = Arrays.asList(groups);
 		List<String> collections = new ArrayList<>();
-		UserCredential credential = new XmlUserCredential(username, firstName, lastName, email, globalGroups, collections,
-				UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null);
+		UserCredential credential = userServices.createUserCredential(
+				username, firstName, lastName, email, globalGroups, collections, UserCredentialStatus.ACTIVE, "domain",
+				Arrays.asList(""), null);
 		userServices.addUpdateUserCredential(credential);
 	}
 

@@ -116,15 +116,14 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	@SlowTest
 	public void whenEveryoneGetsInHereThenStillNotLetal()
 			throws Exception {
-
 		onlyWhen(Toggle.NEW_USERCREDENTIAL_SERVICES).isEnabled();
-
-		//TODO Tom : Add grim patrons in batch of 100
 		givenCollection1And2();
 
 		for (int i = 0; i < 10000; i++) {
-			user = new XmlUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
-					noCollections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null).withSystemAdminPermission();
+			user = userServices
+					.createUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
+							noCollections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null)
+					.withSystemAdminPermission();
 			userServices.addUpdateUserCredential(user);
 		}
 
@@ -1011,29 +1010,32 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void givenUserAndPassword() {
-		user = new XmlUserCredential(chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(),
-				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+		user = userServices.createUserCredential(
+				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(), new ArrayList<String>(),
+				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(user);
 		authenticationService.changePassword(user.getUsername(), "1qaz2wsx");
 		user = userServices.getUser(user.getUsername());
 	}
 
 	private void givenUserWith(List<String> groups, List<String> collections) {
-		user = new XmlUserCredential(chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections,
-				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null).withSystemAdminPermission();
+		user = userServices.createUserCredential(
+				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections, UserCredentialStatus.ACTIVE,
+				"domain", msExchDelegateListBL, null).withSystemAdminPermission();
 		userServices.addUpdateUserCredential(user);
 	}
 
 	private void givenAnotherUserWith(List<String> groups, List<String> collections) {
-		anotherUser = new XmlUserCredential("gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups,
-				collections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+		anotherUser = userServices.createUserCredential(
+				"gandalf.leblanc", "Gandalf", "Leblanc", "gandalf.leblanc@doculibre.com", groups, collections,
+				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(anotherUser);
 	}
 
 	private void givenAThirdUserWith(List<String> groups, List<String> collections) {
-		thirdUser = new XmlUserCredential("edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups,
-				collections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+		thirdUser = userServices.createUserCredential(
+				"edouard.lechat", "Edouard", "Lechat", "edouard.lechat@doculibre.com", groups, collections,
+				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 		userServices.addUpdateUserCredential(thirdUser);
 	}
-
 }

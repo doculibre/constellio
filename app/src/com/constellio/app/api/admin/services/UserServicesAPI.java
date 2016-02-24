@@ -26,7 +26,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.users.UserServices;
 
 @Path("users")
@@ -190,17 +189,16 @@ public class UserServicesAPI {
 	}
 
 	private UserCredential toCredential(UserResource userResource) {
-
-		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
+		Map<String, LocalDateTime> tokens = new HashMap<>();
 		for (Entry<String, String> token : userResource.getTokens().entrySet()) {
 			tokens.put(token.getKey(), LocalDateTime.parse(token.getValue()));
 
 		}
-		return new XmlUserCredential(userResource.getUsername(), userResource.getFirstName(), userResource.getLastName(),
-				userResource
-						.getEmail(),
+		return userServices().createUserCredential(
+				userResource.getUsername(), userResource.getFirstName(), userResource.getLastName(), userResource.getEmail(),
 				userResource.getServiceKey(), userResource.isSystemAdmin(), userResource.getGlobalGroups(),
-				userResource.getCollections(), tokens, userResource.getStatus(), userResource.getDomain(), Arrays.asList(""), null);
+				userResource.getCollections(), tokens, userResource.getStatus(), userResource.getDomain(), Arrays.asList(""),
+				null);
 	}
 
 	private UserResource toData(UserCredential userCredential) {

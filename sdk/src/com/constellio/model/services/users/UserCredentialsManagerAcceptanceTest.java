@@ -19,7 +19,6 @@ import org.junit.Test;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryUtils;
@@ -63,9 +62,9 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
 		ModelLayerFactoryUtils.setApplicationEncryptionKey(getModelLayerFactory(), key);
 
-		createUserCredentials();
-
 		manager = getModelLayerFactory().getUserCredentialsManager();
+
+		createUserCredentials();
 
 	}
 
@@ -100,7 +99,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(edouardUserCredential);
 
-		chuckUserCredential = new XmlUserCredential("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com",
+		chuckUserCredential = manager.create("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com",
 				asList("group11"), asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain",
 				msExchDelegateListBL, null);
 		manager.addUpdate(chuckUserCredential);
@@ -120,7 +119,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 		manager.addUpdate(chuckUserCredential);
 
-		chuckUserCredential = new XmlUserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", asList("group1"),
+		chuckUserCredential = manager.create("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", asList("group1"),
 				asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
 		manager.addUpdate(chuckUserCredential);
@@ -288,18 +287,19 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private void createUserCredentials() {
-		chuckUserCredential = new XmlUserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", null, true,
+		chuckUserCredential = manager.create("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", null, true,
 				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
 				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
-		bobUserCredential = new XmlUserCredential("bob", "Bob", "Gratton", "bob.gratton@gmail.com", null, true,
+		bobUserCredential = manager.create("bob", "Bob", "Gratton", "bob.gratton@gmail.com", null, true,
 				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
 				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
 		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 		tokens.put("token1", endDate);
 		tokens.put("token2", endDate.plusMinutes(30));
-		edouardUserCredential = new XmlUserCredential("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com", edouardServiceKey,
+		edouardUserCredential = manager.create("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com",
+				edouardServiceKey,
 				false, asList("group2"), asList(zeCollection, "collection1"), tokens, UserCredentialStatus.ACTIVE,
 				"domain", msExchDelegateListBL, null);
 	}

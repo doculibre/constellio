@@ -34,6 +34,55 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	}
 
 	@Override
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> globalGroups,
+			List<String> collections, UserCredentialStatus status) {
+		return ((SolrUserCredential) schemas.newCredential())
+				.setUsername(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setStatus(status);
+	}
+
+	@Override
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> globalGroups,
+			List<String> collections, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+		return ((SolrUserCredential) schemas.newCredential())
+				.setUsername(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setStatus(status)
+				.setDomain(domain)
+				.setMsExchDelegateListBL(msExchDelegateListBL)
+				.setDn(dn);
+	}
+
+	@Override
+	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
+			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+		return ((SolrUserCredential) schemas.newCredential())
+				.setUsername(username)
+				.setFirstName(firstName)
+				.setLastName(lastName)
+				.setEmail(email)
+				.setServiceKey(serviceKey)
+				.setSystemAdmin(systemAdmin)
+				.setGlobalGroups(globalGroups)
+				.setCollections(collections)
+				.setAccessTokens(tokens)
+				.setStatus(status)
+				.setDomain(domain)
+				.setMsExchDelegateListBL(msExchDelegateListBL)
+				.setDn(dn);
+	}
+
+	@Override
 	public void addUpdate(UserCredential userCredential) {
 		try {
 			modelLayerFactory.newRecordServices().add((SolrUserCredential) userCredential);
@@ -224,7 +273,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	}
 
 	public void initializeSchemas() {
-		System.out.println(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION));
+
 	}
 
 	private void createUserCredentialSchema() {
