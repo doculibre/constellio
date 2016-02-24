@@ -2,6 +2,8 @@ package com.constellio.app.services.collections;
 
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +42,8 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -47,6 +52,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
@@ -84,6 +90,7 @@ public class CollectionsManager implements StatefulService {
 		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
 			createSystemCollection();
 			initializeSystemCollection();
+			createAdminUser();
 		}
 	}
 
@@ -97,6 +104,28 @@ public class CollectionsManager implements StatefulService {
 		UserCredentialsManager manager = modelLayerFactory.getUserCredentialsManager();
 		if (manager instanceof SolrUserCredentialsManager) {
 			((SolrUserCredentialsManager) manager).initializeSchemas();
+		}
+	}
+
+	private void createAdminUser() {
+		String serviceKey = "adminkey";
+		String password = "password";
+		String username = "admin";
+		String firstName = "System";
+		String lastName = "Admin";
+		String email = "admin@organization.com";
+		UserCredentialStatus status = UserCredentialStatus.ACTIVE;
+		String domain = "";
+		List<String> globalGroups = new ArrayList<>();
+		List<String> collections = new ArrayList<>();
+		boolean isSystemAdmin = true;
+
+		UserCredential adminCredentials = new UserCredential(username, firstName, lastName, email, serviceKey, isSystemAdmin,
+				globalGroups, collections, new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
+		modelLayerFactory.newUserServices().addUpdateUserCredential(adminCredentials);
+		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
+		if (authenticationService.supportPasswordChange()) {
+			authenticationService.changePassword("admin", password);
 		}
 	}
 
