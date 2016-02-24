@@ -35,7 +35,7 @@ public class CollectionVODataProvider implements DataProvider {
 		collectionManager = appLayerFactory.getCollectionsManager();
 		collections = new ArrayList<>();
 
-		List<String> codes = collectionManager.getCollectionCodes();
+		List<String> codes = collectionManager.getCollectionCodesExcludingSystem();
 		for (String code : codes) {
 			Collection collection = collectionManager.getCollection(code);
 			CollectionVO collectionVO = new CollectionVO(code, collection.getName(), collection.getLanguages().get(0));

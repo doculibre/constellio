@@ -799,6 +799,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	@Test
 	public void givenAnErrorOccurredDuringTheTransactionThenDocumentAreNotMarkedAsUnfetchedNorDeletedOnOriginalLocation()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		notAUnitItest = true;
 		withACustomRequiredMetadataInSchemas();
 		ArgumentCaptor<ConnectorDocument> deletedConnectorDocuments = ArgumentCaptor.forClass(ConnectorDocument.class);

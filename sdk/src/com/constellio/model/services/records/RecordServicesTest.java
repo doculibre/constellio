@@ -710,6 +710,10 @@ public class RecordServicesTest extends ConstellioTest {
 	public void givenOneDocumentCannotBeMergedWhenMergingThenException()
 			throws Exception {
 
+		when(firstRecord.isSaved()).thenReturn(true);
+		when(secondRecord.isSaved()).thenReturn(true);
+		when(thirdRecord.isSaved()).thenReturn(true);
+
 		List<Record> modifiedRecords = Arrays.asList((Record) newFirstRecordVersion, newSecondRecordVersion);
 
 		Transaction transaction = new Transaction();
@@ -929,6 +933,7 @@ public class RecordServicesTest extends ConstellioTest {
 			throws Exception {
 
 		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
+		when(recordDao.get("anId")).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
 		Transaction transaction = new Transaction(zeRecord);
@@ -949,6 +954,7 @@ public class RecordServicesTest extends ConstellioTest {
 			throws Exception {
 
 		RecordImpl zeRecord = spy(new TestRecord(zeSchema));
+		when(recordDao.get("anId")).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
 		Transaction transaction = new Transaction(zeRecord);

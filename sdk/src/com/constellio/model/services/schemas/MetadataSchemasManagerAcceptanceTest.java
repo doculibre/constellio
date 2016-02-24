@@ -5,6 +5,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -12,6 +13,8 @@ import static com.constellio.model.services.schemas.builders.MetadataPopulateCon
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
 import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50CharactersInCustomSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
@@ -66,7 +69,6 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -77,6 +79,7 @@ import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest;
 import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -159,11 +162,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 		schemasManager.saveUpdateSchemaTypes(collection2Builder);
 
+		MetadataSchemaTypes systemTypes = schemasManager.getSchemaTypes("_system_");
 		MetadataSchemaTypes typesCollection1 = schemasManager.getSchemaTypes("collection1");
 		MetadataSchemaTypes typesCollection2 = schemasManager.getSchemaTypes("collection2");
 		MetadataSchemaTypes zeCollectionTypes = schemasManager.getSchemaTypes(zeCollection);
 		assertThat(schemasManager.getAllCollectionsSchemaTypes())
-				.containsOnly(typesCollection1, typesCollection2, zeCollectionTypes);
+				.containsOnly(typesCollection1, typesCollection2, zeCollectionTypes, systemTypes);
 		assertThat(typesCollection1.getCollection()).isEqualTo("collection1");
 		assertThat(typesCollection1.getSchemaTypes()).hasSize(11);
 		assertThat(typesCollection1.getSchemaType("a")).isNotNull();
@@ -1181,7 +1185,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata());
 
-		getModelLayerFactory().newRecordServices().add(new TestRecord(anotherSchema, "2").set(Schemas.TITLE, "2"));
+		getModelLayerFactory().newRecordServices().add(new TestRecord(anotherSchema, "2").set(TITLE, "2"));
 
 		try {
 			schemasManager.deleteSchemaTypes(asList(zeSchema.type(), anotherSchema.type()));
@@ -1242,6 +1246,58 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(zeCustomSchema.instance().get("customString").getType()).isEqualTo(MetadataValueType.STRING);
 		assertThat(zeCustomSchema.instance().get("customString").getInheritance())
 				.isEqualTo(zeSchema.instance().get("customString"));
+	}
+
+	@Test
+	public void whenSavingSchemaTypesThenPersistPropertiesOfGlobalMetadatas()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder zeSchemaType = types.getSchemaType(ZE_SCHEMA_TYPE_CODE).getDefaultSchema();
+				MetadataSchemaBuilder anotherSchema = types.getSchemaType(ANOTHER_SCHEMA_TYPE_CODE).getDefaultSchema();
+				zeSchemaType.get(TITLE.getCode()).setLabel("ze title label").setSortable(true)
+						.setEssentialInSummary(true).setEssential(true).setDefaultRequirement(true).setDefaultValue("toto")
+						.setEnabled(true).setSchemaAutocomplete(true).setSearchable(true).setSystemReserved(true)
+						.setUniqueValue(true).setUnmodifiable(true);
+
+				anotherSchema.get(TITLE.getCode()).setLabel("another title label").setSortable(false)
+						.setEssentialInSummary(false).setEssential(false).setDefaultRequirement(false).setDefaultValue("tata")
+						.setEnabled(false).setSchemaAutocomplete(false).setSearchable(false).setSystemReserved(false)
+						.setUniqueValue(false).setUnmodifiable(false);
+			}
+		});
+
+		Metadata zeSchemaLabel = schemas.getTypes().getDefaultSchema(ZE_SCHEMA_TYPE_CODE).get(TITLE.getCode());
+		assertThat(zeSchemaLabel.getLabel()).isEqualTo("ze title label");
+		assertThat(zeSchemaLabel.isSortable()).isTrue();
+		assertThat(zeSchemaLabel.isEssentialInSummary()).isTrue();
+		assertThat(zeSchemaLabel.isEssential()).isTrue();
+		assertThat(zeSchemaLabel.isDefaultRequirement()).isTrue();
+		assertThat(zeSchemaLabel.getDefaultValue()).isEqualTo("toto");
+		assertThat(zeSchemaLabel.isEnabled()).isTrue();
+		assertThat(zeSchemaLabel.isSchemaAutocomplete()).isTrue();
+		assertThat(zeSchemaLabel.isSearchable()).isTrue();
+		assertThat(zeSchemaLabel.isSystemReserved()).isTrue();
+		assertThat(zeSchemaLabel.isUniqueValue()).isTrue();
+		assertThat(zeSchemaLabel.isUnmodifiable()).isTrue();
+
+		Metadata anotherSchemaLabel = schemas.getTypes().getDefaultSchema(ANOTHER_SCHEMA_TYPE_CODE).get(TITLE.getCode());
+		assertThat(anotherSchemaLabel.getLabel()).isEqualTo("another title label");
+		assertThat(anotherSchemaLabel.isSortable()).isFalse();
+		assertThat(anotherSchemaLabel.isEssentialInSummary()).isFalse();
+		assertThat(anotherSchemaLabel.isEssential()).isFalse();
+		assertThat(anotherSchemaLabel.isDefaultRequirement()).isFalse();
+		assertThat(anotherSchemaLabel.getDefaultValue()).isEqualTo("tata");
+		assertThat(anotherSchemaLabel.isEnabled()).isFalse();
+		assertThat(anotherSchemaLabel.isSchemaAutocomplete()).isFalse();
+		assertThat(anotherSchemaLabel.isSearchable()).isFalse();
+		assertThat(anotherSchemaLabel.isSystemReserved()).isFalse();
+		assertThat(anotherSchemaLabel.isUniqueValue()).isFalse();
+		assertThat(anotherSchemaLabel.isUnmodifiable()).isFalse();
+
 	}
 
 	private MetadataSchemaTypes createTwoSchemas()
