@@ -24,6 +24,7 @@ public class ESMigrationsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void testAll()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 		whenMigratingToCurrentVersionThenValidSchemas();
 		whenMigratingToCurrentVersionThenCreateConnectorTypes();
 	}
