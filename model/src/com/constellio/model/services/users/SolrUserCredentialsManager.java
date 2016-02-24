@@ -209,11 +209,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	}
 
 	@Override
-	public void onConfigUpdated(String configPath) {
-		// Nothing to be done, I believe
-	}
-
-	@Override
 	public void initialize() {
 		// Nothing to be done
 	}
@@ -226,5 +221,13 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	private LogicalSearchQuery getQueryFilteredByStatus(UserCredentialStatus status) {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialStatus()).isEqualTo(status))
 				.sortAsc(schemas.credentialUsername());
+	}
+
+	public void initializeSchemas() {
+		System.out.println(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION));
+	}
+
+	private void createUserCredentialSchema() {
+
 	}
 }

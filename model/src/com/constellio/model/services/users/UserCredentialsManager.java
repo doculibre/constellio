@@ -3,10 +3,9 @@ package com.constellio.model.services.users;
 import java.util.List;
 
 import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.model.entities.security.global.UserCredential;
 
-public interface UserCredentialsManager extends StatefulService, ConfigUpdatedEventListener {
+public interface UserCredentialsManager extends StatefulService {
 	void addUpdate(UserCredential userCredential);
 
 	UserCredential getUserCredential(String username);

@@ -56,8 +56,8 @@ import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
-import com.constellio.model.services.users.XmlUserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
@@ -133,8 +133,9 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
-		this.userCredentialsManager = add(
-				new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
+		//		this.userCredentialsManager = add(
+		//				new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
+		this.userCredentialsManager = add(new SolrUserCredentialsManager(this));
 		this.globalGroupsManager = add(new GlobalGroupsManager(configManager));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
 		this.rolesManager = add(new RolesManager(configManager, collectionsListManager));

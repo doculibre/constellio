@@ -28,11 +28,11 @@ public class LayerFactory {
 		this.statefullServiceDecorator = statefullServiceDecorator;
 	}
 
-	public <T extends StatefulService> T add(T statefullService) {
+	public <T extends StatefulService> T add(T statefulService) {
 		if (initializing) {
 			throw new IllegalStateException("Cannot add stateful service during initialization");
 		}
-		T decoratedService = statefullServiceDecorator.decorate(statefullService);
+		T decoratedService = statefullServiceDecorator.decorate(statefulService);
 		statefulServices.add(decoratedService);
 		return decoratedService;
 	}

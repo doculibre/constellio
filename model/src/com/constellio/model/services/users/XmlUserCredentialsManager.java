@@ -15,6 +15,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManager;
@@ -28,7 +29,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class XmlUserCredentialsManager implements UserCredentialsManager {
+public class XmlUserCredentialsManager implements UserCredentialsManager, ConfigUpdatedEventListener {
 
 	private static final String USER_CREDENTIALS_CONFIG = "/userCredentialsConfig.xml";
 

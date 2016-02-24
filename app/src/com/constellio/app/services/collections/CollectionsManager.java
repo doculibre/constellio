@@ -48,6 +48,8 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
+import com.constellio.model.services.users.UserCredentialsManager;
 
 public class CollectionsManager implements StatefulService {
 
@@ -79,9 +81,9 @@ public class CollectionsManager implements StatefulService {
 
 	@Override
 	public void initialize() {
-		// No initialization required.
 		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
 			createSystemCollection();
+			initializeSystemCollection();
 		}
 	}
 
@@ -89,6 +91,13 @@ public class CollectionsManager implements StatefulService {
 		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		List<String> languages = asList(mainDataLanguage);
 		createCollectionInCurrentVersion(Collection.SYSTEM_COLLECTION, languages);
+	}
+
+	private void initializeSystemCollection() {
+		UserCredentialsManager manager = modelLayerFactory.getUserCredentialsManager();
+		if (manager instanceof SolrUserCredentialsManager) {
+			((SolrUserCredentialsManager) manager).initializeSchemas();
+		}
 	}
 
 	public List<String> getCollectionCodes() {
