@@ -18,6 +18,8 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -153,6 +155,24 @@ public class SchemasRecordsServices {
 			result.add(wrapCredential(record));
 		}
 		return result;
+	}
+
+	// Global Groups
+
+	public MetadataSchemaType globalGroupSchemaType() {
+		return getTypes().getSchemaType(SolrGlobalGroup.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema globalGroupSchema() {
+		return getTypes().getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
+	}
+
+	public GlobalGroup newGlobalGroup() {
+		return new SolrGlobalGroup(create(globalGroupSchema()), getTypes());
+	}
+
+	public GlobalGroup wrapGlobalGroup(Record record) {
+		return new SolrGlobalGroup(record, getTypes());
 	}
 
 	//Events
