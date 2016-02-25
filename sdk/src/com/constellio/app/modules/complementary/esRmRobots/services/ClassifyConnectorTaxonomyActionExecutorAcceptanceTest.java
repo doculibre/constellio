@@ -32,7 +32,11 @@ import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderDirectlyInThePlanActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInParentFolderActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInParentFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDownloadSmbDocument;
@@ -314,10 +318,11 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 			throws Exception {
 		notAUnitItest = true;
 		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
-		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
-		recordServices.add(parameters.setInTaxonomy(null).setActionAfterClassification(DO_NOTHING)
-				.setDelimiter(" ").setDefaultCategory(records.categoryId_X).setDefaultAdminUnit(
+		ClassifyConnectorFolderDirectlyInThePlanActionParameters parameters = ClassifyConnectorFolderDirectlyInThePlanActionParameters
+				.wrap(robotsSchemas
+						.newActionParameters(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setActionAfterClassification(DO_NOTHING)
+				.setDefaultCategory(records.categoryId_X).setDefaultAdminUnit(
 						records.unitId_10).setDefaultCopyStatus(CopyType.PRINCIPAL).setDefaultRetentionRule(
 						records.ruleId_3).setDefaultOpenDate(squatreNovembre));
 
@@ -325,7 +330,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("/"))
-				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderDirectlyInThePlanActionExecutor.ID).setCode("terminator")
+				.setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -374,16 +380,16 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 			throws Exception {
 		notAUnitItest = true;
 		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
-		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
-		recordServices.add(parameters.setInTaxonomy(null).setActionAfterClassification(DO_NOTHING)
-				.setDelimiter(" ").setDefaultParentFolder(records.folder_A07).setDefaultOpenDate(squatreNovembre));
+		ClassifyConnectorFolderInParentFolderActionParameters parameters = ClassifyConnectorFolderInParentFolderActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setActionAfterClassification(DO_NOTHING).setDefaultParentFolder(records.folder_A07)
+				.setDefaultOpenDate(squatreNovembre));
 
 		recordServices.add(robotsSchemas.newRobotWithId(robotId).setActionParameters(parameters)
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("/"))
-				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInParentFolderActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
