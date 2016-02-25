@@ -202,7 +202,6 @@ public class AppLayerFactory extends LayerFactory {
 				if (recoveryService.isInRollbackMode()) {
 					LOGGER.error("Error when trying to start application", exception);
 					recoveryService.rollback(exception);
-					//TODO restart batch process
 					try {
 						newApplicationService().restart();
 					} catch (AppManagementServiceException e) {
