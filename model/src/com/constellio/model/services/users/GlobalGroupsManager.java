@@ -18,7 +18,7 @@ public interface GlobalGroupsManager extends StatefulService {
 
 	List<GlobalGroup> getAllGroups();
 
-	void activeGlobalGroupHierarchy(GlobalGroup globalGroup);
+	void activateGlobalGroupHierarchy(GlobalGroup globalGroup);
 
 	void removeCollection(String collection);
 }

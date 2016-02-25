@@ -12,7 +12,7 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 
 	public static final String CODE = "code";
 	public static final String NAME = "name";
-	public static final String USERS = "users";
+	public static final String COLLECTIONS = "collections";
 	public static final String PARENT = "parent";
 	public static final String STATUS = "status";
 	public static final String PATH = "path";
@@ -43,11 +43,11 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 
 	@Override
 	public List<String> getUsersAutomaticallyAddedToCollections() {
-		return getList(USERS);
+		return getList(COLLECTIONS);
 	}
 
-	public SolrGlobalGroup setUsersAutomaticallyAddedToCollections(List<String> users) {
-		set(USERS, users);
+	public SolrGlobalGroup setUsersAutomaticallyAddedToCollections(List<String> collections) {
+		set(COLLECTIONS, collections);
 		return this;
 	}
 
@@ -93,5 +93,12 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 	@Override
 	public GlobalGroup withStatus(GlobalGroupStatus status) {
 		return setStatus(status);
+	}
+
+	@Override
+	public GlobalGroup withRemovedCollection(String collection) {
+		List<String> collections = getUsersAutomaticallyAddedToCollections();
+		collections.remove(collection);
+		return setUsersAutomaticallyAddedToCollections(collections);
 	}
 }

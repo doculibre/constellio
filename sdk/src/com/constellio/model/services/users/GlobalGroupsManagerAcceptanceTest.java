@@ -301,7 +301,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(globalGroup2_1);
 
 		manager.logicallyRemoveGroup(globalGroup1);
-		manager.activeGlobalGroupHierarchy(globalGroup1);
+		manager.activateGlobalGroupHierarchy(globalGroup1);
 
 		assertThat(manager.getActiveGroups()).hasSize(6);
 		assertThat(manager.getAllGroups()).hasSize(6);

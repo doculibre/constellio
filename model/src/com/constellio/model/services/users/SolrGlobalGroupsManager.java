@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
@@ -52,9 +53,22 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	@Override
 	public void logicallyRemoveGroup(GlobalGroup group) {
 		Transaction transaction = new Transaction();
-		for (GlobalGroup each : schemas
-				.wrapGlobalGroups(searchServices.search(getGroupHierarchyQuery((SolrGlobalGroup) group)))) {
-			transaction.add((SolrGlobalGroup) each.withStatus(GlobalGroupStatus.INACTIVE));
+		for (SolrGlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
+			transaction.add(each.setStatus(GlobalGroupStatus.INACTIVE));
+		}
+		try {
+			modelLayerFactory.newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			// TODO: Exception
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void activateGlobalGroupHierarchy(GlobalGroup group) {
+		Transaction transaction = new Transaction();
+		for (SolrGlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
+			transaction.add(each.setStatus(GlobalGroupStatus.ACTIVE));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
@@ -77,24 +91,44 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		return group != null && group.getStatus() == GlobalGroupStatus.ACTIVE ? group : null;
 	}
 
-	@Override
-	public List<GlobalGroup> getActiveGroups() {
-		return null;
+	public LogicalSearchQuery getAllGroupsQuery() {
+		return new LogicalSearchQuery(from(schemas.globalGroupSchemaType()).returnAll()).sortAsc(schemas.globalGroupCode());
 	}
 
 	@Override
 	public List<GlobalGroup> getAllGroups() {
-		return null;
+		return schemas.wrapGlobalGroups(searchServices.search(getAllGroupsQuery()));
+	}
+
+	public LogicalSearchQuery getActiveGroupsQuery() {
+		return new LogicalSearchQuery(
+				from(schemas.globalGroupSchemaType()).where(schemas.globalGroupStatus()).isEqualTo(GlobalGroupStatus.ACTIVE))
+				.sortAsc(schemas.globalGroupCode());
 	}
 
 	@Override
-	public void activeGlobalGroupHierarchy(GlobalGroup globalGroup) {
+	public List<GlobalGroup> getActiveGroups() {
+		return schemas.wrapGlobalGroups(searchServices.search(getActiveGroupsQuery()));
+	}
 
+	public LogicalSearchQuery getGroupsInCollectionQuery(String collection) {
+		return new LogicalSearchQuery(
+				from(schemas.globalGroupSchemaType()).where(schemas.globalGroupCollections()).isEqualTo(collection))
+				.sortAsc(schemas.globalGroupCode());
 	}
 
 	@Override
 	public void removeCollection(String collection) {
-
+		Transaction transaction = new Transaction();
+		for (GlobalGroup group : schemas.wrapGlobalGroups(searchServices.search(getGroupsInCollectionQuery(collection)))) {
+			transaction.add((SolrGlobalGroup) group.withRemovedCollection(collection));
+		}
+		try {
+			modelLayerFactory.newRecordServices().execute(transaction);
+		} catch (RecordServicesException e) {
+			// TODO: Exception
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -117,6 +151,14 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		} catch (OptimisticLocking e) {
 			systemCollectionCreated();
 		}
+	}
+
+	private List<SolrGlobalGroup> getGroupHierarchy(SolrGlobalGroup group) {
+		List<SolrGlobalGroup> result = new ArrayList<>();
+		for (Record record : searchServices.search(getGroupHierarchyQuery(group))) {
+			result.add((SolrGlobalGroup) schemas.wrapGlobalGroup(record));
+		}
+		return result;
 	}
 
 	private LogicalSearchQuery getGroupHierarchyQuery(SolrGlobalGroup group) {
@@ -146,7 +188,7 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 
 		credentials.createUniqueCodeMetadata();
 		credentials.createUndeletable(SolrGlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
-		credentials.createUndeletable(SolrGlobalGroup.USERS).setType(MetadataValueType.STRING).setMultivalue(true);
+		credentials.createUndeletable(SolrGlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
 		credentials.createUndeletable(SolrGlobalGroup.PARENT).setType(MetadataValueType.STRING);
 		credentials.createUndeletable(SolrGlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
 		credentials.createUndeletable(SolrGlobalGroup.PATH).setType(MetadataValueType.STRING);

@@ -18,4 +18,6 @@ public interface GlobalGroup {
 	GlobalGroup withUsersAutomaticallyAddedToCollections(List<String> usersAutomaticallyAddedToCollections);
 
 	GlobalGroup withStatus(GlobalGroupStatus status);
+
+	GlobalGroup withRemovedCollection(String collection);
 }

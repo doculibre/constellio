@@ -1,5 +1,6 @@
 package com.constellio.model.entities.security.global;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -68,6 +69,13 @@ public class XmlGlobalGroup implements GlobalGroup {
 	@Override
 	public GlobalGroup withStatus(GlobalGroupStatus status) {
 		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status);
+	}
+
+	@Override
+	public GlobalGroup withRemovedCollection(String collection) {
+		List<String> collections = new ArrayList<>(usersAutomaticallyAddedToCollections);
+		collections.remove(collection);
+		return new XmlGlobalGroup(code, name, collections, parent, status);
 	}
 
 	@Override

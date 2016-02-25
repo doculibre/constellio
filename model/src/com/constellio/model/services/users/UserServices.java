@@ -274,7 +274,7 @@ public class UserServices {
 	private void activateGlobalGroupHierarchyWithoutUserValidation(GlobalGroup globalGroup) {
 		List<String> collections = collectionsListManager.getCollections();
 		restoreGroupHierarchyInBigVault(globalGroup.getCode(), collections);
-		globalGroupsManager.activeGlobalGroupHierarchy(globalGroup);
+		globalGroupsManager.activateGlobalGroupHierarchy(globalGroup);
 	}
 
 	public void removeUserCredentialAndUser(UserCredential userCredential) {

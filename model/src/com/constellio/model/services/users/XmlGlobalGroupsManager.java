@@ -84,7 +84,7 @@ public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdate
 	}
 
 	@Override
-	public void activeGlobalGroupHierarchy(GlobalGroup globalGroup) {
+	public void activateGlobalGroupHierarchy(GlobalGroup globalGroup) {
 		for (GlobalGroup group : getHierarchy(globalGroup.getCode())) {
 			group = group.withStatus(GlobalGroupStatus.ACTIVE);
 			addUpdate(group);
