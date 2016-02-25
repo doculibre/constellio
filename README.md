@@ -18,8 +18,8 @@ Constellio EIM is built on a NoSQL database based on Apache SolrCloud, Apache Ha
 Useful links
 - visit our website : http://constellio.com/?lang=en
 - visit our forum : http://constellio.com/how-to-contribute/forum/?lang=en
--	our documentation center: http://constellio.com/documentation/?lang=en
--	Download :http://constellio.com/how-to-contribute/telecharger/?lang=en
+-	our documentation center : http://constellio.com/documentation/?lang=en
+-	Download : http://constellio.com/how-to-contribute/telecharger/?lang=en
 
 ##How to contribute##
 
