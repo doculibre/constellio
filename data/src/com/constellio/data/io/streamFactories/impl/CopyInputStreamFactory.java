@@ -9,14 +9,16 @@ import org.apache.commons.io.IOUtils;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
+import com.constellio.data.io.streamFactories.StreamFactoryWithFilename;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactoryRuntimeException.InputStreamIsNull;
 import com.constellio.data.utils.Octets;
 
-public class CopyInputStreamFactory implements CloseableStreamFactory<InputStream> {
+public class CopyInputStreamFactory implements CloseableStreamFactory<InputStream>, StreamFactoryWithFilename<InputStream> {
 
 	private static final String TEMPFILE_RESOURCE_NAME = "CopyInputStreamFactory-TempFile";
 	private static final String COPY_TO_TEMPFILE_OUTPUT_STREAM = "CopyInputStreamFactory-CopyToTempFileOut";
 
+	private String filename;
 	private final IOServices ioServices;
 	File tempMemoryFile;
 	private long length;
@@ -25,8 +27,9 @@ public class CopyInputStreamFactory implements CloseableStreamFactory<InputStrea
 		this.ioServices = ioServices;
 	}
 
-	public void saveInputStreamContent(InputStream inputStream)
+	public void saveInputStreamContent(InputStream inputStream, String filename)
 			throws CopyInputStreamFactoryRuntimeException {
+		this.filename = filename;
 		if (inputStream == null) {
 			throw new InputStreamIsNull();
 		}
@@ -79,4 +82,8 @@ public class CopyInputStreamFactory implements CloseableStreamFactory<InputStrea
 		ioServices.deleteQuietly(tempMemoryFile);
 	}
 
+	@Override
+	public String getFilename() {
+		return filename;
+	}
 }

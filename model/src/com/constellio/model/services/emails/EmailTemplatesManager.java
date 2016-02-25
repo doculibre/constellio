@@ -66,7 +66,7 @@ public class EmailTemplatesManager implements StatefulService {
 	void addCollectionTemplate(String templateId, String collection, InputStream templateStream)
 			throws IOException, ConfigManagerException.OptimisticLockingConfiguration {
 
-		CloseableStreamFactory<InputStream> streamFactory = ioServices.copyToReusableStreamFactory(templateStream);
+		CloseableStreamFactory<InputStream> streamFactory = ioServices.copyToReusableStreamFactory(templateStream, null);
 		InputStream stream1 = null;
 		InputStream stream2 = null;
 		try {

@@ -23,7 +23,7 @@ public class CopyInputStreamFactoryAcceptanceTest extends ConstellioTest {
 	private CopyInputStreamFactory getCopyInputStreamFactoryFromFile(File file)
 			throws Exception {
 		CopyInputStreamFactory copyInputStreamFactory = new CopyInputStreamFactory(ioServices, memoryByteArraySize);
-		copyInputStreamFactory.saveInputStreamContent(closeAfterTest(newFileInputStream(file)));
+		copyInputStreamFactory.saveInputStreamContent(closeAfterTest(newFileInputStream(file)), file.getName());
 
 		return closeAfterTest(copyInputStreamFactory);
 	}
@@ -83,7 +83,7 @@ public class CopyInputStreamFactoryAcceptanceTest extends ConstellioTest {
 		File file = modifyFileSystem().creatingBinaryFileWithSize(Octets.octets(memoryByteArraySize.getOctets() + 1));
 
 		CopyInputStreamFactory inputStreamFactory = new CopyInputStreamFactory(ioServices, memoryByteArraySize);
-		inputStreamFactory.saveInputStreamContent(closeAfterTest(newFileInputStream(file)));
+		inputStreamFactory.saveInputStreamContent(closeAfterTest(newFileInputStream(file)), file.getName());
 		assertThat(ioServicesTempFolder.listFiles().length).isEqualTo(1);
 
 		inputStreamFactory.close();
