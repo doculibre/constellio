@@ -21,7 +21,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -70,7 +70,7 @@ public class ValueListServices {
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
 		}
 	}
@@ -141,7 +141,7 @@ public class ValueListServices {
 				.setMultivalue(true).setLabel(taxonomy.getTitle());
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
 		}
 
@@ -181,7 +181,7 @@ public class ValueListServices {
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
 		}
 	}

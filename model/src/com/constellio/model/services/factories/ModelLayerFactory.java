@@ -1,6 +1,8 @@
 package com.constellio.model.services.factories;
 
 import java.security.Key;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -69,6 +71,7 @@ import com.constellio.model.services.workflows.execution.WorkflowExecutionServic
 
 public class ModelLayerFactory extends LayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactory.class);
+	private final List<SystemCollectionListener> systemCollectionListeners;
 	private final DataLayerFactory dataLayerFactory;
 	private final IOServicesFactory ioServicesFactory;
 	private final FoldersLocator foldersLocator;
@@ -112,6 +115,8 @@ public class ModelLayerFactory extends LayerFactory {
 
 		super(dataLayerFactory, statefullServiceDecorator);
 
+		systemCollectionListeners = new ArrayList<>();
+
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;
@@ -134,7 +139,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
 		//		this.userCredentialsManager = add(
-		//						new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
+		//				new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
 		this.userCredentialsManager = add(new SolrUserCredentialsManager(this));
 		this.globalGroupsManager = add(new GlobalGroupsManager(configManager));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
@@ -173,6 +178,14 @@ public class ModelLayerFactory extends LayerFactory {
 		this.searchBoostManager = add(
 				new SearchBoostManager(configManager, collectionsListManager));
 
+	}
+
+	public List<SystemCollectionListener> getSystemCollectionListeners() {
+		return systemCollectionListeners;
+	}
+
+	public void addSystemCollectionListener(SystemCollectionListener listener) {
+		systemCollectionListeners.add(listener);
 	}
 
 	public ModelLayerExtensions getExtensions() {

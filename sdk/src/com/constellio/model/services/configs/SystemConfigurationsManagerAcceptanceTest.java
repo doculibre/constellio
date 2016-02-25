@@ -39,7 +39,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManagerRuntimeE
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -370,7 +370,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 					try {
 						modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
-					} catch (OptimistickLocking optimistickLocking) {
+					} catch (OptimisticLocking optimistickLocking) {
 						throw new RuntimeException(optimistickLocking);
 					}
 				}
@@ -445,7 +445,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 			try {
 				modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
-			} catch (OptimistickLocking optimistickLocking) {
+			} catch (OptimisticLocking optimistickLocking) {
 				throw new RuntimeException(optimistickLocking);
 			}
 		}

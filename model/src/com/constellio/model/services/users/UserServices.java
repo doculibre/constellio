@@ -153,20 +153,18 @@ public class UserServices {
 	}
 
 	public void addUserToCollection(UserCredential userCredential, String collection) {
-		UserCredential latestCrendential = getUser(userCredential.getUsername());
-		UserCredential userWithCollection = latestCrendential.withNewCollection(collection);
-		if (userWithCollection != latestCrendential) {
+		if (!userCredential.getCollections().contains(collection)) {
 			try {
-				addUpdateUserCredential(userWithCollection);
+				addUpdateUserCredential(userCredential.withNewCollection(collection));
 			} catch (UserServicesRuntimeException_CannotExcuteTransaction e) {
 				// Revert change in XML config
-				userCredentialsManager.addUpdate(latestCrendential);
+				userCredentialsManager.addUpdate(userCredential.withRemovedCollection(collection));
 				throw e;
 			}
 		} else {
 			// This apparently redundant sync allows to add a user to a collection
 			// in case the user credential configuration file and the solr state are out of sync
-			sync(userWithCollection);
+			sync(userCredential);
 		}
 	}
 

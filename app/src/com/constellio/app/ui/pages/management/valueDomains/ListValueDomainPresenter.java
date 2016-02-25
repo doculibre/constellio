@@ -14,7 +14,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView> {
@@ -46,7 +46,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 			metadataSchemaTypesBuilder.getSchemaType(schemaTypeVO.getCode()).setLabel(newLabel);
 			try {
 				modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(metadataSchemaTypesBuilder);
-			} catch (OptimistickLocking optimistickLocking) {
+			} catch (OptimisticLocking optimistickLocking) {
 				throw new RuntimeException(optimistickLocking);
 			}
 			view.refreshTable();

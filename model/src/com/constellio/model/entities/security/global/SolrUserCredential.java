@@ -261,7 +261,9 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	@Override
 	public UserCredential withNewCollection(String collection) {
 		List<String> collections = new ArrayList<>(getCollections());
-		collections.add(collection);
+		if (!collections.contains(collection)) {
+			collections.add(collection);
+		}
 		return setCollections(collections);
 	}
 

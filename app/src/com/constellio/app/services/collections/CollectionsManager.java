@@ -46,6 +46,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -54,8 +55,6 @@ import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.users.SolrUserCredentialsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 
 public class CollectionsManager implements StatefulService {
@@ -102,9 +101,8 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	private void initializeSystemCollection() {
-		UserCredentialsManager manager = modelLayerFactory.getUserCredentialsManager();
-		if (manager instanceof SolrUserCredentialsManager) {
-			((SolrUserCredentialsManager) manager).initializeSchemas();
+		for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
+			listener.systemCollectionCreated();
 		}
 	}
 

@@ -13,22 +13,30 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class SolrUserCredentialsManager implements UserCredentialsManager {
+public class SolrUserCredentialsManager implements UserCredentialsManager, SystemCollectionListener {
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
 	private final SchemasRecordsServices schemas;
 
 	public SolrUserCredentialsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
+		modelLayerFactory.addSystemCollectionListener(this);
 		searchServices = modelLayerFactory.newSearchServices();
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
@@ -284,16 +292,45 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		// Nothing to be done
 	}
 
+	@Override
+	public void systemCollectionCreated() {
+		MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
+		MetadataSchemaTypesBuilder builder = manager.modify(Collection.SYSTEM_COLLECTION);
+		createUserCredentialSchema(builder);
+		try {
+			manager.saveUpdateSchemaTypes(builder);
+		} catch (OptimisticLocking e) {
+			systemCollectionCreated();
+		}
+	}
+
+	private void createUserCredentialSchema(MetadataSchemaTypesBuilder builder) {
+		MetadataSchemaBuilder credentials = builder.createNewSchemaType(SolrUserCredential.SCHEMA_TYPE).getDefaultSchema();
+
+		credentials.createUndeletable(SolrUserCredential.USERNAME).setType(MetadataValueType.STRING)
+				.setDefaultRequirement(true).setUniqueValue(true).setUnmodifiable(true);
+		credentials.createUndeletable(SolrUserCredential.FIRST_NAME).setType(MetadataValueType.STRING);
+		credentials.createUndeletable(SolrUserCredential.LAST_NAME).setType(MetadataValueType.STRING);
+		credentials.createUndeletable(SolrUserCredential.EMAIL).setType(MetadataValueType.STRING)
+				.setUniqueValue(true).addValidator(EmailValidator.class);
+		credentials.createUndeletable(SolrUserCredential.SERVICE_KEY).setType(MetadataValueType.STRING).setEncrypted(true);
+		credentials.createUndeletable(SolrUserCredential.TOKEN_KEYS).setType(MetadataValueType.STRING).setMultivalue(true)
+				.setEncrypted(true);
+		credentials.createUndeletable(SolrUserCredential.TOKEN_EXPIRATIONS).setType(MetadataValueType.DATE_TIME)
+				.setMultivalue(true);
+		credentials.createUndeletable(SolrUserCredential.SYSTEM_ADMIN).setType(MetadataValueType.BOOLEAN)
+				.setDefaultRequirement(true).setDefaultValue(false);
+		credentials.createUndeletable(SolrUserCredential.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+		credentials.createUndeletable(SolrUserCredential.GLOBAL_GROUPS).setType(MetadataValueType.STRING).setMultivalue(true);
+		credentials.createUndeletable(SolrUserCredential.STATUS).defineAsEnum(UserCredentialStatus.class);
+		credentials.createUndeletable(SolrUserCredential.DOMAIN).setType(MetadataValueType.STRING);
+		credentials.createUndeletable(SolrUserCredential.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
+				.setMultivalue(true);
+		credentials.createUndeletable(SolrUserCredential.DN).setType(MetadataValueType.STRING);
+	}
+
 	private LogicalSearchQuery getQueryFilteredByStatus(UserCredentialStatus status) {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialStatus()).isEqualTo(status))
 				.sortAsc(schemas.credentialUsername());
-	}
-
-	public void initializeSchemas() {
-
-	}
-
-	private void createUserCredentialSchema() {
-
 	}
 }

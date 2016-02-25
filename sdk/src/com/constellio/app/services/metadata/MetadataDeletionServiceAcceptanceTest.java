@@ -47,7 +47,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -86,7 +86,7 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void initTestData()
-			throws OptimistickLocking, RecordServicesException {
+			throws OptimisticLocking, RecordServicesException {
 		MetadataSchemaTypesBuilder schemaTypesBuilder = schemaManager
 				.modify(zeCollection);
 		MetadataSchemaTypeBuilder folderSchemaType = schemaTypesBuilder.getSchemaType(Folder.SCHEMA_TYPE);
@@ -171,7 +171,7 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private void createMetadataWithSameNamesInDocumentSchema()
-			throws OptimistickLocking {
+			throws OptimisticLocking {
 		MetadataSchemaTypesBuilder schemaTypesBuilder = schemaManager
 				.modify(zeCollection);
 		MetadataSchemaTypeBuilder documetSchemaType = schemaTypesBuilder.getSchemaType(Document.SCHEMA_TYPE);
