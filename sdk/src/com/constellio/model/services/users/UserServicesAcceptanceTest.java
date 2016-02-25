@@ -38,6 +38,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -800,9 +801,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenCollection1();
 
-		GlobalGroup group1 = new GlobalGroup("group1", "group1", asList(""), null, GlobalGroupStatus.ACTIVE);
-		GlobalGroup group1_1 = new GlobalGroup("group1_1", "group1_1", asList(""), "group1", GlobalGroupStatus.ACTIVE);
-		GlobalGroup group1_1_1 = new GlobalGroup("group1_1_1", "group1_1_1", asList(""), "group1_1", GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1 = new XmlGlobalGroup("group1", "group1", asList(""), null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1_1 = new XmlGlobalGroup("group1_1", "group1_1", asList(""), "group1", GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1_1", asList(""), "group1_1", GlobalGroupStatus.ACTIVE);
 
 		userServices.addUpdateGlobalGroup(group1);
 		userServices.addUpdateGlobalGroup(group1_1);
@@ -820,9 +821,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	public void givenGroupHierarchyWhenRemoveGroupFromCollectionThenRemoveHierarchy()
 			throws Exception {
 		givenCollection1();
-		GlobalGroup group1 = new GlobalGroup("group1", "group1", asList(""), null, GlobalGroupStatus.ACTIVE);
-		GlobalGroup group1_1 = new GlobalGroup("group1_1", "group1_1", asList(""), "group1", GlobalGroupStatus.ACTIVE);
-		GlobalGroup group1_1_1 = new GlobalGroup("group1_1_1", "group1_1_1", asList(""), "group1_1", GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1 = new XmlGlobalGroup("group1", "group1", asList(""), null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1_1 = new XmlGlobalGroup("group1_1", "group1_1", asList(""), "group1", GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1_1", asList(""), "group1_1", GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group1);
 		userServices.addUpdateGlobalGroup(group1_1);
 		userServices.addUpdateGlobalGroup(group1_1_1);
@@ -843,9 +844,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1();
 
 		List emptyList = new ArrayList<>();
-		GlobalGroup group1 = new GlobalGroup("group1", "group1", emptyList, null, GlobalGroupStatus.ACTIVE);
-		GlobalGroup group1_1 = new GlobalGroup("group1_1", "group1_1", emptyList, "group1", GlobalGroupStatus.ACTIVE);
-		GlobalGroup group1_1_1 = new GlobalGroup("group1_1_1", "group1_1_1", emptyList, "group1_1", GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1 = new XmlGlobalGroup("group1", "group1", emptyList, null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1_1 = new XmlGlobalGroup("group1_1", "group1_1", emptyList, "group1", GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1_1", emptyList, "group1_1", GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group1);
 		userServices.addUpdateGlobalGroup(group1_1);
 		userServices.addUpdateGlobalGroup(group1_1_1);
@@ -880,9 +881,9 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		givenCollection1();
 
 		List emptyList = new ArrayList<>();
-		GlobalGroup group1 = new GlobalGroup("group1", "group1", emptyList, null, GlobalGroupStatus.ACTIVE);
-		GlobalGroup group1_1 = new GlobalGroup("group1_1", "group1_1", emptyList, "group1", GlobalGroupStatus.ACTIVE);
-		GlobalGroup group1_1_1 = new GlobalGroup("group1_1_1", "group1_1_1", emptyList, "group1_1", GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1 = new XmlGlobalGroup("group1", "group1", emptyList, null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1_1 = new XmlGlobalGroup("group1_1", "group1_1", emptyList, "group1", GlobalGroupStatus.ACTIVE);
+		GlobalGroup group1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1_1", emptyList, "group1_1", GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group1);
 		userServices.addUpdateGlobalGroup(group1_1);
 		userServices.addUpdateGlobalGroup(group1_1_1);
@@ -950,7 +951,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	private void givenHeroesGroupWithAllUsersInCollections(String... collections) {
 		heroes = "heroes";
-		GlobalGroup globalGroup = new GlobalGroup(heroes, heroes, asList(collections), null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup globalGroup = new XmlGlobalGroup(heroes, heroes, asList(collections), null, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(globalGroup);
 	}
 
@@ -960,7 +961,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 	private void givenLegendsGroupWithAllUsersInCollections(String... collections) {
 		legends = "legends";
-		GlobalGroup globalGroup = new GlobalGroup(legends, legends, asList(collections), null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup globalGroup = new XmlGlobalGroup(legends, legends, asList(collections), null, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(globalGroup);
 	}
 

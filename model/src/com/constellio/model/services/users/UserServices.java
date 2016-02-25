@@ -60,7 +60,7 @@ public class UserServices {
 
 	public static final String ADMIN = "admin";
 	private final UserCredentialsManager userCredentialsManager;
-	private final GlobalGroupsManager globalGroupsManager;
+	private final XmlGlobalGroupsManager globalGroupsManager;
 	private final CollectionsListManager collectionsListManager;
 	private final RecordServices recordServices;
 	private final SearchServices searchServices;
@@ -70,7 +70,7 @@ public class UserServices {
 	private final RolesManager rolesManager;
 	private final ModelLayerConfiguration modelLayerConfiguration;
 
-	public UserServices(UserCredentialsManager userCredentialsManager, GlobalGroupsManager globalGroupsManager,
+	public UserServices(UserCredentialsManager userCredentialsManager, XmlGlobalGroupsManager globalGroupsManager,
 			CollectionsListManager collectionsListManager, RecordServices recordServices, SearchServices searchServices,
 			MetadataSchemasManager metadataSchemasManager, AuthenticationService authenticationService, RolesManager rolesManager,
 			ModelLayerConfiguration modelLayerConfiguration,

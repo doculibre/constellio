@@ -17,6 +17,7 @@ import com.constellio.app.services.schemas.bulkImport.groups.ImportedGroupValida
 import com.constellio.app.services.schemas.bulkImport.groups.ImportedGroupValidatorRuntimeException.ImportedGroupValidatorRuntimeException_GroupTitleIsMissing;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 
@@ -66,7 +67,7 @@ public class GroupsImportServices {
 
 	void addUpdateOrDeleteGroup(ImportedGroup importedGroup, List<String> collections,
 			UserServices userServices) {
-		GlobalGroup globalGroup = new GlobalGroup(importedGroup.getCode(), importedGroup.getTitle(), collections,
+		GlobalGroup globalGroup = new XmlGlobalGroup(importedGroup.getCode(), importedGroup.getTitle(), collections,
 				importedGroup.getParent(),
 				GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(globalGroup);

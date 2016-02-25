@@ -13,6 +13,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
@@ -247,7 +248,7 @@ public class Users {
 
 	private void addGroup(String code, String title, String parent) {
 		List<String> usersAutomaticallyAddedTocollections = new ArrayList<>();
-		GlobalGroup group = new GlobalGroup(code, title, usersAutomaticallyAddedTocollections, parent, GlobalGroupStatus.ACTIVE);
+		GlobalGroup group = new XmlGlobalGroup(code, title, usersAutomaticallyAddedTocollections, parent, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group);
 	}
 

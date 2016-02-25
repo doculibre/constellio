@@ -19,9 +19,9 @@ import com.constellio.app.ui.framework.buttons.RolesButton;
 import com.constellio.app.ui.tools.RecordContainerWebElement;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -55,7 +55,7 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 
 		userServices = getModelLayerFactory().newUserServices();
 		userServices.addUpdateGlobalGroup(
-				new GlobalGroup(GROUP_CODE, GROUP_NAME, Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE));
+				new XmlGlobalGroup(GROUP_CODE, GROUP_NAME, Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE));
 		rolesManager = getModelLayerFactory().getRolesManager();
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));

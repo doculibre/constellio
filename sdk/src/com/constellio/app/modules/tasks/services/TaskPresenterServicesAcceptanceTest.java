@@ -26,6 +26,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -379,7 +380,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 
 	private void addGroup(String groupCode) {
 		List<String> usersAutomaticallyAddedToCollections = new ArrayList<>();
-		GlobalGroup group = new GlobalGroup(groupCode, groupCode, usersAutomaticallyAddedToCollections, null,
+		GlobalGroup group = new XmlGlobalGroup(groupCode, groupCode, usersAutomaticallyAddedToCollections, null,
 				GlobalGroupStatus.ACTIVE);
 		getModelLayerFactory().newUserServices().addUpdateGlobalGroup(group);
 	}

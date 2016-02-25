@@ -19,6 +19,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.users.UserServices;
@@ -109,7 +110,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		if (globalGroupVO.getCollections() != null) {
 			collections.addAll(globalGroupVO.getCollections());
 		}
-		GlobalGroup newGlobalGroup = new GlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
+		GlobalGroup newGlobalGroup = new XmlGlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
 				collections, globalGroupVO.getParent(), globalGroupVO.getStatus());
 		return newGlobalGroup;
 	}

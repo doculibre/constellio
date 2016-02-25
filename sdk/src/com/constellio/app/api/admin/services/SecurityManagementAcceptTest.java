@@ -21,6 +21,7 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
@@ -152,7 +153,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	private void givenGroupInCollectionAndCollectionPermissionToLegendsWhenGetGroupCollectionPermissionsThenReturnIt() {
 
-		GlobalGroup globalGroup = new GlobalGroup("legends", "legends", Arrays.asList(zeCollection), null,
+		GlobalGroup globalGroup = new XmlGlobalGroup("legends", "legends", Arrays.asList(zeCollection), null,
 				GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(globalGroup);
 

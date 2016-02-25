@@ -57,11 +57,11 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.XmlGlobalGroupsManager;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 import com.constellio.model.services.workflows.WorkflowExecutor;
 import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
@@ -85,7 +85,7 @@ public class ModelLayerFactory extends LayerFactory {
 	private final EmailConfigurationsManager emailConfigurationsManager;
 	private final CollectionsListManager collectionsListManager;
 	private final UserCredentialsManager userCredentialsManager;
-	private final GlobalGroupsManager globalGroupsManager;
+	private final XmlGlobalGroupsManager globalGroupsManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
 	private final LanguageDetectionManager languageDetectionManager;
 	private final WorkflowsConfigManager workflowsConfigManager;
@@ -141,7 +141,7 @@ public class ModelLayerFactory extends LayerFactory {
 		//		this.userCredentialsManager = add(
 		//				new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
 		this.userCredentialsManager = add(new SolrUserCredentialsManager(this));
-		this.globalGroupsManager = add(new GlobalGroupsManager(configManager));
+		this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
 		this.rolesManager = add(new RolesManager(configManager, collectionsListManager));
 
@@ -278,7 +278,7 @@ public class ModelLayerFactory extends LayerFactory {
 		return storedBatchProcessProgressionServices;
 	}
 
-	public GlobalGroupsManager getGlobalGroupsManager() {
+	public XmlGlobalGroupsManager getGlobalGroupsManager() {
 		return globalGroupsManager;
 	}
 

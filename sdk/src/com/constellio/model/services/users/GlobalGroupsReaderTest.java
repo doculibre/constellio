@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class GlobalGroupsReaderTest extends ConstellioTest {
@@ -22,9 +23,9 @@ public class GlobalGroupsReaderTest extends ConstellioTest {
 	@Before
 	public void setup()
 			throws Exception {
-		globalGroup1 = new GlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
-		globalGroup2 = new GlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
-		globalGroup1_1 = new GlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = new XmlGlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
+		globalGroup2 = new XmlGlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
+		globalGroup1_1 = new XmlGlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE);
 
 		Document document = new Document();
 		writer = new GlobalGroupsWriter(document);
