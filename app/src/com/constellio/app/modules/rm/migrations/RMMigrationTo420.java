@@ -46,7 +46,7 @@ public class RMMigrationTo420 extends MigrationHelper implements MigrationScript
 		add420Record(collection, appLayerFactory);
 	}
 
-	private void add420Record(String collection, AppLayerFactory appLayerFactory) {
+	static void add420Record(String collection, AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory()
 				.newRecordServices();
@@ -62,7 +62,7 @@ public class RMMigrationTo420 extends MigrationHelper implements MigrationScript
 		}
 	}
 
-	private void deleteAllFacetsExceptOneThatWillBeModified(String collection, AppLayerFactory appLayerFactory){
+	static void deleteAllFacetsExceptOneThatWillBeModified(String collection, AppLayerFactory appLayerFactory){
 		SearchServices searchService = appLayerFactory.getModelLayerFactory().newSearchServices();
 		SchemasRecordsServices schemas = new ESSchemasRecordsServices(collection, appLayerFactory);
 		List<Record> allFacets = searchService.search(new LogicalSearchQuery(from(schemas.facetSchemaType()).returnAll()));
@@ -86,7 +86,7 @@ public class RMMigrationTo420 extends MigrationHelper implements MigrationScript
 		}
 	}
 
-	private void createSchema420Type(String collection, ModelLayerFactory modelLayerFactory) {
+	static void createSchema420Type(String collection, ModelLayerFactory modelLayerFactory) {
 
 		MetadataSchemasManager schemaManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = schemaManager.modify(collection);
