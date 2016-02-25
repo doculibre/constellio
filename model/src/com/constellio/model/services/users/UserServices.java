@@ -100,6 +100,14 @@ public class UserServices {
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			String serviceKey,
+			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+			UserCredentialStatus status) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status);
+	}
+
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
 			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
 			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
 			String dn) {

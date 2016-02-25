@@ -19,7 +19,6 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
@@ -304,9 +303,10 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
 		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 
-		UserCredential userCredential = new XmlUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
-				inactiveUserInLDAP + "@doculibre.com",
-				asList(new String[] { }), asList(new String[] { }), UserCredentialStatus.ACTIVE);
+		UserCredential userCredential = userServices
+				.createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
+						inactiveUserInLDAP + "@doculibre.com", asList(new String[] {}), asList(new String[] {}),
+						UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(userCredential);
 		userServices.getUser(inactiveUserInLDAP);
 
@@ -328,7 +328,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		List<String> usersAutomaticallyAddedToCollections = Collections.emptyList();
 		userServices.addUpdateGlobalGroup(
 				new GlobalGroup(groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE));
-		bfay = bfay.withGlobalGroups(asList(new String[] { groupA, groupB }));
+		bfay = bfay.withGlobalGroups(asList(groupA, groupB));
 		userServices.addUpdateUserCredential(bfay);
 		currentGroups = bfay.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupA);

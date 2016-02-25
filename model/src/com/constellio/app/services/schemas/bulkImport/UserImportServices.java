@@ -16,7 +16,6 @@ import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
@@ -110,11 +109,12 @@ public class UserImportServices implements ImportServices {
 		if (systemAdmin != null) {
 			boolean systemAdminBoolean = Boolean.valueOf((String) systemAdmin);
 			Map<String, LocalDateTime> tokens = new HashMap<>();
-			userCredential = new XmlUserCredential(username, firstName, lastName, email, null, systemAdminBoolean, globalGroups,
-					collections, tokens, userCredentialStatus);
-		} else {
-			userCredential = new XmlUserCredential(username, firstName, lastName, email, globalGroups, collections,
+			userCredential = userServices.createUserCredential(
+					username, firstName, lastName, email, null, systemAdminBoolean, globalGroups, collections, tokens,
 					userCredentialStatus);
+		} else {
+			userCredential = userServices.createUserCredential(
+					username, firstName, lastName, email, globalGroups, collections, userCredentialStatus);
 		}
 		try {
 			userServices.addUpdateUserCredential(userCredential);

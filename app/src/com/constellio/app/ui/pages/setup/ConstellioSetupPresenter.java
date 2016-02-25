@@ -37,7 +37,6 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -133,9 +132,8 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential adminCredential = new XmlUserCredential("admin", "System", "Admin", "admin@administration.com",
-				new ArrayList<String>(), asList(collectionCode),
-				UserCredentialStatus.ACTIVE).withSystemAdminPermission();
+		UserCredential adminCredential = userServices.createUserCredential("admin", "System", "Admin", "admin@administration.com",
+				new ArrayList<String>(), asList(collectionCode), UserCredentialStatus.ACTIVE).withSystemAdminPermission();
 		userServices.addUpdateUserCredential(adminCredential);
 		userServices.addUserToCollection(adminCredential, collectionCode);
 		User user = userServices.getUserRecordInCollection("admin", collectionCode);

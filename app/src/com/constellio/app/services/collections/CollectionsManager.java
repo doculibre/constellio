@@ -56,6 +56,7 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.UserServices;
 
 public class CollectionsManager implements StatefulService {
 
@@ -120,9 +121,11 @@ public class CollectionsManager implements StatefulService {
 		List<String> collections = new ArrayList<>();
 		boolean isSystemAdmin = true;
 
-		UserCredential adminCredentials = new UserCredential(username, firstName, lastName, email, serviceKey, isSystemAdmin,
-				globalGroups, collections, new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
-		modelLayerFactory.newUserServices().addUpdateUserCredential(adminCredentials);
+		UserServices userServices = modelLayerFactory.newUserServices();
+		UserCredential adminCredentials = userServices.createUserCredential(
+				username, firstName, lastName, email, serviceKey, isSystemAdmin, globalGroups, collections,
+				new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
+		userServices.addUpdateUserCredential(adminCredentials);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		if (authenticationService.supportPasswordChange()) {
 			authenticationService.changePassword("admin", password);
