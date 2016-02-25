@@ -163,7 +163,7 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 		} catch (OptimistickLocking optimistickLocking) {
 			throw new java.lang.RuntimeException(optimistickLocking);
 		}
-		getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(addedSchemaTypeCode);
+		getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(schemaCode);
 	}
 
 	private void deletePhysically(String recordId) {
