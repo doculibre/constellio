@@ -105,7 +105,7 @@ public class TaskPresenterServices {
 				taskFollower.getFollowTaskCompleted(), taskFollower.getFollowTaskDeleted());
 	}
 
-	public boolean isTaskOverDue(TaskVO task) {
+	public boolean isTaskOverdue(TaskVO task) {
 		LocalDate dueDate = task.getDueDate();
 		if (dueDate == null) {
 			return false;

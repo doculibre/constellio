@@ -1,12 +1,15 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -16,13 +19,16 @@ import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Content;
@@ -113,7 +119,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			if (ObjectUtils.notEqual(contentVersionNumber, currentContentVersionNumber)
 					|| ObjectUtils.notEqual(checkoutUserId, currentCheckoutUserId)
 					|| ObjectUtils.notEqual(length, currentLength)) {
-				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY);
+				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
 				view.setDocumentVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();
@@ -142,6 +148,25 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		presenterUtils.updateActionsComponent();
 
 		view.setTasks(tasksDataProvider);
+	}
+
+	public RecordVODataProvider getWorkflows() {
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
+				schema(Workflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+
+		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new WorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
+			}
+		};
+	}
+
+	public void workflowStartRequested(RecordVO record) {
+		Map<String, List<String>> parameters = new HashMap<>();
+		parameters.put(RMTask.LINKED_DOCUMENTS, asList(presenterUtils.getDocumentVO().getId()));
+		Workflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getWorkflow(record.getId());
+		new WorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
 	private void updateContentVersions() {

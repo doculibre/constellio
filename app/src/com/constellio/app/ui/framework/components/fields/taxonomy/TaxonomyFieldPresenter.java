@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
@@ -45,7 +46,7 @@ public class TaxonomyFieldPresenter implements Serializable {
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		List<RecordVO> recordVOs = new ArrayList<RecordVO>();
 		for (TaxonomySearchRecord match : matches) {
-			RecordVO recordVO = voBuilder.build(match.getRecord(), VIEW_MODE.TABLE);
+			RecordVO recordVO = voBuilder.build(match.getRecord(), VIEW_MODE.TABLE, ConstellioUI.getCurrentSessionContext());
 			recordVOs.add(recordVO);
 		}
 

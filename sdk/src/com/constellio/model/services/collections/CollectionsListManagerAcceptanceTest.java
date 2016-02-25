@@ -1,5 +1,6 @@
 package com.constellio.model.services.collections;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -59,7 +60,8 @@ public class CollectionsListManagerAcceptanceTest extends ConstellioTest {
 		givenSpecialCollection("zeUltimateCollection1");
 		givenSpecialCollection("zeUltimateCollection2");
 
-		assertThat(collectionsListManager.getCollections()).containsOnly("zeUltimateCollection1", "zeUltimateCollection2");
+		assertThat(collectionsListManager.getCollections())
+				.containsOnly("zeUltimateCollection1", "zeUltimateCollection2", SYSTEM_COLLECTION);
 	}
 
 	@Test
@@ -71,7 +73,7 @@ public class CollectionsListManagerAcceptanceTest extends ConstellioTest {
 
 		collectionsListManager.remove("zeUltimateCollection1");
 
-		assertThat(collectionsListManager.getCollections()).containsOnly("zeUltimateCollection2");
+		assertThat(collectionsListManager.getCollections()).containsOnly("zeUltimateCollection2", SYSTEM_COLLECTION);
 	}
 
 }

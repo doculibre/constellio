@@ -40,7 +40,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	}
 
 	public RecordVO getRecordVO() {
-		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY);
+		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public void authorizationCreationRequested(AuthorizationVO authorizationVO) {

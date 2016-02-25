@@ -31,9 +31,11 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryConfigManager;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
-import com.constellio.app.services.systemSetup.SystemSetupService;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.containers.ContainerButtonListener;
 import com.constellio.app.ui.i18n.i18n;
@@ -117,9 +119,8 @@ public class AppLayerFactory extends LayerFactory {
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
 
-		SystemSetupService systemSetupService = new SystemSetupService(this, appLayerConfiguration);
 		this.systemGlobalConfigsManager = add(
-				new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory().getConfigManager(), systemSetupService));
+				new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory().getConfigManager()));
 		this.collectionsManager = add(
 				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
@@ -165,12 +166,60 @@ public class AppLayerFactory extends LayerFactory {
 	public AppManagementService newApplicationService() {
 		IOServicesFactory ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager,
-				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager);
+				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager, newUpgradeAppRecoveryService());
+	}
+
+	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
+		return new UpgradeAppRecoveryServiceImpl(this,
+				dataLayerFactory.getIOServicesFactory().newIOServices());
 	}
 
 	@Override
 	public void initialize() {
+		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(this,
+				dataLayerFactory.getIOServicesFactory().newIOServices());
+		upgradeAppRecoveryServiceImpl.deletePreviousWarCausingFailure();
+		if (appLayerConfiguration.isRecoveryModeActive()) {
+			recoveryStartup(upgradeAppRecoveryServiceImpl);
+		} else {
+			normalStartup();
+		}
+		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
+			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
+		}
+		upgradeAppRecoveryServiceImpl.close();
+	}
 
+	private void recoveryStartup(UpgradeAppRecoveryServiceImpl recoveryService) {
+		if (dataLayerFactory.getSecondTransactionLogManager() != null) {
+			//FIXME batch process stop
+			recoveryService.startRollbackMode();
+			try {
+				normalStartup();
+				recoveryService.stopRollbackMode();
+				//TODO restart batch process
+			} catch (Throwable exception) {
+				if (recoveryService.isInRollbackMode()) {
+					LOGGER.error("Error when trying to start application", exception);
+					recoveryService.rollback(exception);
+					//TODO restart batch process
+					try {
+						newApplicationService().restart();
+					} catch (AppManagementServiceException e) {
+						throw new RuntimeException(e);
+					}
+				} else {
+					throw exception;
+				}
+			}
+		} else {
+			//rare case in tests
+			normalStartup();
+		}
+
+	}
+
+	private void normalStartup() {
 		appLayerExtensions.getSystemWideExtensions().pagesComponentsExtensions.add(new DefaultPagesComponentsExtension(this));
 		this.pluginManager.detectPlugins();
 
@@ -196,10 +245,6 @@ public class AppLayerFactory extends LayerFactory {
 			systemGlobalConfigsManager.setReindexingRequired(false);
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
-
-		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
-			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
-		}
 
 		if (!invalidPlugins.isEmpty()) {
 			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));

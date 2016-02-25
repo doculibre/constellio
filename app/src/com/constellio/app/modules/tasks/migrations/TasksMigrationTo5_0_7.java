@@ -112,7 +112,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 						Task.DEFAULT_SCHEMA + "_" + Task.ASSIGNEE,
 						Task.DEFAULT_SCHEMA + "_" + Task.DUE_DATE)));
 
-		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.CONTENT)
+		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.CONTENTS)
 				.withMetadataGroup(filesTab).withInputType(MetadataInputType.CONTENT).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.DESCRIPTION)
 				.withInputType(RICHTEXT).withVisibleInAdvancedSearchStatus(true));
@@ -303,7 +303,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			defaultSchema.createUndeletable(Task.TASK_FOLLOWERS).setType(STRUCTURE).setMultivalue(true).defineStructureFactory(
 					TaskFollowerFactory.class);
 			defaultSchema.createUndeletable(Task.DESCRIPTION).setType(TEXT).setSearchable(true);
-			defaultSchema.createUndeletable(Task.CONTENT).setType(CONTENT).setMultivalue(true).setSearchable(true);
+			defaultSchema.createUndeletable(Task.CONTENTS).setType(CONTENT).setMultivalue(true).setSearchable(true);
 			defaultSchema.createUndeletable(Task.NEXT_REMINDER_ON).setType(DATE).defineDataEntry().asCalculated(
 					TaskNextReminderOnCalculator.class);
 			defaultSchema.createUndeletable(Task.REMINDERS).setType(STRUCTURE).setMultivalue(true).defineStructureFactory(

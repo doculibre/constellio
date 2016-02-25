@@ -6,7 +6,6 @@ import java.util.List;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -41,18 +40,8 @@ public class DocumentToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	public DocumentVO build(Record record, VIEW_MODE viewMode) {
-		return (DocumentVO) super.build(record, viewMode);
-	}
-
-	@Override
 	public DocumentVO build(Record record, VIEW_MODE viewMode, SessionContext sessionContext) {
 		return (DocumentVO) super.build(record, viewMode, sessionContext);
-	}
-
-	@Override
-	public DocumentVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO) {
-		return (DocumentVO) super.build(record, viewMode, schemaVO);
 	}
 
 	@Override

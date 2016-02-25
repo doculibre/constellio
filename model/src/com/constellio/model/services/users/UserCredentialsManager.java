@@ -22,6 +22,7 @@ import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -90,6 +91,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public void addUpdate(UserCredential userCredential) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		initIfRequired();
 		configManager.updateXML(USER_CREDENTIALS_CONFIG, newAddUpdateUserCredentialsDocumentAlteration(userCredential));
 		if (userCredential.getServiceKey() != null) {
@@ -98,17 +100,20 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public UserCredential getUserCredential(String username) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		String cacheKey = toCacheKey(username);
 		return cache.get(cacheKey);
 	}
 
 	public List<UserCredential> getUserCredentials() {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		List<UserCredential> userCredentials = new ArrayList<>(cache.values());
 		sort(userCredentials);
 		return Collections.unmodifiableList(userCredentials);
 	}
 
 	List<UserCredential> getUserCredentialsByStatus(UserCredentialStatus status) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		List<UserCredential> userCredentials = new ArrayList<>();
 		for (UserCredential userCredential : getUserCredentials()) {
 			if (status == userCredential.getStatus()) {
@@ -119,22 +124,27 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public List<UserCredential> getActiveUserCredentials() {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		return Collections.unmodifiableList(getUserCredentialsByStatus(UserCredentialStatus.ACTIVE));
 	}
 
 	public List<UserCredential> getSuspendedUserCredentials() {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		return Collections.unmodifiableList(getUserCredentialsByStatus(UserCredentialStatus.SUPENDED));
 	}
 
 	public List<UserCredential> getPendingApprovalUserCredentials() {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		return Collections.unmodifiableList(getUserCredentialsByStatus(UserCredentialStatus.PENDING));
 	}
 
 	public List<UserCredential> getDeletedUserCredentials() {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		return Collections.unmodifiableList(getUserCredentialsByStatus(UserCredentialStatus.DELETED));
 	}
 
 	public List<UserCredential> getUserCredentialsInGlobalGroup(String group) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		List<UserCredential> userCredentials = new ArrayList<>();
 		for (UserCredential userCredential : getActiveUserCredentials()) {
 			if (userCredential.getGlobalGroups().contains(group)) {
@@ -145,18 +155,22 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public void removeCollection(String collection) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		configManager.updateXML(USER_CREDENTIALS_CONFIG, newRemoveCollectionDocumentAlteration(collection));
 	}
 
 	public void removeToken(String token) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		configManager.updateXML(USER_CREDENTIALS_CONFIG, newRemoveTokenDocumentAlteration(token));
 	}
 
 	public void removeUserCredentialFromCollection(UserCredential userCredential, String collection) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		configManager.updateXML(USER_CREDENTIALS_CONFIG, newRemoveUserDocumentAlteration(userCredential, collection));
 	}
 
 	public void removeGroup(String codeGroup) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		configManager.updateXML(USER_CREDENTIALS_CONFIG, newRemoveGroupDocumentAlteration(codeGroup));
 	}
 
@@ -185,6 +199,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 
 	@Override
 	public void onConfigUpdated(String configPath) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		Document document = configManager.getXML(USER_CREDENTIALS_CONFIG).getDocument();
 		UserCredentialsReader reader = newUserCredencialsReader(document);
 		cache = Collections.unmodifiableMap(reader.readAll(collectionsListManager.getCollections()));
@@ -248,6 +263,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public String getUserCredentialByServiceKey(String serviceKey) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		initIfRequired();
 		for (String usernameWithServiceKey : usersWithServiceKey) {
 			UserCredential userCredential = getUserCredential(usernameWithServiceKey);
@@ -259,12 +275,13 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	synchronized private void initIfRequired() {
-		if(usersWithServiceKey == null){
+		if (usersWithServiceKey == null) {
 			init();
 		}
 	}
 
 	public String getServiceKeyByToken(String token) {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		initIfRequired();
 		for (String usernameWithServiceKey : usersWithServiceKey) {
 			UserCredential userCredential = getUserCredential(usernameWithServiceKey);
@@ -282,6 +299,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public void removedTimedOutTokens() {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		for (UserCredential userCredential : getUserCredentials()) {
 			UserCredential modifiedUserCredential = null;
 			for (Map.Entry<String, LocalDateTime> token : userCredential.getTokens().entrySet()) {
@@ -308,6 +326,7 @@ public class UserCredentialsManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public void rewrite() {
+		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		configManager.updateXML(USER_CREDENTIALS_CONFIG, new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {

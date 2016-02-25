@@ -12,7 +12,6 @@ public class SystemGlobalConfigsManager implements StatefulService {
 	final static String MARKED_FOR_REINDEXING = "markedForReindexing";
 	final static String REINDEXING_REQUIRED = "reindexingRequired";
 	final static String RESTART_REQUIRED = "restartRequired";
-	final static String IS_SYSTEM_SETTED_UP = "systemSettedUp";
 	final static String MAIN_DATA_LANGUAGE = "mainLanguage";
 	final static String TOKEN_DURATION = "tokenDuration";
 	final static String NOTIFICATION_MINUTES = "notificationMinutes";
@@ -21,24 +20,17 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	private final ConfigManager configManager;
 
-	private final SystemSetupService systemSetupService;
-
-	public SystemGlobalConfigsManager(ConfigManager configManager, SystemSetupService systemSetupService) {
+	public SystemGlobalConfigsManager(ConfigManager configManager) {
 		this.configManager = configManager;
-		this.systemSetupService = systemSetupService;
 	}
 
 	@Override
 	public void initialize() {
 		configManager.createPropertiesDocumentIfInexistent(SYSTEM_GLOBAL_PROPERTIES, ConfigManager.EMPTY_PROPERTY_ALTERATION);
 
-		if (!isSystemSettedUp()) {
-			systemSetupService.setup();
-		}
 		configManager.updateProperties(SYSTEM_GLOBAL_PROPERTIES, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
-				properties.put(IS_SYSTEM_SETTED_UP, "true");
 				properties.put(TOKEN_DURATION, Integer.toString(TOKEN_DURATION_VALUE));
 				properties.put(NOTIFICATION_MINUTES, Integer.toString(NOTIFICATION_MINUTES_VALUE));
 			}
@@ -47,10 +39,6 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	public String getMainDataLanguage() {
 		return getGlobalProperties().get(MAIN_DATA_LANGUAGE);
-	}
-
-	boolean isSystemSettedUp() {
-		return "true".equals(getGlobalProperties().get(IS_SYSTEM_SETTED_UP));
 	}
 
 	public int getTokenDuration() {

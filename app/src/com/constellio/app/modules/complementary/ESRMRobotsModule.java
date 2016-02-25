@@ -12,13 +12,17 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorDocumentInFolderActionExecutor;
-import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorTaxonomyActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderDirectlyInThePlanActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInParentFolderActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.extensions.EsRmRobotsMappingExtension;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_2;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_5;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_6;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_7;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_9;
+import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo6_0;
+import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo6_1;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -49,8 +53,17 @@ public class ESRMRobotsModule implements InstallableModule {
 
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
-		return asList(new ESRMRobotsMigrationTo5_1_2(), new ESRMRobotsMigrationTo5_1_5(), new ESRMRobotsMigrationTo5_1_6(),
-				new ESRMRobotsMigrationTo5_1_7(), new ESRMRobotsMigrationTo5_1_9());
+		List<MigrationScript> migrations = new ArrayList<>();
+
+		migrations.add(new ESRMRobotsMigrationTo5_1_2());
+		migrations.add(new ESRMRobotsMigrationTo5_1_5());
+		migrations.add(new ESRMRobotsMigrationTo5_1_6());
+		migrations.add(new ESRMRobotsMigrationTo5_1_7());
+		migrations.add(new ESRMRobotsMigrationTo5_1_9());
+		migrations.add(new ESRMRobotsMigrationTo6_0());
+		migrations.add(new ESRMRobotsMigrationTo6_1());
+
+		return migrations;
 	}
 
 	@Override
@@ -64,7 +77,9 @@ public class ESRMRobotsModule implements InstallableModule {
 		RobotsManager robotsManager = robotSchemas.getRobotsManager();
 
 		ClassifyConnectorDocumentInFolderActionExecutor.registerIn(robotsManager);
-		ClassifyConnectorTaxonomyActionExecutor.registerIn(robotsManager);
+		ClassifyConnectorFolderInTaxonomyActionExecutor.registerIn(robotsManager);
+		ClassifyConnectorFolderInParentFolderActionExecutor.registerIn(robotsManager);
+		ClassifyConnectorFolderDirectlyInThePlanActionExecutor.registerIn(robotsManager);
 
 		setupAppLayerExtensions(collection, appLayerFactory);
 	}

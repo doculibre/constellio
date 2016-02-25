@@ -43,10 +43,14 @@ import com.constellio.app.modules.robots.ui.pages.AddEditRobotViewImpl;
 import com.constellio.app.modules.robots.ui.pages.ListRootRobotsViewImpl;
 import com.constellio.app.modules.robots.ui.pages.RobotConfigurationViewImpl;
 import com.constellio.app.modules.robots.ui.pages.RobotLogsViewImpl;
-import com.constellio.app.modules.tasks.ui.pages.AddEditTaskViewImpl;
-import com.constellio.app.modules.tasks.ui.pages.DisplayTaskViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.TaskManagementViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.TasksLogsViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.workflow.AddEditWorkflowViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.workflow.DisplayWorkflowViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.workflow.ListWorkflowsViewImpl;
+import com.constellio.app.modules.tasks.ui.pages.workflowInstance.DisplayWorkflowInstanceViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
@@ -248,6 +252,12 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String RETENTION_RULES_SEARCH = "retentionRulesSearch";
 	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
 
+	public static final String ADD_WORKFLOW = "addWorkflow";
+	public static final String EDIT_WORKFLOW = "editWorkflow";
+	public static final String DISPLAY_WORKFLOW = "displayWorkflow";
+	public static final String LIST_WORKFLOWS = "listWorkflows";
+	public static final String DISPLAY_WORKFLOW_INSTANCE = "displayWorkflowInstance";
+
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
 	public NavigatorConfigurationService() {
@@ -401,6 +411,11 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(ADD_TASK, AddEditTaskViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_TASK, DisplayTaskViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_TASKS_LOGS, TasksLogsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADD_WORKFLOW, AddEditWorkflowViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(EDIT_WORKFLOW, AddEditWorkflowViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_WORKFLOW, DisplayWorkflowViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_WORKFLOWS, ListWorkflowsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_WORKFLOW_INSTANCE, DisplayWorkflowInstanceViewImpl.class));
 
 		//Robots Module
 		viewProviders.add(new ClassBasedViewProvider(LIST_ROOT_ROBOTS, ListRootRobotsViewImpl.class));

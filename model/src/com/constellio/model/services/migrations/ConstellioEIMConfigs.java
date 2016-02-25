@@ -28,6 +28,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration LOGO_LINK;
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
+	public static final SystemConfiguration ENABLE_RECOVERY_MODE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -50,6 +51,8 @@ public class ConstellioEIMConfigs {
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
 				.withDefaultValue(3000));
 		add(CLEAN_DURING_INSTALL = others.createBooleanFalseByDefault("cleanDuringInstall"));
+
+		add(ENABLE_RECOVERY_MODE = others.createBooleanFalseByDefault("enableRecoverymode").whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -86,6 +89,10 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isCleanDuringInstall() {
 		return manager.getValue(CLEAN_DURING_INSTALL);
+	}
+
+	public Boolean isRecoveryModeEnabled() {
+		return manager.getValue(ENABLE_RECOVERY_MODE);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {

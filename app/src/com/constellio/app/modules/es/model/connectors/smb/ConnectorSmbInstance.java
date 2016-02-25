@@ -18,6 +18,8 @@ public class ConnectorSmbInstance extends ConnectorInstance<ConnectorSmbInstance
 	public static final String EXCLUSIONS = "exclusions";
 	public static final String RESUME_URL = "resumeUrl";
 
+	public static final String SKIP_SHARE_ACCESS_CONTROL = "skipShareAccessControl";
+
 	public ConnectorSmbInstance(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_CODE);
 	}
@@ -96,4 +98,14 @@ public class ConnectorSmbInstance extends ConnectorInstance<ConnectorSmbInstance
 	public String getResumeUrl() {
 		return get(RESUME_URL);
 	}
+
+	public boolean isSkipShareAccessControl() {
+		return getBooleanWithDefaultValue(SKIP_SHARE_ACCESS_CONTROL, false);
+	}
+
+	public ConnectorSmbInstance setSkipShareAccessControl(boolean skipShareAccessControl) {
+		set(SKIP_SHARE_ACCESS_CONTROL, skipShareAccessControl);
+		return this;
+	}
+
 }

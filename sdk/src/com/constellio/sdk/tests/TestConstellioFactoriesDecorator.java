@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -30,9 +31,11 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	List<DataLayerConfigurationAlteration> dataLayerConfigurationAlterations = new ArrayList<>();
 	List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
+	final private boolean checkRollback;
 
-	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled) {
+	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled, boolean checkRollback) {
 		this.backgroundThreadsEnabled = backgroundThreadsEnabled;
+		this.checkRollback = checkRollback;
 	}
 
 	@Override
@@ -42,6 +45,7 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 		doReturn(appTempFolder).when(spiedDataLayerConfiguration).getTempFolder();
 		doReturn(contentFolder).when(spiedDataLayerConfiguration).getContentDaoFileSystemFolder();
 		doReturn(backgroundThreadsEnabled).when(spiedDataLayerConfiguration).isBackgroundThreadsEnabled();
+		doReturn(checkRollback).when(spiedDataLayerConfiguration).isInRollbackTestMode();
 
 		for (DataLayerConfigurationAlteration alteration : dataLayerConfigurationAlterations) {
 			alteration.alter(spiedDataLayerConfiguration);
@@ -76,6 +80,7 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 		doReturn(setupProperties).when(spiedAppLayerConfiguration).getSetupProperties();
 		doReturn(pluginsFolder).when(spiedAppLayerConfiguration).getPluginsFolder();
+		doReturn(checkRollback).when(spiedAppLayerConfiguration).isRecoveryModeActive();
 
 		for (AppLayerConfigurationAlteration alteration : appLayerConfigurationAlterations) {
 			alteration.alter(spiedAppLayerConfiguration);

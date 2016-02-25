@@ -26,6 +26,7 @@ public class ConstellioTestSession {
 	private FactoriesTestFeatures factoriesTestFeatures;
 	private AfterTestValidationsTestFeature afterTestValidationsTestFeature;
 	private SaveStateFeature saveStateFeature;
+	private ToggleTestFeature toggleTestFeature;
 	private SkipTestsRule skipTestsRule;
 
 	//It is singletone pattern for all the test cases
@@ -34,26 +35,30 @@ public class ConstellioTestSession {
 	}
 
 	public static ConstellioTestSession build(boolean isUniTest, Map<String, String> sdkProperties,
-			SkipTestsRule skipTestsRule, Class<? extends AbstractConstellioTest> constellioTest) {
+			SkipTestsRule skipTestsRule, Class<? extends AbstractConstellioTest> constellioTest, boolean checkRollback) {
 		ConstellioTestSession session = new ConstellioTestSession();
 		i18n.setLocale(Locale.FRENCH);
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());
 		session.sdkProperties = sdkProperties;
 		session.skipTestsRule = skipTestsRule;
+		session.toggleTestFeature = new ToggleTestFeature(session.sdkProperties);
+
 		if (!isUniTest) {
 
 			ensureLog4jAndRepositoryProperties();
 
 			session.fileSystemTestFeatures = new FileSystemTestFeatures("temp-test", sdkProperties,
 					constellioTest);
-			session.factoriesTestFeatures = new FactoriesTestFeatures(session.fileSystemTestFeatures, sdkProperties);
-			session.afterTestValidationsTestFeature = new AfterTestValidationsTestFeature(session.fileSystemTestFeatures,
-					session.factoriesTestFeatures, sdkProperties);
+			session.factoriesTestFeatures = new FactoriesTestFeatures(session.fileSystemTestFeatures, sdkProperties,
+					checkRollback);
+
 			session.streamsTestFeatures = new StreamsTestFeatures();
 			session.streamsTestFeatures.beforeTest(skipTestsRule);
 			session.seleniumTestFeatures = new SeleniumTestFeatures();
 			session.schemaTestFeatures = new SchemaTestFeatures(session.factoriesTestFeatures);
 			session.batchProcessTestFeature = new BatchProcessTestFeature(session.factoriesTestFeatures);
+			session.afterTestValidationsTestFeature = new AfterTestValidationsTestFeature(session.fileSystemTestFeatures,
+					session.batchProcessTestFeature, session.factoriesTestFeatures, sdkProperties);
 			session.seleniumTestFeatures.beforeTest(sdkProperties, session.factoriesTestFeatures, skipTestsRule);
 			session.saveStateFeature = new SaveStateFeature(session.factoriesTestFeatures, session.fileSystemTestFeatures);
 		} else {
@@ -189,4 +194,9 @@ public class ConstellioTestSession {
 	public String getProperty(String key) {
 		return sdkProperties.get(key);
 	}
+
+	public ToggleTestFeature getToggleTestFeature() {
+		return toggleTestFeature;
+	}
+
 }

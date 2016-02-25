@@ -38,6 +38,7 @@ import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
@@ -69,6 +70,7 @@ public class DataLayerFactory extends LayerFactory {
 	private final BackgroundThreadsManager backgroundThreadsManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
+	final TransactionLogRecoveryManager transactionLogRecoveryManager;
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
 			StatefullServiceDecorator statefullServiceDecorator) {
@@ -119,10 +121,12 @@ public class DataLayerFactory extends LayerFactory {
 			throw new ImpossibleRuntimeException("Unsupported ContentDaoType");
 		}
 
+		transactionLogRecoveryManager = new TransactionLogRecoveryManager(this);
+
 		if (dataLayerConfiguration.isSecondTransactionLogEnabled()) {
 			secondTransactionLogManager = add(new XMLSecondTransactionLogManager(dataLayerConfiguration,
 					ioServicesFactory.newIOServices(), newRecordDao(), contentDao, backgroundThreadsManager, dataLayerLogger,
-					dataLayerExtensions.getSystemWideExtensions()));
+					dataLayerExtensions.getSystemWideExtensions(), transactionLogRecoveryManager));
 		} else {
 			secondTransactionLogManager = null;
 		}
@@ -248,6 +252,7 @@ public class DataLayerFactory extends LayerFactory {
 		return (String) solrDocument.getFieldValue("value_s");
 	}
 
+
 	public void saveEncryptionKey() {
 		Random random = new Random();
 		String solrKeyPart = random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);
@@ -261,5 +266,9 @@ public class DataLayerFactory extends LayerFactory {
 		} catch (RecordDaoException.OptimisticLocking e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
+		return this.transactionLogRecoveryManager;
 	}
 }

@@ -32,7 +32,7 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 	}
 
 	public RecordVO getUser() {
-		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY);
+		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public String getRoleTitle(String roleCode) {

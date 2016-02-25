@@ -223,7 +223,7 @@ public class SDKPasswords {
 	// Utils
 	private synchronized static void loadCorrectIfRequired() {
 		if (sdkPasswords == null) {
-			File sdkPasswordsFile = new File(new FoldersLocator().getSDKProject(), "sdkpasswords.properties");
+			File sdkPasswordsFile = new File(new FoldersLocator().getPluginsSDKProject(), "sdkpasswords.properties");
 			if (sdkPasswordsFile.exists()) {
 				sdkPasswords = PropertyFileUtils.loadKeyValues(sdkPasswordsFile);
 				loadOrCreateUserPasswords();

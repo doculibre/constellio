@@ -238,6 +238,21 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 		}
 
+		if (conditions.isEmpty()) {
+
+			for (Record record : transaction.getRecords()) {
+				if (!record.isSaved()) {
+					try {
+						getDocumentById(record.getId());
+						throw new RecordServicesRuntimeException.IdAlreadyExisting(record.getId());
+					} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+						//OK
+					}
+				}
+			}
+
+		}
+
 		LogicalSearchCondition condition = fromAllSchemasIn(transaction.getCollection()).whereAnyCondition(conditions);
 
 		List<Record> modifiedRecordVersions = modelFactory.newSearchServices().search(new LogicalSearchQuery(condition));

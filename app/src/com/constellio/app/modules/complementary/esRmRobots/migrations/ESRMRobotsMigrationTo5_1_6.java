@@ -3,7 +3,7 @@ package com.constellio.app.modules.complementary.esRmRobots.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -42,8 +42,8 @@ public class ESRMRobotsMigrationTo5_1_6 implements MigrationScript {
 		private void setupClassifyConnectorTaxonomyActionParametersSchema() {
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.getCustomSchema(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
-			schema.get(ClassifyConnectorTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(false);
+					.getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(false);
 		}
 
 	}

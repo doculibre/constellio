@@ -64,13 +64,13 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setup()
 			throws Exception {
-
+		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withAllTest(users)
 		);
 		inCollection(zeCollection).giveWriteAccessTo(dakota);
 
-		givenDisabledAfterTestValidations();
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 		recordDao = getDataLayerFactory().newRecordDao();

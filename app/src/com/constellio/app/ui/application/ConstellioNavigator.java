@@ -2,6 +2,8 @@ package com.constellio.app.ui.application;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptPresenter;
@@ -84,6 +86,14 @@ public class ConstellioNavigator {
 	public void editDocument(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params);
+		vaadinNavigator.navigateTo(viewPath);
+	}
+
+	public void editDocument(String id, String userDocumentId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("userDocumentId", userDocumentId);
 		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params);
 		vaadinNavigator.navigateTo(viewPath);
 	}
@@ -446,6 +456,17 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_USER_DOCUMENTS);
 	}
 
+	public void declareUserDocument(String userDocumentId, String folderId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("userDocumentId", userDocumentId);
+		if (folderId != null) {
+			params.put("parentId", folderId);
+		}
+
+		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_DOCUMENT, params);
+		vaadinNavigator.navigateTo(viewPath);
+	}
+
 	public void declareUserDocument(String userDocumentId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("userDocumentId", userDocumentId);
@@ -596,22 +617,53 @@ public class ConstellioNavigator {
 		vaadinNavigator.navigateTo(viewPath);
 	}
 
-	public void editTask(String taskId, boolean completeTask) {
+	public void editTask(String taskId, String workflowId, boolean completeTask) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", taskId);
 		if (completeTask) {
 			params.put("completeTask", "" + true);
 		}
+		if (StringUtils.isNotBlank(workflowId)) {
+			params.put("workflowId", workflowId);
+		}
 		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_TASK, params);
 		vaadinNavigator.navigateTo(viewPath);
 	}
 
+	public void editTask(String taskId, boolean completeTask) {
+		editTask(taskId, null, completeTask);
+	}
+
+	public void editTask(String taskId, String workflowId) {
+		editTask(taskId, workflowId, false);
+	}
+
 	public void editTask(String taskId) {
-		editTask(taskId, false);
+		editTask(taskId, null);
 	}
 
 	public void displayTask(String id) {
 		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_TASK + "/" + id);
+	}
+
+	public void listWorkflows() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.LIST_WORKFLOWS);
+	}
+
+	public void addWorkflow() {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.ADD_WORKFLOW);
+	}
+
+	public void displayWorkflow(String id) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_WORKFLOW + "/" + id);
+	}
+
+	public void editWorkflow(String id) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.EDIT_WORKFLOW + "/" + id);
+	}
+
+	public void displayWorkflowInstance(String id) {
+		vaadinNavigator.navigateTo(NavigatorConfigurationService.DISPLAY_WORKFLOW_INSTANCE + "/" + id);
 	}
 
 	public void displayConnectorMappings(String entityId) {

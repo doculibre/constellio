@@ -53,7 +53,8 @@ public class ContainersInFilingSpacePresenter extends BasePresenter<ContainersIn
 	}
 
 	public RecordVO getFilingSpace() {
-		return new RecordToVOBuilder().build(recordServices().getDocumentById(filingSpaceId), VIEW_MODE.DISPLAY);
+		return new RecordToVOBuilder()
+				.build(recordServices().getDocumentById(filingSpaceId), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public void forParams(String params) {

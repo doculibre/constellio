@@ -77,7 +77,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		doReturn(pluginsFolder).when(foldersLocator).getPluginsJarsFolder();
 		doReturn(true).when(eim).isCleanDuringInstall();
 		appManagementService = spy(new AppManagementService(getIOLayerFactory(), foldersLocator, systemGlobalConfigsManager,
-				eim, pluginManager));
+				eim, pluginManager, getAppLayerFactory().newUpgradeAppRecoveryService()));
 
 		doReturn("5.0.4").when(appManagementService).getWarVersion();
 	}
@@ -461,5 +461,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 			throws IOException {
 		FileUtils.writeStringToFile(new File(tempFolder, fileName), "a");
 	}
+
+	//TODO add test for recovery
 
 }

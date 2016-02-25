@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -31,7 +32,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
@@ -54,22 +54,15 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.users.UserServices;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
-
-	private DocumentToVOBuilder voBuilder;
-
 	private transient ContentVersionToVOBuilder contentVersionToVOBuilder;
 
+	private DocumentToVOBuilder voBuilder;
 	private boolean addView;
 	private boolean addViewWithCopy;
-
 	private DocumentVO documentVO;
-
 	private String userDocumentId;
-
 	private SchemaPresenterUtils userDocumentPresenterUtils;
-
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
-
 	private boolean newFile;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
@@ -116,8 +109,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			addView = true;
 		}
 
-		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM);
-		if (addView && userDocumentId != null) {
+		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+		if (userDocumentId != null) {
 			populateFromUserDocument(userDocumentId);
 		}
 		if (addViewWithCopy) {
@@ -218,7 +211,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if ("eml".equals(extension) || "msg".equals(extension)) {
 			InputStream messageInputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromUserDocument");
 			Email email = rmSchemasRecordsServices.newEmail(filename, messageInputStream);
-			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM);
+			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 			contentVersionVO.setMajorVersion(true);
 		}
 		if (StringUtils.isNotBlank(folderId)) {
@@ -246,10 +239,34 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			view.navigateTo().displayDocument(documentVO.getId());
 		}
 	}
+	
+	private void setAsNewVersionOfContent(Document document) {
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		Document documentBeforeChange = rmSchemasRecordsServices.getDocument(document.getId());
+		Content contentBeforeChange = documentBeforeChange.getContent();
+		ContentVersionVO contentVersionVO = documentVO.getContent();
+		String filename = contentVersionVO.getFileName();
+		InputStream in = contentVersionVO.getInputStreamProvider().getInputStream("AddEditDocumentPresenter.saveButtonClicked");
+		boolean majorVersion = Boolean.TRUE.equals(contentVersionVO.isMajorVersion());
+		
+		ContentVersionDataSummary contentVersionSummary;
+		try {
+			contentVersionSummary = contentManager.upload(in);
+		} finally {
+			IOUtils.closeQuietly(in);
+		}
+		contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
+		document.setContent(contentBeforeChange);
+	}
 
 	public void saveButtonClicked() {
 		Record record = toRecord(documentVO, newFile);
 		Document document = rmSchemas().wrapDocument(record);
+		
+		boolean editWithUserDocument = !addView && userDocumentId != null; 
+		if (editWithUserDocument) {
+			setAsNewVersionOfContent(document);
+		}
 
 		if (!canSaveDocument(document, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
@@ -403,7 +420,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	void reloadFormAfterDocumentTypeChange() {
 		String documentTypeId = (String) view.getForm().getCustomField(Document.TYPE).getFieldValue();
-		
+
 		String newSchemaCode;
 		if (documentTypeId != null) {
 			newSchemaCode = rmSchemasRecordsServices.getSchemaCodeForDocumentTypeRecordId(documentTypeId);
@@ -445,7 +462,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 
 		ContentVersionVO contentVersionVO = (ContentVersionVO) view.getForm().getCustomField(Document.CONTENT).getFieldValue();
-		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM);
+		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 		documentVO.setContent(contentVersionVO);
 
 		view.setRecord(documentVO);
@@ -514,7 +531,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					Content content = toContent(contentVersionVO);
 					document.setContent(content);
 					modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
-					documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM);
+					documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
 					documentVO.getContent().setMajorVersion(null);
 					documentVO.getContent().setHash(null);
 					view.setRecord(documentVO);

@@ -37,7 +37,9 @@ public class ConstellioMenuPresenter implements Serializable {
 	private transient ModelLayerFactory modelLayerFactory;
 
 	private transient UserServices userServices;
-	
+
+	private KerberosServices kerberosServices;
+
 	public ConstellioMenuPresenter(ConstellioMenu constellioMenu) {
 		this.constellioMenu = constellioMenu;
 
@@ -83,7 +85,7 @@ public class ConstellioMenuPresenter implements Serializable {
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
 			}
-			UserVO newUserVO = voBuilder.build(newUser.getWrappedRecord(), VIEW_MODE.DISPLAY);
+			UserVO newUserVO = voBuilder.build(newUser.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 			sessionContext.setCurrentCollection(newCollection);
 			sessionContext.setCurrentUser(newUserVO);
 

@@ -1,6 +1,9 @@
 package com.constellio.app.services.collections;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,10 +12,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotCreateCollectionRecord;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotMigrateCollection;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotRemoveCollection;
@@ -39,6 +42,8 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -47,6 +52,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class CollectionsManager implements StatefulService {
@@ -80,10 +86,46 @@ public class CollectionsManager implements StatefulService {
 	@Override
 	public void initialize() {
 		// No initialization required.
+		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
+			createSystemCollection();
+			createAdminUser();
+		}
+	}
+
+	private void createSystemCollection() {
+		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		List<String> languages = asList(mainDataLanguage);
+		createCollectionInCurrentVersion(Collection.SYSTEM_COLLECTION, languages);
+	}
+
+	private void createAdminUser() {
+		String serviceKey = "adminkey";
+		String password = "password";
+		String username = "admin";
+		String firstName = "System";
+		String lastName = "Admin";
+		String email = "admin@organization.com";
+		UserCredentialStatus status = UserCredentialStatus.ACTIVE;
+		String domain = "";
+		List<String> globalGroups = new ArrayList<>();
+		List<String> collections = new ArrayList<>();
+		boolean isSystemAdmin = true;
+
+		UserCredential adminCredentials = new UserCredential(username, firstName, lastName, email, serviceKey, isSystemAdmin,
+				globalGroups, collections, new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
+		modelLayerFactory.newUserServices().addUpdateUserCredential(adminCredentials);
+		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
+		if (authenticationService.supportPasswordChange()) {
+			authenticationService.changePassword("admin", password);
+		}
 	}
 
 	public List<String> getCollectionCodes() {
 		return collectionsListManager.getCollections();
+	}
+
+	public List<String> getCollectionCodesExcludingSystem() {
+		return collectionsListManager.getCollectionsExcludingSystem();
 	}
 
 	void addGlobalGroupsInCollection(String code) {
@@ -286,9 +328,11 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	private void validateCode(String code) {
-		String pattern = "([a-zA-Z0-9])+";
-		if (code == null || !code.matches(pattern)) {
-			throw new CollectionsManagerRuntimeException_InvalidCode(code);
+		if (!Collection.SYSTEM_COLLECTION.equals(code)) {
+			String pattern = "([a-zA-Z0-9])+";
+			if (code == null || !code.matches(pattern)) {
+				throw new CollectionsManagerRuntimeException_InvalidCode(code);
+			}
 		}
 	}
 

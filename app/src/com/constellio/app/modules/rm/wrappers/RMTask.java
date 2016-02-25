@@ -7,7 +7,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class RMTask extends Task {
-
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String LINKED_FOLDERS = "linkedFolders";
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";

@@ -127,7 +127,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 	}
 
 	public List<String> getAllCollections() {
-		return collectionsListManager.getCollections();
+		return collectionsListManager.getCollectionsExcludingSystem();
 	}
 
 	public void setParamsMap(Map<String, String> paramsMap) {

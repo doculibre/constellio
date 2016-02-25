@@ -5,9 +5,12 @@ import static org.mockito.Mockito.doReturn;
 import java.io.File;
 import java.util.Map;
 
+import com.constellio.app.conf.AppLayerConfiguration;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
@@ -20,6 +23,7 @@ public class AfterTestValidationsTestFeature {
 	private boolean disabledInCurrentTest;
 
 	private FactoriesTestFeatures factoriesTestFeatures;
+	private BatchProcessTestFeature batchProcessTestFeature;
 
 	private Map<String, String> sdkProperties;
 
@@ -33,13 +37,20 @@ public class AfterTestValidationsTestFeature {
 					"triggered by the parameter validateTransactionLog=true in sdk.properties"
 					+ "\nThat means the vault was in a corrupted state or the replay broke something.";
 
+	private String rollbackReplayMessage =
+			"\n\nModifications occured during a test that could not be rollbacked after the test, " +
+					"triggered by the parameter checkRollback=true in sdk.properties.";
+	private VaultSnapshot snapshotBeforeReplay;
+
 	public AfterTestValidationsTestFeature(FileSystemTestFeatures fileSystemTestFeatures,
+			final BatchProcessTestFeature batchProcessTestFeature,
 			final FactoriesTestFeatures factoriesTestFeatures, Map<String, String> sdkProperties) {
 		this.factoriesTestFeatures = factoriesTestFeatures;
+		this.batchProcessTestFeature = batchProcessTestFeature;
 		this.sdkProperties = sdkProperties;
 
 		final File logTempFolder = fileSystemTestFeatures.newTempFolderWithName("tLog");
-		if (isValidatingSecondTransactionLog()) {
+		if (isValidatingSecondTransactionLog() || isValidatingRollbackLog()) {
 			this.factoriesTestFeatures.configure(new DataLayerConfigurationAlteration() {
 				@Override
 				public void alter(DataLayerConfiguration configuration) {
@@ -47,6 +58,16 @@ public class AfterTestValidationsTestFeature {
 					doReturn(logTempFolder).when(configuration).getSecondTransactionLogBaseFolder();
 				}
 			});
+
+			if (isValidatingRollbackLog()) {
+				this.factoriesTestFeatures.configure(new AppLayerConfigurationAlteration() {
+					@Override
+					public void alter(AppLayerConfiguration configuration) {
+						doReturn(true).when(configuration).isRecoveryModeActive();
+					}
+				});
+
+			}
 		}
 	}
 
@@ -54,7 +75,10 @@ public class AfterTestValidationsTestFeature {
 		if (!failed && !disabledInCurrentTest) {
 
 			if (factoriesTestFeatures.isInitialized()) {
-				DataLayerFactory dataLayerFactory = factoriesTestFeatures.getConstellioFactories().getDataLayerFactory();
+				ConstellioFactories factories = factoriesTestFeatures
+						.getConstellioFactories();
+				DataLayerFactory dataLayerFactory = factories.getDataLayerFactory();
+				AppLayerConfiguration appLayerConfiguration = factories.getAppLayerConfiguration();
 				DataLayerConfiguration configuration = dataLayerFactory.getDataLayerConfiguration();
 				RecordDao recordDao = dataLayerFactory.newRecordDao();
 				SolrSDKToolsServices solrSDKTools = new SolrSDKToolsServices(recordDao);
@@ -63,7 +87,9 @@ public class AfterTestValidationsTestFeature {
 						if (isValidatingSecondTransactionLog() && configuration.isSecondTransactionLogEnabled()) {
 							solrSDKTools.flushAndDeleteContentMarkers();
 							validateSecondTransactionLog(solrSDKTools);
-
+						} else if (isValidatingRollbackLog() && configuration.isSecondTransactionLogEnabled()
+								&& appLayerConfiguration.isRecoveryModeActive()) {
+							checkRecovery(solrSDKTools, dataLayerFactory.getTransactionLogRecoveryManager());
 						}
 
 						if (isValidatingIntegrity()) {
@@ -79,6 +105,14 @@ public class AfterTestValidationsTestFeature {
 			}
 		}
 		return null;
+	}
+
+	private void checkRecovery(SolrSDKToolsServices tools, TransactionLogRecoveryManager transactionLogRecoveryManager) {
+		if (snapshotBeforeReplay != null) {
+			transactionLogRecoveryManager.rollback(null);
+			VaultSnapshot currentSnapShot = tools.snapshot();
+			tools.ensureSameSnapshots(rollbackReplayMessage, snapshotBeforeReplay, currentSnapShot);
+		}
 	}
 
 	private void validateSecondTransactionLog(SolrSDKToolsServices tools)
@@ -127,7 +161,29 @@ public class AfterTestValidationsTestFeature {
 		return "true".equals(sdkProperties.get("validateTransactionLog"));
 	}
 
+	private boolean isValidatingRollbackLog() {
+		String validateRollback = sdkProperties.get("validateRollback");
+		return validateRollback != null && "true".equals(validateRollback.trim());
+	}
+
 	public void disableInCurrentTest() {
 		disabledInCurrentTest = true;
+	}
+
+	public void startRollbackNow() {
+		if (isValidatingRollbackLog() && !disabledInCurrentTest) {
+
+			if (factoriesTestFeatures.isInitialized()) {
+				DataLayerFactory dataLayerFactory = factoriesTestFeatures.getConstellioFactories().getDataLayerFactory();
+				if (dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
+					dataLayerFactory.getTransactionLogRecoveryManager().stopRollbackMode();
+				}
+				batchProcessTestFeature.waitForAllBatchProcessesAcceptingErrors(null);
+
+				dataLayerFactory.getTransactionLogRecoveryManager().startRollbackMode();
+				snapshotBeforeReplay = new SolrSDKToolsServices(dataLayerFactory.newRecordDao()).snapshot();
+
+			}
+		}
 	}
 }

@@ -1,7 +1,10 @@
 package com.constellio.data.dao.services.transactionLog.writer1;
 
+import static com.constellio.data.dao.services.solr.DateUtils.correctDate;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +66,7 @@ public class TransactionWriterV1 {
 		}
 	}
 
-	private void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrInputDocument document) {
+	protected void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrInputDocument document) {
 		String id = (String) document.getFieldValue("id");
 		Object version = document.getFieldValue("_version_");
 
@@ -158,13 +161,17 @@ public class TransactionWriterV1 {
 		return !id.endsWith("ZZ");
 	}
 
-	private void appendDeletedByQuery(StringBuilder stringBuilder, String deletedByQuery) {
+	protected void appendDeletedByQuery(StringBuilder stringBuilder, String deletedByQuery) {
 		stringBuilder.append("deletequery " + deletedByQuery + "\n");
 	}
 
 	private String correct(Object value) {
 		if (value == null || "null".equals(value)) {
 			return "";
+
+		} else if (value instanceof Date) {
+			LocalDateTime dateTime = new LocalDateTime(value);
+			return correctDate(dateTime).toString().replace("Z", "");
 
 		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
 			return value.toString().replace("Z", "");

@@ -27,7 +27,7 @@ public class CollectionGroupPresenter extends SingleSchemaBasePresenter<Collecti
 	}
 
 	public RecordVO getGroup() {
-		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY);
+		return presenterService().getRecordVO(recordId, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public String getRoleTitle(String roleCode) {

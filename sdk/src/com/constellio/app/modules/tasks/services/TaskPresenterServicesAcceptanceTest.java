@@ -262,7 +262,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	public void givenTaskWithDueDateNotSetThenIsFinishedOnTime()
 			throws Exception {
 		when(taskVOMock.getDueDate()).thenReturn(null);
-		assertThat(taskPresenterServices.isTaskOverDue(taskVOMock)).isFalse();
+		assertThat(taskPresenterServices.isTaskOverdue(taskVOMock)).isFalse();
 	}
 
 	@Test
@@ -270,7 +270,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		when(taskVOMock.getDueDate()).thenReturn(now.minusDays(2));
 		when(taskVOMock.getEndDate()).thenReturn(now.minusDays(1));
-		assertThat(taskPresenterServices.isTaskOverDue(taskVOMock)).isTrue();
+		assertThat(taskPresenterServices.isTaskOverdue(taskVOMock)).isTrue();
 	}
 
 	@Test
@@ -278,7 +278,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		when(taskVOMock.getDueDate()).thenReturn(now);
 		when(taskVOMock.getEndDate()).thenReturn(now);
-		assertThat(taskPresenterServices.isTaskOverDue(taskVOMock)).isFalse();
+		assertThat(taskPresenterServices.isTaskOverdue(taskVOMock)).isFalse();
 	}
 
 	@Test
@@ -286,7 +286,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		when(taskVOMock.getDueDate()).thenReturn(now);
 		when(taskVOMock.getEndDate()).thenReturn(null);
-		assertThat(taskPresenterServices.isTaskOverDue(taskVOMock)).isFalse();
+		assertThat(taskPresenterServices.isTaskOverdue(taskVOMock)).isFalse();
 	}
 
 	@Test
@@ -294,7 +294,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		when(taskVOMock.getDueDate()).thenReturn(now.plusDays(1));
 		when(taskVOMock.getEndDate()).thenReturn(now);
-		assertThat(taskPresenterServices.isTaskOverDue(taskVOMock)).isFalse();
+		assertThat(taskPresenterServices.isTaskOverdue(taskVOMock)).isFalse();
 	}
 
 	@Test

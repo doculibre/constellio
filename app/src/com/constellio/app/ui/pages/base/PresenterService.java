@@ -31,12 +31,6 @@ public class PresenterService {
 		return currentUser;
 	}
 
-	@Deprecated
-	public RecordVO getRecordVO(String id, VIEW_MODE viewMode) {
-		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-		return voBuilder.build(getRecord(id), viewMode);
-	}
-
 	public RecordVO getRecordVO(String id, VIEW_MODE viewMode, SessionContext sessionContext) {
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		return voBuilder.build(getRecord(id), viewMode, sessionContext);

@@ -137,7 +137,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 				throw new AddEditCollectionPresenterException_CodeCodeChangeForbidden();
 			}
 		} else {
-			if (collectionsListManager.getCollections().contains(code)) {
+			if (collectionsListManager.getCollectionsExcludingSystem().contains(code)) {
 				throw new AddEditCollectionPresenterException_CodeUnAvailable();
 			}
 		}

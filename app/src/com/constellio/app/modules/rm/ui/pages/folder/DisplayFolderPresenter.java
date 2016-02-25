@@ -9,7 +9,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -35,7 +37,9 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -43,6 +47,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -200,6 +205,25 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public int getTaskCount() {
 		return tasksDataProvider.size();
+	}
+
+	public RecordVODataProvider getWorkflows() {
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
+				schema(Workflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
+
+		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new WorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
+			}
+		};
+	}
+
+	public void workflowStartRequested(RecordVO record) {
+		Map<String, List<String>> parameters = new HashMap<>();
+		parameters.put(RMTask.LINKED_FOLDERS, asList(folderVO.getId()));
+		Workflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory).getWorkflow(record.getId());
+		new WorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
 	}
 
 	@Override
@@ -577,7 +601,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					Document document = rmSchemasRecordsServices.newDocument();
 					newRecord = document.getWrappedRecord();
 				}
-				DocumentVO documentVO = documentVOBuilder.build(newRecord, VIEW_MODE.FORM);
+				DocumentVO documentVO = documentVOBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
 				documentVO.setFolder(folderVO);
 				documentVO.setTitle(fileName);
 				documentVO.setContent(uploadedContentVO);

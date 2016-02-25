@@ -44,6 +44,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
 		buttons.add(buildPrepareEmailButton());
+		buttons.add(buildBatchDuplicateButton());
+		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
 		return buttons;
 	}
@@ -82,6 +84,28 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		};
 		button.setEnabled(presenter.canPrepareEmail());
+		return button;
+	}
+
+	private Button buildBatchDuplicateButton() {
+		Button button = new LinkButton($("CartView.batchDuplicate")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.duplicationRequested();
+			}
+		};
+		button.setEnabled(presenter.canDelete());
+		return button;
+	}
+
+	private Button buildBatchDeleteButton() {
+		Button button = new DeleteButton(false) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.deletionRequested();
+			}
+		};
+		button.setEnabled(presenter.canDelete());
 		return button;
 	}
 

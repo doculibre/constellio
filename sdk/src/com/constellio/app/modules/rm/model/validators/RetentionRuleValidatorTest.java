@@ -65,6 +65,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 		);
 		when(retentionRule.getDocumentTypesDetails()).thenReturn(types);
 		when(configProvider.get(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED)).thenReturn(true);
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(false);
 
 		copy0_analogicPrincipal.setCode("Copy1");
 		copy0_analogicPrincipal.setMediumTypeIds(Arrays.asList("type1", "type2"));
@@ -481,6 +482,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	@Test
 	public void givenFolderScopeWithDefaultCopyRulesThenError()
 			throws Exception {
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		when(retentionRule.getPrincipalDefaultDocumentCopyRetentionRule()).thenReturn(copy1_numericPrincipal);
 		when(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule()).thenReturn(copy2_secondary);
 
@@ -495,6 +497,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	public void givenDocumentScopeWithNoSecondaryDefaultCopyRuleThenError()
 			throws Exception {
 		givenValidDocumentScope();
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		when(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule()).thenReturn(null);
 
 		validator.validate(retentionRule, schema, configProvider, errors);
@@ -507,6 +510,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	public void givenDocumentScopeWithNoPrincipalDefaultCopyRuleThenError()
 			throws Exception {
 		givenValidDocumentScope();
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		when(retentionRule.getPrincipalDefaultDocumentCopyRetentionRule()).thenReturn(null);
 
 		validator.validate(retentionRule, schema, configProvider, errors);
@@ -519,6 +523,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	public void givenValidRuleWithDocumentScopeThenNoError()
 			throws Exception {
 		givenValidDocumentScope();
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 
 		validator.validate(retentionRule, schema, configProvider, errors);
 
@@ -529,6 +534,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	public void givenDocumentScopeWithDocumentTypesThenError()
 			throws Exception {
 		givenValidDocumentScope();
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		when(retentionRule.getDocumentTypesDetails()).thenReturn(types);
 
 		validator.validate(retentionRule, schema, configProvider, errors);
@@ -540,6 +546,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	@Test
 	public void givenDocumentCopyRetentionRulesWithNoDocumentTypeThenErrors()
 			throws Exception {
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		docCopy1_principal.setDocumentTypeId(null);
 		docCopy2_principal.setDocumentTypeId(null);
 
@@ -555,6 +562,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	@Test
 	public void givenDocumentScopeNoPrincipalDocumentCopyRuleThenError()
 			throws Exception {
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		givenValidDocumentScope();
 		when(retentionRule.getDocumentCopyRetentionRules()).thenReturn(new ArrayList<CopyRetentionRule>());
 
@@ -567,6 +575,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	@Test
 	public void givenSecondaryDocumentCopyRuleThenError()
 			throws Exception {
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		docCopy2_principal.setCopyType(CopyType.SECONDARY);
 
 		validator.validate(retentionRule, schema, configProvider, errors);
@@ -578,6 +587,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	@Test
 	public void givenDocumentScopeWithCopyRulesThenError()
 			throws Exception {
+		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
 		givenValidDocumentScope();
 		when(retentionRule.getCopyRetentionRules()).thenReturn(Arrays.asList(copy0_analogicPrincipal));
 
