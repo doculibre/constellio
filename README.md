@@ -4,12 +4,12 @@ CONSTELLIO EIM IS AN OPEN SOURCE SOLUTION OF ENTERPRISE INFORMATION MANAGEMENT O
 -Record Information Management
 - Enterprise search
  
--- Find relevant information in all your systems through federated search (network sharing, email messaging, SharePoint, etc.)
--- Collaborate efficiently through the most complete online editing platform on the market (compatible with all file formats, web browsers and operating systems)
--- Automate archiving and the management of the lifecycle of your files and documents while conforming to your legal obligations
--- Automate the sound management of your files and documents (detection of duplicates, semi-duplicates and latest versions, automatic classification and automatic metadata extraction)
--- Increase efficiency and accentuate the performance of your employees
--- Ensure the sustainability of your digital documents
+> Find relevant information in all your systems through federated search (network sharing, email messaging, SharePoint, etc.)
+> Collaborate efficiently through the most complete online editing platform on the market (compatible with all file formats, web browsers and operating systems)
+> Automate archiving and the management of the lifecycle of your files and documents while conforming to your legal obligations
+> Automate the sound management of your files and documents (detection of duplicates, semi-duplicates and latest versions, automatic classification and automatic metadata extraction)
+> Increase efficiency and accentuate the performance of your employees
+> Ensure the sustainability of your digital documents
  
 Technology
 
