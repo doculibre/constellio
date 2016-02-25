@@ -18,7 +18,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyServicesRuntimeException.ClassifyServicesRuntimeException_CannotClassifyAsDocument;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
@@ -68,7 +68,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	Record record;
 	AppLayerFactory appLayerFactory;
 	ModelLayerFactory modelLayerFactory;
-	ClassifyConnectorTaxonomyActionParameters params;
+	ClassifyConnectorFolderActionParameters params;
 	RMSchemasRecordsServices rm;
 	ESSchemasRecordsServices es;
 	RobotSchemaRecordServices robots;
@@ -81,7 +81,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	User currentUser;
 	String robotId;
 
-	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorTaxonomyActionParameters params,
+	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
 			AppLayerFactory appLayerFactory, User currentUser, String robotId) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;

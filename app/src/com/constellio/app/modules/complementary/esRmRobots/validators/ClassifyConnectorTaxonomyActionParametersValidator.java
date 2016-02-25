@@ -2,7 +2,7 @@ package com.constellio.app.modules.complementary.esRmRobots.validators;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -21,11 +21,11 @@ public class ClassifyConnectorTaxonomyActionParametersValidator implements Recor
 	@Override
 	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema, ConfigProvider configProvider,
 			ValidationErrors validationErrors) {
-		ClassifyConnectorTaxonomyActionParameters parameters = new ClassifyConnectorTaxonomyActionParameters(record, types);
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = new ClassifyConnectorFolderInTaxonomyActionParameters(record, types);
 		validate(parameters, schema, configProvider, validationErrors);
 	}
 
-	void validate(ClassifyConnectorTaxonomyActionParameters parameters, MetadataSchema schema, ConfigProvider configProvider,
+	void validate(ClassifyConnectorFolderInTaxonomyActionParameters parameters, MetadataSchema schema, ConfigProvider configProvider,
 			ValidationErrors validationErrors) {
 		if (StringUtils.isNotEmpty(parameters.getDefaultParentFolder())) {
 			validateParentFolderUseCase(parameters, validationErrors);
@@ -36,14 +36,14 @@ public class ClassifyConnectorTaxonomyActionParametersValidator implements Recor
 		}
 	}
 
-	private void validateNoTaxoAndNoParentFolderUseCase(ClassifyConnectorTaxonomyActionParameters parameters,
+	private void validateNoTaxoAndNoParentFolderUseCase(ClassifyConnectorFolderInTaxonomyActionParameters parameters,
 			ValidationErrors validationErrors) {
 		if(StringUtils.isEmpty(parameters.getDefaultAdminUnit()) || StringUtils.isEmpty(parameters.getDefaultRetentionRule()) || StringUtils.isEmpty(parameters.getDefaultCategory()) || parameters.getDefaultCopyStatus() == null || parameters.getDefaultOpenDate() == null) {
 			validationErrors.add(getClass(),MUST_SPECIFY_ALL_DEFAULT_VALUES_WHEN_NO_MAPPING_AND_NO_PARENT_FOLDER);
 		}
 	}
 
-	private void validateClassifyInTaxoUseCase(ClassifyConnectorTaxonomyActionParameters parameters,
+	private void validateClassifyInTaxoUseCase(ClassifyConnectorFolderInTaxonomyActionParameters parameters,
 			ValidationErrors validationErrors) {
 		if(StringUtils.isEmpty(parameters.getPathPrefix())) {
 			validationErrors.add(getClass(),MUST_SPECIFY_PATH_PREFIX_WITH_TAXO);
@@ -54,7 +54,7 @@ public class ClassifyConnectorTaxonomyActionParametersValidator implements Recor
 		}
 	}
 
-	private void validateParentFolderUseCase(ClassifyConnectorTaxonomyActionParameters parameters,
+	private void validateParentFolderUseCase(ClassifyConnectorFolderInTaxonomyActionParameters parameters,
 			ValidationErrors validationErrors) {
 		if (StringUtils.isNotEmpty(parameters.getInTaxonomy())) {
 			validationErrors.add(getClass(), MUST_SPECIFY_TAXO_XOR_DEFAULT_PARENT_FOLDER);

@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -23,7 +23,7 @@ public class ClassifyConnectorTaxonomyActionParametersValidatorTest extends Cons
 
 	@Mock MetadataSchema schema;
 
-	@Mock ClassifyConnectorTaxonomyActionParameters parameters;
+	@Mock ClassifyConnectorFolderInTaxonomyActionParameters parameters;
 	@Mock ConfigProvider configProvider;
 
 	ValidationErrors errors = new ValidationErrors();
