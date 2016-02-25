@@ -50,18 +50,22 @@ public class WindowsPermissions {
 
 	private SmbFile file;
 	private TrusteeManager trusteeManager;
+	private boolean skipSharePermissions;
 
 	private Set<String> errors = new HashSet<>();
 
-	public WindowsPermissions(SmbFile file, TrusteeManager trusteeManager) {
+	public WindowsPermissions(SmbFile file, TrusteeManager trusteeManager, boolean skipSharePermissions) {
 		this.file = file;
 		this.trusteeManager = trusteeManager;
+		this.skipSharePermissions = skipSharePermissions;
 	}
 
 	public void process() {
 		processNovellPermissions(file, trusteeManager);
 		processNTFSPermissions(file);
-		processSharePermissions(file);
+		if (!skipSharePermissions) {
+			processSharePermissions(file);
+		}
 		computePermissionsHash();
 	}
 
@@ -108,7 +112,7 @@ public class WindowsPermissions {
 		return permissionsHash;
 	}
 
-	private boolean processNTFSPermissions(SmbFile file) {
+	protected boolean processNTFSPermissions(SmbFile file) {
 		ACE[] documentAces = null;
 		for (int tries = 5; tries >= 0; tries--) {
 			try {
@@ -130,14 +134,14 @@ public class WindowsPermissions {
 		}
 	}
 
-	private void processNovellPermissions(SmbFile file, TrusteeManager trusteeManager) {
+	protected void processNovellPermissions(SmbFile file, TrusteeManager trusteeManager) {
 		Set<String> names = trusteeManager.getNames(file);
 		for (String name : names) {
 			allowTokenDocument.add(name);
 		}
 	}
 
-	private void processSharePermissions(SmbFile file) {
+	protected void processSharePermissions(SmbFile file) {
 		ACE[] shareAces = null;
 		for (int tries = 5; tries >= 0; tries--) {
 			try {

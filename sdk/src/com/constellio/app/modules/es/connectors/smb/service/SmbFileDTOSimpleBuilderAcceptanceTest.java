@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactoryImpl;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 
@@ -262,7 +263,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(smbFile.isFile()).thenReturn(true);
 		when(smbFile.isDirectory()).thenReturn(false);
 		when(smbFile.getName()).thenReturn(SmbTestParams.EXISTING_FILE);
-		when(smbFile.length()).thenReturn(10_000_000L);
+		when(smbFile.length()).thenReturn(2000_000_000L);
 		when(smbFile.getInputStream()).thenReturn(new ByteArrayInputStream(SmbTestParams.EXISTING_FILE_CONTENT.getBytes()));
 		when(smbFile.getLastModified()).thenReturn(123456L);
 
@@ -282,10 +283,10 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(smbFileDTO.isDirectory()).isFalse();
 		assertThat(smbFileDTO.getExtension()).isEqualTo(SmbTestParams.EXISTING_FILE_EXT);
 		assertThat(smbFileDTO.getName()).isEqualTo(SmbTestParams.EXISTING_FILE);
-		assertThat(smbFileDTO.getLength()).isEqualTo(10_000_000L);
+		assertThat(smbFileDTO.getLength()).isEqualTo(2000_000_000L);
 		assertThat(smbFileDTO.getParsedContent()).isEmpty();
 		assertThat(smbFileDTO.getLanguage()).isEmpty();
-		assertThat(smbFileDTO.getErrorMessage()).isEqualTo("File is too big");
+		assertThat(smbFileDTO.getErrorMessage()).contains("exceeds maximum size");
 		assertThat(smbFileDTO.getLastModified()).isEqualTo(123456L);
 	}
 
@@ -433,50 +434,38 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(smbFileDTO.getLength()).isEqualTo(-10L);
 		assertThat(smbFileDTO.getParsedContent()).isEmpty();
 		assertThat(smbFileDTO.getLanguage()).isEmpty();
-		assertThat(smbFileDTO.getErrorMessage()).isEqualTo("Permissions issue");
+		assertThat(smbFileDTO.getErrorMessage()).contains("Permissions issue");
 		assertThat(smbFileDTO.getLastModified()).isEqualTo(123456L);
 	}
 
 	@Test
-	public void givenDeletedFileWhenBuildingDTOForFileThenGetDeleteDTO()
+	public void givenPermissionsExceptionWhenBuildingDTOForDocumentThenGetFailedDTO()
 			throws IOException {
 		// Given
 		LocalDateTime time1 = new LocalDateTime();
 		givenTimeIs(time1);
 
+		WindowsPermissionsFactory windowsPermissionsFactory = new WindowsPermissionsFactoryImpl(trusteeManager, false);
 		when(smbFile.getCanonicalPath()).thenReturn(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE);
-		SmbFileDTOSimpleBuilder builder = Mockito.spy(new SmbFileDTOSimpleBuilder(logger, es, permissionsFactory));
+		SmbFileDTOSimpleBuilder builder = Mockito.spy(new SmbFileDTOSimpleBuilder(logger, es, windowsPermissionsFactory));
 
-		when(windowsPermissions.getAllowTokenDocument()).thenReturn(SmbTestParams.ALLOW_TOKENS);
-		when(windowsPermissions.getAllowTokenShare()).thenReturn(SmbTestParams.ALLOW_SHARE_TOKENS);
-		when(windowsPermissions.getDenyTokenDocument()).thenReturn(SmbTestParams.DENY_TOKENS);
-		when(windowsPermissions.getDenyTokenShare()).thenReturn(SmbTestParams.DENY_SHARE_TOKENS);
-		when(windowsPermissions.getPermissionsHash()).thenReturn(SmbTestParams.EXISTING_FILE_PERMISSION_HASH);
-		doReturn(windowsPermissions).when(builder)
-				.getWindowsPermissions(any(SmbFile.class));
 
-		when(smbFile.exists()).thenReturn(false);
+		when(smbFile.exists()).thenReturn(true);
+		when(smbFile.isFile()).thenReturn(true);
+		when(smbFile.isDirectory()).thenReturn(false);
+		when(smbFile.getName()).thenReturn(SmbTestParams.EXISTING_FILE);
+		when(smbFile.length()).thenReturn(10_000_000L);
+		when(smbFile.getInputStream()).thenReturn(new ByteArrayInputStream(SmbTestParams.EXISTING_FILE_CONTENT.getBytes()));
+		when(smbFile.getLastModified()).thenReturn(123456L);
+		when(smbFile.getShareSecurity(true)).thenThrow(new IOException("Permissions Exception"));
 
 		// When
 		SmbFileDTO smbFileDTO = builder.build(smbFile, true);
 
 		// Then
-		assertThat(smbFileDTO.getStatus()).isEqualTo(SmbFileDTOStatus.DELETE_DTO);
+		assertThat(smbFileDTO.getStatus()).isEqualTo(SmbFileDTOStatus.FAILED_DTO);
 		assertThat(smbFileDTO.getLastFetchAttempt()).isEqualTo(time1);
 		assertThat(smbFileDTO.getUrl()).isEqualTo(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE);
-		assertThat(smbFileDTO.getAllowTokens()).isEmpty();
-		assertThat(smbFileDTO.getAllowShareTokens()).isEmpty();
-		assertThat(smbFileDTO.getDenyTokens()).isEmpty();
-		assertThat(smbFileDTO.getDenyShareTokens()).isEmpty();
-		assertThat(smbFileDTO.getPermissionsHash()).isEmpty();
-		assertThat(smbFileDTO.isFile()).isFalse();
-		assertThat(smbFileDTO.isDirectory()).isFalse();
-		assertThat(smbFileDTO.getExtension()).isEmpty();
-		assertThat(smbFileDTO.getName()).isEmpty();
-		assertThat(smbFileDTO.getLength()).isEqualTo(-10L);
-		assertThat(smbFileDTO.getParsedContent()).isEmpty();
-		assertThat(smbFileDTO.getLanguage()).isEmpty();
-		assertThat(smbFileDTO.getErrorMessage()).isEmpty();
-		assertThat(smbFileDTO.getLastModified()).isEqualTo(-10L);
+		assertThat(smbFileDTO.getErrorMessage()).contains("Permissions Exception");
 	}
 }
