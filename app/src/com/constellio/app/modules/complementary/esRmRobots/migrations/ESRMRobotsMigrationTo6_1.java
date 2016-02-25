@@ -162,10 +162,10 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_COPY_STATUS,
 				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_OPEN_DATE,
 
-				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.DOCUMENT_MAPPING,
-				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.FOLDER_MAPPING,
+				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.ACTION_AFTER_CLASSIFICATION,
 
-				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.ACTION_AFTER_CLASSIFICATION
+				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.DOCUMENT_MAPPING,
+				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.FOLDER_MAPPING
 
 		)));
 
@@ -173,10 +173,10 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 				inFolderSchema + "_" + ClassifyConnectorFolderInParentFolderActionParameters.DEFAULT_PARENT_FOLDER,
 				inFolderSchema + "_" + ClassifyConnectorFolderInParentFolderActionParameters.DEFAULT_OPEN_DATE,
 
-				inFolderSchema + "_" + ClassifyConnectorFolderInParentFolderActionParameters.DOCUMENT_MAPPING,
-				inFolderSchema + "_" + ClassifyConnectorFolderInParentFolderActionParameters.FOLDER_MAPPING,
+				inFolderSchema + "_" + ClassifyConnectorFolderInParentFolderActionParameters.ACTION_AFTER_CLASSIFICATION,
 
-				inFolderSchema + "_" + ClassifyConnectorFolderInParentFolderActionParameters.ACTION_AFTER_CLASSIFICATION
+				inFolderSchema + "_" + ClassifyConnectorFolderInParentFolderActionParameters.DOCUMENT_MAPPING,
+				inFolderSchema + "_" + ClassifyConnectorFolderInParentFolderActionParameters.FOLDER_MAPPING
 
 		)));
 
