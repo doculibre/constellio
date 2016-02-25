@@ -322,7 +322,8 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 				.setDefaultRequirement(true).setDefaultValue(false);
 		credentials.createUndeletable(SolrUserCredential.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
 		credentials.createUndeletable(SolrUserCredential.GLOBAL_GROUPS).setType(MetadataValueType.STRING).setMultivalue(true);
-		credentials.createUndeletable(SolrUserCredential.STATUS).defineAsEnum(UserCredentialStatus.class);
+		credentials.createUndeletable(SolrUserCredential.STATUS).defineAsEnum(UserCredentialStatus.class)
+				.setDefaultRequirement(true);
 		credentials.createUndeletable(SolrUserCredential.DOMAIN).setType(MetadataValueType.STRING);
 		credentials.createUndeletable(SolrUserCredential.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
 				.setMultivalue(true);

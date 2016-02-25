@@ -15,6 +15,7 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 	public static final String USERS = "users";
 	public static final String PARENT = "parent";
 	public static final String STATUS = "status";
+	public static final String PATH = "path";
 
 	public SolrGlobalGroup(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -67,6 +68,15 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 
 	public SolrGlobalGroup setStatus(GlobalGroupStatus status) {
 		set(STATUS, status);
+		return this;
+	}
+
+	public String getPath() {
+		return get(PATH);
+	}
+
+	public SolrGlobalGroup setPath(String path) {
+		set(PATH, path);
 		return this;
 	}
 

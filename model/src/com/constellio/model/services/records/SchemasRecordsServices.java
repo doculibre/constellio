@@ -167,12 +167,28 @@ public class SchemasRecordsServices {
 		return getTypes().getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
 	}
 
+	public Metadata globalGroupCode() {
+		return globalGroupSchema().getMetadata(SolrGlobalGroup.CODE);
+	}
+
+	public Metadata globalGroupPath() {
+		return globalGroupSchema().getMetadata(SolrGlobalGroup.PATH);
+	}
+
 	public GlobalGroup newGlobalGroup() {
 		return new SolrGlobalGroup(create(globalGroupSchema()), getTypes());
 	}
 
 	public GlobalGroup wrapGlobalGroup(Record record) {
 		return new SolrGlobalGroup(record, getTypes());
+	}
+
+	public List<GlobalGroup> wrapGlobalGroups(List<Record> records) {
+		List<GlobalGroup> result = new ArrayList<>(records.size());
+		for (Record record : records) {
+			result.add(wrapGlobalGroup(record));
+		}
+		return result;
 	}
 
 	//Events
