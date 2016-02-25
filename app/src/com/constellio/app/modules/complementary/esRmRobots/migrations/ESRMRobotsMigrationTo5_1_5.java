@@ -1,22 +1,22 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DEFAULT_ADMIN_UNIT;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DEFAULT_CATEGORY;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DEFAULT_COPY_STATUS;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DEFAULT_OPEN_DATE;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DEFAULT_RETENTION_RULE;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DELIMITER;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DOCUMENT_MAPPING;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.FOLDER_MAPPING;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.IN_TAXONOMY;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.PATH_PREFIX;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_ADMIN_UNIT;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_COPY_STATUS;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_OPEN_DATE;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_RETENTION_RULE;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DELIMITER;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_MAPPING;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_MAPPING;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.IN_TAXONOMY;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.PATH_PREFIX;
 import static java.util.Arrays.asList;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -71,29 +71,29 @@ public class ESRMRobotsMigrationTo5_1_5 implements MigrationScript {
 			MetadataSchemaTypeBuilder administrativeUnitSchemaType = typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.createCustomSchema(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(true)
+					.createCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(true)
 					.setType(MetadataValueType.STRING).setDefaultValue(RMTaxonomies.ADMINISTRATIVE_UNITS);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION).setDefaultRequirement(true)
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION).setDefaultRequirement(true)
 					.defineAsEnum(ActionAfterClassification.class)
 					.setDefaultValue(ActionAfterClassification.DO_NOTHING);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.DELIMITER).setDefaultRequirement(false).setType(
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DELIMITER).setDefaultRequirement(false).setType(
 					MetadataValueType.STRING);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.FOLDER_MAPPING).setDefaultRequirement(false).setType(
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_MAPPING).setDefaultRequirement(false).setType(
 					MetadataValueType.CONTENT);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.DOCUMENT_MAPPING).setDefaultRequirement(false).setType(
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_MAPPING).setDefaultRequirement(false).setType(
 					MetadataValueType.CONTENT);
 			schema.create(DEFAULT_ADMIN_UNIT).setDefaultRequirement(false)
 					.defineReferencesTo(administrativeUnitSchemaType);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.DEFAULT_CATEGORY).setDefaultRequirement(false)
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY).setDefaultRequirement(false)
 					.defineReferencesTo(categorySchemaType);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.DEFAULT_RETENTION_RULE).setDefaultRequirement(false)
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_RETENTION_RULE).setDefaultRequirement(false)
 					.defineReferencesTo(retentionRuleSchemaType);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.DEFAULT_OPEN_DATE).setDefaultRequirement(false).setType(
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_OPEN_DATE).setDefaultRequirement(false).setType(
 					MetadataValueType.DATE);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.DEFAULT_COPY_STATUS).setDefaultRequirement(false)
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_COPY_STATUS).setDefaultRequirement(false)
 					.defineAsEnum(CopyType.class);
-			schema.create(ClassifyConnectorTaxonomyActionParameters.PATH_PREFIX).setDefaultRequirement(true).setType(
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.PATH_PREFIX).setDefaultRequirement(true).setType(
 					MetadataValueType.STRING).setDefaultValue("smb://");
 		}
 
@@ -107,7 +107,7 @@ public class ESRMRobotsMigrationTo5_1_5 implements MigrationScript {
 		String defaultValuesTab = migrationResourcesProvider.get("tab.defaultValues");
 		String mappingsTab = migrationResourcesProvider.get("tab.mappings");
 
-		String parametersSchema = ClassifyConnectorTaxonomyActionParameters.SCHEMA;
+		String parametersSchema = ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA;
 
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
