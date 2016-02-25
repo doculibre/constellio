@@ -14,6 +14,7 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_InvalidParent;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_ParentNotFound;
 
@@ -31,6 +32,11 @@ public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdate
 	@Override
 	public void initialize() {
 		registerListener(configManager);
+	}
+
+	@Override
+	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
+		return new XmlGlobalGroup(code, name, collections, parent, status);
 	}
 
 	@Override

@@ -132,6 +132,11 @@ public class UserServices {
 		sync(savedUserCredential);
 	}
 
+	public GlobalGroup createGlobalGroup(
+			String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
+		return globalGroupsManager.create(code, name, collections, parent, status);
+	}
+
 	public void addUpdateGlobalGroup(GlobalGroup globalGroup) {
 		GlobalGroup currentGroup = globalGroupsManager.getGlobalGroupWithCode(globalGroup.getCode());
 		List<String> wasAutomaticCollections = currentGroup == null ? new ArrayList<String>() : currentGroup

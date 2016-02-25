@@ -39,6 +39,16 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	}
 
 	@Override
+	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
+		return ((SolrGlobalGroup) schemas.newGlobalGroup())
+				.setCode(code)
+				.setName(name)
+				.setUsersAutomaticallyAddedToCollections(collections)
+				.setParent(parent)
+				.setStatus(status);
+	}
+
+	@Override
 	public void addUpdate(GlobalGroup group) {
 		SolrGlobalGroup groupRecord = (SolrGlobalGroup) group;
 		validateHierarchy(groupRecord);
