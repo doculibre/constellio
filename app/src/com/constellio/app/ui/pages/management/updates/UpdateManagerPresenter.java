@@ -13,10 +13,14 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
+import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public UpdateManagerPresenter(UpdateManagerView view) {
@@ -143,10 +147,26 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public boolean isRestartWithReindexButtonEnabled() {
-		return !newWarUploaded();
+		return !recoveryModeEnabled();
 	}
 
-	private boolean newWarUploaded() {
-		return false;
+	private boolean recoveryModeEnabled() {
+		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
+		return systemConfigurationsManager.getValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE);
+	}
+
+	public boolean isUpdateEnabled() {
+		 return isUpdateWithRecoveryPossible() == null;
+	}
+
+	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
+		return appLayerFactory.newUpgradeAppRecoveryService()
+				.isUpdateWithRecoveryPossible();
+	}
+
+	public String getExceptionDuringLastUpdate() {
+		UpgradeAppRecoveryService upgradeService = appLayerFactory
+				.newUpgradeAppRecoveryService();
+		return upgradeService.getLastUpgradeExceptionMessage();
 	}
 }

@@ -5,11 +5,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.OutputStream;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
+import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.LocalDateLabel;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -121,6 +123,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
 		}
 
+		Component messagePanel = buildMessagePanel();
+		layout.addComponent(messagePanel);
 		panel = new VerticalLayout();
 		layout.addComponent(panel);
 
@@ -129,13 +133,26 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		return layout;
 	}
 
+	private Component buildMessagePanel() {
+		VerticalLayout verticalLayout = new VerticalLayout();
+		UpdateRecoveryImpossibleCause cause = presenter.isUpdateWithRecoveryPossible();
+		if(cause != null){
+			verticalLayout.addComponent(new Label("<p style=\"color:red\">" + $("UpdateManagerViewImpl." + cause) + "</p>", ContentMode.HTML));
+		}
+		String exceptionDuringLastUpdate = presenter.getExceptionDuringLastUpdate();
+		if(StringUtils.isNotBlank(exceptionDuringLastUpdate)){
+			verticalLayout.addComponent(new Label("<p style=\"color:red\">" + $("UpdateManagerViewImpl.exceptionCausedByLastVersion")+ " " + exceptionDuringLastUpdate + "</p>", ContentMode.HTML));
+		}
+		return verticalLayout;
+	}
+
 	@Override
 	public void showStandardUpdatePanel() {
 		Component updatePanel = presenter.isLicensedForAutomaticUpdate() ? buildAutomaticUpdateLayout() : buildUnlicensedLayout();
 		layout.replaceComponent(panel, updatePanel);
 		license.setEnabled(true);
 		standardUpdate.setEnabled(false);
-		alternateUpdate.setEnabled(true);
+		alternateUpdate.setEnabled(presenter.isUpdateEnabled());
 		panel = updatePanel;
 	}
 
@@ -144,7 +161,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Component updatePanel = handler.buildUpdatePanel();
 		layout.replaceComponent(panel, updatePanel);
 		license.setEnabled(true);
-		standardUpdate.setEnabled(true);
+		standardUpdate.setEnabled(presenter.isUpdateEnabled());
 		alternateUpdate.setEnabled(false);
 		panel = updatePanel;
 	}
@@ -154,8 +171,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Component licensePanel = buildLicenseUploadPanel();
 		layout.replaceComponent(panel, licensePanel);
 		license.setEnabled(false);
-		standardUpdate.setEnabled(true);
-		alternateUpdate.setEnabled(true);
+		boolean uploadPossible = presenter.isUpdateEnabled();
+		standardUpdate.setEnabled(uploadPossible);
+		alternateUpdate.setEnabled(uploadPossible);
 		panel = licensePanel;
 	}
 
@@ -200,6 +218,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				});
 			}
 		};
+		update.setVisible(presenter.isUpdateEnabled());
 
 		HorizontalLayout updater = new HorizontalLayout(message, update);
 		updater.setComponentAlignment(message, Alignment.MIDDLE_LEFT);

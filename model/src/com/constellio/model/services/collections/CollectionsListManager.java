@@ -29,7 +29,6 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 	public CollectionsListManager(ConfigManager configManager) {
 		this.configManager = configManager;
-
 	}
 
 	@Override

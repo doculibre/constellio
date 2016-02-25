@@ -49,4 +49,9 @@ public class SystemPropertiesServices {
 		long freeMemoryInBytes = Runtime.getRuntime().freeMemory();
 		return freeMemoryInBytes/1048576;//1024*1024
 	}
+
+	public double getFileSizeInGig(File file) {
+		long tlFileSizeInBytes = file.length();
+		return (double)tlFileSizeInBytes/1073741824;//1024*1024*1024
+	}
 }

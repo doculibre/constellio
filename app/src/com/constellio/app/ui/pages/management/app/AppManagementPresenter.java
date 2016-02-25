@@ -39,7 +39,6 @@ public class AppManagementPresenter extends BasePresenter<AppManagementView> {
 
 	public void updateApplicationButtonClicked() {
 		try {
-			view.showMessage("Je suis la bonne version");
 			appManagementService().update(new ProgressInfo());
 		} catch (AppManagementServiceException e) {
 			LOGGER.warn("Error when updating", e);

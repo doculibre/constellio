@@ -2,24 +2,14 @@ package com.constellio.data.dao.services.recovery.transactionWriter;
 
 import static org.apache.solr.client.solrj.util.ClientUtils.toSolrInputDocument;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
-import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CannotParseLogCommand;
 import com.constellio.data.dao.services.transactionLog.writer1.TransactionWriterV1;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.data.utils.KeyListMap;
-import com.sun.image.codec.jpeg.ImageFormatException;
 
 public class RecoveryTransactionWriter extends TransactionWriterV1 {
 
@@ -55,7 +45,7 @@ public class RecoveryTransactionWriter extends TransactionWriterV1 {
 			}else if(document instanceof SolrDocument){
 				appendAddUpdateSolrDocument(stringBuilder, toSolrInputDocument((SolrDocument) document));
 			}else{
-				throw new ImageFormatException("Expecting solr document or solr input document : " + document.getClass().getName());
+				throw new RuntimeException("Expecting solr document or solr input document : " + document.getClass().getName());
 			}
 		}
 		return stringBuilder.toString();

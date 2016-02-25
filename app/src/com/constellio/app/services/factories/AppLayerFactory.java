@@ -31,6 +31,8 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryConfigManager;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
@@ -166,7 +168,12 @@ public class AppLayerFactory extends LayerFactory {
 	public AppManagementService newApplicationService() {
 		IOServicesFactory ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager,
-				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager);
+				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager, newUpgradeAppRecoveryService());
+	}
+
+	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
+		return new UpgradeAppRecoveryServiceImpl(this,
+				dataLayerFactory.getIOServicesFactory().newIOServices());
 	}
 
 	@Override
