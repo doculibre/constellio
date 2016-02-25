@@ -32,8 +32,8 @@ import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorTaxonomyActionExecutor;
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDownloadSmbDocument;
 import com.constellio.app.modules.es.connectors.spi.Connector;
@@ -250,8 +250,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		givenFetchedTaxonomyWithValidFoldersButNoDocuments();
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X));
 
@@ -259,7 +259,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -314,8 +314,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 			throws Exception {
 		notAUnitItest = true;
 		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(null).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setDefaultCategory(records.categoryId_X).setDefaultAdminUnit(
 						records.unitId_10).setDefaultCopyStatus(CopyType.PRINCIPAL).setDefaultRetentionRule(
@@ -325,7 +325,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("/"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -374,8 +374,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 			throws Exception {
 		notAUnitItest = true;
 		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(null).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setDefaultParentFolder(records.folder_A07).setDefaultOpenDate(squatreNovembre));
 
@@ -383,7 +383,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("/"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -440,8 +440,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		});
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setFolderMapping(folderMapping)
 				.setDefaultCategory(records.categoryId_X));
@@ -450,7 +450,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -495,8 +495,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		givenFetchedTaxonomyWithValidFoldersButNoDocuments();
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X));
 
@@ -504,7 +504,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -537,8 +537,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		givenFetchedTaxonomyWithValidFoldersButNoDocuments();
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMappingWithMissingEntries.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMappingWithMissingEntries.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(
 				parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(EXCLUDE_DOCUMENTS)
 						.setFolderMapping(folderMapping).setDelimiter(" ").setDefaultCategory(records.categoryId_X)
@@ -548,7 +548,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -589,8 +589,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		givenFetchedTaxonomyWithValidFoldersButNoDocuments();
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setDefaultCategory(records.categoryId_X).setDefaultAdminUnit(records.unitId_12)
 				.setDefaultCopyStatus(CopyType.PRINCIPAL).setDefaultRetentionRule(records.ruleId_3)
@@ -600,7 +600,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -645,8 +645,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
 		Content documentMapping = contentManager.createMajor(users.adminIn(zeCollection), "testDocumentMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testDocumentMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(EXCLUDE_DOCUMENTS)
 				.setDelimiter(" ").setFolderMapping(folderMapping).setDocumentMapping(documentMapping)
 				.setDefaultCategory(records.categoryId_X));
@@ -655,7 +655,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -718,8 +718,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
 		Content documentMapping = contentManager.createMajor(users.adminIn(zeCollection), "testDocumentMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testDocumentMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters
 				.setInTaxonomy(ADMINISTRATIVE_UNITS)
 				.setActionAfterClassification(DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM)
@@ -732,7 +732,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		assertThatAllDocuments().extracting("id", "fetched", "logicallyDeletedStatus").containsOnly(
 				tuple(documentA1, true, false),
@@ -810,8 +810,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				contentManager.upload(getTestResourceInputStream("testDocumentMapping.csv")));
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS)
 				.setActionAfterClassification(DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM)
 				.setDelimiter(" ")
@@ -823,7 +823,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE)
 				.setSearchCriterion(new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 						.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
 			@Override
@@ -899,8 +899,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		givenFetchedTaxonomyWithValidFoldersButNoDocuments();
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(EXCLUDE_DOCUMENTS)
 				.setDelimiter(" ").setFolderMapping(folderMapping));
 
@@ -908,7 +908,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -949,8 +949,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		givenFetchedTaxonomyWithFoldersAndDocuments();
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS)
 				.setActionAfterClassification(DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM)
 				.setDelimiter(" ").setFolderMapping(folderMapping));
@@ -959,7 +959,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -1009,8 +1009,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		givenFetchedTaxonomyWithValidFoldersButNoDocuments();
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMappingWithCustomTypes.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMappingWithCustomTypes.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X));
 
@@ -1018,7 +1018,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -1089,8 +1089,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
 		Content documentMapping = contentManager.createMajor(users.adminIn(zeCollection), "testDocumentMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testDocumentMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setDocumentMapping(documentMapping).setFolderMapping(folderMapping)
 				.setDefaultCategory(records.categoryId_X));
@@ -1099,7 +1099,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -1183,8 +1183,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		Content documentMapping = contentManager
 				.createMajor(users.adminIn(zeCollection), "testDocumentMappingWithCustomTypes.csv",
 						contentManager.upload(getTestResourceInputStream("testDocumentMappingWithCustomTypes.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setDocumentMapping(documentMapping).setFolderMapping(folderMapping)
 				.setDefaultCategory(records.categoryId_X));
@@ -1193,7 +1193,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -1221,8 +1221,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
 		Content documentMapping = contentManager.createMajor(users.adminIn(zeCollection), "testDocumentMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testDocumentMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setDocumentMapping(documentMapping).setFolderMapping(folderMapping)
 				.setDefaultCategory(records.categoryId_X));
@@ -1231,7 +1231,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -1262,8 +1262,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		});
 		givenFetchedTaxonomyWithValidFoldersButNoDocuments();
 
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setDefaultCategory(records.categoryId_X).setDefaultCopyStatus(CopyType.PRINCIPAL)
 				.setDefaultOpenDate(squatreNovembre).setDefaultRetentionRule(records.ruleId_3)
@@ -1273,7 +1273,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
@@ -1335,8 +1335,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X));
 
@@ -1358,8 +1358,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		givenFetchedTaxonomyWithValidFoldersButNoDocuments();
 		Content folderMapping = contentManager.createMajor(users.adminIn(zeCollection), "testFolderMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(DO_NOTHING)
 				.setDelimiter(" ").setFolderMapping(folderMapping).setDefaultCategory(records.categoryId_X));
 
@@ -1513,7 +1513,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		}
 	}
 
-	void classifyConnectorFolderInTaxonomy(Record connectorFolder, ClassifyConnectorTaxonomyActionParameters params) {
+	void classifyConnectorFolderInTaxonomy(Record connectorFolder, ClassifyConnectorFolderInTaxonomyActionParameters params) {
 		ClassifyConnectorRecordInTaxonomyExecutor builder = new ClassifyConnectorRecordInTaxonomyExecutor(
 				connectorFolder, params, es.getAppLayerFactory(), users.adminIn(zeCollection), robotId);
 		builder.execute();

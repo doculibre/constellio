@@ -14,8 +14,8 @@ import org.apache.tools.ant.filters.StringInputStream;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorTaxonomyActionExecutor;
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorInstanciator;
@@ -92,8 +92,8 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 		int numberOfDocumentsInEachFolders = 5;
 		createLevel(numberOfFolders, numberOfDocumentsInEachFolders);
 
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		parameters.setInTaxonomy(RMTaxonomies.CLASSIFICATION_PLAN);
 		parameters.setActionAfterClassification(ActionAfterClassification.DO_NOTHING);
 
@@ -105,7 +105,7 @@ public class ClassifySmbDocumentActionLoadAcceptTest extends ConstellioTest {
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriteria(asList(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE).booleanOperator(OR)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb").build()
-				)).setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("robocop").setTitle("robocop"));
+				)).setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("robocop").setTitle("robocop"));
 
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();

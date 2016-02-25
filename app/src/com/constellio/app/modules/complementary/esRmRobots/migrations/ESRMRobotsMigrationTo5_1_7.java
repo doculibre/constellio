@@ -1,14 +1,14 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DEFAULT_ADMIN_UNIT;
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters.DEFAULT_PARENT_FOLDER;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_ADMIN_UNIT;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_PARENT_FOLDER;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.validators.ClassifyConnectorTaxonomyActionParametersValidator;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
@@ -56,10 +56,10 @@ public class ESRMRobotsMigrationTo5_1_7 implements MigrationScript {
 			MetadataSchemaTypeBuilder folderType = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE);
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(ActionParameters.SCHEMA_TYPE)
-					.getCustomSchema(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
-			schema.createUndeletable(ClassifyConnectorTaxonomyActionParameters.DEFAULT_PARENT_FOLDER).setDefaultRequirement(false)
+					.getCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
+			schema.createUndeletable(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_PARENT_FOLDER).setDefaultRequirement(false)
 					.defineReferencesTo(folderType);
-			schema.get(ClassifyConnectorTaxonomyActionParameters.PATH_PREFIX).setDefaultRequirement(false);
+			schema.get(ClassifyConnectorFolderInTaxonomyActionParameters.PATH_PREFIX).setDefaultRequirement(false);
 			schema.defineValidators().add(ClassifyConnectorTaxonomyActionParametersValidator.class);
 		}
 
@@ -70,7 +70,7 @@ public class ESRMRobotsMigrationTo5_1_7 implements MigrationScript {
 
 		String defaultValuesTab = migrationResourcesProvider.get("tab.defaultValues");
 
-		String parametersSchema = ClassifyConnectorTaxonomyActionParameters.SCHEMA;
+		String parametersSchema = ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA;
 
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
