@@ -58,6 +58,7 @@ import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
@@ -86,7 +87,7 @@ public class ModelLayerFactory extends LayerFactory {
 	private final EmailConfigurationsManager emailConfigurationsManager;
 	private final CollectionsListManager collectionsListManager;
 	private final UserCredentialsManager userCredentialsManager;
-	private final XmlGlobalGroupsManager globalGroupsManager;
+	private final GlobalGroupsManager globalGroupsManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
 	private final LanguageDetectionManager languageDetectionManager;
 	private final WorkflowsConfigManager workflowsConfigManager;
@@ -142,7 +143,8 @@ public class ModelLayerFactory extends LayerFactory {
 		//		this.userCredentialsManager = add(
 		//				new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
 		this.userCredentialsManager = add(new SolrUserCredentialsManager(this));
-		this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
+		//this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
+		this.globalGroupsManager = add(new SolrGlobalGroupsManager(this));
 		this.authorizationDetailsManager = add(new AuthorizationDetailsManager(configManager, collectionsListManager));
 		this.rolesManager = add(new RolesManager(configManager, collectionsListManager));
 

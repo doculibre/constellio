@@ -298,7 +298,9 @@ public class CollectionsManager implements StatefulService {
 
 	private Record crateCollectionAfterPrepare(String code, String name, List<String> languages) {
 		Record collectionRecord = createCollectionRecordWithCode(code, name, languages);
-		addGlobalGroupsInCollection(code);
+		if (!code.equals(Collection.SYSTEM_COLLECTION)) {
+			addGlobalGroupsInCollection(code);
+		}
 		initializeCollection(code);
 		return collectionRecord;
 	}

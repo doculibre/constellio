@@ -15,7 +15,7 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 	public static final String COLLECTIONS = "collections";
 	public static final String PARENT = "parent";
 	public static final String STATUS = "status";
-	public static final String PATH = "path";
+	public static final String HIERARCHY = "hierarchy";
 
 	public SolrGlobalGroup(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -71,12 +71,12 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 		return this;
 	}
 
-	public String getPath() {
-		return get(PATH);
+	public String getHierarchy() {
+		return get(HIERARCHY);
 	}
 
-	public SolrGlobalGroup setPath(String path) {
-		set(PATH, path);
+	public SolrGlobalGroup setHierarchy(String path) {
+		set(HIERARCHY, path);
 		return this;
 	}
 

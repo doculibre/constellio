@@ -171,8 +171,8 @@ public class SchemasRecordsServices {
 		return globalGroupSchema().getMetadata(SolrGlobalGroup.CODE);
 	}
 
-	public Metadata globalGroupPath() {
-		return globalGroupSchema().getMetadata(SolrGlobalGroup.PATH);
+	public Metadata globalGroupHierarchy() {
+		return globalGroupSchema().getMetadata(SolrGlobalGroup.HIERARCHY);
 	}
 
 	public Metadata globalGroupStatus() {

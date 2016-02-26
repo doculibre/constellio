@@ -113,7 +113,8 @@ public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdate
 		}
 	}
 
-	List<GlobalGroup> getHierarchy(String hierarchyCode) {
+	@Override
+	public List<GlobalGroup> getHierarchy(String hierarchyCode) {
 		List<GlobalGroup> hierarchy = new ArrayList<>();
 		List<String> hierarchyCodes = new ArrayList<>();
 		getHierarchy(hierarchyCode, hierarchyCodes);
