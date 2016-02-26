@@ -57,6 +57,7 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
@@ -278,7 +279,7 @@ public class ModelLayerFactory extends LayerFactory {
 		return storedBatchProcessProgressionServices;
 	}
 
-	public XmlGlobalGroupsManager getGlobalGroupsManager() {
+	public GlobalGroupsManager getGlobalGroupsManager() {
 		return globalGroupsManager;
 	}
 
