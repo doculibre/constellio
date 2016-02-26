@@ -69,8 +69,8 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		inRollbackMode = true;
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
+		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(false);
 		transactionLogManager.regroupAndMoveInVault();
-		transactionLogManager.setAutomaticLog(false);
 		dataLayerFactory.getRecordsVaultServer().registerListener(this);
 	}
 
@@ -94,7 +94,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
 		transactionLogManager.regroupAndMoveInVault();
-		transactionLogManager.setAutomaticLog(true);
+		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true);
 	}
 
 	private void deleteRecoveryFile() {
@@ -124,7 +124,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
 		transactionLogManager.deleteUnregroupedLog();
-		transactionLogManager.setAutomaticLog(true);
+		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true);
 		inRollbackMode = false;
 	}
 

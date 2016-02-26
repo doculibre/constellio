@@ -31,6 +31,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	private final SystemPropertiesServices systemPropertiesServices;
 	private final IOServices ioServices;
 	private final File oldSetting;
+	private final ConfigManager configManager;
 	private final UpgradeAppRecoveryConfigManager upgradeAppRecoveryConfigManager;
 
 	public UpgradeAppRecoveryServiceImpl(AppLayerFactory appLayerFactory, IOServices ioServices) {
@@ -41,6 +42,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		this.oldSetting = ioServices.newTemporaryFolder(WORK_DIR_NAME);
 		systemPropertiesServices = new SystemPropertiesServices(appLayerFactory.getModelLayerFactory().getFoldersLocator(),
 				ioServices);
+		this.configManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager();
 		this.upgradeAppRecoveryConfigManager = new UpgradeAppRecoveryConfigManager(
 				appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager());
 	}
@@ -49,7 +51,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		this.upgradeAppRecoveryConfigManager.onVersionMigratedWithException(exception);
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
-		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE, true);
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, true);
 		pointToPreviousValidVersion();
 	}
 
@@ -64,8 +66,12 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	@Override
 	public void startRollbackMode() {
-		saveSettings();
-		transactionLogRecoveryManager.startRollbackMode();
+
+		// Synchronized since batch process may be running
+		synchronized (configManager) {
+			transactionLogRecoveryManager.startRollbackMode();
+			saveSettings();
+		}
 	}
 
 	@Override
@@ -76,7 +82,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
 		deleteSavedSettings();
-		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE, false);
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, false);
 	}
 
 	@Override
@@ -85,7 +91,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	}
 
 	public void rollback(Throwable t) {
-		closeLayersExceptData();
+		closeAppAndModelLayers();
 		replaceSettingsByTheSavedOneButKeepRecoverySettings();
 		transactionLogRecoveryManager.rollback(t);
 		prepareNextStartup(t);
@@ -116,7 +122,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		this.upgradeAppRecoveryConfigManager.onVersionUploadedCorrectly(currentInstalledVersion, uploadedVersion);
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
-		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE, true);
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, true);
 	}
 
 	@Override
@@ -148,9 +154,9 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		}
 	}
 
-	private void closeLayersExceptData() {
-		appLayerFactory.getModelLayerFactory().close(false);
+	private void closeAppAndModelLayers() {
 		appLayerFactory.close(false);
+		appLayerFactory.getModelLayerFactory().close(false);
 	}
 
 	private void replaceSettingsByTheSavedOneButKeepRecoverySettings() {

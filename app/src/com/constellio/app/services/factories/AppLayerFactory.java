@@ -31,7 +31,6 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
-import com.constellio.app.services.recovery.UpgradeAppRecoveryConfigManager;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -166,7 +165,8 @@ public class AppLayerFactory extends LayerFactory {
 	public AppManagementService newApplicationService() {
 		IOServicesFactory ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager,
-				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager, newUpgradeAppRecoveryService());
+				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager,
+				newUpgradeAppRecoveryService());
 	}
 
 	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
@@ -176,33 +176,28 @@ public class AppLayerFactory extends LayerFactory {
 
 	@Override
 	public void initialize() {
-		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(this,
+		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryService = new UpgradeAppRecoveryServiceImpl(this,
 				dataLayerFactory.getIOServicesFactory().newIOServices());
-		upgradeAppRecoveryServiceImpl.deletePreviousWarCausingFailure();
-		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		boolean recoveryModeActive = constellioConfigs.isRecoveryModeEnabled();
-		//FIXME FB
-		if (appLayerConfiguration.isRecoveryModeActive() //for tests
-				|| recoveryModeActive//for application
-				) {
-			recoveryStartup(upgradeAppRecoveryServiceImpl);
+		upgradeAppRecoveryService.deletePreviousWarCausingFailure();
+
+		if (appLayerConfiguration.isRecoveryModeActive() || modelLayerFactory.getSystemConfigs().isInUpdateProcess()) {
+			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {
 			normalStartup();
 		}
+
 		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
 			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
 		}
-		upgradeAppRecoveryServiceImpl.close();
+		upgradeAppRecoveryService.close();
 	}
 
-	private void recoveryStartup(UpgradeAppRecoveryServiceImpl recoveryService) {
+	private void startupWithPossibleRecovery(UpgradeAppRecoveryServiceImpl recoveryService) {
 		if (dataLayerFactory.getSecondTransactionLogManager() != null) {
-			//FIXME batch process stop
 			recoveryService.startRollbackMode();
 			try {
 				normalStartup();
 				recoveryService.stopRollbackMode();
-				//TODO restart batch process
 			} catch (Throwable exception) {
 				if (recoveryService.isInRollbackMode()) {
 					LOGGER.error("Error when trying to start application", exception);
