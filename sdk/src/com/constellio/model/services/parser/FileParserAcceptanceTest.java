@@ -14,7 +14,9 @@ import org.junit.Test;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
+import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
 import com.constellio.sdk.tests.ConstellioTest;
 
 //@SlowTest
@@ -347,6 +349,38 @@ public class FileParserAcceptanceTest extends ConstellioTest {
 				entry("nomduclient", asList("Gandalf Leblanc")),
 				entry("adresseduclient", asList("Somewhere, Terre du Milieu"))
 		);
+
+	}
+
+	@Test
+	public void whenParsingLargeFileNotExceedingFileSizeLimitThenParsed()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS, 2);
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithLargePictureOfEdouard.pptx");
+		long length = getLengthOf("testFileWithLargePictureOfEdouard.pptx");
+
+		ParsedContent parsedContent = fileParser.parse(inputStreamFactory, length);
+
+		assertThat(parsedContent.getMimeType())
+				.isEqualTo("application/vnd.openxmlformats-officedocument.presentationml.presentation");
+		assertThat(parsedContent.getParsedContent()).contains("history of cats");
+
+	}
+
+	@Test
+	public void whenParsingLargeFileExceedingFileSizeLimitThenParsed()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS, 1);
+		inputStreamFactory = getTestResourceInputStreamFactory("testFileWithLargePictureOfEdouard.pptx");
+		long length = getLengthOf("testFileWithLargePictureOfEdouard.pptx");
+
+		try {
+			fileParser.parse(inputStreamFactory, length);
+			fail("FileParserException_FileSizeExceedLimitForParsing expected");
+
+		} catch (FileParserException_FileSizeExceedLimitForParsing e) {
+			assertThat(e.getDetectedMimetype()).isNull();
+		}
 
 	}
 

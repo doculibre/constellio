@@ -260,7 +260,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			ContentVersionDataSummary contentVersionDataSummary;
 			try {
 				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-				contentVersionDataSummary = contentManager.upload(inputStream);
+				contentVersionDataSummary = contentManager.upload(inputStream, fileName);
 			} finally {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				ioServices.closeQuietly(inputStream);
