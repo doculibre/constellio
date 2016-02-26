@@ -78,6 +78,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		this.constellioModulesManagerDelayed = constellioModulesManagerDelayed;
 		this.configManager.registerListener(CONFIG_FILE_PATH, this);
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		//FIXME
+		initialize();
 	}
 
 	@Override

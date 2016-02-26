@@ -179,7 +179,12 @@ public class AppLayerFactory extends LayerFactory {
 		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(this,
 				dataLayerFactory.getIOServicesFactory().newIOServices());
 		upgradeAppRecoveryServiceImpl.deletePreviousWarCausingFailure();
-		if (appLayerConfiguration.isRecoveryModeActive()) {
+		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		boolean recoveryModeActive = constellioConfigs.isRecoveryModeEnabled();
+		//FIXME FB
+		if (appLayerConfiguration.isRecoveryModeActive() //for tests
+				|| recoveryModeActive//for application
+				) {
 			recoveryStartup(upgradeAppRecoveryServiceImpl);
 		} else {
 			normalStartup();

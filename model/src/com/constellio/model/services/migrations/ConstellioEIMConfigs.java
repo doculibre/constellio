@@ -52,7 +52,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(3000));
 		add(CLEAN_DURING_INSTALL = others.createBooleanFalseByDefault("cleanDuringInstall"));
 
-		add(ENABLE_RECOVERY_MODE = others.createBooleanFalseByDefault("enableRecoverymode").whichIsHidden());
+		add(ENABLE_RECOVERY_MODE = others.createBooleanFalseByDefault("enableRecoveryMode").whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}

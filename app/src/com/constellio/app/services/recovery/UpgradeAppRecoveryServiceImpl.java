@@ -75,8 +75,8 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		this.upgradeAppRecoveryConfigManager.onVersionMigratedCorrectly();
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
-		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE, false);
 		deleteSavedSettings();
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE, false);
 	}
 
 	@Override
@@ -89,8 +89,8 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		replaceSettingsByTheSavedOneButKeepRecoverySettings();
 		transactionLogRecoveryManager.rollback(t);
 		prepareNextStartup(t);
-		this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 		deleteSavedSettings();
+		this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 	}
 
 	@Override
