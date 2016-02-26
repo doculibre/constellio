@@ -1,5 +1,6 @@
 package com.constellio.model.services.users;
 
+import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 
 	@Override
 	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
-		return ((SolrGlobalGroup) schemas.newGlobalGroup())
+		return ((SolrGlobalGroup) valueOrDefault(getGlobalGroupWithCode(code), schemas.newGlobalGroup()))
 				.setCode(code)
 				.setName(name)
 				.setUsersAutomaticallyAddedToCollections(collections)

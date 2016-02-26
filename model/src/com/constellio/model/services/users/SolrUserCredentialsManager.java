@@ -1,7 +1,9 @@
 package com.constellio.model.services.users;
 
+import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,54 +46,30 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, List<String> globalGroups,
 			List<String> collections, UserCredentialStatus status) {
-		return ((SolrUserCredential) schemas.newCredential())
-				.setUsername(username)
-				.setFirstName(firstName)
-				.setLastName(lastName)
-				.setEmail(email)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setStatus(status);
+		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
+				Collections.<String, LocalDateTime>emptyMap(), status, null, null, null);
 	}
 
 	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, List<String> globalGroups,
 			List<String> collections, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
-		return ((SolrUserCredential) schemas.newCredential())
-				.setUsername(username)
-				.setFirstName(firstName)
-				.setLastName(lastName)
-				.setEmail(email)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setStatus(status)
-				.setDomain(domain)
-				.setMsExchDelegateListBL(msExchDelegateListBL)
-				.setDn(dn);
+		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
+				Collections.<String, LocalDateTime>emptyMap(), status, domain, msExchDelegateListBL, dn);
 	}
 
 	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
 			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 			UserCredentialStatus status) {
-		return ((SolrUserCredential) schemas.newCredential())
-				.setUsername(username)
-				.setFirstName(firstName)
-				.setLastName(lastName)
-				.setEmail(email)
-				.setServiceKey(serviceKey)
-				.setSystemAdmin(systemAdmin)
-				.setGlobalGroups(globalGroups)
-				.setCollections(collections)
-				.setAccessTokens(tokens)
-				.setStatus(status);
+		return create(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status,
+				null, null, null);
 	}
 
 	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
 			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
-		return ((SolrUserCredential) schemas.newCredential())
+		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(username)
 				.setFirstName(firstName)
 				.setLastName(lastName)

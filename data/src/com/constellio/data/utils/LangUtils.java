@@ -16,6 +16,10 @@ import org.joda.time.LocalDate;
 
 public class LangUtils {
 
+	public static <T, V extends T, D extends T> T valueOrDefault(V value, D defaultValue) {
+		return value != null ? value : defaultValue;
+	}
+
 	public static LocalDate max(LocalDate date1, LocalDate date2) {
 		if (date1 == null) {
 			return date2;
