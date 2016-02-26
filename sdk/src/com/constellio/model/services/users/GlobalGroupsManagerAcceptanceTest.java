@@ -9,7 +9,6 @@ import org.junit.Test;
 
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
@@ -28,13 +27,13 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		manager = getModelLayerFactory().getGlobalGroupsManager();
 
-		globalGroup1 = new XmlGlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
-		globalGroup2 = new XmlGlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
-		globalGroup3 = new XmlGlobalGroup("group3", null, GlobalGroupStatus.ACTIVE);
-		globalGroup1_1 = new XmlGlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE);
-		globalGroup1_2 = new XmlGlobalGroup("group1_2", "group1", GlobalGroupStatus.ACTIVE);
-		globalGroup1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
-		globalGroup2_1 = new XmlGlobalGroup("group2_1", "group2", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", null, GlobalGroupStatus.ACTIVE);
+		globalGroup2 = manager.create("group2", null, GlobalGroupStatus.ACTIVE);
+		globalGroup3 = manager.create("group3", null, GlobalGroupStatus.ACTIVE);
+		globalGroup1_1 = manager.create("group1_1", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1_2 = manager.create("group1_2", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1_1_1 = manager.create("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
+		globalGroup2_1 = manager.create("group2_1", "group2", GlobalGroupStatus.ACTIVE);
 	}
 
 	@Test
@@ -167,7 +166,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	public void whenAddSubGroupWithParentThatNotExistsThenException()
 			throws Exception {
 
-		globalGroup1 = new XmlGlobalGroup("group1", "inexistentGroup", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "inexistentGroup", GlobalGroupStatus.ACTIVE);
 
 		try {
 			manager.addUpdate(globalGroup1);
@@ -183,7 +182,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		manager.addUpdate(globalGroup1);
-		globalGroup1 = new XmlGlobalGroup("group1", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1", GlobalGroupStatus.ACTIVE);
 
 		assertThat(manager.getActiveGroups()).hasSize(1);
 		try {
@@ -203,7 +202,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(globalGroup1);
 		manager.addUpdate(globalGroup1_1);
 
-		globalGroup1 = new XmlGlobalGroup("group1", "group1_1", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1_1", GlobalGroupStatus.ACTIVE);
 
 		try {
 			manager.addUpdate(globalGroup1);

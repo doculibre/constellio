@@ -3,6 +3,7 @@ package com.constellio.model.services.users;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
@@ -46,6 +47,11 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 				.setUsersAutomaticallyAddedToCollections(collections)
 				.setParent(parent)
 				.setStatus(status);
+	}
+
+	@Override
+	public GlobalGroup create(String code, String parent, GlobalGroupStatus status) {
+		return create(code, code, Collections.<String>emptyList(), parent, status);
 	}
 
 	@Override

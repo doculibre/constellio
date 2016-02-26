@@ -9,6 +9,8 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 public interface GlobalGroupsManager extends StatefulService {
 	GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status);
 
+	GlobalGroup create(String code, String parent, GlobalGroupStatus status);
+
 	void addUpdate(GlobalGroup globalGroup);
 
 	void logicallyRemoveGroup(GlobalGroup globalGroup);

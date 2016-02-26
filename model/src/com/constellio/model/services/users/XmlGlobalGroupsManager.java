@@ -40,6 +40,11 @@ public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdate
 	}
 
 	@Override
+	public GlobalGroup create(String code, String parent, GlobalGroupStatus status) {
+		return create(code, code, Collections.<String>emptyList(), parent, status);
+	}
+
+	@Override
 	public void addUpdate(GlobalGroup globalGroup) {
 		if (globalGroup.getParent() != null) {
 			if (getGlobalGroupWithCode(globalGroup.getParent()) == null) {

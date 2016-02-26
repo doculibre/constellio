@@ -14,21 +14,16 @@ public class XmlGlobalGroup implements GlobalGroup {
 	final List<String> usersAutomaticallyAddedToCollections;
 	final GlobalGroupStatus status;
 
-	public XmlGlobalGroup(String code, String name, List<String> usersAutomaticallyAddedToCollections, String parent,
-			GlobalGroupStatus status) {
+	public XmlGlobalGroup(String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
 		this.code = code;
 		this.name = name;
-		this.usersAutomaticallyAddedToCollections = Collections.unmodifiableList(usersAutomaticallyAddedToCollections);
+		this.usersAutomaticallyAddedToCollections = Collections.unmodifiableList(collections);
 		this.parent = parent;
 		this.status = status;
 	}
 
 	public XmlGlobalGroup(String code, String parent, GlobalGroupStatus status) {
-		this.code = code;
-		this.name = code;
-		this.usersAutomaticallyAddedToCollections = Collections.emptyList();
-		this.parent = parent;
-		this.status = status;
+		this(code, code, Collections.<String>emptyList(), parent, status);
 	}
 
 	@Override
