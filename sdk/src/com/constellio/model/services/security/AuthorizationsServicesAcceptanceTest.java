@@ -31,7 +31,6 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -305,7 +304,8 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		GlobalGroup group = new XmlGlobalGroup("vilains", "Vilains", new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup group = userServices.createGlobalGroup(
+				"vilains", "Vilains", new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group);
 		userServices.setGlobalGroupUsers("vilains", asList(users.bob()));
 

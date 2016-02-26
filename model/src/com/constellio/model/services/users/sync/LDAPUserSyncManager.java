@@ -26,7 +26,6 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
@@ -179,7 +178,8 @@ public class LDAPUserSyncManager implements StatefulService {
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup e) {
 			usersAutomaticallyAddedToCollections = new HashSet<>();
 		}
-		return new XmlGlobalGroup(code, name, new ArrayList<>(usersAutomaticallyAddedToCollections), null, GlobalGroupStatus.ACTIVE);
+		return userServices.createGlobalGroup(
+				code, name, new ArrayList<>(usersAutomaticallyAddedToCollections), null, GlobalGroupStatus.ACTIVE);
 	}
 
 	private UserCredential createUserCredentialsFromLdapUser(LDAPUser ldapUser, List<String> selectedCollectionsCodes) {

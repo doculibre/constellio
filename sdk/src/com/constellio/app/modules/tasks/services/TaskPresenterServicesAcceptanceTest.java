@@ -9,7 +9,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.joda.time.LocalDate;
 import org.junit.Before;
@@ -26,7 +25,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -372,16 +370,16 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);
 
 		recordServices.update(zeTask.setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()))
-						.setAssignee(null).setAssigneeUsersCandidates(null)
+				.setAssignee(null).setAssigneeUsersCandidates(null)
 		);
 		zeTask = tasksSchemas.getTask(zeTask.getId());
 		assertThat(taskPresenterServices.isAssignedToUser(zeTask.getWrappedRecord(), aliceHasWriteAccessOnZeTask)).isTrue();
 	}
 
 	private void addGroup(String groupCode) {
-		List<String> usersAutomaticallyAddedToCollections = new ArrayList<>();
-		GlobalGroup group = new XmlGlobalGroup(groupCode, groupCode, usersAutomaticallyAddedToCollections, null,
-				GlobalGroupStatus.ACTIVE);
-		getModelLayerFactory().newUserServices().addUpdateGlobalGroup(group);
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		GlobalGroup group = userServices.createGlobalGroup(
+				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
+		userServices.addUpdateGlobalGroup(group);
 	}
 }

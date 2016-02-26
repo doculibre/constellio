@@ -26,7 +26,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.users.UserServices;
 
 @Path("users")
@@ -49,7 +48,7 @@ public class UserServicesAPI {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String addUpdateGlobalGroup(GlobalGroupResource globalGroupResource) {
-		GlobalGroup group = new XmlGlobalGroup(globalGroupResource.getCode(), globalGroupResource.getName(),
+		GlobalGroup group = userServices().createGlobalGroup(globalGroupResource.getCode(), globalGroupResource.getName(),
 				globalGroupResource.getUsersAutomaticallyAddedToCollections(), globalGroupResource.getParent(),
 				globalGroupResource.getStatus());
 		userServices().addUpdateGlobalGroup(group);

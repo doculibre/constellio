@@ -22,7 +22,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
@@ -152,9 +151,8 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void addGroup(String groupCode) {
-		List<String> usersAutomaticallyAddedToCollections = new ArrayList<>();
-		GlobalGroup group = new XmlGlobalGroup(groupCode, groupCode, usersAutomaticallyAddedToCollections, null,
-				GlobalGroupStatus.ACTIVE);
+		GlobalGroup group = userServices.createGlobalGroup(
+				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group);
 	}
 

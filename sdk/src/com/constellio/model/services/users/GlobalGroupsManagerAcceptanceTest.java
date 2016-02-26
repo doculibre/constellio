@@ -26,6 +26,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		manager = getModelLayerFactory().getGlobalGroupsManager();
 
 		globalGroup1 = new XmlGlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
 		globalGroup2 = new XmlGlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
@@ -34,7 +35,6 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 		globalGroup1_2 = new XmlGlobalGroup("group1_2", "group1", GlobalGroupStatus.ACTIVE);
 		globalGroup1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
 		globalGroup2_1 = new XmlGlobalGroup("group2_1", "group2", GlobalGroupStatus.ACTIVE);
-		manager = getModelLayerFactory().getGlobalGroupsManager();
 	}
 
 	@Test
@@ -72,7 +72,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 
 		manager.addUpdate(globalGroup1);
 
-		globalGroup1 = new XmlGlobalGroup("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
 
 		manager.addUpdate(globalGroup1);
 
@@ -87,7 +87,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 
 		manager.addUpdate(globalGroup1);
 
-		globalGroup1 = new XmlGlobalGroup("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
 
 		manager.logicallyRemoveGroup(globalGroup1);
 
@@ -141,7 +141,8 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	public void whenAddGroupWithAccentsThenCorrectlySaved()
 			throws Exception {
 
-		GlobalGroup groupWithAccents = new XmlGlobalGroup("<é=e>", "<à=a>", Arrays.asList("<ç=c>"), null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup groupWithAccents = manager.create("<é=e>", "<à=a>", Arrays.asList("<ç=c>"), null,
+				GlobalGroupStatus.ACTIVE);
 
 		manager.addUpdate(groupWithAccents);
 
