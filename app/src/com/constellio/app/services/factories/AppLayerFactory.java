@@ -180,7 +180,8 @@ public class AppLayerFactory extends LayerFactory {
 				dataLayerFactory.getIOServicesFactory().newIOServices());
 		upgradeAppRecoveryService.deletePreviousWarCausingFailure();
 
-		if (appLayerConfiguration.isRecoveryModeActive() || modelLayerFactory.getSystemConfigs().isInUpdateProcess()) {
+		modelLayerFactory.getSystemConfigurationsManager().initialize();
+		if (modelLayerFactory.getSystemConfigs().isInUpdateProcess()) {
 			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {
 			normalStartup();
