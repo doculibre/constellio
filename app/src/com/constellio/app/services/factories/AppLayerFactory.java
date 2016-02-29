@@ -51,6 +51,7 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -179,7 +180,15 @@ public class AppLayerFactory extends LayerFactory {
 		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryServiceImpl = new UpgradeAppRecoveryServiceImpl(this,
 				dataLayerFactory.getIOServicesFactory().newIOServices());
 		upgradeAppRecoveryServiceImpl.deletePreviousWarCausingFailure();
-		if (appLayerConfiguration.isRecoveryModeActive()) {
+		SystemConfigurationsManager configManager = modelLayerFactory
+				.getSystemConfigurationsManager();
+		configManager.initialize();
+		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(configManager);
+		boolean recoveryModeActive = constellioConfigs.isRecoveryModeEnabled();
+		//FIXME FB
+		if (appLayerConfiguration.isRecoveryModeActive() //for tests
+				|| recoveryModeActive//for application
+				) {
 			recoveryStartup(upgradeAppRecoveryServiceImpl);
 		} else {
 			normalStartup();
@@ -202,7 +211,7 @@ public class AppLayerFactory extends LayerFactory {
 				if (recoveryService.isInRollbackMode()) {
 					LOGGER.error("Error when trying to start application", exception);
 					recoveryService.rollback(exception);
-					//TODO restart batch process
+					//this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 					try {
 						newApplicationService().restart();
 					} catch (AppManagementServiceException e) {

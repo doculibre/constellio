@@ -27,6 +27,20 @@ public abstract class FileParserException extends Exception {
 		}
 	}
 
+	public static class FileParserException_FileSizeExceedLimitForParsing extends FileParserException {
+
+		private String detectedMimetype;
+
+		public FileParserException_FileSizeExceedLimitForParsing(int maxFileSize, String detectedMimetype) {
+			super("Size of file exceed limit of " + maxFileSize + "mo");
+			this.detectedMimetype = detectedMimetype;
+		}
+
+		public String getDetectedMimetype() {
+			return detectedMimetype;
+		}
+	}
+
 	public static class FileParserException_CannotExtractStyles extends FileParserException {
 
 		private String detectedMimetype;

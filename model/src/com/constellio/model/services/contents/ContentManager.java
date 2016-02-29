@@ -212,10 +212,14 @@ public class ContentManager implements StatefulService {
 		return upload(inputStream, true, true, null);
 	}
 
+	public ContentVersionDataSummary upload(InputStream inputStream, String filename) {
+		return upload(inputStream, true, true, filename);
+	}
+
 	public ContentVersionDataSummary upload(InputStream inputStream, boolean handleDeletionOfUnreferencedHashes, boolean parse,
 			String fileName) {
 		CopyInputStreamFactory closeableInputStreamFactory = ioServices.copyToReusableStreamFactory(
-				inputStream);
+				inputStream, fileName);
 
 		try {
 			String hash = hashingService.getHashFromStream(closeableInputStreamFactory);
