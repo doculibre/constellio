@@ -19,8 +19,6 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public UpdateManagerPresenter(UpdateManagerView view) {
@@ -151,12 +149,11 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	private boolean recoveryModeEnabled() {
-		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
-		return systemConfigurationsManager.getValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE);
+		return appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
 	}
 
 	public boolean isUpdateEnabled() {
-		 return isUpdateWithRecoveryPossible() == null;
+		return isUpdateWithRecoveryPossible() == null;
 	}
 
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {

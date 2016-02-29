@@ -33,7 +33,9 @@ import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQu
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LazyIterator;
 
 public class TransactionLogRecoveryManager implements RecoveryService, BigVaultServerAddEditListener,
 													  BigVaultServerQueryListener {
@@ -69,8 +71,8 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		inRollbackMode = true;
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
+		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(false);
 		transactionLogManager.regroupAndMoveInVault();
-		transactionLogManager.setAutomaticLog(false);
 		dataLayerFactory.getRecordsVaultServer().registerListener(this);
 	}
 
@@ -94,7 +96,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
 		transactionLogManager.regroupAndMoveInVault();
-		transactionLogManager.setAutomaticLog(true);
+		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true);
 	}
 
 	private void deleteRecoveryFile() {
@@ -124,7 +126,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
 		transactionLogManager.deleteUnregroupedLog();
-		transactionLogManager.setAutomaticLog(true);
+		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true);
 		inRollbackMode = false;
 	}
 
@@ -146,52 +148,73 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 	}
 
-	private void restore(SolrClient server, Set<String> alteredRecordsIds) {
-		//TODO by batch
+	private void restore(SolrClient server, final Set<String> alteredRecordsIds) {
 		if (alteredRecordsIds == null || alteredRecordsIds.isEmpty()) {
 			return;
 		}
-		Iterator<BigVaultServerTransaction> operationIterator = this.readWriteServices
+
+		final Iterator<BigVaultServerTransaction> transactionsIterator = this.readWriteServices
 				.newOperationsIterator(recoveryFile);
-		while (operationIterator.hasNext()) {
-			List<SolrInputDocument> currentAlteredDocuments = new ArrayList<>();
-			BigVaultServerTransaction currentTransaction = operationIterator.next();
-			for (SolrInputDocument newDocument : currentTransaction.getNewDocuments()) {
-				String currentDocumentId = (String) newDocument.getFieldValue("id");
-				if (alteredRecordsIds.contains(currentDocumentId)) {
-					currentAlteredDocuments.add(newDocument);
+
+		Iterator<List<SolrInputDocument>> docsToRecoverIterator = new LazyIterator<List<SolrInputDocument>>() {
+			@Override
+			protected List<SolrInputDocument> getNextOrNull() {
+				if (transactionsIterator.hasNext()) {
+					List<SolrInputDocument> currentAlteredDocuments = new ArrayList<>();
+					BigVaultServerTransaction currentTransaction = transactionsIterator.next();
+					for (SolrInputDocument newDocument : currentTransaction.getNewDocuments()) {
+						String currentDocumentId = (String) newDocument.getFieldValue("id");
+						if (alteredRecordsIds.contains(currentDocumentId)) {
+							currentAlteredDocuments.add(newDocument);
+						}
+					}
+					for (SolrInputDocument document : currentTransaction.getUpdatedDocuments()) {
+						String currentDocumentId = (String) document.getFieldValue("id");
+						if (alteredRecordsIds.contains(currentDocumentId)) {
+							currentAlteredDocuments.add(document);
+						}
+					}
+					return currentAlteredDocuments;
+
+				} else {
+					return null;
 				}
 			}
-			for (SolrInputDocument document : currentTransaction.getUpdatedDocuments()) {
-				String currentDocumentId = (String) document.getFieldValue("id");
-				if (alteredRecordsIds.contains(currentDocumentId)) {
-					currentAlteredDocuments.add(document);
-				}
-			}
-			if (!currentAlteredDocuments.isEmpty()) {
-				try {
-					server.add(currentAlteredDocuments);
-				} catch (SolrServerException | HttpSolrClient.RemoteSolrException e) {
-					throw new RuntimeException(e);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+		};
+
+		int batchSize = 1000;
+		Iterator<List<SolrInputDocument>> iterator = BatchBuilderIterator.forListIterator(docsToRecoverIterator, batchSize);
+
+		while (iterator.hasNext()) {
+			try {
+				server.add(iterator.next());
+			} catch (SolrServerException | HttpSolrClient.RemoteSolrException e) {
+				throw new RuntimeException(e);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
 		}
+
 	}
 
 	private void removeNewRecords(SolrClient server) {
-		//TODO by batch
 		if (this.newRecordsIds.isEmpty()) {
 			return;
 		}
-		try {
-			server.deleteById(new ArrayList<>(this.newRecordsIds));
-		} catch (SolrServerException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+
+		int batchSize = 1000;
+		Iterator<List<String>> iterator = new BatchBuilderIterator(this.newRecordsIds.iterator(), batchSize);
+		while (iterator.hasNext()) {
+
+			try {
+				server.deleteById(iterator.next());
+			} catch (SolrServerException e) {
+				throw new RuntimeException(e);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
+
 	}
 
 	@Override
@@ -272,7 +295,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 		if (partialDocument) {
 			ensureRecordLoaded(updatedDocumentsIds);
-		}else{
+		} else {
 			List<Object> updatedDocumentsAsObjects = new ArrayList<>();
 			updatedDocumentsAsObjects.addAll(updatedDocuments);
 			appendLoadedRecordsFile(updatedDocumentsAsObjects);
@@ -286,7 +309,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		}
 		Set<String> possiblyNewDocumentsIds = new HashSet<>();
 		Set<String> addUpdateFullDocumentsIds = new HashSet<>();
-		for	(SolrInputDocument document : addUpdateFullDocuments) {
+		for (SolrInputDocument document : addUpdateFullDocuments) {
 			String id = (String) document.getFieldValue("id");
 			addUpdateFullDocumentsIds.add(id);
 			if (!this.loadedRecordsIds.contains(id)) {
@@ -294,11 +317,11 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 			}
 		}
 		Collection<String> updatedFullDocuments;
-		if(!possiblyNewDocumentsIds.isEmpty()){
+		if (!possiblyNewDocumentsIds.isEmpty()) {
 			Set<String> newDocuments = getOnlyNewDocuments(possiblyNewDocumentsIds);
 			this.newRecordsIds.addAll(newDocuments);
 			updatedFullDocuments = CollectionUtils.removeAll(addUpdateFullDocumentsIds, newDocuments);
-		}else{
+		} else {
 			updatedFullDocuments = addUpdateFullDocumentsIds;
 		}
 		handleUpdatedFullDocuments(getDocumentsHavingIds(addUpdateFullDocuments, updatedFullDocuments));
@@ -308,9 +331,9 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	private List<SolrInputDocument> getDocumentsHavingIds(List<SolrInputDocument> solrInputDocuments,
 			final Collection<String> ids) {
 		List<SolrInputDocument> returnList = new ArrayList<>();
-		for(SolrInputDocument document : solrInputDocuments){
+		for (SolrInputDocument document : solrInputDocuments) {
 			String id = (String) document.getFieldValue("id");
-			if(ids.contains(id)){
+			if (ids.contains(id)) {
 				returnList.add(document);
 			}
 		}
@@ -345,7 +368,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		Set<String> returnSet = new HashSet<>();
 		for (SolrDocument document : result) {
 			String id = (String) document.get("id");
-			if(!possiblyNewDocumentsIds.contains(id)){
+			if (!possiblyNewDocumentsIds.contains(id)) {
 				returnSet.add(id);
 			}
 		}
@@ -379,14 +402,14 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	private void appendLoadedRecordsFile(List<Object> documentsToSave) {
 		List<Object> notAlreadySavedDocuments = new ArrayList<>();
 		List<String> notAlreadyLoadedDocumentsIds = new ArrayList<>();
-		for(Object document : documentsToSave){
+		for (Object document : documentsToSave) {
 			String id = getDocumentId(document);
-			if(!this.fullyLoadedRecordsIds.contains(id)){
+			if (!this.fullyLoadedRecordsIds.contains(id)) {
 				notAlreadySavedDocuments.add(document);
 				notAlreadyLoadedDocumentsIds.add(id);
 			}
 		}
-		if(notAlreadySavedDocuments.isEmpty()){
+		if (notAlreadySavedDocuments.isEmpty()) {
 			return;
 		}
 		this.fullyLoadedRecordsIds.addAll(notAlreadyLoadedDocumentsIds);
@@ -400,12 +423,13 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	}
 
 	private String getDocumentId(Object document) {
-		if(document instanceof SolrDocument){
-			return (String)((SolrDocument) document).getFieldValue("id");
-		}else if(document instanceof  SolrInputDocument){
-			return (String)((SolrInputDocument) document).getFieldValue("id");
-		}else {
-			throw new ImpossibleRuntimeException("Expecting solr document or solr input document : " + document.getClass().getName());
+		if (document instanceof SolrDocument) {
+			return (String) ((SolrDocument) document).getFieldValue("id");
+		} else if (document instanceof SolrInputDocument) {
+			return (String) ((SolrInputDocument) document).getFieldValue("id");
+		} else {
+			throw new ImpossibleRuntimeException(
+					"Expecting solr document or solr input document : " + document.getClass().getName());
 		}
 	}
 
