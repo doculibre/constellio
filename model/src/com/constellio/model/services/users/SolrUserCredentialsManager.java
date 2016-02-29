@@ -35,6 +35,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserCredentialsManagerRuntimeException.UserCredentialsManagerRuntimeException_CannotExecuteTransaction;
 
 public class SolrUserCredentialsManager implements UserCredentialsManager, SystemCollectionListener {
 	private final ModelLayerFactory modelLayerFactory;
@@ -95,8 +96,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 		try {
 			modelLayerFactory.newRecordServices().add((SolrUserCredential) userCredential);
 		} catch (RecordServicesException e) {
-			// TODO: Exception
-			e.printStackTrace();
+			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 		}
 	}
 
@@ -177,8 +177,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
 		} catch (RecordServicesException e) {
-			// TODO: Exception
-			e.printStackTrace();
+			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 		}
 	}
 
@@ -204,8 +203,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
 		} catch (RecordServicesException e) {
-			// TODO: Exception
-			e.printStackTrace();
+			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 		}
 	}
 
@@ -252,15 +250,14 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
 		} catch (RecordServicesException e) {
-			// TODO: Exception
-			e.printStackTrace();
+			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 		}
 	}
 
 	public LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
-		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll());
-		//		return new LogicalSearchQuery(
-		//				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isGreaterThan(now));
+		//		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll());
+		return new LogicalSearchQuery(
+				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isGreaterThan(now));
 	}
 
 	@Override
