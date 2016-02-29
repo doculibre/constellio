@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.doReturn;
 
 import java.security.Key;
@@ -71,25 +72,22 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddUsersCredentialsThenTheyAreAddedInListOnce()
 			throws Exception {
-
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(edouardUserCredential);
 		manager.addUpdate(chuckUserCredential);
 
-		assertThat(manager.getActiveUserCredentials()).hasSize(3);
-		assertThat(manager.getActiveUserCredentials().get(1)).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getActiveUserCredentials().get(2)).isEqualToComparingFieldByField(edouardUserCredential);
-		assertThat(manager.getUserCredential("chuck")).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getUserCredential("Chuck")).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getUserCredential("Édouard")).isEqualToComparingFieldByField(edouardUserCredential);
+		UserCredential admin = manager.getUserCredential("admin");
+
+		assertThat(manager.getActiveUserCredentials()).extracting("firstName", "lastName").containsOnly(
+				tuple(admin.getFirstName(), admin.getLastName()),
+				tuple(chuckUserCredential.getFirstName(), chuckUserCredential.getLastName()),
+				tuple(edouardUserCredential.getFirstName(), edouardUserCredential.getLastName()));
 	}
 
 	@Test
 	public void givenHasInvalidCollectionWhenReadThenHAsOnlyValidCollections() {
-
 		manager.addUpdate(edouardUserCredential);
-
-		assertThat(manager.getUserCredential("Édouard").getCollections()).containsOnly(zeCollection, "collection1");
+		assertThat(manager.getUserCredential("edouard").getCollections()).containsOnly(zeCollection, "collection1");
 	}
 
 	@Test
@@ -229,7 +227,6 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(manager.getUserCredential("chuck").getGlobalGroups()).isEmpty();
 		assertThat(manager.getUserCredential("edouard").getGlobalGroups()).hasSize(1);
-		assertThat(manager.getUserCredential("Edouard").getGlobalGroups()).hasSize(1);
 		assertThat(manager.getUserCredential("edouard").getGlobalGroups().get(0)).isEqualTo("group2");
 	}
 

@@ -14,6 +14,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.SolrUserCredential;
@@ -25,6 +26,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.EmailValidator;
@@ -253,8 +255,9 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	public LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
-		return new LogicalSearchQuery(
-				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isGreaterThan(now));
+		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll());
+		//		return new LogicalSearchQuery(
+		//				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isGreaterThan(now));
 	}
 
 	@Override
@@ -286,6 +289,8 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 
 	private void createUserCredentialSchema(MetadataSchemaTypesBuilder builder) {
 		MetadataSchemaBuilder credentials = builder.createNewSchemaType(SolrUserCredential.SCHEMA_TYPE).getDefaultSchema();
+
+		credentials.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asCalculated(UserTitleCalculator.class);
 
 		credentials.createUndeletable(SolrUserCredential.USERNAME).setType(MetadataValueType.STRING)
 				.setDefaultRequirement(true).setUniqueValue(true).setUnmodifiable(true);

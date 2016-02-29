@@ -19,8 +19,8 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 
 	public static final String USERNAME = "username";
-	public static final String FIRST_NAME = "firstName";
-	public static final String LAST_NAME = "lastName";
+	public static final String FIRST_NAME = "firstname";
+	public static final String LAST_NAME = "lastname";
 	public static final String EMAIL = "email";
 	public static final String SERVICE_KEY = "serviceKey";
 	public static final String TOKEN_KEYS = "tokenKeys";

@@ -1,5 +1,6 @@
 package com.constellio.model.entities.security.global;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.model.entities.records.Record;
@@ -97,7 +98,7 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 
 	@Override
 	public GlobalGroup withRemovedCollection(String collection) {
-		List<String> collections = getUsersAutomaticallyAddedToCollections();
+		List<String> collections = new ArrayList<>(getUsersAutomaticallyAddedToCollections());
 		collections.remove(collection);
 		return setUsersAutomaticallyAddedToCollections(collections);
 	}

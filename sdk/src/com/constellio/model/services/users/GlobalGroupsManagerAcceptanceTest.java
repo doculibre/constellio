@@ -1,6 +1,7 @@
 package com.constellio.model.services.users;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import java.util.Arrays;
 
@@ -42,9 +43,8 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(globalGroup2);
 		manager.addUpdate(globalGroup1);
 
-		assertThat(manager.getActiveGroups()).hasSize(2);
-		assertThat(manager.getGlobalGroupWithCode("group1")).isEqualToComparingFieldByField(globalGroup1);
-		assertThat(manager.getGlobalGroupWithCode("group2")).isEqualToComparingFieldByField(globalGroup2);
+		assertThat(manager.getActiveGroups()).extracting("code", "status").containsExactly(
+				tuple(globalGroup1.getCode(), globalGroup1.getStatus()), tuple(globalGroup2.getCode(), globalGroup2.getStatus()));
 	}
 
 	@Test
@@ -82,14 +82,13 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(globalGroup2);
 		manager.addUpdate(globalGroup3);
 
-		assertThat(manager.getActiveGroups().get(0)).isEqualToComparingFieldByField(globalGroup3);
-		assertThat(manager.getActiveGroups()).containsOnlyOnce(globalGroup1, globalGroup2, globalGroup3);
+		assertThat(manager.getActiveGroups()).containsExactly(globalGroup1, globalGroup2, globalGroup3);
 
 		manager.logicallyRemoveGroup(globalGroup1);
-		assertThat(manager.getActiveGroups()).containsOnlyOnce(globalGroup2, globalGroup3);
+		assertThat(manager.getActiveGroups()).containsExactly(globalGroup2, globalGroup3);
 
 		manager.logicallyRemoveGroup(globalGroup2);
-		assertThat(manager.getActiveGroups()).containsOnlyOnce(globalGroup3);
+		assertThat(manager.getActiveGroups()).containsExactly(globalGroup3);
 
 		manager.logicallyRemoveGroup(globalGroup3);
 		assertThat(manager.getActiveGroups()).isEmpty();
