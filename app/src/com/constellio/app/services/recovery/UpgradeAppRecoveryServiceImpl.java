@@ -49,7 +49,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		this.upgradeAppRecoveryConfigManager.onVersionMigratedWithException(exception);
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
-		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE, true);
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE, false);
 		pointToPreviousValidVersion();
 	}
 
@@ -72,10 +72,9 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	public void stopRollbackMode() {
 		deleteSavedSettings();
 		transactionLogRecoveryManager.stopRollbackMode();
-		this.upgradeAppRecoveryConfigManager.onVersionMigratedCorrectly();
+		upgradeAppRecoveryConfigManager.onVersionMigratedCorrectly();
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
-		deleteSavedSettings();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.ENABLE_RECOVERY_MODE, false);
 	}
 
@@ -85,12 +84,14 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	}
 
 	public void rollback(Throwable t) {
+		LOGGER.error("Rollback started");
 		closeLayersExceptData();
 		replaceSettingsByTheSavedOneButKeepRecoverySettings();
 		transactionLogRecoveryManager.rollback(t);
 		prepareNextStartup(t);
 		deleteSavedSettings();
 		this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
+		LOGGER.info("Rollback end");
 	}
 
 	@Override
