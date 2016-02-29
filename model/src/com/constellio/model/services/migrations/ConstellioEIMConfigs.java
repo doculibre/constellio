@@ -22,6 +22,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
 	public static final SystemConfiguration PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
+	public static final SystemConfiguration CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS;
 
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
@@ -50,6 +51,9 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
 				.withDefaultValue(3000));
+		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
+				.withDefaultValue(10));
+
 		add(CLEAN_DURING_INSTALL = others.createBooleanFalseByDefault("cleanDuringInstall"));
 
 		add(ENABLE_RECOVERY_MODE = others.createBooleanFalseByDefault("enableRecoveryMode").whichIsHidden());

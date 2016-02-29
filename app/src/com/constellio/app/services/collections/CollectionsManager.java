@@ -88,7 +88,10 @@ public class CollectionsManager implements StatefulService {
 		// No initialization required.
 		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
 			createSystemCollection();
-			createAdminUser();
+
+			if (modelLayerFactory.newUserServices().getUserCredential("admin") == null) {
+				createAdminUser();
+			}
 		}
 	}
 
