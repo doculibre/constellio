@@ -39,6 +39,13 @@ public class RecordServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class IdAlreadyExisting extends RecordServicesRuntimeException {
+
+		public IdAlreadyExisting(String id) {
+			super("The transaction is adding a record with id '" + id + "', which is already used for another record.");
+		}
+	}
+
 	public static class NoSuchRecordWithMetadataValue extends RecordServicesRuntimeException {
 
 		public NoSuchRecordWithMetadataValue(String metadataCode, String metadataValue) {

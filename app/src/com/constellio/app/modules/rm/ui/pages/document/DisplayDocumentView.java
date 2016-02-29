@@ -15,5 +15,6 @@ public interface DisplayDocumentView extends BaseView, RecordsManagementViewGrou
 	void setContentVersions(List<ContentVersionVO> contentVersions);
 
 	void setTasks(RecordVODataProvider tasksDataProvider);
-	
+
+	void setPublishButtons(boolean published);
 }

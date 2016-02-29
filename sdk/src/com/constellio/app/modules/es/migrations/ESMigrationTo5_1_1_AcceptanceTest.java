@@ -19,6 +19,7 @@ public class ESMigrationTo5_1_1_AcceptanceTest extends ConstellioTest {
 	public void givenSystemInVersion5_1WithAConnectorWhenMigratingThenSchemasAndRecordsDeleted()
 			throws OptimisticLockingConfiguration {
 
+		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_1WithAConnector();
 
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());

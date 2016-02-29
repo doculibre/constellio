@@ -12,62 +12,49 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
-public class ClassifyConnectorTaxonomyActionParameters extends ActionParameters {
+public class ClassifyConnectorFolderDirectlyInThePlanActionParameters extends ActionParameters
+		implements ClassifyConnectorFolderActionParameters {
 
-	public static final String SCHEMA_LOCAL_CODE = "classifyConnectorTaxonomy";
+	public static final String SCHEMA_LOCAL_CODE = "classifyConnectorFolderDirectlyInThePlan";
 	public static final String SCHEMA = SCHEMA_TYPE + "_" + SCHEMA_LOCAL_CODE;
 
-	public static final String IN_TAXONOMY = "inTaxonomy";
 	public static final String ACTION_AFTER_CLASSIFICATION = "actionAfterClassification";
-	public static final String DELIMITER = "delimiter";
 	public static final String FOLDER_MAPPING = "folderMapping";
 	public static final String DOCUMENT_MAPPING = "documentMapping";
 	public static final String DEFAULT_ADMIN_UNIT = "defaultAdminUnit";
-	public static final String DEFAULT_PARENT_FOLDER = "defaultParentFolder";
 	public static final String DEFAULT_CATEGORY = "defaultCategory";
 	public static final String DEFAULT_RETENTION_RULE = "defaultRetentionRule";
 	public static final String DEFAULT_OPEN_DATE = "defaultOpenDate";
 	public static final String DEFAULT_COPY_STATUS = "defaultCopyStatus";
-	public static final String PATH_PREFIX = "pathPrefix";
 
-	public ClassifyConnectorTaxonomyActionParameters(Record record,
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types);
 	}
 
 	public String getInTaxonomy() {
-		return get(IN_TAXONOMY);
-	}
-
-	public ClassifyConnectorTaxonomyActionParameters setInTaxonomy(String taxonomyCode) {
-		set(IN_TAXONOMY, taxonomyCode);
-		return this;
+		return null;
 	}
 
 	public ActionAfterClassification getActionAfterClassification() {
 		return get(ACTION_AFTER_CLASSIFICATION);
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setActionAfterClassification(
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setActionAfterClassification(
 			ActionAfterClassification actionAfterClassification) {
 		set(ACTION_AFTER_CLASSIFICATION, actionAfterClassification);
 		return this;
 	}
 
 	public String getDelimiter() {
-		return get(DELIMITER);
-	}
-
-	public ClassifyConnectorTaxonomyActionParameters setDelimiter(String delimiter) {
-		set(DELIMITER, delimiter);
-		return this;
+		return null;
 	}
 
 	public Content getFolderMapping() {
 		return get(FOLDER_MAPPING);
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setFolderMapping(Content folderMapping) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setFolderMapping(Content folderMapping) {
 		set(FOLDER_MAPPING, folderMapping);
 		return this;
 	}
@@ -76,7 +63,7 @@ public class ClassifyConnectorTaxonomyActionParameters extends ActionParameters 
 		return get(DOCUMENT_MAPPING);
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDocumentMapping(Content documentMapping) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDocumentMapping(Content documentMapping) {
 		set(DOCUMENT_MAPPING, documentMapping);
 		return this;
 	}
@@ -85,26 +72,21 @@ public class ClassifyConnectorTaxonomyActionParameters extends ActionParameters 
 		return get(DEFAULT_ADMIN_UNIT);
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultAdminUnit(String defaultAdminUnit) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultAdminUnit(String defaultAdminUnit) {
 		set(DEFAULT_ADMIN_UNIT, defaultAdminUnit);
 		return this;
 	}
 
 	public String getDefaultParentFolder() {
-		return get(DEFAULT_PARENT_FOLDER);
+		return null;
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultParentFolder(String defaultParentFolder) {
-		set(DEFAULT_PARENT_FOLDER, defaultParentFolder);
-		return this;
-	}
-
-	public ClassifyConnectorTaxonomyActionParameters setDefaultAdminUnit(AdministrativeUnit defaultAdminUnit) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultAdminUnit(AdministrativeUnit defaultAdminUnit) {
 		set(DEFAULT_ADMIN_UNIT, defaultAdminUnit);
 		return this;
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultAdminUnit(Record defaultAdminUnit) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultAdminUnit(Record defaultAdminUnit) {
 		set(DEFAULT_ADMIN_UNIT, defaultAdminUnit);
 		return this;
 	}
@@ -113,17 +95,17 @@ public class ClassifyConnectorTaxonomyActionParameters extends ActionParameters 
 		return get(DEFAULT_CATEGORY);
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultCategory(String defaultCategory) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultCategory(String defaultCategory) {
 		set(DEFAULT_CATEGORY, defaultCategory);
 		return this;
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultCategory(Category defaultCategory) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultCategory(Category defaultCategory) {
 		set(DEFAULT_CATEGORY, defaultCategory);
 		return this;
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultCategory(Record defaultCategory) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultCategory(Record defaultCategory) {
 		set(DEFAULT_CATEGORY, defaultCategory);
 		return this;
 	}
@@ -132,7 +114,7 @@ public class ClassifyConnectorTaxonomyActionParameters extends ActionParameters 
 		return get(DEFAULT_OPEN_DATE);
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultOpenDate(LocalDate defaultOpenDate) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultOpenDate(LocalDate defaultOpenDate) {
 		set(DEFAULT_OPEN_DATE, defaultOpenDate);
 		return this;
 	}
@@ -141,17 +123,17 @@ public class ClassifyConnectorTaxonomyActionParameters extends ActionParameters 
 		return get(DEFAULT_RETENTION_RULE);
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultRetentionRule(String defaultRetentionRule) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(String defaultRetentionRule) {
 		set(DEFAULT_RETENTION_RULE, defaultRetentionRule);
 		return this;
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultRetentionRule(RetentionRule defaultRetentionRule) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(RetentionRule defaultRetentionRule) {
 		set(DEFAULT_RETENTION_RULE, defaultRetentionRule);
 		return this;
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultRetentionRule(Record defaultRetentionRule) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(Record defaultRetentionRule) {
 		set(DEFAULT_RETENTION_RULE, defaultRetentionRule);
 		return this;
 	}
@@ -160,22 +142,17 @@ public class ClassifyConnectorTaxonomyActionParameters extends ActionParameters 
 		return get(DEFAULT_COPY_STATUS);
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setDefaultCopyStatus(CopyType defaultCopyStatus) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultCopyStatus(CopyType defaultCopyStatus) {
 		set(DEFAULT_COPY_STATUS, defaultCopyStatus);
 		return this;
 	}
 
 	public String getPathPrefix() {
-		return get(PATH_PREFIX);
+		return null;
 	}
 
-	public ClassifyConnectorTaxonomyActionParameters setPathPrefix(String pathPrefix) {
-		set(PATH_PREFIX, pathPrefix);
-		return this;
-	}
-
-	public static ClassifyConnectorTaxonomyActionParameters wrap(ActionParameters actionParameters) {
-		return new ClassifyConnectorTaxonomyActionParameters(
+	public static ClassifyConnectorFolderDirectlyInThePlanActionParameters wrap(ActionParameters actionParameters) {
+		return new ClassifyConnectorFolderDirectlyInThePlanActionParameters(
 				actionParameters.getWrappedRecord(), actionParameters.getMetadataSchemaTypes());
 	}
 

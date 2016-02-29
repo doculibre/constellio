@@ -45,7 +45,10 @@ public class FoldersLocator {
 
 	String getCurrentClassPath() {
 		if (currentClassPath == null) {
+			System.out.println("\n\n\n\n");
+			System.out.println("\n\n\n\n");
 			currentClassPath = new File(FoldersLocator.class.getResource("").getFile()).getAbsoluteFile().getPath();
+			System.out.println("\n\n\n\n");
 		}
 		return currentClassPath;
 	}

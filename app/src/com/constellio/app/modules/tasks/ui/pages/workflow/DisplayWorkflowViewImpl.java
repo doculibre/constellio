@@ -35,6 +35,7 @@ import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.NoDragAndDrop;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -314,16 +315,19 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 			}
 		});
 
-		ContextMenuItem createExistingTaskAfterItem = contextMenu.addItem($("DisplayWorkflowView.menu.createExistingTaskAfter"));
-		createExistingTaskAfterItem.addItemClickListener(new ContextMenuItemClickListener() {
-			@Override
-			public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-				//TODO Thiago if reference, create after Reference ...create reference
-				if (selectedWorkflowTaskVO.getTaskVO() != null) {
-					presenter.createExistingTaskSelected(selectedWorkflowTaskVO);
+		if (Toggle.ADD_EXISTING_TASK.isEnabled()) {
+			ContextMenuItem createExistingTaskAfterItem = contextMenu
+					.addItem($("DisplayWorkflowView.menu.createExistingTaskAfter"));
+			createExistingTaskAfterItem.addItemClickListener(new ContextMenuItemClickListener() {
+				@Override
+				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
+					//TODO Thiago if reference, create after Reference ...create reference
+					if (selectedWorkflowTaskVO.getTaskVO() != null) {
+						presenter.createExistingTaskSelected(selectedWorkflowTaskVO);
+					}
 				}
-			}
-		});
+			});
+		}
 
 		contextMenu.setAsTableContextMenu(workflowTaskVOTable);
 		BaseContextMenuTableListener contextMenuTableListener = new BaseContextMenuTableListener() {

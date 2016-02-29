@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -53,6 +54,7 @@ public class Document extends RMObject {
 	public static final String APPLICABLE_COPY_RULES = "applicableCopyRule";
 	public static final String SAME_SEMI_ACTIVE_FATE_AS_FOLDER = "sameSemiActiveFateAsFolder";
 	public static final String SAME_INACTIVE_FATE_AS_FOLDER = "sameInactiveFateAsFolder";
+	public static final String PUBLISHED = "published";
 
 	public Document(Record record,
 			MetadataSchemaTypes types) {
@@ -300,6 +302,15 @@ public class Document extends RMObject {
 
 	public boolean isInactiveSameFateAsFolder() {
 		return get(SAME_INACTIVE_FATE_AS_FOLDER);
+	}
+
+	public Document setPublished(boolean published) {
+		set(PUBLISHED, published);
+		return this;
+	}
+
+	public boolean isPublished() {
+		return BooleanUtils.isTrue((Boolean) get(PUBLISHED));
 	}
 
 	public <T> Document set(Metadata metadata, T value) {

@@ -153,7 +153,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 				}
 				newVersionVO.setContentId(content.getId());
 
-				ContentVersionDataSummary newVersionDataSummary = contentManager.upload(inputStream);
+				ContentVersionDataSummary newVersionDataSummary = contentManager.upload(inputStream, fileName);
 				if (newMajorVersion) {
 					contentManager.createMajor(currentUser, fileName, newVersionDataSummary);
 				} else if (newMinorVersion) {
