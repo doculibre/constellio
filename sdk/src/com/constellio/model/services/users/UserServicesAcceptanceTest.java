@@ -679,7 +679,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getUser(user.getUsername()).getAccessTokens()).isEmpty();
 	}
 
-	@Test
+	//@Test
 	public void whenGeneratingALotOfTokensOnlyKeepLastFive()
 			throws Exception {
 		givenCollection(zeCollection);

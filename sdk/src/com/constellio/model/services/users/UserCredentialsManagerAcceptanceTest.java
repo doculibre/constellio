@@ -17,6 +17,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -66,7 +67,14 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager = getModelLayerFactory().getUserCredentialsManager();
 
 		createUserCredentials();
+	}
 
+	@Test
+	public void whenAddingAndSearchingCredentialsThenUsernamesAreNormalized() {
+		manager.addUpdate(edouardUserCredential);
+		assertThat(manager.getUserCredential("Edouard")).isNotNull();
+		assertThat(manager.getUserCredential("EDOUARD")).isNotNull();
+		assertThat(manager.getUserCredential("Édouard")).isNotNull();
 	}
 
 	@Test
@@ -247,34 +255,37 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenUserHasTokensThenAreAutomaticallyDeletedAfterTheGivenTime()
 			throws Exception {
+		String tokenA = UUIDV1Generator.newRandomId();
+		String tokenB = UUIDV1Generator.newRandomId();
+		String tokenC = UUIDV1Generator.newRandomId();
 
 		givenTimeIs(shishOClock.minusYears(1));
-		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(bobUserCredential);
 
-		manager.addUpdate(chuckUserCredential.withAccessToken("A", shishOClock).withAccessToken("B", shishOClock.plusHours(1)));
-		manager.addUpdate(bobUserCredential.withAccessToken("C", shishOClock.plusMinutes(1)));
+		manager.addUpdate(chuckUserCredential
+				.withAccessToken(tokenA, shishOClock).withAccessToken(tokenB, shishOClock.plusHours(1)));
+		manager.addUpdate(bobUserCredential.withAccessToken(tokenC, shishOClock.plusMinutes(1)));
 
 		givenTimeIs(shishOClock.minusSeconds(1));
 		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly("A", "B");
-		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).containsOnly("C");
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenA, tokenB);
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenC);
 
 		givenTimeIs(shishOClock);
 		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly("B");
-		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).containsOnly("C");
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenC);
 
 		givenTimeIs(shishOClock.plusMinutes(1));
 		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly("B");
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
 		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).isEmpty();
 
 		givenTimeIs(shishOClock.plusMinutes(59));
 		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly("B");
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
 		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).isEmpty();
 
 		givenTimeIs(shishOClock.plusMinutes(60));

@@ -1,6 +1,6 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.model.services.users.UserUtils.toCacheKey;
+import static com.constellio.model.services.users.UserUtils.cleanUsername;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,7 +53,7 @@ public class UserCredentialsReader {
 		for (Element userCredentialElement : usersCredentialsElements.getChildren()) {
 			userCredential = createUserCredentialObject(userCredentialElement, collections);
 
-			usersCredentials.put(toCacheKey(userCredential.getUsername()), userCredential);
+			usersCredentials.put(cleanUsername(userCredential.getUsername()), userCredential);
 		}
 		return usersCredentials;
 	}

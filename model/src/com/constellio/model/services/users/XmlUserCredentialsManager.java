@@ -1,7 +1,7 @@
 package com.constellio.model.services.users;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static com.constellio.model.services.users.UserUtils.toCacheKey;
+import static com.constellio.model.services.users.UserUtils.cleanUsername;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,7 +132,7 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 	@Override
 	public UserCredential getUserCredential(String username) {
 		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
-		String cacheKey = toCacheKey(username);
+		String cacheKey = cleanUsername(username);
 		return cache.get(cacheKey);
 	}
 

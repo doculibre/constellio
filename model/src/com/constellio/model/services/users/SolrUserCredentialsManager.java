@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.users.UserUtils.cleanUsername;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +25,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -50,7 +53,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
-				.setUsername(username)
+				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
 				.setEmail(email)
@@ -99,8 +102,8 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 
 	@Override
 	public UserCredential getUserCredential(String username) {
-		Record record = searchServices.searchSingleResult(
-				from(schemas.credentialSchemaType()).where(schemas.credentialUsername()).isEqualTo(username));
+		Record record = modelLayerFactory.newRecordServices()
+				.getRecordByMetadata(schemas.credentialUsername(), cleanUsername(username));
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
@@ -285,6 +288,9 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 		} catch (OptimisticLocking e) {
 			systemCollectionCreated();
 		}
+
+		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
 	}
 
 	private void createUserCredentialSchema(MetadataSchemaTypesBuilder builder) {
