@@ -269,27 +269,27 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(bobUserCredential.withAccessToken(tokenC, shishOClock.plusMinutes(1)));
 
 		givenTimeIs(shishOClock.minusSeconds(1));
-		manager.removedTimedOutTokens();
+		manager.removeTimedOutTokens();
 		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenA, tokenB);
 		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenC);
 
 		givenTimeIs(shishOClock);
-		manager.removedTimedOutTokens();
+		manager.removeTimedOutTokens();
 		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
 		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenC);
 
 		givenTimeIs(shishOClock.plusMinutes(1));
-		manager.removedTimedOutTokens();
+		manager.removeTimedOutTokens();
 		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
 		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).isEmpty();
 
 		givenTimeIs(shishOClock.plusMinutes(59));
-		manager.removedTimedOutTokens();
+		manager.removeTimedOutTokens();
 		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
 		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).isEmpty();
 
 		givenTimeIs(shishOClock.plusMinutes(60));
-		manager.removedTimedOutTokens();
+		manager.removeTimedOutTokens();
 		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).isEmpty();
 		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).isEmpty();
 	}

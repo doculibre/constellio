@@ -52,7 +52,7 @@ public interface UserCredentialsManager extends StatefulService {
 
 	String getServiceKeyByToken(String token);
 
-	void removedTimedOutTokens();
+	void removeTimedOutTokens();
 
 	void rewrite();
 }

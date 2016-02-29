@@ -12,7 +12,11 @@ import java.util.Map.Entry;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.data.threads.BackgroundThreadConfiguration;
+import com.constellio.data.threads.BackgroundThreadExceptionHandling;
+import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
@@ -234,7 +238,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	@Override
-	public void removedTimedOutTokens() {
+	public void removeTimedOutTokens() {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		Transaction transaction = new Transaction();
 		for (Record record : searchServices.search(getUserCredentialsWithExpiredTokensQuery(now))) {
@@ -267,7 +271,16 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 
 	@Override
 	public void initialize() {
-		// Nothing to be done
+		BackgroundThreadsManager manager = modelLayerFactory.getDataLayerFactory().getBackgroundThreadsManager();
+		ModelLayerConfiguration configuration = modelLayerFactory.getConfiguration();
+
+		manager.configure(BackgroundThreadConfiguration.repeatingAction("removeTimedOutTokens", new Runnable() {
+			@Override
+			public void run() {
+				removeTimedOutTokens();
+			}
+		}).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
+				.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));
 	}
 
 	@Override

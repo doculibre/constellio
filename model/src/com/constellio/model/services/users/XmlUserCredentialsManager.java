@@ -80,12 +80,12 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 		Runnable removedTimedOutTokens = new Runnable() {
 			@Override
 			public void run() {
-				removedTimedOutTokens();
+				removeTimedOutTokens();
 			}
 		};
 
 		this.backgroundThreadsManager.configure(BackgroundThreadConfiguration
-				.repeatingAction("removedTimedOutTokens", removedTimedOutTokens)
+				.repeatingAction("removeTimedOutTokens", removedTimedOutTokens)
 				.handlingExceptionWith(CONTINUE)
 				.executedEvery(configuration.getTokenRemovalThreadDelayBetweenChecks()));
 	}
@@ -342,7 +342,7 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 	}
 
 	@Override
-	public void removedTimedOutTokens() {
+	public void removeTimedOutTokens() {
 		Toggle.NEW_USERCREDENTIAL_SERVICES.ensureDisabled();
 		for (UserCredential userCredential : getUserCredentials()) {
 			UserCredential modifiedUserCredential = null;
