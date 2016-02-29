@@ -3,6 +3,7 @@ package com.constellio.app.services.recovery;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
@@ -62,7 +63,7 @@ public class UpgradeAppRecoveryConfigManager {
 				if(t == null){
 					properties.put(UPGRADE_EXCEPTION_PROPERTY, "");
 				}else{
-					properties.put(UPGRADE_EXCEPTION_PROPERTY, t.toString());
+					properties.put(UPGRADE_EXCEPTION_PROPERTY, ExceptionUtils.getStackTrace(t));
 				}
 			}
 		});

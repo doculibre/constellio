@@ -90,7 +90,6 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		transactionLogRecoveryManager.rollback(t);
 		prepareNextStartup(t);
 		deleteSavedSettings();
-		this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 		LOGGER.info("Rollback end");
 	}
 
