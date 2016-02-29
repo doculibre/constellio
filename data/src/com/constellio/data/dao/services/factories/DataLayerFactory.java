@@ -200,6 +200,12 @@ public class DataLayerFactory extends LayerFactory {
 		solrServers.close();
 	}
 
+	@Override
+	public void close(boolean closeBottomLayers) {
+		super.close(closeBottomLayers);
+		solrServers.close();
+	}
+
 	public SolrServers getSolrServers() {
 		return solrServers;
 	}

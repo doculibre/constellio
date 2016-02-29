@@ -211,8 +211,8 @@ public class AppLayerFactory extends LayerFactory {
 				if (recoveryService.isInRollbackMode()) {
 					LOGGER.error("Error when trying to start application", exception);
 					recoveryService.rollback(exception);
+					//this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 					try {
-						LOGGER.info("Call for application restart");
 						newApplicationService().restart();
 					} catch (AppManagementServiceException e) {
 						throw new RuntimeException(e);
