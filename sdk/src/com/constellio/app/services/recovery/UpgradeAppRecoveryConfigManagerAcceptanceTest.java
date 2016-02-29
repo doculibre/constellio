@@ -78,7 +78,6 @@ public class UpgradeAppRecoveryConfigManagerAcceptanceTest extends ConstellioTes
 		assertThat(upgradeAppRecoveryConfigManager.getUpgradeException()).isEqualTo("java.lang.Throwable: aa");
 	}
 
-
 	private void populateManagerProperties() {
 		upgradeAppRecoveryConfigManager.onVersionUploadedCorrectly(new ConstellioVersionInfo("versionCorrect", "versionCorrectPath"),
 				new ConstellioVersionInfo("", "versionBadPath"));
