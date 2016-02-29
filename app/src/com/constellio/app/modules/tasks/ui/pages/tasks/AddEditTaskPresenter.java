@@ -17,7 +17,9 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -32,16 +34,18 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
-
 	TaskVO taskVO;
 	transient TasksSearchServices tasksSearchServices;
 	transient private TasksSchemasRecordsServices tasksSchemas;
 	transient private TaskPresenterServices taskPresenterServices;
 	private boolean editMode;
+	private boolean completeMode;
 	transient private LoggingServices loggingServices;
 	private String parentId;
+	private String workflowId;
 	private TaskToVOBuilder voBuilder = new TaskToVOBuilder();
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
@@ -93,7 +97,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	public void cancelButtonClicked() {
-		view.navigateTo().tasksManagement();
+		if (StringUtils.isNotBlank(workflowId)) {
+			view.navigateTo().displayWorkflow(workflowId);
+		} else {
+			view.navigateTo().tasksManagement();
+		}
 	}
 
 	public void saveButtonClicked(RecordVO recordVO) {
@@ -111,7 +119,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 		}
 		addOrUpdate(task.getWrappedRecord());
-		if (StringUtils.isNotBlank(parentId)) {
+		if (StringUtils.isNotBlank(workflowId)) {
+			view.navigateTo().displayWorkflow(workflowId);
+		} else if (StringUtils.isNotBlank(parentId)) {
 			view.navigateTo().displayTask(parentId);
 		} else {
 			view.navigateTo().tasksManagement();
@@ -133,14 +143,15 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
 		}
-		String completeTask = paramsMap.get("completeTask");
-		if (StringUtils.isNotBlank(completeTask) && completeTask.equals("" + true)) {
+		completeMode = "true".equals(paramsMap.get("completeTask"));
+		if (completeMode) {
 			TaskStatus finishedStatus = tasksSearchServices
 					.getFirstFinishedStatus();
 			if (finishedStatus != null) {
 				task.setStatus(finishedStatus.getId());
 			}
 		}
+		workflowId = paramsMap.get("workflowId");
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		view.setRecord(taskVO);
 	}
@@ -155,6 +166,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public void viewAssembled() {
 		adjustProgressPercentageField();
+		adjustDecisionField();
+		adjustRelativeDueDate();
 	}
 
 	private void adjustProgressPercentageField() {
@@ -163,9 +176,36 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		progressPercentageField.setVisible(editMode);
 	}
 
-	void reloadFormAfterFieldChanged() {
-		commitForm();
-		reloadForm();
+	private void adjustDecisionField() {
+		TaskDecisionField field = (TaskDecisionField) view.getForm().getCustomField(Task.DECISION);
+		try {
+			Task task = loadTask();
+
+			if (!completeMode || !task.hasDecisions() || task.getModelTask() == null) {
+				field.setVisible(false);
+				return;
+			}
+
+			field.setRequired(true);
+			field.setVisible(true);
+			for (String code : task.getNextTasksDecisionsCodes()) {
+				field.addItem(code);
+			}
+
+		} catch (NoSuchRecordWithId e) {
+			field.setVisible(false);
+		}
+	}
+
+	private void adjustRelativeDueDate() {
+		TaskRelativeDueDateField field = (TaskRelativeDueDateField) view.getForm().getCustomField(Task.RELATIVE_DUE_DATE);
+		try {
+			Task task = loadTask();
+
+			field.setVisible(task.isModel());
+		} catch (NoSuchRecordWithId e) {
+			field.setVisible(false);
+		}
 	}
 
 	void reloadForm() {
@@ -255,5 +295,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 		view.setRecord(taskVO);
 		reloadForm();
+	}
+
+	private Task loadTask() {
+		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
+				.getCustomField(Task.PROGRESS_PERCENTAGE);
+		progressPercentageField.setVisible(editMode);
+		return tasksSchemas.getTask(taskVO.getId());
 	}
 }

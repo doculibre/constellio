@@ -232,11 +232,11 @@ public class IOServices {
 		streamFactoriesServices.closeQuietly(inputStreamFactory);
 	}
 
-	public CopyInputStreamFactory copyToReusableStreamFactory(InputStream inputStream)
+	public CopyInputStreamFactory copyToReusableStreamFactory(InputStream inputStream, String filename)
 			throws CopyInputStreamFactoryRuntimeException {
 		CopyInputStreamFactory copyInputStreamFactory = new CopyInputStreamFactory(this, Octets.megaoctets(10));
 		try {
-			copyInputStreamFactory.saveInputStreamContent(inputStream);
+			copyInputStreamFactory.saveInputStreamContent(inputStream, filename);
 		} finally {
 			IOUtils.closeQuietly(inputStream);
 		}
