@@ -32,8 +32,7 @@ public class RMMigrationTo6_1 implements MigrationScript {
 		}
 
 		private void updateDocumentSchema(MetadataSchemaBuilder document) {
-			document.createUndeletable(Document.PUBLISHED).setType(MetadataValueType.BOOLEAN)
-					.setDefaultRequirement(true).setDefaultValue(false);
+			document.createUndeletable(Document.PUBLISHED).setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
 		}
 	}
 }
