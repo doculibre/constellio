@@ -42,6 +42,8 @@ import com.constellio.app.services.appManagement.AppManagementServiceRuntimeExce
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.migrations.VersionValidator;
 import com.constellio.app.services.migrations.VersionsComparator;
+import com.constellio.app.services.recovery.ConstellioVersionInfo;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.data.io.IOServicesFactory;
@@ -52,6 +54,7 @@ import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.conf.FoldersLocatorRuntimeException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
@@ -75,10 +78,11 @@ public class AppManagementService {
 	private final IOServices ioServices;
 	private final FoldersLocator foldersLocator;
 	protected final ConstellioEIMConfigs eimConfigs;
+	private final UpgradeAppRecoveryService upgradeAppRecoveryService;
 
 	public AppManagementService(IOServicesFactory ioServicesFactory, FoldersLocator foldersLocator,
 			SystemGlobalConfigsManager systemGlobalConfigsManager, ConstellioEIMConfigs eimConfigs,
-			ConstellioPluginManager pluginManager) {
+			ConstellioPluginManager pluginManager, UpgradeAppRecoveryService upgradeAppRecoveryService) {
 		this.systemGlobalConfigsManager = systemGlobalConfigsManager;
 		this.pluginManager = pluginManager;
 		this.fileService = ioServicesFactory.newFileService();
@@ -86,6 +90,7 @@ public class AppManagementService {
 		this.foldersLocator = foldersLocator;
 		this.ioServices = ioServicesFactory.newIOServices();
 		this.eimConfigs = eimConfigs;
+		this.upgradeAppRecoveryService = upgradeAppRecoveryService;
 	}
 
 	public void restart()
@@ -101,6 +106,7 @@ public class AppManagementService {
 
 	public void update(ProgressInfo progressInfo)
 			throws AppManagementServiceException {
+		ConstellioVersionInfo currentInstalledVersionInfo = getCurrentInstalledVersionInfo();
 
 		File warFile = foldersLocator.getUploadConstellioWarFile();
 		File tempFolder = fileService.newTemporaryFolder(TEMP_DEPLOY_FOLDER);
@@ -172,7 +178,7 @@ public class AppManagementService {
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
 			updateWrapperConf(deployFolder);
-
+			upgradeAppRecoveryService.afterWarUpload(currentInstalledVersionInfo, new ConstellioVersionInfo(warVersion, deployFolder.getAbsolutePath()));
 		} catch (AppManagementServiceException e) {
 			//FIXME delete deployFolder if created and revert to previous wrapper conf then throw exception
 			throw e;
@@ -180,6 +186,7 @@ public class AppManagementService {
 			fileService.deleteQuietly(tempFolder);
 		}
 		progressInfo.setCurrentState(1);
+
 	}
 
 	private void installNewOrUpdatedPlugins(File warPlugins) {
@@ -287,6 +294,9 @@ public class AppManagementService {
 	}
 
 	private void updateWrapperConf(File deployFolder) {
+		if(foldersLocator.getFoldersLocatorMode().equals(FoldersLocatorMode.PROJECT)){
+			return;
+		}
 		File wrapperConf = foldersLocator.getWrapperConf();
 		List<String> lines = fileService.readFileToLinesWithoutExpectableIOException(wrapperConf);
 		for (int i = 0; i < lines.size(); i++) {
@@ -587,6 +597,16 @@ public class AppManagementService {
 		return license;
 	}
 
+	private ConstellioVersionInfo getCurrentInstalledVersionInfo() {
+		File versionDirectory = foldersLocator.getConstellioWebappFolder();
+		String version = getWarVersion(versionDirectory);
+		return new ConstellioVersionInfo(version, versionDirectory.getAbsolutePath());
+	}
+
+	public void pointToVersionDuringApplicationStartup(ConstellioVersionInfo constellioVersionInfo) {
+		updateWrapperConf(new File(constellioVersionInfo.getVersionDirectoryPath()));
+	}
+
 	private class WebAppFileNameFilter implements FilenameFilter {
 
 		@Override
@@ -642,4 +662,6 @@ public class AppManagementService {
 			return signature;
 		}
 	}
+
+
 }

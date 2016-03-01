@@ -1,5 +1,6 @@
 package com.constellio.app.services.collections;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -114,6 +115,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		givenSpecialCollection("constellio", Arrays.asList("fr", "en"));
 		givenSpecialCollection("doculibre", Arrays.asList(mainDataLanguage));
 
+		assertThat(collectionsManager.getCollection(SYSTEM_COLLECTION).getLanguages()).containsOnly(mainDataLanguage);
 		assertThat(collectionsManager.getCollection("constellio").getLanguages()).isEqualTo(Arrays.asList("fr", "en"));
 		assertThat(collectionsManager.getCollection("doculibre").getLanguages()).isEqualTo(Arrays.asList(mainDataLanguage));
 
@@ -139,14 +141,14 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 		assertThat(resultCountWhenSearchingHas(users.aliceIn("constellio"))).isEqualTo(1);
 		assertThat(resultCountWhenSearchingHas(users.bobIn("constellio"))).isEqualTo(0);
-		assertThat(users.charles().getCollections()).doesNotContain("constellio");
-		assertThat(users.dakotaLIndien().getCollections()).doesNotContain("constellio");
+		assertThat(users.charles().getCollections()).doesNotContain("constellio").doesNotContain(SYSTEM_COLLECTION);
+		assertThat(users.dakotaLIndien().getCollections()).doesNotContain("constellio").doesNotContain(SYSTEM_COLLECTION);
 		assertThat(resultCountWhenSearchingHas(users.edouardLechatIn("constellio"))).isEqualTo(1);
 		assertThat(resultCountWhenSearchingHas(users.gandalfLeblancIn("constellio"))).isEqualTo(1);
 		assertThat(resultCountWhenSearchingHas(users.chuckNorrisIn("constellio"))).isEqualTo(1);
 
 		assertThat(resultCountWhenSearchingHas(users.aliceIn("doculibre"))).isEqualTo(1);
-		assertThat(users.bob().getCollections()).doesNotContain("doculibre");
+		assertThat(users.bob().getCollections()).doesNotContain("doculibre").doesNotContain(SYSTEM_COLLECTION);
 		assertThat(resultCountWhenSearchingHas(users.charlesIn("doculibre"))).isEqualTo(1);
 		assertThat(resultCountWhenSearchingHas(users.dakotaLIndienIn("doculibre"))).isEqualTo(1);
 		assertThat(resultCountWhenSearchingHas(users.edouardLechatIn("doculibre"))).isEqualTo(1);
@@ -167,6 +169,15 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		Set<String> collectionsInUserCredentialFile = getAllCollectionsInUserCredentialFile();
 		Set<String> collectionsInVersionProperties = getAllCollectionsInVersionPropertiesFile();
 
+		assertThat(collectionsInUserCredentialFile).doesNotContain("_system_");
+		assertThat(collectionsInVersionProperties).contains("constellio_version");
+		recordServices.flush();
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("_system_").returnAll())).isEqualTo(7);
+		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/authorizations.xml")).isTrue();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/schemas.xml")).isTrue();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/roles.xml")).isTrue();
+		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/taxonomies.xml")).isTrue();
+
 		assertThat(collectionsInUserCredentialFile).contains("constellio");
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
@@ -176,7 +187,6 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/taxonomies.xml")).isTrue();
-
 		assertThat(userServices.getUser(bobGratton).getCollections()).contains("constellio");
 
 		collectionsManager.deleteCollection("constellio");

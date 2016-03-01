@@ -52,7 +52,7 @@ public class LoggerBulkImportProgressionListener implements BulkImportProgressio
 	public void onRecordImport(int addUpdateCount, String legacyId, String title) {
 		String progression = currentStepName + " [" + (addUpdateCount + 1) + "/" + currentStepTotal + "] - ";
 
-		LOGGER.info(progression + "Importating '" + legacyId + "-" + title + "'");
+		LOGGER.info(progression + "Importing '" + legacyId + "-" + title + "'");
 	}
 
 	@Override

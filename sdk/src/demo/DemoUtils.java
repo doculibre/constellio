@@ -94,7 +94,7 @@ public class DemoUtils {
 		FileUtils.write(setupProperties, setupPropertiesContent);
 
 		File appData = getAppData();
-		TestConstellioFactoriesDecorator decorator = new TestConstellioFactoriesDecorator(true);
+		TestConstellioFactoriesDecorator decorator = new TestConstellioFactoriesDecorator(true, false);
 		decorator.setSetupProperties(setupProperties);
 		decorator.setPluginsFolder(pluginFolder);
 		decorator.setImportationFolder(new File(appData, "importation"));

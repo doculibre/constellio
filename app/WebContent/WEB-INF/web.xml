@@ -178,13 +178,18 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
-
     <servlet>
         <servlet-name>Get schema metadatas Service</servlet-name>
         <servlet-class>com.constellio.app.servlet.ConstellioGetSchemaMetadatasServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <servlet>
+        <servlet-name>download</servlet-name>
+        <servlet-class>
+            com.constellio.app.ui.application.DownloadServlet
+        </servlet-class>
+    </servlet>
 
     <servlet>
         <servlet-name>Benchmark Service</servlet-name>
@@ -355,7 +360,6 @@
         <url-pattern>/createRecord</url-pattern>
     </servlet-mapping>
 
-
     <servlet-mapping>
         <servlet-name>Benchmark Service</servlet-name>
         <url-pattern>/benchmark</url-pattern>
@@ -366,6 +370,10 @@
         <url-pattern>/getSchemaMetadatas</url-pattern>
     </servlet-mapping>
 
+    <servlet-mapping>
+        <servlet-name>download</servlet-name>
+        <url-pattern>/dl/*</url-pattern>
+    </servlet-mapping>
 
     <!--<servlet-mapping>-->
     <!--<servlet-name>AuthenticateAgentServlet</servlet-name>-->

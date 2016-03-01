@@ -55,6 +55,8 @@ public class FileParserTest extends ConstellioTest {
 				new FileParser(forkParsers, languageDetectionManager, ioServices, systemConfigurationsManager, false));
 		when(inputStreamFactory.create(anyString())).thenReturn(stream);
 		when(systemConfigurationsManager.getValue(ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS)).thenReturn(2);
+		when(systemConfigurationsManager.getValue(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS))
+				.thenReturn(10);
 	}
 
 	@Test(expected = FileParserException_CannotParse.class)

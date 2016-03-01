@@ -31,9 +31,10 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
-import com.constellio.app.services.systemSetup.SystemSetupService;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.containers.ContainerButtonListener;
 import com.constellio.app.ui.i18n.i18n;
@@ -49,6 +50,7 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -117,9 +119,8 @@ public class AppLayerFactory extends LayerFactory {
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
 
-		SystemSetupService systemSetupService = new SystemSetupService(this, appLayerConfiguration);
 		this.systemGlobalConfigsManager = add(
-				new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory().getConfigManager(), systemSetupService));
+				new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory().getConfigManager()));
 		this.collectionsManager = add(
 				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
@@ -165,12 +166,64 @@ public class AppLayerFactory extends LayerFactory {
 	public AppManagementService newApplicationService() {
 		IOServicesFactory ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager,
-				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager);
+				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager,
+				newUpgradeAppRecoveryService());
+	}
+
+	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
+		return new UpgradeAppRecoveryServiceImpl(this,
+				dataLayerFactory.getIOServicesFactory().newIOServices());
 	}
 
 	@Override
 	public void initialize() {
+		UpgradeAppRecoveryServiceImpl upgradeAppRecoveryService = new UpgradeAppRecoveryServiceImpl(this,
+				dataLayerFactory.getIOServicesFactory().newIOServices());
+		upgradeAppRecoveryService.deletePreviousWarCausingFailure();
+		SystemConfigurationsManager configManager = modelLayerFactory
+				.getSystemConfigurationsManager();
+		configManager.initialize();
+		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(configManager);
+		boolean recoveryModeActive = constellioConfigs.isInUpdateProcess();
+		if (recoveryModeActive) {
+			startupWithPossibleRecovery(upgradeAppRecoveryService);
+		} else {
+			normalStartup();
+		}
+		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
+			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
+		}
+		upgradeAppRecoveryService.close();
+	}
 
+	private void startupWithPossibleRecovery(UpgradeAppRecoveryServiceImpl recoveryService) {
+		if (dataLayerFactory.getSecondTransactionLogManager() != null) {
+			recoveryService.startRollbackMode();
+			try {
+				normalStartup();
+				recoveryService.stopRollbackMode();
+			} catch (Throwable exception) {
+				if (recoveryService.isInRollbackMode()) {
+					LOGGER.error("Error when trying to start application", exception);
+					recoveryService.rollback(exception);
+					//this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
+					try {
+						newApplicationService().restart();
+					} catch (AppManagementServiceException e) {
+						throw new RuntimeException(e);
+					}
+				} else {
+					throw exception;
+				}
+			}
+		} else {
+			//rare case in tests
+			normalStartup();
+		}
+
+	}
+
+	private void normalStartup() {
 		appLayerExtensions.getSystemWideExtensions().pagesComponentsExtensions.add(new DefaultPagesComponentsExtension(this));
 		this.pluginManager.detectPlugins();
 
@@ -196,10 +249,6 @@ public class AppLayerFactory extends LayerFactory {
 			systemGlobalConfigsManager.setReindexingRequired(false);
 		}
 		systemGlobalConfigsManager.setRestartRequired(false);
-
-		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
-			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
-		}
 
 		if (!invalidPlugins.isEmpty()) {
 			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));

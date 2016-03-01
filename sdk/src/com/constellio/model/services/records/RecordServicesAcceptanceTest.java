@@ -93,6 +93,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setup()
 			throws Exception {
+		System.out.println("\n\n--RecordServicesAcceptanceTest.setup--\n\n");
 		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 		schemas = new RecordServicesTestSchemaSetup();
@@ -106,6 +107,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test(expected = RecordServicesException.ValidationException.class)
 	public void givenRequiredAutomaticMetadataWhenSavingWithNullValueThenValidationException()
 			throws Exception {
+		System.out.println("\n\n--ze test--\n\n");
 		defineSchemasManager().using(
 				schemas.withAStringMetadata(whichHasDefaultRequirement, calculatedTextFromDummyCalculator()));
 
@@ -744,9 +746,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
-							MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-							asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
-									METADATA_LABEL, "A toAString metadata"))
+					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
+					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
+							METADATA_LABEL, "A toAString metadata"))
 			);
 		}
 
@@ -755,9 +757,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
-							MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-							asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
-									METADATA_LABEL, "A toAString metadata"))
+					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
+					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
+							METADATA_LABEL, "A toAString metadata"))
 			);
 		}
 

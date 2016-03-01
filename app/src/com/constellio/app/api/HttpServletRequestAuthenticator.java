@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -60,7 +61,7 @@ public class HttpServletRequestAuthenticator {
 	}
 	
 	private UserCredential ssoLogin(HttpServletRequest request) {
-		Principal userPrincipal = request.getUserPrincipal();
+		Principal userPrincipal = (Principal) request.getSession().getAttribute(VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE);
 		if (userPrincipal != null) {
 			String username = userPrincipal.getName();
 			UserCredential userCredential = userServices.getUserCredential(username);

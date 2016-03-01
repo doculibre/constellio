@@ -48,6 +48,9 @@ public class LabelsButton extends WindowButton {
 			format.addItem(configuration);
 			format.setItemCaption(configuration, $(configuration.getName()));
 		}
+		if(configurations.size() > 0) {
+			format.select(configurations.get(0));
+		}
 		format.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		format.setNullSelectionAllowed(false);
 

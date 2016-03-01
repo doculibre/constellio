@@ -118,8 +118,8 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 		assertThat(elevation.size()).isEqualTo(0);
 		elevation = elevationService
 				.getCollectionElevation(businessCollection, query1);
-		assertThat(elevation.size()).isEqualTo(1);
-		assertThat(elevation.get(0).getId()).isEqualTo(query1RecordElevationInBusinessCollection.getId());
+		assertThat(elevation.size()).isEqualTo(2);
+		assertThat(elevation).extracting("id").contains(query1RecordElevationInBusinessCollection.getId());
 		elevation = elevationService
 				.getCollectionElevation(zeCollection, query2);
 		assertThat(elevation.size()).isEqualTo(1);
@@ -138,8 +138,8 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 		assertThat(elevation.size()).isEqualTo(0);
 		elevation = elevationService
 				.getCollectionElevation(businessCollection, query1);
-		assertThat(elevation.size()).isEqualTo(1);
-		assertThat(elevation.get(0).getId()).isEqualTo(query1RecordElevationInBusinessCollection.getId());
+		assertThat(elevation.size()).isEqualTo(2);
+		assertThat(elevation).extracting("id").contains(query1RecordElevationInBusinessCollection.getId());
 		elevation = elevationService
 				.getCollectionElevation(zeCollection, query2);
 		assertThat(elevation.size()).isEqualTo(0);

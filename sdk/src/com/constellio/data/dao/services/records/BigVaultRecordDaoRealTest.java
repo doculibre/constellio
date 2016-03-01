@@ -617,6 +617,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	@Test
 	public void whenLoadingARecordWith__NULL__InTextFieldsThenConsideredAsNull()
 			throws Exception {
+		givenDisabledAfterTestValidations();
 
 		SolrInputDocument solrInputDocument = new SolrInputDocument();
 		solrInputDocument.setField("id", "zeId");

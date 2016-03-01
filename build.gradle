@@ -7,16 +7,6 @@ apply plugin: 'application'
 
 defaultTasks 'clean', 'compileJava'
 
-ext {
-    version_mime = "0.7.2"
-}
-
-configurations.all {
-    resolutionStrategy {
-        force "org.apache.james:apache-mime4j:${version_mime}"
-    }
-}
-
 allprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
@@ -37,6 +27,18 @@ allprojects {
     tasks.withType(Javadoc) {
         options.encoding = 'UTF-8'
     }
+
+    ext {
+        version_mime = "0.7.2"
+    }
+
+    configurations.all {
+        resolutionStrategy { 
+            force "javax.validation:validation-api:1.0.0.GA"
+            force "org.apache.james:apache-mime4j:${version_mime}"
+        }
+    }
+
 
     test {
         minHeapSize = "128m"
@@ -107,7 +109,7 @@ allprojects {
 
 war {
     baseName = "constellio"
-    version = "6.0"
+    version = "6.0.1"
 
     webInf {
         from("resources_i18n/") {

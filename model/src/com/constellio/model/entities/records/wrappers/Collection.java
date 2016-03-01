@@ -11,6 +11,8 @@ public class Collection extends RecordWrapper {
 
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 
+	public static final String SYSTEM_COLLECTION = "_system_";
+
 	public static final String CODE = "code";
 
 	public static final String NAME = "name";

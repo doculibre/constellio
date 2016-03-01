@@ -30,9 +30,11 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	List<DataLayerConfigurationAlteration> dataLayerConfigurationAlterations = new ArrayList<>();
 	List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
+	final private boolean checkRollback;
 
-	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled) {
+	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled, boolean checkRollback) {
 		this.backgroundThreadsEnabled = backgroundThreadsEnabled;
+		this.checkRollback = checkRollback;
 	}
 
 	@Override
@@ -42,6 +44,7 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 		doReturn(appTempFolder).when(spiedDataLayerConfiguration).getTempFolder();
 		doReturn(contentFolder).when(spiedDataLayerConfiguration).getContentDaoFileSystemFolder();
 		doReturn(backgroundThreadsEnabled).when(spiedDataLayerConfiguration).isBackgroundThreadsEnabled();
+		doReturn(checkRollback).when(spiedDataLayerConfiguration).isInRollbackTestMode();
 
 		for (DataLayerConfigurationAlteration alteration : dataLayerConfigurationAlterations) {
 			alteration.alter(spiedDataLayerConfiguration);

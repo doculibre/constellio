@@ -21,8 +21,8 @@ import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorTaxonomyActionExecutor;
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDownloadSmbDocument;
 import com.constellio.app.modules.es.connectors.spi.Connector;
@@ -210,8 +210,8 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 				contentManager.upload(getTestResourceInputStream("testFolderMapping.csv")));
 		Content documentMapping = contentManager.createMajor(users.adminIn(zeCollection), "testDocumentMapping.csv",
 				contentManager.upload(getTestResourceInputStream("testDocumentMapping.csv")));
-		ClassifyConnectorTaxonomyActionParameters parameters = ClassifyConnectorTaxonomyActionParameters
-				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setActionAfterClassification(EXCLUDE_DOCUMENTS)
 				.setDelimiter(" ").setDocumentMapping(documentMapping).setFolderMapping(folderMapping)
 				.setDefaultCategory(records.categoryId_X));
@@ -220,7 +220,7 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
 						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
 								.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
-				.setAction(ClassifyConnectorTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
 
 		newWebDriver().logUserInCollection("admin", zeCollection);
 		waitUntilICloseTheBrowsers();
@@ -321,7 +321,7 @@ public class ClassifyConnectorTaxonomyInFileShareUIAcceptanceTest extends Conste
 		}
 	}
 
-	void classifyConnectorFolderInTaxonomy(Record connectorFolder, ClassifyConnectorTaxonomyActionParameters params) {
+	void classifyConnectorFolderInTaxonomy(Record connectorFolder, ClassifyConnectorFolderInTaxonomyActionParameters params) {
 		ClassifyConnectorRecordInTaxonomyExecutor builder = new ClassifyConnectorRecordInTaxonomyExecutor(
 				connectorFolder, params, es.getAppLayerFactory(), users.adminIn(zeCollection), robotId);
 		builder.execute();

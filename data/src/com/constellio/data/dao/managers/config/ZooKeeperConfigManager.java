@@ -2,6 +2,7 @@ package com.constellio.data.dao.managers.config;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -435,6 +436,11 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 			unlockPath(lock);
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public void copySettingsFrom(File setting) {
+		throw new RuntimeException("Not supported operation copySettingsFrom existing folder");
 	}
 
 	@Override

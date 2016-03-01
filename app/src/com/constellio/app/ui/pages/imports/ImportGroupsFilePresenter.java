@@ -71,6 +71,6 @@ public class ImportGroupsFilePresenter extends BasePresenter<ImportFileView> imp
 	}
 
 	public List<String> getAllCollections() {
-		return appLayerFactory.getCollectionsManager().getCollectionCodes();
+		return appLayerFactory.getCollectionsManager().getCollectionCodesExcludingSystem();
 	}
 }

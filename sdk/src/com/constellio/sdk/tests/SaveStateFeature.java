@@ -56,31 +56,6 @@ public class SaveStateFeature {
 
 	}
 
-	public void loadStateFrom(File file)
-			throws Exception {
-
-		File tempUnzipFolder = fileSystemTestFeatures.newTempFolder();
-
-		DataLayerFactory dataLayerFactory = factoriesTestFeatures.newDaosFactory();
-		DataLayerConfiguration dataLayerConfiguration = dataLayerFactory.getDataLayerConfiguration();
-		dataLayerFactory.getIOServicesFactory().newZipService().unzip(file, tempUnzipFolder);
-
-		File tempUnzipContentFolder = new File(tempUnzipFolder, "content");
-		File tempUnzipSettingsFolder = new File(tempUnzipFolder, "settings");
-		File tempUnzipPluginsFolder = new File(tempUnzipFolder, "plugins");
-		File settingsFolder = dataLayerConfiguration.getSettingsFileSystemBaseFolder();
-		File contentFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-		File pluginFolder = factoriesTestFeatures.newAppServicesFactory().getAppLayerConfiguration().getPluginsFolder();
-
-		FileUtils.copyDirectory(tempUnzipSettingsFolder, settingsFolder);
-		FileUtils.copyDirectory(tempUnzipContentFolder, contentFolder);
-		if (tempUnzipPluginsFolder.exists()) {
-			FileUtils.copyDirectory(tempUnzipPluginsFolder, pluginFolder);
-		}
-
-		dataLayerFactory.getSecondTransactionLogManager().destroyAndRebuildSolrCollection();
-	}
-
 	public static void loadStateFrom(File file, File tempFolder, File settingsFolder, File contentFolder, File pluginsFolder,
 			boolean resetPasswords)
 			throws Exception {

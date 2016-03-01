@@ -22,12 +22,14 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
 	public static final SystemConfiguration PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
+	public static final SystemConfiguration CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS;
 
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
 	public static final SystemConfiguration LOGO_LINK;
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
+	public static final SystemConfiguration IN_UPDATE_PROCESS;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -49,7 +51,13 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
 				.withDefaultValue(3000));
-		add(CLEAN_DURING_INSTALL = others.createBooleanFalseByDefault("cleanDuringInstall"));
+		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
+				.withDefaultValue(10));
+
+		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
+
+		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
+		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -86,6 +94,10 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isCleanDuringInstall() {
 		return manager.getValue(CLEAN_DURING_INSTALL);
+	}
+
+	public Boolean isInUpdateProcess() {
+		return manager.getValue(IN_UPDATE_PROCESS);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {

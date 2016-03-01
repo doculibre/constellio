@@ -134,7 +134,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		when(recordDao.getBigVaultServer()).thenReturn(bigVaultServer);
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger, systemExtensions));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions, getDataLayerFactory().getTransactionLogRecoveryManager()));
 		transactionLog.initialize();
 
 		record1 = newSolrInputDocument("record1", -1L);
@@ -326,7 +326,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger, systemExtensions));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions, getDataLayerFactory().getTransactionLogRecoveryManager()));
 
 		doReturn(true).when(transactionLog).isCommitted(firstTransactionTempFile, recordDao);
 		doReturn(false).when(transactionLog).isCommitted(secondTransactionTempFile, recordDao);
@@ -344,7 +344,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	public void givenPreparedIsCalledBeforeInitializingTheTransactionLogThenException() {
 
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger, systemExtensions));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions, getDataLayerFactory().getTransactionLogRecoveryManager()));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 
 	}
