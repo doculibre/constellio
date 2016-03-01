@@ -20,16 +20,16 @@ public class DefaultLabelsTemplate {
 		final int LINES_NUMBER = 11;
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
-
+		
 		LabelTemplateField categoryCodeField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.CATEGORY_CODE,
 				null, 0, 0, 14, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
-		LabelTemplateField folderIdField = new LabelTemplateField(
+		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 15, 0, 15, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 15, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
@@ -69,9 +69,9 @@ public class DefaultLabelsTemplate {
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 
-		LabelTemplateField folderIdField = new LabelTemplateField(
+		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 0, 0, 15, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 0, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.CENTER,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
@@ -122,9 +122,9 @@ public class DefaultLabelsTemplate {
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
-		LabelTemplateField folderIdField = new LabelTemplateField(
+		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 15, 0, 15, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 15, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
@@ -164,9 +164,9 @@ public class DefaultLabelsTemplate {
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 
-		LabelTemplateField folderIdField = new LabelTemplateField(
+		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 0, 0, 15, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 0, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.CENTER,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
@@ -217,9 +217,9 @@ public class DefaultLabelsTemplate {
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
-		LabelTemplateField folderIdField = new LabelTemplateField(
+		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 15, 0, 15, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 15, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
@@ -259,9 +259,9 @@ public class DefaultLabelsTemplate {
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 
-		LabelTemplateField folderIdField = new LabelTemplateField(
+		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 0, 0, 15, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 0, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.CENTER,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
@@ -306,9 +306,9 @@ public class DefaultLabelsTemplate {
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 
-		LabelTemplateField containerIdField = new LabelTemplateField(
+		LabelTemplateField containerIdField = new BarCodeLabelTemplateField(
 				ContainerRecord.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 0, 0, 15, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 0, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.CENTER,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
