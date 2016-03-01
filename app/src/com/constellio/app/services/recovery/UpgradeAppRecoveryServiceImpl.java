@@ -51,7 +51,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		this.upgradeAppRecoveryConfigManager.onVersionMigratedWithException(exception);
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
-		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, true);
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, false);
 		pointToPreviousValidVersion();
 	}
 
