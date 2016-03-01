@@ -13,6 +13,8 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
+import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.model.entities.CorePermissions;
@@ -140,5 +142,28 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
+	}
+
+	public boolean isRestartWithReindexButtonEnabled() {
+		return !recoveryModeEnabled();
+	}
+
+	private boolean recoveryModeEnabled() {
+		return appLayerFactory.getModelLayerFactory().getSystemConfigs().isInUpdateProcess();
+	}
+
+	public boolean isUpdateEnabled() {
+		return isUpdateWithRecoveryPossible() == null;
+	}
+
+	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
+		return appLayerFactory.newUpgradeAppRecoveryService()
+				.isUpdateWithRecoveryPossible();
+	}
+
+	public String getExceptionDuringLastUpdate() {
+		UpgradeAppRecoveryService upgradeService = appLayerFactory
+				.newUpgradeAppRecoveryService();
+		return upgradeService.getLastUpgradeExceptionMessage();
 	}
 }

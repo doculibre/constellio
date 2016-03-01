@@ -2,6 +2,7 @@ package com.constellio.sdk.tests;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -38,6 +39,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,6 +134,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	private int printIndex = 0;
 	private long time;
+	private File state1, state2;
+	private TemporaryFolder folder;
 
 	public AbstractConstellioTest() {
 		sdkPropertiesLoader.setLocked(isUnitTest());
@@ -231,6 +235,17 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 	}
 
+	private void assertThatStatesAreEqual(File state1, File state2)
+			throws Exception {
+		File state1TempFolder = newTempFolder();
+		File state2TempFolder = newTempFolder();
+
+		getIOLayerFactory().newZipService().unzip(state1, state1TempFolder);
+		getIOLayerFactory().newZipService().unzip(state2, state2TempFolder);
+
+		verifySameContentOfUnzippedSaveState(state1TempFolder, state2TempFolder);
+	}
+
 	@After
 	public void printMemoryUsage() {
 		boolean memoryReport = false;
@@ -247,11 +262,15 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			previousMemoryUsage = getMemoryUsage();
 		} else {
 			try {
-				FileUtils.write(new File("constellio.log"), "Test '" + getTestName() + "' has eneded", true);
+				FileUtils.write(new File("constellio.log"), "Test '" + getTestName() + "' has ended", true);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}
+	}
+
+	protected boolean checkRollback() {
+		return skipTestRule.checkRollback;
 	}
 
 	private Map<String, Long> getMemoryUsage() {
@@ -907,6 +926,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		givenTransactionLogIsEnabled(null);
 	}
 
+	protected void givenRollbackCheckDisabled() {
+		getCurrentTestSession().getFactoriesTestFeatures().withoutCheckForRollback();
+	}
+
 	protected void givenTransactionLogIsEnabled(final SecondTransactionLogReplayFilter filter) {
 		final File logTempFolder = getCurrentTestSession().getFileSystemTestFeatures().newTempFolderWithName("tLog");
 		configure(new DataLayerConfigurationAlteration() {
@@ -1123,7 +1146,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			preparationNames.put(preparators.hashCode(), taskName);
 		}
 		stats.add(this, getTestName(), taskName, end - start);
-
+		getCurrentTestSession().getAfterTestValidationsTestFeature().startRollbackNow();
 	}
 
 	public static class CollectionPreparator {

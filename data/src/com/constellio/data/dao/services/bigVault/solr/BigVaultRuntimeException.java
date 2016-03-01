@@ -47,4 +47,10 @@ public class BigVaultRuntimeException extends RuntimeException {
 					.toString(transaction), e);
 		}
 	}
+
+	public static class TryingToRegisterListenerWithExistingId extends BigVaultRuntimeException {
+		public TryingToRegisterListenerWithExistingId(String id) {
+			super("Trying to register listener with existing id : " + id);
+		}
+	}
 }

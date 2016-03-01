@@ -19,6 +19,8 @@ public interface Content extends ModifiableStructure {
 
 	ContentVersion getCurrentVersionSeenBy(User user);
 
+	ContentVersion getLastMajorContentVersion();
+
 	/**
 	 * Sorted by asc version label
 	 */

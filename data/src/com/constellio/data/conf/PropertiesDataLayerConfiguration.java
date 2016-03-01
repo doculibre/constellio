@@ -24,7 +24,6 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	private Boolean secondTransactionLogEnabled;
 
-
 	public PropertiesDataLayerConfiguration(Map<String, String> configs, File defaultTempFolder,
 			File defaultFileSystemBaseFolder, File constellioProperties) {
 		super(configs, constellioProperties);
@@ -154,6 +153,14 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getRecordsDaoSolrServerType().equals(HTTP) &&
 				(getRecordsDaoHttpSolrServerUrl().contains("localhost") || getRecordsDaoHttpSolrServerUrl()
 						.contains("127.0.0.1"));
+	}
+
+	@Override
+	public boolean isInRollbackTestMode() {
+		if (secondTransactionLogEnabled != null) {
+			return secondTransactionLogEnabled;
+		}
+		return getBoolean("secondTransactionLog.checkRollback", false);
 	}
 
 }

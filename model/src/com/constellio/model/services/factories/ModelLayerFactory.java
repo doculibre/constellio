@@ -33,6 +33,7 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.parser.LanguageDetectionManager;
@@ -298,6 +299,10 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public SystemConfigurationsManager getSystemConfigurationsManager() {
 		return systemConfigurationsManager;
+	}
+
+	public ConstellioEIMConfigs getSystemConfigs() {
+		return new ConstellioEIMConfigs(getSystemConfigurationsManager());
 	}
 
 	public LoggingServices newLoggingServices() {
