@@ -146,7 +146,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	Set<String> updateCollection(CollectionVO entity) {
 		String collectionName = entity.getName();
 		try {
-			recordServices().update(collectionRecord.setName(collectionName));
+			recordServices().update(collectionRecord.setName(collectionName).setTitle(collectionName));
 			return updateCollectionModules(collectionRecord.getWrappedRecord(), entity.getCode(), entity.getModules());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
