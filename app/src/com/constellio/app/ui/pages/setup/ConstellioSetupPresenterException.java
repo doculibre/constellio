@@ -29,4 +29,11 @@ public class ConstellioSetupPresenterException extends Exception {
 		}
 	}
 
+	public static class ConstellioSetupPresenterException_CodeMustBeAlphanumeric
+			extends ConstellioSetupPresenterException {
+		public ConstellioSetupPresenterException_CodeMustBeAlphanumeric() {
+			super($("ConstellioSetupPresenter.codeMustBeAlphanumeric"));
+		}
+	}
+
 }

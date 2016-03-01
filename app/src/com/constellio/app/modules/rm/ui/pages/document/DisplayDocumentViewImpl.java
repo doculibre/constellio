@@ -83,7 +83,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private WindowButton sign;
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
-			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton;
+			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, publishButton, unpublishButton,
+			publicLinkButton;
 
 	private DisplayDocumentPresenter presenter;
 
@@ -215,7 +216,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
+		List<Button> actionMenuButtons = new ArrayList<>();
 
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
@@ -400,6 +401,33 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			actionMenuButtons.add(renameContentButton);
 			actionMenuButtons.add(copyContentButton);
+
+			publishButton = new LinkButton($("DocumentContextMenu.publish")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.publishButtonClicked();
+				}
+			};
+			actionMenuButtons.add(publishButton);
+
+			unpublishButton = new LinkButton($("DocumentContextMenu.unpublish")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.unpublishButtonClicked();
+				}
+			};
+			actionMenuButtons.add(unpublishButton);
+
+			WindowButton.WindowConfiguration publicLinkConfig = new WindowConfiguration(true, false, "90%", "90%");
+			publicLinkButton = new WindowButton(
+					$("DocumentContextMenu.publicLink"), $("DocumentContextMenu.publicLink"), publicLinkConfig) {
+				@Override
+				protected Component buildWindowContent() {
+					return new Label(presenter.getPublicLink());
+				}
+			};
+			actionMenuButtons.add(publicLinkButton);
+
 			//actionMenuButtons.add(sign);
 		}
 
@@ -537,6 +565,19 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		} else {
 			borrowedLabel.setVisible(false);
 			borrowedLabel.setValue(null);
+		}
+	}
+
+	@Override
+	public void setPublishButtons(boolean published) {
+		if (publishButton != null) {
+			publishButton.setVisible(!published);
+		}
+		if (unpublishButton != null) {
+			unpublishButton.setVisible(published);
+		}
+		if (publicLinkButton != null) {
+			publicLinkButton.setVisible(published);
 		}
 	}
 

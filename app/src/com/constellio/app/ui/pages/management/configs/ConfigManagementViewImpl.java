@@ -162,12 +162,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 			combobox.setRequired(true);
 			return combobox;
 		} else if (type == SystemConfigurationType.BINARY) {
-			BaseUploadField uploadField = new BaseUploadField() {
-				@Override
-				protected boolean isDeleteTempFilesOnDetach() {
-					return false;
-				}
-			};
+			BaseUploadField uploadField = new BaseUploadField();
 			return uploadField;
 		} else {
 			throw new RuntimeException("Unsupported type " + type);

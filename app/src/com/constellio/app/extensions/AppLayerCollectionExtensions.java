@@ -8,8 +8,11 @@ import java.util.Map;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.PageExtension;
+import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
@@ -53,6 +56,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<CmisExtension> cmisExtensions = new VaultBehaviorsList<>();
 
 	public List<DownloadContentVersionLinkExtension> downloadContentVersionLinkExtensions = new ArrayList<>();
+
+	public VaultBehaviorsList<PagesComponentsExtension> pagesComponentsExtensions = new VaultBehaviorsList<>();
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
@@ -199,6 +204,30 @@ public class AppLayerCollectionExtensions {
 				return behavior.displayTaxonomy(user, taxonomy);
 			}
 		});
+	}
+
+	public void decorateView(PagesComponentsExtensionParams params) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			extension.decorateView(params);
+		}
+	}
+
+	public void decorateMainComponentBeforeViewInstanciated(DecorateMainComponentAfterInitExtensionParams params) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			extension.decorateMainComponentBeforeViewInstanciated(params);
+		}
+	}
+
+	public void decorateMainComponentAfterViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			extension.decorateMainComponentAfterViewAssembledOnViewEntered(params);
+		}
+	}
+
+	public void decorateMainComponentBeforeViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
+			extension.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
+		}
 	}
 
 }

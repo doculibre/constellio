@@ -5,7 +5,6 @@ import static org.mockito.Mockito.doReturn;
 import java.io.File;
 import java.util.Map;
 
-import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
@@ -59,15 +58,6 @@ public class AfterTestValidationsTestFeature {
 				}
 			});
 
-			if (isValidatingRollbackLog()) {
-				this.factoriesTestFeatures.configure(new AppLayerConfigurationAlteration() {
-					@Override
-					public void alter(AppLayerConfiguration configuration) {
-						doReturn(true).when(configuration).isRecoveryModeActive();
-					}
-				});
-
-			}
 		}
 	}
 
@@ -78,7 +68,6 @@ public class AfterTestValidationsTestFeature {
 				ConstellioFactories factories = factoriesTestFeatures
 						.getConstellioFactories();
 				DataLayerFactory dataLayerFactory = factories.getDataLayerFactory();
-				AppLayerConfiguration appLayerConfiguration = factories.getAppLayerConfiguration();
 				DataLayerConfiguration configuration = dataLayerFactory.getDataLayerConfiguration();
 				RecordDao recordDao = dataLayerFactory.newRecordDao();
 				SolrSDKToolsServices solrSDKTools = new SolrSDKToolsServices(recordDao);
@@ -87,8 +76,7 @@ public class AfterTestValidationsTestFeature {
 						if (isValidatingSecondTransactionLog() && configuration.isSecondTransactionLogEnabled()) {
 							solrSDKTools.flushAndDeleteContentMarkers();
 							validateSecondTransactionLog(solrSDKTools);
-						} else if (isValidatingRollbackLog() && configuration.isSecondTransactionLogEnabled()
-								&& appLayerConfiguration.isRecoveryModeActive()) {
+						} else if (isValidatingRollbackLog() && configuration.isSecondTransactionLogEnabled()) {
 							checkRecovery(solrSDKTools, dataLayerFactory.getTransactionLogRecoveryManager());
 						}
 

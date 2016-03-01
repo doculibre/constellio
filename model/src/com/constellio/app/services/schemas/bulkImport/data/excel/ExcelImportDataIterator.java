@@ -133,7 +133,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			if (currentType != null) {
 				switch (currentType.getTypeName()) {
 				case ID_ATTR:
-					legacy = cell.getContents();
+					legacy = StringUtils.trim(cell.getContents());
 					break;
 				case SCHEMA_ATTR:
 					if (cell.isNotEmpty()) {
@@ -311,6 +311,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 		if (nullOrInvalidData(value))
 			return null;
 
+		value = StringUtils.trim(value);
 		if (type.getDatePattern() != null) {
 			return formatDateString(value, type);
 		} else if (type.getDataPattern() != null) {

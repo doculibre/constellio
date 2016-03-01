@@ -44,7 +44,7 @@ public class UpgradeAppRecoveryConfigManagerAcceptanceTest extends ConstellioTes
 		assertThat(upgradeAppRecoveryConfigManager.getLastValidVersion()).isEqualTo("");
 		assertThat(upgradeAppRecoveryConfigManager.getLastValidVersionDirectoryPath()).isEqualTo("");
 		assertThat(upgradeAppRecoveryConfigManager.getLastVersionCausingExceptionDirectoryPath()).isEqualTo("");
-		assertThat(upgradeAppRecoveryConfigManager.getUpgradeException()).isEqualTo("java.lang.Throwable: aa");
+		assertThat(upgradeAppRecoveryConfigManager.getUpgradeException()).contains("java.lang.Throwable: aa");
 	}
 
 	@Test
@@ -75,7 +75,7 @@ public class UpgradeAppRecoveryConfigManagerAcceptanceTest extends ConstellioTes
 		assertThat(upgradeAppRecoveryConfigManager.getLastValidVersion()).isEqualTo("versionCorrect");
 		assertThat(upgradeAppRecoveryConfigManager.getLastValidVersionDirectoryPath()).isEqualTo("versionCorrectPath");
 		assertThat(upgradeAppRecoveryConfigManager.getLastVersionCausingExceptionDirectoryPath()).isEqualTo("zeVersionPath");
-		assertThat(upgradeAppRecoveryConfigManager.getUpgradeException()).isEqualTo("java.lang.Throwable: aa");
+		assertThat(upgradeAppRecoveryConfigManager.getUpgradeException()).contains("java.lang.Throwable: aa");
 	}
 
 	private void populateManagerProperties() {

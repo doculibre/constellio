@@ -69,11 +69,6 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 	}
 
 	@Override
-	protected boolean isDeleteTempFilesOnDetach() {
-		return false;
-	}
-
-	@Override
 	public void setNewFileButtonVisible(boolean visible) {
 		newFileButton.setVisible(visible);
 	}

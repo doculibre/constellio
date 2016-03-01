@@ -87,9 +87,6 @@ public class FactoriesTestFeatures {
 			DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
 			for (BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
 				deleteServerRecords(server);
-
-				//TODO Majid : Tests are 3% slower when this line is activated
-				//cleanElevateFile(server);
 			}
 
 			if (ContentDaoType.HADOOP == conf.getContentDaoType()) {
@@ -105,18 +102,6 @@ public class FactoriesTestFeatures {
 		ConstellioFactories.clear();
 		factoriesInstance = null;
 
-	}
-
-	private void cleanElevateFile(BigVaultServer server) {
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		DataWrapper<Elevations> elevationView = new ElevationsView()
-				.setData(new Elevations());
-
-		//This is the slowest line of this method
-		readData.setDataFromView(elevationView);
-
-		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
 	}
 
 	private void deleteFromZooKeeper(String address) {

@@ -527,7 +527,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		return automaticRegroup;
 	}
 
-	public void setAutomaticLog(boolean automaticMode) {
+	public void setAutomaticRegroupAndMoveInVaultEnabled(boolean automaticMode) {
 		this.automaticRegroup = automaticMode;
 	}
 

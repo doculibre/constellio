@@ -330,9 +330,9 @@ public class CollectionsManager implements StatefulService {
 		return returnList;
 	}
 
-	private void validateCode(String code) {
+	public void validateCode(String code) {
 		if (!Collection.SYSTEM_COLLECTION.equals(code)) {
-			String pattern = "([a-zA-Z0-9])+";
+			String pattern = "[a-zA-Z]([a-zA-Z0-9])+";
 			if (code == null || !code.matches(pattern)) {
 				throw new CollectionsManagerRuntimeException_InvalidCode(code);
 			}

@@ -10,6 +10,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -52,12 +54,33 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
 
+	public BaseViewImpl() {
+		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
+		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+
+		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewInstanciated(params);
+		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+		if (collection != null) {
+			appLayerFactory.getExtensions().forCollection(collection).decorateMainComponentBeforeViewInstanciated(params);
+		}
+	}
+
 	@Override
 	public final void enter(ViewChangeEvent event) {
 		if (event != null) {
 			for (ViewEnterListener viewEnterListener : viewEnterListeners) {
 				viewEnterListener.viewEntered(event.getParameters());
 			}
+		}
+
+		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
+		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+
+		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewAssembledOnViewEntered(params);
+		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+		if (collection != null) {
+			appLayerFactory.getExtensions().forCollection(collection)
+					.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 		}
 
 		try {
@@ -143,6 +166,12 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 		if (isBackgroundViewMonitor()) {
 			addBackgroundViewMonitor();
+		}
+
+		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentAfterViewAssembledOnViewEntered(params);
+		if (collection != null) {
+			appLayerFactory.getExtensions().forCollection(collection)
+					.decorateMainComponentAfterViewAssembledOnViewEntered(params);
 		}
 
 		afterViewAssembled(event);
