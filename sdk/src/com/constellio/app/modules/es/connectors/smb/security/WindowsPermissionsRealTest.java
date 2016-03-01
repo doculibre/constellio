@@ -65,7 +65,7 @@ public class WindowsPermissionsRealTest extends ConstellioTest {
 	@SlowTest
 	public void givenAllowAndShareAllowOnlyWhenGettingSecurityTokensThenGetExpectedSecurityTokens() {
 		String smbUrl = share + "fileWithAllowsAndNoDenies.txt";
-		smbRetrievalConfiguration = new SmbRetrievalConfiguration(Arrays.asList(smbUrl), Arrays.asList(smbUrl), new ArrayList());
+		smbRetrievalConfiguration = new SmbRetrievalConfiguration(Arrays.asList(smbUrl), Arrays.asList(smbUrl), new ArrayList(), false);
 		smbService = new SmbServiceSimpleImpl(credentials, smbRetrievalConfiguration, smbUtils, logger, es);
 
 		SmbFileDTO fileDTO = smbService.getSmbFileDTO(smbUrl);
@@ -81,7 +81,7 @@ public class WindowsPermissionsRealTest extends ConstellioTest {
 	@SlowTest
 	public void givenDenyWhenGettingSecurityTokensThenGetExpectedSecurityTokens() {
 		String smbUrl = share + "fileWithDeny.txt";
-		smbRetrievalConfiguration = new SmbRetrievalConfiguration(Arrays.asList(smbUrl), Arrays.asList(smbUrl), new ArrayList());
+		smbRetrievalConfiguration = new SmbRetrievalConfiguration(Arrays.asList(smbUrl), Arrays.asList(smbUrl), new ArrayList(), false);
 		smbService = new SmbServiceSimpleImpl(credentials, smbRetrievalConfiguration, smbUtils, logger, es);
 		SmbFileDTO fileDTO = smbService.getSmbFileDTO(smbUrl);
 
@@ -96,7 +96,7 @@ public class WindowsPermissionsRealTest extends ConstellioTest {
 	@SlowTest
 	public void givenExplicitUserWhenGettingSecurityTokensThenGetExpectedSecurityTokens() {
 		String smbUrl = share + "fileWithExplicitUser.txt";
-		smbRetrievalConfiguration = new SmbRetrievalConfiguration(Arrays.asList(smbUrl), Arrays.asList(smbUrl), new ArrayList());
+		smbRetrievalConfiguration = new SmbRetrievalConfiguration(Arrays.asList(smbUrl), Arrays.asList(smbUrl), new ArrayList(), false);
 		smbService = new SmbServiceSimpleImpl(credentials, smbRetrievalConfiguration, smbUtils, logger, es);
 		SmbFileDTO fileDTO = smbService.getSmbFileDTO(smbUrl);
 
