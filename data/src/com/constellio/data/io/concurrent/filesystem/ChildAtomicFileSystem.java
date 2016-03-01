@@ -1,10 +1,10 @@
 package com.constellio.data.io.concurrent.filesystem;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.data.io.concurrent.data.DataWithVersion;
-import com.constellio.data.io.concurrent.data.DataWrapper;
 import com.constellio.data.io.concurrent.exception.AtomicIOException;
 
 /**
@@ -13,7 +13,8 @@ import com.constellio.data.io.concurrent.exception.AtomicIOException;
  * @author Majid Laali
  *
  */
-public class ChildAtomicFileSystem extends BaseAtomicFileSystemDecorator {
+public class ChildAtomicFileSystem implements AtomicFileSystem {
+	private AtomicFileSystem toBeDecorated;
 	private String basePath;
 
 	public ChildAtomicFileSystem(AtomicFileSystem toBeDecorated, String basePath) {
@@ -21,7 +22,7 @@ public class ChildAtomicFileSystem extends BaseAtomicFileSystemDecorator {
 	}
 
 	public ChildAtomicFileSystem(AtomicFileSystem toBeDecorated, String basePath, boolean forceCreate) {
-		super(toBeDecorated);
+		this.toBeDecorated = toBeDecorated;
 
 		/*if (!basePath.startsWith("/"))
 			throw new IllegalArgumentException("The path should start with '/' but it does not: " + basePath);*/
@@ -43,25 +44,25 @@ public class ChildAtomicFileSystem extends BaseAtomicFileSystemDecorator {
 
 	@Override
 	public DataWithVersion readData(String path) {
-		return super.readData(basePath + path);
+		return toBeDecorated.readData(basePath + path);
 	}
 
 	@Override
 	public DataWithVersion writeData(String path, DataWithVersion dataWithVersion) {
-		return super.writeData(basePath + path, dataWithVersion);
+		return toBeDecorated.writeData(basePath + path, dataWithVersion);
 	}
 
 	@Override
 	public void delete(String path, Object version) {
-		super.delete(basePath + path, version);
+		toBeDecorated.delete(basePath + path, version);
 		if (path.equals(ROOT_PATH)) {    //if the user delete root directory
-			super.mkdirs(basePath);    //create a root directory again.
+			toBeDecorated.mkdirs(basePath);    //create a root directory again.
 		}
 	}
 
 	@Override
 	public List<String> list(String path) {
-		List<String> absolutePathList = super.list(basePath + path);
+		List<String> absolutePathList = toBeDecorated.list(basePath + path);
 		List<String> pathList = null;
 		if (absolutePathList != null) {
 			pathList = new ArrayList<>();
@@ -74,31 +75,21 @@ public class ChildAtomicFileSystem extends BaseAtomicFileSystemDecorator {
 
 	@Override
 	public boolean exists(String path) {
-		return super.exists(basePath + path);
+		return toBeDecorated.exists(basePath + path);
 	}
 
 	@Override
 	public boolean isDirectory(String path) {
-		return super.isDirectory(basePath + path);
+		return toBeDecorated.isDirectory(basePath + path);
 	}
 
 	@Override
 	public boolean mkdirs(String path) {
-		return super.mkdirs(basePath + path);
-	}
-	
-	@Override
-	public <T, R extends DataWrapper<T>> R writeData(String path, R dataWrapper) {
-		return super.writeData(basePath + path, dataWrapper);
-	}
-	
-	@Override
-	public <T, R extends DataWrapper<T>> R readData(String path, R dataWrapper) {
-		return super.readData(basePath + path, dataWrapper);
+		return toBeDecorated.mkdirs(basePath + path);
 	}
 
 	@Override
-	public DistributedLock getLock(String path) {
-		return super.getLock(basePath + path);
+	public void close() {
+		toBeDecorated.close();
 	}
 }

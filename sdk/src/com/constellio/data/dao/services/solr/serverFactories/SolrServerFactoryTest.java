@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import java.util.Arrays;
 
 import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +19,6 @@ import org.mockito.MockitoAnnotations;
 
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
-import com.constellio.data.io.concurrent.filesystem.VersioningAtomicFileSystem;
 
 @RunWith(value = Parameterized.class)
 public class SolrServerFactoryTest {
@@ -37,28 +35,20 @@ public class SolrServerFactoryTest {
 	}
 
 	private AbstractSolrServerFactory solrServerFactoryUnderTest;
-	private SolrClient[] solrClients;
 	private @Mock SolrClient solrClient1;
 	private @Mock SolrClient solrClient2;
 	private @Mock SolrClient solrClientAdmin;
 
-	private @Mock CloudSolrClient cloudSolrClient1;
-	private @Mock CloudSolrClient cloudSolrClient2;
-	private @Mock CloudSolrClient cloudSolrClientAdmin;
-
-	private @Mock VersioningAtomicFileSystem atomicFileSystem1;
-	private @Mock VersioningAtomicFileSystem atomicFileSystem2;
-	private @Mock VersioningAtomicFileSystem atomicFileSystemAdmin;
+	private @Mock AtomicFileSystem atomicFileSystem1;
+	private @Mock AtomicFileSystem atomicFileSystem2;
+	private @Mock AtomicFileSystem atomicFileSystemAdmin;
 
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 		String[] cores = new String[]{CORE_1, CORE_2, CORE_ADMIN};
+		SolrClient[] solrClients = new SolrClient[]{solrClient1, solrClient2, solrClientAdmin};
 		AtomicFileSystem[] atomicFileSystems = new AtomicFileSystem[]{atomicFileSystem1, atomicFileSystem2, atomicFileSystemAdmin};
-		if (solrServerFactoryUnderTest instanceof CloudSolrServerFactory)
-			solrClients = new SolrClient[]{cloudSolrClient1, cloudSolrClient2, cloudSolrClientAdmin};
-		else
-			solrClients = new SolrClient[]{solrClient1, solrClient2, solrClientAdmin};
 
 		for (int i = 0; i < cores.length; i++){
 			willReturn(solrClients[i]).given(solrServerFactoryUnderTest).getSolrClient(cores[i]);
@@ -79,7 +69,6 @@ public class SolrServerFactoryTest {
 
 	public SolrServerFactoryTest(AbstractSolrServerFactory solrServerFactory) {
 		solrServerFactoryUnderTest = spy(solrServerFactory);
-		
 	}
 
 
@@ -91,9 +80,9 @@ public class SolrServerFactoryTest {
 		verify(atomicFileSystem2, times(TIMES)).close();
 		verify(atomicFileSystemAdmin, times(TIMES)).close();
 
-		verify(solrClients[0], times(TIMES)).shutdown();
-		verify(solrClients[1], times(TIMES)).shutdown();
-		verify(solrClients[2], times(TIMES)).shutdown();
+		verify(solrClient1, times(TIMES)).shutdown();
+		verify(solrClient2, times(TIMES)).shutdown();
+		verify(solrClientAdmin, times(TIMES)).shutdown();
 	}
 
 }

@@ -2,7 +2,7 @@ package com.constellio.data.io.concurrent.data;
 
 import java.nio.charset.StandardCharsets;
 
-public class TextView extends AbstractDataWithVersion<String>{
+public class TextView implements DataWrapper<String>{
 	private String data; 
 
 	@Override

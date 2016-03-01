@@ -13,9 +13,6 @@ import java.nio.charset.StandardCharsets;
  * @param <T> The type that wrapper wraps it.
  */
 public interface DataWrapper<T> {
-	public void initWithDataWithVersion(DataWithVersion dataWithVersion);
-	public DataWithVersion toDataWithVersion();
-	
 	/**
 	 * Constructs the <T> form the given data.
 	 * @param data

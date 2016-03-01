@@ -5,7 +5,6 @@ import java.io.File;
 import java.util.List;
 
 import com.constellio.data.io.concurrent.data.DataWithVersion;
-import com.constellio.data.io.concurrent.data.DataWrapper;
 import com.constellio.data.io.concurrent.exception.AtomicIOException;
 
 /**
@@ -23,14 +22,6 @@ public interface AtomicFileSystem extends Closeable {
 	 * @throws {@link AtomicIOException} if no file exists in the given path.
 	 */
 	public DataWithVersion readData(String path);
-	
-	/**
-	 * This is equal to {@link #readData(String)} and then calling {@link DataWrapper#initWithDataWithVersion(DataWithVersion)}
-	 * @param path
-	 * @param dataWrapper a view from data
-	 * @return a view from 
-	 */
-	public <T, R extends DataWrapper<T>> R readData(String path, R dataWrapper);
 
 	/**
 	 * Write data to a specific path and return the a DataWithVersion with the updated version of the data. If the input version is null, the method does
@@ -41,16 +32,6 @@ public interface AtomicFileSystem extends Closeable {
 	 * @throws throws OptimisticLockingException if the version of file is different from the given input
 	 */
 	public DataWithVersion writeData(String path, DataWithVersion dataWithVersion);
-	
-	/**
-	 * This is equal to {@link #writeData(String, DataWithVersion)} by getting {@link DataWithVersion} from 
-	 * dataWrapper (i.e. calling {@link DataWrapper#toDataWithVersion()} and return the result. 
-	 * @param path
-	 * @param dataWrapper
-	 * @return
-	 */
-	public <T, R extends DataWrapper<T>> R writeData(String path, R dataWrapper);
-	
 
 	public void delete(String path, Object version);
 
@@ -65,8 +46,6 @@ public interface AtomicFileSystem extends Closeable {
 	public boolean isDirectory(String path);
 
 	public boolean mkdirs(String path);
-	
-	public DistributedLock getLock(String path);
 
 	public void close();
 }

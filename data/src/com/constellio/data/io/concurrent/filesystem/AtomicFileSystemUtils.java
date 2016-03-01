@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.concurrent.data.DataWithVersion;
-import com.constellio.data.io.concurrent.exception.UnsupportedPathException;
 
 public class AtomicFileSystemUtils {
 	private static Logger LOGGER = LoggerFactory.getLogger(AtomicFileSystemUtils.class);
@@ -29,9 +28,6 @@ public class AtomicFileSystemUtils {
 	public static boolean sync( String path, AtomicFileSystem master, AtomicFileSystem slave, String... excludePathRegex) {
 		if (matchWithExclusion(path, excludePathRegex))
 			return true;
-		
-		if (!master.exists(path))
-			throw new UnsupportedPathException("The path does not exist!");
 
 		if (master.isDirectory(path)){
 			boolean isSynced = true;

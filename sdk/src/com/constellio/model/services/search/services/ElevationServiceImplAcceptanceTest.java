@@ -14,11 +14,13 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.Elevations;
 import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
-import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.sdk.tests.ConstellioTest;
 
-public class ElevationServiceImplAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
+public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 	ElevationService elevationService;
 	private RecordServices recordServices;
+	private SearchServices searchServices;
 
 	private String query1 = "query1";
 	Record query1RecordElevationInZeCollection;
