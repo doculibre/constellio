@@ -36,8 +36,14 @@ public class FoldersLocator {
 		} else {
 			File classFolder = new File(fullPath);
 
-			finalPath = classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
-					.getParentFile().getParentFile().getParentFile().getAbsoluteFile();
+			if (classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getName().equals("bin")) {
+				finalPath = classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
+						.getParentFile().getAbsoluteFile();
+			} else {
+				finalPath = classFolder.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
+						.getParentFile().getParentFile().getParentFile().getAbsoluteFile();
+			}
+
 		}
 
 		return finalPath;

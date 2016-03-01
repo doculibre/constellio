@@ -23,6 +23,7 @@ import org.mockito.Mock;
 
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists;
+import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidLanguage;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -225,4 +226,45 @@ public class CollectionsManagerTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenValidatingCollectionCodeThenCodeMustBeAlphanumericAndStartWithALetter()
+			throws Exception {
+
+		try {
+			collectionsManager.validateCode("2");
+			fail("Invalid code");
+		} catch (CollectionsManagerRuntimeException_InvalidCode e) {
+			//OK
+		}
+
+		try {
+			collectionsManager.validateCode("Un code avec des espaces");
+			fail("Invalid code");
+		} catch (CollectionsManagerRuntimeException_InvalidCode e) {
+			//OK
+		}
+
+		try {
+			collectionsManager.validateCode("Un-code-avec-des-tirets");
+			fail("Invalid code");
+		} catch (CollectionsManagerRuntimeException_InvalidCode e) {
+			//OK
+		}
+
+		try {
+			collectionsManager.validateCode("Un_code_avec_des_tirets");
+			fail("Invalid code");
+		} catch (CollectionsManagerRuntimeException_InvalidCode e) {
+			//OK
+		}
+
+		try {
+			collectionsManager.validateCode("UnCodeAvecDesAccentsèÉ");
+			fail("Invalid code");
+		} catch (CollectionsManagerRuntimeException_InvalidCode e) {
+			//OK
+		}
+
+		collectionsManager.validateCode("valideCode42");
+	}
 }
