@@ -8,9 +8,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.FileAssert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -18,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
 
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.conf.FoldersLocatorRuntimeException.NotAvailableInGitMode;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -32,10 +35,13 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	static String givenJavaRootFolderIsCustomProject = "givenJavaRootFolderIsCustomProject";
 	static String givenJavaRootFolderIsSDKProject = "givenJavaRootFolderIsSDKProject";
 	static String givenJavaRootFolderIsPluginsSDKProject = "givenJavaRootFolderIsPluginsSDKProject";
+	static String givenClassInBuildClassesMain = "givenClassInBuildClassesMain";
+	static String givenClassInBin = "givenClassInBin";
 	static File constellioWorkspace, constellioPlugins, constellioPluginsSdk, constellio, constellioApp, constellioData, constellioModel, webinf, conf, buildLibs, constellioProperties,
 			constellioSetupProperties, deploy, cmdTxt, uploadConstellioWar, temp, importation, custom, settings, sdk,
 			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, resourcesReports,
-			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt;
+			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt,
+			modelBuildClassesMainComConstellioModelConf, modelBinComConstellioModelConf;
 	String testCase;
 	private com.constellio.model.conf.FoldersLocator foldersLocator;
 
@@ -49,7 +55,8 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 				{ givenJavaRootFolderIsConstellioProject }, { givenJavaRootFolderIsUIProject },
 				{ givenJavaRootFolderIsServicesProject }, { givenJavaRootFolderIsDaoProject },
 				{ givenJavaRootFolderIsCustomProject }, { givenJavaRootFolderIsSDKProject },
-				{ givenJavaRootFolderIsPluginsSDKProject } });
+				{ givenJavaRootFolderIsPluginsSDKProject }, { givenClassInBuildClassesMain },
+				{ givenClassInBin } });
 	}
 
 	@Before
@@ -67,6 +74,10 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		anotherTemp = newTempFolder();
 		constellioWorkspace = new File(tmp, "consteLlio-dev-1-p");
 		constellio = new File(constellioWorkspace, "constellio");
+		modelBuildClassesMainComConstellioModelConf = new File(constellio,
+				"model/build/classes/main/com/constellio/model/conf".replace("/", File.separator));
+		modelBinComConstellioModelConf = new File(constellio,
+				"model/bin/com/constellio/model/conf".replace("/", File.separator));
 		constellioPlugins = new File(constellioWorkspace, "constellio-plugins");
 		constellioPluginsSdk = new File(constellioPlugins, "sdk");
 		constellioApp = new File(constellio, "app");
@@ -125,6 +136,8 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		FileUtils.touch(constellioProperties);
 		resourcesReports.mkdirs();
 		themesConstellioImages.mkdirs();
+		modelBuildClassesMainComConstellioModelConf.mkdirs();
+		modelBinComConstellioModelConf.mkdirs();
 	}
 
 	private FoldersLocator newFoldersLocator(File customTempFolder, File customImportationFolder,
@@ -132,19 +145,32 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		FoldersLocator locator = spy(new FoldersLocator());
 		if (testCase == givenJavaRootFolderIsConstellioProject) {
 			doReturn(constellio).when(locator).getJavaRootFolder();
+
 		} else if (testCase == givenJavaRootFolderIsUIProject) {
 			doReturn(constellioApp).when(locator).getJavaRootFolder();
+
 		} else if (testCase == givenJavaRootFolderIsServicesProject) {
 			doReturn(constellioModel).when(locator).getJavaRootFolder();
+
 		} else if (testCase == givenJavaRootFolderIsDaoProject) {
 			doReturn(constellioData).when(locator).getJavaRootFolder();
+
 		} else if (testCase == givenJavaRootFolderIsCustomProject) {
 			doReturn(custom).when(locator).getJavaRootFolder();
+
 		} else if (testCase == givenJavaRootFolderIsSDKProject) {
 			doReturn(sdk).when(locator).getJavaRootFolder();
 
 		} else if (testCase == givenJavaRootFolderIsPluginsSDKProject) {
 			doReturn(constellioPluginsSdk).when(locator).getJavaRootFolder();
+
+		} else if (testCase == givenClassInBuildClassesMain) {
+			String path = modelBuildClassesMainComConstellioModelConf.getAbsolutePath();
+			doReturn(path).when(locator).getCurrentClassPath();
+
+		} else if (testCase == givenClassInBin) {
+			String path = modelBinComConstellioModelConf.getAbsolutePath();
+			doReturn(path).when(locator).getCurrentClassPath();
 
 		}
 		return locator;
@@ -158,131 +184,131 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 
 	@Test
 	public void whenGetConstellioWebappFolderThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getConstellioWebappFolder()).isEqualTo(constellio);
+		assertThatFile(foldersLocator.getConstellioWebappFolder()).isEqualTo(constellio);
 	}
 
 	@Test
 	public void whenGetConstellioEncryptionFileThenReturnCorrectFile() {
-		assertThat(foldersLocator.getConstellioEncryptionFile()).isEqualTo(crypt);
+		assertThatFile(foldersLocator.getConstellioEncryptionFile()).isEqualTo(crypt);
 	}
 
 	@Test
 	public void whenGetDictFolderThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getDict()).isEqualTo(dict);
+		assertThatFile(foldersLocator.getDict()).isEqualTo(dict);
 	}
 
 	@Test
 	public void whenGetI18nFolderThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getI18nFolder()).isEqualTo(i18n);
+		assertThatFile(foldersLocator.getI18nFolder()).isEqualTo(i18n);
 	}
 
 	@Test
 	public void whenGetReportsFolderThenReturnCorrectFolder() {
-		assertThat(foldersLocator.getReportsResourceFolder()).isEqualTo(resourcesReports);
+		assertThatFile(foldersLocator.getReportsResourceFolder()).isEqualTo(resourcesReports);
 	}
 
 	@Test
 	public void whenGetConstellioLanguageSchemasFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getLanguageProfiles()).isEqualTo(languageProfiles);
+		assertThatFile(foldersLocator.getLanguageProfiles()).isEqualTo(languageProfiles);
 	}
 
 	@Test
 	public void whenGetConstellioConfFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getConfFolder()).isEqualTo(conf);
+		assertThatFile(foldersLocator.getConfFolder()).isEqualTo(conf);
 	}
 
 	@Test
 	public void whenGetBPMNsFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getBPMNsFolder()).isEqualTo(bpmns);
+		assertThatFile(foldersLocator.getBPMNsFolder()).isEqualTo(bpmns);
 	}
 
 	@Test
 	public void whenGetSmtpMailThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getSmtpMailFolder()).isEqualTo(smtpMail);
+		assertThatFile(foldersLocator.getSmtpMailFolder()).isEqualTo(smtpMail);
 	}
 
 	@Test
 	public void whenGetConstellioPropertiesFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioProperties()).isEqualTo(constellioProperties);
+		assertThatFile(foldersLocator.getConstellioProperties()).isEqualTo(constellioProperties);
 	}
 
 	@Test
 	public void whenGetIntelliGISetupDPropertiesFileThenReturnCorrectFile()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioSetupProperties()).isEqualTo(constellioSetupProperties);
+		assertThatFile(foldersLocator.getConstellioSetupProperties()).isEqualTo(constellioSetupProperties);
 	}
 
 	@Test
 	public void whenGetConstellioWebInfFolderThenReturnCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getConstellioWebinfFolder()).isEqualTo(webinf);
+		assertThatFile(foldersLocator.getConstellioWebinfFolder()).isEqualTo(webinf);
 	}
 
 	@Test
 	public void whenGetCommandFileThenObtainCorrectFileInUpdateClientTempFolder()
 			throws Exception {
-		assertThat(foldersLocator.getWrapperCommandFile()).isEqualTo(cmdTxt);
+		assertThatFile(foldersLocator.getWrapperCommandFile()).isEqualTo(cmdTxt);
 	}
 
 	@Test
 	public void whenGetWarFileThenObtainCorrectFileInUpdateClientTempFolder()
 			throws Exception {
-		assertThat(foldersLocator.getUploadConstellioWarFile()).isEqualTo(uploadConstellioWar);
+		assertThatFile(foldersLocator.getUploadConstellioWarFile()).isEqualTo(uploadConstellioWar);
 	}
 
 	@Test
 	public void whenGetTempFolderThenObtainCorrectFolderInProjectTempFolder()
 			throws Exception {
-		assertThat(foldersLocator.getDefaultTempFolder()).isEqualTo(temp);
+		assertThatFile(foldersLocator.getDefaultTempFolder()).isEqualTo(temp);
 	}
 
 	@Test
 	public void whenGetAppProjectFolderThenObtainCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getAppProject()).isEqualTo(constellioApp);
+		assertThatFile(foldersLocator.getAppProject()).isEqualTo(constellioApp);
 	}
 
 	@Test
 	public void whenGetAppProjectWebContentFolderThenObtainCorrectFolder()
 			throws Exception {
-		assertThat(foldersLocator.getAppProjectWebContent()).isEqualTo(appProjectWebContent);
+		assertThatFile(foldersLocator.getAppProjectWebContent()).isEqualTo(appProjectWebContent);
 	}
 
 	@Test
 	public void whenGetDefaultImportationFolderThenObtainCorrectFolderInConstellioProject()
 			throws Exception {
-		assertThat(foldersLocator.getDefaultImportationFolder()).isEqualTo(importation);
+		assertThatFile(foldersLocator.getDefaultImportationFolder()).isEqualTo(importation);
 	}
 
 	@Test
 	public void whenGetCustomProjectThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getCustomProject()).isEqualTo(custom);
+		assertThatFile(foldersLocator.getCustomProject()).isEqualTo(custom);
 	}
 
 	@Test
 	public void whenGetSDKProjectThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getSDKProject()).isEqualTo(sdk);
+		assertThatFile(foldersLocator.getSDKProject()).isEqualTo(sdk);
 	}
 
 	@Test
 	public void whenGetBuildLibsThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getBuildLibs()).isEqualTo(buildLibs);
+		assertThatFile(foldersLocator.getBuildLibs()).isEqualTo(buildLibs);
 	}
 
 	@Test
 	public void whenGetSettingsThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getDefaultSettingsFolder()).isEqualTo(settings);
+		assertThatFile(foldersLocator.getDefaultSettingsFolder()).isEqualTo(settings);
 	}
 
 	/*
 	@Test
 	public void whenGetBuildDataFileThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getBuildDataFile()).isEqualTo(buildData);
+		assertThatFile(foldersLocator.getBuildDataFile()).isEqualTo(buildData);
 	}
 	*/
 
@@ -293,8 +319,8 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 
 	@Test
 	public void whenConstellioThemesImagesThenObtainCorrectFolder() {
-		assertThat(foldersLocator.getConstellioThemeImages().getAbsolutePath())
-				.isEqualTo(themesConstellioImages.getAbsolutePath());
+		assertThatFile(foldersLocator.getConstellioThemeImages())
+				.isEqualTo(themesConstellioImages);
 	}
 
 	private Condition<? super File> samePath(final File expectedPath) {
@@ -304,5 +330,16 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 				return expectedPath.getAbsolutePath().equals(value.getAbsolutePath());
 			}
 		};
+	}
+
+	private FileAssert assertThatFile(File file) {
+		return assertThat(file).usingComparator(new Comparator<File>() {
+			@Override
+			public int compare(File o1, File o2) {
+				String p1 = o1 == null ? null : o1.getAbsolutePath();
+				String p2 = o2 == null ? null : o2.getAbsolutePath();
+				return LangUtils.isEqual(p1, p2) ? 0 : 1;
+			}
+		});
 	}
 }

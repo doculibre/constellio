@@ -15,10 +15,12 @@ import org.apache.log4j.Logger;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
+import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_CannotLoadSaveState;
+import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_CodeMustBeAlphanumeric;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_MustSelectAtLeastOneModule;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule;
 import com.constellio.data.conf.DataLayerConfiguration;
@@ -97,7 +99,10 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 	public void saveRequested(String setupLocaleCode, List<String> modules, String collectionTitle, String collectionCode,
 			String adminPassword)
 			throws ConstellioSetupPresenterException {
-		if (modules.isEmpty()) {
+
+		if (!isValidCode(collectionCode)) {
+			throw new ConstellioSetupPresenterException_CodeMustBeAlphanumeric();
+		} else if (modules.isEmpty()) {
 			throw new ConstellioSetupPresenterException_MustSelectAtLeastOneModule();
 		} else if (modules.size() == 1 && modules.contains("tasks")) {
 			throw new ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule();
@@ -155,6 +160,16 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		//		sessionContext.setCurrentUser(userVO);
 
 		view.updateUI();
+	}
+
+	private boolean isValidCode(String collectionCode) {
+		try {
+			appLayerFactory.getCollectionsManager().validateCode(collectionCode);
+			return true;
+
+		} catch (CollectionsManagerRuntimeException_InvalidCode e) {
+			return false;
+		}
 	}
 
 	public void setSystemLanguage(String languageCode) {
