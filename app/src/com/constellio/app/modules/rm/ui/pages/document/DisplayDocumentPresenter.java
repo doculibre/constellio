@@ -39,6 +39,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -146,8 +147,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void viewAssembled() {
 		presenterUtils.updateActionsComponent();
-
 		view.setTasks(tasksDataProvider);
+		view.setPublishButtons(presenterUtils.isDocumentPublished());
 	}
 
 	public RecordVODataProvider getWorkflows() {
@@ -292,5 +293,25 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		// TODO: Sign the file
 		ContentVersionVO content = presenterUtils.getDocumentVO().getContent();
 		return modelLayerFactory.getContentManager().getContentInputStream(content.getHash(), content.getFileName());
+	}
+
+	public void publishButtonClicked() {
+		updateAndRefresh(presenterUtils.publishButtonClicked());
+	}
+
+	public void unpublishButtonClicked() {
+		updateAndRefresh(presenterUtils.unpublishButtonClicked());
+	}
+
+	public String getPublicLink() {
+		String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
+		return url + "dl?id=" + presenterUtils.getDocumentVO().getId();
+	}
+
+	private void updateAndRefresh(Document document) {
+		if (document != null) {
+			addOrUpdate(document.getWrappedRecord());
+			view.navigateTo().displayDocument(document.getId());
+		}
 	}
 }

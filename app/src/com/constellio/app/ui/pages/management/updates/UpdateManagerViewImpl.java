@@ -42,6 +42,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private Button license;
 	private Button standardUpdate;
 	private Button alternateUpdate;
+	private Button reindex;
 
 	public UpdateManagerViewImpl() {
 		presenter = new UpdateManagerPresenter(this);
@@ -65,12 +66,13 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		});
 		buttons.add(restart);
 
-		Button reindex = new Button($("UpdateManagerViewImpl.restartAndReindexButton")){
+		reindex = new Button($("UpdateManagerViewImpl.restartAndReindexButton")){
 			@Override
 			public boolean isEnabled() {
 				return presenter.isRestartWithReindexButtonEnabled();
 			}
 		};
+		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
 		reindex.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -161,6 +163,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Component updatePanel = handler.buildUpdatePanel();
 		layout.replaceComponent(panel, updatePanel);
 		license.setEnabled(true);
+		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
 		standardUpdate.setEnabled(presenter.isUpdateEnabled());
 		alternateUpdate.setEnabled(false);
 		panel = updatePanel;
@@ -171,6 +174,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Component licensePanel = buildLicenseUploadPanel();
 		layout.replaceComponent(panel, licensePanel);
 		license.setEnabled(false);
+		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
 		boolean uploadPossible = presenter.isUpdateEnabled();
 		standardUpdate.setEnabled(uploadPossible);
 		alternateUpdate.setEnabled(uploadPossible);
@@ -182,6 +186,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Component restartPanel = buildRestartRequiredPanel();
 		layout.replaceComponent(panel, restartPanel);
 		license.setEnabled(false);
+		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
 		standardUpdate.setEnabled(false);
 		alternateUpdate.setEnabled(false);
 		panel = restartPanel;

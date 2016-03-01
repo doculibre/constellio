@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -80,7 +79,6 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 		doReturn(setupProperties).when(spiedAppLayerConfiguration).getSetupProperties();
 		doReturn(pluginsFolder).when(spiedAppLayerConfiguration).getPluginsFolder();
-		doReturn(checkRollback).when(spiedAppLayerConfiguration).isRecoveryModeActive();
 
 		for (AppLayerConfigurationAlteration alteration : appLayerConfigurationAlterations) {
 			alteration.alter(spiedAppLayerConfiguration);

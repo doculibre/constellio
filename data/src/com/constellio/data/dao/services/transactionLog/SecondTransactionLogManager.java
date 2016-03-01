@@ -20,9 +20,9 @@ public interface SecondTransactionLogManager extends StatefulService {
 
 	void deleteLastTLOGBackup();
 
-	void setAutomaticLog(boolean automaticMode);
+	void setAutomaticRegroupAndMoveInVaultEnabled(boolean enabled);
 
-	void deleteUnregroupedLog() throws SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
-
+	void deleteUnregroupedLog()
+			throws SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
 
 }
