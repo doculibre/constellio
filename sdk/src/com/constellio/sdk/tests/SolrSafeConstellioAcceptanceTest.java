@@ -72,7 +72,7 @@ public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 	private void syncSolrConfigurationFiles() {
 		DataLayerFactory dataLayerFactory = getDataLayerFactory();
 		for (BigVaultServer server : dataLayerFactory.getSolrServers().getServers()) {
-			AtomicFileSystem serverFileSystem = server.getSolrFileSystem();
+			AtomicFileSystem serverFileSystem = server.getSolrFileSystem().getDecoratedFileSystem();
 			AtomicFileSystem defaultConfiguration = new ChildAtomicFileSystem(
 					new AtomicLocalFileSystem(dataLayerFactory.getIOServicesFactory().newHashingService()),
 					getServerConfigurations(server.getName()));

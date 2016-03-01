@@ -1,6 +1,8 @@
 package com.constellio.data.dao.services.bigVault.solr.serverFactories;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.spy;
 
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.junit.After;
@@ -19,7 +21,8 @@ public class CloudSolrServerFactoryTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		factory = new CloudSolrServerFactory(zkBase);
+		factory = spy(new CloudSolrServerFactory(zkBase));
+		willReturn(new CloudSolrClient(zkBase)).given(factory).getSolrClient(coreName);	//does not connect to Zookeeper
 	}
 
 	@After

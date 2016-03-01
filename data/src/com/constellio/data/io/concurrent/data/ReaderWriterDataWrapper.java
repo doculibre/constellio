@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @param <T>
  */
-public abstract class ReaderWriterDataWrapper<T> implements DataWrapper<T>{
+public abstract class ReaderWriterDataWrapper<T> extends AbstractDataWithVersion<T>{
 	public void init(final byte[] data){
 		Reader inputStreamReader = getReader(data);
 		init(inputStreamReader);

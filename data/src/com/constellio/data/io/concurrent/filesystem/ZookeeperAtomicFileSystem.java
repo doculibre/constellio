@@ -11,7 +11,8 @@ import com.constellio.data.io.concurrent.exception.AtomicIOException;
 import com.constellio.data.io.concurrent.exception.FileNotFoundException;
 import com.constellio.data.io.concurrent.exception.OptimisticLockingException;
 
-public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
+
+public class ZookeeperAtomicFileSystem extends AbstractAtomicFileSystem{
 	private SolrZkClient zkClient;
 	private boolean retryOnConnLoss;
 	
@@ -129,7 +130,7 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 	}
 
 	@Override
-	public boolean isDirectory(String path) {
+	public synchronized boolean isDirectory(String path) {
 		path = makePathCompatibleWithZookeeper(path);
 		
 		boolean isDir = false;
@@ -142,7 +143,7 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 	}
 
 	@Override
-	public boolean mkdirs(String path) {
+	public synchronized boolean mkdirs(String path) {
 		if (exists(path))
 			return false;
 		
@@ -155,8 +156,16 @@ public class ZookeeperAtomicFileSystem implements AtomicFileSystem{
 	}
 
 	@Override
-	public void close(){
+	public synchronized void close(){
 		zkClient.close();
+		super.close();
+	}
+
+	@Override
+	public DistributedLock getLock(String path) {
+		path = makePathCompatibleWithZookeeper(path);
+		mkdirs(path);
+		return new ZookeeperLock(zkClient.getSolrZooKeeper(), path);
 	}
 
 }
