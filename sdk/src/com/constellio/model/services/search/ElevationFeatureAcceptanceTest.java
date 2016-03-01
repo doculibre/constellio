@@ -20,7 +20,7 @@ import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
 public class ElevationFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	Record relevantDoc, elevatedDoc;
 
-	//TODO Failing @Test
+	@Test
 	public void givenANonRelevantDocumentWhenSettingUpElevationWithItForAQueryThenItAppearsInTheTop()
 			throws Exception {
 		//given

@@ -13,11 +13,14 @@ import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Test;
 
+@SlowTest
 public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	Record tv, television;
 
-	// TODO @Test
+	@Test
 	public void givenSynonymFeatureDiabeledWhenIndexingDocumentsAndSearchForAWordThenNoDocumentContainTheWordsSynonymIsReturned()
 			throws Exception {
 		//given
@@ -34,7 +37,7 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 		assertThat(results).containsOnly(tv);
 	}
 
-	// TODO @Test
+	@Test
 	public void givenSynonymFeatureEnabledWhenIndexingDocumentsAndSearchForAWordThenAllDocumentsContainTheWordAndItsSynonymAreReturned()
 			throws Exception {
 		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
