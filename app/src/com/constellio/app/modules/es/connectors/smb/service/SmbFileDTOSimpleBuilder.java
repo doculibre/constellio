@@ -1,9 +1,12 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import com.constellio.app.modules.es.connectors.spi.LoggedException;
 import jcifs.smb.SmbFile;
 
 import org.apache.commons.lang.StringUtils;
@@ -19,8 +22,8 @@ import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 
 public class SmbFileDTOSimpleBuilder {
-	private static final long MAX_FILE_SIZE_IN_BYTES = 1024 * 1024 * 5;
-	private static final String ERROR_TOO_BIG = "File is too big";
+	private static final long MAX_FILE_SIZE_IN_BYTES = 1024 * 1024 * 1024;
+	private static final String ERROR_TOO_BIG = "File exceeds maximum size (in bytes): " + MAX_FILE_SIZE_IN_BYTES;
 
 	private final ConnectorLogger logger;
 	private final ESSchemasRecordsServices es;
@@ -35,10 +38,12 @@ public class SmbFileDTOSimpleBuilder {
 	public SmbFileDTO build(SmbFile smbFile, boolean withContent) {
 		SmbFileDTO smbFileDTO = new SmbFileDTO();
 		InputStream inputStream = null;
+		String url = null;
 		try {
 			smbFileDTO.setStatus(SmbFileDTOStatus.FULL_DTO);
 			smbFileDTO.setLastFetchAttempt(TimeProvider.getLocalDateTime());
-			smbFileDTO.setUrl(smbFile.getCanonicalPath());
+			url = smbFile.getCanonicalPath();
+			smbFileDTO.setUrl(url);
 
 			if (!smbFile.exists()) {
 				smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
@@ -48,7 +53,7 @@ public class SmbFileDTOSimpleBuilder {
 				WindowsPermissions windowsPermissions = getWindowsPermissions(smbFile);
 				windowsPermissions.process();
 				if (!StringUtils.isBlank(windowsPermissions.getErrors())) {
-					throw new Exception(windowsPermissions.getErrors());
+					throw new IOException(windowsPermissions.getErrors());
 				}
 				List<String> allowTokens = prependedTokenListOrNullOnEmptyList(windowsPermissions.getAllowTokenDocument());
 				smbFileDTO.setAllowTokens(allowTokens);
@@ -73,7 +78,7 @@ public class SmbFileDTOSimpleBuilder {
 
 							inputStream = smbFile.getInputStream();
 
-							ParsedContent parsedContent = updateParsedContent(smbFile, smbFileDTO, inputStream);
+							ParsedContent parsedContent = updateParsedContent(smbFileDTO, inputStream);
 							smbFileDTO.setLanguage(parsedContent.getLanguage());
 
 						} else {
@@ -94,6 +99,10 @@ public class SmbFileDTOSimpleBuilder {
 					smbFileDTO.setLanguage("");
 				}
 			}
+		} catch (IOException e) {
+			logger.error(new SmbLoggedException(url, e));
+			smbFileDTO.setStatus(SmbFileDTOStatus.FAILED_DTO);
+			smbFileDTO.setErrorMessage(e.getMessage());
 		} catch (Exception e) {
 			logger.errorUnexpected(e);
 			smbFileDTO.setStatus(SmbFileDTOStatus.FAILED_DTO);
@@ -133,13 +142,11 @@ public class SmbFileDTOSimpleBuilder {
 		}
 	}
 
-	private ParsedContent updateParsedContent(SmbFile smbFile, SmbFileDTO smbFileDTO, InputStream inputStream)
+	private ParsedContent updateParsedContent(SmbFileDTO smbFileDTO, InputStream inputStream)
 			throws FileParserException {
-		ParsedContent parsedContent = null;
-
 		FileParser fileParser = es.getModelLayerFactory()
 				.newFileParser();
-		parsedContent = fileParser.parse(inputStream, true);
+		ParsedContent parsedContent = fileParser.parse(inputStream, true);
 
 		smbFileDTO.setParsedContent(parsedContent.getParsedContent());
 
