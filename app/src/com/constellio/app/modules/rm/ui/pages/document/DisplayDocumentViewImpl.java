@@ -117,7 +117,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected String getTitle() {
-		//		return $("DisplayDocumentView.viewTitle") + " " + presenter.getDocumentTitle();
 		return null;
 	}
 
@@ -418,12 +417,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			};
 			actionMenuButtons.add(unpublishButton);
 
-			WindowButton.WindowConfiguration publicLinkConfig = new WindowConfiguration(true, false, "90%", "90%");
+			WindowButton.WindowConfiguration publicLinkConfig = new WindowConfiguration(true, false, "75%", "125px");
 			publicLinkButton = new WindowButton(
 					$("DocumentContextMenu.publicLink"), $("DocumentContextMenu.publicLink"), publicLinkConfig) {
 				@Override
 				protected Component buildWindowContent() {
-					return new Label(presenter.getPublicLink());
+					Label link = new Label(presenter.getPublicLink());
+					Label message = new Label($("DocumentContextMenu.publicLinkInfo"));
+					message.addStyleName(ValoTheme.LABEL_BOLD);
+					return new VerticalLayout(message, link);
 				}
 			};
 			actionMenuButtons.add(publicLinkButton);
