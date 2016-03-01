@@ -6,12 +6,15 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
+import com.constellio.app.modules.rm.reports.model.labels.ImageLabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
 import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -136,22 +139,42 @@ public class LabelsReportBuilder implements ReportBuilder {
 		}
 		printableLabel.completeRow();
 	}
+	
+	private Image createImage(ImageLabelsReportField field, float rowHeight) {
+		String imagePath = field.getValue();
+		Image image;
+		try {
+			image = Image.getInstance(imagePath);
+//			image.scalePercent(20f);
+		} catch (BadElementException | IOException e) {
+			throw new RuntimeException(e);
+		}
+		return image;
+	}
 
 	private PdfPCell createLabelField(LabelsReportField field, float rowHeight) {
-		Phrase phrase = new Phrase(field.getValue(), field.getFont().getFont());
-		PdfPCell fieldCell = new PdfPCell(phrase);
-		fieldCell.setColspan(field.width);
-		fieldCell.setRowspan(field.height);
-		fieldCell.setFixedHeight(rowHeight);
-		int border;
-		if (model.isPrintBorders()) {
-			border = Rectangle.BOX;
+		PdfPCell fieldCell;
+		if (field instanceof ImageLabelsReportField) {
+			Image image = createImage((ImageLabelsReportField) field, rowHeight);
+			fieldCell = new PdfPCell(image, true);
+			fieldCell.setBorder(Rectangle.NO_BORDER);
+			fieldCell.setColspan(field.width);
 		} else {
-			border = Rectangle.NO_BORDER;
+			Phrase phrase = new Phrase(field.getValue(), field.getFont().getFont());
+			fieldCell = new PdfPCell(phrase);
+			fieldCell.setColspan(field.width);
+			fieldCell.setRowspan(field.height);
+			fieldCell.setFixedHeight(rowHeight);
+			int border;
+			if (model.isPrintBorders()) {
+				border = Rectangle.BOX;
+			} else {
+				border = Rectangle.NO_BORDER;
+			}
+			fieldCell.setBorder(border);
+			fieldCell.setHorizontalAlignment(field.horizontalAlignment);
+			fieldCell.setVerticalAlignment(field.verticalAlignment);
 		}
-		fieldCell.setBorder(border);
-		fieldCell.setHorizontalAlignment(field.horizontalAlignment);
-		fieldCell.setVerticalAlignment(field.verticalAlignment);
 		return fieldCell;
 	}
 
