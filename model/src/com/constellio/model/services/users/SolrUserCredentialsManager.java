@@ -245,7 +245,8 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 			UserCredential credential = schemas.wrapCredential(record);
 			Map<String, LocalDateTime> validTokens = new HashMap<>();
 			for (Entry<String, LocalDateTime> token : credential.getAccessTokens().entrySet()) {
-				if (token.getValue().isBefore(now)) {
+				LocalDateTime expiration = token.getValue();
+				if (expiration.isAfter(now)) {
 					validTokens.put(token.getKey(), token.getValue());
 				}
 			}
@@ -259,9 +260,8 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	public LogicalSearchQuery getUserCredentialsWithExpiredTokensQuery(LocalDateTime now) {
-		//		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll());
 		return new LogicalSearchQuery(
-				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isGreaterThan(now));
+				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isLessOrEqualThan(now));
 	}
 
 	@Override
