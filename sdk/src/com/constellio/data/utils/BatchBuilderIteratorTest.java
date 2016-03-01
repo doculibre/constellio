@@ -1,10 +1,12 @@
 package com.constellio.data.utils;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,11 +39,11 @@ public class BatchBuilderIteratorTest extends ConstellioTest {
 	public void whenIteratingOn3ItemsNestedIteratorThenReturnOneBatch()
 			throws Exception {
 
-		nestedIterator = Arrays.asList("a", "b", "c").iterator();
+		nestedIterator = asList("a", "b", "c").iterator();
 		iterator = new BatchBuilderIterator<>(nestedIterator, 3);
 
 		assertThat(iterator.hasNext()).isTrue();
-		assertThat(iterator.next()).isEqualTo(Arrays.asList("a", "b", "c"));
+		assertThat(iterator.next()).isEqualTo(asList("a", "b", "c"));
 		assertThat(iterator.hasNext()).isFalse();
 
 	}
@@ -50,13 +52,35 @@ public class BatchBuilderIteratorTest extends ConstellioTest {
 	public void whenIteratingOn4ItemsNestedIteratorThenReturnTwoBatch()
 			throws Exception {
 
-		nestedIterator = Arrays.asList("a", "b", "c", "d").iterator();
+		nestedIterator = asList("a", "b", "c", "d").iterator();
 		iterator = new BatchBuilderIterator<>(nestedIterator, 3);
 
 		assertThat(iterator.hasNext()).isTrue();
-		assertThat(iterator.next()).isEqualTo(Arrays.asList("a", "b", "c"));
+		assertThat(iterator.next()).isEqualTo(asList("a", "b", "c"));
 		assertThat(iterator.hasNext()).isTrue();
-		assertThat(iterator.next()).isEqualTo(Arrays.asList("d"));
+		assertThat(iterator.next()).isEqualTo(asList("d"));
+		assertThat(iterator.hasNext()).isFalse();
+
+	}
+
+	@Test
+	public void whenIteratingOnListIteratorThenOk()
+			throws Exception {
+
+		List<List<String>> lists = new ArrayList<>();
+		lists.add(asList("a", "b", "c", "d"));
+		lists.add(null);
+		lists.add(new ArrayList<String>());
+		lists.add(asList("e", "f", "g"));
+
+		iterator = BatchBuilderIterator.forListIterator(lists.iterator(), 3);
+
+		assertThat(iterator.hasNext()).isTrue();
+		assertThat(iterator.next()).isEqualTo(asList("a", "b", "c"));
+		assertThat(iterator.hasNext()).isTrue();
+		assertThat(iterator.next()).isEqualTo(asList("d", "e", "f"));
+		assertThat(iterator.hasNext()).isTrue();
+		assertThat(iterator.next()).isEqualTo(asList("g"));
 		assertThat(iterator.hasNext()).isFalse();
 
 	}

@@ -532,6 +532,16 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		ioServices.deleteDirectoryWithoutExpectableIOException(folderCollection);
 	}
 
+	@Override
+	public synchronized void copySettingsFrom(File setting) {
+		try {
+			this.ioServices.copyDirectory(setting, this.configFolder);
+			cache.clear();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private void validateFileExistance(String path) {
 		if (!exist(path)) {
 			throw new NoSuchConfiguration(path);

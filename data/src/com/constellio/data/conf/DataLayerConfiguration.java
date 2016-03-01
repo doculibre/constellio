@@ -55,4 +55,5 @@ public interface DataLayerConfiguration {
 	void setSecondTransactionLogFolderEnabled(boolean enable);
 	boolean isLocalHttpSolrServer();
 
+	boolean isInRollbackTestMode();
 }

@@ -43,6 +43,10 @@ public class i18n {
 
 		ResourceBundle messages = getBundle(locale);
 
+		if(key == null) {
+			return "";
+		}
+
 		if (messages.containsKey(key)) {
 			message = messages.getString(key);
 			if (args != null) {

@@ -27,12 +27,12 @@ public class ConstellioTest extends AbstractConstellioTest {
 	public void beforeConstellioTest() {
 		MockitoAnnotations.initMocks(this);
 
-		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass());
+		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 			testSession.getFactoriesTestFeatures().getConstellioFactories();
 			testSession.close(true, false);
 			
-			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass());
+			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 			IS_FIRST_EXECUTED_TEST = false;
 		}
 		if (isPreservingState()) {
@@ -47,7 +47,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 	protected void clearTestSession() {
 		if (!isPreservingState()) {
 			testSession.close(false, false);
-			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass());
+			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		}
 	}
 

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,9 +17,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteResponse;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
-import org.apache.solr.client.solrj.request.CoreAdminRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
-import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
@@ -38,6 +37,10 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNot
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.SolrInternalError;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.TryingToRegisterListenerWithExistingId;
+import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
+import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerListener;
+import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.solr.DateUtils;
@@ -63,27 +66,56 @@ public class BigVaultServer implements Cloneable {
 	private final SolrServerFactory solrServerFactory;
 	private final SolrClient server;
 	private final AtomicFileSystem fileSystem;
+	private final List<BigVaultServerListener> listeners;
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory
-		, DataLayerSystemExtensions extensions) {
+			, DataLayerSystemExtensions extensions) {
+		this(name, bigVaultLogger, solrServerFactory, extensions, new ArrayList<BigVaultServerListener>());
+	}
+
+	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory,
+			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
 		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
-		
+
 		this.bigVaultLogger = bigVaultLogger;
 		this.name = name;
 		this.extensions = extensions;
+		this.listeners = listeners;
+	}
+
+	public void registerListener(BigVaultServerListener listener) {
+		for (BigVaultServerListener existingListener : this.listeners) {
+			if (existingListener.getListenerUniqueId().equals(listener.getListenerUniqueId())) {
+				throw new TryingToRegisterListenerWithExistingId(listener.getListenerUniqueId());
+			}
+		}
+		this.listeners.add(listener);
+	}
+
+	public void unregisterListener(BigVaultServerListener listener) {
+		Iterator<BigVaultServerListener> iterator = this.listeners.iterator();
+		while (iterator.hasNext()) {
+			BigVaultServerListener existingListener = iterator.next();
+			if (existingListener.getListenerUniqueId().equals(listener.getListenerUniqueId())) {
+				iterator.remove();
+				//only one
+				return;
+			}
+		}
 	}
 
 	public String getName() {
 		return name;
 	}
-	
+
 	@VisibleForTesting
 	public SolrServerFactory getSolrServerFactory() {
 		return solrServerFactory;
 	}
-	
+
+	//chargement
 	public QueryResponse query(SolrParams params)
 			throws BigVaultException.CouldNotExecuteQuery {
 		int currentAttempt = 0;
@@ -91,6 +123,11 @@ public class BigVaultServer implements Cloneable {
 		QueryResponse response = tryQuery(params, currentAttempt);
 		long end = new Date().getTime();
 		extensions.afterQuery(params, end - start);
+		for (BigVaultServerListener listener : this.listeners) {
+			if (listener instanceof BigVaultServerQueryListener) {
+				((BigVaultServerQueryListener) listener).onQuery(params, response);
+			}
+		}
 		return response;
 	}
 
@@ -155,11 +192,21 @@ public class BigVaultServer implements Cloneable {
 
 	public TransactionResponseDTO addAll(BigVaultServerTransaction transaction)
 			throws BigVaultException {
+		for (BigVaultServerListener listener : this.listeners) {
+			if (listener instanceof BigVaultServerAddEditListener) {
+				((BigVaultServerAddEditListener) listener).beforeAdd(transaction);
+			}
+		}
 		int currentAttempt = 0;
 		long start = new Date().getTime();
 		TransactionResponseDTO response = tryAddAll(transaction, currentAttempt);
 		long end = new Date().getTime();
 		extensions.afterUpdate(transaction, end - start);
+		for (BigVaultServerListener listener : this.listeners) {
+			if (listener instanceof BigVaultServerAddEditListener) {
+				((BigVaultServerAddEditListener) listener).afterAdd(transaction, response);
+			}
+		}
 		return response;
 	}
 
@@ -266,11 +313,21 @@ public class BigVaultServer implements Cloneable {
 			throws SolrServerException, IOException {
 
 		String transactionId = UUIDV1Generator.newRandomId();
+		for (BigVaultServerListener listener : this.listeners) {
+			if (listener instanceof BigVaultServerAddEditListener) {
+				((BigVaultServerAddEditListener) listener).beforeAdd(transaction);
+			}
+		}
 		int commitWithin = transaction.getRecordsFlushing().getWithinMilliseconds();
 		verifyOptimisticLocking(commitWithin, transactionId, transaction.getUpdatedDocuments());
 		transaction.setTransactionId(transactionId);
-		return processChanges(transaction);
-
+		TransactionResponseDTO response = processChanges(transaction);
+		for (BigVaultServerListener listener : this.listeners) {
+			if (listener instanceof BigVaultServerAddEditListener) {
+				((BigVaultServerAddEditListener) listener).afterAdd(transaction, response);
+			}
+		}
+		return response;
 	}
 
 	void verifyOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
@@ -462,8 +519,8 @@ public class BigVaultServer implements Cloneable {
 	public SolrClient getNestedSolrServer() {
 		return server;
 	}
-	
-	public AtomicFileSystem getSolrFileSystem(){
+
+	public AtomicFileSystem getSolrFileSystem() {
 		return fileSystem;
 	}
 
@@ -503,20 +560,20 @@ public class BigVaultServer implements Cloneable {
 			throw new RuntimeException(couldNotExecuteQuery);
 		}
 	}
-	
-	public void reload(){
+
+	public void reload() {
 		solrServerFactory.reloadSolrServer(name);
 	}
-	
+
 	@Override
-	public BigVaultServer clone(){
-		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions);
+	public BigVaultServer clone() {
+		return new BigVaultServer(name, bigVaultLogger, solrServerFactory, extensions, this.listeners);
 	}
 
 	public void disableLogger() {
 		bigVaultLogger = BigVaultLogger.disabled();
 	}
-	
+
 	public void setExtensions(DataLayerSystemExtensions extensions) {
 		this.extensions = extensions;
 	}
@@ -535,5 +592,9 @@ public class BigVaultServer implements Cloneable {
 			server.shutdown();
 			throw e;
 		}
+	}
+
+	public void unregisterAllListeners() {
+		this.listeners.clear();
 	}
 }

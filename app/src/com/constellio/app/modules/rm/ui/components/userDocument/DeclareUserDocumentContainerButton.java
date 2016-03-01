@@ -4,7 +4,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import org.apache.commons.io.FilenameUtils;
 
-import com.constellio.app.modules.rm.ui.pages.userDocuments.DeclareRMRecordViewImpl;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -39,14 +38,7 @@ public class DeclareUserDocumentContainerButton extends ContainerButton {
 				}
 			};
 		} else {
-			WindowConfiguration windowConfiguration = new WindowConfiguration(true, true, "90%", "80%");
-			declareUserDocumentButton = new WindowButton(icon, $("ListUserDocumentsView.declareDocument"),
-					$("ListUserDocumentsView.declareDocument"), true, windowConfiguration) {
-				@Override
-				protected Component buildWindowContent() {
-					return new DeclareRMRecordViewImpl(userDocumentVO);
-				}
-			};
+			return newDefaultClassifyButton(icon, userDocumentVO);
 		}
 		return declareUserDocumentButton;
 	}
@@ -88,5 +80,20 @@ public class DeclareUserDocumentContainerButton extends ContainerButton {
 			mainLayout.addComponents(declareEmailButton, declareEmailAttachmentsButton);
 			setCompositionRoot(mainLayout);
 		}
+	}
+
+	protected Button newDefaultClassifyButton(Resource icon, final UserDocumentVO userDocumentVO) {
+		return new BaseButton($("ListUserDocumentsView.declareDocument")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				String userDocumentId = userDocumentVO.getId();
+				ConstellioUI.getCurrent().navigateTo().declareUserDocument(userDocumentId);
+				for (Window window : ConstellioUI.getCurrent().getWindows()) {
+					window.close();
+				}
+
+			}
+
+		};
 	}
 }

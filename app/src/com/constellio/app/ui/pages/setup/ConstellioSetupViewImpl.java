@@ -200,7 +200,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 			adminPasswordField = new BasePasswordField($("ConstellioSetupView.adminPassword"));
 
-			formFields = new Field[] { modulesField, collectionTitleField, collectionCodeField, adminPasswordField };
+			formFields = new Field[] { modulesField, collectionCodeField, collectionTitleField, adminPasswordField };
 		} else {
 			saveStateField = new BaseUploadField();
 			saveStateField.setCaption($("ConstellioSetupView.saveState"));
@@ -224,7 +224,8 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 							try {
 								presenter.saveRequested(setupLocaleCode, modules, collectionTitle, collectionCode, adminPassword);
 							} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
-								showErrorMessage(constellioSetupPresenterException.getMessage());
+								showMessage(constellioSetupPresenterException.getMessage());
+
 							}
 						} else {
 							TempFileUpload saveState = bean.getSaveState();

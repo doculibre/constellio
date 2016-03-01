@@ -80,12 +80,13 @@ dependencies {
     compile "ridl:ridl:3.2.1"
     compile "unoil:unoil:3.2.1"
     compile "org.mockito:mockito-all:1.10.8"
+    compile "net.sf.barcode4j:barcode4j:2.1"
     compile files("libs/vaadin-mediaelementjs-player-1.2.6.jar")
 }
 
 war {
     baseName = "constellio-app"
-    version = "6.0"
+    version = "6.1"
 
     webInf {
         from 'WebContent/'
@@ -113,7 +114,7 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '6.0'
+    version = '6.1'
 }
 
 configurations.archives.artifacts.with { archives ->

@@ -4,4 +4,6 @@ import jcifs.smb.SmbFile;
 
 public interface WindowsPermissionsFactory {
 	public WindowsPermissions newWindowsPermissions(SmbFile file);
+
+	public boolean isSkipSharePermissions();
 }

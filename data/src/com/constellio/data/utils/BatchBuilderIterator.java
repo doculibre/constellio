@@ -1,6 +1,7 @@
 package com.constellio.data.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -24,5 +25,33 @@ public class BatchBuilderIterator<T> extends LazyIterator<List<T>> {
 		}
 
 		return batch.isEmpty() ? null : batch;
+	}
+
+	public static <T> BatchBuilderIterator<T> forListIterator(final Iterator<List<T>> iterator, int batchSize) {
+
+		Iterator<T> allElements = new LazyIterator<T>() {
+
+			Iterator<T> currentIterator = null;
+
+			@Override
+			protected T getNextOrNull() {
+				if (currentIterator == null || !currentIterator.hasNext()) {
+					if (iterator.hasNext()) {
+						Collection<T> nextCollection = iterator.next();
+						if (nextCollection != null) {
+							currentIterator = nextCollection.iterator();
+						}
+						return getNextOrNull();
+					} else {
+						return null;
+					}
+				} else {
+					return currentIterator.next();
+				}
+
+			}
+		};
+
+		return new BatchBuilderIterator<>(allElements, batchSize);
 	}
 }

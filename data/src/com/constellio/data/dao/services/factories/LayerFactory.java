@@ -52,13 +52,18 @@ public class LayerFactory {
 	}
 
 	public void close() {
+		close(true);
+	}
+
+	public void close(boolean closeBottomLayers) {
 		for (int i = statefulServices.size() - 1; i >= 0; i--) {
 			statefulServices.get(i).close();
 		}
-		if (bottomLayerFactory != null) {
-			bottomLayerFactory.close();
+		if (closeBottomLayers && bottomLayerFactory != null) {
+			bottomLayerFactory.close(closeBottomLayers);
 		}
 	}
+
 
 	protected void ensureNotYetInitialized() {
 		if (initialized) {

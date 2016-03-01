@@ -45,6 +45,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		givenTransactionLogIsEnabled();
+		givenDisabledAfterTestValidations();
 		prepareSystem(
 				withZeCollection().withAllTestUsers().withConstellioRMModule().withRMTest(rmTestRecords)
 						.withFoldersAndContainersOfEveryStatus(),

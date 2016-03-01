@@ -43,7 +43,7 @@ public class ConstellioTestWithGlobalContext extends AbstractConstellioTest {
 		}
 
 		if (testSession == null) {
-			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass());
+			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		}
 
 	}

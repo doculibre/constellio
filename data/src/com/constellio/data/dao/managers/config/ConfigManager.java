@@ -1,5 +1,6 @@
 package com.constellio.data.dao.managers.config;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -67,4 +68,6 @@ public interface ConfigManager {
 	void registerListener(String path, ConfigEventListener listener);
 
 	void deleteAllConfigsIn(String collection);
+
+	void copySettingsFrom(File setting);
 }

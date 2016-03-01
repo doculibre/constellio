@@ -17,6 +17,7 @@ public class BigVaultServerTransaction {
 	private List<SolrInputDocument> updatedDocuments = new ArrayList<>();
 	private List<String> deletedRecords = new ArrayList<>();
 	private List<String> deletedQueries = new ArrayList<>();
+	private boolean testRollBackMode = false;
 
 	public BigVaultServerTransaction(RecordsFlushing recordsFlushing,
 			List<SolrInputDocument> newDocuments, List<SolrInputDocument> updatedDocuments,
@@ -140,5 +141,14 @@ public class BigVaultServerTransaction {
 
 		}
 		return parallelisable;
+	}
+
+	public boolean isInTestRollbackMode() {
+		return testRollBackMode;
+	}
+
+	public BigVaultServerTransaction setTestRollBackMode(boolean testRollBackMode) {
+		this.testRollBackMode = testRollBackMode;
+		return this;
 	}
 }

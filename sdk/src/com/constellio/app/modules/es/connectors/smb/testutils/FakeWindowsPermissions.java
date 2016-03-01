@@ -16,7 +16,7 @@ public class FakeWindowsPermissions extends WindowsPermissions {
 
 	public FakeWindowsPermissions(SmbFile file, TrusteeManager trusteeManager, List<String> allowTokens, List<String> allowShareTokens,
 			List<String> denyTokens, List<String> denyShareTokens, String permissionsHash) {
-		super(file, trusteeManager);
+		super(file, trusteeManager, false);
 
 		this.allowTokens = allowTokens;
 		this.allowShareTokens = allowShareTokens;
