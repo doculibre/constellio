@@ -272,6 +272,9 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 
 	public void actionSelected(String actionCode) {
 		this.actionCode = actionCode;
+		if (actionParameters != null && !actionParameters.getSchema().getCode().endsWith("_" + getParametersSchemaLocalCode())) {
+			view.resetActionParameters(null);
+		}
 		view.setActionParametersFieldEnabled(requiresActionParameters());
 	}
 

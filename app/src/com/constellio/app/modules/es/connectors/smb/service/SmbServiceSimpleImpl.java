@@ -37,7 +37,9 @@ public class SmbServiceSimpleImpl implements SmbService {
 
 	public SmbServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration, ConnectorSmbUtils smbUtils,
 			ConnectorLogger logger, ESSchemasRecordsServices es) {
-		this(credentials, smbRetrievalConfiguration, smbUtils, logger, es, new WindowsPermissionsFactoryImpl(new TrusteeManager()), new SmbFileFactoryImpl());
+		this(credentials, smbRetrievalConfiguration, smbUtils, logger, es,
+				new WindowsPermissionsFactoryImpl(new TrusteeManager(), smbRetrievalConfiguration.isSkipSharePermissions()),
+				new SmbFileFactoryImpl());
 	}
 
 	public SmbServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration, ConnectorSmbUtils smbUtils,

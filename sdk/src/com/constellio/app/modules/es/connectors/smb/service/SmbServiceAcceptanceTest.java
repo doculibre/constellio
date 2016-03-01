@@ -173,4 +173,17 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 
 		verify(logger, atLeastOnce()).error(anyString(), anyString(), anyMap());
 	}
+
+	@Test
+	public void whenSkipThenGetFullDTO()
+			throws MalformedURLException {
+		when(permissionsFactory.newWindowsPermissions(any(SmbFile.class))).thenReturn(smbTestUtils.getWindowsPermissions());
+		when(smbFactory.getSmbFile(anyString(), any(NtlmPasswordAuthentication.class))).thenReturn(smbTestUtils.getValidSmbFile());
+		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFile(), smbUtils, logger, es, permissionsFactory,
+				smbFactory);
+
+		SmbFileDTO smbFileDTO = smbService.getSmbFileDTO(FILE_URL);
+
+		assertThat(smbFileDTO.getStatus()).isEqualTo(SmbFileDTOStatus.FULL_DTO);
+	}
 }
