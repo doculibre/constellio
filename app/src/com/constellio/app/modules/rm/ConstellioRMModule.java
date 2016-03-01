@@ -108,7 +108,7 @@ public class ConstellioRMModule implements InstallableModule {
 				new RMMigrationTo5_1_5(),
 				new RMMigrationTo5_1_7(),
 				new RMMigrationTo5_1_9(),
-				new RMMigrationTo6_1()
+				new RMMigrationTo6_1(),
 				new RMMigrationTo666()
 		);
 	}
