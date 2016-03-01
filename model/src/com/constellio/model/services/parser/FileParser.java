@@ -1,5 +1,6 @@
 package com.constellio.model.services.parser;
 
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.join;
@@ -19,6 +20,7 @@ import org.apache.poi.hwpf.usermodel.Range;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.tika.Tika;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.exception.TikaException;
@@ -35,12 +37,14 @@ import org.xml.sax.SAXException;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.io.streamFactories.StreamFactoryWithFilename;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotExtractStyles;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
+import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
 
 public class FileParser {
 
@@ -78,7 +82,7 @@ public class FileParser {
 
 		CopyInputStreamFactory inputStreamFactory = null;
 		try {
-			inputStreamFactory = ioServices.copyToReusableStreamFactory(inputStream);
+			inputStreamFactory = ioServices.copyToReusableStreamFactory(inputStream, null);
 			return parse(inputStreamFactory, inputStreamFactory.length(), detectLanguage);
 		} finally {
 			ioServices.closeQuietly(inputStream);
@@ -88,6 +92,20 @@ public class FileParser {
 
 	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage)
 			throws FileParserException {
+
+		int contentMaxLengthForParsingInMegaoctets = systemConfigurationsManager
+				.getValue(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS);
+		if (length > 1024 * 1024 * contentMaxLengthForParsingInMegaoctets) {
+			String detectedMimeType = null;
+			if (inputStreamFactory instanceof StreamFactoryWithFilename) {
+				String filename = ((StreamFactoryWithFilename) inputStreamFactory).getFilename();
+				if (filename != null) {
+					detectedMimeType = new Tika().detect(filename);
+				}
+			}
+
+			throw new FileParserException_FileSizeExceedLimitForParsing(contentMaxLengthForParsingInMegaoctets, detectedMimeType);
+		}
 
 		int maxParsedContentLengthInKO = systemConfigurationsManager.getValue(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS);
 		BodyContentHandler handler = new BodyContentHandler(maxParsedContentLengthInKO * 1000);

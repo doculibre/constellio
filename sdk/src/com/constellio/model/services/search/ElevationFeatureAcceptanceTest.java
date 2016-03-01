@@ -23,9 +23,6 @@ public class ElevationFeatureAcceptanceTest extends SolrSafeConstellioAcceptance
 	//TODO Failing @Test
 	public void givenANonRelevantDocumentWhenSettingUpElevationWithItForAQueryThenItAppearsInTheTop()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		//given
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable));
 		transaction.addUpdate(relevantDoc = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "A relevant document."));

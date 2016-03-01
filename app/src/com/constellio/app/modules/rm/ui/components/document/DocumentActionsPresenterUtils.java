@@ -567,4 +567,19 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		presenterUtils.addOrUpdate(cart.getWrappedRecord());
 		actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
 	}
+
+	public Document publishButtonClicked() {
+		Record record = presenterUtils.getRecord(documentVO.getId());
+		return new Document(record, presenterUtils.types()).setPublished(true);
+	}
+
+	public Document unpublishButtonClicked() {
+		Record record = presenterUtils.getRecord(documentVO.getId());
+		return new Document(record, presenterUtils.types()).setPublished(false);
+	}
+
+	public boolean isDocumentPublished() {
+		Record record = presenterUtils.getRecord(documentVO.getId());
+		return new Document(record, presenterUtils.types()).isPublished();
+	}
 }

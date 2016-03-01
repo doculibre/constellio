@@ -7,24 +7,19 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorTaxonomyActionParameters;
+import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConnectorRecordInTaxonomyExecutor;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
-import com.constellio.app.modules.robots.services.RobotsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
 
-public class ClassifyConnectorTaxonomyActionExecutor implements ActionExecutor {
-
-	public final static String ID = ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE;
-
-	public final static String PARAMETER_SCHEMA = ClassifyConnectorTaxonomyActionParameters.SCHEMA_LOCAL_CODE;
+public abstract class ClassifyConnectorFolderBaseActionExecutor implements ActionExecutor {
 
 	public final static Set<String> SUPPORTED_TYPES = new HashSet<>();
 
@@ -32,7 +27,7 @@ public class ClassifyConnectorTaxonomyActionExecutor implements ActionExecutor {
 		SUPPORTED_TYPES.add(ConnectorSmbFolder.SCHEMA_TYPE);
 	}
 
-	private final static Logger LOGGER = LoggerFactory.getLogger(ClassifyConnectorTaxonomyActionExecutor.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(ClassifyConnectorFolderBaseActionExecutor.class);
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
@@ -41,7 +36,7 @@ public class ClassifyConnectorTaxonomyActionExecutor implements ActionExecutor {
 		String collection = actionParameters.getCollection();
 		RobotSchemaRecordServices robots = new RobotSchemaRecordServices(collection, appLayerFactory);
 
-		ClassifyConnectorTaxonomyActionParameters params = ClassifyConnectorTaxonomyActionParameters.wrap(actionParameters);
+		ClassifyConnectorFolderActionParameters params = wrap(actionParameters);
 
 		User user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(User.ADMIN, collection);
 
@@ -65,8 +60,6 @@ public class ClassifyConnectorTaxonomyActionExecutor implements ActionExecutor {
 		return new Transaction();
 	}
 
-	public static void registerIn(RobotsManager robotsManager) {
-		robotsManager.registerAction(ID, PARAMETER_SCHEMA, SUPPORTED_TYPES, new ClassifyConnectorTaxonomyActionExecutor());
-	}
+	protected abstract ClassifyConnectorFolderActionParameters wrap(ActionParameters actionParameters);
 
 }

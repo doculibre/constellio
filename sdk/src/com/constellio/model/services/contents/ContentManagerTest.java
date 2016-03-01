@@ -146,7 +146,7 @@ public class ContentManagerTest extends ConstellioTest {
 		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
 
 		contentManager = spy(new ContentManager(modelLayerFactory));
-		when(ioServices.copyToReusableStreamFactory(contentInputStream)).thenReturn(streamFactory);
+		when(ioServices.copyToReusableStreamFactory(contentInputStream, null)).thenReturn(streamFactory);
 		when(streamFactory.create(anyString())).thenReturn(firstCreatedStream).thenReturn(secondCreatedStream)
 				.thenThrow(new Error());
 		doReturn(addOperation).when(contentManager).addInContentDaoOperation(newContentId);
@@ -257,7 +257,7 @@ public class ContentManagerTest extends ConstellioTest {
 	public void whenSaveContentThenReadInputStreamToReusableInputStreamFactorySaveAndClose()
 			throws Exception {
 
-		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream)).thenReturn(closeableStreamFactory);
+		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		when(closeableStreamFactory.length()).thenReturn(42L);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		doReturn(parsingResults).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
@@ -267,7 +267,7 @@ public class ContentManagerTest extends ConstellioTest {
 		ContentVersionDataSummary dataSummary = contentManager.upload(aContentNewVersionInputStream);
 
 		InOrder inOrder = inOrder(ioServices, contentManager, aContent);
-		inOrder.verify(ioServices).copyToReusableStreamFactory(aContentNewVersionInputStream);
+		inOrder.verify(ioServices).copyToReusableStreamFactory(aContentNewVersionInputStream, null);
 		inOrder.verify(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);
 		inOrder.verify(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
 		inOrder.verify(ioServices).closeQuietly(closeableStreamFactory);
@@ -282,7 +282,7 @@ public class ContentManagerTest extends ConstellioTest {
 			throws Exception {
 
 		doThrow(HashingServiceException.class).when(hashingService).getHashFromStream(closeableStreamFactory);
-		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream)).thenReturn(closeableStreamFactory);
+		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 
 		try {
 			contentManager.upload(aContentNewVersionInputStream);
@@ -328,7 +328,7 @@ public class ContentManagerTest extends ConstellioTest {
 	public void givenContentServiceRuntimeExceptionWhileSavingContentWhenUploadContentThenCloseInputStreamFactoryAndThrowException()
 			throws Exception {
 
-		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream)).thenReturn(closeableStreamFactory);
+		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		doReturn(parsingResults).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
@@ -349,7 +349,7 @@ public class ContentManagerTest extends ConstellioTest {
 	public void givenContentServiceRuntimeExceptionWhileParsingThenCloseInputStreamFactoryAndThrowException()
 			throws Exception {
 
-		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream)).thenReturn(closeableStreamFactory);
+		when(ioServices.copyToReusableStreamFactory(aContentNewVersionInputStream, null)).thenReturn(closeableStreamFactory);
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		doReturn(parsingResults).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);

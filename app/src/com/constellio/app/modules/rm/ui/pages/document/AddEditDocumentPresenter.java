@@ -251,7 +251,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		
 		ContentVersionDataSummary contentVersionSummary;
 		try {
-			contentVersionSummary = contentManager.upload(in);
+			contentVersionSummary = contentManager.upload(in, filename);
 		} finally {
 			IOUtils.closeQuietly(in);
 		}

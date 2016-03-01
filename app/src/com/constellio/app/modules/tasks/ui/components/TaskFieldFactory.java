@@ -1,13 +1,17 @@
 package com.constellio.app.modules.tasks.ui.components;
 
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DECISION;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.PROGRESS_PERCENTAGE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.RELATIVE_DUE_DATE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionFieldImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateFieldImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldComboBoxImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldLookupImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldOptionGroupImpl;
@@ -18,14 +22,12 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.vaadin.ui.Field;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
-	
 	@Override
 	public Field<?> build(MetadataVO metadata) {
 		Field<?> field;
-		String metadataCode = metadata.getCode();
-		String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 		MetadataInputType inputType = metadata.getMetadataInputType();
-		if (TYPE.equals(metadataCode) || TYPE.equals(metadataCodeWithoutPrefix)) {
+		switch (metadata.getLocalCode()) {
+		case TYPE:
 			if (MetadataInputType.LOOKUP.equals(inputType)) {
 				field = new TaskTypeFieldLookupImpl();
 			} else if (MetadataInputType.RADIO_BUTTONS.equals(inputType)) {
@@ -33,13 +35,23 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			} else {
 				field = new TaskTypeFieldComboBoxImpl();
 			}
-		} else if (TASK_FOLLOWERS.equals(metadataCode) || TASK_FOLLOWERS.equals(metadataCodeWithoutPrefix)) {
+			break;
+		case TASK_FOLLOWERS:
 			field = new ListAddRemoveTaskFollowerField();
-		} else if (REMINDERS.equals(metadataCode) || REMINDERS.equals(metadataCodeWithoutPrefix)) {
+			break;
+		case REMINDERS:
 			field = new ListAddRemoveTaskReminderField();
-		} else if (PROGRESS_PERCENTAGE.equals(metadataCode) || PROGRESS_PERCENTAGE.equals(metadataCodeWithoutPrefix)) {
+			break;
+		case PROGRESS_PERCENTAGE:
 			field = new TaskProgressPercentageFieldImpl();
-		} else {
+			break;
+		case RELATIVE_DUE_DATE:
+			field = new TaskRelativeDueDateFieldImpl();
+			break;
+		case DECISION:
+			field = new TaskDecisionFieldImpl();
+			break;
+		default:
 			field = super.build(metadata);
 		}
 		if (field instanceof CustomTaskField) {
@@ -47,5 +59,4 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 		}
 		return field;
 	}
-
 }
