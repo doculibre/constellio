@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.Builder;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
@@ -64,7 +65,19 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private ListUserDocumentsPresenter presenter;
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
 
+	private Builder<ContainerButton> classifyButtonFactory;
+
 	public ListUserDocumentsViewImpl() {
+
+		if (classifyButtonFactory == null) {
+			classifyButtonFactory = new Builder<ContainerButton>() {
+				@Override
+				public ContainerButton build() {
+					return new DeclareUserDocumentContainerButton();
+				}
+			};
+		}
+
 		addStyleName(STYLE_NAME);
 		setCaption($("UserDocumentsWindow.title"));
 
@@ -155,7 +168,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		userDocumentsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
 		userDocumentsContainer.addContainerProperty(FOLDER_PROPERTY_ID, Component.class, null);
 
-		userDocumentsContainer.addButton(new DeclareUserDocumentContainerButton());
+		userDocumentsContainer.addButton(classifyButtonFactory.build());
 		userDocumentsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
@@ -281,4 +294,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		return multiFileUpload.getAcceptCriterion();
 	}
 
+	public void setClassifyButtonFactory(Builder<ContainerButton> classifyButtonFactory) {
+		this.classifyButtonFactory = classifyButtonFactory;
+	}
 }
