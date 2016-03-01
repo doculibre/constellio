@@ -95,6 +95,9 @@ public class LabelsReportPresenter {
 			//Configure the barcode generator
 			bean.setModuleWidth(UnitConv.in2mm(1.0f / dpi)); //makes the narrow bar 
 			                                                 //width exactly one pixel
+
+			bean.setHeight(7.0d);
+			bean.setFontSize(1.0d);
 			bean.setWideFactor(3);
 			bean.doQuietZone(false);
 
