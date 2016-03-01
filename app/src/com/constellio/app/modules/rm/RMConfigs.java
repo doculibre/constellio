@@ -44,7 +44,8 @@ public class RMConfigs {
 			CONTAINER_RECYCLING_ALLOWED,
 			MIXED_CONTAINERS_ALLOWED,
 			BORROWING_DURATION_IN_DAYS,
-			DOCUMENTS_TYPES_CHOICE;
+			DOCUMENTS_TYPES_CHOICE,
+			WORKFLOWS_ENABLED;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -190,6 +191,8 @@ public class RMConfigs {
 		add(DOCUMENTS_TYPES_CHOICE = others.createEnum("documentsTypeChoice", DocumentsTypeChoice.class)
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
 
+		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
+
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -296,6 +299,10 @@ public class RMConfigs {
 
 	public boolean isOpenHolder() {
 		return manager.getValue(OPEN_HOLDER);
+	}
+
+	public boolean areWorkflowsEnabled() {
+		return manager.getValue(WORKFLOWS_ENABLED);
 	}
 
 	public DocumentsTypeChoice getDocumentsTypesChoice() {

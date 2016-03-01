@@ -233,7 +233,7 @@ public class RecordImpl implements Record {
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
 		}
-		if (Schemas.IDENTIFIER.getLocalCode().endsWith(metadata.getLocalCode())) {
+		if (Schemas.IDENTIFIER.getLocalCode().equals(metadata.getLocalCode())) {
 			return (T) id;
 		}
 		String codeAndType = metadata.getDataStoreCode();

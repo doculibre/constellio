@@ -50,12 +50,14 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setAlertWhenAvailableButtonState(ComponentState state);
 
+	void setStartWorkflowButtonState(ComponentState state);
+
 	void setBorrowedMessage(String borrowedMessage);
 
 	void refreshDocumentsTab();
-	
+
 	void openDocumenContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO);
-	
+
 	void closeDocumentContentVersionWindow();
 
 	void openAgentURL(String agentURL);

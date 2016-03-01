@@ -81,6 +81,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private Button copyContentButton;
 	private WindowButton renameContentButton;
 	private WindowButton sign;
+	private WindowButton startWorkflowButton;
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
 			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, publishButton, unpublishButton,
@@ -432,6 +433,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			//actionMenuButtons.add(sign);
 		}
+		startWorkflowButton = new StartWorkflowButton();
 
 		actionMenuButtons.add(deleteDocumentButton);
 		actionMenuButtons.add(linkToDocumentButton);
@@ -444,7 +446,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(alertWhenAvailableButton);
 		actionMenuButtons.add(checkOutButton);
 		actionMenuButtons.add(finalizeButton);
-		actionMenuButtons.add(new StartWorkflowButton());
+
+		actionMenuButtons.add(startWorkflowButton);
 
 		return actionMenuButtons;
 	}
@@ -485,6 +488,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		uploadWindow = null;
 		initUploadWindow();
 		uploadWindow.open(checkingIn);
+	}
+
+	@Override
+	public void setStartWorkflowButtonState(ComponentState state) {
+		startWorkflowButton.setVisible(state.isVisible());
+		startWorkflowButton.setEnabled(state.isEnabled());
 	}
 
 	@Override

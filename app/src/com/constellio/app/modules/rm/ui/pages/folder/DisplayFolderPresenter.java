@@ -237,6 +237,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private void disableMenuItems(Folder folder) {
+
+		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+
 		User user = getCurrentUser();
 		view.setLogicallyDeletable(getDeleteButtonState(user, folder));
 		view.setEditButtonState(getEditButtonState(user, folder));
@@ -251,6 +254,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setReminderReturnFolderButtonState(getReminderReturnFolderButtonState(user, folder));
 		view.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState(user, folder));
 		view.setBorrowedMessage(getBorrowMessageState(folder));
+		view.setStartWorkflowButtonState(ComponentState.visibleIf(rmConfigs.areWorkflowsEnabled()));
 	}
 
 	String getBorrowMessageState(Folder folder) {

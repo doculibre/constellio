@@ -7,11 +7,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
@@ -56,12 +58,18 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	public List<String> getTabs() {
-		return Arrays.asList(
-				TASKS_ASSIGNED_TO_CURRENT_USER,
-				TASKS_ASSIGNED_BY_CURRENT_USER,
-				TASKS_NOT_ASSIGNED,
-				TASKS_RECENTLY_COMPLETED,
-				WORKFLOWS_STARTED);
+
+		List<String> tabs = new ArrayList<>();
+		tabs.add(TASKS_ASSIGNED_TO_CURRENT_USER);
+		tabs.add(TASKS_ASSIGNED_BY_CURRENT_USER);
+		tabs.add(TASKS_NOT_ASSIGNED);
+		tabs.add(TASKS_RECENTLY_COMPLETED);
+
+		if (areWorkflowsEnabled()) {
+			tabs.add(WORKFLOWS_STARTED);
+		}
+
+		return tabs;
 	}
 
 	public void tabSelected(String tabId) {
@@ -270,5 +278,10 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		tasksSearchServices = new TasksSearchServices(schemas);
 		taskPresenterServices = new TaskPresenterServices(
 				schemas, recordServices(), tasksSearchServices, modelLayerFactory.newLoggingServices());
+	}
+
+	public boolean areWorkflowsEnabled() {
+		RMConfigs configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		return configs.areWorkflowsEnabled();
 	}
 }
