@@ -1417,6 +1417,44 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenOnlyAMinorVersionWhenGetLatestMajorThenReturnNull()
+			throws Exception {
+
+		doReturn(true).when(userPermissionsChecker).globally();
+		doReturn(userPermissionsChecker).when(bob).has(CorePermissions.DELETE_CONTENT_VERSION);
+		Content content = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStreamWithoutParsing());
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		assertThat(content.getLastMajorContentVersion()).isNull();
+		assertThat(content.getCurrentVersion().getVersion()).isEqualTo("0.1");
+
+		when(theRecord()).hasItsContentUpdated(alice, uploadPdf2InputStream()).and().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion()).isNull();
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("0.2");
+
+		when(theRecord()).hasItsContentFinalized().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("1.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("1.0");
+
+		when(theRecord()).hasItsContentUpdated(alice, uploadPdf3InputStream()).and().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("1.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("1.1");
+
+		when(theRecord()).hasItsContentFinalized().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("2.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("2.0");
+
+		when(theRecord()).hasItsContentUpdated(alice, uploadDocx1InputStream()).and().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("2.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("2.1");
+
+		when(theRecord()).hasItsContentFinalized().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("3.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("3.0");
+
+	}
+
 	//------------------------------------------------------------------
 
 	private void assertThatRecordCanBeObtainedWithKeywords(String... keywords) {

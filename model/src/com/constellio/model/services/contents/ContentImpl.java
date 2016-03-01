@@ -301,6 +301,22 @@ public class ContentImpl implements Content {
 		}
 	}
 
+	@Override
+	public ContentVersion getLastMajorContentVersion() {
+		if (currentVersion.isMajor()) {
+			return currentVersion;
+		} else {
+			List<ContentVersion> historyVersions = getHistoryVersions();
+			for (int i = historyVersions.size() - 1; i >= 0; i--) {
+				ContentVersion historyVersion = historyVersions.get(i);
+				if (historyVersion.isMajor()) {
+					return historyVersion;
+				}
+			}
+		}
+		return null;
+	}
+
 	public ContentImpl updateContentWithName(User user, ContentVersionDataSummary newVersion, boolean finalize, String name) {
 		ensureNotCheckedOut();
 		validateUserArgument(user);
