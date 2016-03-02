@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.Record;
@@ -17,7 +20,8 @@ import com.constellio.model.services.search.Elevations.QueryElevation.DocElevati
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
+@SlowTest
+public class ElevationServiceImplAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	ElevationService elevationService;
 	private RecordServices recordServices;
 	private SearchServices searchServices;
@@ -65,9 +69,6 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetZeCollectionElevationForQuery1ThenReturnQuery1RecordElevationInZeCollection()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		List<DocElevation> elevation = elevationService
 				.getCollectionElevation(zeCollection, query1);
 		assertThat(elevation.size()).isEqualTo(1);
@@ -77,9 +78,6 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetZeCollectionElevationThenReturnQuery1RecordElevationInZeCollectionAndQuery2RecordElevationInZeCollection()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		Elevations elevations = elevationService.getCollectionElevations(zeCollection);
 		assertThat(elevations.getQueryElevation(query1).getDocElevations().size()).isEqualTo(1);
 		assertThat(elevations.getQueryElevation(query1).getDocElevations().get(0).getId())
@@ -92,9 +90,6 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenEmptyQueryWhenElevateRecordThenRecordElevatedForSearchAllQuery()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		Record zeRecord;
 		recordServices.add(zeRecord = recordServices.newRecordWithSchema(zeSchema));
 		elevationService.elevate(zeRecord, null);
@@ -106,12 +101,11 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 		assertThat(elevationService.getCollectionElevation(zeCollection, "*:*").get(0).getId()).isEqualTo(zeRecord.getId());
 	}
 
+    //TODO
+    @Ignore
 	@Test
 	public void whenRemoveZeCollectionElevationForQuery1ThenQuery1RecordElevationRemovedOnlyForQuery1AndZeCollection()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		elevationService.removeCollectionElevation(zeCollection, query1);
 		List<DocElevation> elevation = elevationService
 				.getCollectionElevation(zeCollection, query1);
@@ -126,12 +120,12 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 		assertThat(elevation.get(0).getId()).isEqualTo(query2RecordElevationInZeCollection.getId());
 	}
 
-	@Test
+
+    //TODO
+    @Ignore
+    @Test
 	public void whenRemoveZeCollectionElevationThenAllZeCollectionElevationsRemoved()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		elevationService.removeCollectionElevations(zeCollection);
 		List<DocElevation> elevation = elevationService
 				.getCollectionElevation(zeCollection, query1);
