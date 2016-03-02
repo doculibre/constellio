@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotCreateMultivalueReferenceToPrincipalTaxonomy;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
@@ -744,9 +745,7 @@ public class MetadataBuilder {
 	}
 
 	void validateCode(String localCode) {
-		String pattern = "([a-zA-Z0-9])+";
-		if (localCode == null || !localCode.matches(pattern) || (localCode.toLowerCase().endsWith("id") && !localCode
-				.equals("id"))) {
+		if (SchemaUtils.isValidMetadataCodeWithCache(localCode)) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(this.getCode(), "code");
 		}
 	}
