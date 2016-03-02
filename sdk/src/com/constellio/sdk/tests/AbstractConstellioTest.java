@@ -1341,7 +1341,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 
 		public void enabledInEveryCollections() {
-			for (String collection : collectionsListManager.getCollections()) {
+			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				enabledIn(collection);
 			}
 		}
