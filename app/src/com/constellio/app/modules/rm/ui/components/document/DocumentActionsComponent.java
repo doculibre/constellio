@@ -24,6 +24,8 @@ public interface DocumentActionsComponent extends Serializable {
 
 	void openUploadWindow(boolean checkingIn);
 
+	void setStartWorkflowButtonState(ComponentState state);
+
 	void setEditDocumentButtonState(ComponentState state);
 
 	void setAddDocumentButtonState(ComponentState state);

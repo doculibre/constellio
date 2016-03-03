@@ -342,26 +342,32 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	//TODO test me
 	Set<String> getOnlyNewDocuments(Set<String> possiblyNewDocumentsIds) {
+
 		BigVaultServer bigVaultServer = dataLayerFactory.getRecordsVaultServer();
 		SolrClient server = bigVaultServer.getNestedSolrServer();
-		ModifiableSolrParams solrParams = new ModifiableSolrParams();
+
 		//field:(value1 OR value2 OR value3)
-		solrParams.set("q", "id:(" + StringUtils.join(possiblyNewDocumentsIds, " OR ") + ")");
-		solrParams.set("fl", "id");
-		//
-		try {
-			QueryResponse response = server.query(solrParams);
+
+		Set<String> newDocuments = new HashSet<>();
+
+		for (String id : possiblyNewDocumentsIds) {
+			ModifiableSolrParams solrParams = new ModifiableSolrParams();
+			solrParams.set("q", "id:" + id);
+			solrParams.set("fl", "id");
+
+			QueryResponse response = null;
+			try {
+				response = server.query(solrParams);
+			} catch (SolrServerException e) {
+				throw new RuntimeException(e);
+			}
 			SolrDocumentList result = response.getResults();
 			if (result.getNumFound() == 0) {
-				return possiblyNewDocumentsIds;
+				newDocuments.add(id);
 			}
-			if (result.getNumFound() == possiblyNewDocumentsIds.size()) {
-				return new HashSet<>();
-			}
-			return getIdsNotInResult(possiblyNewDocumentsIds, result);
-		} catch (SolrServerException e) {
-			throw new RuntimeException(e);
 		}
+
+		return newDocuments;
 	}
 
 	private Set<String> getIdsNotInResult(Set<String> possiblyNewDocumentsIds, SolrDocumentList result) {

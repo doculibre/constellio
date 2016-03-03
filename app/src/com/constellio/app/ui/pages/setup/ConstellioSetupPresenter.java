@@ -116,7 +116,12 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 				collectionCode, asList(setupLocaleCode));
 		Collection collection = new Collection(collectionRecord,
 				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
-		collection.setTitle(collectionTitle);
+		collection.setName(collectionTitle).setTitle(collectionTitle);
+		try {
+			recordServices().update(collection);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
 
 		ConstellioModulesManager modulesManager = factories.getAppLayerFactory().getModulesManager();
 

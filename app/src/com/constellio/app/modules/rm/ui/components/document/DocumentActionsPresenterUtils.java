@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
@@ -482,6 +483,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void updateActionsComponent() {
+
+		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
+
 		updateBorrowedMessage();
 		actionsComponent.setEditDocumentButtonState(getEditButtonState());
 		// THIS IS WHERE I SHOULD USE THE ADD DOCUMENT PERMISSION INSTEAD
@@ -495,6 +499,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.setCheckOutButtonState(getCheckOutState());
 		actionsComponent.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState());
 		actionsComponent.setFinalizeButtonVisible(isFinalizePossible());
+		actionsComponent.setStartWorkflowButtonState(ComponentState.visibleIf(configs.areWorkflowsEnabled()));
 	}
 
 	protected void updateBorrowedMessage() {
@@ -582,4 +587,5 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		Record record = presenterUtils.getRecord(documentVO.getId());
 		return new Document(record, presenterUtils.types()).isPublished();
 	}
+
 }

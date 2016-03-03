@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.ui.pages.viewGroups.TasksViewGroup;
 import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -67,6 +68,12 @@ public class TasksNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+
+				RMConfigs configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+				if (!configs.areWorkflowsEnabled()) {
+					return ComponentState.INVISIBLE;
+				}
+
 				return ComponentState.visibleIf(user.has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally());
 			}
 		});
