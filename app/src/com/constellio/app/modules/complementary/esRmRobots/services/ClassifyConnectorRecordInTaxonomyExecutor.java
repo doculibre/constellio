@@ -232,8 +232,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, url);
 		Folder rmFolder;
 		if (rmRecord == null) {
+
+			String parentPath = getParentPath(url, folderName);
+			Folder parentFolder = rm.getFolderByLegacyId(parentPath);
+
 			rmFolder = rm.newFolder().setTitle(folderName);
 			rmFolder.setLegacyId(url);
+			rmFolder.setParentFolder(parentFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
 			classifyDocumentsFromFolder(rmFolder);
 		} else {
