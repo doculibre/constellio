@@ -146,8 +146,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	private String folderANoTaxoURL = "smb://host.ext/section/A/";
 	private String folderAANoTaxoURL = "smb://host.ext/section/A/AA/";
 	private String folderABNoTaxoURL = "smb://host.ext/section/A/AB/";
-	private String folderAAANoTaxoURL = "smb://host.ext/section/AA/AAA/";
-	private String folderAABNoTaxoURL = "smb://host.ext/section/AA/AAB/";
+	private String folderAAANoTaxoURL = "smb://host.ext/section/A/AA/AAA/";
+	private String folderAABNoTaxoURL = "smb://host.ext/section/A/AA/AAB/";
 	private String folderBNoTaxoURL = "smb://host.ext/section/B/";
 	private String documentA1NoTaxoURL = "smb://host.ext/section/A/1.txt";
 	private String documentA2NoTaxoURL = "smb://host.ext/section/A/2.txt";
@@ -268,47 +268,47 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		Folder folder = getFolderByLegacyId(folderATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier A");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2", "mot3");
+		Folder folderA = getFolderByLegacyId(folderATaxoURL);
+		assertThat(folderA.getTitle()).isEqualTo("Le dossier A");
+		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderA.getKeywords()).containsOnly("mot1", "mot2", "mot3");
 
-		folder = getFolderByLegacyId(folderAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2");
+		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
+		assertThat(folderAA.getTitle()).isEqualTo("Le dossier AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderAA.getKeywords()).containsOnly("mot1", "mot2");
 
-		folder = getFolderByLegacyId(folderABTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2");
+		Folder folderAB = getFolderByLegacyId(folderABTaxoURL);
+		assertThat(folderAB.getTitle()).isEqualTo("Le dossier AB");
+		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderAB.getKeywords()).containsOnly("mot1", "mot2");
 
-		folder = getFolderByLegacyId(folderAAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AAA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2");
+		Folder folderAAA = getFolderByLegacyId(folderAAATaxoURL);
+		assertThat(folderAAA.getTitle()).isEqualTo("Le dossier AAA");
+		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderAAA.getKeywords()).containsOnly("mot1", "mot2");
 
-		folder = getFolderByLegacyId(folderAABTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AAB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2");
+		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
+		assertThat(folderAAB.getTitle()).isEqualTo("Le dossier AAB");
+		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderAAB.getKeywords()).containsOnly("mot1", "mot2");
 
-		folder = getFolderByLegacyId(folderBTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier B");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_2);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-12-14");
-		assertThat(folder.getKeywords()).containsOnly("mot2", "mot4");
+		Folder folderB = getFolderByLegacyId(folderBTaxoURL);
+		assertThat(folderB.getTitle()).isEqualTo("Le dossier B");
+		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_2);
+		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-12-14");
+		assertThat(folderB.getKeywords()).containsOnly("mot2", "mot4");
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -336,41 +336,41 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		Folder folder = getFolderByLegacyId(folderANoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("A");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderA = getFolderByLegacyId(folderANoTaxoURL);
+		assertThat(folderA.getTitle()).isEqualTo("A");
+		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderA.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderAANoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAA = getFolderByLegacyId(folderAANoTaxoURL);
+		assertThat(folderAA.getTitle()).isEqualTo("AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderABNoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAB = getFolderByLegacyId(folderABNoTaxoURL);
+		assertThat(folderAB.getTitle()).isEqualTo("AB");
+		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAB.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderAAANoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AAA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAAA = getFolderByLegacyId(folderAAANoTaxoURL);
+		assertThat(folderAAA.getTitle()).isEqualTo("AAA");
+		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAA.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderAABNoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AAB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAAB = getFolderByLegacyId(folderAABNoTaxoURL);
+		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
+		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAB.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderBNoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("B");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderB = getFolderByLegacyId(folderBNoTaxoURL);
+		assertThat(folderB.getTitle()).isEqualTo("B");
+		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderB.getOpenDate()).isEqualTo(squatreNovembre);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -394,39 +394,39 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		Folder folder = getFolderByLegacyId(folderANoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("A");
-		assertThat(folder.getParentFolder()).isEqualTo(records.folder_A07);
+		Folder folderA = getFolderByLegacyId(folderANoTaxoURL);
+		assertThat(folderA.getTitle()).isEqualTo("A");
+		assertThat(folderA.getParentFolder()).isEqualTo(records.folder_A07);
 
-		folder = getFolderByLegacyId(folderAANoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAA = getFolderByLegacyId(folderAANoTaxoURL);
+		assertThat(folderAA.getTitle()).isEqualTo("AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderABNoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAB = getFolderByLegacyId(folderABNoTaxoURL);
+		assertThat(folderAB.getTitle()).isEqualTo("AB");
+		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAB.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderAAANoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AAA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAAA = getFolderByLegacyId(folderAAANoTaxoURL);
+		assertThat(folderAAA.getTitle()).isEqualTo("AAA");
+		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAA.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderAABNoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AAB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAAB = getFolderByLegacyId(folderAABNoTaxoURL);
+		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
+		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAB.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderBNoTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("B");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderB = getFolderByLegacyId(folderBNoTaxoURL);
+		assertThat(folderB.getTitle()).isEqualTo("B");
+		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderB.getOpenDate()).isEqualTo(squatreNovembre);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -559,22 +559,22 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		Folder folder = getFolderByLegacyId(folderAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AA");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X);
+		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
+		assertThat(folderAA.getTitle()).isEqualTo("AA");
+		assertThat(folderAA.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
+		assertThat(folderAA.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getCategoryEntered()).isEqualTo(records.categoryId_X);
 
-		folder = getFolderByLegacyId(folderAAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AAA");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		Folder folderAAA = getFolderByLegacyId(folderAAATaxoURL);
+		assertThat(folderAAA.getTitle()).isEqualTo("Le dossier AAA");
+		assertThat(folderAAA.getRetentionRuleEntered()).isEqualTo(records.ruleId_1);
+		assertThat(folderAAA.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
 
-		folder = getFolderByLegacyId(folderAABTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AAB");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X);
+		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
+		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
+		assertThat(folderAAB.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
+		assertThat(folderAAB.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAB.getCategoryEntered()).isEqualTo(records.categoryId_X);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -611,32 +611,32 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		Folder folder = getFolderByLegacyId(folderATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("A");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		Folder folderA = getFolderByLegacyId(folderATaxoURL);
+		assertThat(folderA.getTitle()).isEqualTo("A");
+		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 
 		recordServices.update(parameters.setFolderMapping(folderMapping));
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		folder = getFolderByLegacyId(folderATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier A");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		folderA = getFolderByLegacyId(folderATaxoURL);
+		assertThat(folderA.getTitle()).isEqualTo("Le dossier A");
+		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
 
-		folder = getFolderByLegacyId(folderAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
+		assertThat(folderAA.getTitle()).isEqualTo("Le dossier AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
 
-		folder = getFolderByLegacyId(folderABTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		Folder folderAB = getFolderByLegacyId(folderABTaxoURL);
+		assertThat(folderAB.getTitle()).isEqualTo("Le dossier AB");
+		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -1029,58 +1029,58 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		Folder folder = getFolderByLegacyId(folderATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier A");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2", "mot3");
-		assertThat(folder.getSchemaCode()).isEqualTo("folder_customFolder");
-		assertThat(folder.get("customMeta")).isEqualTo("valeur A");
+		Folder folderA = getFolderByLegacyId(folderATaxoURL);
+		assertThat(folderA.getTitle()).isEqualTo("Le dossier A");
+		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderA.getKeywords()).containsOnly("mot1", "mot2", "mot3");
+		assertThat(folderA.getSchemaCode()).isEqualTo("folder_customFolder");
+		assertThat(folderA.get("customMeta")).isEqualTo("valeur A");
 
-		folder = getFolderByLegacyId(folderAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2");
-		assertThat(folder.getSchemaCode()).isEqualTo("folder_customFolder");
-		assertThat(folder.get("customMeta")).isEqualTo("valeur AA");
+		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
+		assertThat(folderAA.getTitle()).isEqualTo("Le dossier AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderAA.getKeywords()).containsOnly("mot1", "mot2");
+		assertThat(folderAA.getSchemaCode()).isEqualTo("folder_customFolder");
+		assertThat(folderAA.get("customMeta")).isEqualTo("valeur AA");
 
-		folder = getFolderByLegacyId(folderABTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2");
-		assertThat(folder.getSchemaCode()).isEqualTo("folder_customFolder");
-		assertThat(folder.get("customMeta")).isEqualTo("valeur AB");
+		Folder folderAB = getFolderByLegacyId(folderABTaxoURL);
+		assertThat(folderAB.getTitle()).isEqualTo("Le dossier AB");
+		assertThat(folderAB.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderAB.getKeywords()).containsOnly("mot1", "mot2");
+		assertThat(folderAB.getSchemaCode()).isEqualTo("folder_customFolder");
+		assertThat(folderAB.get("customMeta")).isEqualTo("valeur AB");
 
-		folder = getFolderByLegacyId(folderAAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AAA");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2");
-		assertThat(folder.getSchemaCode()).isEqualTo("folder_customFolder");
-		assertThat(folder.get("customMeta")).isEqualTo("valeur AAA");
+		Folder folderAAA = getFolderByLegacyId(folderAAATaxoURL);
+		assertThat(folderAAA.getTitle()).isEqualTo("Le dossier AAA");
+		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderAAA.getKeywords()).containsOnly("mot1", "mot2");
+		assertThat(folderAAA.getSchemaCode()).isEqualTo("folder_customFolder");
+		assertThat(folderAAA.get("customMeta")).isEqualTo("valeur AAA");
 
-		folder = getFolderByLegacyId(folderAABTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier AAB");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_1);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
-		assertThat(folder.getKeywords()).containsOnly("mot1", "mot2");
-		assertThat(folder.getSchemaCode()).isEqualTo("folder_customFolder");
-		assertThat(folder.get("customMeta")).isEqualTo("valeur AAB");
+		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
+		assertThat(folderAAB.getTitle()).isEqualTo("Le dossier AAB");
+		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_1);
+		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
+		assertThat(folderAAB.getKeywords()).containsOnly("mot1", "mot2");
+		assertThat(folderAAB.getSchemaCode()).isEqualTo("folder_customFolder");
+		assertThat(folderAAB.get("customMeta")).isEqualTo("valeur AAB");
 
-		folder = getFolderByLegacyId(folderBTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier B");
-		assertThat(folder.getRetentionRule()).isEqualTo(records.ruleId_2);
-		assertThat(folder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-12-14");
-		assertThat(folder.getKeywords()).containsOnly("mot2", "mot4");
-		assertThat(folder.getSchemaCode()).isEqualTo("folder_default");
+		Folder folderB = getFolderByLegacyId(folderBTaxoURL);
+		assertThat(folderB.getTitle()).isEqualTo("Le dossier B");
+		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_2);
+		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-12-14");
+		assertThat(folderB.getKeywords()).containsOnly("mot2", "mot4");
+		assertThat(folderB.getSchemaCode()).isEqualTo("folder_default");
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -1157,11 +1157,11 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		Folder folder = getFolderByLegacyId(folderATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("Le dossier A");
-		assertThat(folder.get("USRmeta1")).isEqualTo(asList(42.666, 666.42));
-		assertThat(folder.get("USRmeta2")).isEqualTo("value");
-		assertThat(folder.get("meta3")).isNull();
+		Folder folderA = getFolderByLegacyId(folderATaxoURL);
+		assertThat(folderA.getTitle()).isEqualTo("Le dossier A");
+		assertThat(folderA.get("USRmeta1")).isEqualTo(asList(42.666, 666.42));
+		assertThat(folderA.get("USRmeta2")).isEqualTo("value");
+		assertThat(folderA.get("meta3")).isNull();
 
 		Document document = getDocumentByLegacyId(documentA1TaxoURL);
 		assertThat(document.getTitle()).isEqualTo("Le document 1");
@@ -1284,47 +1284,47 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		robotsSchemas.getRobotsManager().startAllRobotsExecution();
 		waitForBatchProcess();
 
-		Folder folder = getFolderByLegacyId(folderATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("A");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderA = getFolderByLegacyId(folderATaxoURL);
+		assertThat(folderA.getTitle()).isEqualTo("A");
+		assertThat(folderA.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
+		assertThat(folderA.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderA.getCategoryEntered()).isEqualTo(records.categoryId_X);
+		assertThat(folderA.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AA");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
+		assertThat(folderAA.getTitle()).isEqualTo("AA");
+		assertThat(folderAA.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
+		assertThat(folderAA.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getCategoryEntered()).isEqualTo(records.categoryId_X);
+		assertThat(folderAA.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderABTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AB");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAB = getFolderByLegacyId(folderABTaxoURL);
+		assertThat(folderAB.getTitle()).isEqualTo("AB");
+		assertThat(folderAB.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
+		assertThat(folderAB.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAB.getCategoryEntered()).isEqualTo(records.categoryId_X);
+		assertThat(folderAB.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderAAATaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AAA");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAAA = getFolderByLegacyId(folderAAATaxoURL);
+		assertThat(folderAAA.getTitle()).isEqualTo("AAA");
+		assertThat(folderAAA.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
+		assertThat(folderAAA.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAA.getCategoryEntered()).isEqualTo(records.categoryId_X);
+		assertThat(folderAAA.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderAABTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("AAB");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
+		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
+		assertThat(folderAAB.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
+		assertThat(folderAAB.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAB.getCategoryEntered()).isEqualTo(records.categoryId_X);
+		assertThat(folderAAB.getOpenDate()).isEqualTo(squatreNovembre);
 
-		folder = getFolderByLegacyId(folderBTaxoURL);
-		assertThat(folder.getTitle()).isEqualTo("B");
-		assertThat(folder.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
-		assertThat(folder.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
-		assertThat(folder.getCategoryEntered()).isEqualTo(records.categoryId_X);
-		assertThat(folder.getOpenDate()).isEqualTo(squatreNovembre);
+		Folder folderB = getFolderByLegacyId(folderBTaxoURL);
+		assertThat(folderB.getTitle()).isEqualTo("B");
+		assertThat(folderB.getRetentionRuleEntered()).isEqualTo(records.ruleId_3);
+		assertThat(folderB.getCopyStatusEntered()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderB.getCategoryEntered()).isEqualTo(records.categoryId_X);
+		assertThat(folderB.getOpenDate()).isEqualTo(squatreNovembre);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
