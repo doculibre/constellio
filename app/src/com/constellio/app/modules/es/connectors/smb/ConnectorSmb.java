@@ -2,6 +2,9 @@ package com.constellio.app.modules.es.connectors.smb;
 
 import static java.util.Arrays.asList;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -42,6 +45,7 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 
@@ -228,6 +232,13 @@ public class ConnectorSmb extends Connector {
 	}
 
 	public InputStream getInputStream(ConnectorSmbDocument document, String resourceName) {
+		if (Toggle.TESTING_ACTION_PAT.isEnabled()) {
+			try {
+				return new FileInputStream(new File("/Users/francisbaril/Workspaces/Mécanisme de cache des records V2.docx"));
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+		}
 		SmbFile smbFile = getSmbFile(document);
 		try {
 			InputStream is = smbFile.getInputStream();
