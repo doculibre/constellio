@@ -287,7 +287,7 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 	@Override
 	public synchronized XMLConfiguration getXML(String path) {
 		LOGGER.debug("get XML  => " + path);
-		XMLConfiguration cachedConfiguration = null;// (XMLConfiguration) cache.get(path);
+		XMLConfiguration cachedConfiguration = (XMLConfiguration) cache.get(path);
 		if (cachedConfiguration == null) {
 			try {
 				cachedConfiguration = readXML(path);

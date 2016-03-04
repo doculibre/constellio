@@ -172,7 +172,7 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 			for (MetadataSchemaTypeBuilder typeBuilder : builder.getTypes()) {
 				MetadataSchemaBuilder schemaBuilder = typeBuilder.getDefaultSchema();
 				if (schemaBuilder.hasMetadata("description")) {
-					schemaBuilder.get("description").setEssentialInSummary(true);
+					schemaBuilder.get("description").setEnabled(true).setEssentialInSummary(true);
 				}
 			}
 
