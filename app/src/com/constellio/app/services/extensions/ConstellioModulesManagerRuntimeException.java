@@ -28,8 +28,9 @@ public class ConstellioModulesManagerRuntimeException extends RuntimeException {
 
 	public static class FailedToStart extends ConstellioModulesManagerRuntimeException {
 
-		public FailedToStart(InstallableModule module, Throwable e) {
-			super("Module '" + module.getName() + "' of publisher '" + module.getPublisher() + "' failed to start", e);
+		public FailedToStart(InstallableModule module, String collection, Throwable e) {
+			super("Module '" + module.getName() + "' of publisher '" + module.getPublisher()
+					+ "' failed to start in collection '" + collection + "'", e);
 		}
 
 	}
