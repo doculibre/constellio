@@ -13,7 +13,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -27,7 +27,7 @@ import com.constellio.sdk.tests.setups.Users;
 public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
 	@Mock EditConnectorInstanceView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock RecordVO recordVO;
 	Users users = new Users();
 	ConnectorManager connectorManager;

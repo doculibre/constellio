@@ -1,4 +1,4 @@
-package com.constellio.app.modules.es;
+package com.constellio.app.modules.es.navigation;
 
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
@@ -36,8 +36,8 @@ public class ESNavigationConfiguration implements Serializable {
 	private void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(CONNECTORS, CONNECTORS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listConnectorInstances();
+			public void activate(Navigation navigate) {
+				navigate.to(ESViews.class).listConnectorInstances();
 			}
 
 			@Override
@@ -70,7 +70,6 @@ public class ESNavigationConfiguration implements Serializable {
 				public BaseContextMenu getContextMenu() {
 					return new BaseContextMenu();
 				}
-
 			});
 		}
 	}

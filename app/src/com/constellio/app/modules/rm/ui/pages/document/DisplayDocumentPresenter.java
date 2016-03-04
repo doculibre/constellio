@@ -20,6 +20,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -282,7 +283,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void taskClicked(RecordVO taskVO) {
-		view.navigateTo().displayTask(taskVO.getId());
+		view.navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
 	public void addToCartRequested() {

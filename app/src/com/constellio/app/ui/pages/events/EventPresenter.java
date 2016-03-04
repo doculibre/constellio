@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -226,7 +227,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			} else if (getEventType().contains("document")) {
 				view.navigateTo().displayDocument(recordId);
 			} else {
-				view.navigateTo().displayTask(recordId);
+				view.navigate().to(TaskViews.class).displayTask(recordId);
 			}
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			return;

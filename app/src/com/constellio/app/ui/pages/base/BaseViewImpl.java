@@ -13,7 +13,8 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -279,7 +280,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
+		List<Button> actionMenuButtons = new ArrayList<>();
 		return actionMenuButtons;
 	}
 
@@ -289,8 +290,18 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	@Override
-	public ConstellioNavigator navigateTo() {
+	public CoreViews navigateTo() {
 		return ConstellioUI.getCurrent().navigateTo();
+	}
+
+	@Override
+	public <T extends CoreViews> T navigateTo(Class<T> navigatorClass) {
+		return ConstellioUI.getCurrent().navigateTo(navigatorClass);
+	}
+
+	@Override
+	public Navigation navigate() {
+		return ConstellioUI.getCurrent().navigate();
 	}
 
 	@Override

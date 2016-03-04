@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.DemoTestRecords;
-import com.constellio.app.modules.rm.RMNavigationConfiguration;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.NavigatorConfigurationService;

@@ -1,0 +1,94 @@
+package com.constellio.app.modules.rm.navigation;
+
+import static com.constellio.app.ui.params.ParamUtils.addParams;
+
+import java.util.Map;
+
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.google.gwt.dev.util.collect.HashMap;
+import com.vaadin.navigator.Navigator;
+
+public class RMViews extends CoreViews {
+	public RMViews(Navigator navigator) {
+		super(navigator);
+	}
+
+	// FOLDER MANAGEMENT
+
+	public void addFolder() {
+		addFolder(null, null);
+	}
+
+	public void addFolder(String parentFolderId) {
+		addFolder(parentFolderId, null);
+	}
+
+	public void addFolder(String parentFolderId, String typeId) {
+		Map<String, String> params = new HashMap<>();
+		if (parentFolderId != null) {
+			params.put("parentId", parentFolderId);
+		}
+		if (typeId != null) {
+			params.put("typeId", typeId);
+		}
+		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_FOLDER, params));
+	}
+
+	// DOCUMENT MANAGEMENT
+
+	public void addDocument() {
+		addDocument(null, null);
+	}
+
+	public void addDocument(String folderId) {
+		addDocument(folderId, null);
+	}
+
+	public void addDocument(String folderId, String typeId) {
+		Map<String, String> params = new HashMap<>();
+		if (folderId != null) {
+			params.put("parentId", folderId);
+		}
+		if (typeId != null) {
+			params.put("typeId", typeId);
+		}
+		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_DOCUMENT, params));
+	}
+
+	// RETENTION RULES
+
+	public void listRetentionRules() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_RETENTION_RULES);
+	}
+
+	// ARCHIVE MANAGEMENT
+
+	public void archiveManagement() {
+		navigator.navigateTo(NavigatorConfigurationService.ARCHIVES_MANAGEMENT);
+	}
+
+	// USER DOCUMENTS
+
+	public void listUserDocuments() {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_USER_DOCUMENTS);
+	}
+
+	// CART
+
+	public void cart() {
+		navigator.navigateTo(NavigatorConfigurationService.CART);
+	}
+
+	// AUDIT EVENTS
+
+	public void eventAudit() {
+		navigator.navigateTo(NavigatorConfigurationService.EVENTS_LIST);
+	}
+
+	// AGENT
+
+	public void requestAgent() {
+		navigator.navigateTo(NavigatorConfigurationService.REQUEST_AGENT);
+	}
+}

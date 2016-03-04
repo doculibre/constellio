@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
@@ -83,7 +84,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	public void addTaskButtonClicked() {
-		view.navigateTo().addTask(null);
+		view.navigate().to(TaskViews.class).addTask();
 	}
 
 	public String getTabCaption(String tabId) {
@@ -96,7 +97,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void displayButtonClicked(RecordVO record) {
-		view.navigateTo().displayTask(record.getId());
+		view.navigate().to(TaskViews.class).displayTask(record.getId());
 	}
 
 	@Override

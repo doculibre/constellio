@@ -15,7 +15,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -27,7 +27,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 	@Mock AddEditFolderView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	AddEditFolderPresenter presenter;
 	SessionContext sessionContext;

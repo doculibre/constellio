@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.ui.framework.data.event.category.EventsListDataProviderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
@@ -100,8 +101,8 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		return eventProvider.getDataTitle();
 	}
 
-	public void listEvents() {
-		view.navigateTo().listEvents();
+	public void eventAudit() {
+		view.navigate().to(RMViews.class).eventAudit();
 	}
 
 	@Override

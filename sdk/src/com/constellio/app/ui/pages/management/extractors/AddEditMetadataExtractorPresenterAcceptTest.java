@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataExtractorVO;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -40,7 +40,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest {
 
 	@Mock AddEditMetadataExtractorView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 
 	AddEditMetadataExtractorPresenter presenter;
 	SessionContext sessionContext;

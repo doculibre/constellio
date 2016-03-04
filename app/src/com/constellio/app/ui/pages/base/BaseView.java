@@ -4,13 +4,14 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.CoreViews;
 
 public interface BaseView extends Serializable, SessionContextProvider {
 
 	String getCollection();
 
-	ConstellioNavigator navigateTo();
+	CoreViews navigateTo();
 
 	void showMessage(String message);
 
@@ -23,6 +24,10 @@ public interface BaseView extends Serializable, SessionContextProvider {
 	void addViewEnterListener(ViewEnterListener listener);
 
 	List<ViewEnterListener> getViewEnterListeners();
+
+	<T extends CoreViews> T navigateTo(Class<T> navigatorClass);
+
+	Navigation navigate();
 
 	void updateUI();
 

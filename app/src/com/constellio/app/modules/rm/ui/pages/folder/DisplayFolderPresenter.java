@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -38,6 +39,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -483,11 +485,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addDocumentButtonClicked() {
-		view.navigateTo().addDocument(folderVO.getId(), null);
+		view.navigate().to(RMViews.class).addDocument(folderVO.getId());
 	}
 
 	public void addSubFolderButtonClicked() {
-		view.navigateTo().addFolder(folderVO.getId(), null);
+		view.navigate().to(RMViews.class).addFolder(folderVO.getId());
 	}
 
 	public void editFolderButtonClicked() {
@@ -563,7 +565,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void taskClicked(RecordVO taskVO) {
-		view.navigateTo().displayTask(taskVO.getId());
+		view.navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
 	private DecommissioningService decommissioningService() {

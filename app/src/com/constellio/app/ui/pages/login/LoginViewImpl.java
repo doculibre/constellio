@@ -2,7 +2,7 @@ package com.constellio.app.ui.pages.login;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -94,7 +94,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		logo.setSizeUndefined();
 		hLayout.addComponent(logo);
 		labelsLayout.addComponent(hLayout);
-		
+
 		return labelsLayout;
 	}
 
@@ -168,7 +168,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 	}
 
 	@Override
-	public ConstellioNavigator navigateTo() {
+	public CoreViews navigateTo() {
 		return ConstellioUI.getCurrent().navigateTo();
 	}
 

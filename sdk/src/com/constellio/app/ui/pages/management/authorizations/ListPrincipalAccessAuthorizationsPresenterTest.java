@@ -16,7 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -41,7 +41,7 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Mock AuthorizationsServices authorizationsServices;
 	@Mock PresenterService presenterService;
 	@Mock ListPrincipalAccessAuthorizationsView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock User user;
 	@Mock RecordVO principal;
 	@Mock AuthorizationVO authorizationVO;

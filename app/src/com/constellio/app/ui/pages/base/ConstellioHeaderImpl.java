@@ -5,7 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.buttons.SearchButton;
@@ -309,8 +309,8 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 	}
 
 	@Override
-	public ConstellioNavigator navigateTo() {
-		return new ConstellioNavigator(getUI().getNavigator());
+	public CoreViews navigateTo() {
+		return new CoreViews(getUI().getNavigator());
 	}
 
 	@Override

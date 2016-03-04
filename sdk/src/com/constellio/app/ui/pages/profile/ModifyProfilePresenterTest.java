@@ -12,9 +12,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.rm.RMNavigationConfiguration;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
@@ -29,7 +29,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
 
 public class ModifyProfilePresenterTest extends ConstellioTest {
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock ModifyProfileView view;
 	@Mock UserServices userServices;
 	@Mock RecordServicesImpl recordServices;

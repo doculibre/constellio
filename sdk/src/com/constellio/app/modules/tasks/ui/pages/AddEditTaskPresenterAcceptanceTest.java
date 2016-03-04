@@ -18,7 +18,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskPresenter;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskView;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -37,7 +37,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 	@Mock
 	AddEditTaskView view;
 	@Mock
-	ConstellioNavigator navigator;
+	CoreViews navigator;
 	SessionContext sessionContext;
 	private RecordServices recordServices;
 	private SearchServices searchServices;

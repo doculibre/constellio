@@ -26,7 +26,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -53,7 +53,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	Users users = new Users();
 	@Mock DisplayFolderView displayFolderView;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock UserCredentialVO chuckCredentialVO;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
 	SearchServices searchServices;

@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -48,7 +49,7 @@ public class RobotLogsPresenter extends BaseRobotPresenter<RobotLogsView> {
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().robotConfiguration(robotId);
+		view.navigate().to(RobotViews.class).robotConfiguration(robotId);
 	}
 
 	@Override

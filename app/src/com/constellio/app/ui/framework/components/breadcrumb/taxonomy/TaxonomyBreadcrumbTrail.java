@@ -4,7 +4,6 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 
 public class TaxonomyBreadcrumbTrail extends BaseBreadcrumbTrail {
-
 	private TaxonomyBreadcrumbTrailPresenter presenter;
 
 	public TaxonomyBreadcrumbTrail(String taxonomyCode, String recordId) {
@@ -15,5 +14,4 @@ public class TaxonomyBreadcrumbTrail extends BaseBreadcrumbTrail {
 	protected void itemClick(BreadcrumbItem item) {
 		presenter.itemClicked(item);
 	}
-
 }

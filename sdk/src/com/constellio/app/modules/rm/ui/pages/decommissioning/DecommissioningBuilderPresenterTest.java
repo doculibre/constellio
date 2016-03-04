@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
@@ -23,7 +23,7 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "schemaType_default_zeField";
 
 	@Mock DecommissioningBuilderView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock SchemasDisplayManager schemasDisplayManager;
 	@Mock SchemaTypesDisplayConfig typesDisplayConfig;
 	MockedFactories factories = new MockedFactories();
