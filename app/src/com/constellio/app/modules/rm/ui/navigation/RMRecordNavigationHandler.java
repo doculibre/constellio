@@ -46,7 +46,7 @@ public class RMRecordNavigationHandler extends AbstractRecordNavigationHandler {
 		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			ConstellioUI.getCurrent().navigate().to(RMViews.class).displayFolder(recordId);
 		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			ConstellioUI.getCurrent().navigateTo().displayDocument(recordId);
+			ConstellioUI.getCurrent().navigate().to(RMViews.class).displayDocument(recordId);
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			ConstellioUI.getCurrent().navigateTo().displayContainer(recordId);
 		} else if (RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {

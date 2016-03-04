@@ -55,7 +55,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
 			view.navigate().to(RMViews.class).displayFolder(recordId);
 		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
-			view.navigateTo().displayDocument(recordId);
+			view.navigate().to(RMViews.class).displayDocument(recordId);
 		}
 	}
 

@@ -84,7 +84,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
 		} else {
 			String documentId = ((DocumentBreadcrumbItem) item).getDocumentId();
-			breadcrumbTrail.navigateTo().displayDocument(documentId);
+			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
 		}
 	}
 

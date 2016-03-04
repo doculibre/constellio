@@ -43,6 +43,6 @@ public class ListRootRobotsPresenter extends BaseRobotPresenter<ListRootRobotsVi
 	}
 
 	public void addButtonClicked() {
-		view.navigateTo().addRobot(null);
+		view.navigate().to(RobotViews.class).addRobot(null);
 	}
 }

@@ -51,10 +51,10 @@ public class ListContentRoleAuthorizationsPresenter extends ListAuthorizationsPr
 		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
 			view.navigate().to(RMViews.class).displayFolder(recordId);
 		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
-			view.navigateTo().displayDocument(recordId);
+			view.navigate().to(RMViews.class).displayDocument(recordId);
 		} else {
 			Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(view.getCollection());
-			view.navigateTo().taxonomyManagement(taxonomy.getCode(), recordId);
+			view.navigate().to().taxonomyManagement(taxonomy.getCode(), recordId);
 		}
 	}
 

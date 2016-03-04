@@ -39,7 +39,17 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_FOLDER, params));
 	}
 
+	public void editFolder(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(addParams(NavigatorConfigurationService.EDIT_FOLDER, params));
+	}
+
 	// DOCUMENT MANAGEMENT
+
+	public void displayDocument(String id) {
+		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+	}
 
 	public void addDocument() {
 		addDocument(null, null);
@@ -58,6 +68,25 @@ public class RMViews extends CoreViews {
 			params.put("typeId", typeId);
 		}
 		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_DOCUMENT, params));
+	}
+
+	public void addDocumentWithContent(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("idCopy", id);
+		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_DOCUMENT, params));
+	}
+
+	public void editDocument(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		navigator.navigateTo(addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params));
+	}
+
+	public void editDocument(String id, String userDocumentId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("userDocumentId", userDocumentId);
+		navigator.navigateTo(addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params));
 	}
 
 	// RETENTION RULES

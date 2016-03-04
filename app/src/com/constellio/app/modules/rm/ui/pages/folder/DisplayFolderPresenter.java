@@ -493,7 +493,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editFolderButtonClicked() {
-		view.navigateTo().editFolder(folderVO.getId());
+		view.navigate().to(RMViews.class).editFolder(folderVO.getId());
 	}
 
 	public void deleteFolderButtonClicked(String reason) {
@@ -503,14 +503,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (parentId != null) {
 			view.navigate().to(RMViews.class).displayFolder(parentId);
 		} else {
-			view.navigateTo().recordsManagement();
+			view.navigate().to().home();
 		}
 	}
 
 	public void duplicateFolderButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		Folder duplicatedFolder = decommissioningService().duplicateAndSave(folder);
-		view.navigateTo().editFolder(duplicatedFolder.getId());
+		view.navigate().to(RMViews.class).editFolder(duplicatedFolder.getId());
 	}
 
 	public void duplicateStructureButtonClicked() {
@@ -534,7 +534,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editDocumentButtonClicked(RecordVO recordVO) {
-		view.navigateTo().editDocument(recordVO.getId());
+		view.navigate().to(RMViews.class).editDocument(recordVO.getId());
 	}
 
 	public void downloadDocumentButtonClicked(RecordVO recordVO) {
@@ -543,20 +543,20 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void displayDocumentButtonClicked(RecordVO record) {
-		view.navigateTo().displayDocument(record.getId());
+		view.navigate().to(RMViews.class).displayDocument(record.getId());
 	}
 
 	public void documentClicked(RecordVO recordVO) {
 		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 		if (contentVersionVO == null) {
-			view.navigateTo().displayDocument(recordVO.getId());
+			view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
 			return;
 		}
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
 			view.openAgentURL(agentURL);
 		} else {
-			view.navigateTo().displayDocument(recordVO.getId());
+			view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
 		}
 	}
 

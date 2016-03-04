@@ -44,11 +44,11 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	}
 
 	public void addButtonClicked(RecordVO robot) {
-		view.navigateTo().addRobot(robot.getId());
+		view.navigate().to(RobotViews.class).addRobot(robot.getId());
 	}
 
 	public void editButtonClicked(RecordVO robot) {
-		view.navigateTo().editRobot(robot.getId());
+		view.navigate().to(RobotViews.class).editRobot(robot.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO robot) {
@@ -60,7 +60,7 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	}
 
 	public void viewLogsButtonClicked() {
-		view.navigateTo().displayRobotLogs(rootRobotId);
+		view.navigate().to(RobotViews.class).displayLogs(rootRobotId);
 	}
 
 	public String getReportTitle() {

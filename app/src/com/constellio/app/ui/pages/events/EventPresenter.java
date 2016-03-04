@@ -226,7 +226,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			} else if (getEventType().contains("folder")) {
 				view.navigate().to(RMViews.class).displayFolder(recordId);
 			} else if (getEventType().contains("document")) {
-				view.navigateTo().displayDocument(recordId);
+				view.navigate().to(RMViews.class).displayDocument(recordId);
 			} else {
 				view.navigate().to(TaskViews.class).displayTask(recordId);
 			}

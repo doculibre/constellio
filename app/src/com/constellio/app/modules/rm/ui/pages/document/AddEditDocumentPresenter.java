@@ -234,10 +234,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			if (parentId != null) {
 				view.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
-				view.navigateTo().home();
+				view.navigate().to().home();
 			}
 		} else {
-			view.navigateTo().displayDocument(documentVO.getId());
+			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
 		}
 	}
 
@@ -304,7 +304,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			User userDocumentUser = userServices.getUserInCollection(currentUser.getUsername(), userDocumentCollection);
 			userDocumentPresenterUtils.delete(userDocumentRecord, null, userDocumentUser);
 		}
-		view.navigateTo().displayDocument(record.getId());
+		view.navigate().to(RMViews.class).displayDocument(record.getId());
 	}
 
 	private void setRecordContent(Record record, DocumentVO documentVO) {

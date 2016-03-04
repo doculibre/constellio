@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -274,7 +275,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
-			view.navigateTo().displayDocument(document.getId());
+			view.navigate().to(RMViews.class).displayDocument(document.getId());
 		}
 	}
 
@@ -312,7 +313,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private void updateAndRefresh(Document document) {
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
-			view.navigateTo().displayDocument(document.getId());
+			view.navigate().to(RMViews.class).displayDocument(document.getId());
 		}
 	}
 }

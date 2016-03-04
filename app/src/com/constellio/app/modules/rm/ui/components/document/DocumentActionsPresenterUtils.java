@@ -121,7 +121,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void editDocumentButtonClicked() {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigateTo().editDocument(documentVO.getId());
+			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
 		}
 	}
 
@@ -137,7 +137,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void copyContentButtonClicked() {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigateTo().addDocumentWithContent(documentVO.getId());
+			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 		}
 	}
 
@@ -297,7 +297,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 				decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-				actionsComponent.navigateTo().displayDocument(document.getId());
+				actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
 			} catch (Exception e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			} finally {

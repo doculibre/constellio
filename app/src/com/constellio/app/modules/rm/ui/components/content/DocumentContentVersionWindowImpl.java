@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.components.content;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -76,7 +77,8 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 			openOrDownloadLink.setIcon(icon);
 			openOrDownloadLink.addStyleName(ValoTheme.BUTTON_LINK);
 		} else {
-			openOrDownloadLink = new DownloadContentVersionLink(contentVersionVO, $("DocumentContentVersionWindow.downloadLinkCaption"));
+			openOrDownloadLink = new DownloadContentVersionLink(contentVersionVO,
+					$("DocumentContentVersionWindow.downloadLinkCaption"));
 		}
 
 		checkOutLink = new Button($("DocumentContentVersionWindow.checkOutLinkCaption"), new ClickListener() {
@@ -142,4 +144,8 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		return ConstellioUI.getCurrent().navigateTo();
 	}
 
+	@Override
+	public Navigation navigate() {
+		return ConstellioUI.getCurrent().navigate();
+	}
 }

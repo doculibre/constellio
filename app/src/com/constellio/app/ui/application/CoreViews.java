@@ -37,39 +37,6 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.RECORDS_MANAGEMENT);
 	}
 
-	public void editFolder(String id) {
-		Map<String, String> params = new HashMap<>();
-		params.put("id", id);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_FOLDER, params);
-		navigator.navigateTo(viewPath);
-	}
-
-	public void addDocumentWithContent(String id) {
-		Map<String, String> params = new HashMap<>();
-		params.put("idCopy", id);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_DOCUMENT, params);
-		navigator.navigateTo(viewPath);
-	}
-
-	public void editDocument(String id) {
-		Map<String, String> params = new HashMap<>();
-		params.put("id", id);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params);
-		navigator.navigateTo(viewPath);
-	}
-
-	public void editDocument(String id, String userDocumentId) {
-		Map<String, String> params = new HashMap<>();
-		params.put("id", id);
-		params.put("userDocumentId", userDocumentId);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params);
-		navigator.navigateTo(viewPath);
-	}
-
-	public void displayDocument(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
-	}
-
 	public void appManagement() {
 		navigator.navigateTo(NavigatorConfigurationService.APP_MANAGEMENT);
 	}
@@ -611,32 +578,6 @@ public class CoreViews {
 
 	public void editMetadataExtractor(String metadataCode) {
 		navigator.navigateTo(NavigatorConfigurationService.EDIT_METADATA_EXTRACTOR + "/" + metadataCode);
-	}
-
-	// Robots module
-
-
-
-	public void addRobot(String parentId) {
-		Map<String, String> params = new HashMap<>();
-		params.put("pageMode", "add");
-		if (parentId != null) {
-			params.put("parentId", parentId);
-		}
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_ROBOT, params);
-		navigator.navigateTo(viewPath);
-	}
-
-	public void editRobot(String robotId) {
-		Map<String, String> params = new HashMap<>();
-		params.put("pageMode", "edit");
-		params.put("robotId", robotId);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_ROBOT, params);
-		navigator.navigateTo(viewPath);
-	}
-
-	public void displayRobotLogs(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.ROBOT_LOGS + "/" + entityId);
 	}
 
 	public void addEmailAttachmentsToFolder(String userDocumentId) {
