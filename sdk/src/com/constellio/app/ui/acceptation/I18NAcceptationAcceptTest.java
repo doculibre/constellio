@@ -82,6 +82,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withConstellioRMModule().withAllTestUsers()
 				.withConstellioESModule().withRobotsModule();
+		setupPlugins();
 		i18n.setLocale(Locale.ENGLISH);
 		locale = Locale.ENGLISH;
 	}
@@ -91,8 +92,13 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test").withConstellioRMModule().withAllTestUsers()
 				.withConstellioESModule().withRobotsModule();
+		setupPlugins();
 		i18n.setLocale(Locale.FRENCH);
 		locale = Locale.FRENCH;
+	}
+
+	protected void setupPlugins() {
+
 	}
 
 	private void findMissingKeys() {
