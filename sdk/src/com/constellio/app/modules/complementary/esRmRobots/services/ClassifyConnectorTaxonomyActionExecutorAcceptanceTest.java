@@ -1425,6 +1425,96 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
 
+	@Test
+	public void givenNonConceptConnectorFoldersHaveDelimitersInTheirNameThenImportedCorrectly()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.newAdministrativeUnitWithId(adminUnit1)).setCode("AU1").setTitle(adminUnit1);
+		transaction.add(rm.newAdministrativeUnitWithId(adminUnit11)).setCode("AU11").setTitle(adminUnit11).setParent(adminUnit1);
+		transaction.add(rm.newAdministrativeUnitWithId(adminUnit2)).setCode("AU2").setTitle(adminUnit2);
+
+		//Recognized as AU1
+		transaction.add(es.newConnectorSmbFolderWithId("smbFolder1", connectorInstance)).setTitle("AU1 Ze admin unit")
+				.setUrl("smb://AU1 Ze admin unit/");
+
+		//Recognized as AU11
+		transaction.add(es.newConnectorSmbFolderWithId("smbFolder2", connectorInstance)).setTitle("AU11 Ze child admin unit")
+				.setUrl("smb://AU1 Ze admin unit/AU11 Ze child admin unit/");
+
+		//Recognized as a folder in AU1
+		transaction.add(es.newConnectorSmbFolderWithId("smbFolder4", connectorInstance)).setTitle("Folder A")
+				.setUrl("smb://AU1 Ze admin unit/Folder A/");
+
+		//Recognized as a sub folder in AU1
+		transaction.add(es.newConnectorSmbFolderWithId("smbFolder5", connectorInstance)).setTitle("Sub folder in A")
+				.setParent("smbFolder4").setUrl("smb://AU1 Ze admin unit/Folder A/Sub folder in A/");
+
+		//Recognized as a sub folder in AU1
+		transaction.add(es.newConnectorSmbFolderWithId("smbFolder6", connectorInstance)).setTitle("Sub sub folder in A")
+				.setParent("smbFolder5").setUrl("smb://AU1 Ze admin unit/Folder A/Sub folder in A/Sub sub folder in A/");
+
+		//Recognized as a sub folder in AU1
+		transaction.add(es.newConnectorSmbFolderWithId("smbFolder7", connectorInstance)).setTitle("AU1 Another sub folder in A")
+				.setParent("smbFolder4").setUrl("smb://AU1 Ze admin unit/Folder A/AU1 Another sub folder in A/");
+
+		//Recognized as a sub folder in AU1
+		transaction.add(es.newConnectorSmbFolderWithId("smbFolder8", connectorInstance)).setTitle("AU1 Ze folder")
+				.setParent("smbFolder7").setUrl("smb://AU1 Ze admin unit/Folder A/AU1 Another sub folder in A/AU1 Ze folder/");
+
+		recordServices.execute(transaction);
+
+		ClassifyConnectorFolderInTaxonomyActionParameters parameters = ClassifyConnectorFolderInTaxonomyActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setInTaxonomy(ADMINISTRATIVE_UNITS).setDelimiter(" ")
+				.setDefaultAdminUnit(records.unitId_10).setDefaultCategory(records.categoryId_X100)
+				.setDefaultRetentionRule(records.ruleId_1).setDefaultCopyStatus(CopyType.PRINCIPAL)
+				.setDefaultOpenDate(new LocalDate()));
+
+		recordServices.add(robotsSchemas.newRobotWithId("terminator").setActionParameters(parameters).setSchemaFilter(
+				ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+				.where(es.connectorSmbFolder.url()).isContainingText("smb://"))
+				.setAction(ClassifyConnectorFolderInTaxonomyActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		List<RobotLog> loggedErrors = getRobotLogsForRobot("terminator");
+		assertThat(loggedErrors.size()).isEqualTo(0);
+
+		assertThatRecord(rm.getFolderByLegacyId("smb://AU1 Ze admin unit/")).isNull();
+		assertThatRecord(rm.getFolderByLegacyId("smb://AU1 Ze admin unit/AU11 Ze child admin unit/")).isNull();
+
+		Folder classifiedSmbFolder4 = rm.getFolderByLegacyId("smb://AU1 Ze admin unit/Folder A/");
+		Folder classifiedSmbFolder5 = rm.getFolderByLegacyId(
+				"smb://AU1 Ze admin unit/Folder A/Sub folder in A/");
+		Folder classifiedSmbFolder6 = rm
+				.getFolderByLegacyId("smb://AU1 Ze admin unit/Folder A/Sub folder in A/Sub sub folder in A/");
+		Folder classifiedSmbFolder7 = rm.getFolderByLegacyId("smb://AU1 Ze admin unit/Folder A/AU1 Another sub folder in A/");
+		Folder classifiedSmbFolder8 = rm
+				.getFolderByLegacyId("smb://AU1 Ze admin unit/Folder A/AU1 Another sub folder in A/AU1 Ze folder/");
+
+		assertThatRecord(classifiedSmbFolder4)
+				.hasMetadata(rm.folderParentFolder(), null)
+				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+
+		assertThatRecord(classifiedSmbFolder5)
+				.hasMetadata(rm.folderParentFolder(), classifiedSmbFolder4.getId())
+				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+
+		assertThatRecord(classifiedSmbFolder6)
+				.hasMetadata(rm.folderParentFolder(), classifiedSmbFolder5.getId())
+				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+
+		assertThatRecord(classifiedSmbFolder7)
+				.hasMetadata(rm.folderParentFolder(), classifiedSmbFolder4.getId())
+				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+
+		assertThatRecord(classifiedSmbFolder8)
+				.hasMetadata(rm.folderParentFolder(), classifiedSmbFolder7.getId())
+				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+	}
+
 	//When delete, given error in transaction, then not deleted
 	//when delete, log
 

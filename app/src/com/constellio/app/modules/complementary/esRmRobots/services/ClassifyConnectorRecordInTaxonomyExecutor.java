@@ -159,15 +159,18 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	//TODO Test
 	private List<String> getPathParts(String[] rawPathParts, Metadata codeMetadata) {
 		List<String> pathParts = new ArrayList<>();
+
+		boolean noLongerInTaxonomy = false;
 		for (String rawPathPart : rawPathParts) {
 
-			if (rawPathPart.indexOf(params.getDelimiter()) == -1) {
+			if (noLongerInTaxonomy || rawPathPart.indexOf(params.getDelimiter()) == -1) {
 				pathParts.add(rawPathPart);
 			} else {
 
 				String firstPart = rawPathPart.split(params.getDelimiter())[0];
 				boolean hasConceptWithCode = recordServices.getRecordByMetadata(codeMetadata, firstPart) != null;
 				pathParts.add(hasConceptWithCode ? firstPart : rawPathPart);
+				noLongerInTaxonomy = !hasConceptWithCode;
 			}
 		}
 
