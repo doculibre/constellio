@@ -348,7 +348,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 				constellioPluginManager.handleModuleNotStartedCorrectly(module, collection, e);
 				return false;
 			} else {
-				throw new ConstellioModulesManagerRuntimeException.FailedToStart((InstallableModule) module, e);
+				throw new ConstellioModulesManagerRuntimeException.FailedToStart((InstallableModule) module, collection, e);
 			}
 		}
 		return true;
