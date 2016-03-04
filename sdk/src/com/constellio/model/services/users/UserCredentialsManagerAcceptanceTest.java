@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.doReturn;
 
 import java.security.Key;
@@ -16,6 +17,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -62,34 +64,38 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
 		ModelLayerFactoryUtils.setApplicationEncryptionKey(getModelLayerFactory(), key);
 
-		createUserCredentials();
-
 		manager = getModelLayerFactory().getUserCredentialsManager();
 
+		createUserCredentials();
+	}
+
+	@Test
+	public void whenAddingAndSearchingCredentialsThenUsernamesAreNormalized() {
+		manager.addUpdate(edouardUserCredential);
+		assertThat(manager.getUserCredential("Edouard")).isNotNull();
+		assertThat(manager.getUserCredential("EDOUARD")).isNotNull();
+		assertThat(manager.getUserCredential("Édouard")).isNotNull();
 	}
 
 	@Test
 	public void whenAddUsersCredentialsThenTheyAreAddedInListOnce()
 			throws Exception {
-
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(edouardUserCredential);
 		manager.addUpdate(chuckUserCredential);
 
-		assertThat(manager.getActiveUserCredentials()).hasSize(3);
-		assertThat(manager.getActiveUserCredentials().get(1)).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getActiveUserCredentials().get(2)).isEqualToComparingFieldByField(edouardUserCredential);
-		assertThat(manager.getUserCredential("chuck")).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getUserCredential("Chuck")).isEqualToComparingFieldByField(chuckUserCredential);
-		assertThat(manager.getUserCredential("Édouard")).isEqualToComparingFieldByField(edouardUserCredential);
+		UserCredential admin = manager.getUserCredential("admin");
+
+		assertThat(manager.getActiveUserCredentials()).extracting("firstName", "lastName").containsOnly(
+				tuple(admin.getFirstName(), admin.getLastName()),
+				tuple(chuckUserCredential.getFirstName(), chuckUserCredential.getLastName()),
+				tuple(edouardUserCredential.getFirstName(), edouardUserCredential.getLastName()));
 	}
 
 	@Test
 	public void givenHasInvalidCollectionWhenReadThenHAsOnlyValidCollections() {
-
 		manager.addUpdate(edouardUserCredential);
-
-		assertThat(manager.getUserCredential("Édouard").getCollections()).containsOnly(zeCollection, "collection1");
+		assertThat(manager.getUserCredential("edouard").getCollections()).containsOnly(zeCollection, "collection1");
 	}
 
 	@Test
@@ -99,7 +105,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(edouardUserCredential);
 
-		chuckUserCredential = new UserCredential("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com",
+		chuckUserCredential = manager.create("chuck", "Chuck1", "Norris1", "chuck.norris1@gmail.com",
 				asList("group11"), asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain",
 				msExchDelegateListBL, null);
 		manager.addUpdate(chuckUserCredential);
@@ -109,7 +115,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getActiveUserCredentials().get(2)).isEqualToComparingFieldByField(edouardUserCredential);
 		assertThat(manager.getUserCredential("chuck")).isEqualToComparingFieldByField(chuckUserCredential);
 		assertThat(manager.getUserCredential("edouard")).isEqualToComparingFieldByField(edouardUserCredential);
-		assertThat(manager.getUserCredential("edouard").getTokens().get("token1")).isEqualTo(endDate);
+		assertThat(manager.getUserCredential("edouard").getAccessTokens().get("token1")).isEqualTo(endDate);
 
 	}
 
@@ -119,7 +125,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 		manager.addUpdate(chuckUserCredential);
 
-		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", asList("group1"),
+		chuckUserCredential = manager.create("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", asList("group1"),
 				asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
 		manager.addUpdate(chuckUserCredential);
@@ -198,7 +204,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		assertThat(manager.getDeletedUserCredentials()).hasSize(1);
 		assertThat(manager.getDeletedUserCredentials().get(0).getUsername()).isEqualTo(chuckUserCredential.getUsername());
 
-		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.SUPENDED);
+		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.SUSPENDED);
 		manager.addUpdate(chuckUserCredential);
 
 		assertThat(manager.getActiveUserCredentials()).hasSize(2);
@@ -229,7 +235,6 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(manager.getUserCredential("chuck").getGlobalGroups()).isEmpty();
 		assertThat(manager.getUserCredential("edouard").getGlobalGroups()).hasSize(1);
-		assertThat(manager.getUserCredential("Edouard").getGlobalGroups()).hasSize(1);
 		assertThat(manager.getUserCredential("edouard").getGlobalGroups().get(0)).isEqualTo("group2");
 	}
 
@@ -250,55 +255,59 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenUserHasTokensThenAreAutomaticallyDeletedAfterTheGivenTime()
 			throws Exception {
+		String tokenA = UUIDV1Generator.newRandomId();
+		String tokenB = UUIDV1Generator.newRandomId();
+		String tokenC = UUIDV1Generator.newRandomId();
 
 		givenTimeIs(shishOClock.minusYears(1));
-		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(bobUserCredential);
 
-		manager.addUpdate(chuckUserCredential.withToken("A", shishOClock).withToken("B", shishOClock.plusHours(1)));
-		manager.addUpdate(bobUserCredential.withToken("C", shishOClock.plusMinutes(1)));
+		manager.addUpdate(chuckUserCredential
+				.withAccessToken(tokenA, shishOClock).withAccessToken(tokenB, shishOClock.plusHours(1)));
+		manager.addUpdate(bobUserCredential.withAccessToken(tokenC, shishOClock.plusMinutes(1)));
 
 		givenTimeIs(shishOClock.minusSeconds(1));
-		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).containsOnly("A", "B");
-		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).containsOnly("C");
+		manager.removeTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenA, tokenB);
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenC);
 
 		givenTimeIs(shishOClock);
-		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).containsOnly("B");
-		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).containsOnly("C");
+		manager.removeTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenC);
 
 		givenTimeIs(shishOClock.plusMinutes(1));
-		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).containsOnly("B");
-		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).isEmpty();
+		manager.removeTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).isEmpty();
 
 		givenTimeIs(shishOClock.plusMinutes(59));
-		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).containsOnly("B");
-		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).isEmpty();
+		manager.removeTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).containsOnly(tokenB);
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).isEmpty();
 
 		givenTimeIs(shishOClock.plusMinutes(60));
-		manager.removedTimedOutTokens();
-		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokensKeys()).isEmpty();
-		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokensKeys()).isEmpty();
+		manager.removeTimedOutTokens();
+		assertThat(manager.getUserCredential(chuckUserCredential.getUsername()).getTokenKeys()).isEmpty();
+		assertThat(manager.getUserCredential(bobUserCredential.getUsername()).getTokenKeys()).isEmpty();
 	}
 
 	private void createUserCredentials() {
-		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", null, true,
+		chuckUserCredential = manager.create("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", null, true,
 				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
 				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
-		bobUserCredential = new UserCredential("bob", "Bob", "Gratton", "bob.gratton@gmail.com", null, true,
+		bobUserCredential = manager.create("bob", "Bob", "Gratton", "bob.gratton@gmail.com", null, true,
 				asList("group1"), asList(zeCollection), new HashMap<String, LocalDateTime>(),
 				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 
 		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 		tokens.put("token1", endDate);
 		tokens.put("token2", endDate.plusMinutes(30));
-		edouardUserCredential = new UserCredential("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com", edouardServiceKey,
+		edouardUserCredential = manager.create("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com",
+				edouardServiceKey,
 				false, asList("group2"), asList(zeCollection, "collection1"), tokens, UserCredentialStatus.ACTIVE,
 				"domain", msExchDelegateListBL, null);
 	}

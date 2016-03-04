@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class GlobalGroupsWriterTest extends ConstellioTest {
@@ -33,10 +34,10 @@ public class GlobalGroupsWriterTest extends ConstellioTest {
 		writer = new GlobalGroupsWriter(document);
 		writer.createEmptyGlobalGroups();
 
-		globalGroup1 = new GlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
-		globalGroup1_1 = new GlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE);
-		globalGroup1_1_1 = new GlobalGroup("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
-		globalGroup2 = new GlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
+		globalGroup1 = new XmlGlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
+		globalGroup1_1 = new XmlGlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
+		globalGroup2 = new XmlGlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
 	}
 
 	@Test
@@ -100,7 +101,7 @@ public class GlobalGroupsWriterTest extends ConstellioTest {
 		writer.addUpdate(globalGroup1);
 		writer.addUpdate(globalGroup2);
 
-		globalGroup1 = new GlobalGroup("group1", "name1", Arrays.asList("user1"), null, GlobalGroupStatus.INACTIVE);
+		globalGroup1 = new XmlGlobalGroup("group1", "name1", Arrays.asList("user1"), null, GlobalGroupStatus.INACTIVE);
 		writer.addUpdate(globalGroup1);
 
 		assertThat(document.getRootElement().getChildren()).hasSize(2);

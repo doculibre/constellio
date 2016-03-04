@@ -329,10 +329,10 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		queriesListener.clear();
 
 		userServices.getUserInCollection("gandalf", zeCollection);
-		assertThat(queriesListener.queries).hasSize(1);
+		assertThat(queriesListener.queries).hasSize(2);
 
 		userServices.getUserInCollection("gandalf", zeCollection);
-		assertThat(queriesListener.queries).hasSize(1);
+		assertThat(queriesListener.queries).hasSize(2);
 	}
 
 	@Test

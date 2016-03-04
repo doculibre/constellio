@@ -16,7 +16,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -54,8 +54,8 @@ public class MetadataSchemasMigrationHelperTest extends ConstellioTest {
 	public void givenOptimisticLockingWhenSavingSchemaThenRetry()
 			throws Exception {
 
-		doThrow(MetadataSchemasManagerException.OptimistickLocking.class)
-				.doThrow(MetadataSchemasManagerException.OptimistickLocking.class)
+		doThrow(OptimisticLocking.class)
+				.doThrow(OptimisticLocking.class)
 				.doReturn(newMetadataSchemaTypes)
 				.when(metadataSchemasManager).saveUpdateSchemaTypes(any(MetadataSchemaTypesBuilder.class));
 

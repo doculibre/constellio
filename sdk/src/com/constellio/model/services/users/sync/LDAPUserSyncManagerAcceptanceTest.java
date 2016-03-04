@@ -240,7 +240,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential bfay = userServices.getUser("bfay");
 		assertThat(bfay.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
 
-		bfay = bfay.withStatus(UserCredentialStatus.SUPENDED);
+		bfay = bfay.withStatus(UserCredentialStatus.SUSPENDED);
 		userServices.addUpdateUserCredential(bfay);
 
 		ldapUserSyncManager.synchronize();
@@ -272,11 +272,11 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		String token = userServices.generateToken(bfay.getUsername());
 
 		bfay = userServices.getUser("bfay");
-		assertThat(bfay.getTokensKeys()).containsOnly(token);
+		assertThat(bfay.getTokenKeys()).containsOnly(token);
 
 		ldapUserSyncManager.synchronize();
 		bfay = userServices.getUser("bfay");
-		assertThat(bfay.getTokensKeys()).containsOnly(token);
+		assertThat(bfay.getTokenKeys()).containsOnly(token);
 	}
 
 	@Test
@@ -287,11 +287,11 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential bfay = userServices.getUser("bfay");
 		userServices.generateToken(bfay.getUsername());
 		bfay = userServices.getUser("bfay");
-		assertThat(bfay.getTokensKeys()).isNotEmpty();
+		assertThat(bfay.getTokenKeys()).isNotEmpty();
 
 		ldapUserSyncManager.synchronize();
 		bfay = userServices.getUser("bfay");
-		assertThat(bfay.getTokensKeys()).isNotEmpty();
+		assertThat(bfay.getTokenKeys()).isNotEmpty();
 	}
 
 	@Test
@@ -303,9 +303,10 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		UserCredential userCredentials = userServices.getUser(inactiveUserInLDAP);
 		assertThat(userCredentials.getStatus()).isEqualTo(UserCredentialStatus.DELETED);
 
-		UserCredential userCredential = new UserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
-				inactiveUserInLDAP + "@doculibre.com",
-				asList(new String[] { }), asList(new String[] { }), UserCredentialStatus.ACTIVE);
+		UserCredential userCredential = userServices
+				.createUserCredential(inactiveUserInLDAP, inactiveUserInLDAP, inactiveUserInLDAP,
+						inactiveUserInLDAP + "@doculibre.com", asList(new String[] {}), asList(new String[] {}),
+						UserCredentialStatus.ACTIVE);
 		userServices.addUpdateUserCredential(userCredential);
 		userServices.getUser(inactiveUserInLDAP);
 
@@ -325,9 +326,9 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		List<String> currentGroups = bfay.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupC);
 		List<String> usersAutomaticallyAddedToCollections = Collections.emptyList();
-		userServices.addUpdateGlobalGroup(
-				new GlobalGroup(groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE));
-		bfay = bfay.withGlobalGroups(asList(new String[] { groupA, groupB }));
+		userServices.addUpdateGlobalGroup(userServices.createGlobalGroup(
+				groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE));
+		bfay = bfay.withGlobalGroups(asList(groupA, groupB));
 		userServices.addUpdateUserCredential(bfay);
 		currentGroups = bfay.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupA);

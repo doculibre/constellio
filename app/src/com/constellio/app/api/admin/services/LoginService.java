@@ -90,7 +90,7 @@ public class LoginService {
 		userResource.setServiceKey(userCredential.getServiceKey());
 		userResource.setSystemAdmin(userCredential.isSystemAdmin());
 		Map<String, String> tokens = new HashMap<String, String>();
-		for (Entry<String, LocalDateTime> token : userCredential.getTokens().entrySet()) {
+		for (Entry<String, LocalDateTime> token : userCredential.getAccessTokens().entrySet()) {
 			tokens.put(token.getKey(), token.getValue().toString());
 		}
 		userResource.setTokens(tokens);

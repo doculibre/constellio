@@ -5,11 +5,8 @@ import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause
 import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
 import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_MEMORY_IN_MO;
 import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_SPACE_IN_GIG;
-import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-
-import java.io.File;
 
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -21,19 +18,16 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
-import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SolrSDKToolsServices;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
@@ -160,7 +154,7 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 		types.createNewSchemaType(schemaCode);
 		try {
 			schemaManager.saveUpdateSchemaTypes(types);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			throw new java.lang.RuntimeException(optimistickLocking);
 		}
 		getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(addedSchemaTypeCode);

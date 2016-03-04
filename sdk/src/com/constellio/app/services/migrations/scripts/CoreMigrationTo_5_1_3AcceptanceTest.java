@@ -49,8 +49,8 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		assertThat(new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml")
 				.getDocument())).doesNotContain("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
 
-		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokensKeys();
-		List<String> bobTokens = getModelLayerFactory().newUserServices().getUserCredential("bob").getTokensKeys();
+		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
+		List<String> bobTokens = getModelLayerFactory().newUserServices().getUserCredential("bob").getTokenKeys();
 		assertThat(adminTokens).containsOnly("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
 		assertThat(bobTokens).isEmpty();
 
@@ -58,8 +58,8 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 
 		assertThat(new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml")
 				.getDocument())).doesNotContain("6f9b7e63-a6c1-4783-9143-1e69edf34b4c").doesNotContain(newBobToken);
-		adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokensKeys();
-		bobTokens = getModelLayerFactory().newUserServices().getUserCredential("bob").getTokensKeys();
+		adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
+		bobTokens = getModelLayerFactory().newUserServices().getUserCredential("bob").getTokenKeys();
 		assertThat(adminTokens).containsOnly("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
 		assertThat(bobTokens).containsOnly(newBobToken);
 	}
@@ -74,7 +74,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		assertThat(new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml")
 				.getDocument())).doesNotContain(validToken);
 
-		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokensKeys();
+		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
 		assertThat(adminTokens).contains(validToken);
 		assertThat(adminTokens).doesNotContain("invalidkey");
 		String serviceKey = getModelLayerFactory().getUserCredentialsManager().getServiceKeyByToken(validToken);

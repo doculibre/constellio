@@ -1,6 +1,7 @@
 package com.constellio.model.services.users;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import java.util.Arrays;
 
@@ -12,7 +13,6 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
-
 	GlobalGroupsManager manager;
 	GlobalGroup globalGroup1;
 	GlobalGroup globalGroup2;
@@ -25,53 +25,34 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
-		globalGroup1 = new GlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
-		globalGroup2 = new GlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
-		globalGroup3 = new GlobalGroup("group3", null, GlobalGroupStatus.ACTIVE);
-		globalGroup1_1 = new GlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE);
-		globalGroup1_2 = new GlobalGroup("group1_2", "group1", GlobalGroupStatus.ACTIVE);
-		globalGroup1_1_1 = new GlobalGroup("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
-		globalGroup2_1 = new GlobalGroup("group2_1", "group2", GlobalGroupStatus.ACTIVE);
 		manager = getModelLayerFactory().getGlobalGroupsManager();
-	}
 
-	@Test
-	public void whenInstanciatingGlobalGroupsManagerThenAllGroupsLoaded()
-			throws Exception {
-
-		manager.addUpdate(globalGroup1);
-		manager.addUpdate(globalGroup1_1);
-		manager.addUpdate(globalGroup1_2);
-		manager.addUpdate(globalGroup1_1_1);
-		manager.addUpdate(globalGroup2);
-
-		GlobalGroupsManager otherManager = new GlobalGroupsManager(getDataLayerFactory().getConfigManager());
-		otherManager.initialize();
-		assertThat(otherManager.getActiveGroups()).hasSize(5);
-
+		globalGroup1 = manager.create("group1", null, GlobalGroupStatus.ACTIVE);
+		globalGroup2 = manager.create("group2", null, GlobalGroupStatus.ACTIVE);
+		globalGroup3 = manager.create("group3", null, GlobalGroupStatus.ACTIVE);
+		globalGroup1_1 = manager.create("group1_1", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1_2 = manager.create("group1_2", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1_1_1 = manager.create("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
+		globalGroup2_1 = manager.create("group2_1", "group2", GlobalGroupStatus.ACTIVE);
 	}
 
 	@Test
 	public void whenAddGlobalGroupsThenTheyAreAddedInList()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
 		manager.addUpdate(globalGroup2);
 		manager.addUpdate(globalGroup1);
 
-		assertThat(manager.getActiveGroups()).hasSize(2);
-		assertThat(manager.getGlobalGroupWithCode("group1")).isEqualToComparingFieldByField(globalGroup1);
-		assertThat(manager.getGlobalGroupWithCode("group2")).isEqualToComparingFieldByField(globalGroup2);
+		assertThat(manager.getActiveGroups()).extracting("code", "status").containsExactly(
+				tuple(globalGroup1.getCode(), globalGroup1.getStatus()), tuple(globalGroup2.getCode(), globalGroup2.getStatus()));
 	}
 
 	@Test
 	public void givenGlobalGroupInListWhenUpdateItThenItIsUpdated()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
 
-		globalGroup1 = new GlobalGroup("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
 
 		manager.addUpdate(globalGroup1);
 
@@ -83,10 +64,9 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenGlobalGroupInListWhenRemoveItThenItIsLogicallyRemoved()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
 
-		globalGroup1 = new GlobalGroup("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1Name", Arrays.asList("user1"), null, GlobalGroupStatus.ACTIVE);
 
 		manager.logicallyRemoveGroup(globalGroup1);
 
@@ -98,19 +78,17 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenMultipleGlobalGroupsWhenRemoveFromStartThenAllRemoved()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
 		manager.addUpdate(globalGroup2);
 		manager.addUpdate(globalGroup3);
 
-		assertThat(manager.getActiveGroups().get(0)).isEqualToComparingFieldByField(globalGroup3);
-		assertThat(manager.getActiveGroups()).containsOnlyOnce(globalGroup1, globalGroup2, globalGroup3);
+		assertThat(manager.getActiveGroups()).containsExactly(globalGroup1, globalGroup2, globalGroup3);
 
 		manager.logicallyRemoveGroup(globalGroup1);
-		assertThat(manager.getActiveGroups()).containsOnlyOnce(globalGroup2, globalGroup3);
+		assertThat(manager.getActiveGroups()).containsExactly(globalGroup2, globalGroup3);
 
 		manager.logicallyRemoveGroup(globalGroup2);
-		assertThat(manager.getActiveGroups()).containsOnlyOnce(globalGroup3);
+		assertThat(manager.getActiveGroups()).containsExactly(globalGroup3);
 
 		manager.logicallyRemoveGroup(globalGroup3);
 		assertThat(manager.getActiveGroups()).isEmpty();
@@ -119,7 +97,6 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenMultipleGlobalGroupsWhenRemoveFromEndThenAllRemoved()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
 		manager.addUpdate(globalGroup2);
 		manager.addUpdate(globalGroup3);
@@ -139,8 +116,8 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddGroupWithAccentsThenCorrectlySaved()
 			throws Exception {
-
-		GlobalGroup groupWithAccents = new GlobalGroup("<é=e>", "<à=a>", Arrays.asList("<ç=c>"), null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup groupWithAccents = manager.create("<é=e>", "<à=a>", Arrays.asList("<ç=c>"), null,
+				GlobalGroupStatus.ACTIVE);
 
 		manager.addUpdate(groupWithAccents);
 
@@ -164,8 +141,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddSubGroupWithParentThatNotExistsThenException()
 			throws Exception {
-
-		globalGroup1 = new GlobalGroup("group1", "inexistentGroup", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "inexistentGroup", GlobalGroupStatus.ACTIVE);
 
 		try {
 			manager.addUpdate(globalGroup1);
@@ -179,9 +155,8 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenExistentGroupWhenUpdateSubGroupWithParentIsItselfThenException()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
-		globalGroup1 = new GlobalGroup("group1", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1", GlobalGroupStatus.ACTIVE);
 
 		assertThat(manager.getActiveGroups()).hasSize(1);
 		try {
@@ -197,11 +172,10 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddSubGroupWithParentIsItsChildThenException()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
 		manager.addUpdate(globalGroup1_1);
 
-		globalGroup1 = new GlobalGroup("group1", "group1_1", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = manager.create("group1", "group1_1", GlobalGroupStatus.ACTIVE);
 
 		try {
 			manager.addUpdate(globalGroup1);
@@ -215,54 +189,8 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenGetChidrenOfThenOk()
-			throws Exception {
-
-		manager.addUpdate(globalGroup1);
-		manager.addUpdate(globalGroup1_1);
-		manager.addUpdate(globalGroup1_2);
-		manager.addUpdate(globalGroup1_1_1);
-		manager.addUpdate(globalGroup2);
-		manager.addUpdate(globalGroup2_1);
-
-		assertThat(manager.getChildrenOf(globalGroup1_1_1.getCode())).isEmpty();
-		assertThat(manager.getChildrenOf(globalGroup1_1.getCode())).containsOnly(globalGroup1_1_1.getCode());
-		assertThat(manager.getChildrenOf(globalGroup1_2.getCode())).isEmpty();
-		assertThat(manager.getChildrenOf(globalGroup1.getCode()))
-				.containsOnly(globalGroup1_1.getCode(), globalGroup1_2.getCode());
-		assertThat(manager.getChildrenOf(globalGroup2_1.getCode())).isEmpty();
-		assertThat(manager.getChildrenOf(globalGroup2.getCode())).containsOnly(globalGroup2_1.getCode());
-
-	}
-
-	@Test
-	public void whenIsInHierarchyThenOk()
-			throws Exception {
-
-		manager.addUpdate(globalGroup1);
-		manager.addUpdate(globalGroup1_1);
-		manager.addUpdate(globalGroup1_2);
-		manager.addUpdate(globalGroup1_1_1);
-		manager.addUpdate(globalGroup2);
-		manager.addUpdate(globalGroup2_1);
-
-		assertThat(manager.isInHierarchy(globalGroup1.getCode(), globalGroup1_1.getCode())).isTrue();
-		assertThat(manager.isInHierarchy(globalGroup1.getCode(), globalGroup1_1_1.getCode())).isTrue();
-		assertThat(manager.isInHierarchy(globalGroup1.getCode(), globalGroup2.getCode())).isFalse();
-		assertThat(manager.isInHierarchy(globalGroup1.getCode(), globalGroup2_1.getCode())).isFalse();
-
-		assertThat(manager.isInHierarchy(globalGroup1_1.getCode(), globalGroup1_1_1.getCode())).isTrue();
-		assertThat(manager.isInHierarchy(globalGroup1_1.getCode(), globalGroup1.getCode())).isFalse();
-
-		assertThat(manager.isInHierarchy(globalGroup2.getCode(), globalGroup1_1_1.getCode())).isFalse();
-		assertThat(manager.isInHierarchy(globalGroup2.getCode(), globalGroup2_1.getCode())).isTrue();
-
-	}
-
-	@Test
 	public void whenRemoveThenRemoveChildren()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
 		manager.addUpdate(globalGroup1_1);
 		manager.addUpdate(globalGroup1_2);
@@ -291,7 +219,6 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenRemoveAndActiveThenActiveHierarchy()
 			throws Exception {
-
 		manager.addUpdate(globalGroup1);
 		manager.addUpdate(globalGroup1_1);
 		manager.addUpdate(globalGroup1_2);
@@ -300,7 +227,7 @@ public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(globalGroup2_1);
 
 		manager.logicallyRemoveGroup(globalGroup1);
-		manager.activeGlobalGroupHierarchy(globalGroup1);
+		manager.activateGlobalGroupHierarchy(globalGroup1);
 
 		assertThat(manager.getActiveGroups()).hasSize(6);
 		assertThat(manager.getAllGroups()).hasSize(6);

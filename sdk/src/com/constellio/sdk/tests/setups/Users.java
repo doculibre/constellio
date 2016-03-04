@@ -239,14 +239,15 @@ public class Users {
 		String email = (username + "@doculibre.com").toLowerCase();
 		List<String> globalGroups = Arrays.asList(groups);
 		List<String> collections = new ArrayList<>();
-		UserCredential credential = new UserCredential(username, firstName, lastName, email, globalGroups, collections,
-				UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null);
+		UserCredential credential = userServices.createUserCredential(
+				username, firstName, lastName, email, globalGroups, collections, UserCredentialStatus.ACTIVE, "domain",
+				Arrays.asList(""), null);
 		userServices.addUpdateUserCredential(credential);
 	}
 
 	private void addGroup(String code, String title, String parent) {
-		List<String> usersAutomaticallyAddedTocollections = new ArrayList<>();
-		GlobalGroup group = new GlobalGroup(code, title, usersAutomaticallyAddedTocollections, parent, GlobalGroupStatus.ACTIVE);
+		GlobalGroup group = userServices.createGlobalGroup(
+				code, title, new ArrayList<String>(), parent, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group);
 	}
 

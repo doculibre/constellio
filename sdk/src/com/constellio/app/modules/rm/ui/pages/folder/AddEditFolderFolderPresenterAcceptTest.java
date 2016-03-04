@@ -19,7 +19,7 @@ import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -88,7 +88,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	private void givenNewCustomFolderSchema()
-			throws OptimistickLocking {
+			throws OptimisticLocking {
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder typesBuilder = metadataSchemasManager.modify(zeCollection);
 		typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRcustom1");

@@ -172,7 +172,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInUserCredentialFile).doesNotContain("_system_");
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
-		assertThat(searchServices.getResultsCount(fromAllSchemasIn("_system_").returnAll())).isEqualTo(7);
+		assertThat(searchServices.getResultsCount(fromAllSchemasIn("_system_").returnAll())).isEqualTo(21);
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/authorizations.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/roles.xml")).isTrue();
