@@ -109,6 +109,25 @@ public class ApplicationStarter {
 		String keystorePath = new FoldersLocator().getKeystoreFile().getAbsolutePath();
 		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);
 		sslContextFactory.setKeyStorePassword(params.getKeystorePassword());
+		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2");
+		sslContextFactory.setExcludeCipherSuites(
+				"SSL_RSA_WITH_DES_CBC_SHA",
+				"SSL_DHE_RSA_WITH_DES_CBC_SHA",
+				"SSL_DHE_DSS_WITH_DES_CBC_SHA",
+				"SSL_RSA_EXPORT_WITH_RC4_40_MD5",
+				"SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
+				"SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA",
+				"SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
+				"SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
+				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
+				"TLS_DHE_DSS_WITH_AES_256_CBC_SHA256",
+				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+				"TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
+				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA256",
+				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA");
+
 		SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
 		connector.setPort(params.getPort());
 
