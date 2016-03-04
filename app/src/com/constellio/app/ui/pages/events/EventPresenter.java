@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -223,7 +224,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
 				view.navigateTo().displayDecommissioningList(recordId);
 			} else if (getEventType().contains("folder")) {
-				view.navigateTo().displayFolder(recordId);
+				view.navigate().to(RMViews.class).displayFolder(recordId);
 			} else if (getEventType().contains("document")) {
 				view.navigateTo().displayDocument(recordId);
 			} else {

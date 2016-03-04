@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -176,7 +177,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			String parentId = document.getFolder();
 			presenterUtils.delete(document.getWrappedRecord(), null);
 			if (parentId != null) {
-				actionsComponent.navigateTo().displayFolder(parentId);
+				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
 				actionsComponent.navigateTo().recordsManagement();
 			}

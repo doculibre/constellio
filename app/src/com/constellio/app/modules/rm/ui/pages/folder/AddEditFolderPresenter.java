@@ -14,6 +14,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
@@ -166,12 +167,12 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		if (addView) {
 			String parentId = folderVO.getParentFolder();
 			if (parentId != null) {
-				view.navigateTo().displayFolder(parentId);
+				view.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
 				view.navigateTo().recordsManagement();
 			}
 		} else {
-			view.navigateTo().displayFolder(folderVO.getId());
+			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 		}
 	}
 
@@ -187,7 +188,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 		record.setFormModifiedBy(getCurrentUser()).setFormModifiedOn(time);
 		addOrUpdate(record.getWrappedRecord());
-		view.navigateTo().displayFolder(record.getId());
+		view.navigate().to(RMViews.class).displayFolder(record.getId());
 	}
 
 	public void customFieldValueChanged(CustomFolderField<?> customField) {

@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.AuthorizationVO;
@@ -52,7 +53,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 
 	public void backButtonClicked(String schemaCode) {
 		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
-			view.navigateTo().displayFolder(recordId);
+			view.navigate().to(RMViews.class).displayFolder(recordId);
 		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
 			view.navigateTo().displayDocument(recordId);
 		}

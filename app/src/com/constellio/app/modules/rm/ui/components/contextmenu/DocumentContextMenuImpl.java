@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -241,6 +242,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
+	public Navigation navigate() {
+		return ConstellioUI.getCurrent().navigate();
+	}
+
+	@Override
 	public void showMessage(String message) {
 		Notification.show(message, Type.WARNING_MESSAGE);
 	}
@@ -373,5 +379,4 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, null);
 	}
-
 }

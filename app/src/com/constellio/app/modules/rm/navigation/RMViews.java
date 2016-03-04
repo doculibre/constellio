@@ -16,6 +16,10 @@ public class RMViews extends CoreViews {
 
 	// FOLDER MANAGEMENT
 
+	public void displayFolder(String id) {
+		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+	}
+
 	public void addFolder() {
 		addFolder(null, null);
 	}

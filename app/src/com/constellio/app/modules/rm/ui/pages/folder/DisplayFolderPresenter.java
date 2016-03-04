@@ -501,7 +501,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Record record = toRecord(folderVO);
 		delete(record, reason);
 		if (parentId != null) {
-			view.navigateTo().displayFolder(parentId);
+			view.navigate().to(RMViews.class).displayFolder(parentId);
 		} else {
 			view.navigateTo().recordsManagement();
 		}
@@ -516,7 +516,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void duplicateStructureButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		Folder duplicatedFolder = decommissioningService().duplicateStructureAndSave(folder);
-		view.navigateTo().displayFolder(duplicatedFolder.getId());
+		view.navigate().to(RMViews.class).displayFolder(duplicatedFolder.getId());
 		view.showMessage($("DisplayFolderView.duplicated"));
 	}
 
@@ -561,7 +561,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void subFolderClicked(RecordVO subFolderVO) {
-		view.navigateTo().displayFolder(subFolderVO.getId());
+		view.navigate().to(RMViews.class).displayFolder(subFolderVO.getId());
 	}
 
 	public void taskClicked(RecordVO taskVO) {
@@ -638,7 +638,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				borrowingServices
 						.borrowFolder(folderVO.getId(), borrowingDate, previewReturnDate, getCurrentUser(), borrowerEntered,
 								borrowingType);
-				view.navigateTo().displayFolder(folderVO.getId());
+				view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 				borrowed = true;
 			} catch (RecordServicesException e) {
 				LOGGER.error(e.getMessage(), e);
@@ -664,7 +664,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 		try {
 			borrowingServices.returnFolder(folderVO.getId(), getCurrentUser(), returnDate);
-			view.navigateTo().displayFolder(folderVO.getId());
+			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 			return true;
 		} catch (RecordServicesException e) {
 			view.showErrorMessage($("DisplayFolderView.cannotReturnFolder"));

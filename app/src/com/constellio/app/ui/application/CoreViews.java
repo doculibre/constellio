@@ -44,10 +44,6 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
-	public void displayFolder(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
-	}
-
 	public void addDocumentWithContent(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("idCopy", id);

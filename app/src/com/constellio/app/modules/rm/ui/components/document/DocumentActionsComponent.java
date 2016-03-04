@@ -4,13 +4,17 @@ import java.io.Serializable;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SessionContext;
 
 public interface DocumentActionsComponent extends Serializable {
 
+	@Deprecated
 	CoreViews navigateTo();
+
+	Navigation navigate();
 
 	void showMessage(String message);
 
