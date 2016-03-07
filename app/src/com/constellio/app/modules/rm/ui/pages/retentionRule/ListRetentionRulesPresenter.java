@@ -86,6 +86,6 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 	}
 
 	public void search(String freeText) {
-		view.navigateTo().retentionRulesSearch(freeText);
+		view.navigate().to(RMViews.class).retentionRuleSearch(freeText);
 	}
 }
