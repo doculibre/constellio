@@ -295,11 +295,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	@Override
-	public <T extends CoreViews> T navigateTo(Class<T> navigatorClass) {
-		return ConstellioUI.getCurrent().navigateTo(navigatorClass);
-	}
-
-	@Override
 	public Navigation navigate() {
 		return ConstellioUI.getCurrent().navigate();
 	}

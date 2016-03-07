@@ -2,7 +2,6 @@ package com.constellio.app.ui.pages.login;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -166,10 +165,4 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 	public void showBadLoginMessage() {
 		Notification.show($("LoginView.badLoginMessage"));
 	}
-
-	@Override
-	public CoreViews navigateTo() {
-		return ConstellioUI.getCurrent().navigateTo();
-	}
-
 }

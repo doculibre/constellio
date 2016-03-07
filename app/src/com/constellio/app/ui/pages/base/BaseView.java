@@ -26,8 +26,6 @@ public interface BaseView extends Serializable, SessionContextProvider {
 
 	List<ViewEnterListener> getViewEnterListeners();
 
-	<T extends CoreViews> T navigateTo(Class<T> navigatorClass);
-
 	Navigation navigate();
 
 	void updateUI();
