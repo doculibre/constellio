@@ -53,10 +53,13 @@ import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
+import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.tools.ServerThrowableContext;
 import com.constellio.app.ui.tools.vaadin.TestContainerButtonListener;
@@ -1308,6 +1311,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				getCurrentTestSession().getFileSystemTestFeatures());
 	}
 
+	private static Map<String, File> pluginsBundlesCache = new HashMap<>();
+
 	protected ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
 		ensureNotUnitTest();
 		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
@@ -1319,12 +1324,46 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throw new RuntimeException(e);
 		}
 
-//		if (!getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
+		((JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager()).registerPluginOnlyForTests(module);
+
+		//		if (!getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
 		//			getAppLayerFactory().getPluginManager().registerPluginOnlyForTests(module);
 		//		}
+
+		FoldersLocator foldersLocator = new FoldersLocator();
+		File constellioPlugins = foldersLocator.getPluginsRepository();
+		String moduleId = module.getId();
+		String bundleName = moduleId + "_i18n";
+
+		File value = pluginsBundlesCache.get(bundleName);
+		if (value == null && constellioPlugins.exists() && constellioPlugins.listFiles() != null) {
+			for (File subFolder : constellioPlugins.listFiles()) {
+				if (subFolder.getName().startsWith("plugin")) {
+					File resourcesFolder = new File(subFolder, moduleId + "_resources");
+					if (resourcesFolder.exists()) {
+						File i18nfolder = new File(resourcesFolder, "i18n");
+
+						if (new File(i18nfolder, bundleName + ".properties").exists()) {
+							value = i18nfolder;
+							break;
+						}
+					}
+				}
+			}
+		}
+		if (value != null) {
+			i18n.registerBundle(value, bundleName);
+		}
+
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
 
-		return new ModuleEnabler(module, collectionsListManager, constellioModulesManager);
+		if (module.isComplementary()) {
+			((ConstellioModulesManagerImpl) constellioModulesManager).enableComplementaryModules();
+		}
+
+		return new
+
+				ModuleEnabler(module, collectionsListManager, constellioModulesManager);
 	}
 
 	public static class ModuleEnabler {
@@ -1338,19 +1377,23 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			this.module = module;
 			this.collectionsListManager = collectionsListManager;
 			this.constellioModulesManager = constellioModulesManager;
+
 		}
 
 		public void enabledInEveryCollections() {
-			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-				enabledIn(collection);
+			if (!module.isComplementary()) {
+				for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+					enabledIn(collection);
+				}
 			}
 		}
 
 		public void enabledIn(String collection) {
-
-			constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
-
+			if (!module.isComplementary()) {
+				constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
+			}
 		}
+
 	}
 
 	public ToggleCondition onlyWhen(AvailableToggle toggle) {
