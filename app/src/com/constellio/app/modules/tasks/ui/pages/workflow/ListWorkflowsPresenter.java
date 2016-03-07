@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.ui.pages.workflow;
 
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -40,7 +41,7 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 	}
 
 	public void displayButtonClicked(RecordVO record) {
-		view.navigateTo().displayWorkflow(record.getId());
+		view.navigate().to(TaskViews.class).displayWorkflow(record.getId());
 	}
 
 	public void editButtonClicked(RecordVO record) {
@@ -49,7 +50,7 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 
 	public void deleteButtonClicked(RecordVO record) {
 		delete(toRecord(record), false);
-		view.navigateTo().listWorkflows();
+		view.navigate().to(TaskViews.class).listWorkflows();
 	}
 
 	@Override

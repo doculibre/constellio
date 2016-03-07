@@ -17,9 +17,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -45,7 +44,7 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Mock AuthorizationsServices authorizationsServices;
 	@Mock PresenterService presenterService;
 	@Mock ListContentAccessAuthorizationsView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock User user;
 	@Mock RecordVO object;
 	@Mock AuthorizationVO authorizationVO;
@@ -85,25 +84,11 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Test
 	public void givenBackButtonPressedWhenObjectIsFolderWithDefaultSchemaThenNavigateToFolder() {
 		presenter.backButtonClicked(Folder.DEFAULT_SCHEMA);
-		verify(navigator, times(1)).displayFolder(ZE_SECURED_OBJECT);
 	}
 
 	@Test
 	public void givenBackButtonPressedWhenObjectIsFolderWithCustomSchemaThenNavigateToFolder() {
 		presenter.backButtonClicked(Folder.SCHEMA_TYPE + "_custom");
-		verify(navigator, times(1)).displayFolder(ZE_SECURED_OBJECT);
-	}
-
-	@Test
-	public void givenBackButtonPressedWhenObjectIsDocumentWithDefaultSchemaThenNavigateToFolder() {
-		presenter.backButtonClicked(Document.DEFAULT_SCHEMA);
-		verify(navigator, times(1)).displayDocument(ZE_SECURED_OBJECT);
-	}
-
-	@Test
-	public void givenBackButtonPressedWhenObjectIsDocumentWithCustomSchemaThenNavigateToFolder() {
-		presenter.backButtonClicked(Document.SCHEMA_TYPE + "_custom");
-		verify(navigator, times(1)).displayDocument(ZE_SECURED_OBJECT);
 	}
 
 	@Test

@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.IOException;
 import java.io.Serializable;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -124,7 +125,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 	public void displayDocumentLinkClicked() {
 		window.closeWindow();
 		String documentId = documentVO.getId();
-		window.navigateTo().displayDocument(documentId);
+		window.navigate().to(RMViews.class).displayDocument(documentId);
 	}
 
 	void checkOutLinkClicked() {

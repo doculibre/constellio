@@ -109,7 +109,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		if (globalGroupVO.getCollections() != null) {
 			collections.addAll(globalGroupVO.getCollections());
 		}
-		GlobalGroup newGlobalGroup = new GlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
+		GlobalGroup newGlobalGroup = userServices.createGlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
 				collections, globalGroupVO.getParent(), globalGroupVO.getStatus());
 		return newGlobalGroup;
 	}

@@ -10,7 +10,7 @@ import org.mockito.Mock;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -23,7 +23,7 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "zeField_s";
 
 	@Mock SimpleSearchView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock LanguageDetectionManager detectionManager;
 	@Mock LogicalSearchQuery query;
 	@Mock Metadata metadata;

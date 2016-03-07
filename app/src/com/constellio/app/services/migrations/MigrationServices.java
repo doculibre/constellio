@@ -27,7 +27,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -194,7 +194,7 @@ public class MigrationServices {
 		new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(types);
 		try {
 			manager.saveUpdateSchemaTypes(types);
-		} catch (OptimistickLocking e) {
+		} catch (OptimisticLocking e) {
 			ensureSchemasHaveCommonMetadata(collection);
 		}
 	}

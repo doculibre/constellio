@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.navigation;
 
 import java.io.IOException;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -43,9 +44,9 @@ public class RMRecordNavigationHandler extends AbstractRecordNavigationHandler {
 	@Override
 	protected void navigateToView(String recordId, String schemaTypeCode) {
 		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			ConstellioUI.getCurrent().navigateTo().displayFolder(recordId);
+			ConstellioUI.getCurrent().navigate().to(RMViews.class).displayFolder(recordId);
 		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			ConstellioUI.getCurrent().navigateTo().displayDocument(recordId);
+			ConstellioUI.getCurrent().navigate().to(RMViews.class).displayDocument(recordId);
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			ConstellioUI.getCurrent().navigateTo().displayContainer(recordId);
 		} else if (RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {

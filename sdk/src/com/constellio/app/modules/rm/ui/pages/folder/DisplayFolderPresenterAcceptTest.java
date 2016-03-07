@@ -22,11 +22,12 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -53,7 +54,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	Users users = new Users();
 	@Mock DisplayFolderView displayFolderView;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock UserCredentialVO chuckCredentialVO;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
 	SearchServices searchServices;
@@ -108,7 +109,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void givenInvalidPreviewReturnDateThenDoNotBorrow()
 			throws Exception {
 
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 
 		presenter.borrowFolder(nowDate, nowDate.minusDays(1), rmRecords.getChuckNorris().getId(),
 				BorrowingType.BORROW, null);
@@ -130,7 +131,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void givenInvalidBorrowingDateThenDoNotBorrow()
 			throws Exception {
 
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 
 		presenter.borrowFolder(nowDate.plusDays(1), nowDate.plusDays(15), rmRecords.getChuckNorris().getId(),
 				BorrowingType.BORROW, null);
@@ -152,7 +153,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void givenInvalidUserThenDoNotBorrow()
 			throws Exception {
 
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 
 		presenter.borrowFolder(nowDate, nowDate.minusDays(1), null, BorrowingType.BORROW, null);
 
@@ -173,7 +174,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void whenBorrowFolderThenOk()
 			throws Exception {
 
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 
 		User chuck = rmRecords.getChuckNorris();
 
@@ -198,7 +199,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	//FIXME Ugly sleep
 	public void givenBorrowFolderWhenReturnItThenOk()
 			throws Exception {
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 		LocalDate borrowingLocalDate = nowDate;
 		presenter
 				.borrowFolder(borrowingLocalDate, nowDate, rmRecords.getChuckNorris().getId(),
@@ -239,7 +240,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void givenBorrowFolderWhenReturnItWithAInvalideReturnDateItThenDoNotReturnIt()
 			throws Exception {
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 		LocalDate borrowingDate = nowDate;
 		User chuck = rmRecords.getChuckNorris();
 		presenter.borrowFolder(nowDate, nowDate, chuck.getId(), BorrowingType.BORROW, null);
@@ -268,10 +269,10 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenRemovedPermissionToModifyBorrowedFolder(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
 
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
 		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
 		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible())
@@ -281,9 +282,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isFalse();
 
 		givenNoRemovedPermissionsToModifyBorrowedFolder();
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 
-		displayFolderView.navigateTo().displayFolder("C30");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C30");
 		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
 		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
 		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C30()).isVisible()).isTrue();
@@ -298,10 +299,10 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		presenter.forParams("C50");
 		givenRemovedPermissionToModifyBorrowedFolder(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
-		displayFolderView.navigateTo().displayFolder("C50");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
 
-		displayFolderView.navigateTo().displayFolder("C50");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
 		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
 		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
 		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible())
@@ -311,9 +312,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.getPrintButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isFalse();
 
 		givenNoRemovedPermissionsToModifyBorrowedFolder();
-		displayFolderView.navigateTo().displayFolder("C50");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
 
-		displayFolderView.navigateTo().displayFolder("C50");
+		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
 		assertThat(presenter.getDeleteButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
 		assertThat(presenter.getEditButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();
 		assertThat(presenter.getAddFolderButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_C50()).isVisible()).isTrue();

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsView.ContainersViewTab;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -112,7 +113,6 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().archivesManagement();
+		view.navigate().to(RMViews.class).archiveManagement();
 	}
-
 }

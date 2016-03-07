@@ -16,6 +16,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
@@ -231,15 +232,15 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
-				view.navigateTo().displayFolder(parentId);
+				view.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
-				view.navigateTo().recordsManagement();
+				view.navigate().to().home();
 			}
 		} else {
-			view.navigateTo().displayDocument(documentVO.getId());
+			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
 		}
 	}
-	
+
 	private void setAsNewVersionOfContent(Document document) {
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		Document documentBeforeChange = rmSchemasRecordsServices.getDocument(document.getId());
@@ -248,7 +249,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String filename = contentVersionVO.getFileName();
 		InputStream in = contentVersionVO.getInputStreamProvider().getInputStream("AddEditDocumentPresenter.saveButtonClicked");
 		boolean majorVersion = Boolean.TRUE.equals(contentVersionVO.isMajorVersion());
-		
+
 		ContentVersionDataSummary contentVersionSummary;
 		try {
 			contentVersionSummary = contentManager.upload(in, filename);
@@ -262,8 +263,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	public void saveButtonClicked() {
 		Record record = toRecord(documentVO, newFile);
 		Document document = rmSchemas().wrapDocument(record);
-		
-		boolean editWithUserDocument = !addView && userDocumentId != null; 
+
+		boolean editWithUserDocument = !addView && userDocumentId != null;
 		if (editWithUserDocument) {
 			setAsNewVersionOfContent(document);
 		}
@@ -303,7 +304,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			User userDocumentUser = userServices.getUserInCollection(currentUser.getUsername(), userDocumentCollection);
 			userDocumentPresenterUtils.delete(userDocumentRecord, null, userDocumentUser);
 		}
-		view.navigateTo().displayDocument(record.getId());
+		view.navigate().to(RMViews.class).displayDocument(record.getId());
 	}
 
 	private void setRecordContent(Record record, DocumentVO documentVO) {

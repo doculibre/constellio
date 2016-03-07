@@ -13,7 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -37,7 +37,7 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	SearchCriterionTestSetup setup = new SearchCriterionTestSetup(zeCollection);
 	CriterionTestRecord shortcuts = setup.getShortcuts();
 
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock private SavedSearchView view;
 
 	private SavedSearchPresenter presenter;
@@ -96,7 +96,7 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenDeletingRecordThenRecordDeleted()
 			throws Exception {
-		ConstellioNavigator navigator = mock(ConstellioNavigator.class);
+		CoreViews navigator = mock(CoreViews.class);
 		when(view.navigateTo()).thenReturn(navigator);
 
 		SavedSearch userSavedSearch1 = newSavedSearch(adminUser.getId(), false);

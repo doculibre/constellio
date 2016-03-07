@@ -295,15 +295,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public List<InstallableModule> getComplementaryModules() {
 		List<InstallableModule> complementaryModules = new ArrayList<>();
-		LOGGER.info("Complementary modules");
 		List<InstallableModule> allModules = getAllModules();
 		for (InstallableModule module : allModules) {
 
 			if (module.isComplementary()) {
-				LOGGER.info("Complementary " + module.getId());
 				complementaryModules.add(module);
 			} else {
-				LOGGER.info("Not complementary " + module.getId());
 			}
 		}
 		return complementaryModules;
@@ -353,7 +350,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 				constellioPluginManager.handleModuleNotStartedCorrectly(module, collection, e);
 				return false;
 			} else {
-				throw new ConstellioModulesManagerRuntimeException.FailedToStart((InstallableModule) module, e);
+				throw new ConstellioModulesManagerRuntimeException.FailedToStart((InstallableModule) module, collection, e);
 			}
 		}
 		return true;

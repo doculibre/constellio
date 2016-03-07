@@ -10,7 +10,7 @@ import java.net.URLEncoder;
 import org.junit.Before;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -24,7 +24,7 @@ public class ListUserCredentialsPresenterTest extends ConstellioTest {
 
 	@Mock ListUsersCredentialsView userView;
 	@Mock UserCredentialVO userCredentialVO;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 
 	@Before
 	public void setUp()

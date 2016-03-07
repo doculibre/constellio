@@ -7,6 +7,8 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.sdk.load.script.UserPreparator;
 
 public class DefaultUsersPreparator implements UserPreparator {
@@ -31,7 +33,7 @@ public class DefaultUsersPreparator implements UserPreparator {
 		for (int i = 0; i < groupsCount; i++) {
 			String code = "" + i;
 			String name = "Group '" + code + "'";
-			groups.add(new GlobalGroup(code, name, collections, null, GlobalGroupStatus.ACTIVE));
+			groups.add(new XmlGlobalGroup(code, name, collections, null, GlobalGroupStatus.ACTIVE));
 		}
 
 		return groups;
@@ -54,6 +56,6 @@ public class DefaultUsersPreparator implements UserPreparator {
 
 	private UserCredential newUser(String username, String firstName, String lastName, List<String> groups) {
 		String email = firstName + "." + lastName + "@constellio.com";
-		return new UserCredential(username, firstName, lastName, email, groups, collections, UserCredentialStatus.ACTIVE);
+		return new XmlUserCredential(username, firstName, lastName, email, groups, collections, UserCredentialStatus.ACTIVE);
 	}
 }

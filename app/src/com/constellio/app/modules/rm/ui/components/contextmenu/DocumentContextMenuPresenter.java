@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -40,7 +41,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 	}
 
 	public void displayDocumentButtonClicked() {
-		contextMenu.navigateTo().displayDocument(documentVO.getId());
+		contextMenu.navigate().to(RMViews.class).displayDocument(documentVO.getId());
 	}
 
 	public boolean openForRequested(String recordId) {

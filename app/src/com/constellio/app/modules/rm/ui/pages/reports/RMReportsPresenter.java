@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.reports;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationPlanReportViewImpl;
@@ -87,7 +88,7 @@ public class RMReportsPresenter extends BasePresenter<RMReportsView> implements 
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().archivesManagement();
+		view.navigate().to(RMViews.class).archiveManagement();
 	}
 
 	@Override

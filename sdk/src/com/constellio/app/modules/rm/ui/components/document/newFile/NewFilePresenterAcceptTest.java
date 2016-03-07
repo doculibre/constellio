@@ -21,7 +21,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.services.contents.ContentManager;
@@ -38,7 +38,7 @@ public class NewFilePresenterAcceptTest extends ConstellioTest {
 
 	Users users = new Users();
 	@Mock NewFileWindow view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock DocumentVO documentVO;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices schemasRecordsServices;

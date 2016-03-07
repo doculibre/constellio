@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListQueryFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
@@ -118,7 +119,7 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().archivesManagement();
+		view.navigate().to(RMViews.class).archiveManagement();
 	}
 
 	private LogicalSearchQuery getQueryForTab(String tabId) {

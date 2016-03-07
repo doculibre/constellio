@@ -142,9 +142,8 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential adminCredential = new UserCredential("admin", "System", "Admin", "admin@administration.com",
-				new ArrayList<String>(), asList(collectionCode),
-				UserCredentialStatus.ACTIVE).withSystemAdminPermission();
+		UserCredential adminCredential = userServices.createUserCredential("admin", "System", "Admin", "admin@administration.com",
+				new ArrayList<String>(), asList(collectionCode), UserCredentialStatus.ACTIVE).withSystemAdminPermission();
 		userServices.addUpdateUserCredential(adminCredential);
 		userServices.addUserToCollection(adminCredential, collectionCode);
 		User user = userServices.getUserRecordInCollection("admin", collectionCode);

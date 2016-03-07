@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.HashSet;
 
 import org.junit.Before;
@@ -17,7 +16,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -26,7 +25,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class AddEditCollectionPresenterWithRMModuleAcceptanceTest extends ConstellioTest {
 	@Mock
 	AddEditCollectionView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	AddEditCollectionPresenter presenter;
 	Record zeCollectionRecord;
 	private ConstellioModulesManager moduleManager;

@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentDecomDatesDynamicLocalDependency;
@@ -128,7 +129,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			addOrUpdate(record);
 			saveCategories(record.getId(), rule.getCategories());
 			saveUniformSubdivisions(record.getId(), rule.getUniformSubdivisions());
-			view.navigateTo().listRetentionRules();
+			view.navigate().to(RMViews.class).listRetentionRules();
 		} catch (ValidationRuntimeException e) {
 			view.showErrorMessage($(e.getValidationErrors()));
 		}
@@ -136,7 +137,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 	public void cancelButtonClicked() {
 		if (addView) {
-			view.navigateTo().listRetentionRules();
+			view.navigate().to(RMViews.class).listRetentionRules();
 		} else {
 			view.navigateTo().displayRetentionRule(rule.getId());
 		}

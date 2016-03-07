@@ -11,7 +11,7 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
@@ -87,8 +87,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	private void configureSystemAdmin(NavigationConfig config) {
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(CONFIG, CONFIG_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.configManagement();
+			public void activate(Navigation navigate) {
+				navigate.to().configManagement();
 			}
 
 			@Override
@@ -100,8 +100,8 @@ public class CoreNavigationConfiguration implements Serializable {
 
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(LDAP_CONFIG, LDAP_CONFIG_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.ldapConfigManagement();
+			public void activate(Navigation navigate) {
+				navigate.to().ldapConfigManagement();
 			}
 
 			@Override
@@ -112,8 +112,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(GROUPS, GROUPS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listGlobalGroups();
+			public void activate(Navigation navigate) {
+				navigate.to().listGlobalGroups();
 			}
 
 			@Override
@@ -124,8 +124,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(USERS, USERS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listUserCredentials();
+			public void activate(Navigation navigate) {
+				navigate.to().listUserCredentials();
 			}
 
 			@Override
@@ -136,8 +136,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(COLLECTIONS, COLLECTIONS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.manageCollections();
+			public void activate(Navigation navigate) {
+				navigate.to().manageCollections();
 			}
 
 			@Override
@@ -148,8 +148,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(PLUGINS, PLUGINS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.pluginManagement();
+			public void activate(Navigation navigate) {
+				navigate.to().pluginManagement();
 			}
 
 			@Override
@@ -160,8 +160,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(IMPORT_USERS, IMPORT_USERS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.importUsers();
+			public void activate(Navigation navigate) {
+				navigate.to().importUsers();
 			}
 
 			@Override
@@ -172,8 +172,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(IMPORT_GROUPS, IMPORT_GROUPS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.importGroups();
+			public void activate(Navigation navigate) {
+				navigate.to().importGroups();
 			}
 
 			@Override
@@ -184,8 +184,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(EXPORT, EXPORT_ICONS) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.exporter();
+			public void activate(Navigation navigate) {
+				navigate.to().exporter();
 			}
 
 			@Override
@@ -197,8 +197,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Inactive(BIG_DATA, BIG_DATA_ICON));
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(UPDATE_CENTER, UPDATE_CENTER_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.updateManager();
+			public void activate(Navigation navigate) {
+				navigate.to().updateManager();
 			}
 
 			@Override
@@ -212,8 +212,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	private void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TAXONOMIES, TAXONOMIES_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listTaxonomies();
+			public void activate(Navigation navigate) {
+				navigate.to().listTaxonomies();
 			}
 
 			@Override
@@ -223,8 +223,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(VALUE_DOMAINS, VALUE_DOMAINS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listValueDomains();
+			public void activate(Navigation navigate) {
+				navigate.to().listValueDomains();
 			}
 
 			@Override
@@ -234,8 +234,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(FACET_CONFIGURATION, FACET_CONFIGURATION_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listFacetConfiguration();
+			public void activate(Navigation navigate) {
+				navigate.to().listFacetConfiguration();
 			}
 
 			//TODO changer pour permission
@@ -247,8 +247,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(METADATA_SCHEMAS, METADATA_SCHEMAS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listSchemaTypes();
+			public void activate(Navigation navigate) {
+				navigate.to().listSchemaTypes();
 			}
 
 			@Override
@@ -258,8 +258,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SECURITY, SECURITY_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.collectionSecurity();
+			public void activate(Navigation navigate) {
+				navigate.to().collectionSecurity();
 			}
 
 			@Override
@@ -269,8 +269,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ROLES, ROLES_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.permissionManagement();
+			public void activate(Navigation navigate) {
+				navigate.to().permissionManagement();
 			}
 
 			@Override
@@ -280,8 +280,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(EMAIL_SERVER, EMAIL_SERVER_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.emailServerManagement();
+			public void activate(Navigation navigate) {
+				navigate.to().emailServerManagement();
 			}
 
 			@Override
@@ -291,8 +291,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(DATA_EXTRACTOR, DATA_EXTRACTOR_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listMetadataExtractors();
+			public void activate(Navigation navigate) {
+				navigate.to().listMetadataExtractors();
 			}
 
 			@Override
@@ -302,8 +302,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(IMPORT_RECORDS, IMPORT_RECORDS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.importRecords();
+			public void activate(Navigation navigate) {
+				navigate.to().importRecords();
 			}
 
 			@Override
@@ -313,8 +313,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(IMPORT_SCHEMA_TYPES, IMPORT_SCHEMA_TYPES_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.importSchemaTypes();
+			public void activate(Navigation navigate) {
+				navigate.to().importSchemaTypes();
 			}
 
 			@Override
@@ -324,8 +324,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(IMPORT_AUTHORIZATIONS, IMPORT_AUTHORIZATIONS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.importAuthorizations();
+			public void activate(Navigation navigate) {
+				navigate.to().importAuthorizations();
 			}
 
 			@Override
@@ -337,8 +337,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		config.add(AdminView.COLLECTION_SECTION,
 				new NavigationItem.Active(SEARCH_BOOST_BY_METADATA, SEARCH_BOOST_BY_METADATA_ICON) {
 					@Override
-					public void activate(ConstellioNavigator navigateTo) {
-						navigateTo.searchBoostByMetadatas();
+					public void activate(Navigation navigate) {
+						navigate.to().searchBoostByMetadatas();
 					}
 
 					@Override
@@ -348,8 +348,8 @@ public class CoreNavigationConfiguration implements Serializable {
 				});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(SEARCH_BOOST_BY_QUERY, SEARCH_BOOST_BY_QUERY_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.searchBoostByQuerys();
+			public void activate(Navigation navigate) {
+				navigate.to().searchBoostByQuerys();
 			}
 
 			@Override
@@ -364,8 +364,8 @@ public class CoreNavigationConfiguration implements Serializable {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(HOME, RecordsManagementViewGroup.class) {
 					@Override
-					public void activate(ConstellioNavigator navigateTo) {
-						navigateTo.home();
+					public void activate(Navigation navigate) {
+						navigate.to().home();
 					}
 
 					@Override
@@ -381,8 +381,8 @@ public class CoreNavigationConfiguration implements Serializable {
 
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(ADMIN_MODULE, AdminViewGroup.class) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.adminModule();
+			public void activate(Navigation navigate) {
+				navigate.to().adminModule();
 			}
 
 			@Override
@@ -392,7 +392,6 @@ public class CoreNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				// TODO: This must be done cleanly
 				List<String> permissions = new ArrayList<>();
 				permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
 				permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);

@@ -10,7 +10,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -44,7 +44,7 @@ public abstract class MetadataSchemasAlterationHelper {
 				LOGGER.warn(e.getMessage());
 			}
 			metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
-		} catch (OptimistickLocking e) {
+		} catch (OptimisticLocking e) {
 			migrate();
 		}
 	}

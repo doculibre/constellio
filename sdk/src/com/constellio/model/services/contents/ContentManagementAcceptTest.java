@@ -41,7 +41,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
@@ -58,6 +57,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
@@ -133,16 +133,17 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 					taxonomiesManager.addTaxonomy(taxonomy, metadataSchemasManager);
 					taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
-					getModelLayerFactory().newUserServices().addUpdateUserCredential(
-							new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
-									asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE, "domain", Arrays
-									.asList(""), null));
+					UserServices userServices = getModelLayerFactory().newUserServices();
+					userServices.addUpdateUserCredential(userServices.createUserCredential(
+							"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
+							asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""),
+							null));
 
-					getModelLayerFactory().newUserServices().addUpdateUserCredential(
-							new UserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
-									asList(zeCollection), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null));
+					userServices.addUpdateUserCredential(userServices.createUserCredential(
+							"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
+							asList(zeCollection), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null));
 
-					bob = spy(getModelLayerFactory().newUserServices().getUserInCollection("bob", zeCollection));
+					bob = spy(userServices.getUserInCollection("bob", zeCollection));
 					bob.setCollectionDeleteAccess(true);
 					recordServices.update(bob.getWrappedRecord());
 

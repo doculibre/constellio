@@ -7,18 +7,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -27,7 +23,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 
 public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConnectorInstanceView> {
-	private static Logger LOGGER = LoggerFactory.getLogger(DisplayConnectorInstancePresenter.class);
 	private RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 	private RecordVO recordVO;
 	private ConnectorInstance connectorInstance;
@@ -39,9 +34,6 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 
 	public DisplayConnectorInstancePresenter(DisplayConnectorInstanceView view) {
 		super(view);
-
-		ConstellioFactories constellioFactories = view.getConstellioFactories();
-		SessionContext sessionContext = view.getSessionContext();
 		initTransientObjects();
 	}
 
@@ -84,11 +76,11 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listConnectorInstances();
+		view.navigate().to(ESViews.class).listConnectorInstances();
 	}
 
 	public void editConnectorInstanceButtonClicked() {
-		view.navigateTo().editConnectorInstances(recordVO.getId());
+		view.navigateTo().editConnectorInstance(recordVO.getId());
 	}
 
 	public String getTitle() {

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -45,9 +46,9 @@ public class HomePresenter extends BasePresenter<HomeView> {
 			String schemaCode = record.getSchemaCode();
 			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
 			if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-				view.navigateTo().displayFolder(id);
+				view.navigate().to(RMViews.class).displayFolder(id);
 			} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-				view.navigateTo().displayDocument(id);
+				view.navigate().to(RMViews.class).displayDocument(id);
 			} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				view.navigateTo().displayContainer(id);
 			}
