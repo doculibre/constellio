@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.ui.builders.WorkflowToVoBuilder;
 import com.constellio.app.modules.tasks.ui.entities.WorkflowVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -58,10 +59,10 @@ public class AddEditWorkflowPresenter extends SingleSchemaBasePresenter<AddEditW
 	void saveButtonClicked() {
 		Record workflowRecord = toRecord(workflowVO);
 		addOrUpdate(workflowRecord);
-		view.navigateTo().displayWorkflow(workflowRecord.getId());
+		view.navigate().to(TaskViews.class).displayWorkflow(workflowRecord.getId());
 	}
 
 	void cancelButtonClicked() {
-		view.navigateTo().listWorkflows();
+		view.navigate().to(TaskViews.class).listWorkflows();
 	}
 }

@@ -163,7 +163,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String PLUGIN_MANAGEMENT = "pluginManagement";
 	public static final String EMAIL_SERVER_MANAGEMENT = "emailServerManagement";
 	public static final String REPORTS = "reports";
-	public static final String ARCHIVES_MANAGEMENT = "archivesManagement";
+	public static final String ARCHIVES_MANAGEMENT = "archiveManagement";
 	public static final String DECOMMISSIONING = "decommissioning";
 	public static final String DECOMMISSIONING_LIST_BUILDER = "decommissioningListBuilder";
 	public static final String DECOMMISSIONING_LIST_DISPLAY = "decommissioningList";
@@ -220,7 +220,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String EDIT_CONNECTOR_INSTANCE = "editConnectorInstance";
 	public static final String WIZARD_CONNECTOR_INSTANCE = "wizardConnectorInstance";
 	public static final String LIST_SAVED_SEARCHES = "listSavedSearches";
-	public static final String TASKS_MANAGEMENT = "tasksManagement";
+	public static final String TASK_MANAGEMENT = "taskManagement";
 	public static final String ADD_TASK = "addTask";
 	public static final String EDIT_TASK = "editTask";
 	public static final String DISPLAY_TASK = "displayTask";
@@ -406,7 +406,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(CONNECTOR_REPORT, ConnectorReportViewImpl.class));
 
 		//Tasks Module
-		viewProviders.add(new ClassBasedViewProvider(TASKS_MANAGEMENT, TaskManagementViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(TASK_MANAGEMENT, TaskManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EDIT_TASK, AddEditTaskViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_TASK, AddEditTaskViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DISPLAY_TASK, DisplayTaskViewImpl.class));

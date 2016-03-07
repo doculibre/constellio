@@ -21,7 +21,6 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenActiveDirectoryAuthenticationManagerWhenAuthenticatingValidLdapUsersWithValidCredentialsThenSuccess()
 			throws Exception {
-		//givenConfiguredToConnectOnTestActiveDirectory();
 		givenCollectionWithUsers("administrator");
 		saveValidLDAPConfig();
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
@@ -52,7 +51,6 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenActiveDirectoryAuthenticationManagerWhenAuthenticatingNonLdapUsersWithValidCredentialsThenFailure()
 			throws Exception {
-		//givenConfiguredToConnectOnTestActiveDirectory();
 		givenCollectionWithUsers("bob");
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
@@ -63,7 +61,6 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenActiveDirectoryAuthenticationManagerWhenAuthenticatingNonLdapAdminUserThenSuccess()
 			throws Exception {
-		//givenConfiguredToConnectOnTestActiveDirectory();
 		givenCollectionWithUsers("admin");
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
@@ -74,36 +71,19 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenActiveDirectoryAuthenticationManagerWhenAuthenticatingValidLdapUsersWithInvalidCredentialsThenFailure()
 			throws Exception {
-		//givenConfiguredToConnectOnTestActiveDirectory();
 		givenCollectionWithUsers("administrator");
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
 
 		boolean authenticated = authenticationService.authenticate("administrator", "bad_password");
 		assertThat(authenticated).isFalse();
-
 	}
-
-	/*private void givenConfiguredToConnectOnTestActiveDirectory() {
-		configure(new ModelLayerConfigurationAlteration() {
-			@Override
-			public void alter(ModelLayerConfiguration configuration) {
-				List<String> urls = LDAPTestConfig.getUrls();
-				List<String> domains = LDAPTestConfig.getDomains();
-				LDAPDirectoryType directoryType = LDAPTestConfig.getDirectoryType();
-				LDAPServerConfiguration serverConfig = new LDAPServerConfiguration(urls, domains, directoryType);
-
-				when(configuration.isLDAPAuthentication()).thenReturn(true);
-				when(configuration.getLDAPServerConfiguration()).thenReturn(serverConfig);
-			}
-		});
-	}*/
 
 	private void givenCollectionWithUsers(String... usernames) {
 		givenCollection(zeCollection);
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		for (String username : usernames) {
-			UserCredential userCredential = new UserCredential(username, "Inc", "Onnu", username + "@constellio.com",
-					new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE);
+			UserCredential userCredential = userServices.createUserCredential(username, "Inc", "Onnu",
+					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE);
 
 			userServices.addUpdateUserCredential(userCredential);
 		}

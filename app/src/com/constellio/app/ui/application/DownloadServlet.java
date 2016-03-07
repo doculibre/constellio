@@ -36,8 +36,12 @@ public class DownloadServlet extends HttpServlet {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), modelLayerFactory);
 		Document document = rm.wrapDocument(record);
 
-		if (document.isPublished()) {
-			ContentVersion version = document.getContent().getCurrentVersion();
+		if (document.isPublished() && document.getContent() != null) {
+			ContentVersion version = document.getContent().getLastMajorContentVersion();
+
+			if (version == null) {
+				version = document.getContent().getCurrentVersion();
+			}
 
 			InputStream inputStream = null;
 			try {

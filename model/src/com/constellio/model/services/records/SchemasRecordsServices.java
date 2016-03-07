@@ -18,6 +18,10 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
+import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -98,6 +102,102 @@ public class SchemasRecordsServices {
 	}
 
 	//
+
+	// User Credentials
+
+	public MetadataSchemaType credentialSchemaType() {
+		return getTypes().getSchemaType(SolrUserCredential.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema credentialSchema() {
+		return getTypes().getSchema(SolrUserCredential.DEFAULT_SCHEMA);
+	}
+
+	public Metadata credentialUsername() {
+		return credentialSchema().getMetadata(SolrUserCredential.USERNAME);
+	}
+
+	public Metadata credentialStatus() {
+		return credentialSchema().getMetadata(SolrUserCredential.STATUS);
+	}
+
+	public Metadata credentialCollections() {
+		return credentialSchema().getMetadata(SolrUserCredential.COLLECTIONS);
+	}
+
+	public Metadata credentialTokenKeys() {
+		return credentialSchema().getMetadata(SolrUserCredential.TOKEN_KEYS);
+	}
+
+	public Metadata credentialTokenExpirations() {
+		return credentialSchema().getMetadata(SolrUserCredential.TOKEN_EXPIRATIONS);
+	}
+
+	public Metadata credentialGroups() {
+		return credentialSchema().getMetadata(SolrUserCredential.GLOBAL_GROUPS);
+	}
+
+	public Metadata credentialServiceKey() {
+		return credentialSchema().getMetadata(SolrUserCredential.SERVICE_KEY);
+	}
+
+	public UserCredential newCredential() {
+		return new SolrUserCredential(create(credentialSchema()), getTypes());
+	}
+
+	public UserCredential wrapCredential(Record record) {
+		return new SolrUserCredential(record, getTypes());
+	}
+
+	public List<UserCredential> wrapCredentials(List<Record> records) {
+		List<UserCredential> result = new ArrayList<>(records.size());
+		for (Record record : records) {
+			result.add(wrapCredential(record));
+		}
+		return result;
+	}
+
+	// Global Groups
+
+	public MetadataSchemaType globalGroupSchemaType() {
+		return getTypes().getSchemaType(SolrGlobalGroup.SCHEMA_TYPE);
+	}
+
+	public MetadataSchema globalGroupSchema() {
+		return getTypes().getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
+	}
+
+	public Metadata globalGroupCode() {
+		return globalGroupSchema().getMetadata(SolrGlobalGroup.CODE);
+	}
+
+	public Metadata globalGroupHierarchy() {
+		return globalGroupSchema().getMetadata(SolrGlobalGroup.HIERARCHY);
+	}
+
+	public Metadata globalGroupStatus() {
+		return globalGroupSchema().getMetadata(SolrGlobalGroup.STATUS);
+	}
+
+	public Metadata globalGroupCollections() {
+		return globalGroupSchema().getMetadata(SolrGlobalGroup.COLLECTIONS);
+	}
+
+	public GlobalGroup newGlobalGroup() {
+		return new SolrGlobalGroup(create(globalGroupSchema()), getTypes());
+	}
+
+	public GlobalGroup wrapGlobalGroup(Record record) {
+		return new SolrGlobalGroup(record, getTypes());
+	}
+
+	public List<GlobalGroup> wrapGlobalGroups(List<Record> records) {
+		List<GlobalGroup> result = new ArrayList<>(records.size());
+		for (Record record : records) {
+			result.add(wrapGlobalGroup(record));
+		}
+		return result;
+	}
 
 	//Events
 

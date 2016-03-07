@@ -40,10 +40,10 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 		userCredentialsManager = getModelLayerFactory().getUserCredentialsManager();
 		services = getModelLayerFactory().newUserPhotosServices();
 
-		UserCredential user = new UserCredential("zeUser", "ze", "user", "ze.user@gmail.com", new ArrayList<String>(),
+		UserCredential user = userCredentialsManager.create("zeUser", "ze", "user", "ze.user@gmail.com", new ArrayList<String>(),
 				new ArrayList<String>(), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
-
 		userCredentialsManager.addUpdate(user);
+
 		zipService = getIOLayerFactory().newZipService();
 	}
 

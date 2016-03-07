@@ -178,7 +178,8 @@ public class LDAPUserSyncManager implements StatefulService {
 		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup e) {
 			usersAutomaticallyAddedToCollections = new HashSet<>();
 		}
-		return new GlobalGroup(code, name, new ArrayList<>(usersAutomaticallyAddedToCollections), null, GlobalGroupStatus.ACTIVE);
+		return userServices.createGlobalGroup(
+				code, name, new ArrayList<>(usersAutomaticallyAddedToCollections), null, GlobalGroupStatus.ACTIVE);
 	}
 
 	private UserCredential createUserCredentialsFromLdapUser(LDAPUser ldapUser, List<String> selectedCollectionsCodes) {
@@ -212,15 +213,16 @@ public class LDAPUserSyncManager implements StatefulService {
 		} else {
 			userStatus = UserCredentialStatus.DELETED;
 		}
-		UserCredential returnUserCredentials = new UserCredential(username, firstName, lastName, email, globalGroups,
-				new ArrayList<>(collections), userStatus, "", msExchDelegateListBL, ldapUser.getId());
+		UserCredential returnUserCredentials = userServices.createUserCredential(
+				username, firstName, lastName, email, globalGroups, new ArrayList<>(collections), userStatus, "",
+				msExchDelegateListBL, ldapUser.getId());
 
 		try {
 			UserCredential currentUserCredential = userServices.getUser(username);
 			if (currentUserCredential.isSystemAdmin()) {
 				returnUserCredentials = returnUserCredentials.withSystemAdminPermission();
 			}
-			returnUserCredentials = returnUserCredentials.withTokens(currentUserCredential.getTokens());
+			returnUserCredentials = returnUserCredentials.withAccessTokens(currentUserCredential.getAccessTokens());
 		} catch (UserServicesRuntimeException_NoSuchUser e) {
 			//OK
 		}

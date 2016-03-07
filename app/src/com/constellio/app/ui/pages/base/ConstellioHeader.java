@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 
 public interface ConstellioHeader extends Serializable {
@@ -26,7 +26,7 @@ public interface ConstellioHeader extends Serializable {
 
 	ConstellioHeader hideAdvancedSearchPopup();
 
-	ConstellioNavigator navigateTo();
+	CoreViews navigateTo();
 
 	String getCollection();
 

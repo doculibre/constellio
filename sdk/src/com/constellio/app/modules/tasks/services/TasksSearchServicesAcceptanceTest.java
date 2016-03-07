@@ -151,9 +151,8 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void addGroup(String groupCode) {
-		List<String> usersAutomaticallyAddedToCollections = new ArrayList<>();
-		GlobalGroup group = new GlobalGroup(groupCode, groupCode, usersAutomaticallyAddedToCollections, null,
-				GlobalGroupStatus.ACTIVE);
+		GlobalGroup group = userServices.createGlobalGroup(
+				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group);
 	}
 

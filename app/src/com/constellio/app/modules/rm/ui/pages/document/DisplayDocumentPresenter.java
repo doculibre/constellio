@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -20,6 +21,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -273,7 +275,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
-			view.navigateTo().displayDocument(document.getId());
+			view.navigate().to(RMViews.class).displayDocument(document.getId());
 		}
 	}
 
@@ -282,7 +284,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void taskClicked(RecordVO taskVO) {
-		view.navigateTo().displayTask(taskVO.getId());
+		view.navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
 	public void addToCartRequested() {
@@ -311,7 +313,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private void updateAndRefresh(Document document) {
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
-			view.navigateTo().displayDocument(document.getId());
+			view.navigate().to(RMViews.class).displayDocument(document.getId());
 		}
 	}
 }

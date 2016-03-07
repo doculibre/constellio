@@ -3,9 +3,6 @@ package com.constellio.model.entities.schemas;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 public class MetadataAccessRestriction {
 
 	final List<String> requiredReadRoles;
@@ -55,12 +52,34 @@ public class MetadataAccessRestriction {
 	}
 
 	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		MetadataAccessRestriction that = (MetadataAccessRestriction) o;
+
+		if (requiredReadRoles != null ? !requiredReadRoles.equals(that.requiredReadRoles) : that.requiredReadRoles != null)
+			return false;
+		if (requiredWriteRoles != null ? !requiredWriteRoles.equals(that.requiredWriteRoles) : that.requiredWriteRoles != null)
+			return false;
+		if (requiredModificationRoles != null ?
+				!requiredModificationRoles.equals(that.requiredModificationRoles) :
+				that.requiredModificationRoles != null)
+			return false;
+		return requiredDeleteRoles != null ?
+				requiredDeleteRoles.equals(that.requiredDeleteRoles) :
+				that.requiredDeleteRoles == null;
+
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+	public int hashCode() {
+		int result = requiredReadRoles != null ? requiredReadRoles.hashCode() : 0;
+		result = 31 * result + (requiredWriteRoles != null ? requiredWriteRoles.hashCode() : 0);
+		result = 31 * result + (requiredModificationRoles != null ? requiredModificationRoles.hashCode() : 0);
+		result = 31 * result + (requiredDeleteRoles != null ? requiredDeleteRoles.hashCode() : 0);
+		return result;
 	}
 }

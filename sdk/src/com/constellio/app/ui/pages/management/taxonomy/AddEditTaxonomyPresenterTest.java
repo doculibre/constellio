@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -25,7 +25,7 @@ import com.constellio.sdk.tests.MockedFactories;
 public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 	@Mock AddEditTaxonomyView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock ValueListServices valueListServices;
 	@Mock Taxonomy taxonomy1, taxonomy2, taxonomy3, taxonomy4, taxonomy5;
 	@Mock TaxonomiesManager taxonomiesManager;

@@ -304,7 +304,8 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		GlobalGroup group = new GlobalGroup("vilains", "Vilains", new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
+		GlobalGroup group = userServices.createGlobalGroup(
+				"vilains", "Vilains", new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(group);
 		userServices.setGlobalGroupUsers("vilains", asList(users.bob()));
 

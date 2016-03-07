@@ -3,8 +3,7 @@ package com.constellio.model.entities.security.global;
 import com.constellio.model.entities.EnumWithSmallCode;
 
 public enum UserCredentialStatus implements EnumWithSmallCode {
-
-	ACTIVE("a"), PENDING("p"), SUPENDED("s"), DELETED("d");
+	ACTIVE("a"), PENDING("p"), SUSPENDED("s"), DELETED("d");
 
 	private String code;
 

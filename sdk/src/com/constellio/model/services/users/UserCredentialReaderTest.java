@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -75,12 +76,12 @@ public class UserCredentialReaderTest extends ConstellioTest {
 		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
 		endDateTime = new LocalDateTime(2014, 11, 04, 10, 30);
 		tokens.put("token1", endDateTime);
-		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", "serviceKeyChuck", false,
+		chuckUserCredential = new XmlUserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", "serviceKeyChuck", false,
 				asList("group1"), asList(zeCollection), tokens, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, "chuckDN");
 	}
 
 	private void newEdouardUserCredential() {
-		edouardUserCredential = new UserCredential("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com",
+		edouardUserCredential = new XmlUserCredential("edouard", "Edouard", "Lechat", "edouard.lechat@gmail.com",
 				asList("group1"), asList("collection1"), UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
 	}
 }

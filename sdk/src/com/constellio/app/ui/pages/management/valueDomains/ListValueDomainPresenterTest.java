@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -25,7 +25,7 @@ import com.constellio.sdk.tests.MockedFactories;
 public class ListValueDomainPresenterTest extends ConstellioTest {
 
 	@Mock ListValueDomainViewImpl view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock ValueListServices valueListServices;
 	@Mock MetadataSchemaType valueDomainType1;
 	@Mock MetadataSchemaTypeToVOBuilder metadataSchemaTypeToVOBuilder;

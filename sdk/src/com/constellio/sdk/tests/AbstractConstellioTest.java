@@ -1319,9 +1319,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throw new RuntimeException(e);
 		}
 
-//		if (!getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
-		//			getAppLayerFactory().getPluginManager().registerModule(module);
-		//		}
+		if (!getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
+			getAppLayerFactory().getPluginManager().registerModule(module);
+		}
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
 
 		return new ModuleEnabler(module, collectionsListManager, constellioModulesManager);
@@ -1341,7 +1341,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 
 		public void enabledInEveryCollections() {
-			for (String collection : collectionsListManager.getCollections()) {
+			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				enabledIn(collection);
 			}
 		}

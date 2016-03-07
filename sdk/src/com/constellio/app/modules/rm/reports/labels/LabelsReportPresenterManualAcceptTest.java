@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.jdom2.Document;
 import org.jdom2.input.SAXBuilder;
 import org.junit.Before;
@@ -16,6 +15,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
+import com.constellio.app.modules.rm.reports.model.labels.ImageLabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
@@ -27,6 +27,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
 @SlowTest
 public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFramework {
@@ -87,8 +88,8 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportField idField = fields.get(1);
 		//		LabelsReportField referenceIdField = getReferenceField("                                                    A01");
 		//		assertThat(idField).isEqualToComparingOnlyGivenFields(referenceIdField, labelReportFieldsToCheck);
-		LabelsReportField referenceIdField = getReferenceField("A01");
-		assertThat(idField).isEqualToComparingOnlyGivenFields(referenceIdField, labelReportFieldsToCheck);
+		assertThat(idField).isInstanceOf(ImageLabelsReportField.class);
+		assertThat(idField.getValue()).endsWith(".png");
 
 		LabelsReportField titleField = fields.get(2);
 		LabelsReportField referenceTitleField = getReferenceField("Abeille");
@@ -138,8 +139,8 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 	private void checkFolderA01RightFolder5159Model(List<LabelsReportField> fields) {
 		assertThat(fields.size()).isEqualTo(5);
 		LabelsReportField idField = fields.get(0);
-		LabelsReportField referenceIdField = getReferenceField("A01");
-		assertThat(idField).isEqualToComparingOnlyGivenFields(referenceIdField, labelReportFieldsToCheck);
+		assertThat(idField).isInstanceOf(ImageLabelsReportField.class);
+		assertThat(idField.getValue()).endsWith(".png");
 
 		LabelsReportField categoryCodeField = fields.get(1);
 		//		LabelsReportField referenceCategoryCodeField = getReferenceField(

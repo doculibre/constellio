@@ -9,7 +9,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -37,7 +37,7 @@ public class MetadataSchemaTypesAcceptanceTest extends ConstellioTest {
 
 	//
 	private void initTestData()
-			throws OptimistickLocking {
+			throws OptimisticLocking {
 		MetadataSchemaTypesBuilder schemaTypesBuilder = schemaManager
 				.modify(zeCollection);
 		MetadataSchemaTypeBuilder folderSchemaType = schemaTypesBuilder.getSchemaType(Folder.SCHEMA_TYPE);

@@ -17,7 +17,7 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -29,7 +29,7 @@ import com.constellio.sdk.tests.setups.Users;
 public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
 	@Mock DisplayConnectorInstanceView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock RecordVO recordVO;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConnectorManager connectorManager;
@@ -122,7 +122,7 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		presenter.forParams(connectorInstance.getId());
 		presenter.editConnectorInstanceButtonClicked();
 
-		verify(view.navigateTo()).editConnectorInstances(connectorInstance.getId());
+		verify(view.navigateTo()).editConnectorInstance(connectorInstance.getId());
 	}
 
 	@Test

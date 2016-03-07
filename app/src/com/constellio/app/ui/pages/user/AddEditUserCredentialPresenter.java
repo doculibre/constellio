@@ -171,10 +171,9 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		}
 		UserCredentialStatus status = userCredentialVO.getStatus();
 		String domain = userCredentialVO.getDomain();
-		UserCredential newUserCredential = new UserCredential(userCredentialVO.getUsername(), userCredentialVO.getFirstName(),
+		return userServices.createUserCredential(userCredentialVO.getUsername(), userCredentialVO.getFirstName(),
 				userCredentialVO.getLastName(), userCredentialVO.getEmail(), userCredentialVO.getServiceKey(),
 				userCredentialVO.isSystemAdmin(), globalGroups, collections, tokens, status, domain, Arrays.asList(""), null);
-		return newUserCredential;
 	}
 
 	public void cancelButtonClicked() {

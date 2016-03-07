@@ -64,7 +64,7 @@ public class NavigatePage extends PageHelper {
 	}
 
 	public ConstellioWebElement getArchivesManagementButton() {
-		return driver.findElement(By.className("archivesManagement"));
+		return driver.findElement(By.className("archiveManagement"));
 	}
 
 	public ConstellioWebElement getRecordsManagementButton() {

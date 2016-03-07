@@ -172,8 +172,8 @@ public class UserCredentialsWriter {
 			collectionsElement.addContent(collectionElement);
 		}
 		Element tokensElement = new Element(TOKENS);
-		if (userCredential.getTokens() != null) {
-			for (Map.Entry<String, LocalDateTime> token : userCredential.getTokens().entrySet()) {
+		if (userCredential.getAccessTokens() != null) {
+			for (Map.Entry<String, LocalDateTime> token : userCredential.getAccessTokens().entrySet()) {
 				String encryptedKey = encryptionServicesFactory.get().encrypt(token.getKey());
 				Element tokenElement = new Element(TOKEN);
 				Element tokenIdElement = new Element(TOKEN_ID).setText(encryptedKey);

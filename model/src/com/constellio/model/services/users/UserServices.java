@@ -1,9 +1,9 @@
 package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +39,6 @@ import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
@@ -87,6 +86,35 @@ public class UserServices {
 		this.rolesManager = rolesManager;
 	}
 
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			List<String> globalGroups, List<String> collections, UserCredentialStatus status) {
+		return userCredentialsManager.create(username, firstName, lastName, email, globalGroups, collections, status);
+	}
+
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			List<String> globalGroups, List<String> collections, UserCredentialStatus status, String domain,
+			List<String> msExchDelegateListBL, String dn) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, globalGroups, collections, status, domain, msExchDelegateListBL, dn);
+	}
+
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			String serviceKey,
+			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+			UserCredentialStatus status) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status);
+	}
+
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+			String dn) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status, domain,
+				msExchDelegateListBL, dn);
+	}
+
 	public void addUpdateUserCredential(UserCredential userCredential) {
 		validateAdminIsActive(userCredential);
 		UserCredential savedUserCredential = userCredential;
@@ -101,6 +129,11 @@ public class UserServices {
 		}
 		userCredentialsManager.addUpdate(savedUserCredential);
 		sync(savedUserCredential);
+	}
+
+	public GlobalGroup createGlobalGroup(
+			String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
+		return globalGroupsManager.create(code, name, collections, parent, status);
 	}
 
 	public void addUpdateGlobalGroup(GlobalGroup globalGroup) {
@@ -124,20 +157,18 @@ public class UserServices {
 	}
 
 	public void addUserToCollection(UserCredential userCredential, String collection) {
-		UserCredential latestCrendential = getUser(userCredential.getUsername());
-		UserCredential userWithCollection = latestCrendential.withNewCollection(collection);
-		if (userWithCollection != latestCrendential) {
+		if (!userCredential.getCollections().contains(collection)) {
 			try {
-				addUpdateUserCredential(userWithCollection);
+				addUpdateUserCredential(userCredential.withNewCollection(collection));
 			} catch (UserServicesRuntimeException_CannotExcuteTransaction e) {
 				// Revert change in XML config
-				userCredentialsManager.addUpdate(latestCrendential);
+				userCredentialsManager.addUpdate(userCredential.withRemovedCollection(collection));
 				throw e;
 			}
 		} else {
 			// This apparently redundant sync allows to add a user to a collection
 			// in case the user credential configuration file and the solr state are out of sync
-			sync(userWithCollection);
+			sync(userCredential);
 		}
 	}
 
@@ -247,7 +278,7 @@ public class UserServices {
 	private void activateGlobalGroupHierarchyWithoutUserValidation(GlobalGroup globalGroup) {
 		List<String> collections = collectionsListManager.getCollections();
 		restoreGroupHierarchyInBigVault(globalGroup.getCode(), collections);
-		globalGroupsManager.activeGlobalGroupHierarchy(globalGroup);
+		globalGroupsManager.activateGlobalGroupHierarchy(globalGroup);
 	}
 
 	public void removeUserCredentialAndUser(UserCredential userCredential) {
@@ -263,7 +294,7 @@ public class UserServices {
 
 	public void suspendUserCredentialAndUser(UserCredential userCredential) {
 
-		userCredential = userCredential.withStatus(UserCredentialStatus.SUPENDED);
+		userCredential = userCredential.withStatus(UserCredentialStatus.SUSPENDED);
 		addUpdateUserCredential(userCredential);
 	}
 
@@ -515,11 +546,11 @@ public class UserServices {
 	}
 
 	private OngoingLogicalSearchCondition fromUsersIn(String collection) {
-		return LogicalSearchQueryOperators.from(userSchema(collection));
+		return from(userSchema(collection));
 	}
 
 	private OngoingLogicalSearchCondition fromGroupsIn(String collection) {
-		return LogicalSearchQueryOperators.from(groupSchema(collection));
+		return from(groupSchema(collection));
 	}
 
 	private MetadataSchemaTypes schemaTypes(String collection) {
@@ -583,13 +614,13 @@ public class UserServices {
 
 	OngoingLogicalSearchCondition allGroups(MetadataSchemaTypes types) {
 		MetadataSchema groupSchema = types.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
-		return LogicalSearchQueryOperators.from(groupSchema);
+		return from(groupSchema);
 	}
 
 	OngoingLogicalSearchConditionWithDataStoreFields allGroupsWhereGlobalGroupFlag(MetadataSchemaTypes types) {
 		MetadataSchema groupSchema = types.getSchemaType(Group.SCHEMA_TYPE).getDefaultSchema();
 		Metadata isGlobalGroup = groupSchema.getMetadata(Group.IS_GLOBAL);
-		return LogicalSearchQueryOperators.from(groupSchema).where(isGlobalGroup);
+		return from(groupSchema).where(isGlobalGroup);
 	}
 
 	private void syncUsersCredentials(List<UserCredential> users) {
@@ -600,12 +631,10 @@ public class UserServices {
 	}
 
 	private void removeFromBigVault(String group, List<String> collections) {
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition condition;
 		for (String collection : collections) {
-			condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection).where(groupCodeMetadata(collection))
-					.isEqualTo(group);
-			query.setCondition(condition);
+			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+			LogicalSearchCondition condition = from(types.getSchemaType(Group.SCHEMA_TYPE))
+					.where(groupCodeMetadata(collection)).isEqualTo(group);
 			Record recordGroup = searchServices.searchSingleResult(condition);
 			recordServices.logicallyDelete(recordGroup, User.GOD);
 		}
@@ -644,7 +673,7 @@ public class UserServices {
 	public String getToken(String serviceKey, String token) {
 		if (userCredentialsManager.getServiceKeyByToken(token) != null) {
 			userCredentialsManager.removeToken(token);
-			String username = userCredentialsManager.getUserCredentialByServiceKey(serviceKey);
+			String username = userCredentialsManager.getUsernameByServiceKey(serviceKey);
 			String newToken = generateToken(username);
 			return newToken;
 		} else {
@@ -654,22 +683,18 @@ public class UserServices {
 
 	public String generateToken(String username) {
 		String token = UUID.randomUUID().toString();
-		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
-		tokens.put(token, TimeProvider.getLocalDateTime().plus(modelLayerConfiguration.getTokenDuration()));
-		UserCredential userCredential = getUser(username).withTokens(tokens);
+		LocalDateTime expiry = TimeProvider.getLocalDateTime().plus(modelLayerConfiguration.getTokenDuration());
+		UserCredential userCredential = getUser(username).withAccessToken(token, expiry);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;
 	}
 
 	public String generateToken(String username, String unitTime, int duration) {
 		String token = UUID.randomUUID().toString();
-		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
-		if (unitTime.equals("hours")) {
-			tokens.put(token, TimeProvider.getLocalDateTime().plusHours(duration));
-		} else {
-			tokens.put(token, TimeProvider.getLocalDateTime().plusDays(duration));
-		}
-		UserCredential userCredential = getUser(username).withTokens(tokens);
+		LocalDateTime expiry = unitTime.equals("hours") ?
+				TimeProvider.getLocalDateTime().plusHours(duration) :
+				TimeProvider.getLocalDateTime().plusDays(duration);
+		UserCredential userCredential = getUser(username).withAccessToken(token, expiry);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;
 	}
@@ -685,7 +710,7 @@ public class UserServices {
 		if (retrivedServiceKey == null || !retrivedServiceKey.equals(serviceKey)) {
 			throw new UserServicesRuntimeException_InvalidToken();
 		}
-		return userCredentialsManager.getUserCredentialByServiceKey(serviceKey);
+		return userCredentialsManager.getUsernameByServiceKey(serviceKey);
 	}
 
 	public String getServiceKeyByToken(String token) {
@@ -702,7 +727,7 @@ public class UserServices {
 	}
 
 	public String getUserCredentialByServiceKey(String serviceKey) {
-		return userCredentialsManager.getUserCredentialByServiceKey(serviceKey);
+		return userCredentialsManager.getUsernameByServiceKey(serviceKey);
 	}
 
 	public UserCredential getUserCredential(String username) {
@@ -720,7 +745,7 @@ public class UserServices {
 	public List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
 		String parentId = getGroupIdInCollection(groupParentCode, collection);
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(groupSchema(collection))
+		LogicalSearchCondition condition = from(groupSchema(collection))
 				.where(groupParentMetadata(collection))
 				.is(parentId).andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(condition);

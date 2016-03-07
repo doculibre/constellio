@@ -16,7 +16,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -30,7 +30,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 
 public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 	@Mock DisplayContainerView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private DisplayContainerPresenter presenter;

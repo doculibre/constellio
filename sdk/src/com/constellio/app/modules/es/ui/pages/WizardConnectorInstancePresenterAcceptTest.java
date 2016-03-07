@@ -2,7 +2,6 @@ package com.constellio.app.modules.es.ui.pages;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.model.entities.schemas.Schemas;
@@ -33,7 +32,7 @@ import com.constellio.sdk.tests.setups.Users;
 public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
 	@Mock WizardConnectorInstanceView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock RecordVO recordVO;
 	Users users = new Users();
 	ConnectorManager connectorManager;
@@ -133,15 +132,6 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 		}
 
 		assertThat(titles).containsOnly("Connecteur HTTP", "Connecteur SMB", "Connecteur LDAP");
-	}
-
-	@Test
-	public void whenBackButtonClickedThenNavigateToList()
-			throws Exception {
-
-		presenter.backButtonClicked();
-
-		verify(view.navigateTo()).listConnectorInstances();
 	}
 
 	@Test

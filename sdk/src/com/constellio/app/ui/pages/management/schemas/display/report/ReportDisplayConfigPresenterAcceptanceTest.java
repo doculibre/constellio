@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.reports.model.search.ReportTestUtils;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.entities.UserVO;
@@ -41,7 +41,7 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	@Mock
 	UserVO currentUser;
 	@Mock
-	ConstellioNavigator navigator;
+	CoreViews navigator;
 	private String zeReportTitle = "report title";
 	private ReportServices reportServices;
 

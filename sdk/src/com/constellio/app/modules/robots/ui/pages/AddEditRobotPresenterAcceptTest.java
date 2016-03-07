@@ -37,7 +37,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.robots.model.services.RobotsService;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
@@ -59,7 +59,7 @@ import com.constellio.sdk.tests.setups.Users;
  */
 public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock AddEditRobotView view;
 	RobotsService robotsService;
 	AddEditRobotPresenter presenter;

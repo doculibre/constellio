@@ -46,6 +46,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -54,6 +55,7 @@ import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.UserServices;
 
 public class CollectionsManager implements StatefulService {
 
@@ -85,10 +87,9 @@ public class CollectionsManager implements StatefulService {
 
 	@Override
 	public void initialize() {
-		// No initialization required.
 		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
 			createSystemCollection();
-
+			initializeSystemCollection();
 			if (modelLayerFactory.newUserServices().getUserCredential("admin") == null) {
 				createAdminUser();
 			}
@@ -99,6 +100,12 @@ public class CollectionsManager implements StatefulService {
 		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		List<String> languages = asList(mainDataLanguage);
 		createCollectionInCurrentVersion(Collection.SYSTEM_COLLECTION, languages);
+	}
+
+	private void initializeSystemCollection() {
+		for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
+			listener.systemCollectionCreated();
+		}
 	}
 
 	private void createAdminUser() {
@@ -114,9 +121,11 @@ public class CollectionsManager implements StatefulService {
 		List<String> collections = new ArrayList<>();
 		boolean isSystemAdmin = true;
 
-		UserCredential adminCredentials = new UserCredential(username, firstName, lastName, email, serviceKey, isSystemAdmin,
-				globalGroups, collections, new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
-		modelLayerFactory.newUserServices().addUpdateUserCredential(adminCredentials);
+		UserServices userServices = modelLayerFactory.newUserServices();
+		UserCredential adminCredentials = userServices.createUserCredential(
+				username, firstName, lastName, email, serviceKey, isSystemAdmin, globalGroups, collections,
+				new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
+		userServices.addUpdateUserCredential(adminCredentials);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		if (authenticationService.supportPasswordChange()) {
 			authenticationService.changePassword("admin", password);
@@ -291,7 +300,9 @@ public class CollectionsManager implements StatefulService {
 
 	private Record crateCollectionAfterPrepare(String code, String name, List<String> languages) {
 		Record collectionRecord = createCollectionRecordWithCode(code, name, languages);
-		addGlobalGroupsInCollection(code);
+		if (!code.equals(Collection.SYSTEM_COLLECTION)) {
+			addGlobalGroupsInCollection(code);
+		}
 		initializeCollection(code);
 		return collectionRecord;
 	}

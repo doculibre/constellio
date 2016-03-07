@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
-import com.constellio.data.io.EncodingService;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationServiceRuntimeException.IncorrectPassword;
@@ -97,9 +96,9 @@ public class PasswordFileAuthenticationService implements AuthenticationService 
 	private String getPasswordHash(String username) {
 		PropertiesConfiguration propertiesConfiguration = configManager.getProperties(AUTHENTIFICATION_PROPERTIES);
 		Map<String, String> properties = propertiesConfiguration.getProperties();
-		String usernameKey = UserUtils.toCacheKey(username);
+		String usernameKey = UserUtils.cleanUsername(username);
 		for (Entry<String, String> entry : properties.entrySet()) {
-			String entryKey = UserUtils.toCacheKey(entry.getKey());
+			String entryKey = UserUtils.cleanUsername(entry.getKey());
 			if (entryKey.equals(usernameKey)) {
 				return entry.getValue();
 			}

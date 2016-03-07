@@ -25,7 +25,6 @@ import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObser
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
@@ -37,7 +36,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -171,7 +170,7 @@ public class ConnectorManager implements StatefulService {
 
 		try {
 			metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
 		}
 
@@ -259,7 +258,7 @@ public class ConnectorManager implements StatefulService {
 			connector.onAllDocumentsDeleted();
 			connectorInstance.setTraversalCode(null);
 			recordServices.update(connectorInstance.getWrappedRecord());
-		} catch (OptimisticLocking optimisticLocking) {
+		} catch (com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking optimisticLocking) {
 			throw new RuntimeException(optimisticLocking);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);

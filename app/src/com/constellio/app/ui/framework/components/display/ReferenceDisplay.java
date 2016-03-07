@@ -8,7 +8,6 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEven
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.NavigationParams;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
@@ -115,12 +114,12 @@ public class ReferenceDisplay extends Button {
 		NavigationParams navigationParams = null;
 		if (recordVO != null) {
 			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordVO.getSchema().getCode());
-			navigationParams = new NavigationParams(ui.navigateTo(), recordVO, schemaTypeCode, Page.getCurrent(),
+			navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(),
 					this);
 		} else if (recordId != null) {
 			Record record = recordServices.getDocumentById(recordId);
 			String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-			navigationParams = new NavigationParams(ui.navigateTo(), recordId, schemaTypeCode, Page.getCurrent(),
+			navigationParams = new NavigationParams(ui.navigate(), recordId, schemaTypeCode, Page.getCurrent(),
 					this);
 		}
 		if (navigationParams != null) {

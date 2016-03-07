@@ -2,6 +2,7 @@ package com.constellio.app.ui.application;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
 import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -285,8 +287,20 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		return service.getDeploymentConfiguration().isProductionMode();
 	}
 
-	public ConstellioNavigator navigateTo() {
-		return new ConstellioNavigator(getNavigator());
+	public Navigation navigate() {
+		return new Navigation();
+	}
+
+	public CoreViews navigateTo() {
+		return navigateTo(CoreViews.class);
+	}
+
+	public <T extends CoreViews> T navigateTo(Class<T> navigatorClass) {
+		try {
+			return navigatorClass.getConstructor(Navigator.class).newInstance(getNavigator());
+		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+			throw new ImpossibleRuntimeException("The navigator does not provide a valid constructor");
+		}
 	}
 
 	public void addRecordContextMenuHandler(RecordContextMenuHandler recordContextMenuHandler) {
@@ -305,4 +319,17 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		return (ConstellioUI) UI.getCurrent();
 	}
 
+	public class Navigation {
+		public CoreViews to() {
+			return to(CoreViews.class);
+		}
+
+		public <T extends CoreViews> T to(Class<T> navigatorClass) {
+			try {
+				return navigatorClass.getConstructor(Navigator.class).newInstance(getNavigator());
+			} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+				throw new ImpossibleRuntimeException("The navigator does not provide a valid constructor");
+			}
+		}
+	}
 }
