@@ -243,7 +243,7 @@ public class FactoriesTestFeatures {
 						@Override
 						public <T> T decorate(T service) {
 
-							if (ConstellioPluginManager.class.isAssignableFrom(service.getClass())) {
+							if (service!=null && ConstellioPluginManager.class.isAssignableFrom(service.getClass())) {
 								return spy(service);
 							} else {
 
