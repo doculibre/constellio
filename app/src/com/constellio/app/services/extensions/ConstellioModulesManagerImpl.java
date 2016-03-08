@@ -121,12 +121,16 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	public List<InstallableModule> getRequiredDependentModulesToInstall(String collection) {
 		Set<String> dependentModuleIds = new HashSet<>();
 
-		for (InstallableModule module : getEnabledModules(collection)) {
-			dependentModuleIds.addAll(module.getDependencies());
+		for (InstallableModule module : getBuiltinModules()) {
+			if (isModuleEnabled(collection, module)) {
+				dependentModuleIds.addAll(module.getDependencies());
+			}
 		}
 
-		for (InstallableModule module : getEnabledModules(collection)) {
-			dependentModuleIds.remove(module.getId());
+		for (InstallableModule module : getBuiltinModules()) {
+			if (isModuleEnabled(collection, module)) {
+				dependentModuleIds.remove(module.getId());
+			}
 		}
 
 		List<InstallableModule> dependentModules = new ArrayList<>();
