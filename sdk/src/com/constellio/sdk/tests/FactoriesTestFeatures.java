@@ -171,7 +171,7 @@ public class FactoriesTestFeatures {
 			setupPropertiesContent.append("admin.password=password\n");
 			File setupProperties = fileSystemTestFeatures.newTempFileWithContent(setupPropertiesContent.toString());
 
-			decorator = new TestConstellioFactoriesDecorator(backgroundThreadsEnabled, checkRollback) {
+			decorator = new TestConstellioFactoriesDecorator(backgroundThreadsEnabled, true, checkRollback) {
 
 				@Override
 				public DataLayerFactory decorateDataLayerFactory(DataLayerFactory dataLayerFactory) {
