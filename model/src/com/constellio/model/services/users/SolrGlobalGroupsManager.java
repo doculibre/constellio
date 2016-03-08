@@ -18,11 +18,10 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.cache.CacheConfig;
-import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -177,8 +176,6 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 			systemCollectionCreated();
 		}
 
-		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
-		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 	}
 
 	private List<GlobalGroup> getGroupHierarchy(SolrGlobalGroup group) {
@@ -212,13 +209,15 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	}
 
 	private void createGlobalGroupSchema(MetadataSchemaTypesBuilder builder) {
-		MetadataSchemaBuilder credentials = builder.createNewSchemaType(SolrGlobalGroup.SCHEMA_TYPE).getDefaultSchema();
+		MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SolrGlobalGroup.SCHEMA_TYPE);
+		credentialsTypeBuilder.setSecurity(false);
+		MetadataSchemaBuilder groups = credentialsTypeBuilder.getDefaultSchema();
 
-		credentials.createUniqueCodeMetadata();
-		credentials.createUndeletable(SolrGlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
-		credentials.createUndeletable(SolrGlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
-		credentials.createUndeletable(SolrGlobalGroup.PARENT).setType(MetadataValueType.STRING);
-		credentials.createUndeletable(SolrGlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
-		credentials.createUndeletable(SolrGlobalGroup.HIERARCHY).setType(MetadataValueType.STRING);
+		groups.createUniqueCodeMetadata();
+		groups.createUndeletable(SolrGlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
+		groups.createUndeletable(SolrGlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+		groups.createUndeletable(SolrGlobalGroup.PARENT).setType(MetadataValueType.STRING);
+		groups.createUndeletable(SolrGlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
+		groups.createUndeletable(SolrGlobalGroup.HIERARCHY).setType(MetadataValueType.STRING);
 	}
 }

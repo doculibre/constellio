@@ -55,7 +55,11 @@ import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.UserCredentialAndGlobalGroupsMigration;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import com.constellio.model.services.users.XmlGlobalGroupsManager;
+import com.constellio.model.services.users.XmlUserCredentialsManager;
 
 public class CollectionsManager implements StatefulService {
 
@@ -90,10 +94,34 @@ public class CollectionsManager implements StatefulService {
 		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
 			createSystemCollection();
 			initializeSystemCollection();
-			if (modelLayerFactory.newUserServices().getUserCredential("admin") == null) {
-				createAdminUser();
+
+			try {
+				modelLayerFactory.newUserServices().getUser("admin");
+			} catch (UserServicesRuntimeException_NoSuchUser e) {
+				XmlUserCredentialsManager xmlUserCredentialsManager = new XmlUserCredentialsManager(dataLayerFactory,
+						modelLayerFactory, modelLayerFactory.getConfiguration());
+				xmlUserCredentialsManager.initialize();
+				if (xmlUserCredentialsManager.getUserCredentials().isEmpty()) {
+					createAdminUser();
+				} else {
+					SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+					XmlGlobalGroupsManager xmlGlobalGroupsManager = new XmlGlobalGroupsManager(
+							dataLayerFactory.getConfigManager());
+					xmlGlobalGroupsManager.initialize();
+					new UserCredentialAndGlobalGroupsMigration(xmlUserCredentialsManager, xmlGlobalGroupsManager,
+							modelLayerFactory.newRecordServices(), schemas).migrateUserAndGroups();
+					xmlGlobalGroupsManager.close();
+				}
+
+				xmlUserCredentialsManager.close();
+
 			}
 		}
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 	}
 
 	private void createSystemCollection() {
