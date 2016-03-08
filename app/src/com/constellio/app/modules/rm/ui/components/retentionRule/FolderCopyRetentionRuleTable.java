@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -15,20 +16,25 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
+import com.constellio.app.ui.framework.components.converters.MetadataCodeToStringConverter;
 import com.constellio.app.ui.framework.components.converters.RecordIdListToStringConverter;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.MethodProperty;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -58,6 +64,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 	private RecordIdListToStringConverter recordIdListToStringConverter = new RecordIdListToStringConverter();
 	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(
 			DisposalType.class);
+	private MetadataCodeToStringConverter metadataCodeToStringConverter = new MetadataCodeToStringConverter();
 	private RetentionRuleVO retentionRuleVO;
 	private VerticalLayout mainLayout;
 	private AddButton addButton;
@@ -180,6 +187,10 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 	}
 
 	protected void onDisposalTypeChange(CopyRetentionRule rule) {
+	}
+
+	protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
+		return new ArrayList<>();
 	}
 
 	private CopyRetentionRule newCopy(boolean principal) {
@@ -371,14 +382,25 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 	private class RetentionPeriodFieldGroup extends VerticalLayout {
 
+		private MetadataField dateMetadataField;
+
 		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule, final boolean activeRetentionPeriod) {
 			setSpacing(true);
 
-			RetentionPeriod retentionPeriod = (activeRetentionPeriod) ?
+			final RetentionPeriod retentionPeriod = (activeRetentionPeriod) ?
 					copyRetentionRule.getActiveRetentionPeriod() :
 					copyRetentionRule.getSemiActiveRetentionPeriod();
 
+			Property<String> dateMetadataProperty;
+			if (activeRetentionPeriod) {
+				dateMetadataProperty = new MethodProperty<>(copyRetentionRule, "activeDateMetadata");
+			} else {
+				dateMetadataProperty = new MethodProperty<>(copyRetentionRule, "semiActiveDateMetadata");
+			}
 			if (formMode) {
+				dateMetadataField = new MetadataField(copyRetentionRule);
+				dateMetadataField.setPropertyDataSource(dateMetadataProperty);
+
 				BeanItemContainer<VariableRetentionPeriodVO> container = new BeanItemContainer<>(VariableRetentionPeriodVO.class,
 						getVariablePeriods());
 				final ComboBox openRetentionPeriodDDVField = new ComboBox("", container);
@@ -399,26 +421,34 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 					for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {
 						if (periodVO.getCode().equals(retentionPeriod.getVariablePeriodCode())) {
 							openRetentionPeriodDDVField.setValue(periodVO);
-							openRetentionPeriodDDVField
-									.setItemCaption(periodVO, periodVO.getCode() + " - " + periodVO.getTitle());
+							//openRetentionPeriodDDVField.setItemCaption(periodVO, periodVO.getCode() + " - " + periodVO.getTitle());
 							break;
 						}
 					}
-					yearsField.setEnabled(false);
+					if (activeRetentionPeriod && retentionPeriod.getRetentionType() == RetentionType.OPEN) {
+						yearsField.setConvertedValue(copyRetentionRule.getOpenActiveRetentionPeriod());
+						yearsField.setEnabled(true);
+					} else {
+						yearsField.setEnabled(false);
+					}
 				}
 
 				openRetentionPeriodDDVField.addValueChangeListener(new ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
+						RetentionPeriod newRetentionPeriod;
 						VariableRetentionPeriodVO newValue = (VariableRetentionPeriodVO) openRetentionPeriodDDVField.getValue();
 						if (newValue != null) {
-							yearsField.setValue(null);
-							yearsField.setEnabled(false);
 							if (activeRetentionPeriod) {
 								copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.variable(newValue.getCode()));
+								newRetentionPeriod = copyRetentionRule.getActiveRetentionPeriod();
 							} else {
 								copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.variable(newValue.getCode()));
+								newRetentionPeriod = copyRetentionRule.getSemiActiveRetentionPeriod();
 							}
+							yearsField.setValue(null);
+							yearsField.setEnabled(activeRetentionPeriod &&
+									newRetentionPeriod.getRetentionType() == RetentionType.OPEN);
 						} else {
 							yearsField.setEnabled(true);
 						}
@@ -431,7 +461,12 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 						try {
 							yearsField.validate();
 							Integer newValue = (Integer) yearsField.getConvertedValue();
-							if (newValue != null) {
+							RetentionPeriod period = activeRetentionPeriod ?
+									copyRetentionRule.getActiveRetentionPeriod() :
+									copyRetentionRule.getSemiActiveRetentionPeriod();
+							if (activeRetentionPeriod && period.getRetentionType() == RetentionType.OPEN) {
+								copyRetentionRule.setOpenActiveRetentionPeriod(newValue);
+							} else if (newValue != null) {
 								openRetentionPeriodDDVField.setValue(null);
 								if (activeRetentionPeriod) {
 									copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.fixed(newValue));
@@ -445,11 +480,24 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 					}
 				});
 
-				addComponents(openRetentionPeriodDDVField, yearsField);
+				addComponents(dateMetadataField, openRetentionPeriodDDVField, yearsField);
 			} else {
+				String metadataCode;
+				if (activeRetentionPeriod) {
+					metadataCode = copyRetentionRule.getActiveDateMetadata();
+				} else {
+					metadataCode = copyRetentionRule.getSemiActiveDateMetadata();
+				}
+				String metadataLabelStr = metadataCodeToStringConverter
+						.convertToPresentation(metadataCode, String.class, getLocale());
+				Label metadataLabel = new Label(metadataLabelStr);
 				Label retentionPeriodLabel = new Label("" + retentionPeriod.getValue());
-				addComponent(retentionPeriodLabel);
+				addComponents(metadataLabel, retentionPeriodLabel);
 			}
+		}
+
+		public MetadataField getDateMetadataField() {
+			return dateMetadataField;
 		}
 
 	}
@@ -490,6 +538,32 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 					onDisposalTypeChange(copyRetentionRule);
 				}
 			});
+		}
+
+	}
+
+	private class MetadataField extends BaseComboBox {
+
+		private CopyRetentionRule copyRetentionRule;
+
+		public MetadataField(CopyRetentionRule copyRetentionRule) {
+			super();
+			this.copyRetentionRule = copyRetentionRule;
+			addOptions();
+		}
+
+		protected void addOptions() {
+			removeAllItems();
+
+			String documentTypeId = copyRetentionRule.getDocumentTypeId();
+			List<MetadataVO> dateMetadataVOs = getDateMetadataVOs(documentTypeId);
+
+			Locale locale = VaadinSession.getCurrent().getLocale();
+			for (MetadataVO metadataVO : dateMetadataVOs) {
+				String metatadaCode = metadataVO.getCode();
+				addItem(metatadaCode);
+				setItemCaption(metatadaCode, metadataVO.getLabel(locale));
+			}
 		}
 
 	}
