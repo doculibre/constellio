@@ -27,7 +27,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -46,6 +45,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
@@ -54,7 +54,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	Users users = new Users();
 	@Mock DisplayFolderView displayFolderView;
-	@Mock CoreViews navigator;
+	SDKViewNavigation viewNavigation;
 	@Mock UserCredentialVO chuckCredentialVO;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
 	SearchServices searchServices;
@@ -79,7 +79,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);
-
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
@@ -90,10 +89,11 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		searchServices = getModelLayerFactory().newSearchServices();
 
+		viewNavigation = new SDKViewNavigation(displayFolderView);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		when(displayFolderView.getCollection()).thenReturn(zeCollection);
 		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(displayFolderView.navigateTo()).thenReturn(navigator);
+
 		chuckCredentialVO = new UserCredentialVO();
 		chuckCredentialVO.setUsername("chuck");
 

@@ -18,7 +18,6 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskPresenter;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskView;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -29,6 +28,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
 import com.google.gwt.dev.util.collect.HashMap;
 
@@ -36,8 +36,6 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
 	@Mock
 	AddEditTaskView view;
-	@Mock
-	CoreViews navigator;
 	SessionContext sessionContext;
 	private RecordServices recordServices;
 	private SearchServices searchServices;
@@ -63,7 +61,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		new SDKViewNavigation(view);
 
 		presenter = new AddEditTaskPresenter(view);
 	}
