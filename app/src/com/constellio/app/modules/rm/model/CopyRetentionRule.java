@@ -27,6 +27,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	String documentTypeId;
 	String semiActiveDateMetadata;
 	String activeDateMetadata;
+	Integer openActiveRetentionPeriod;
 	boolean dirty;
 
 	public String getCode() {
@@ -36,6 +37,16 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRule setCode(String code) {
 		dirty = true;
 		this.code = code;
+		return this;
+	}
+
+	public Integer getOpenActiveRetentionPeriod() {
+		return openActiveRetentionPeriod;
+	}
+
+	public CopyRetentionRule setOpenActiveRetentionPeriod(Integer openActiveRetentionPeriod) {
+		dirty = true;
+		this.openActiveRetentionPeriod = openActiveRetentionPeriod;
 		return this;
 	}
 

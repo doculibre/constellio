@@ -28,7 +28,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEditRetentionRuleView {
-	
+
 	private final AddEditRetentionRulePresenter presenter;
 	private RetentionRuleVO rule;
 	private RetentionRuleForm form;
@@ -58,7 +58,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 		this.form = initForm();
 		return form;
 	}
-	
+
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
 		presenter.viewAssembled();
@@ -118,9 +118,9 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 	}
 
 	private class RetentionRuleFieldFactory extends RecordFieldFactory {
-		
+
 		private DocumentDefaultCopyRetentionRuleTable documentDefaultCopyRetentionRuleTable;
-		
+
 		private void initDocumentDefaultCopyRetentionRuleTable(RecordVO recordVO) {
 			if (documentDefaultCopyRetentionRuleTable == null) {
 				documentDefaultCopyRetentionRuleTable = new DocumentDefaultCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter.getOpenPeriodsDDVList()) {
@@ -131,7 +131,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 				};
 			}
 		}
-		
+
 		@Override
 		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
 			Field<?> field;
@@ -142,6 +142,11 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 						@Override
 						protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
 							presenter.disposalTypeChanged(copyRetentionRule);
+						}
+
+						@Override
+						protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
+							return presenter.getFolderMetadataVOs();
 						}
 					};
 					postBuild(field, recordVO, metadataVO);

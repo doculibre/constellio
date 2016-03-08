@@ -23,6 +23,7 @@ import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -39,6 +40,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
@@ -296,4 +298,30 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		return dateMetadataVOs;
 	}
 
+	public List<MetadataVO> getFolderMetadataVOs() {
+		MetadataSchemaType folder = schemaType(Folder.SCHEMA_TYPE);
+
+		List<MetadataVO> dateMetadataVOs = new ArrayList<>();
+
+		MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
+		SessionContext sessionContext = view.getSessionContext();
+
+		for (Metadata metadata : folder.getAllMetadatas().onlyWithType(DATE_TIME, DATE)) {
+			if (!Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, sessionContext);
+				dateMetadataVOs.add(metadataVO);
+			}
+		}
+
+		Collections.sort(dateMetadataVOs, new Comparator<MetadataVO>() {
+			@Override
+			public int compare(MetadataVO o1, MetadataVO o2) {
+				String label1 = AccentApostropheCleaner.cleanAll(o1.getLabel());
+				String label2 = AccentApostropheCleaner.cleanAll(o2.getLabel());
+				return label1.compareTo(label2);
+			}
+		});
+
+		return dateMetadataVOs;
+	}
 }
