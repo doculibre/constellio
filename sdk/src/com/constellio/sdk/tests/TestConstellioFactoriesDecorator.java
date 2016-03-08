@@ -31,6 +31,7 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
 	final private boolean checkRollback;
+	private File transactionLogWorkFolder;
 
 	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled, boolean checkRollback) {
 		this.backgroundThreadsEnabled = backgroundThreadsEnabled;
@@ -45,6 +46,7 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 		doReturn(contentFolder).when(spiedDataLayerConfiguration).getContentDaoFileSystemFolder();
 		doReturn(backgroundThreadsEnabled).when(spiedDataLayerConfiguration).isBackgroundThreadsEnabled();
 		doReturn(checkRollback).when(spiedDataLayerConfiguration).isInRollbackTestMode();
+		doReturn(transactionLogWorkFolder).when(spiedDataLayerConfiguration).getSecondTransactionLogBaseFolder();
 
 		for (DataLayerConfigurationAlteration alteration : dataLayerConfigurationAlterations) {
 			alteration.alter(spiedDataLayerConfiguration);
@@ -154,5 +156,9 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 	public void setSystemLanguage(String systemLanguage) {
 		this.systemLanguage = systemLanguage;
+	}
+
+	public void setTransactionLogWorkFolder(File transactionLogWorkFolder) {
+		this.transactionLogWorkFolder = transactionLogWorkFolder;
 	}
 }

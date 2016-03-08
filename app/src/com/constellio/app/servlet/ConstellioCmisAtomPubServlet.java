@@ -10,6 +10,8 @@ public class ConstellioCmisAtomPubServlet extends CmisAtomPubServlet {
 	@Override
 	public void init(ServletConfig config)
 			throws ServletException {
-		super.init(config);
+		if (ConstellioCmisServices.enabled) {
+			super.init(config);
+		}
 	}
 }

@@ -95,7 +95,11 @@ public class SystemStateExporter {
 			List<File> list;
 			if (params.isExportPluginJars()) {
 				File tempPluginsFolder = new File(tempFolder, "plugins");
-				list = asList(tempFolderContentFolder, tempFolderSettingsFolder, tempPluginsFolder);
+				if (tempPluginsFolder.exists()) {
+					list = asList(tempFolderContentFolder, tempFolderSettingsFolder, tempPluginsFolder);
+				} else {
+					list = asList(tempFolderContentFolder, tempFolderSettingsFolder);
+				}
 			} else {
 				list = asList(tempFolderContentFolder, tempFolderSettingsFolder);
 			}
@@ -211,7 +215,7 @@ public class SystemStateExporter {
 
 	private void copyPluginsJarFolderTo(File tempPluginsFolder, boolean exportJars) {
 		File pluginsFolder = appLayerConfiguration.getPluginsFolder();
-		if (exportJars) {
+		if (exportJars && pluginsFolder.exists()) {
 			try {
 				FileUtils.copyDirectory(pluginsFolder, tempPluginsFolder);
 			} catch (IOException e) {
