@@ -17,7 +17,6 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
 import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskView;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
@@ -25,14 +24,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
 
 public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
 	@Mock
 	DisplayTaskView view;
-	@Mock
-	CoreViews navigator;
 	SessionContext sessionContext;
 	private RecordServices recordServices;
 	private SearchServices searchServices;
@@ -61,7 +59,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		new SDKViewNavigation(view);
 
 		presenter = new DisplayTaskPresenter(view);
 		zeTask = tasksSchemas.newTask().setTitle("zeTask");
