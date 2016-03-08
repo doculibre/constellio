@@ -18,8 +18,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.cache.CacheConfig;
-import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -177,8 +175,6 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 			systemCollectionCreated();
 		}
 
-		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
-		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 	}
 
 	private List<GlobalGroup> getGroupHierarchy(SolrGlobalGroup group) {
