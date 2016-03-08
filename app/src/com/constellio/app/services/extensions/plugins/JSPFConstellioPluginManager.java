@@ -205,6 +205,16 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		}
 	}
 
+	@Override
+	public void registerPluginOnlyForTests(InstallableModule plugin)
+			throws InvalidId {
+		if (plugin != null) {
+			validateId(plugin.getId());
+			this.pluginConfigManger.addOrUpdatePlugin(new ConstellioPluginInfo().setCode(plugin.getId()).setPluginStatus(ENABLED).setTitle(plugin.getName()));
+			validUploadedPlugins.put(plugin.getId(), plugin);
+		}
+	}
+
 	void validateId(String id)
 			throws InvalidId {
 		if (StringUtils.isBlank(id)) {

@@ -80,19 +80,27 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	private void givenEnglishSystem() {
 		givenSystemLanguageIs("en");
 		givenTransactionLogIsEnabled();
-		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withConstellioRMModule().withAllTestUsers()
+		givenCollectionWithTitle(zeCollection, asList("en"), "Collection de test").withMockedAvailableModules(false)
+				.withConstellioRMModule().withAllTestUsers()
 				.withConstellioESModule().withRobotsModule();
+		setupPlugins();
 		i18n.setLocale(Locale.ENGLISH);
 		locale = Locale.ENGLISH;
 	}
 
-	private void givenFrenchSystem() {
+	protected void givenFrenchSystem() {
 		givenSystemLanguageIs("fr");
 		givenTransactionLogIsEnabled();
-		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test").withConstellioRMModule().withAllTestUsers()
+		givenCollectionWithTitle(zeCollection, asList("fr"), "Collection de test").withMockedAvailableModules(false)
+				.withConstellioRMModule().withAllTestUsers()
 				.withConstellioESModule().withRobotsModule();
+		setupPlugins();
 		i18n.setLocale(Locale.FRENCH);
 		locale = Locale.FRENCH;
+	}
+
+	protected void setupPlugins() {
+
 	}
 
 	private void findMissingKeys() {
