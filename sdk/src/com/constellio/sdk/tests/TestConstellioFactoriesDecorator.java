@@ -20,6 +20,7 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorator {
 
 	boolean backgroundThreadsEnabled;
+	boolean mockPluginManager;
 	String systemLanguage;
 	File setupProperties;
 	File importationFolder;
@@ -33,9 +34,10 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	final private boolean checkRollback;
 	private File transactionLogWorkFolder;
 
-	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled, boolean checkRollback) {
+	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled, boolean mockPluginManager, boolean checkRollback) {
 		this.backgroundThreadsEnabled = backgroundThreadsEnabled;
 		this.checkRollback = checkRollback;
+		this.mockPluginManager = mockPluginManager;
 	}
 
 	@Override
@@ -93,8 +95,10 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	public AppLayerFactory decorateAppServicesFactory(AppLayerFactory appLayerFactory) {
 		AppLayerFactory spiedAppLayerFactory = spy(appLayerFactory);
 
-		ConstellioPluginManager pluginManager = mock(ConstellioPluginManager.class, "pluginManager");
-		when(spiedAppLayerFactory.getPluginManager()).thenReturn(pluginManager);
+		if (mockPluginManager) {
+			ConstellioPluginManager pluginManager = mock(ConstellioPluginManager.class, "pluginManager");
+			when(spiedAppLayerFactory.getPluginManager()).thenReturn(pluginManager);
+		}
 
 		return spiedAppLayerFactory;
 	}

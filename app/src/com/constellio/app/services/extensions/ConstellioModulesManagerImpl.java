@@ -276,6 +276,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return returnList;
 	}
 
+
 	public Set<String> enableComplementaryModules(String collection) {
 		Set<String> returnList = new HashSet<>();
 		List<String> enabledModuleIds = new ArrayList<>();

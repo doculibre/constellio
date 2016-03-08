@@ -1309,8 +1309,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				getCurrentTestSession().getFileSystemTestFeatures());
 	}
 
-	private static Map<String, File> pluginsBundlesCache = new HashMap<>();
-
 	protected ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
 		ensureNotUnitTest();
 		return ModuleEnabler.givenInstalledModule(getAppLayerFactory(), installableModuleClass);
