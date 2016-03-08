@@ -20,7 +20,7 @@ import org.mockito.Mock;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.model.entities.schemas.Metadata;
@@ -41,7 +41,7 @@ public class TableDisplayConfigPresenterAcceptTest extends ConstellioTest {
 	ZeCustomSchemaMetadatas zeCustomSchema = setup.new ZeCustomSchemaMetadatas();
 	TableDisplayConfigPresenter presenter;
 	@Mock TableDisplayConfigView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 
 	@Before
 	public void setUp()

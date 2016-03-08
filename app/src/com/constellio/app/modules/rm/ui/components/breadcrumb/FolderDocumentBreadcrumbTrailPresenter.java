@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -80,10 +81,10 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	public void itemClicked(BreadcrumbItem item) {
 		if (item instanceof FolderBreadcrumbItem) {
 			String folderId = ((FolderBreadcrumbItem) item).getFolderId();
-			breadcrumbTrail.navigateTo().displayFolder(folderId);
+			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
 		} else {
 			String documentId = ((DocumentBreadcrumbItem) item).getDocumentId();
-			breadcrumbTrail.navigateTo().displayDocument(documentId);
+			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
 		}
 	}
 

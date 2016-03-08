@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.retentionRule;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -51,7 +52,7 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listRetentionRules();
+		view.navigate().to(RMViews.class).listRetentionRules();
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
@@ -66,7 +67,7 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 		if (isDeletable(recordVO)) {
 			Record record = getRecord(recordVO.getId());
 			delete(record, false);
-			view.navigateTo().listRetentionRules();
+			view.navigate().to(RMViews.class).listRetentionRules();
 		} else {
 			view.showErrorMessage($("ListRetentionRulesView.cannotDelete"));
 		}

@@ -15,7 +15,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.model.entities.security.global.GlobalGroup;
@@ -38,7 +38,7 @@ public class AddEditGlobalGroupPresenterTest extends ConstellioTest {
 	@Mock UserServices userServices;
 	@Mock GlobalGroupVODataProvider dataProvider;
 	@Mock GlobalGroupVO heroesGlobalGroupVO, legendsGlobalGroupVO;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock UserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential;
 	@Mock GlobalGroup heroesGlobalGroup, legendsGlobalGroup;

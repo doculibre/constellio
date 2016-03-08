@@ -19,7 +19,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.collections.CollectionsManager;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeCodeChangeForbidden;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeShouldNotContainDash;
@@ -38,7 +38,7 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 	AddEditCollectionPresenter presenterRelatedToZeCollection;
 	@Mock
 	AddEditCollectionView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	private CollectionsManager collectionsManager;
 	private ConstellioModulesManager modulesManager;
 

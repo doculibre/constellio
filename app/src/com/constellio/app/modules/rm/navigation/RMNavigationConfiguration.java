@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm;
+package com.constellio.app.modules.rm.navigation;
 
 import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
@@ -25,7 +25,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
@@ -62,7 +62,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String CLASSIFICATION_PLAN = "classificationPlan";
 	public static final String CLASSIFICATION_PLAN_ICON = "images/icons/config/classification-plan.png";
 
-	public static final String ARCHIVES_MANAGEMENT = "archivesManagement";
+	public static final String ARCHIVES_MANAGEMENT = "archiveManagement";
 	public static final String USER_DOCUMENTS = "userDocuments";
 	public static final String AGENT = "agent";
 	public static final String CART = "cart";
@@ -78,8 +78,8 @@ public class RMNavigationConfiguration implements Serializable {
 	private void configureHomeActionMenu(NavigationConfig config) {
 		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_FOLDER) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.addFolder(null, null);
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).addFolder();
 			}
 
 			@Override
@@ -89,8 +89,8 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_DOCUMENT) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.addDocument(null, null);
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).addDocument();
 			}
 
 			@Override
@@ -159,8 +159,8 @@ public class RMNavigationConfiguration implements Serializable {
 	private void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ADMINISTRATIVE_UNIT, ADMINISTRATIVE_UNIT_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.taxonomyManagement(RMTaxonomies.ADMINISTRATIVE_UNITS);
+			public void activate(Navigation navigate) {
+				navigate.to().taxonomyManagement(RMTaxonomies.ADMINISTRATIVE_UNITS);
 			}
 
 			@Override
@@ -175,8 +175,8 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(CLASSIFICATION_PLAN, CLASSIFICATION_PLAN_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.taxonomyManagement(RMTaxonomies.CLASSIFICATION_PLAN);
+			public void activate(Navigation navigate) {
+				navigate.to().taxonomyManagement(RMTaxonomies.CLASSIFICATION_PLAN);
 			}
 
 			@Override
@@ -191,8 +191,8 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(UNIFORM_SUBDIVISIONS, UNIFORM_SUBDIVISIONS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listSchemaRecords(UniformSubdivision.DEFAULT_SCHEMA);
+			public void activate(Navigation navigate) {
+				navigate.to().listSchemaRecords(UniformSubdivision.DEFAULT_SCHEMA);
 			}
 
 			@Override
@@ -202,8 +202,8 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(RETENTION_CALENDAR, RETENTION_CALENDAR_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listRetentionRules();
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).listRetentionRules();
 			}
 
 			@Override
@@ -231,8 +231,8 @@ public class RMNavigationConfiguration implements Serializable {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(ARCHIVES_MANAGEMENT, ArchivesManagementViewGroup.class) {
 					@Override
-					public void activate(ConstellioNavigator navigateTo) {
-						navigateTo.archivesManagement();
+					public void activate(Navigation navigate) {
+						navigate.to(RMViews.class).archiveManagement();
 					}
 
 					@Override
@@ -251,8 +251,8 @@ public class RMNavigationConfiguration implements Serializable {
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(USER_DOCUMENTS, UserDocumentsViewGroup.class) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listUserDocuments();
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).listUserDocuments();
 			}
 
 			@Override
@@ -267,8 +267,8 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(CART, CartViewGroup.class) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.cart();
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).cart();
 			}
 
 			@Override
@@ -283,8 +283,8 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, LogsViewGroup.class) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listEvents();
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).eventAudit();
 			}
 
 			@Override
@@ -299,8 +299,8 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(AGENT, AgentViewGroup.class) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.agentRequestPage();
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).requestAgent();
 			}
 
 			@Override

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
@@ -303,8 +303,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	@Override
-	public ConstellioNavigator navigateTo() {
-		return new ConstellioNavigator(UI.getCurrent().getNavigator());
+	public CoreViews navigateTo() {
+		return new CoreViews(UI.getCurrent().getNavigator());
 	}
 
 	@Override

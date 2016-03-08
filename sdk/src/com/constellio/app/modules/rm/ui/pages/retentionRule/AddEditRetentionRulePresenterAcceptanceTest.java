@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -22,7 +22,7 @@ public class AddEditRetentionRulePresenterAcceptanceTest extends ConstellioTest 
 	@Mock
 	private AddEditRetentionRuleView view;
 	@Mock
-	ConstellioNavigator navigator;
+	CoreViews navigator;
 	@Mock
 	private SessionContext sessionContext;
 

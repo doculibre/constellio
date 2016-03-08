@@ -17,7 +17,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
 import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskView;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
@@ -32,7 +32,7 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 	@Mock
 	DisplayTaskView view;
 	@Mock
-	ConstellioNavigator navigator;
+	CoreViews navigator;
 	SessionContext sessionContext;
 	private RecordServices recordServices;
 	private SearchServices searchServices;

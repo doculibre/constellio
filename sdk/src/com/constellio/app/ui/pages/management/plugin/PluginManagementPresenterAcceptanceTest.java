@@ -6,15 +6,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.setups.Users;
 
 public class PluginManagementPresenterAcceptanceTest extends ConstellioTest {
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock PluginManagementView view;
 
 	PluginManagementPresenter presenter;

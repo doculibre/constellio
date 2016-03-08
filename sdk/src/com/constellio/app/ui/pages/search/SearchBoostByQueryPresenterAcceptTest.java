@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.builders.SearchBoostToVOBuilder;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
@@ -28,7 +28,7 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 
 	public static final String QUERY = "query";
 	@Mock SearchBoostView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	UserServices userServices;
 	SearchBoost searchBoostQuery1, searchBoostQuery2;
 	SearchBoostVO searchBoostQuery1VO, searchBoostQuery2VO;

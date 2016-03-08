@@ -206,7 +206,7 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		return new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				presenter.listEvents();
+				presenter.eventAudit();
 			}
 		};
 	}

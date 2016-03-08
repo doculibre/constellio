@@ -10,6 +10,7 @@ import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.RegisteredConnector;
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -56,7 +57,7 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 
 	@Override
 	public void cancelButtonClicked() {
-		view.navigateTo().listConnectorInstances();
+		view.navigate().to(ESViews.class).listConnectorInstances();
 	}
 
 	@Override
@@ -64,7 +65,7 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 		Record record = toRecord(recordVO);
 		ConnectorInstance<?> connectorInstance = esSchemasRecordsServices.wrapConnectorInstance(record);
 		esSchemasRecordsServices.getConnectorManager().createConnector(connectorInstance);
-		view.navigateTo().listConnectorInstances();
+		view.navigate().to(ESViews.class).listConnectorInstances();
 	}
 
 	public void connectorTypeSelected(String id) {

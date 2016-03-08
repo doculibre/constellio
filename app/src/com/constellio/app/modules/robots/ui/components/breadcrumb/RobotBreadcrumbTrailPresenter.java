@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import com.constellio.app.modules.robots.model.services.RobotsService;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
@@ -28,7 +29,7 @@ public class RobotBreadcrumbTrailPresenter implements Serializable {
 	}
 
 	public void itemClicked(RobotBreadcrumbItem item) {
-		trail.navigateTo().robotConfiguration(item.getId());
+		trail.navigate().to(RobotViews.class).robotConfiguration(item.getId());
 	}
 
 	private RobotsService service() {

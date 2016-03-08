@@ -22,7 +22,7 @@ import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderView;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -38,7 +38,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 	RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 	@Mock AddEditFolderView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	SessionContext sessionContext;
 	RMSchemasRecordsServices rmSchemasRecordsServices;

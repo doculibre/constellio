@@ -15,7 +15,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -26,7 +26,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "zeField_s";
 
 	@Mock AdvancedSearchView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock SchemasDisplayManager schemasDisplayManager;
 	@Mock LabelTemplateManager labelTemplateManager;
 	@Mock SchemaTypesDisplayConfig typesDisplayConfig;

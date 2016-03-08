@@ -29,6 +29,7 @@ import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;

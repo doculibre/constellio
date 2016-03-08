@@ -1,7 +1,6 @@
 package com.constellio.sdk.tests;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static com.constellio.model.services.search.services.ElevationServiceImpl.ELEVATE_FILE_NAME;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.mockito.Mockito.spy;
 
@@ -26,6 +25,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
@@ -40,14 +40,9 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.IOServicesFactory;
-import com.constellio.data.io.concurrent.data.DataWithVersion;
-import com.constellio.data.io.concurrent.data.DataWrapper;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.Elevations;
-import com.constellio.model.services.search.ElevationsView;
 import com.constellio.sdk.FakeEncryptionServices;
 
 public class FactoriesTestFeatures {
@@ -74,7 +69,8 @@ public class FactoriesTestFeatures {
 	private Map<String, String> configs = new HashMap<>();
 	private String systemLanguage;
 
-	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties, boolean checkRollback) {
+	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties,
+			boolean checkRollback) {
 		this.fileSystemTestFeatures = fileSystemTestFeatures;
 		this.checkRollback = checkRollback;
 		//		this.sdkProperties = sdkProperties;
@@ -97,6 +93,8 @@ public class FactoriesTestFeatures {
 			if (ConfigManagerType.ZOOKEEPER == conf.getSettingsConfigType()) {
 				deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
 			}
+
+			i18n.clearBundles();
 		}
 
 		ConstellioFactories.clear();
@@ -173,7 +171,7 @@ public class FactoriesTestFeatures {
 			setupPropertiesContent.append("admin.password=password\n");
 			File setupProperties = fileSystemTestFeatures.newTempFileWithContent(setupPropertiesContent.toString());
 
-			decorator = new TestConstellioFactoriesDecorator(backgroundThreadsEnabled, checkRollback) {
+			decorator = new TestConstellioFactoriesDecorator(backgroundThreadsEnabled, true, checkRollback) {
 
 				@Override
 				public DataLayerFactory decorateDataLayerFactory(DataLayerFactory dataLayerFactory) {
@@ -243,7 +241,7 @@ public class FactoriesTestFeatures {
 						@Override
 						public <T> T decorate(T service) {
 
-							if (ConstellioPluginManager.class.isAssignableFrom(service.getClass())) {
+							if (service != null && ConstellioPluginManager.class.isAssignableFrom(service.getClass())) {
 								return spy(service);
 							} else {
 
