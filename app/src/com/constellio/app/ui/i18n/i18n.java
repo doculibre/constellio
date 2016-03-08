@@ -1,7 +1,6 @@
 package com.constellio.app.ui.i18n;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,7 @@ public class i18n {
 
 	private static Locale locale;
 
-	private static Utf8ResourceBundles bundles;
+	private static List<Utf8ResourceBundles> bundles = new ArrayList<>();
 
 	public static Locale getLocale() {
 		return locale;
@@ -34,56 +33,61 @@ public class i18n {
 	}
 
 	public static String $(String key, Object... args) {
-		String message;
-		//		try {
-		//			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		//		} catch (Exception e) {
-		//			locale = getLocale();
-		//		}
+		String message = null;
 
-		ResourceBundle messages = getBundle(locale);
-
-		if(key == null) {
+		if (key == null) {
 			return "";
 		}
 
-		if (messages.containsKey(key)) {
-			message = messages.getString(key);
-			if (args != null) {
-				try {
-					message = MessageFormat.format(message, args);
-				} catch (Exception e) {
-					// Ignore, return the original message before the formatting attempt
+		for (Utf8ResourceBundles bundle : getBundles()) {
+			ResourceBundle messages = bundle.getBundle(locale);
+
+			if (messages.containsKey(key)) {
+				message = messages.getString(key);
+				if (args != null) {
+					try {
+						message = MessageFormat.format(message, args);
+					} catch (Exception e) {
+						// Ignore, return the original message before the formatting attempt
+					}
 				}
 			}
-		} else {
+		}
+
+		if (message == null) {
 			message = key;
 		}
+
 		return message;
 	}
 
 	public static String $(String key, Map<String, String> args) {
-		String message;
-		//		try {
-		//			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		//		} catch (Exception e) {
-		//			locale = getLocale();
-		//		}
+		String message = null;
 
-		ResourceBundle messages = getBundle(locale);
+		if (key == null) {
+			return "";
+		}
 
-		if (messages.containsKey(key)) {
-			message = messages.getString(key);
-			if (args != null) {
-				for (String argName : args.keySet()) {
-					String argValue = args.get(argName);
-					message = message.replace("{" + argName + "}", argValue);
+		for (Utf8ResourceBundles bundle : getBundles()) {
+			ResourceBundle messages = bundle.getBundle(locale);
+
+			if (messages.containsKey(key)) {
+				message = messages.getString(key);
+				if (args != null) {
+					for (String argName : args.keySet()) {
+						String argValue = args.get(argName);
+						message = message.replace("{" + argName + "}", argValue);
+					}
 				}
 			}
-		} else {
+		}
+
+		if (message == null) {
 			message = key;
 		}
+
 		return message;
+
 	}
 
 	public static String $(ValidationErrors errors) {
@@ -108,19 +112,21 @@ public class i18n {
 		return $(throwable.getMessage(), args);
 	}
 
-	private static ResourceBundle getBundle(Locale locale) {
+	private static List<Utf8ResourceBundles> getBundles() {
 
-		if (bundles == null) {
-			URL[] urls;
-			try {
-				urls = new URL[] { new FoldersLocator().getI18nFolder().toURI().toURL() };
-			} catch (MalformedURLException e) {
-				throw new RuntimeException(e);
-			}
-			bundles = new Utf8ResourceBundles("i18n", urls);
+		if (bundles.isEmpty()) {
+			registerBundle(new FoldersLocator().getI18nFolder(), "i18n");
 		}
 
-		return bundles.getBundle(locale);
+		return bundles;
+	}
+
+	public static void registerBundle(File bundleFolder, String bundleName) {
+		File bundleProperties = new File(bundleFolder, bundleName + ".properties");
+		if (!bundleProperties.exists()) {
+			throw new RuntimeException("No such file '" + bundleProperties.getAbsolutePath() + "'");
+		}
+		bundles.add(Utf8ResourceBundles.forPropertiesFile(bundleFolder, bundleName));
 	}
 
 	public static List<String> getSupportedLanguages() {
@@ -135,4 +141,7 @@ public class i18n {
 		return localeCodes;
 	}
 
+	public static void clearBundles() {
+		bundles.clear();
+	}
 }

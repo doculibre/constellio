@@ -207,9 +207,11 @@ public class MigrationServices {
 				"' updating to version '" + script.getVersion() + "'");
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
-		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(
-				migration.getModuleId() == null ? "core" : migration.getModuleId(), language, migration.getVersion(), null,
-				ioServices);
+		String moduleId = migration.getModuleId() == null ? "core" : migration.getModuleId();
+
+		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language,
+				migration.getVersion(), null, ioServices);
+
 		try {
 			script.migrate(migration.getCollection(), migrationResourcesProvider, appLayerFactory);
 		} catch (Exception e) {

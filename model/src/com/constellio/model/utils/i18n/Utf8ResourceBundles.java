@@ -1,5 +1,7 @@
 package com.constellio.model.utils.i18n;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -31,4 +33,13 @@ public class Utf8ResourceBundles {
 		return bundle;
 	}
 
+	public static Utf8ResourceBundles forPropertiesFile(File propertiesFolder, String bundleName) {
+		URL[] urls;
+		try {
+			urls = new URL[] { propertiesFolder.toURI().toURL() };
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+		return new Utf8ResourceBundles(bundleName, urls);
+	}
 }

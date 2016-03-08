@@ -68,7 +68,11 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	@Override
 	public void initialize() {
 		createModulesConfigFileIfNotExist();
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+		enableComplementaryModules();
+	}
+
+	public void enableComplementaryModules() {
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			enableComplementaryModules(collection);
 		}
 	}
@@ -222,6 +226,8 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 		for (String collection : collectionsListManager.getCollections()) {
 			try {
+				//FIXME FB since module has just been installed it may be not enabled
+				//enableComplementaryModules(collection);
 				returnList.addAll(migrationServices.migrate(collection, null));
 			} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 				throw new RuntimeException(optimisticLockingConfiguration);
