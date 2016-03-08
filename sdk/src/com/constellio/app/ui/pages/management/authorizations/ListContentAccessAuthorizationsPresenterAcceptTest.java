@@ -20,6 +20,7 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
 
 public class ListContentAccessAuthorizationsPresenterAcceptTest extends ConstellioTest {
@@ -98,6 +99,9 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		accessPresenter = new ListContentAccessAuthorizationsPresenter(accessView);
 		rolePresenter = new ListContentRoleAuthorizationsPresenter(roleView);
+
+		new SDKViewNavigation(accessView);
+		new SDKViewNavigation(roleView);
 
 		alice = users.aliceIn(zeCollection).getId();
 		legends = users.legendsIn(zeCollection).getId();
