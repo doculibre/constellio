@@ -162,10 +162,11 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 
 		assertThat(rule1.getInactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
 		assertThat(rule1.getInactiveDisposalComment()).isEqualTo("R1");
+		assertThat(rule1.getOpenActiveRetentionPeriod()).isNull();
 
 		assertThat(rule2.getInactiveDisposalType()).isEqualTo(DisposalType.DESTRUCTION);
 		assertThat(rule2.getInactiveDisposalComment()).isNull();
-
+		assertThat(rule2.getOpenActiveRetentionPeriod()).isNull();
 	}
 
 	@Test
@@ -187,6 +188,7 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(rule1.getDocumentTypeId()).isNull();
 		assertThat(rule1.getActiveDateMetadata()).isNull();
 		assertThat(rule1.getSemiActiveDateMetadata()).isNull();
+		assertThat(rule1.getOpenActiveRetentionPeriod()).isNull();
 
 	}
 
@@ -209,7 +211,7 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(rule1.getDocumentTypeId()).isEqualTo("zeDocumentTypeId");
 		assertThat(rule1.getActiveDateMetadata()).isEqualTo("codeActiveDate");
 		assertThat(rule1.getSemiActiveDateMetadata()).isEqualTo("codeSemiActiveDate");
-
+		assertThat(rule1.getOpenActiveRetentionPeriod()).isNull();
 	}
 
 	@Test
@@ -257,6 +259,30 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(rule.getSemiActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getInactiveDisposalType()).isEqualTo(DisposalType.SORT);
 
+	}
+
+	@Test
+	public void whenConvertingCopyRetentionRuleWithOpenActivePeriodThenPersisted()
+			throws Exception {
+
+		CopyRetentionRule copyRuleWithZeroOpenActivePeriod = CopyRetentionRule
+				.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(0);
+
+		CopyRetentionRule copyRuleWithZeroOneYearActivePeriod = CopyRetentionRule
+				.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(1);
+
+		CopyRetentionRule copyRuleWithNullActivePeriod = CopyRetentionRule
+				.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(null);
+
+		copyRuleWithZeroOpenActivePeriod = (CopyRetentionRule) factory.build(factory.toString(copyRuleWithZeroOpenActivePeriod));
+		copyRuleWithZeroOneYearActivePeriod = (CopyRetentionRule) factory
+				.build(factory.toString(copyRuleWithZeroOneYearActivePeriod));
+		copyRuleWithNullActivePeriod = (CopyRetentionRule) factory
+				.build(factory.toString(copyRuleWithNullActivePeriod));
+
+		assertThat(copyRuleWithZeroOpenActivePeriod.getOpenActiveRetentionPeriod()).isEqualTo(0);
+		assertThat(copyRuleWithZeroOneYearActivePeriod.getOpenActiveRetentionPeriod()).isEqualTo(1);
+		assertThat(copyRuleWithNullActivePeriod.getOpenActiveRetentionPeriod()).isNull();
 	}
 
 	@Test
