@@ -33,6 +33,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.search.SearchServices;
@@ -300,7 +301,9 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	private void createUserCredentialSchema(MetadataSchemaTypesBuilder builder) {
-		MetadataSchemaBuilder credentials = builder.createNewSchemaType(SolrUserCredential.SCHEMA_TYPE).getDefaultSchema();
+		MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SolrUserCredential.SCHEMA_TYPE);
+		credentialsTypeBuilder.setSecurity(false);
+		MetadataSchemaBuilder credentials = credentialsTypeBuilder.getDefaultSchema();
 
 		credentials.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asCalculated(UserTitleCalculator.class);
 
