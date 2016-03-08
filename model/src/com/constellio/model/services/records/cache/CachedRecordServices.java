@@ -55,10 +55,16 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		Record foundRecord = recordsCaches.getCache(metadata.getCollection()).getByMetadata(metadata, value);
 
 		if (foundRecord == null) {
+			System.out.println(
+					"No cache hit for '" + value + "' on metadata '" + metadata.getCode() + "' of collection '" + metadata
+							.getCollection() + "'");
 			foundRecord = recordServices.getRecordByMetadata(metadata, value);
 			if (foundRecord != null) {
 				recordsCaches.insert(foundRecord);
 			}
+		} else {
+			System.out.println("Cache hit for '" + value + "' on metadata '" + metadata.getCode() + "' of collection '" + metadata
+					.getCollection() + "'");
 		}
 
 		return foundRecord;

@@ -94,6 +94,11 @@ public class CollectionsManager implements StatefulService {
 				createAdminUser();
 			}
 		}
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 	}
 
 	private void createSystemCollection() {
