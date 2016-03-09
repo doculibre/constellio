@@ -146,6 +146,9 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 	@Override
 	public String toString(ModifiableStructure structure) {
 		CopyRetentionRule rule = (CopyRetentionRule) structure;
+		if (rule.getId() == null) {
+			//	throw new CopyRetentionRuleFactoryRuntimeException_IdIsRequired();
+		}
 		StringBuilder stringBuilder = new StringBuilder();
 
 		writeString(stringBuilder, VERSION_3);

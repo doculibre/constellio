@@ -15,7 +15,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 
 public class FolderMainCopyRuleCalculator2 implements MetadataValueCalculator<CopyRetentionRule> {
 
-	LocalDependency<CopyRetentionRule> enteredCopyRuleParam = LocalDependency.toAStructure(Folder.MAIN_COPY_RULE_ENTERED);
+	LocalDependency<String> enteredCopyRuleParam = LocalDependency.toAString(Folder.MAIN_COPY_RULE_ID_ENTERED);
 
 	LocalDependency<List<CopyRetentionRule>> copyRulesParam = LocalDependency.toAStructure(Folder.APPLICABLE_COPY_RULES)
 			.whichIsRequired();
@@ -33,9 +33,15 @@ public class FolderMainCopyRuleCalculator2 implements MetadataValueCalculator<Co
 		LocalDate smallestDate = null;
 		CopyRetentionRule mainCopyRule = null;
 
-		if (input.enteredCopyRule != null && input.copyRules.contains(input.enteredCopyRule)) {
-			mainCopyRule = input.enteredCopyRule;
-		} else {
+		if (input.enteredCopyRule != null) {
+			for (CopyRetentionRule copyRetentionRule : input.copyRules) {
+				if (input.enteredCopyRule.equals(copyRetentionRule.getId())) {
+					mainCopyRule = copyRetentionRule;
+				}
+			}
+		}
+
+		if (mainCopyRule == null) {
 
 			for (int i = 0; i < input.copyRules.size(); i++) {
 				LocalDate dateAtIndex;
@@ -76,7 +82,7 @@ public class FolderMainCopyRuleCalculator2 implements MetadataValueCalculator<Co
 
 	class CalculatorInput {
 
-		CopyRetentionRule enteredCopyRule;
+		String enteredCopyRule;
 
 		List<CopyRetentionRule> copyRules;
 

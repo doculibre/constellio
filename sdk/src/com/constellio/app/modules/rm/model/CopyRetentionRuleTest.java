@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model;
 
+import static com.constellio.app.modules.rm.model.CopyRetentionRule.newRetentionRule;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,6 +8,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRuleFactoryRuntimeException.CopyRetentionRuleFactoryRuntimeException_IdIsRequired;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -239,22 +241,22 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 	public void whenCreateCopyRetentionRuleWithEmptyPeriodsThenSetToNull()
 			throws Exception {
 
-		CopyRetentionRule rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-");
+		CopyRetentionRule rule = newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-");
 		assertThat(rule.getActiveRetentionPeriod()).isEqualTo(RetentionPeriod.OPEN_888);
 		assertThat(rule.getSemiActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getInactiveDisposalType()).isNull();
 
-		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-2-");
+		rule = newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-2-");
 		assertThat(rule.getActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getSemiActiveRetentionPeriod()).isEqualTo(RetentionPeriod.fixed(2));
 		assertThat(rule.getInactiveDisposalType()).isNull();
 
-		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-0-");
+		rule = newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-0-");
 		assertThat(rule.getActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getSemiActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getInactiveDisposalType()).isNull();
 
-		rule = CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-0-T");
+		rule = newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "0-0-T");
 		assertThat(rule.getActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getSemiActiveRetentionPeriod()).isSameAs(RetentionPeriod.ZERO);
 		assertThat(rule.getInactiveDisposalType()).isEqualTo(DisposalType.SORT);
@@ -265,14 +267,14 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 	public void whenConvertingCopyRetentionRuleWithOpenActivePeriodThenPersisted()
 			throws Exception {
 
-		CopyRetentionRule copyRuleWithZeroOpenActivePeriod = CopyRetentionRule
-				.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(0);
+		CopyRetentionRule copyRuleWithZeroOpenActivePeriod =
+				newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(0);
 
-		CopyRetentionRule copyRuleWithZeroOneYearActivePeriod = CopyRetentionRule
-				.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(1);
+		CopyRetentionRule copyRuleWithZeroOneYearActivePeriod =
+				newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(1);
 
-		CopyRetentionRule copyRuleWithNullActivePeriod = CopyRetentionRule
-				.newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(null);
+		CopyRetentionRule copyRuleWithNullActivePeriod =
+				newRetentionRule(CopyType.PRINCIPAL, asList("PA", "FI"), "888-0-").setOpenActiveRetentionPeriod(null);
 
 		copyRuleWithZeroOpenActivePeriod = (CopyRetentionRule) factory.build(factory.toString(copyRuleWithZeroOpenActivePeriod));
 		copyRuleWithZeroOneYearActivePeriod = (CopyRetentionRule) factory
@@ -291,25 +293,34 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 
 		List<String> types = asList("PA", "FI");
 
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canTransferToSemiActive()).isFalse();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canDeposit()).isFalse();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canDestroy()).isTrue();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canSort()).isFalse();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canTransferToSemiActive()).isFalse();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canDeposit()).isFalse();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canDestroy()).isTrue();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").canSort()).isFalse();
 
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-T").canTransferToSemiActive()).isTrue();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-T").canDeposit()).isTrue();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-T").canDestroy()).isTrue();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-T").canSort()).isTrue();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-T").canTransferToSemiActive()).isTrue();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-T").canDeposit()).isTrue();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-T").canDestroy()).isTrue();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-T").canSort()).isTrue();
 
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-C").canTransferToSemiActive()).isTrue();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-C").canDeposit()).isTrue();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-C").canDestroy()).isFalse();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-C").canSort()).isFalse();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-C").canTransferToSemiActive()).isTrue();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-C").canDeposit()).isTrue();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-C").canDestroy()).isFalse();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-C").canSort()).isFalse();
 
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canTransferToSemiActive()).isTrue();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canDeposit()).isFalse();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canDestroy()).isFalse();
-		assertThat(CopyRetentionRule.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canSort()).isFalse();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canTransferToSemiActive()).isTrue();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canDeposit()).isFalse();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canDestroy()).isFalse();
+		assertThat(newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canSort()).isFalse();
 
+	}
+
+	@Test(expected = CopyRetentionRuleFactoryRuntimeException_IdIsRequired.class)
+	public void whenTransformStructureWithoutIdToStringThenException()
+			throws Exception {
+
+		List<String> types = asList("PA", "FI");
+		CopyRetentionRule copyRetentionRule = newRetentionRule(CopyType.PRINCIPAL, types, "888-0-D").setId(null);
+		factory.toString(copyRetentionRule);
 	}
 }

@@ -1139,7 +1139,6 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 
 		Folder depositedFolder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2015, 1, 1))
 				.setActualTransferDate(date(2020, 1, 1)).setActualDepositDate(date(2025, 1, 1));
-		;
 
 		Document activeDocumentInDepositedFolder = transaction.add(newCustomDocument1(depositedFolder, type1));
 		Document semiActiveDocumentInDepositedFolder = transaction.add(newCustomDocument1(depositedFolder, type1))
@@ -1181,6 +1180,66 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		assertThatDocument(semiActiveDocumentInDestroyedFolder).isDestroyedDocument(date(2015, 1, 1), date(2025, 1, 1));
 		assertThatDocument(depositedDocumentInDestroyedFolder).isDepositedDocument(date(2015, 1, 1), date(2020, 1, 1));
 		assertThatDocument(destroyedDocumentInDestroyedFolder).isDestroyedDocument(date(2015, 1, 1), date(2020, 1, 1));
+	}
+
+	@Test
+	public void givenDocumentWithMultipleApplicableCopyRuleThenTakeTheEnteredOne()
+			throws Exception {
+
+		//		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		//		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		//		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		//		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		//		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		//		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 20);
+		//		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		//		waitForBatchProcess();
+		//		createDateMetadatasAndCustomSchemas();
+		//
+		//		CopyRetentionRule copy1 = newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type1)
+		//				.setActiveDateMetadata(documentDateA().getLocalCode())
+		//				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode());
+		//		CopyRetentionRule copy2 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type2)
+		//				.setActiveDateMetadata(documentDateB().getLocalCode())
+		//				.setSemiActiveDateMetadata(documentDateA().getLocalCode());
+		//		CopyRetentionRule copy3 = newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type3)
+		//				.setActiveDateMetadata(customDocument2DateE().getLocalCode());
+		//		CopyRetentionRule copy4 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type4)
+		//				.setSemiActiveDateMetadata(documentDateB().getLocalCode());
+		//		CopyRetentionRule copy5 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type5)
+		//				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
+		//				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode());
+		//
+		//		CopyRetentionRule principal888_5_C = newPrincipal(asList(records.PA), "888-5-C");
+		//		CopyRetentionRule secondary888_6_C = newSecondary(asList(records.PA), "888-6-C");
+		//
+		//		Transaction transaction = new Transaction();
+		//		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
+		//		rule1.setScope(DOCUMENTS);
+		//		rule1.setResponsibleAdministrativeUnits(true);
+		//		rule1.setDocumentCopyRetentionRules(copy1, copy2, copy3, copy4, copy5);
+		//		rule1.setPrincipalDefaultDocumentCopyRetentionRule(principal888_5_C);
+		//		rule1.setSecondaryDefaultDocumentCopyRetentionRule(secondary888_6_C);
+		//		transaction.add(rm.getCategory(zeCategory).setRetentionRules(asList(rule1)));
+		//		transaction.add(rule1);
+		//
+		//		transaction.add(rm.getDocumentType(type1).setLinkedSchema(customDocument1Schema().getCode()));
+		//		transaction.add(rm.getDocumentType(type2).setLinkedSchema(customDocument1Schema().getCode()));
+		//		transaction.add(rm.getDocumentType(type3).setLinkedSchema(customDocument2Schema().getCode()));
+		//		transaction.add(rm.getDocumentType(type4).setLinkedSchema(customDocument2Schema().getCode()));
+		//
+		//		Folder activeFolder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2010, 1, 1));
+		//
+		//		Document activeDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1));
+		//		Document semiActiveDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
+		//				.setActualTransferDateEntered(date(2015, 1, 1));
+		//		Document depositedDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
+		//				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
+		//		Document destroyedDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
+		//				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
+		//
+		//		Folder semiActiveFolder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2015, 1, 1))
+		//				.setActualTransferDate(date(2025, 1, 1));
 	}
 
 	private DocumentAssert assertThatDocument(Document document) {

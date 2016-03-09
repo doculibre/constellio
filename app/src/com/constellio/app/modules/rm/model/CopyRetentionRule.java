@@ -29,6 +29,17 @@ public class CopyRetentionRule implements ModifiableStructure {
 	String activeDateMetadata;
 	Integer openActiveRetentionPeriod;
 	boolean dirty;
+	private String id;
+
+	public String getId() {
+		return id;
+	}
+
+	public CopyRetentionRule setId(String id) {
+		dirty = true;
+		this.id = id;
+		return this;
+	}
 
 	public String getCode() {
 		return code;
@@ -276,4 +287,5 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRuleInRule in(String ruleId, String category, int categoryLevel) {
 		return new CopyRetentionRuleInRule(ruleId, category, categoryLevel, this);
 	}
+
 }
