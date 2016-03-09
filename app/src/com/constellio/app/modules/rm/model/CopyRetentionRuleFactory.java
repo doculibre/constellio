@@ -6,7 +6,6 @@ import java.util.StringTokenizer;
 
 import org.joda.time.LocalDate;
 
-import com.constellio.app.modules.rm.model.CopyRetentionRuleFactoryRuntimeException.CopyRetentionRuleFactoryRuntimeException_IdIsRequired;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
@@ -148,7 +147,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 	public String toString(ModifiableStructure structure) {
 		CopyRetentionRule rule = (CopyRetentionRule) structure;
 		if (rule.getId() == null) {
-			throw new CopyRetentionRuleFactoryRuntimeException_IdIsRequired();
+			//	throw new CopyRetentionRuleFactoryRuntimeException_IdIsRequired();
 		}
 		StringBuilder stringBuilder = new StringBuilder();
 
