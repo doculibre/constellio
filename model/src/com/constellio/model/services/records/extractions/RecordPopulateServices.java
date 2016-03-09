@@ -3,13 +3,11 @@ package com.constellio.model.services.records.extractions;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.Collection;
 import java.util.regex.Matcher;
 
+import com.constellio.model.entities.records.wrappers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +30,7 @@ import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+
 
 public class RecordPopulateServices {
 
@@ -131,12 +130,12 @@ public class RecordPopulateServices {
 			//If there was no value, it's only populated if a value has not been set
 			return currentValue == null;
 
-		} else if (previousValue.equals(previousPopulatedValue)) {
+		}
+		if (previousValue.equals(previousPopulatedValue)) {
 			return previousValue.equals(currentValue);
 
-		} else {
-			return false;
 		}
+		return false;
 
 	}
 
@@ -405,7 +404,7 @@ public class RecordPopulateServices {
 
 			String fileName = content.getCurrentVersion().getFilename();
 
-			return fileName == null ? new ArrayList<String>() : asList(content.getCurrentVersion().getFilename());
+			return fileName == null ? new ArrayList<String>() : Collections.singletonList(content.getCurrentVersion().getFilename());
 
 		}
 
@@ -430,7 +429,7 @@ public class RecordPopulateServices {
 				if (value instanceof String) {
 					values.add((String) value);
 				} else if (value instanceof List) {
-					values.addAll((List) value);
+					values.addAll((List<String>) value);
 				}
 			}
 
