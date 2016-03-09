@@ -26,28 +26,7 @@ public class FolderMainCopyRuleCalculator implements MetadataValueCalculator<Cop
 
 	@Override
 	public CopyRetentionRule calculate(CalculatorParameters parameters) {
-
-		List<CopyRetentionRule> copyRules = parameters.get(copyRulesParam);
-		List<LocalDate> expectedDestructionDates = parameters.get(expectedDestructionDatesParam);
-		List<LocalDate> expectedDepositDates = parameters.get(expectedDepositDatesParam);
-
-		LocalDate smallestDate = null;
-		CopyRetentionRule mainCopyRule = null;
-
-		for (int i = 0; i < copyRules.size(); i++) {
-			LocalDate dateAtIndex = null;
-			if (expectedDestructionDates.get(i) != null) {
-				dateAtIndex = expectedDestructionDates.get(i);
-			} else {
-				dateAtIndex = expectedDepositDates.get(i);
-			}
-			if (mainCopyRule == null || (dateAtIndex != null && dateAtIndex.isBefore(smallestDate))) {
-				smallestDate = dateAtIndex;
-				mainCopyRule = copyRules.get(i);
-			}
-		}
-
-		return mainCopyRule;
+		return null;
 	}
 
 	@Override

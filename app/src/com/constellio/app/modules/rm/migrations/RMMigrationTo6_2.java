@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderMainCopyRuleCalculator2;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -41,6 +42,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		private void updateFolderSchema(MetadataSchemaBuilder folderSchemaType) {
 			folderSchemaType.createUndeletable(Folder.MAIN_COPY_RULE_ENTERED)
 					.defineStructureFactory(CopyRetentionRuleFactory.class);
+			folderSchemaType.get(Folder.MAIN_COPY_RULE).defineDataEntry().asCalculated(FolderMainCopyRuleCalculator2.class);
 		}
 	}
 }
