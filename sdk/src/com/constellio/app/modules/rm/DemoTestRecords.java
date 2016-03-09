@@ -23,6 +23,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
@@ -53,6 +54,8 @@ import com.constellio.sdk.tests.setups.Users;
 public class DemoTestRecords {
 
 	private int id = 4200;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	private String nextId() {
 		String idWithTooMuchZeros = "0000000" + (id++);
@@ -625,8 +628,8 @@ public class DemoTestRecords {
 	}
 
 	private void setupRetentionRules(Transaction transaction) {
-		CopyRetentionRule principal888_5_C = CopyRetentionRule.newPrincipal(asList(PA, MD), "888-5-C");
-		CopyRetentionRule secondary888_0_D = CopyRetentionRule.newSecondary(asList(PA, MD), "888-0-D");
+		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(PA, MD), "888-5-C");
+		CopyRetentionRule secondary888_0_D = copyBuilder.newSecondary(asList(PA, MD), "888-0-D");
 		transaction.add(schemas.newRetentionRuleWithId(ruleId_1)).setCode("1").setTitle("Rule #1")
 				.setAdministrativeUnits(asList(unitId_10, unitId_10)).setApproved(true)
 				.setCopyRetentionRules(asList(principal888_5_C, secondary888_0_D))
@@ -637,20 +640,20 @@ public class DemoTestRecords {
 				.setGeneralComment("General Comment Rule 1")
 				.setCopyRulesComment(asList("Copy rules comments"));
 
-		CopyRetentionRule principal5_2_T = CopyRetentionRule.newPrincipal(asList(PA, MD), "5-2-T");
-		CopyRetentionRule secondary2_0_D = CopyRetentionRule.newSecondary(asList(PA, MD), "2-0-D");
+		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(PA, MD), "5-2-T");
+		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(PA, MD), "2-0-D");
 		transaction.add(schemas.newRetentionRuleWithId(ruleId_2)).setCode("2").setTitle("Rule #2")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D));
 
-		CopyRetentionRule principal999_4_T = CopyRetentionRule.newPrincipal(asList(PA, MD), "999-4-T");
-		CopyRetentionRule secondary1_0_D = CopyRetentionRule.newSecondary(asList(PA, MD), "1-0-D");
+		CopyRetentionRule principal999_4_T = copyBuilder.newPrincipal(asList(PA, MD), "999-4-T");
+		CopyRetentionRule secondary1_0_D = copyBuilder.newSecondary(asList(PA, MD), "1-0-D");
 		transaction.add(schemas.newRetentionRuleWithId(ruleId_3)).setCode("3").setTitle("Rule #3")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal999_4_T, secondary1_0_D));
 
-		CopyRetentionRule principal_PA_3_888_D = CopyRetentionRule.newPrincipal(asList(PA), "3-888-D");
-		CopyRetentionRule principal_MD_3_888_C = CopyRetentionRule.newPrincipal(asList(MD), "3-888-C");
+		CopyRetentionRule principal_PA_3_888_D = copyBuilder.newPrincipal(asList(PA), "3-888-D");
+		CopyRetentionRule principal_MD_3_888_C = copyBuilder.newPrincipal(asList(MD), "3-888-C");
 		transaction.add(schemas.newRetentionRuleWithId(ruleId_4)).setCode("4").setTitle("Rule #4")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal_PA_3_888_D, principal_MD_3_888_C, secondary888_0_D));

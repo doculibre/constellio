@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.model.calculators;
+package com.constellio.app.modules.rm.model.calculators.folder;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,6 +11,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilderWithDefinedIds;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -22,6 +24,8 @@ public class FolderMainCopyRuleCalculatorTest extends ConstellioTest {
 	List<CopyRetentionRule> copyRules;
 	List<LocalDate> expectedDepositDates;
 	List<LocalDate> expectedDestructionDates;
+
+	CopyRetentionRuleBuilder copyBuilder = new CopyRetentionRuleBuilderWithDefinedIds();
 
 	@Test
 	public void givenOnlyOneApplicableCopyRuleAndNoInactiveDatesThenReturnThatCopyRule()
@@ -69,12 +73,12 @@ public class FolderMainCopyRuleCalculatorTest extends ConstellioTest {
 
 	//--------------------------------------------
 
-	private static CopyRetentionRule copy(String delays) {
-		return CopyRetentionRule.newPrincipal(asList("PA", "MD"), delays);
+	private CopyRetentionRule copy(String delays) {
+		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
 
 	private CopyRetentionRule calculate() {
-		FolderMainCopyRuleCalculator calculator = new FolderMainCopyRuleCalculator();
+		FolderMainCopyRuleCalculator2 calculator = new FolderMainCopyRuleCalculator2();
 
 		when(parameters.get(calculator.copyRulesParam)).thenReturn(copyRules);
 		when(parameters.get(calculator.expectedDepositDatesParam)).thenReturn(expectedDepositDates);

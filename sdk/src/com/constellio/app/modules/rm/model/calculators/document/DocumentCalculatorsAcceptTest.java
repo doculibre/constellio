@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static com.constellio.app.modules.rm.model.CopyRetentionRule.newPrincipal;
-import static com.constellio.app.modules.rm.model.CopyRetentionRule.newSecondary;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
 import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
 import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS_AND_FOLDER;
@@ -20,6 +18,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
@@ -70,6 +69,8 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 	MetadataSchemasManager metadataSchemasManager;
 
 	Document document;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Before
 	public void setUp()
@@ -238,10 +239,10 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
-		CopyRetentionRule principal888_1_C = newPrincipal(asList(records.PA), "888-1-C");
-		CopyRetentionRule secondary888_2_C = newSecondary(asList(records.PA), "888-2-C");
-		CopyRetentionRule principal5_3_C = newPrincipal(asList(records.PA), "5-3-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_4_C = newPrincipal(asList(records.PA), "888-4-C").setDocumentTypeId(type2);
+		CopyRetentionRule principal888_1_C = copyBuilder.newPrincipal(asList(records.PA), "888-1-C");
+		CopyRetentionRule secondary888_2_C = copyBuilder.newSecondary(asList(records.PA), "888-2-C");
+		CopyRetentionRule principal5_3_C = copyBuilder.newPrincipal(asList(records.PA), "5-3-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_4_C = copyBuilder.newPrincipal(asList(records.PA), "888-4-C").setDocumentTypeId(type2);
 
 		Transaction transaction = new Transaction();
 		RetentionRule rule = transaction.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("zeRule"));
@@ -309,10 +310,10 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		waitForBatchProcess();
 
-		CopyRetentionRule secondary888_1_C = newSecondary(asList(records.PA), "888-1-C");
-		CopyRetentionRule principal888_2_C = newPrincipal(asList(records.PA), "888-2-C");
-		CopyRetentionRule principal888_3_C = newPrincipal(asList(records.PA), "888-3-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_4_C = newPrincipal(asList(records.PA), "888-4-C").setDocumentTypeId(type2);
+		CopyRetentionRule secondary888_1_C = copyBuilder.newSecondary(asList(records.PA), "888-1-C");
+		CopyRetentionRule principal888_2_C = copyBuilder.newPrincipal(asList(records.PA), "888-2-C");
+		CopyRetentionRule principal888_3_C = copyBuilder.newPrincipal(asList(records.PA), "888-3-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_4_C = copyBuilder.newPrincipal(asList(records.PA), "888-4-C").setDocumentTypeId(type2);
 
 		Transaction transaction = new Transaction();
 		RetentionRule rule = transaction.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("zeRule"));
@@ -360,17 +361,17 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		waitForBatchProcess();
-		CopyRetentionRule principal888_1_C = newPrincipal(asList(records.PA), "888-1-C");
-		CopyRetentionRule secondary888_2_C = newSecondary(asList(records.PA), "888-2-C");
-		CopyRetentionRule principal888_3_C = newPrincipal(asList(records.PA), "888-3-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_4_C = newPrincipal(asList(records.PA), "888-4-C");
-		CopyRetentionRule secondary888_5_C = newSecondary(asList(records.PA), "888-5-C");
-		CopyRetentionRule principal888_6_C = newPrincipal(asList(records.PA), "888-6-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_7_C = newPrincipal(asList(records.PA), "888-7-C").setDocumentTypeId(type2);
-		CopyRetentionRule principal888_8_C = newPrincipal(asList(records.PA), "888-8-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_9_C = newPrincipal(asList(records.PA), "888-9-C").setDocumentTypeId(type3);
-		CopyRetentionRule principal888_10_C = newPrincipal(asList(records.PA), "888-10-C");
-		CopyRetentionRule secondary888_11_C = newSecondary(asList(records.PA), "888-11-C");
+		CopyRetentionRule principal888_1_C = copyBuilder.newPrincipal(asList(records.PA), "888-1-C");
+		CopyRetentionRule secondary888_2_C = copyBuilder.newSecondary(asList(records.PA), "888-2-C");
+		CopyRetentionRule principal888_3_C = copyBuilder.newPrincipal(asList(records.PA), "888-3-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_4_C = copyBuilder.newPrincipal(asList(records.PA), "888-4-C");
+		CopyRetentionRule secondary888_5_C = copyBuilder.newSecondary(asList(records.PA), "888-5-C");
+		CopyRetentionRule principal888_6_C = copyBuilder.newPrincipal(asList(records.PA), "888-6-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_7_C = copyBuilder.newPrincipal(asList(records.PA), "888-7-C").setDocumentTypeId(type2);
+		CopyRetentionRule principal888_8_C = copyBuilder.newPrincipal(asList(records.PA), "888-8-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_9_C = copyBuilder.newPrincipal(asList(records.PA), "888-9-C").setDocumentTypeId(type3);
+		CopyRetentionRule principal888_10_C = copyBuilder.newPrincipal(asList(records.PA), "888-10-C");
+		CopyRetentionRule secondary888_11_C = copyBuilder.newSecondary(asList(records.PA), "888-11-C");
 
 		Transaction transaction = new Transaction();
 		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
@@ -449,28 +450,28 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		waitForBatchProcess();
-		CopyRetentionRule principal888_1_C = newPrincipal(asList(records.PA), "888-1-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_2_C = newPrincipal(asList(records.PA), "888-2-C").setDocumentTypeId(type2);
-		CopyRetentionRule principal888_3_C = newPrincipal(asList(records.PA), "888-3-C").setDocumentTypeId(type3);
-		CopyRetentionRule principal888_4_C = newPrincipal(asList(records.PA), "888-4-C");
-		CopyRetentionRule secondary888_5_C = newSecondary(asList(records.PA), "888-5-C");
-		CopyRetentionRule principal888_6_C = newPrincipal(asList(records.PA), "888-6-C");
-		CopyRetentionRule secondary888_7_C = newSecondary(asList(records.PA), "888-7-C");
-		CopyRetentionRule principal888_8_C = newPrincipal(asList(records.PA), "888-8-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_9_C = newPrincipal(asList(records.PA), "888-9-C").setDocumentTypeId(type4);
-		CopyRetentionRule principal888_10_C = newPrincipal(asList(records.PA), "888-10-C").setDocumentTypeId(type3);
-		CopyRetentionRule principal888_11_C = newPrincipal(asList(records.PA), "888-11-C");
-		CopyRetentionRule secondary888_12_C = newSecondary(asList(records.PA), "888-12-C");
+		CopyRetentionRule principal888_1_C = copyBuilder.newPrincipal(asList(records.PA), "888-1-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_2_C = copyBuilder.newPrincipal(asList(records.PA), "888-2-C").setDocumentTypeId(type2);
+		CopyRetentionRule principal888_3_C = copyBuilder.newPrincipal(asList(records.PA), "888-3-C").setDocumentTypeId(type3);
+		CopyRetentionRule principal888_4_C = copyBuilder.newPrincipal(asList(records.PA), "888-4-C");
+		CopyRetentionRule secondary888_5_C = copyBuilder.newSecondary(asList(records.PA), "888-5-C");
+		CopyRetentionRule principal888_6_C = copyBuilder.newPrincipal(asList(records.PA), "888-6-C");
+		CopyRetentionRule secondary888_7_C = copyBuilder.newSecondary(asList(records.PA), "888-7-C");
+		CopyRetentionRule principal888_8_C = copyBuilder.newPrincipal(asList(records.PA), "888-8-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_9_C = copyBuilder.newPrincipal(asList(records.PA), "888-9-C").setDocumentTypeId(type4);
+		CopyRetentionRule principal888_10_C = copyBuilder.newPrincipal(asList(records.PA), "888-10-C").setDocumentTypeId(type3);
+		CopyRetentionRule principal888_11_C = copyBuilder.newPrincipal(asList(records.PA), "888-11-C");
+		CopyRetentionRule secondary888_12_C = copyBuilder.newSecondary(asList(records.PA), "888-12-C");
 
-		CopyRetentionRule principal888_14_C = newPrincipal(asList(records.PA), "888-14-C");
-		CopyRetentionRule secondary888_15_C = newSecondary(asList(records.PA), "888-15-C");
-		CopyRetentionRule principal888_16_C = newPrincipal(asList(records.PA), "888-16-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_17_C = newPrincipal(asList(records.PA), "888-17-C").setDocumentTypeId(type2);
-		CopyRetentionRule principal888_18_C = newPrincipal(asList(records.PA), "888-18-C");
-		CopyRetentionRule principal888_19_C = newPrincipal(asList(records.PA), "888-19-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal888_20_C = newPrincipal(asList(records.PA), "888-20-C").setDocumentTypeId(type5);
-		CopyRetentionRule principal888_21_C = newPrincipal(asList(records.PA), "888-21-C");
-		CopyRetentionRule secondary888_22_C = newSecondary(asList(records.PA), "888-22-C");
+		CopyRetentionRule principal888_14_C = copyBuilder.newPrincipal(asList(records.PA), "888-14-C");
+		CopyRetentionRule secondary888_15_C = copyBuilder.newSecondary(asList(records.PA), "888-15-C");
+		CopyRetentionRule principal888_16_C = copyBuilder.newPrincipal(asList(records.PA), "888-16-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_17_C = copyBuilder.newPrincipal(asList(records.PA), "888-17-C").setDocumentTypeId(type2);
+		CopyRetentionRule principal888_18_C = copyBuilder.newPrincipal(asList(records.PA), "888-18-C");
+		CopyRetentionRule principal888_19_C = copyBuilder.newPrincipal(asList(records.PA), "888-19-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal888_20_C = copyBuilder.newPrincipal(asList(records.PA), "888-20-C").setDocumentTypeId(type5);
+		CopyRetentionRule principal888_21_C = copyBuilder.newPrincipal(asList(records.PA), "888-21-C");
+		CopyRetentionRule secondary888_22_C = copyBuilder.newSecondary(asList(records.PA), "888-22-C");
 
 		Transaction transaction = new Transaction();
 		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
@@ -688,13 +689,13 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		waitForBatchProcess();
 		createDateMetadatasAndCustomSchemas();
 
-		CopyRetentionRule principal2_1_C = newPrincipal(asList(records.PA), "2-1-T").setDocumentTypeId(type1);
-		CopyRetentionRule principal3_2_C = newPrincipal(asList(records.PA), "3-2-C").setDocumentTypeId(type2);
-		CopyRetentionRule principal4_3_C = newPrincipal(asList(records.PA), "4-3-C").setDocumentTypeId(type3);
-		CopyRetentionRule principal5_5_D = newPrincipal(asList(records.PA), "5-5-D").setDocumentTypeId(type4);
-		CopyRetentionRule principal6_5_C = newPrincipal(asList(records.PA), "6-5-C").setDocumentTypeId(type5);
-		CopyRetentionRule principal888_6_C = newPrincipal(asList(records.PA), "888-1-C");
-		CopyRetentionRule secondary888_7_C = newSecondary(asList(records.PA), "888-2-C");
+		CopyRetentionRule principal2_1_C = copyBuilder.newPrincipal(asList(records.PA), "2-1-T").setDocumentTypeId(type1);
+		CopyRetentionRule principal3_2_C = copyBuilder.newPrincipal(asList(records.PA), "3-2-C").setDocumentTypeId(type2);
+		CopyRetentionRule principal4_3_C = copyBuilder.newPrincipal(asList(records.PA), "4-3-C").setDocumentTypeId(type3);
+		CopyRetentionRule principal5_5_D = copyBuilder.newPrincipal(asList(records.PA), "5-5-D").setDocumentTypeId(type4);
+		CopyRetentionRule principal6_5_C = copyBuilder.newPrincipal(asList(records.PA), "6-5-C").setDocumentTypeId(type5);
+		CopyRetentionRule principal888_6_C = copyBuilder.newPrincipal(asList(records.PA), "888-1-C");
+		CopyRetentionRule secondary888_7_C = copyBuilder.newSecondary(asList(records.PA), "888-2-C");
 
 		Transaction transaction = new Transaction();
 		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
@@ -773,13 +774,13 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		waitForBatchProcess();
 		createDateMetadatasAndCustomSchemas();
 
-		CopyRetentionRule principal888_1_C = newPrincipal(asList(records.PA), "888-1-C").setDocumentTypeId(type1);
-		CopyRetentionRule principal3_2_C = newPrincipal(asList(records.PA), "3-2-C").setDocumentTypeId(type2);
-		CopyRetentionRule principal4_999_C = newPrincipal(asList(records.PA), "4-999-C").setDocumentTypeId(type3);
-		CopyRetentionRule principal888_888_D = newPrincipal(asList(records.PA), "888-888-D").setDocumentTypeId(type4);
-		CopyRetentionRule principal6_5_C = newPrincipal(asList(records.PA), "6-5-C").setDocumentTypeId(type5);
-		CopyRetentionRule principal888_5_C = newPrincipal(asList(records.PA), "888-5-C");
-		CopyRetentionRule secondary888_6_C = newSecondary(asList(records.PA), "888-6-C");
+		CopyRetentionRule principal888_1_C = copyBuilder.newPrincipal(asList(records.PA), "888-1-C").setDocumentTypeId(type1);
+		CopyRetentionRule principal3_2_C = copyBuilder.newPrincipal(asList(records.PA), "3-2-C").setDocumentTypeId(type2);
+		CopyRetentionRule principal4_999_C = copyBuilder.newPrincipal(asList(records.PA), "4-999-C").setDocumentTypeId(type3);
+		CopyRetentionRule principal888_888_D = copyBuilder.newPrincipal(asList(records.PA), "888-888-D").setDocumentTypeId(type4);
+		CopyRetentionRule principal6_5_C = copyBuilder.newPrincipal(asList(records.PA), "6-5-C").setDocumentTypeId(type5);
+		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
+		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
 
 		Transaction transaction = new Transaction();
 		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
@@ -905,22 +906,22 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		waitForBatchProcess();
 		createDateMetadatasAndCustomSchemas();
 
-		CopyRetentionRule copy1 = newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type1)
+		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type1)
 				.setActiveDateMetadata(documentDateA().getLocalCode())
 				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode());
-		CopyRetentionRule copy2 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type2)
+		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type2)
 				.setActiveDateMetadata(documentDateB().getLocalCode())
 				.setSemiActiveDateMetadata(documentDateA().getLocalCode());
-		CopyRetentionRule copy3 = newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type3)
+		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type3)
 				.setActiveDateMetadata(customDocument2DateE().getLocalCode());
-		CopyRetentionRule copy4 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type4)
+		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type4)
 				.setSemiActiveDateMetadata(documentDateB().getLocalCode());
-		CopyRetentionRule copy5 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type5)
+		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type5)
 				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
 				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode());
 
-		CopyRetentionRule principal888_5_C = newPrincipal(asList(records.PA), "888-5-C");
-		CopyRetentionRule secondary888_6_C = newSecondary(asList(records.PA), "888-6-C");
+		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
+		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
 
 		Transaction transaction = new Transaction();
 		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
@@ -1084,22 +1085,22 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		waitForBatchProcess();
 		createDateMetadatasAndCustomSchemas();
 
-		CopyRetentionRule copy1 = newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type1)
+		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type1)
 				.setActiveDateMetadata(documentDateA().getLocalCode())
 				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode());
-		CopyRetentionRule copy2 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type2)
+		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type2)
 				.setActiveDateMetadata(documentDateB().getLocalCode())
 				.setSemiActiveDateMetadata(documentDateA().getLocalCode());
-		CopyRetentionRule copy3 = newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type3)
+		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type3)
 				.setActiveDateMetadata(customDocument2DateE().getLocalCode());
-		CopyRetentionRule copy4 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type4)
+		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type4)
 				.setSemiActiveDateMetadata(documentDateB().getLocalCode());
-		CopyRetentionRule copy5 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type5)
+		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type5)
 				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
 				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode());
 
-		CopyRetentionRule principal888_5_C = newPrincipal(asList(records.PA), "888-5-C");
-		CopyRetentionRule secondary888_6_C = newSecondary(asList(records.PA), "888-6-C");
+		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
+		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
 
 		Transaction transaction = new Transaction();
 		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
@@ -1196,22 +1197,22 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		//		waitForBatchProcess();
 		//		createDateMetadatasAndCustomSchemas();
 		//
-		//		CopyRetentionRule copy1 = newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type1)
+		//		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type1)
 		//				.setActiveDateMetadata(documentDateA().getLocalCode())
 		//				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode());
-		//		CopyRetentionRule copy2 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type2)
+		//		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type2)
 		//				.setActiveDateMetadata(documentDateB().getLocalCode())
 		//				.setSemiActiveDateMetadata(documentDateA().getLocalCode());
-		//		CopyRetentionRule copy3 = newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type3)
+		//		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type3)
 		//				.setActiveDateMetadata(customDocument2DateE().getLocalCode());
-		//		CopyRetentionRule copy4 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type4)
+		//		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type4)
 		//				.setSemiActiveDateMetadata(documentDateB().getLocalCode());
-		//		CopyRetentionRule copy5 = newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type5)
+		//		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type5)
 		//				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
 		//				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode());
 		//
-		//		CopyRetentionRule principal888_5_C = newPrincipal(asList(records.PA), "888-5-C");
-		//		CopyRetentionRule secondary888_6_C = newSecondary(asList(records.PA), "888-6-C");
+		//		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
+		//		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
 		//
 		//		Transaction transaction = new Transaction();
 		//		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));

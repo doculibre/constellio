@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
-import static com.constellio.app.modules.rm.model.CopyRetentionRule.newPrincipal;
-import static com.constellio.app.modules.rm.model.CopyRetentionRule.newSecondary;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
@@ -16,6 +14,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -31,15 +30,17 @@ public class DecomListUniformCopyRuleCalculatorTest extends ConstellioTest {
 	@Mock CalculatorParameters parameters;
 	CopyRetentionRule copyRetentionRule;
 
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
 	@Before
 	public void setUp()
 			throws Exception {
 		calculator = spy(new DecomListUniformCopyRuleCalculator());
 
-		secondary = newSecondary(asList("PA", "FI"), "888-0-C");
-		principal = newPrincipal(asList("PA"), "888-0-D");
-		secondPrincipal = newPrincipal(asList("FI"), "888-0-D");
-		thirdPrincipal = newPrincipal(asList("PA", "FI"), "888-0-D");
+		secondary = copyBuilder.newSecondary(asList("PA", "FI"), "888-0-C");
+		principal = copyBuilder.newPrincipal(asList("PA"), "888-0-D");
+		secondPrincipal = copyBuilder.newPrincipal(asList("FI"), "888-0-D");
+		thirdPrincipal = copyBuilder.newPrincipal(asList("PA", "FI"), "888-0-D");
 
 		equalsValues = Arrays.asList(principal, principal, principal, principal);
 		differentsValues = Arrays.asList(principal, secondPrincipal, thirdPrincipal, secondary);

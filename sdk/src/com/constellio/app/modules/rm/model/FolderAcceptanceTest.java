@@ -103,6 +103,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	CopyType noEnteredCopyType = null;
 
+	CopyRetentionRuleBuilder copyBuilder = new CopyRetentionRuleBuilderWithDefinedIds();
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -942,11 +944,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	private CopyRetentionRule principal(String status, String... mediumTypes) {
-		return CopyRetentionRule.newPrincipal(asList(mediumTypes), status);
+		return copyBuilder.newPrincipal(asList(mediumTypes), status);
 	}
 
 	private CopyRetentionRule secondary(String status, String... mediumTypes) {
-		return CopyRetentionRule.newSecondary(asList(mediumTypes), status);
+		return copyBuilder.newSecondary(asList(mediumTypes), status);
 	}
 
 	private LocalDate march31(int year) {

@@ -54,6 +54,8 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 
 	RMSchemasRecordsServices rm;
 
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -79,7 +81,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		transaction.add(rm.newDocumentTypeWithId(anotherType).setCode("Another code").setTitle("A title"));
 		recordServices.execute(transaction);
 
-		principalAnalogicRetentionRule = new CopyRetentionRule();
+		principalAnalogicRetentionRule = copyBuilder.newCopyRetentionRule();
 		principalAnalogicRetentionRule.setCode("rule1");
 		principalAnalogicRetentionRule.setCopyType(CopyType.PRINCIPAL);
 		principalAnalogicRetentionRule.setMediumTypeIds(asList(rm.PA(), rm.FI()));
@@ -91,7 +93,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		principalAnalogicRetentionRule.setInactiveDisposalType(DisposalType.DESTRUCTION);
 		principalAnalogicRetentionRule.setCode("R4");
 
-		principalNumericRetentionRule = new CopyRetentionRule();
+		principalNumericRetentionRule = copyBuilder.newCopyRetentionRule();
 		principalNumericRetentionRule.setCode("rule2");
 		principalNumericRetentionRule.setCopyType(CopyType.PRINCIPAL);
 		principalNumericRetentionRule.setMediumTypeIds(asList(rm.DM()));
@@ -103,7 +105,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		principalNumericRetentionRule.setInactiveDisposalType(DisposalType.SORT);
 		principalNumericRetentionRule.setCode("R8");
 
-		secondaryRetentionRule = new CopyRetentionRule();
+		secondaryRetentionRule = copyBuilder.newCopyRetentionRule();
 		secondaryRetentionRule.setCode("rule3");
 		secondaryRetentionRule.setCopyType(CopyType.SECONDARY);
 		secondaryRetentionRule.setMediumTypeIds(asList(rm.PA(), rm.FI(), rm.DM()));
@@ -124,12 +126,12 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		VariableRetentionPeriod period42 = rm.newVariableRetentionPeriod().setCode("42").setTitle("Ze 42");
 		VariableRetentionPeriod period666 = rm.newVariableRetentionPeriod().setCode("666").setTitle("Ze 666");
 
-		CopyRetentionRule principal = CopyRetentionRule.newPrincipal(asList("PA"))
+		CopyRetentionRule principal = copyBuilder.newPrincipal(asList("PA"))
 				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
 				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
 				.setInactiveDisposalType(DisposalType.DEPOSIT);
 
-		CopyRetentionRule secondary = CopyRetentionRule.newSecondary(asList("PA"))
+		CopyRetentionRule secondary = copyBuilder.newSecondary(asList("PA"))
 				.setActiveRetentionPeriod(RetentionPeriod.fixed(42))
 				.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(666))
 				.setInactiveDisposalType(DisposalType.DEPOSIT);
@@ -247,7 +249,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		retentionRule.setCode("zeCode");
 		retentionRule.setTitle("zeTitle");
 		retentionRule.setResponsibleAdministrativeUnits(true);
-		retentionRule.setCopyRetentionRules(asList(new CopyRetentionRule()));
+		retentionRule.setCopyRetentionRules(asList(copyBuilder.newCopyRetentionRule()));
 
 		try {
 			recordServices.add(retentionRuleRecord);
