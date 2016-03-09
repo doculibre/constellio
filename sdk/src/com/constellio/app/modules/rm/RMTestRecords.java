@@ -31,6 +31,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -79,6 +80,9 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
 
 public class RMTestRecords {
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
 	public final String categoryId_Z = "categoryId_Z";
 	public final String categoryId_Z100 = "categoryId_Z100";
 	public final String categoryId_Z110 = "categoryId_Z110";
@@ -695,13 +699,13 @@ public class RMTestRecords {
 		transaction.add(period42);
 		transaction.add(period666);
 
-		CopyRetentionRule principal42_5_C = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "42-5-C");
+		CopyRetentionRule principal42_5_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "42-5-C");
 		principal42_5_C.setActiveRetentionPeriod(RetentionPeriod.variable(period42));
 		principal42_5_C.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(5));
 		principal42_5_C.setInactiveDisposalType(DisposalType.DEPOSIT);
 		principal42_5_C.setContentTypesComment("R1");
 		principal42_5_C.setActiveRetentionComment("R2");
-		CopyRetentionRule secondary888_0_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
+		CopyRetentionRule secondary888_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
 		secondary888_0_D.setSemiActiveRetentionComment("R3");
 		secondary888_0_D.setInactiveDisposalComment("R4");
 
@@ -716,8 +720,8 @@ public class RMTestRecords {
 						new RetentionRuleDocumentType(documentTypeId_2),
 						new RetentionRuleDocumentType(documentTypeId_3)));
 
-		CopyRetentionRule principal5_2_T = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
-		CopyRetentionRule secondary2_0_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
+		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
 		transaction.add(rm.newRetentionRuleWithId(ruleId_2)).setCode("2").setTitle("Rule #2")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
@@ -727,9 +731,9 @@ public class RMTestRecords {
 						new RetentionRuleDocumentType(documentTypeId_3, DisposalType.DESTRUCTION),
 						new RetentionRuleDocumentType(documentTypeId_4, DisposalType.DEPOSIT)));
 
-		CopyRetentionRule principal999_4_T = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "999-4-T");
+		CopyRetentionRule principal999_4_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "999-4-T");
 		principal999_4_T.setContentTypesComment("R1");
-		CopyRetentionRule secondary1_0_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "1-0-D");
+		CopyRetentionRule secondary1_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "1-0-D");
 		transaction.add(rm.newRetentionRuleWithId(ruleId_3)).setCode("3").setTitle("Rule #3")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal999_4_T, secondary1_0_D))
@@ -737,14 +741,14 @@ public class RMTestRecords {
 						new RetentionRuleDocumentType(documentTypeId_1, DisposalType.DEPOSIT),
 						new RetentionRuleDocumentType(documentTypeId_2, DisposalType.DEPOSIT)));
 
-		CopyRetentionRule secondary666_0_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()));
+		CopyRetentionRule secondary666_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()));
 		secondary666_0_D.setActiveRetentionPeriod(RetentionPeriod.variable(period666));
 		secondary666_0_D.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(0));
 		secondary666_0_D.setInactiveDisposalType(DisposalType.DESTRUCTION);
 		secondary666_0_D.setSemiActiveRetentionComment("R3");
 		secondary666_0_D.setInactiveDisposalComment("R4");
-		CopyRetentionRule principal_PA_3_888_D = CopyRetentionRule.newPrincipal(asList(rm.PA()), "3-888-D");
-		CopyRetentionRule principal_MD_3_888_C = CopyRetentionRule.newPrincipal(asList(rm.DM()), "3-888-C");
+		CopyRetentionRule principal_PA_3_888_D = copyBuilder.newPrincipal(asList(rm.PA()), "3-888-D");
+		CopyRetentionRule principal_MD_3_888_C = copyBuilder.newPrincipal(asList(rm.DM()), "3-888-C");
 		transaction.add(rm.newRetentionRuleWithId(ruleId_4)).setCode("4").setTitle("Rule #4")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal_PA_3_888_D, principal_MD_3_888_C, secondary666_0_D))
@@ -764,11 +768,11 @@ public class RMTestRecords {
 		));
 		rule5.setResponsibleAdministrativeUnits(true);
 
-		CopyRetentionRule principal888_5_C_rule5 = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "888-5-C");
+		CopyRetentionRule principal888_5_C_rule5 = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "888-5-C");
 		principal888_5_C_rule5.setActiveRetentionComment("R1");
 		principal888_5_C_rule5.setSemiActiveRetentionComment("R2");
 		principal888_5_C_rule5.setInactiveDisposalComment("R3");
-		CopyRetentionRule secondary888_0_D_rule5 = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
+		CopyRetentionRule secondary888_0_D_rule5 = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
 		secondary888_0_D_rule5.setActiveRetentionComment("R1");
 		secondary888_0_D_rule5.setInactiveDisposalComment("R3");
 
@@ -1084,15 +1088,15 @@ public class RMTestRecords {
 	public RMTestRecords withDocumentDecommissioningLists() {
 
 		//contrat
-		CopyRetentionRule principal1_2_C = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "2-0-C")
+		CopyRetentionRule principal1_2_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "2-0-C")
 				.setDocumentTypeId(documentTypeId_9);
 
 		//proces-verbal
-		CopyRetentionRule principal1_2_D = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "1-2-D")
+		CopyRetentionRule principal1_2_D = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "1-2-D")
 				.setDocumentTypeId(documentTypeId_10);
 
-		CopyRetentionRule principal5_5_C = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "5-5-C");
-		CopyRetentionRule secondary5_5_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "5-5-D");
+		CopyRetentionRule principal5_5_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-5-C");
+		CopyRetentionRule secondary5_5_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "5-5-D");
 
 		Transaction transaction = new Transaction();
 

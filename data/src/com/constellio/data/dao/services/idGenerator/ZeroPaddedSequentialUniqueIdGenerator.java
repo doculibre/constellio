@@ -16,7 +16,7 @@ public class ZeroPaddedSequentialUniqueIdGenerator implements StatefulService, U
 
 	private final ConfigManager configManager;
 	private final int reservedBatchSize;
-	private Iterator<String> idReservedByInstance = Collections.emptyIterator();
+	private Iterator<Long> idReservedByInstance = Collections.emptyIterator();
 
 	public ZeroPaddedSequentialUniqueIdGenerator(ConfigManager configManager, int reservedBatchSize) {
 		this.configManager = configManager;
@@ -42,7 +42,7 @@ public class ZeroPaddedSequentialUniqueIdGenerator implements StatefulService, U
 		if (!idReservedByInstance.hasNext()) {
 			reserve();
 		}
-		return idReservedByInstance.next();
+		return zeroPaddedNumber(idReservedByInstance.next());
 	}
 
 	private void reserve() {
@@ -51,9 +51,9 @@ public class ZeroPaddedSequentialUniqueIdGenerator implements StatefulService, U
 			public void alter(Map<String, String> properties) {
 				Long current = Long.valueOf(properties.get("next"));
 
-				List<String> nexts = new ArrayList<>();
+				List<Long> nexts = new ArrayList<>();
 				for (int i = 0; i < reservedBatchSize; i++) {
-					nexts.add(zeroPaddedNumber(current + i));
+					nexts.add(current + i);
 				}
 				idReservedByInstance = nexts.iterator();
 
@@ -70,5 +70,12 @@ public class ZeroPaddedSequentialUniqueIdGenerator implements StatefulService, U
 	@Override
 	public void close() {
 
+	}
+
+	public String nextWithoutZeros() {
+		if (!idReservedByInstance.hasNext()) {
+			reserve();
+		}
+		return "" + idReservedByInstance.next();
 	}
 }

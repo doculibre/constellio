@@ -70,13 +70,15 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 	private AddButton addButton;
 	private Table table;
 	private Table variablePeriodTable;
+	private RetentionRuleTablePresenter presenter;
 	private boolean formMode;
 
 	public FolderCopyRetentionRuleTable(RetentionRuleVO retentionRuleVO, boolean formMode,
-			List<VariableRetentionPeriodVO> variableRetentionPeriodVOList) {
+			final RetentionRuleTablePresenter presenter) {
 		this.retentionRuleVO = retentionRuleVO;
 		this.formMode = formMode;
-		this.variableRetentionPeriodVOList = variableRetentionPeriodVOList;
+		this.presenter = presenter;
+		this.variableRetentionPeriodVOList = presenter.getOpenPeriodsDDVList();
 
 		setSizeFull();
 
@@ -88,7 +90,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			addButton = new AddButton($("FolderCopyRetentionRuleListTable.addPrincipalCopy")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					CopyRetentionRule newCopy = newCopy(true);
+					CopyRetentionRule newCopy = presenter.newFolderCopyRetentionRule(true);
 					List<CopyRetentionRule> copyRetentionRules = getCopyRetentionRules();
 					int indexOfNewCopy;
 					if (copyRetentionRules.size() > 1) {
@@ -193,19 +195,6 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		return new ArrayList<>();
 	}
 
-	private CopyRetentionRule newCopy(boolean principal) {
-		CopyRetentionRule newCopy = new CopyRetentionRule();
-		if (principal) {
-			newCopy.setCopyType(CopyType.PRINCIPAL);
-		} else {
-			newCopy.setCopyType(CopyType.SECONDARY);
-			newCopy.setInactiveDisposalType(DisposalType.DESTRUCTION);
-		}
-		newCopy.setActiveRetentionPeriod(RetentionPeriod.ZERO);
-		newCopy.setSemiActiveRetentionPeriod(RetentionPeriod.ZERO);
-		return newCopy;
-	}
-
 	@Override
 	protected Component initContent() {
 		return mainLayout;
@@ -218,10 +207,10 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			retentionRuleVO.setCopyRetentionRules(copyRetentionRules);
 		}
 		if (copyRetentionRules.isEmpty()) {
-			CopyRetentionRule principalCopy = newCopy(true);
+			CopyRetentionRule principalCopy = presenter.newFolderCopyRetentionRule(true);
 			copyRetentionRules.add(principalCopy);
 
-			CopyRetentionRule secondaryCopy = newCopy(false);
+			CopyRetentionRule secondaryCopy = presenter.newFolderCopyRetentionRule(false);
 			copyRetentionRules.add(secondaryCopy);
 		}
 		return copyRetentionRules;

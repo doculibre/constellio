@@ -122,4 +122,24 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	private boolean areDocumentRetentionRulesEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
 	}
+
+	@Override
+	public CopyRetentionRule newDocumentCopyRetentionRule() {
+		throw new UnsupportedOperationException("Not supported in display");
+	}
+
+	@Override
+	public CopyRetentionRule newFolderCopyRetentionRule(boolean principal) {
+		throw new UnsupportedOperationException("Not supported in display");
+	}
+
+	@Override
+	public CopyRetentionRule newDocumentDefaultCopyRetentionRule(boolean principal) {
+		throw new UnsupportedOperationException("Not supported in display");
+	}
+
+	@Override
+	public List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
+		return getOpenActivePeriodsDDVList();
+	}
 }

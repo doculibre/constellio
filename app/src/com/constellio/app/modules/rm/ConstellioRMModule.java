@@ -52,6 +52,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_9;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -162,8 +163,9 @@ public class ConstellioRMModule implements InstallableModule {
 		AdministrativeUnit adminUnit = rm.newAdministrativeUnit().setCode("1").setTitle($("RMDemoData.adminUnit"));
 		transaction.add(adminUnit);
 
-		CopyRetentionRule principal888_5_C = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "888-5-C");
-		CopyRetentionRule secondary888_0_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
+		CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.sequential(appLayerFactory);
+		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "888-5-C");
+		CopyRetentionRule secondary888_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
 		RetentionRule retentionRule = rm.newRetentionRule().setCode("R1").setTitle($("RMDemoData.retentionRule"))
 				.setAdministrativeUnits(asList(adminUnit.getId())).setApproved(true)
 				.setCopyRetentionRules(asList(principal888_5_C, secondary888_0_D));

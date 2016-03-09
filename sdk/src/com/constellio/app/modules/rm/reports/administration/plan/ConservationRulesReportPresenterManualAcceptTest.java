@@ -13,6 +13,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportBuilder;
@@ -37,6 +38,8 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 	ConservationRulesReportPresenter presenter;
 	RMSchemasRecordsServices rm;
 	RecordServices recordServices;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Before
 	public void setUp()
@@ -317,12 +320,12 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		VariableRetentionPeriod period42 = rm.newVariableRetentionPeriod().setCode("42").setTitle("Ze 42");
 		VariableRetentionPeriod period666 = rm.newVariableRetentionPeriod().setCode("666").setTitle("Ze 666");
 
-		CopyRetentionRule principal = CopyRetentionRule.newPrincipal(asList("PA"))
+		CopyRetentionRule principal = copyBuilder.newPrincipal(asList("PA"))
 				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
 				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
 				.setInactiveDisposalType(DisposalType.DEPOSIT);
 
-		CopyRetentionRule secondary = CopyRetentionRule.newSecondary(asList("PA"))
+		CopyRetentionRule secondary = copyBuilder.newSecondary(asList("PA"))
 				.setActiveRetentionPeriod(RetentionPeriod.fixed(42))
 				.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(666))
 				.setInactiveDisposalType(DisposalType.DEPOSIT);
