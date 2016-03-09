@@ -34,6 +34,7 @@ public class Folder extends RMObject {
 	public static final String CATEGORY = "category";
 	public static final String CATEGORY_CODE = "categoryCode";
 	public static final String MAIN_COPY_RULE = "mainCopyRule";
+	public static final String MAIN_COPY_RULE_ENTERED = "mainCopyRuleEntered";
 	public static final String APPLICABLE_COPY_RULES = "applicableCopyRule";
 	public static final String COPY_STATUS = "copyStatus";
 	public static final String COPY_STATUS_ENTERED = "copyStatusEntered";
@@ -452,6 +453,15 @@ public class Folder extends RMObject {
 
 	public CopyRetentionRule getMainCopyRule() {
 		return get(MAIN_COPY_RULE);
+	}
+
+	public CopyRetentionRule getMainCopyRuleEntered() {
+		return get(MAIN_COPY_RULE_ENTERED);
+	}
+
+	public Folder setMainCopyRuleEntered(CopyRetentionRule mainCopyRuleEntered) {
+		set(MAIN_COPY_RULE_ENTERED, mainCopyRuleEntered);
+		return this;
 	}
 
 	public List<CopyRetentionRule> getApplicableCopyRules() {
