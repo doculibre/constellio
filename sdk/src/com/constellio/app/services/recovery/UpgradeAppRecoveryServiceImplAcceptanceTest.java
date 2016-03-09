@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
@@ -49,6 +50,7 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 	@Before
 	public void setUp()
 			throws Exception {
+		withSpiedServices(FoldersLocator.class);
 		givenTransactionLogIsEnabled();
 		givenDisabledAfterTestValidations();
 		prepareSystem(

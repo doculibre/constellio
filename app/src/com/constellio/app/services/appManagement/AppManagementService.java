@@ -54,6 +54,7 @@ import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.conf.FoldersLocatorRuntimeException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
@@ -294,11 +295,12 @@ public class AppManagementService {
 	}
 
 	private void updateWrapperConf(File deployFolder) {
-		//		if (foldersLocator.getFoldersLocatorMode().equals(FoldersLocatorMode.PROJECT)) {
-		//			return;
-		//		}
+
 		LOGGER.info("New webapp path is '" + deployFolder.getAbsolutePath() + "'");
 		File wrapperConf = foldersLocator.getWrapperConf();
+		if (foldersLocator.getFoldersLocatorMode().equals(FoldersLocatorMode.PROJECT) && !wrapperConf.exists()) {
+			return;
+		}
 		List<String> lines = fileService.readFileToLinesWithoutExpectableIOException(wrapperConf);
 		for (int i = 0; i < lines.size(); i++) {
 
