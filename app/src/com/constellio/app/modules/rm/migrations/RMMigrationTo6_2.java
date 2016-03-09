@@ -3,11 +3,11 @@ package com.constellio.app.modules.rm.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderMainCopyRuleCalculator2;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -35,13 +35,11 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		}
 
 		private void updateDocumentSchema(MetadataSchemaBuilder documentSchemaType) {
-			documentSchemaType.createUndeletable(Document.MAIN_COPY_RULE_ENTERED)
-					.defineStructureFactory(CopyRetentionRuleFactory.class);
+			documentSchemaType.createUndeletable(Document.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
 		}
 
 		private void updateFolderSchema(MetadataSchemaBuilder folderSchemaType) {
-			folderSchemaType.createUndeletable(Folder.MAIN_COPY_RULE_ENTERED)
-					.defineStructureFactory(CopyRetentionRuleFactory.class);
+			folderSchemaType.createUndeletable(Folder.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
 			folderSchemaType.get(Folder.MAIN_COPY_RULE).defineDataEntry().asCalculated(FolderMainCopyRuleCalculator2.class);
 		}
 	}

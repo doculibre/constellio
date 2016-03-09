@@ -51,7 +51,7 @@ public class Document extends RMObject {
 	public static final String SUBJECT = "subject";
 	public static final String ALERT_USERS_WHEN_AVAILABLE = "alertUsersWhenAvailable";
 	public static final String MAIN_COPY_RULE = "mainCopyRule";
-	public static final String MAIN_COPY_RULE_ENTERED = "mainCopyRuleEntered";
+	public static final String MAIN_COPY_RULE_ID_ENTERED = "mainCopyRuleIdEntered";
 	public static final String APPLICABLE_COPY_RULES = "applicableCopyRule";
 	public static final String SAME_SEMI_ACTIVE_FATE_AS_FOLDER = "sameSemiActiveFateAsFolder";
 	public static final String SAME_INACTIVE_FATE_AS_FOLDER = "sameInactiveFateAsFolder";
@@ -237,12 +237,12 @@ public class Document extends RMObject {
 		return get(MAIN_COPY_RULE);
 	}
 
-	public CopyRetentionRule getMainCopyRuleEntered() {
-		return get(MAIN_COPY_RULE_ENTERED);
+	public String getMainCopyRuleIdEntered() {
+		return get(MAIN_COPY_RULE_ID_ENTERED);
 	}
 
-	public Document setMainCopyRuleEntered(CopyRetentionRule mainCopyRuleEntered) {
-		set(MAIN_COPY_RULE_ENTERED, mainCopyRuleEntered);
+	public Document setMainCopyRuleIdEntered(String mainCopyRuleIdEntered) {
+		set(MAIN_COPY_RULE_ID_ENTERED, mainCopyRuleIdEntered);
 		return this;
 	}
 

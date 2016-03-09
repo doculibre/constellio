@@ -313,12 +313,14 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
 		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
 
-		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("2-2-C", PA), principal("5-5-D", MD),
-				secondary("1-0-D", MD, PA));
+		CopyRetentionRule principal_2_2_C = principal("2-2-C", PA);
+		CopyRetentionRule principal_5_5_D = principal("5-5-D", MD);
+		CopyRetentionRule secondary_1_0_D = secondary("1-0-D", MD, PA);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal_2_2_C, principal_5_5_D, secondary_1_0_D);
 
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
-				.setMainCopyRuleEntered(principal("5-5-D", MD))
+				.setMainCopyRuleEntered(principal_5_5_D.getId())
 				.setMediumTypes(MD, PA));
 
 		assertThat(folder.hasAnalogicalMedium()).isTrue();
@@ -354,12 +356,14 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
 		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
 
-		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("2-2-C", PA), principal("5-5-D", MD),
-				secondary("1-0-D", MD, PA));
+		CopyRetentionRule principal_2_2_C = principal("2-2-C", PA);
+		CopyRetentionRule principal_5_5_D = principal("5-5-D", MD);
+		CopyRetentionRule secondary_1_0_D = secondary("1-0-D", MD, PA);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal_2_2_C, principal_5_5_D, secondary_1_0_D);
 
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
-				.setMainCopyRuleEntered(principal("4-4-D", MD))
+				.setMainCopyRuleEntered(secondary_1_0_D.getId())
 				.setMediumTypes(MD, PA));
 
 		assertThat(folder.hasAnalogicalMedium()).isTrue();
