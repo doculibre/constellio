@@ -178,7 +178,8 @@ public class AppManagementService {
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
 			updateWrapperConf(deployFolder);
-			upgradeAppRecoveryService.afterWarUpload(currentInstalledVersionInfo, new ConstellioVersionInfo(warVersion, deployFolder.getAbsolutePath()));
+			upgradeAppRecoveryService.afterWarUpload(currentInstalledVersionInfo,
+					new ConstellioVersionInfo(warVersion, deployFolder.getAbsolutePath()));
 		} catch (AppManagementServiceException e) {
 			//FIXME delete deployFolder if created and revert to previous wrapper conf then throw exception
 			throw e;
@@ -294,12 +295,15 @@ public class AppManagementService {
 	}
 
 	private void updateWrapperConf(File deployFolder) {
-		if(foldersLocator.getFoldersLocatorMode().equals(FoldersLocatorMode.PROJECT)){
+
+		LOGGER.info("New webapp path is '" + deployFolder.getAbsolutePath() + "'");
+		File wrapperConf = foldersLocator.getWrapperConf();
+		if (foldersLocator.getFoldersLocatorMode().equals(FoldersLocatorMode.PROJECT) && !wrapperConf.exists()) {
 			return;
 		}
-		File wrapperConf = foldersLocator.getWrapperConf();
 		List<String> lines = fileService.readFileToLinesWithoutExpectableIOException(wrapperConf);
 		for (int i = 0; i < lines.size(); i++) {
+
 			String line = lines.get(i);
 			if (line.startsWith("wrapper.java.classpath.2=")) {
 				lines.set(i, "wrapper.java.classpath.2=" + deployFolder.getAbsolutePath() + "/WEB-INF/lib/*.jar");
@@ -453,7 +457,8 @@ public class AppManagementService {
 		return response.toString();
 	}
 
-	InputStream getInputForPost(String url, String signature) throws IOException {
+	InputStream getInputForPost(String url, String signature)
+			throws IOException {
 		URL obj = new URL(url);
 
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -662,6 +667,5 @@ public class AppManagementService {
 			return signature;
 		}
 	}
-
 
 }
