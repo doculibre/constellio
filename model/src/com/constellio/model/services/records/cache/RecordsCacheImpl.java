@@ -296,8 +296,6 @@ public class RecordsCacheImpl implements RecordsCache {
 		Record foundRecord = null;
 		if (recordByMetadataCache != null) {
 			foundRecord = recordByMetadataCache.getByMetadata(metadata.getLocalCode(), value);
-		} else {
-			System.out.println("No cache for '" + metadata.getCode() + "' in collection '" + metadata.getCollection() + "'");
 		}
 		return foundRecord;
 	}
