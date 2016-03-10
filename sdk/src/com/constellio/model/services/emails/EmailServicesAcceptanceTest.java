@@ -57,6 +57,7 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSendEmailThenOk()
 			throws Exception {
+		prepareSystem(withZeCollection());
 		email.setRecipient(Message.RecipientType.TO, new InternetAddress(SDKPasswords.testIMAPUsername()));
 		emailServices.sendEmail(email);
 

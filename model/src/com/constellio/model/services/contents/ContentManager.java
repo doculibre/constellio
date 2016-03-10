@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
@@ -92,6 +94,7 @@ public class ContentManager implements StatefulService {
 	private final ModelLayerConfiguration configuration;
 	private final RecordServices recordServices;
 	private final CollectionsListManager collectionsListManager;
+	private final AtomicBoolean closing = new AtomicBoolean();
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		super();
@@ -130,7 +133,7 @@ public class ContentManager implements StatefulService {
 
 	@Override
 	public void close() {
-
+		closing.set(true);
 	}
 
 	public Content createMajor(User user, String filename, ContentVersionDataSummary newVersion) {
@@ -366,32 +369,36 @@ public class ContentManager implements StatefulService {
 	public void convertPendingContentForPreview() {
 
 		for (String collection : collectionsListManager.getCollections()) {
-			List<Record> records = searchServices.search(new LogicalSearchQuery()
-					.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
-					.setNumberOfRows(20));
+			if (!closing.get()) {
+				List<Record> records = searchServices.search(new LogicalSearchQuery()
+						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
+						.setNumberOfRows(20));
 
-			if (!records.isEmpty()) {
+				if (!records.isEmpty()) {
 
-				File tempFolder = ioServices.newTemporaryFolder("previewConversion");
-				ConversionManager conversionManager = null;
-				try {
-					conversionManager = new ConversionManager(ioServices, 1, tempFolder);
-
-					Transaction transaction = new Transaction();
-					for (Record record : records) {
-						convertRecordContents(record, conversionManager);
-						transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
-					}
+					File tempFolder = ioServices.newTemporaryFolder("previewConversion");
+					ConversionManager conversionManager = null;
 					try {
-						recordServices.execute(transaction);
-					} catch (RecordServicesException e) {
-						throw new RuntimeException(e);
-					}
+						conversionManager = new ConversionManager(ioServices, 1, tempFolder);
 
-				} finally {
-					ioServices.deleteQuietly(tempFolder);
-					if (conversionManager != null) {
-						conversionManager.close();
+						Transaction transaction = new Transaction();
+						for (Record record : records) {
+							if (!closing.get()) {
+								convertRecordContents(record, conversionManager);
+								transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
+							}
+						}
+						try {
+							recordServices.execute(transaction);
+						} catch (RecordServicesException e) {
+							throw new RuntimeException(e);
+						}
+
+					} finally {
+						ioServices.deleteQuietly(tempFolder);
+						if (conversionManager != null) {
+							conversionManager.close();
+						}
 					}
 				}
 			}
@@ -433,13 +440,18 @@ public class ContentManager implements StatefulService {
 		deleteUnreferencedContents(RecordsFlushing.NOW());
 	}
 
-	public void deleteUnreferencedContents(RecordsFlushing recordsFlushing) {
 
+	AtomicInteger counter = new AtomicInteger();
+	public void deleteUnreferencedContents(RecordsFlushing recordsFlushing) {
+		LOGGER.info("deleteUnreferencedContents " + counter.incrementAndGet());
 		List<RecordDTO> potentiallyDeletableContentMarkers;
 
 		while (!(potentiallyDeletableContentMarkers = getNextPotentiallyUnreferencedContentMarkers()).isEmpty()) {
 			List<String> hashToDelete = new ArrayList<>();
 			for (RecordDTO marker : potentiallyDeletableContentMarkers) {
+				if (closing.get()) {
+					return;
+				}
 				String hash = marker.getFields().get("contentMarkerHash_s").toString();
 				if (!isReferenced(hash)) {
 					hashToDelete.add(hash);
