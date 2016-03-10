@@ -14,13 +14,6 @@ public class CopyRetentionRuleFactoryRuntimeException extends RuntimeException {
 		super(cause);
 	}
 
-	public static class CopyRetentionRuleFactoryRuntimeException_IdIsRequired extends CopyRetentionRuleFactoryRuntimeException {
-
-		public CopyRetentionRuleFactoryRuntimeException_IdIsRequired() {
-			super("Id is required for copies of rules");
-		}
-	}
-
 	public static class CopyRetentionRuleFactoryRuntimeException_CannotModifyId extends CopyRetentionRuleFactoryRuntimeException {
 
 		public CopyRetentionRuleFactoryRuntimeException_CannotModifyId(String oldId) {

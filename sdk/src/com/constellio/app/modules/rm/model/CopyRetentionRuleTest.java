@@ -8,7 +8,6 @@ import java.util.List;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactoryRuntimeException.CopyRetentionRuleFactoryRuntimeException_CannotModifyId;
-import com.constellio.app.modules.rm.model.CopyRetentionRuleFactoryRuntimeException.CopyRetentionRuleFactoryRuntimeException_IdIsRequired;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -321,22 +320,6 @@ public class CopyRetentionRuleTest extends ConstellioTest {
 		assertThat(copyBuilder.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canDestroy()).isFalse();
 		assertThat(copyBuilder.newRetentionRule(CopyType.PRINCIPAL, types, "888-2-").canSort()).isFalse();
 
-	}
-
-	@Test(expected = CopyRetentionRuleFactoryRuntimeException_IdIsRequired.class)
-	public void whenTransformStructureWithoutIdToStringThenException()
-			throws Exception {
-
-		List<String> types = asList("PA", "FI");
-
-		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
-		copyRetentionRule.setMediumTypeIds(types);
-		copyRetentionRule.setCopyType(CopyType.PRINCIPAL);
-		copyRetentionRule.setActiveRetentionPeriod(new RetentionPeriod(888));
-		copyRetentionRule.setSemiActiveRetentionPeriod(new RetentionPeriod(0));
-		copyRetentionRule.setInactiveDisposalType(DisposalType.DESTRUCTION);
-
-		factory.toString(copyRetentionRule);
 	}
 
 	@Test(expected = CopyRetentionRuleFactoryRuntimeException_CannotModifyId.class)
