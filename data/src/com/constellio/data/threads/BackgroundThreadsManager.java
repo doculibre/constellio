@@ -2,8 +2,10 @@ package com.constellio.data.threads;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
@@ -12,16 +14,18 @@ import com.constellio.data.threads.BackgroundThreadsManagerRuntimeException.Back
 
 public class BackgroundThreadsManager implements StatefulService {
 
-	public static boolean running = false;
-
 	AtomicBoolean systemStarted = new AtomicBoolean(false);
+	AtomicBoolean stopRequested = new AtomicBoolean(false);
 
 	DataLayerConfiguration dataLayerConfiguration;
 
 	ScheduledExecutorService scheduledExecutorService;
 
+	Semaphore tasksSemaphore;
+
 	public BackgroundThreadsManager(DataLayerConfiguration dataLayerConfiguration) {
 		this.dataLayerConfiguration = dataLayerConfiguration;
+		this.tasksSemaphore = new Semaphore(1000);
 	}
 
 	@Override
@@ -31,6 +35,7 @@ public class BackgroundThreadsManager implements StatefulService {
 
 	@Override
 	public void close() {
+		stopRequested.set(true);
 		if (scheduledExecutorService != null) {
 			scheduledExecutorService.shutdown();
 			try {
@@ -38,6 +43,12 @@ public class BackgroundThreadsManager implements StatefulService {
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
+		}
+		try {
+			tasksSemaphore.acquire(1000);
+			tasksSemaphore.release(1000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -63,7 +74,7 @@ public class BackgroundThreadsManager implements StatefulService {
 	}
 
 	Runnable getRunnableCommand(BackgroundThreadConfiguration backgroundThreadConfiguration) {
-		return new BackgroundThreadCommand(backgroundThreadConfiguration, systemStarted);
+		return new BackgroundThreadCommand(backgroundThreadConfiguration, systemStarted, stopRequested, tasksSemaphore);
 	}
 
 	ScheduledExecutorService newScheduledExecutorService() {

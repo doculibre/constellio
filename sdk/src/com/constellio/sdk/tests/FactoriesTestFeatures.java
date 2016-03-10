@@ -194,18 +194,22 @@ public class FactoriesTestFeatures {
 						modelLayerFactory.add(new StatefulService() {
 							@Override
 							public void initialize() {
-								List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
-								StringBuilder passwordFileContent = new StringBuilder();
-								for (UserCredential user : users) {
-									passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
-								}
-								File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
-										.getSettingsFileSystemBaseFolder();
-								File authenticationFile = new File(settingsFolder, "authentification.properties");
 								try {
-									FileUtils.write(authenticationFile, passwordFileContent.toString());
-								} catch (IOException e) {
-									throw new RuntimeException(e);
+									List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
+									StringBuilder passwordFileContent = new StringBuilder();
+									for (UserCredential user : users) {
+										passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
+									}
+									File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
+											.getSettingsFileSystemBaseFolder();
+									File authenticationFile = new File(settingsFolder, "authentification.properties");
+									try {
+										FileUtils.write(authenticationFile, passwordFileContent.toString());
+									} catch (IOException e) {
+										throw new RuntimeException(e);
+									}
+								} catch(Exception e) {
+									e.printStackTrace();
 								}
 							}
 
