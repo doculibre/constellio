@@ -55,7 +55,7 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 			view.navigate().to(RMViews.class).displayDocument(recordId);
 		} else {
 			Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(view.getCollection());
-			view.navigateTo().taxonomyManagement(taxonomy.getCode(), recordId);
+			view.navigate().to().taxonomyManagement(taxonomy.getCode(), recordId);
 		}
 	}
 
