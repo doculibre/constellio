@@ -16,6 +16,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -48,7 +49,28 @@ public class MetadataSchemasManagerInputMaskAcceptanceTest extends ConstellioTes
 		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadata(whichHasInputMask("(###) ###-####")));
 
 		assertThat(zeSchema.stringMetadata().getInputMask()).isEqualTo("(###) ###-####");
-		assertThat(newZeSchemaRecord().get(zeSchema.stringMetadata())).isEqualTo("(###) ###-####");
+		assertThat(anotherSchema.stringMetadata()).isEqualTo("(###) ###-####");
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setInputMask("###.###.####");
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().getInputMask()).isEqualTo("###.###.####");
+		assertThat(anotherSchema.stringMetadata()).isEqualTo("###.###.####");
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
+						.setInputMask("(###) ### ####");
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().getInputMask()).isEqualTo("###.###.####");
+		assertThat(anotherSchema.stringMetadata()).isEqualTo("(###) ### ####");
 	}
 
 	@Before
