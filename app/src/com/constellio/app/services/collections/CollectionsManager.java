@@ -42,6 +42,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -119,7 +120,15 @@ public class CollectionsManager implements StatefulService {
 		}
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		if (!schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
+			for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
+				listener.systemCollectionCreated();
+			}
+		}
+
+		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+
 		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
 		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 	}

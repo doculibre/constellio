@@ -110,4 +110,16 @@ public class CopyRetentionRuleBuilder {
 	public static CopyRetentionRuleBuilder UUID() {
 		return new CopyRetentionRuleBuilder(new UUIDV1Generator());
 	}
+
+	public void addIdsTo(List<CopyRetentionRule> copyRetentionRules) {
+		for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
+			addIdsTo(copyRetentionRule);
+		}
+	}
+
+	public void addIdsTo(CopyRetentionRule copyRetentionRule) {
+		if (copyRetentionRule != null) {
+			copyRetentionRule.setId(uniqueIdGenerator.next());
+		}
+	}
 }
