@@ -1,25 +1,22 @@
 package com.constellio.app.modules.rm.migrations;
 
-import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModificationImpact;
+import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
-
-import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMMigrationTo6_1_3 implements MigrationScript {
 	@Override
@@ -30,14 +27,16 @@ public class RMMigrationTo6_1_3 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		setSubFoldersEnteredFieldsToNull(collection,appLayerFactory);
+		setSubFoldersEnteredFieldsToNull(collection, appLayerFactory);
 	}
 
-	private void setSubFoldersEnteredFieldsToNull(String collection,AppLayerFactory appLayerFactory) throws Exception {
+	private void setSubFoldersEnteredFieldsToNull(String collection, AppLayerFactory appLayerFactory)
+			throws Exception {
 
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		final AtomicBoolean recordFixed = new AtomicBoolean(false);
 		new ActionExecutorInBatch(searchServices, "Set sub-folders entered values to null", 250) {
 
 			@Override
@@ -57,10 +56,29 @@ public class RMMigrationTo6_1_3 implements MigrationScript {
 
 				transaction.setSkippingRequiredValuesValidation(true);
 
-				recordServices.execute(transaction);
+				recordServices.executeWithImpactHandler(transaction, new RecordModificationImpactHandler() {
+
+					@Override
+					public void prepareToHandle(ModificationImpact modificationImpact) {
+
+					}
+
+					@Override
+					public void handle() {
+						recordFixed.set(true);
+					}
+
+					@Override
+					public void cancel() {
+
+					}
+				});
 
 			}
 		}.execute(from(rm.folderSchemaType()).where(rm.folderParentFolder()).isNotNull());
 
+		if (recordFixed.get()) {
+			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+		}
 	}
 }

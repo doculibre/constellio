@@ -1,18 +1,15 @@
 package com.constellio.app.modules.rm.migrations;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.SDKFoldersLocator;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
+
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class RMMigrationTo6_1_3_AcceptanceTest extends ConstellioTest {
 
@@ -28,6 +25,7 @@ public class RMMigrationTo6_1_3_AcceptanceTest extends ConstellioTest {
 		Folder testFolder = rm.wrapFolder(getModelLayerFactory().newRecordServices().getDocumentById("00000000400"));
 
 		assertThat(testFolder.getCategoryEntered()).isNull();
+		assertThat(getAppLayerFactory().getSystemGlobalConfigsManager().isReindexingRequired()).isTrue();
 	}
 
 	private void givenSystemAtVersion6_1_2() {
