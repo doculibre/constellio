@@ -122,6 +122,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (parentId != null) {
 			documentVO.set(Document.FOLDER, parentId);
 		}
+		if (areDocumentRetentionRulesEnabled()) {
+			Document record = rmSchemas().wrapDocument(toRecord(documentVO));
+			recordServices().recalculate(record);
+			documentVO.set(Document.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
+		}
 		String currentSchemaCode = documentVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
 		view.setRecord(documentVO);
