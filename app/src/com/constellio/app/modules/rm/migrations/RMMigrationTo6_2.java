@@ -33,24 +33,35 @@ public class RMMigrationTo6_2 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			final AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationsFor6_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		setupDisplayConfigs(collection, appLayerFactory);
+		addIdsToCopyRetentionRules(collection, appLayerFactory);
+	}
 
+	private void setupDisplayConfigs(String collection, AppLayerFactory factory) {
+		SchemasDisplayManager schemaDisplayManager = factory.getMetadataSchemasDisplayManager();
+
+		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
+
+		transaction.in(Document.SCHEMA_TYPE).addToForm(Document.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Document.TITLE);
+
+		schemaDisplayManager.execute(transaction.build());
+	}
+
+	private void addIdsToCopyRetentionRules(String collection, final AppLayerFactory appLayerFactory)
+			throws Exception {
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		new ActionExecutorInBatch(searchServices, "Set copy retention rule ids", 250) {
-
 			@Override
 			public void doActionOnBatch(List<Record> records)
 					throws Exception {
 				Transaction transaction = new Transaction();
 
 				for (RetentionRule rule : rm.wrapRetentionRules(records)) {
-
 					CopyRetentionRuleBuilder builder = CopyRetentionRuleBuilder.sequential(appLayerFactory);
 					builder.addIdsTo(rule.getDocumentCopyRetentionRules());
 					builder.addIdsTo(rule.getSecondaryCopy());
@@ -62,21 +73,9 @@ public class RMMigrationTo6_2 implements MigrationScript {
 				}
 
 				transaction.setSkippingRequiredValuesValidation(true);
-
 				recordServices.executeWithImpactHandler(transaction, new UnhandledRecordModificationImpactHandler());
-
 			}
 		}.execute(from(rm.retentionRuleSchemaType()).returnAll());
-	}
-
-	private void setupDisplayConfigs(String collection, AppLayerFactory factory) {
-		SchemasDisplayManager schemaDisplayManager = factory.getMetadataSchemasDisplayManager();
-
-		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
-
-		transaction.in(Document.SCHEMA_TYPE).addToForm(Document.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Document.TITLE);
-
-		schemaDisplayManager.execute(transaction.build());
 	}
 
 	public static class SchemaAlterationsFor6_2 extends MetadataSchemasAlterationHelper {
