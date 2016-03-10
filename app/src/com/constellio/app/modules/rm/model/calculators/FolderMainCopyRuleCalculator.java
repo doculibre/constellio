@@ -6,14 +6,14 @@ import java.util.List;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderMainCopyRuleCalculator2;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.schemas.MetadataValueType;
 
-public class FolderMainCopyRuleCalculator implements MetadataValueCalculator<CopyRetentionRule> {
+public class FolderMainCopyRuleCalculator extends FolderMainCopyRuleCalculator2 implements
+																				MetadataValueCalculator<CopyRetentionRule> {
 
 	LocalDependency<List<CopyRetentionRule>> copyRulesParam = LocalDependency.toAStructure(Folder.APPLICABLE_COPY_RULES)
 			.whichIsRequired();
@@ -23,26 +23,6 @@ public class FolderMainCopyRuleCalculator implements MetadataValueCalculator<Cop
 
 	LocalDependency<List<LocalDate>> expectedDepositDatesParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).whichIsMultivalue().whichIsRequired();
-
-	@Override
-	public CopyRetentionRule calculate(CalculatorParameters parameters) {
-		return null;
-	}
-
-	@Override
-	public CopyRetentionRule getDefaultValue() {
-		return null;
-	}
-
-	@Override
-	public MetadataValueType getReturnType() {
-		return MetadataValueType.STRUCTURE;
-	}
-
-	@Override
-	public boolean isMultiValue() {
-		return false;
-	}
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
