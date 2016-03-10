@@ -76,7 +76,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			button.addClickListener(new ClickListener() {
 				@Override
 				public void buttonClick(ClickEvent event) {
-					item.activate(navigateTo());
+					item.activate(navigate());
 				}
 			});
 			buttons.add(button);
@@ -85,7 +85,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {		
+	protected Component buildMainComponent(ViewChangeEvent event) {
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName("records-management");
 

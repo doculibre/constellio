@@ -27,7 +27,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -58,7 +58,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	@Mock FolderDetailVO packageable2;
 	@Mock ContainerVO containerVO;
 	@Mock DecomListFolderDetail folderDetail;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	MockedFactories factories = new MockedFactories();
 
 	DecommissioningListPresenter presenter;

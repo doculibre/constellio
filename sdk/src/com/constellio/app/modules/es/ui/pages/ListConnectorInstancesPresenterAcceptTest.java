@@ -13,7 +13,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
@@ -22,9 +22,8 @@ import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
 
 public class ListConnectorInstancesPresenterAcceptTest extends ConstellioTest {
-
 	@Mock ListConnectorInstancesView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock RecordVO recordVO;
 	RecordServices recordServices;
 	Users users = new Users();
@@ -117,17 +116,6 @@ public class ListConnectorInstancesPresenterAcceptTest extends ConstellioTest {
 
 		presenter.editButtonClicked(recordVO);
 
-		verify(view.navigateTo()).editConnectorInstances("recordId");
-	}
-
-	//	@Test
-	public void whenDeleteButtonClickedThenDeleteRecord()
-			throws Exception {
-
-		when(recordVO.getId()).thenReturn(connectorInstance.getId());
-
-		presenter.deleteButtonClicked(recordVO);
-
-		verify(view.navigateTo()).listConnectorInstances();
+		verify(view.navigateTo()).editConnectorInstance("recordId");
 	}
 }

@@ -13,7 +13,8 @@ import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.ui.components.userDocument.UserDocumentsWindow;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -222,8 +223,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 				((ConstellioMenuImpl) mainMenu).getUserSettingsItem().setIcon(new ThemeResource("images/profiles/egg.jpg"));
 			}
 		});
-		//		JavaScript.getCurrent()
-		//				.execute("constellio_registerKeyDownListener(\"" + contentFooterWrapperLayout.getId() + "\")");
 	}
 
 	private ConstellioMenuButton buildButton(final NavigationItem item) {
@@ -235,15 +234,20 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		button.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				item.activate(navigateTo());
+				item.activate(navigate());
 			}
 		});
 		return new ConstellioMenuButton(item.getViewGroup(), button);
 	}
 
 	@Override
-	public ConstellioNavigator navigateTo() {
-		return new ConstellioNavigator(getUI().getNavigator());
+	public CoreViews navigateTo() {
+		return ConstellioUI.getCurrent().navigateTo();
+	}
+
+	@Override
+	public Navigation navigate() {
+		return ConstellioUI.getCurrent().navigate();
 	}
 
 	@Override

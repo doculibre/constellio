@@ -19,6 +19,7 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_2;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_3;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo6_0;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;

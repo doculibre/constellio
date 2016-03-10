@@ -299,4 +299,42 @@ public class SchemaUtils {
 
 		return code;
 	}
+
+	static Set<String> validMetadataLocalCodes = new HashSet<>();
+
+	public static boolean isValidMetadataCodeWithCache(String localCode) {
+		if (localCode == null) {
+			return false;
+		}
+		if (validMetadataLocalCodes.contains(localCode)) {
+			return true;
+		}
+		String pattern = "([a-zA-Z0-9])+";
+		boolean valid = !localCode.matches(pattern) || (localCode.toLowerCase().endsWith("id") && !localCode.equals("id"));
+
+		if (valid) {
+			validMetadataLocalCodes.add(localCode);
+		}
+
+		return valid;
+	}
+
+	static Set<String> validSchemaLocalCodes = new HashSet<>();
+
+	public static boolean isValidSchemaCodeWithCache(String localCode) {
+		if (localCode == null) {
+			return false;
+		}
+		if (validMetadataLocalCodes.contains(localCode)) {
+			return true;
+		}
+		String pattern = "([a-zA-Z0-9])+";
+		boolean valid = localCode.matches(pattern);
+
+		if (valid) {
+			validSchemaLocalCodes.add(localCode);
+		}
+
+		return valid;
+	}
 }

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
@@ -81,7 +82,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	@Override
 	public void displayButtonClicked(RecordVO entity) {
-		view.navigateTo().displayTask(entity.getId());
+		view.navigate().to(TaskViews.class).displayTask(entity.getId());
 	}
 
 	public void editButtonClicked() {
@@ -91,10 +92,6 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	@Override
 	public void editButtonClicked(RecordVO entity) {
 		view.navigateTo().editTask(entity.getId());
-	}
-
-	public void sendReminderButtonClicked(RecordVO entity) {
-		taskPresenterServices.sendReminder(toRecord(entity), getCurrentUser());
 	}
 
 	public void completeButtonClicked() {
@@ -160,7 +157,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	public void deleteButtonClicked() {
 		taskPresenterServices.deleteTask(toRecord(taskVO), getCurrentUser());
 		// TODO: Properly redirect
-		view.navigateTo().tasksManagement();
+		view.navigate().to(TaskViews.class).taskManagement();
 	}
 
 	@Override
@@ -173,7 +170,8 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
 				.build(defaultSchema(), VIEW_MODE.TABLE, asList(TITLE, ASSIGNEE, DUE_DATE), view.getSessionContext());
 		final String taskId = taskVO.getId();
-		subTaskDataProvider = new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+		subTaskDataProvider = new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory,
+				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				return tasksSearchServices.getDirectSubTasks(taskId, getCurrentUser());
@@ -183,7 +181,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	private void reloadCurrentTask() {
 		//TODO proper refresh
-		view.navigateTo().displayTask(taskVO.getId());
+		view.navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
 	private boolean hasCurrentUserWriteAccessOnCurrentTask() {
@@ -214,7 +212,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public void createSubTaskButtonClicked() {
-		view.navigateTo().addTask(taskVO.getId());
+		view.navigate().to(TaskViews.class).addTask(taskVO.getId());
 	}
 
 	public boolean isCreateCurrentTaskSubTaskButtonVisible() {

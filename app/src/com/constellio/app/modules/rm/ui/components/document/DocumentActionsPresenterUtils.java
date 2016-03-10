@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -120,7 +121,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void editDocumentButtonClicked() {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigateTo().editDocument(documentVO.getId());
+			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
 		}
 	}
 
@@ -136,7 +137,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void copyContentButtonClicked() {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigateTo().addDocumentWithContent(documentVO.getId());
+			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 		}
 	}
 
@@ -176,7 +177,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			String parentId = document.getFolder();
 			presenterUtils.delete(document.getWrappedRecord(), null);
 			if (parentId != null) {
-				actionsComponent.navigateTo().displayFolder(parentId);
+				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
 				actionsComponent.navigateTo().recordsManagement();
 			}
@@ -296,7 +297,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 				decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-				actionsComponent.navigateTo().displayDocument(document.getId());
+				actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
 			} catch (Exception e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			} finally {

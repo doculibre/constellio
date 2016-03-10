@@ -18,7 +18,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -27,7 +27,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class DocumentTypeTextInputDataProviderAcceptTest extends ConstellioTest {
 
 	DocumentTypeTextInputDataProvider documentTypeTextInputDataProvider;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	SessionContext sessionContext;
 	RMSchemasRecordsServices rmSchemasRecordsServices;

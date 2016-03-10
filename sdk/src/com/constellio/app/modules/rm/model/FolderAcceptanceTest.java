@@ -103,6 +103,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	CopyType noEnteredCopyType = null;
 
+	CopyRetentionRuleBuilder copyBuilder = new CopyRetentionRuleBuilderWithDefinedIds();
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -295,7 +297,92 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(null, march31_2026);
 		assertThat(folder.getCopyRulesExpectedDepositDates()).containsExactly(march31_2020, null);
 		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2018);
-		//TODO Valider si la date de destruction ne devrait pas plutôt être non-nulle
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(null);
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31_2020);
+
+	}
+
+	@Test
+	public void givenValidEnteredCopyRetentionRuleThenUsedForDatesCalculation()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 0);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
+
+		CopyRetentionRule principal_2_2_C = principal("2-2-C", PA);
+		CopyRetentionRule principal_5_5_D = principal("5-5-D", MD);
+		CopyRetentionRule secondary_1_0_D = secondary("1-0-D", MD, PA);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal_2_2_C, principal_5_5_D, secondary_1_0_D);
+
+		Folder folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015)
+				.setMainCopyRuleEntered(principal_5_5_D.getId())
+				.setMediumTypes(MD, PA));
+
+		assertThat(folder.hasAnalogicalMedium()).isTrue();
+		assertThat(folder.hasElectronicMedium()).isTrue();
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
+		assertThat(folder.getCloseDate()).isEqualTo(march31_2016);
+		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
+		assertThat(folder.getActualTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isNull();
+		assertThat(folder.getApplicableCopyRules()).containsExactly(principal("2-2-C", PA), principal("5-5-D", MD));
+		assertThat(folder.getMainCopyRule()).isEqualTo(principal("5-5-D", MD));
+		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly(march31_2018, march31_2021);
+		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(null, march31_2026);
+		assertThat(folder.getCopyRulesExpectedDepositDates()).containsExactly(march31_2020, null);
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2021);
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2026);
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(null);
+
+	}
+
+	@Test
+	public void givenInvalidEnteredCopyRetentionRuleThenUsedNearestCopyForDatesCalculation()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 0);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 0);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 0);
+
+		CopyRetentionRule principal_2_2_C = principal("2-2-C", PA);
+		CopyRetentionRule principal_5_5_D = principal("5-5-D", MD);
+		CopyRetentionRule secondary_1_0_D = secondary("1-0-D", MD, PA);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal_2_2_C, principal_5_5_D, secondary_1_0_D);
+
+		Folder folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015)
+				.setMainCopyRuleEntered(secondary_1_0_D.getId())
+				.setMediumTypes(MD, PA));
+
+		assertThat(folder.hasAnalogicalMedium()).isTrue();
+		assertThat(folder.hasElectronicMedium()).isTrue();
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
+		assertThat(folder.getCloseDate()).isEqualTo(march31_2016);
+		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
+		assertThat(folder.getActualTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isNull();
+		assertThat(folder.getApplicableCopyRules()).containsExactly(principal("2-2-C", PA), principal("5-5-D", MD));
+		assertThat(folder.getMainCopyRule()).isEqualTo(principal("2-2-C", PA));
+		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly(march31_2018, march31_2021);
+		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(null, march31_2026);
+		assertThat(folder.getCopyRulesExpectedDepositDates()).containsExactly(march31_2020, null);
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2018);
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(null);
 		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31_2020);
 
@@ -525,6 +612,46 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2056);
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2061);
 		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31_2061);
+
+	}
+
+	@Test
+	//Tested on IntelliGID 4!
+	public void givenActiveFoldersWithOpenPeriodsWithCustomNumberOfYearForCalculationThenUsedForDateCalculation()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 10);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 20);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 40);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(
+				principal("888-1-T", PA).setOpenActiveRetentionPeriod(100),
+				principal("888-2-T", MD).setOpenActiveRetentionPeriod(0),
+				principal("888-3-T", MD).setOpenActiveRetentionPeriod(null),
+				secondary("999-0-D", PA));
+
+		Folder folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015)
+				.setMediumTypes(MD, PA));
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
+		assertThat(folder.getCloseDate()).isEqualTo(march31_2026);
+		assertThat(folder.getActualTransferDate()).isNull();
+		assertThat(folder.getActualDepositDate()).isNull();
+		assertThat(folder.getActualDestructionDate()).isNull();
+		assertThat(folder.getApplicableCopyRules()).hasSize(3);
+		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly(march31(2126), march31(2026), march31(2056));
+		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31(2127), march31(2028), march31(2059));
+		assertThat(folder.getCopyRulesExpectedDepositDates()).containsExactly(march31(2127), march31(2028), march31(2059));
+
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31(2026));
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31(2028));
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31(2028));
 
 	}
 
@@ -817,11 +944,14 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	private CopyRetentionRule principal(String status, String... mediumTypes) {
-		return CopyRetentionRule.newPrincipal(asList(mediumTypes), status);
+		return copyBuilder.newPrincipal(asList(mediumTypes), status);
 	}
 
 	private CopyRetentionRule secondary(String status, String... mediumTypes) {
-		return CopyRetentionRule.newSecondary(asList(mediumTypes), status);
+		return copyBuilder.newSecondary(asList(mediumTypes), status);
 	}
 
+	private LocalDate march31(int year) {
+		return new LocalDate(year, 3, 31);
+	}
 }

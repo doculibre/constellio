@@ -8,6 +8,7 @@ import org.joda.time.LocalDate;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.modules.tasks.ui.builders.WorkflowInstanceToVoBuilder;
@@ -72,7 +73,7 @@ public class DisplayWorkflowInstancePresenter extends SingleSchemaBasePresenter<
 	}
 
 	void backButtonClicked() {
-		view.navigateTo().tasksManagement();
+		view.navigate().to(TaskViews.class).taskManagement();
 	}
 
 	boolean isFinished(WorkflowTaskProgressionVO workflowTaskProgressionVO) {

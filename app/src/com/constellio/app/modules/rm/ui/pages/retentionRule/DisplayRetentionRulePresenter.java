@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
@@ -47,7 +48,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listRetentionRules();
+		view.navigate().to(RMViews.class).listRetentionRules();
 	}
 
 	public void editButtonClicked() {
@@ -57,7 +58,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	public void deleteButtonClicked() {
 		Record record = getRecord(retentionRuleVO.getId());
 		delete(record, false);
-		view.navigateTo().listRetentionRules();
+		view.navigate().to(RMViews.class).listRetentionRules();
 	}
 
 	public String getFoldersNumber() {
@@ -120,5 +121,25 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	private boolean areDocumentRetentionRulesEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
+
+	@Override
+	public CopyRetentionRule newDocumentCopyRetentionRule() {
+		throw new UnsupportedOperationException("Not supported in display");
+	}
+
+	@Override
+	public CopyRetentionRule newFolderCopyRetentionRule(boolean principal) {
+		throw new UnsupportedOperationException("Not supported in display");
+	}
+
+	@Override
+	public CopyRetentionRule newDocumentDefaultCopyRetentionRule(boolean principal) {
+		throw new UnsupportedOperationException("Not supported in display");
+	}
+
+	@Override
+	public List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
+		return getOpenActivePeriodsDDVList();
 	}
 }

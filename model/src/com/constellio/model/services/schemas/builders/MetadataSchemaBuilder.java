@@ -233,9 +233,10 @@ public class MetadataSchemaBuilder {
 
 	private MetadataBuilder getMetadataOrNull(String codeOrLocalCode) {
 		String partialCode;
-		if (codeOrLocalCode.split(UNDERSCORE).length == 3) {
+		String[] codeSplitted = SchemaUtils.underscoreSplitWithCache(codeOrLocalCode);
+		if (codeSplitted.length == 3) {
 			partialCode = getPartialCode(codeOrLocalCode);
-		} else if (codeOrLocalCode.matches("([a-zA-Z0-9])+")) {
+		} else if (codeSplitted.length == 1) {
 			partialCode = codeOrLocalCode;
 		} else {
 			throw new MetadataSchemaBuilderRuntimeException.InvalidAttribute("codeOrLocalCode", codeOrLocalCode);
@@ -391,8 +392,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	void validateLocalCode(String localCode) {
-		String pattern = "([a-zA-Z0-9])+";
-		if (localCode == null || !localCode.matches(pattern)) {
+		if (!SchemaUtils.isValidSchemaCodeWithCache(localCode)) {
 			throw new MetadataSchemaBuilderRuntimeException.InvalidAttribute("localCode", localCode);
 		}
 	}
