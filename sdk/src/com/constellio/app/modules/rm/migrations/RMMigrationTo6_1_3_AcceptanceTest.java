@@ -23,8 +23,6 @@ public class RMMigrationTo6_1_3_AcceptanceTest extends ConstellioTest {
 		givenSystemAtVersion6_1_2();
 		waitForBatchProcess();
 
-		// TODO Fetch folder 'Test child incoherence' (id: 00000000400) and check that it's fixed (categoryEntered null)
-
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		Folder testFolder = rm.wrapFolder(getModelLayerFactory().newRecordServices().getDocumentById("00000000400"));

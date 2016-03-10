@@ -34,8 +34,6 @@ public class RMMigrationTo6_1_3 implements MigrationScript {
 	}
 
 	private void setSubFoldersEnteredFieldsToNull(String collection,AppLayerFactory appLayerFactory) throws Exception {
-		// TODO Fetch all folders with a parent
-		// TODO Set all entered values to null in a way that scales and doesn't blow up the computer
 
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
