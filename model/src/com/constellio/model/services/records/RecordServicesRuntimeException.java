@@ -160,7 +160,7 @@ public class RecordServicesRuntimeException extends RuntimeException {
 			extends RecordServicesRuntimeException {
 
 		public RecordServicesRuntimeException_ExceptionWhileCalculating(String recordId, Exception e) {
-			super("Exception while calculating record'" + recordId + "'. Verify that is is valid", e);
+			super("Exception while calculating metadatas of record'" + recordId + "'. Verify that the record is valid.", e);
 		}
 	}
 }
