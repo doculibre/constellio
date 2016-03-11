@@ -21,7 +21,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_
 import java.util.List;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.ui.components.RMMetadataFieldFactory;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateFieldImpl;
@@ -48,9 +48,9 @@ import com.vaadin.ui.Field;
 
 public class FolderFieldFactory extends RMMetadataFieldFactory {
 	private final String collection;
-	private final List<CopyRetentionRuleInRule> rules;
+	private final List<CopyRetentionRule> rules;
 
-	public FolderFieldFactory(String collection, List<CopyRetentionRuleInRule> rules) {
+	public FolderFieldFactory(String collection, List<CopyRetentionRule> rules) {
 		this.collection = collection;
 		this.rules = rules;
 	}

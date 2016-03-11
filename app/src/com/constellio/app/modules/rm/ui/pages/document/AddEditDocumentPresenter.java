@@ -586,8 +586,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 		});
 
-		// TODO: Compute this
-		getCopyRuleField().setVisible(areDocumentRetentionRulesEnabled());
+		getCopyRuleField().setVisible(
+				areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1);
 	}
 
 	private boolean canSaveDocument(Document document, User user) {

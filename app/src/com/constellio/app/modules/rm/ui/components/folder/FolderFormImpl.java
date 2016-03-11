@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.folder;
 
-import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -14,7 +14,7 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 	public FolderFormImpl(RecordVO record) {
 		super(record, new FolderFieldFactory(
 				record.getSchema().getCollection(),
-				record.<CopyRetentionRuleInRule>getList(Folder.APPLICABLE_COPY_RULES)));
+				record.<CopyRetentionRule>getList(Folder.APPLICABLE_COPY_RULES)));
 	}
 
 	@Override
@@ -31,5 +31,4 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 	public SessionContext getSessionContext() {
 		return ConstellioUI.getCurrentSessionContext();
 	}
-
 }
