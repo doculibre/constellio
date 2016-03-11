@@ -46,8 +46,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
 
 		transaction
-				.in(Folder.SCHEMA_TYPE).addToForm(Folder.MAIN_COPY_RULE_ID_ENTERED, "masked")
-				.afterMetadata(Folder.RETENTION_RULE_ENTERED)
+				.in(Folder.SCHEMA_TYPE).addToForm(Folder.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Folder.RETENTION_RULE_ENTERED)
 				.in(Document.SCHEMA_TYPE).addToForm(Document.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Document.TITLE);
 
 		schemaDisplayManager.execute(transaction.build());
@@ -99,7 +98,6 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		private void updateFolderSchema(MetadataSchemaBuilder folderSchemaType) {
 			folderSchemaType.createUndeletable(Folder.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
 			folderSchemaType.get(Folder.MAIN_COPY_RULE).defineDataEntry().asCalculated(FolderMainCopyRuleCalculator2.class);
-			folderSchemaType.createUndeletable("masked").setType(MetadataValueType.STRING).setInputMask("xyz####UL");
 		}
 	}
 }
