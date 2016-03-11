@@ -192,13 +192,18 @@ public class MetadataBuilder {
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
 				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = null;
-		builder.defaultValue = metadata.getDefaultValue();
-		builder.inputMask = metadata.getInputMask();
+
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);
 		}
 		if (inheritanceMetadata.getLabel() != null && !inheritanceMetadata.getLabel().equals(metadata.getLabel())) {
 			builder.label = metadata.getLabel();
+		}
+		if (metadata.getInputMask() != null && !metadata.getInputMask().equals(inheritanceMetadata.getInputMask())) {
+			builder.inputMask = metadata.getInputMask();
+		}
+		if (metadata.getDefaultValue() != null && !metadata.getDefaultValue().equals(inheritanceMetadata.getDefaultValue())) {
+			builder.defaultValue = metadata.getDefaultValue();
 		}
 		if (inheritanceMetadata.getEnabled() != null && !inheritanceMetadata.getEnabled().equals(metadata.isEnabled())) {
 			builder.enabled = metadata.isEnabled();
@@ -541,6 +546,10 @@ public class MetadataBuilder {
 
 		if (inputMask == null) {
 			this.inputMask = inheritance.getInputMask();
+		}
+
+		if (this.defaultValue == null) {
+			this.defaultValue = inheritance.getDefaultValue();
 		}
 
 		validateWithInheritance(inheritance, this);
