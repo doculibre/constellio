@@ -157,6 +157,8 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 
 	private void buildSearch() {
 		searchLayout = new HorizontalLayout();
+		searchLayout.setSpacing(true);
+		
 		final TextField searchField = new BaseTextField();
 		searchField.focus();
 		searchField.setNullRepresentation("");
@@ -176,6 +178,11 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 			}
 		};
 		onEnterHandler.installOn(searchField);
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
 	}
 
 }
