@@ -38,12 +38,6 @@ public class RMMigrationTo6_1_4 implements MigrationScript {
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		final AtomicBoolean recordFixed = new AtomicBoolean(false);
 
-		//		SolrClient client = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer()
-		//				.getNestedSolrServer();
-
-		//		client.deleteById("idx_rfc_00000014502");
-		//		client.commit();
-
 		new ActionExecutorInBatch(searchServices, "Set sub-folders entered values to null", 250) {
 
 			@Override
