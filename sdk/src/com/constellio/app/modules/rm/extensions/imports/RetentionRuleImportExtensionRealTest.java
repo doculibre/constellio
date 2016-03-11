@@ -91,9 +91,9 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
         docCopyRetRule2.put(ACTIVE_RETENTION_PERIOD, "2");
         docCopyRetRule2.put(SEMI_ACTIVE_RETENTION_PERIOD, "3");
         docCopyRetRule2.put(INACTIVE_DISPOSAL_TYPE, "D");
-        docCopyRetRule2.put(OPEN_ACTIVE_RETENTION_PERIOD,"2");
-        docCopyRetRule2.put(ACTIVE_DATE_METADATA,"dateMeta");
-        docCopyRetRule2.put(SEMI_ACTIVE_DATE_METADATA,"dateMeta");
+        //docCopyRetRule2.put(OPEN_ACTIVE_RETENTION_PERIOD,"2"); This is optional, testing case where it's absent.
+        //docCopyRetRule2.put(ACTIVE_DATE_METADATA,"dateMeta"); This is optional, testing case where it's absent.
+        //docCopyRetRule2.put(SEMI_ACTIVE_DATE_METADATA,"dateMeta"); This is optional, testing case where it's absent.
         docCopyRetRule2.put(DOCUMENT_TYPE_ID,"DocType2");
 
         docCopyRetRules.add(docCopyRetRule1);
@@ -107,7 +107,10 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
         princDefaultDocCopyRetRule.put(ACTIVE_RETENTION_PERIOD, "2");
         princDefaultDocCopyRetRule.put(SEMI_ACTIVE_RETENTION_PERIOD, "3");
         princDefaultDocCopyRetRule.put(INACTIVE_DISPOSAL_TYPE, "D");
-        princDefaultDocCopyRetRule.put(DOCUMENT_TYPE_ID,"DocType1");
+        princDefaultDocCopyRetRule.put(OPEN_ACTIVE_RETENTION_PERIOD,"2");
+        princDefaultDocCopyRetRule.put(ACTIVE_DATE_METADATA,"dateMeta1");
+        princDefaultDocCopyRetRule.put(SEMI_ACTIVE_DATE_METADATA,"dateMeta2");
+        princDefaultDocCopyRetRule.put(DOCUMENT_TYPE_ID,"DocType3");
 
         // One CopyRetRule for SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE
         Map<String,String> secDefaultDocCopyRetRule = new HashMap<>();
@@ -117,7 +120,7 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
         secDefaultDocCopyRetRule.put(ACTIVE_RETENTION_PERIOD, "2");
         secDefaultDocCopyRetRule.put(SEMI_ACTIVE_RETENTION_PERIOD, "3");
         secDefaultDocCopyRetRule.put(INACTIVE_DISPOSAL_TYPE, "D");
-        secDefaultDocCopyRetRule.put(DOCUMENT_TYPE_ID,"DocType1");
+        secDefaultDocCopyRetRule.put(DOCUMENT_TYPE_ID,"DocType4");
 
         importDataMap.put(RetentionRule.DOCUMENT_COPY_RETENTION_RULES,docCopyRetRules);
         importDataMap.put(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,princDefaultDocCopyRetRule);
@@ -135,8 +138,16 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
 
         CopyRetentionRule princCopyRetRuleBuilt = rule.getPrincipalDefaultDocumentCopyRetentionRule();
         assertThat(princCopyRetRuleBuilt.getId()).isEqualTo("DCR003");
+        assertThat(princCopyRetRuleBuilt.getOpenActiveRetentionPeriod()).isEqualTo(2);
+        assertThat(princCopyRetRuleBuilt.getActiveDateMetadata()).isEqualTo("dateMeta1");
+        assertThat(princCopyRetRuleBuilt.getSemiActiveDateMetadata()).isEqualTo("dateMeta2");
+        assertThat(princCopyRetRuleBuilt.getDocumentTypeId()).isEqualTo("DocType3");
 
         CopyRetentionRule secCopyRetRuleBuilt = rule.getSecondaryDefaultDocumentCopyRetentionRule();
         assertThat(secCopyRetRuleBuilt.getId()).isNotNull();
+        assertThat(secCopyRetRuleBuilt.getOpenActiveRetentionPeriod()).isNull();
+        assertThat(secCopyRetRuleBuilt.getActiveDateMetadata()).isNull();
+        assertThat(secCopyRetRuleBuilt.getSemiActiveDateMetadata()).isNull();
+        assertThat(secCopyRetRuleBuilt.getDocumentTypeId()).isEqualTo("DocType4");
     }
 }
