@@ -46,6 +46,16 @@ public class Toggle {
 
 	private static List<AvailableToggle> toggles;
 
+	private static AvailableToggle newToggle(boolean value) {
+		if (toggles == null) {
+			toggles = new ArrayList<>();
+		}
+		AvailableToggle toggle = new AvailableToggle();
+		toggle.enabled = value;
+		toggles.add(toggle);
+		return toggle;
+	}
+
 	private static AvailableToggle newToggle() {
 		if (toggles == null) {
 			toggles = new ArrayList<>();

@@ -155,4 +155,12 @@ public class RecordServicesRuntimeException extends RuntimeException {
 			super("Calculator '" + calculator + "' is using a fobidden metadata : " + metadata);
 		}
 	}
+
+	public static class RecordServicesRuntimeException_ExceptionWhileCalculating
+			extends RecordServicesRuntimeException {
+
+		public RecordServicesRuntimeException_ExceptionWhileCalculating(String recordId, Exception e) {
+			super("Exception while calculating record'" + recordId + "'. Verify that is is valid", e);
+		}
+	}
 }

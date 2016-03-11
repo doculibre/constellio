@@ -5,8 +5,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.solr.client.solrj.SolrClient;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -40,11 +38,11 @@ public class RMMigrationTo6_1_4 implements MigrationScript {
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		final AtomicBoolean recordFixed = new AtomicBoolean(false);
 
-		SolrClient client = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer()
-				.getNestedSolrServer();
+		//		SolrClient client = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer()
+		//				.getNestedSolrServer();
 
-		client.deleteById("idx_rfc_00000014502");
-		client.commit();
+		//		client.deleteById("idx_rfc_00000014502");
+		//		client.commit();
 
 		new ActionExecutorInBatch(searchServices, "Set sub-folders entered values to null", 250) {
 
