@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.app.modules.rm.model.CopyRetentionRule.newPrincipal;
-import static com.constellio.app.modules.rm.model.CopyRetentionRule.newSecondary;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
@@ -16,12 +14,16 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class FolderApplicableCopyRuleCalculatorTest extends ConstellioTest {
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	CopyRetentionRule principal, secondPrincipal, thirdPrincipal, secondary;
 	List<String> mediumTypes;
@@ -33,17 +35,19 @@ public class FolderApplicableCopyRuleCalculatorTest extends ConstellioTest {
 
 	@Mock CalculatorParameters parameters;
 
+	CopyRetentionRuleBuilder builder;
+
 	@Before
 	public void setUp()
 			throws Exception {
 		calculator = spy(new FolderApplicableCopyRuleCalculator());
-
+		builder = new CopyRetentionRuleBuilder(new UUIDV1Generator());
 	}
 
 	@Test
 	public void givenFolderHasSecondaryCopyTypeThenReturnTheSecondary() {
-		principal = newPrincipal(PA_DM, "888-0-D");
-		secondary = newSecondary(PA_DM, "888-0-C");
+		principal = copyBuilder.newPrincipal(PA_DM, "888-0-D");
+		secondary = copyBuilder.newSecondary(PA_DM, "888-0-C");
 		mediumTypes = PA_DM;
 		folderCopyType = CopyType.SECONDARY;
 
@@ -53,8 +57,8 @@ public class FolderApplicableCopyRuleCalculatorTest extends ConstellioTest {
 
 	@Test
 	public void givenFolderHasPrincipalCopyTypeAndRuleWithSinglePrincipalCopyThenReturThePrincipal() {
-		principal = newPrincipal(PA_DM, "888-0-D");
-		secondary = newSecondary(PA_DM, "888-0-C");
+		principal = copyBuilder.newPrincipal(PA_DM, "888-0-D");
+		secondary = copyBuilder.newSecondary(PA_DM, "888-0-C");
 		mediumTypes = PA_DM;
 		folderCopyType = CopyType.PRINCIPAL;
 
@@ -64,9 +68,9 @@ public class FolderApplicableCopyRuleCalculatorTest extends ConstellioTest {
 
 	@Test
 	public void givenFolderHasASingleMediumTypeMatchWithARuleCopyThenMatchReturned() {
-		secondary = newSecondary(asList("PA", "FI"), "888-0-C");
-		principal = newPrincipal(asList("PA"), "888-0-D");
-		secondPrincipal = newPrincipal(asList("FI"), "888-0-D");
+		secondary = copyBuilder.newSecondary(asList("PA", "FI"), "888-0-C");
+		principal = copyBuilder.newPrincipal(asList("PA"), "888-0-D");
+		secondPrincipal = copyBuilder.newPrincipal(asList("FI"), "888-0-D");
 		folderCopyType = CopyType.PRINCIPAL;
 
 		mediumTypes = Arrays.asList("PA");
@@ -88,28 +92,28 @@ public class FolderApplicableCopyRuleCalculatorTest extends ConstellioTest {
 		assertThat(calculatedValue()).containsOnlyOnce(secondPrincipal);
 
 		mediumTypes = Arrays.asList("Z6", "PA", "Z2");
-		principal = newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
-		secondPrincipal = newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
+		principal = copyBuilder.newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
+		secondPrincipal = copyBuilder.newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
 		assertThat(calculatedValue()).containsOnlyOnce(principal);
 
 		mediumTypes = Arrays.asList("Z6", "FI", "Z2");
-		principal = newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
-		secondPrincipal = newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
+		principal = copyBuilder.newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
+		secondPrincipal = copyBuilder.newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
 		assertThat(calculatedValue()).containsOnlyOnce(secondPrincipal);
 
 		mediumTypes = Arrays.asList("Z6", "FI", "Z5");
-		principal = newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
-		secondPrincipal = newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
+		principal = copyBuilder.newPrincipal(asList("Z1", "PA", "Z3"), "888-0-D");
+		secondPrincipal = copyBuilder.newPrincipal(asList("Z4", "FI", "Z5"), "888-0-D");
 		assertThat(calculatedValue()).containsOnlyOnce(secondPrincipal);
 
 	}
 
 	@Test
 	public void givenFolderHasNoMatchWithARuleCopyThenPrincipalCopyChoosedAmongAllCopyRulesBasedOnTheDecommissioningDate() {
-		secondary = newSecondary(asList("PA", "FI"), "888-0-C");
-		principal = newPrincipal(asList("PA"), "888-0-D");
-		secondPrincipal = newPrincipal(asList("FI"), "888-0-D");
-		thirdPrincipal = newPrincipal(asList("PA", "FI"), "888-0-D");
+		secondary = copyBuilder.newSecondary(asList("PA", "FI"), "888-0-C");
+		principal = copyBuilder.newPrincipal(asList("PA"), "888-0-D");
+		secondPrincipal = copyBuilder.newPrincipal(asList("FI"), "888-0-D");
+		thirdPrincipal = copyBuilder.newPrincipal(asList("PA", "FI"), "888-0-D");
 		folderCopyType = CopyType.PRINCIPAL;
 		mediumTypes = Arrays.asList("DM");
 
@@ -119,10 +123,10 @@ public class FolderApplicableCopyRuleCalculatorTest extends ConstellioTest {
 
 	@Test
 	public void givenFolderHasTwoMatchWithARuleCopyThenPrincipalCopyChoosedAmongMatchedRulesBasedOnTheDecommissioningDate() {
-		secondary = newSecondary(asList("PA", "FI"), "888-0-C");
-		principal = newPrincipal(asList("PA"), "888-0-D");
-		secondPrincipal = newPrincipal(asList("FI"), "888-0-D");
-		thirdPrincipal = newPrincipal(asList("PA", "FI"), "888-0-D");
+		secondary = copyBuilder.newSecondary(asList("PA", "FI"), "888-0-C");
+		principal = copyBuilder.newPrincipal(asList("PA"), "888-0-D");
+		secondPrincipal = copyBuilder.newPrincipal(asList("FI"), "888-0-D");
+		thirdPrincipal = copyBuilder.newPrincipal(asList("PA", "FI"), "888-0-D");
 		folderCopyType = CopyType.PRINCIPAL;
 		mediumTypes = Arrays.asList("PA");
 

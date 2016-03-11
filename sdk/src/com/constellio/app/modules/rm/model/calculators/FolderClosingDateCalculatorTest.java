@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -37,6 +38,8 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 	int configNumberOfYearWhenFixedDelay = 0;
 	int configNumberOfYearWhenVariableDelay = 0;
 	String configYearEnd;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Before
 	public void setUp()
@@ -197,8 +200,8 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 
 	// -----------------
 
-	private static CopyRetentionRule copy(String delays) {
-		return CopyRetentionRule.newPrincipal(asList("PA", "MD"), delays);
+	private CopyRetentionRule copy(String delays) {
+		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
 
 	private LocalDate calculateCopy(CopyRetentionRule copy) {

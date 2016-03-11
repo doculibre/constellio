@@ -31,9 +31,9 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 
 		}
 		stringTokenizer = new StringTokenizer(string.replace("::", ":~null~:"), ":");
-		ModifiableStructure copyRetentionRuleFactory = getModifiableStructureV1(stringTokenizer);
-		String newString = toString(copyRetentionRuleFactory);
-		return build(newString);
+		return getModifiableStructureV1(stringTokenizer);
+		//		String newString = toString(copyRetentionRuleFactory);
+		//return build(newString);
 
 	}
 
@@ -71,6 +71,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 
 	private ModifiableStructure getModifiableStructureV3(StringTokenizer stringTokenizer) {
 		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
+		copyRetentionRule.setId(readString(stringTokenizer));
 		copyRetentionRule.setCode(readString(stringTokenizer));
 		copyRetentionRule.setCopyType((CopyType) EnumWithSmallCodeUtils.toEnum(CopyType.class, readString(stringTokenizer)));
 		copyRetentionRule.setContentTypesComment(readString(stringTokenizer));
@@ -149,6 +150,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		StringBuilder stringBuilder = new StringBuilder();
 
 		writeString(stringBuilder, VERSION_3);
+		writeString(stringBuilder, rule.getId());
 		writeString(stringBuilder, rule.getCode());
 		writeString(stringBuilder, rule.getCopyType() == null ? "" : rule.getCopyType().getCode());
 		writeString(stringBuilder, rule.getContentTypesComment());

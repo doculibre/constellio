@@ -165,6 +165,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 		@Override
 		public void run() {
+			System.out.println("Run!");
 			atomicInteger.incrementAndGet();
 			try {
 				Thread.sleep(ms);

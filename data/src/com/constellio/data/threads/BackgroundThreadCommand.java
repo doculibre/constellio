@@ -1,6 +1,8 @@
 package com.constellio.data.threads;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.LocalTime;
 import org.slf4j.Logger;
@@ -16,18 +18,24 @@ public class BackgroundThreadCommand implements Runnable {
 
 	String threadName;
 
-	AtomicBoolean systemStarted = new AtomicBoolean();
+	AtomicBoolean stopRequested;
+	AtomicBoolean systemStarted;
+	Semaphore tasksSemaphore;
 
-	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted) {
+	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted,
+								   AtomicBoolean stopRequested, Semaphore tasksSemaphore) {
 		this.configuration = configuration;
+		this.tasksSemaphore = tasksSemaphore;
 		this.logger = LoggerFactory.getLogger(configuration.getRepeatedAction().getClass());
 		this.threadName = configuration.getId() + " (" + configuration.getRepeatedAction().getClass().getName() + ")";
+		this.stopRequested = stopRequested;
 		this.systemStarted = systemStarted;
 	}
 
 	@Override
 	public void run() {
-		while (!systemStarted.get()) {
+
+		while (!systemStarted.get() && !stopRequested.get()) {
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
@@ -35,8 +43,18 @@ public class BackgroundThreadCommand implements Runnable {
 			}
 		}
 
-		if (configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval()) {
-			runAndHandleException();
+		if ((configuration.getFrom() == null || configuration.getTo() == null || isBetweenInterval())
+				&& !stopRequested.get()) {
+			try {
+				tasksSemaphore.acquire();
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				runAndHandleException();
+			} finally {
+				tasksSemaphore.release();
+			}
 		}
 
 	}

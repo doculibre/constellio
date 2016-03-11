@@ -123,7 +123,8 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 
 		private void initDocumentDefaultCopyRetentionRuleTable(RecordVO recordVO) {
 			if (documentDefaultCopyRetentionRuleTable == null) {
-				documentDefaultCopyRetentionRuleTable = new DocumentDefaultCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter.getOpenPeriodsDDVList()) {
+				documentDefaultCopyRetentionRuleTable = new DocumentDefaultCopyRetentionRuleTable((RetentionRuleVO) recordVO,
+						true, presenter) {
 					@Override
 					protected List<MetadataVO> getDateMetadataVOs() {
 						return presenter.getDateMetadataVOs(null);
@@ -138,7 +139,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 			switch (metadataVO.getLocalCode()) {
 			case RetentionRule.COPY_RETENTION_RULES:
 				if (presenter.isFoldersCopyRetentionRulesVisible()) {
-					field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter.getOpenPeriodsDDVList()) {
+					field = new FolderCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter) {
 						@Override
 						protected void onDisposalTypeChange(CopyRetentionRule copyRetentionRule) {
 							presenter.disposalTypeChanged(copyRetentionRule);
@@ -156,7 +157,7 @@ public class AddEditRetentionRuleViewImpl extends BaseViewImpl implements AddEdi
 				break;
 			case RetentionRule.DOCUMENT_COPY_RETENTION_RULES:
 				if (presenter.isDocumentsCopyRetentionRulesVisible()) {
-					field = new DocumentCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter.getOpenPeriodsDDVList()) {
+					field = new DocumentCopyRetentionRuleTable((RetentionRuleVO) recordVO, true, presenter) {
 						@Override
 						protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
 							return presenter.getDateMetadataVOs(documentTypeId);

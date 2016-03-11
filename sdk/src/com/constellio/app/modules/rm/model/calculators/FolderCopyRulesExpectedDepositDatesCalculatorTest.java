@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
@@ -34,6 +35,8 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 	List<CopyRetentionRule> applicableCopyRules;
 	int confiRequiredDaysBeforeYearEnd = 0;
 	String configYearEnd;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Test
 	public void givenMultipleApplicableCopyRulesThenCalculateDateForEachAndReturnEndOFYearDates()
@@ -163,12 +166,12 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
 
-	private static CopyRetentionRule principal(String delays) {
-		return CopyRetentionRule.newPrincipal(asList("PA", "MD"), delays);
+	private CopyRetentionRule principal(String delays) {
+		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
 
-	private static CopyRetentionRule secondary(String delays) {
-		return CopyRetentionRule.newSecondary(asList("PA", "MD"), delays);
+	private CopyRetentionRule secondary(String delays) {
+		return copyBuilder.newSecondary(asList("PA", "MD"), delays);
 	}
 
 	private List<LocalDate> calculate() {

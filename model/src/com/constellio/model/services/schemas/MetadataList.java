@@ -153,7 +153,7 @@ public class MetadataList implements List<Metadata> {
 
 	@Override
 	public boolean equals(Object o) {
-		return nestedList.equals(o);
+		return nestedList.equals(o) || ((o instanceof MetadataList) && nestedList.equals(((MetadataList) o).nestedList));
 	}
 
 	@Override
