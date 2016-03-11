@@ -171,6 +171,45 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenChildFolderWhenChangingEnteredValuesThenSetBackToNullBeforeSave()
+			throws Exception {
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setDescription("Ze description");
+		folder.setCategoryEntered(records.categoryId_X110);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setMediumTypes(Arrays.asList(PA, MV));
+		folder.setUniformSubdivisionEntered(records.subdivId_2);
+		folder.setOpenDate(november4_2009);
+		folder.setCloseDateEntered(december12_2009);
+
+		folder = saveAndLoad(folder);
+
+		Folder childFolder = rm.newFolder();
+		childFolder.setParentFolder(folder);
+		childFolder.setOpenDate(november4_2009);
+		childFolder.setTitle("Ze child folder");
+
+		childFolder = saveAndLoad(childFolder);
+
+		childFolder.setAdministrativeUnitEntered(records.unitId_10);
+		childFolder.setCategoryEntered(records.categoryId_X);
+		childFolder.setRetentionRuleEntered(records.ruleId_3);
+		childFolder.setCopyStatusEntered(CopyType.SECONDARY);
+
+		childFolder = saveAndLoad(childFolder);
+
+		assertThat(childFolder.getAdministrativeUnitEntered()).isNull();
+		assertThat(childFolder.getCategoryEntered()).isNull();
+		assertThat(childFolder.getRetentionRuleEntered()).isNull();
+		assertThat(childFolder.getCopyStatusEntered()).isNull();
+
+	}
+
+	@Test
 	public void givenFolderWithFormCreatedModifiedByOnInfosThenPersisted()
 			throws RecordServicesException {
 
