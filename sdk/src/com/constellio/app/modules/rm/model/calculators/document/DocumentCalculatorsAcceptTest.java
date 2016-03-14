@@ -6,6 +6,7 @@ import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUM
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
@@ -32,7 +33,9 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -1184,63 +1187,102 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenDocumentWithMultipleApplicableCopyRuleThenTakeTheEnteredOne()
+	public void givenDocumentWithMultipleApplicableCopyRuleThenTakeTheEnteredOneOrValidationException()
 			throws Exception {
 
-		//		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
-		//		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
-		//		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
-		//		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
-		//		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
-		//		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 20);
-		//		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
-		//		waitForBatchProcess();
-		//		createDateMetadatasAndCustomSchemas();
-		//
-		//		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type1)
-		//				.setActiveDateMetadata(documentDateA().getLocalCode())
-		//				.setSemiActiveDateMetadata(customDocument1DateD().getLocalCode());
-		//		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type2)
-		//				.setActiveDateMetadata(documentDateB().getLocalCode())
-		//				.setSemiActiveDateMetadata(documentDateA().getLocalCode());
-		//		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "2-3-C").setDocumentTypeId(type3)
-		//				.setActiveDateMetadata(customDocument2DateE().getLocalCode());
-		//		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type4)
-		//				.setSemiActiveDateMetadata(documentDateB().getLocalCode());
-		//		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type5)
-		//				.setActiveDateMetadata(documentDateTimeC().getLocalCode())
-		//				.setSemiActiveDateMetadata(documentDateTimeF().getLocalCode());
-		//
-		//		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
-		//		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
-		//
-		//		Transaction transaction = new Transaction();
-		//		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
-		//		rule1.setScope(DOCUMENTS);
-		//		rule1.setResponsibleAdministrativeUnits(true);
-		//		rule1.setDocumentCopyRetentionRules(copy1, copy2, copy3, copy4, copy5);
-		//		rule1.setPrincipalDefaultDocumentCopyRetentionRule(principal888_5_C);
-		//		rule1.setSecondaryDefaultDocumentCopyRetentionRule(secondary888_6_C);
-		//		transaction.add(rm.getCategory(zeCategory).setRetentionRules(asList(rule1)));
-		//		transaction.add(rule1);
-		//
-		//		transaction.add(rm.getDocumentType(type1).setLinkedSchema(customDocument1Schema().getCode()));
-		//		transaction.add(rm.getDocumentType(type2).setLinkedSchema(customDocument1Schema().getCode()));
-		//		transaction.add(rm.getDocumentType(type3).setLinkedSchema(customDocument2Schema().getCode()));
-		//		transaction.add(rm.getDocumentType(type4).setLinkedSchema(customDocument2Schema().getCode()));
-		//
-		//		Folder activeFolder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2010, 1, 1));
-		//
-		//		Document activeDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1));
-		//		Document semiActiveDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
-		//				.setActualTransferDateEntered(date(2015, 1, 1));
-		//		Document depositedDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
-		//				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDepositDateEntered(date(2020, 1, 1));
-		//		Document destroyedDocumentInActiveFolder = transaction.add(newCustomDocument1(activeFolder, type1))
-		//				.setActualTransferDateEntered(date(2015, 1, 1)).setActualDestructionDateEntered(date(2020, 1, 1));
-		//
-		//		Folder semiActiveFolder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2015, 1, 1))
-		//				.setActualTransferDate(date(2025, 1, 1));
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 20);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		waitForBatchProcess();
+		createDateMetadatasAndCustomSchemas();
+
+		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "1-3-C").setDocumentTypeId(type1);
+		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.PA), "2-3-D").setDocumentTypeId(type1);
+		CopyRetentionRule copy3 = copyBuilder.newPrincipal(asList(records.PA), "3-3-C").setDocumentTypeId(type1);
+		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "4-3-D").setDocumentTypeId(type1);
+		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.PA), "5-3-T").setDocumentTypeId(type1);
+		CopyRetentionRule copy6 = copyBuilder.newPrincipal(asList(records.PA), "6-3-D").setDocumentTypeId(type2);
+
+		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(asList(records.PA), "888-5-C");
+		CopyRetentionRule secondary888_6_C = copyBuilder.newSecondary(asList(records.PA), "888-6-C");
+
+		Transaction transaction = new Transaction();
+		RetentionRule rule1 = transaction.add(rm.newRetentionRuleWithId("rule1").setCode("rule1").setTitle("rule1"));
+		rule1.setScope(DOCUMENTS);
+		rule1.setResponsibleAdministrativeUnits(true);
+		rule1.setDocumentCopyRetentionRules(copy1, copy2, copy3, copy4, copy5, copy6);
+		rule1.setPrincipalDefaultDocumentCopyRetentionRule(principal888_5_C);
+		rule1.setSecondaryDefaultDocumentCopyRetentionRule(secondary888_6_C);
+		transaction.add(rm.getCategory(zeCategory).setRetentionRules(asList(rule1)));
+		transaction.add(rule1);
+
+		transaction.add(rm.getDocumentType(type1).setLinkedSchema(customDocument1Schema().getCode()));
+		transaction.add(rm.getDocumentType(type2).setLinkedSchema(customDocument2Schema().getCode()));
+
+		Folder folder = transaction.add(newPrincipalFolderWithRule(rule1)).setOpenDate(date(2010, 1, 1));
+
+		Document documentWithCopy1 = transaction.add(newCustomDocument1(folder, type1).setMainCopyRuleIdEntered(copy1.getId()));
+		Document documentWithCopy2 = transaction.add(newCustomDocument1(folder, type1).setMainCopyRuleIdEntered(copy2.getId()));
+		Document documentWithCopy3 = transaction.add(newCustomDocument1(folder, type1).setMainCopyRuleIdEntered(copy3.getId()));
+		Document documentWithCopy4 = transaction.add(newCustomDocument1(folder, type1).setMainCopyRuleIdEntered(copy4.getId()));
+		Document documentWithCopy5 = transaction.add(newCustomDocument1(folder, type1).setMainCopyRuleIdEntered(copy5.getId()));
+		recordServices.execute(transaction);
+
+		assertThatDocument(documentWithCopy1).isActiveDocument()
+				.withMainCopyRetentionRule(copy1)
+				.withExpectedTransfer(date(2011, 3, 31))
+				.withExpectedDeposit(date(2014, 3, 31));
+
+		assertThatDocument(documentWithCopy2).isActiveDocument()
+				.withMainCopyRetentionRule(copy2)
+				.withExpectedTransfer(date(2012, 3, 31))
+				.withExpectedDestroy(date(2015, 3, 31));
+
+		assertThatDocument(documentWithCopy3).isActiveDocument()
+				.withMainCopyRetentionRule(copy3)
+				.withExpectedTransfer(date(2013, 3, 31))
+				.withExpectedDeposit(date(2016, 3, 31));
+
+		assertThatDocument(documentWithCopy4).isActiveDocument()
+				.withMainCopyRetentionRule(copy4)
+				.withExpectedTransfer(date(2014, 3, 31))
+				.withExpectedDestroy(date(2017, 3, 31));
+
+		assertThatDocument(documentWithCopy5).isActiveDocument()
+				.withMainCopyRetentionRule(copy5)
+				.withExpectedTransfer(date(2015, 3, 31))
+				.withExpectedDestroyAndDeposit(date(2018, 3, 31));
+
+		try {
+			recordServices.add(newCustomDocument1(folder, type1));
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).hasSize(1);
+			assertThat(e.getErrors().getValidationErrors().get(0).getParameters())
+					.containsEntry(RecordMetadataValidator.METADATA_CODE, "document_custom1_mainCopyRule");
+		}
+
+		try {
+			recordServices.add(newCustomDocument1(folder, type1).setMainCopyRuleIdEntered(copy6.getId()));
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).hasSize(1);
+			assertThat(e.getErrors().getValidationErrors().get(0).getParameters())
+					.containsEntry(RecordMetadataValidator.METADATA_CODE, "document_custom1_mainCopyRule");
+		}
+
+		try {
+			recordServices.add(newCustomDocument1(folder, type1).setMainCopyRuleIdEntered("invalidID"));
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).hasSize(1);
+			assertThat(e.getErrors().getValidationErrors().get(0).getParameters())
+					.containsEntry(RecordMetadataValidator.METADATA_CODE, "document_custom1_mainCopyRule");
+		}
 	}
 
 	private DocumentAssert assertThatDocument(Document document) {
@@ -1388,6 +1430,11 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 			assertThat(actual.getFolderExpectedTransferDate()).isNull();
 			assertThat(actual.getFolderExpectedDestructionDate()).isNull();
 			assertThat(actual.getFolderExpectedDestructionDate()).isNull();
+			return this;
+		}
+
+		public DocumentAssert withMainCopyRetentionRule(CopyRetentionRule copyRetentionRule) {
+			assertThat(actual.getMainCopyRule()).isEqualTo(copyRetentionRule);
 			return this;
 		}
 
