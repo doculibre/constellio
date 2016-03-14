@@ -84,7 +84,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", "zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null);
+				null, null);
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -110,7 +110,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", "zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null);
+				null, null);
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -137,7 +137,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null);
+				null, null);
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 
@@ -164,7 +164,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null);
+				null, null);
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 
