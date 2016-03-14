@@ -12,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.services.contents.ContentManager;
+import org.apache.commons.lang3.StringUtils;
 
 public class CSVReader {
 
@@ -32,6 +33,12 @@ public class CSVReader {
 
 		try {
 			String line = reader.readLine();
+
+			if (StringUtils.startsWithIgnoreCase(line, "sep=,")) {
+				//Skip sep
+				line = reader.readLine();
+			}
+
 			String[] headers = line.split(",");
 			while ((line = reader.readLine()) != null) {
 				Map<String, String> entry = new HashMap<>();
