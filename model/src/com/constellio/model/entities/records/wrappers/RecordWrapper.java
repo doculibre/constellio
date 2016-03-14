@@ -165,6 +165,10 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return this;
 	}
 
+	public String getLegacyId() {
+		return wrappedRecord.get(Schemas.LEGACY_ID);
+	}
+
 	public RecordWrapper setLegacyId(String legacyId) {
 		wrappedRecord.set(Schemas.LEGACY_ID, legacyId);
 		return this;
@@ -266,6 +270,7 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	public void setMarkedForPreviewConversion(Boolean value) {
 		set(Schemas.MARKED_FOR_PREVIEW_CONVERSION.getLocalCode(), value);
 	}
+
 	public Record changeSchemaTo(String newSchemaCode) {
 
 		if (!newSchemaCode.contains("_")) {
