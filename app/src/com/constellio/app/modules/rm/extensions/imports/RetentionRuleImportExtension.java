@@ -252,7 +252,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 		retentionRule.setDocumentTypesDetails(documentTypeList);
 
-		if(retentionRule.getScope().equals(RetentionRuleScope.DOCUMENTS)) {
+		if(retentionRule.getScope() != null && retentionRule.getScope().equals(RetentionRuleScope.DOCUMENTS)) {
 			List<Map<String, String>> docCopyRetentionRules = buildParams.getImportRecord().getList(RetentionRule.DOCUMENT_COPY_RETENTION_RULES);
 			List<CopyRetentionRule> docCopyRetentionRulesBuilt = new ArrayList<>();
 			for (Map<String, String> docCopyRetentionRule : docCopyRetentionRules) {

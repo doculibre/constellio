@@ -53,17 +53,7 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
     }
 
     @Test
-    public void testName() throws Exception {
-        /*
-            - Create a RetentionRule as record in Build Params
-                > Probably does not need to be complete
-                > Needs a scope, at least
-            - Create a map containing entries for the copy rules
-                > DOCUMENT_COPY_RETENTION_RULES
-                > PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE
-                > SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE
-         */
-
+    public void givenRulesWithDifferentValuesAndFieldsThenAllImportedProperly() throws Exception {
         RetentionRule retentionRule = rm.newRetentionRule();
         retentionRule.setScope(RetentionRuleScope.DOCUMENTS);
 
