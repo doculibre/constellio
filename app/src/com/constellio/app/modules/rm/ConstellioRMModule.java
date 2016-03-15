@@ -11,6 +11,7 @@ import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.extensions.FolderExtension;
@@ -31,7 +32,26 @@ import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
-import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_2_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_4_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_9;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1_4;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -180,6 +200,7 @@ public class ConstellioRMModule implements InstallableModule {
 		extensions.recordAppExtensions.add(new RMRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new RMRecordNavigationExtension());
 		extensions.searchPageExtensions.add(new RMSearchPageExtension());
+		extensions.searchPageExtensions.add(new ESSearchPageExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
