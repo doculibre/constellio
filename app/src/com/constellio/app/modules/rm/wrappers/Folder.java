@@ -84,6 +84,9 @@ public class Folder extends RMObject {
 	public static final String PENDING_ALERTS = "pendingAlerts";
 	public static final String NEXT_ALERT_ON = "nextAlertOn";
 
+	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
+	public static final String CALENDAR_YEAR = "calendarYear";
+
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -624,5 +627,6 @@ public class Folder extends RMObject {
 		set(FORM_MODIFIED_ON, dateTime);
 		return this;
 	}
+
 }
 
