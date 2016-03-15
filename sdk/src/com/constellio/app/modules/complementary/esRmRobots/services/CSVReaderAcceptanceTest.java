@@ -41,6 +41,18 @@ public class CSVReaderAcceptanceTest extends ConstellioTest {
 		verifySecondEntry(entries.get(1));
 	}
 
+	@Test
+	public void givenCSVContentWithCommaSepWhenParsingThenAllDataRetrieved()
+			throws Exception {
+		Content content = contentManager.createMajor(adminUser, "test_sep.csv",
+				contentManager.upload(getTestResourceInputStream("test_sep.csv")));
+
+		List<Map<String, String>> entries = reader.readCSVContent(content);
+
+		verifyFirstEntry(entries.get(0));
+		verifySecondEntry(entries.get(1));
+	}
+
 	private void verifyFirstEntry(Map<String, String> entry) {
 		assertThat(entry.get("string1")).isEqualTo("value1");
 		assertThat(entry.get("string2")).isEqualTo("value2");

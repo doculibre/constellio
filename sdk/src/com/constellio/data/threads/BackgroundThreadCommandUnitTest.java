@@ -9,7 +9,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -23,6 +25,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 
 	AtomicBoolean systemStarted = new AtomicBoolean(true);
+	AtomicBoolean stopRequested = new AtomicBoolean(false);
 	TestRunnable nestedCommand;
 	String zeId = "zeId";
 	BackgroundThreadConfiguration configuration;
@@ -35,7 +38,7 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 
 		configuration = spy(
 				BackgroundThreadConfiguration.repeatingAction(zeId, nestedCommand).executedEvery(Duration.standardSeconds(42)));
-		command = spy(new BackgroundThreadCommand(configuration, systemStarted));
+		command = spy(new BackgroundThreadCommand(configuration, systemStarted,stopRequested, new Semaphore(10)));
 	}
 
 	@Test

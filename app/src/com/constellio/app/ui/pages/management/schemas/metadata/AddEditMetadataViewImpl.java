@@ -27,8 +27,7 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 
 public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMetadataView {
-
-	AddEditMetadataPresenter presenter;
+	final AddEditMetadataPresenter presenter;
 
 	@PropertyId("localcode")
 	private BaseTextField localcodeField;
@@ -60,6 +59,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private OptionGroup metadataGroup;
 	@PropertyId("defaultValue")
 	private Field<?> defaultValueField;
+	@PropertyId("inputMask")
+	private BaseTextField inputMask;
 
 	private MetadataForm metadataForm;
 	private FormMetadataVO formMetadataVO;
@@ -133,7 +134,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	}
 
 	private void enableCorrectFields(MetadataValueType value, boolean inherited, boolean editMode) {
-
 		refType.setEnabled(false);
 		refType.setRequired(false);
 		searchableField.setEnabled(false);
@@ -185,6 +185,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			multivalueType.setEnabled(true);
 			break;
 		}
+
+		inputMask.setEnabled(MetadataValueType.STRING.equals(value));
 	}
 
 	private void setValueFields(MetadataValueType value) {
@@ -383,8 +385,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		}
 		defaultValueField.setRequired(false);
 
+		inputMask = new BaseTextField($("AddEditMetadataView.inputMask"));
+		inputMask.setEnabled(false);
+
 		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, titleField, valueType, multivalueType,
-				inputType, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
+				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
 				advancedSearchField, highlight, autocomplete, defaultValueField) {
 
 			@Override

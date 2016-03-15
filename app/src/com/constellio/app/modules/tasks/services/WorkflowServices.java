@@ -322,7 +322,6 @@ public class WorkflowServices {
 
 		Transaction transaction = new Transaction();
 
-
 		replaceRelationShip(transaction, taskBeforeSelected, taskAfterSelected);
 		replaceRelationShip(transaction, newTaskBeforeSelected, selectedWorkflowTaskVO);
 		replaceRelationShip(transaction, selectedWorkflowTaskVO, newTaskAfterSelected);
@@ -380,7 +379,7 @@ public class WorkflowServices {
 		Task task = tasks.wrapTask(transaction.getRecord(node.getId()));
 
 		if (task == null) {
-			task =  tasks.getTask(node.getId());
+			task = tasks.getTask(node.getId());
 		}
 
 		if (node.getDecision() == null) {
@@ -666,5 +665,13 @@ public class WorkflowServices {
 			recordServices.logicallyDelete(currentTask.getWrappedRecord(), User.GOD);
 			recordServices.physicallyDelete(currentTask.getWrappedRecord(), User.GOD);
 		}
+	}
+
+	public WorkflowTaskVO getTaskVO(Task task, SessionContext context) {
+		return newWorkflowTaskVO(task, context);
+	}
+
+	public WorkflowTaskVO getTaskVO(Task task, String decision, SessionContext context) {
+		return newWorkflowTaskVO(task, decision, context);
 	}
 }

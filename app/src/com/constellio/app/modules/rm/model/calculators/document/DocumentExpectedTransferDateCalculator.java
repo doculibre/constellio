@@ -61,7 +61,7 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 
 		if (!input.documentRetentionRulesEnabled) {
 			return input.folderExpectedTransferDate;
-		} else if (input.actualTransferDate != null) {
+		} else if (input.actualTransferDate != null || input.copy == null) {
 			return null;
 		} else {
 			LocalDate baseDateFromFolder = getBaseAjustedDate(input);

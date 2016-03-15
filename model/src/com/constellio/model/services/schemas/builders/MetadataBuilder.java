@@ -67,6 +67,7 @@ public class MetadataBuilder {
 	private Object defaultValue = null;
 	private MetadataPopulateConfigsBuilder populateConfigsBuilder;
 	private ClassProvider classProvider;
+	private String inputMask;
 
 	MetadataBuilder() {
 	}
@@ -150,6 +151,7 @@ public class MetadataBuilder {
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.defaultValue = metadata.getDefaultValue();
+		builder.inputMask = metadata.getInputMask();
 		builder.dataEntry = metadata.getDataEntry();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(builder.classProvider,
 				RecordMetadataValidator.class, metadata.getValidators());
@@ -190,12 +192,18 @@ public class MetadataBuilder {
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
 				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = null;
-		builder.defaultValue = metadata.getDefaultValue();
+
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);
 		}
 		if (inheritanceMetadata.getLabel() != null && !inheritanceMetadata.getLabel().equals(metadata.getLabel())) {
 			builder.label = metadata.getLabel();
+		}
+		if (metadata.getInputMask() != null && !metadata.getInputMask().equals(inheritanceMetadata.getInputMask())) {
+			builder.inputMask = metadata.getInputMask();
+		}
+		if (metadata.getDefaultValue() != null && !metadata.getDefaultValue().equals(inheritanceMetadata.getDefaultValue())) {
+			builder.defaultValue = metadata.getDefaultValue();
 		}
 		if (inheritanceMetadata.getEnabled() != null && !inheritanceMetadata.getEnabled().equals(metadata.isEnabled())) {
 			builder.enabled = metadata.isEnabled();
@@ -393,6 +401,15 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public String getInputMask() {
+		return inputMask;
+	}
+
+	public MetadataBuilder setInputMask(String inputMask) {
+		this.inputMask = inputMask;
+		return this;
+	}
+
 	public MetadataPopulateConfigsBuilder getPopulateConfigsBuilder() {
 		return populateConfigsBuilder;
 	}
@@ -527,6 +544,14 @@ public class MetadataBuilder {
 			this.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(inheritance.getPopulateConfigs());
 		}
 
+		if (inputMask == null) {
+			this.inputMask = inheritance.getInputMask();
+		}
+
+		if (this.defaultValue == null) {
+			this.defaultValue = inheritance.getDefaultValue();
+		}
+
 		validateWithInheritance(inheritance, this);
 
 		MetadataPopulateConfigs populateConfigs = this.populateConfigsBuilder.build();
@@ -538,7 +563,7 @@ public class MetadataBuilder {
 		}
 
 		return new Metadata(inheritance, this.getLabel(), this.getEnabled(), this.getDefaultRequirement(), this.code,
-				this.recordMetadataValidators.build(), this.defaultValue, populateConfigs);
+				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs);
 	}
 
 	Metadata buildWithoutInheritance(DataStoreTypesFactory typesFactory, final ModelLayerFactory modelLayerFactory) {
@@ -584,7 +609,7 @@ public class MetadataBuilder {
 
 		return new Metadata(localCode, this.getCode(), collection, this.getLabel(), this.getEnabled(), behaviors,
 				this.type, references, this.getDefaultRequirement(), this.dataEntry, validators, dataStoreType,
-				accessRestriction, structureFactory, enumClass, defaultValue, populateConfigsBuilder.build(),
+				accessRestriction, structureFactory, enumClass, defaultValue, inputMask, populateConfigsBuilder.build(),
 				encryptionServicesFactory);
 	}
 
@@ -602,7 +627,7 @@ public class MetadataBuilder {
 			return null;
 		}
 
-		String dataStoreType = null;
+		String dataStoreType;
 		switch (type) {
 
 		case BOOLEAN:

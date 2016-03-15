@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -24,6 +25,8 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 	RecordServices recordServices;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	String bobId, chuckId, aliceId;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Before
 	public void setUp()
@@ -108,8 +111,8 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 	public void givenDeletedRetentionRuleWhenGetRetentionRulesForAdministrativeUnitThenOk()
 			throws Exception {
 
-		CopyRetentionRule principal_PA_3_888_D = CopyRetentionRule.newPrincipal(asList(rm.PA()), "3-888-D");
-		CopyRetentionRule secondary_MD_3_888_C = CopyRetentionRule.newSecondary(asList(rm.DM()), "3-888-C");
+		CopyRetentionRule principal_PA_3_888_D = copyBuilder.newPrincipal(asList(rm.PA()), "3-888-D");
+		CopyRetentionRule secondary_MD_3_888_C = copyBuilder.newSecondary(asList(rm.DM()), "3-888-C");
 		recordServices.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("Ze rule!")
 				.setAdministrativeUnits(asList(records.unitId_12)).setApproved(true)
 				.setCopyRetentionRules(asList(principal_PA_3_888_D, secondary_MD_3_888_C)));

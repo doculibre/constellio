@@ -79,6 +79,17 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+	public static MetadataBuilderConfigurator whichHasInputMask(final String inputMask) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.setInputMask(inputMask);
+			}
+
+		};
+	}
+
 	public static MetadataBuilderConfigurator whichHasDefaultValue(final Object value) {
 		return new MetadataBuilderConfigurator() {
 

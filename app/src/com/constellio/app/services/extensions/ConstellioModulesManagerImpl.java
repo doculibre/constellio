@@ -68,7 +68,11 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	@Override
 	public void initialize() {
 		createModulesConfigFileIfNotExist();
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+		enableComplementaryModules();
+	}
+
+	public void enableComplementaryModules() {
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			enableComplementaryModules(collection);
 		}
 	}
@@ -121,12 +125,16 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	public List<InstallableModule> getRequiredDependentModulesToInstall(String collection) {
 		Set<String> dependentModuleIds = new HashSet<>();
 
-		for (InstallableModule module : getEnabledModules(collection)) {
-			dependentModuleIds.addAll(module.getDependencies());
+		for (InstallableModule module : getBuiltinModules()) {
+			if (isModuleEnabled(collection, module)) {
+				dependentModuleIds.addAll(module.getDependencies());
+			}
 		}
 
-		for (InstallableModule module : getEnabledModules(collection)) {
-			dependentModuleIds.remove(module.getId());
+		for (InstallableModule module : getBuiltinModules()) {
+			if (isModuleEnabled(collection, module)) {
+				dependentModuleIds.remove(module.getId());
+			}
 		}
 
 		List<InstallableModule> dependentModules = new ArrayList<>();
@@ -218,6 +226,8 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 		for (String collection : collectionsListManager.getCollections()) {
 			try {
+				//FIXME FB since module has just been installed it may be not enabled
+				//enableComplementaryModules(collection);
 				returnList.addAll(migrationServices.migrate(collection, null));
 			} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 				throw new RuntimeException(optimisticLockingConfiguration);
@@ -265,6 +275,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		}
 		return returnList;
 	}
+
 
 	public Set<String> enableComplementaryModules(String collection) {
 		Set<String> returnList = new HashSet<>();

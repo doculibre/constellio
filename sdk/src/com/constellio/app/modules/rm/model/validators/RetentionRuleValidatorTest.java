@@ -14,6 +14,7 @@ import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -30,13 +31,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class RetentionRuleValidatorTest extends ConstellioTest {
 
-	CopyRetentionRule copy0_analogicPrincipal = new CopyRetentionRule();
-	CopyRetentionRule copy1_numericPrincipal = new CopyRetentionRule();
-	CopyRetentionRule copy2_secondary = new CopyRetentionRule();
-
-	CopyRetentionRule docCopy1_principal = new CopyRetentionRule();
-	CopyRetentionRule docCopy2_principal = new CopyRetentionRule();
-
 	RetentionRuleValidator validator = new RetentionRuleValidator();
 
 	@Mock Metadata uniformSubdivisionMetadata, categoriesMetadata, copyRetentionRuleMetadata;
@@ -44,6 +38,14 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 
 	@Mock RetentionRule retentionRule;
 	@Mock ConfigProvider configProvider;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+	CopyRetentionRule copy0_analogicPrincipal = copyBuilder.newCopyRetentionRule();
+	CopyRetentionRule copy1_numericPrincipal = copyBuilder.newCopyRetentionRule();
+	CopyRetentionRule copy2_secondary = copyBuilder.newCopyRetentionRule();
+
+	CopyRetentionRule docCopy1_principal = copyBuilder.newCopyRetentionRule();
+	CopyRetentionRule docCopy2_principal = copyBuilder.newCopyRetentionRule();
 
 	ValidationErrors errors = new ValidationErrors();
 	private List<RetentionRuleDocumentType> types;

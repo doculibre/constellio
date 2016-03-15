@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections.ArrayStack;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
@@ -92,19 +93,28 @@ public class LangUtils {
 	public static <T> ListComparisonResults<T> compare(List<T> before, List<T> after) {
 		List<T> newItems = new ArrayList<>();
 		List<T> removedItems = new ArrayList<>();
+		 if (after == null) {
+			removedItems = new ArrayList<>(before);
 
-		if (before != null) {
-			for (T item : before) {
-				if (!after.contains(item) && !removedItems.contains(item)) {
-					removedItems.add(item);
+		} else if (before == null) {
+			newItems = new ArrayList<>(after);
+
+		} else if (after != null && after != null ){
+
+
+			if (before != null) {
+				for (T item : before) {
+					if (!after.contains(item) && !removedItems.contains(item)) {
+						removedItems.add(item);
+					}
 				}
 			}
-		}
 
-		if (after != null) {
-			for (T item : after) {
-				if (!before.contains(item) && !newItems.contains(item)) {
-					newItems.add(item);
+			if (after != null) {
+				for (T item : after) {
+					if (!before.contains(item) && !newItems.contains(item)) {
+						newItems.add(item);
+					}
 				}
 			}
 		}

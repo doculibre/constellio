@@ -54,9 +54,10 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean autocomplete = metadata.isSchemaAutocomplete();
 
 		Object defaultValue = metadata.getDefaultValue();
+		String inputMask = metadata.getInputMask();
 
 		return new FormMetadataVO(code, type, required, schemaVO, reference, label, searchable, multivalue, sortable,
-				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue);
+				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask);
 	}
 
 	private String getValidMetadataGroup(String metadataGroup, SchemaTypeDisplayConfig config) {
@@ -75,5 +76,4 @@ public class MetadataToFormVOBuilder implements Serializable {
 
 		return validGroup;
 	}
-
 }

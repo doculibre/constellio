@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -69,6 +70,18 @@ public class FolderExtension extends RecordExtension {
 	public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
 		if (event.isSchemaType(Folder.SCHEMA_TYPE) && event.hasModifiedMetadata(Folder.ARCHIVISTIC_STATUS)) {
 			setFolderPermissionStatus(event.getRecord());
+		}
+	}
+
+	@Override
+	public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		if (event.isSchemaType(Folder.SCHEMA_TYPE) && event.getRecord().get(rmSchema.folderParentFolder()) != null) {
+			Folder folder = rmSchema.wrapFolder(event.getRecord());
+			folder.setAdministrativeUnitEntered((String) null);
+			folder.setCategoryEntered((String) null);
+			folder.setRetentionRuleEntered((String) null);
+			folder.setCopyStatusEntered(null);
 		}
 	}
 
