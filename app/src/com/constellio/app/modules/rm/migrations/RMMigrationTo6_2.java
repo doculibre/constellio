@@ -8,6 +8,8 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.calculators.FolderCalendarYearCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentCalendarYearCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderMainCopyRuleCalculator2;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -76,15 +78,26 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			updateDocumentSchema(typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema());
 			updateFolderSchema(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema());
+
 		}
 
 		private void updateDocumentSchema(MetadataSchemaBuilder documentSchemaType) {
 			documentSchemaType.createUndeletable(Document.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
+
+			documentSchemaType.createUndeletable(Document.CALENDAR_YEAR_ENTERED).setType(MetadataValueType.STRING);
+
+			documentSchemaType.createUndeletable(Document.CALENDAR_YEAR).setType(MetadataValueType.DATE).defineDataEntry()
+					.asCalculated(DocumentCalendarYearCalculator.class);
 		}
 
 		private void updateFolderSchema(MetadataSchemaBuilder folderSchemaType) {
 			folderSchemaType.createUndeletable(Folder.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
 			folderSchemaType.get(Folder.MAIN_COPY_RULE).defineDataEntry().asCalculated(FolderMainCopyRuleCalculator2.class);
+
+			folderSchemaType.createUndeletable(Folder.CALENDAR_YEAR_ENTERED).setType(MetadataValueType.STRING);
+
+			folderSchemaType.createUndeletable(Folder.CALENDAR_YEAR).setType(MetadataValueType.DATE).defineDataEntry()
+					.asCalculated(FolderCalendarYearCalculator.class);
 		}
 	}
 }

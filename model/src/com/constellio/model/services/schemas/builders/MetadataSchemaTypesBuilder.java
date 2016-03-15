@@ -327,6 +327,8 @@ public class MetadataSchemaTypesBuilder {
 						.getCalculator().getClass().getName());
 			}
 			if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
+				System.out.println(metadataBuilder.getType());
+				System.out.println(valueTypeMetadataCalculated);
 				throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
 						metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 			}
