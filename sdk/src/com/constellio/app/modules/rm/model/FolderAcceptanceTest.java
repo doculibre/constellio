@@ -835,6 +835,71 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folderStatusUpdateCounter.get()).isEqualTo(3);
 	}
 
+	@Test
+	public void givenRuleBasedOnCustomActiveMetadataThenValidCalculatedDates()
+			throws Exception {
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("a").setType(MetadataValueType.DATE);
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("b").setType(MetadataValueType.DATE);
+			}
+		});
+
+		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
+		rule2.getPrincipalCopies().get(0).setActiveDateMetadata("a").setActiveRetentionPeriod(RetentionPeriod.fixed(1))
+				.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(2));
+
+		recordServices.update(rule2);
+
+		Folder folder1 = rm.newFolder();
+		folder1.setAdministrativeUnitEntered(records.unitId_10a);
+		folder1.setCategoryEntered(records.categoryId_X13);
+		folder1.setTitle("Ze folder 1");
+		folder1.setRetentionRuleEntered(records.ruleId_2);
+		folder1.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder1.setOpenDate(february2_2015);
+		folder1.setMediumTypes(MD, PA);
+		folder1.set("a", new LocalDate(2005, 1, 1));
+		transaction.add(folder1);
+
+		Folder folder2 = rm.newFolder();
+		folder2.setAdministrativeUnitEntered(records.unitId_10a);
+		folder2.setCategoryEntered(records.categoryId_X13);
+		folder2.setTitle("Ze folder 2");
+		folder2.setRetentionRuleEntered(records.ruleId_2);
+		folder2.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder2.setOpenDate(february2_2015);
+		folder2.setMediumTypes(MD, PA);
+		folder2.set("a", new LocalDate(2005, 3, 1));
+		transaction.add(folder2);
+
+		Folder folder3 = rm.newFolder();
+		folder3.setAdministrativeUnitEntered(records.unitId_10a);
+		folder3.setCategoryEntered(records.categoryId_X13);
+		folder3.setTitle("Ze folder 3");
+		folder3.setRetentionRuleEntered(records.ruleId_2);
+		folder3.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder3.setOpenDate(february2_2015);
+		folder3.setMediumTypes(MD, PA);
+		transaction.add(folder3);
+
+		recordServices.execute(transaction);
+
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(date(2006, 3, 31));
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(date(2008, 3, 31));
+
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(date(2007, 3, 31));
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(date(2009, 3, 31));
+
+		//Based on close date
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(date(2017, 3, 31));
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(date(2019, 3, 31));
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(date(2021, 3, 31));
+
+	}
+
 	// -------------------------------------------------------------------------
 
 	private void givenRuleHasNoPrincipalCopyType(String id)
