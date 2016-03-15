@@ -14,8 +14,8 @@ public class ThemeUtils implements Serializable {
 	private static Map<String, Boolean> cache = new HashMap<>();
 
 	public static boolean resourceExists(String resourcePath) {
-		if (!cache.containsKey(resourcePath)) {
-			boolean resourceExists;
+		Boolean resourceExists = cache.get(resourcePath);
+		if (resourceExists == null) {
 			UI ui = UI.getCurrent();
 			InputStream resourceStream = ui.getSession().getService().getThemeResourceAsStream(ui, ui.getTheme(), resourcePath);
 			if (resourceStream != null) {
@@ -26,8 +26,7 @@ public class ThemeUtils implements Serializable {
 			}
 			cache.put(resourcePath, resourceExists);
 		}
-
-		return cache.containsKey(resourcePath);
+		return resourceExists;
 	}
 
 }

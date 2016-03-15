@@ -215,7 +215,7 @@ public class MigrationServices {
 		try {
 			script.migrate(migration.getCollection(), migrationResourcesProvider, appLayerFactory);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Error when migrating collection '" + migration.getCollection() + "'", e);
 		}
 		setCurrentDataVersion(migration.getCollection(), migration.getVersion());
 		markMigrationAsCompleted(migration);

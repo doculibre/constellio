@@ -84,8 +84,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -1311,88 +1309,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				getCurrentTestSession().getFileSystemTestFeatures());
 	}
 
-	private static Map<String, File> pluginsBundlesCache = new HashMap<>();
-
 	protected ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
 		ensureNotUnitTest();
-		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
-		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-		InstallableModule module;
-		try {
-			module = installableModuleClass.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-
-		((JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager()).registerPluginOnlyForTests(module);
-
-		//		if (!getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
-		//			getAppLayerFactory().getPluginManager().registerPluginOnlyForTests(module);
-		//		}
-
-		FoldersLocator foldersLocator = new FoldersLocator();
-		File constellioPlugins = foldersLocator.getPluginsRepository();
-		String moduleId = module.getId();
-		String bundleName = moduleId + "_i18n";
-
-		File value = pluginsBundlesCache.get(bundleName);
-		if (value == null && constellioPlugins.exists() && constellioPlugins.listFiles() != null) {
-			for (File subFolder : constellioPlugins.listFiles()) {
-				if (subFolder.getName().startsWith("plugin")) {
-					File resourcesFolder = new File(subFolder, moduleId + "_resources");
-					if (resourcesFolder.exists()) {
-						File i18nfolder = new File(resourcesFolder, "i18n");
-
-						if (new File(i18nfolder, bundleName + ".properties").exists()) {
-							value = i18nfolder;
-							break;
-						}
-					}
-				}
-			}
-		}
-		if (value != null) {
-			i18n.registerBundle(value, bundleName);
-		}
-
-		constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
-
-		if (module.isComplementary()) {
-			((ConstellioModulesManagerImpl) constellioModulesManager).enableComplementaryModules();
-		}
-
-		return new
-
-				ModuleEnabler(module, collectionsListManager, constellioModulesManager);
-	}
-
-	public static class ModuleEnabler {
-
-		InstallableModule module;
-		CollectionsListManager collectionsListManager;
-		ConstellioModulesManager constellioModulesManager;
-
-		public ModuleEnabler(InstallableModule module,
-				CollectionsListManager collectionsListManager, ConstellioModulesManager constellioModulesManager) {
-			this.module = module;
-			this.collectionsListManager = collectionsListManager;
-			this.constellioModulesManager = constellioModulesManager;
-
-		}
-
-		public void enabledInEveryCollections() {
-			if (!module.isComplementary()) {
-				for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-					enabledIn(collection);
-				}
-			}
-		}
-
-		public void enabledIn(String collection) {
-			if (!module.isComplementary()) {
-				constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
-			}
-		}
+		return ModuleEnabler.givenInstalledModule(getAppLayerFactory(), installableModuleClass);
 	}
 
 	public ToggleCondition onlyWhen(AvailableToggle toggle) {

@@ -64,7 +64,12 @@ public class CalculatorUtils {
 	}
 
 	public static LocalDate calculateExpectedTransferDate(CopyRetentionRule copyRule, LocalDate ajustedDecommissioningDate,
-			int numberOfYearWhenVariableDelay) {
+			int defaultNumberOfYearWhenVariableDelay) {
+
+		int numberOfYearWhenVariableDelay = defaultNumberOfYearWhenVariableDelay;
+		if (copyRule.getOpenActiveRetentionPeriod() != null && copyRule.getOpenActiveRetentionPeriod() >= 0) {
+			numberOfYearWhenVariableDelay = copyRule.getOpenActiveRetentionPeriod();
+		}
 
 		if (ajustedDecommissioningDate == null) {
 			return null;

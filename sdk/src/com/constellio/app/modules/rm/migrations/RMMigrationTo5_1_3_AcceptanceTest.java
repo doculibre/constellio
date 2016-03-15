@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.joda.time.LocalDate;
 import org.junit.Test;
 
@@ -12,6 +11,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
 @SlowTest
 public class RMMigrationTo5_1_3_AcceptanceTest extends ConstellioTest {

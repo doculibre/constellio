@@ -26,17 +26,16 @@ public class FormMetadataVO implements Serializable {
 	String metadataGroup;
 	MetadataInputType input;
 	Object defaultValue;
+	String inputMask;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
 			String label, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch, boolean facet,
-			MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup, Object defaultValue) {
-		super();
-
+			MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup,
+			Object defaultValue, String inputMask) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR")[1];
 		}
-
 		this.code = code;
 		this.localcode = localCodeParsed;
 		this.valueType = type;
@@ -55,6 +54,7 @@ public class FormMetadataVO implements Serializable {
 		this.enabled = enabled;
 		this.metadataGroup = metadataGroup;
 		this.defaultValue = defaultValue;
+		this.inputMask = inputMask;
 	}
 
 	public FormMetadataVO() {
@@ -76,6 +76,7 @@ public class FormMetadataVO implements Serializable {
 		this.autocomplete = false;
 		this.enabled = true;
 		this.metadataGroup = "";
+		this.inputMask = "";
 	}
 
 	public String getCode() {
@@ -218,6 +219,14 @@ public class FormMetadataVO implements Serializable {
 		this.defaultValue = defaultValue;
 	}
 
+	public String getInputMask() {
+		return inputMask;
+	}
+
+	public void setInputMask(String inputMask) {
+		this.inputMask = inputMask;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -264,5 +273,4 @@ public class FormMetadataVO implements Serializable {
 		}
 		return toString;
 	}
-
 }

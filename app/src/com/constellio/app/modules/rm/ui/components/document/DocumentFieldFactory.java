@@ -2,14 +2,17 @@ package com.constellio.app.modules.rm.ui.components.document;
 
 import static com.constellio.app.modules.rm.wrappers.Document.CONTENT;
 import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
+import static com.constellio.app.modules.rm.wrappers.Document.MAIN_COPY_RULE_ID_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.ui.components.RMMetadataFieldFactory;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentFieldImpl;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentCopyRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolderFieldImpl;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeFieldLookupImpl;
 import com.constellio.app.modules.rm.wrappers.Email;
@@ -17,27 +20,33 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.vaadin.ui.Field;
 
 public class DocumentFieldFactory extends RMMetadataFieldFactory {
-
 	private String folderId;
 	private String currentType;
+	private List<CopyRetentionRuleInRule> copyRules;
 
-	public DocumentFieldFactory(String folderId, String currentType) {
+	public DocumentFieldFactory(String folderId, String currentType, List<CopyRetentionRuleInRule> copyRules) {
 		this.folderId = folderId;
 		this.currentType = currentType;
+		this.copyRules = copyRules;
 	}
 
 	@Override
 	public Field<?> build(MetadataVO metadata) {
 		Field<?> field;
-		String metadataCode = metadata.getCode();
-		String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
-		if (TYPE.equals(metadataCode) || TYPE.equals(metadataCodeWithoutPrefix)) {
+		switch (metadata.getLocalCode()) {
+		case TYPE:
 			field = new DocumentTypeFieldLookupImpl(folderId, currentType);
-		} else if (CONTENT.equals(metadataCode) || CONTENT.equals(metadataCodeWithoutPrefix)) {
+			break;
+		case CONTENT:
 			field = new DocumentContentFieldImpl();
-		} else if (FOLDER.equals(metadataCode) || FOLDER.equals(metadataCodeWithoutPrefix)) {
+			break;
+		case FOLDER:
 			field = new DocumentFolderFieldImpl();
-		} else {
+			break;
+		case MAIN_COPY_RULE_ID_ENTERED:
+			field = new DocumentCopyRuleFieldImpl(copyRules);
+			break;
+		default:
 			field = super.build(metadata);
 		}
 		if (field instanceof CustomDocumentField) {
@@ -62,5 +71,4 @@ public class DocumentFieldFactory extends RMMetadataFieldFactory {
 			}
 		}
 	}
-
 }

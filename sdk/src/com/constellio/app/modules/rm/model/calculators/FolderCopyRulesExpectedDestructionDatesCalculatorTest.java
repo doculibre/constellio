@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
@@ -34,6 +35,8 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 	List<CopyRetentionRule> applicableCopyRules;
 	int confiRequiredDaysBeforeYearEnd = 0;
 	String configYearEnd;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Test
 	public void givenMultipleApplicableCopyRulesThenCalculateDateForEachAndReturnEndOFYearDates()
@@ -151,8 +154,8 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 		assertThat(calculateFor(1, copy("3-888-T"))).isEqualTo(new LocalDate(2005, 4, 5));
 	}
 
-	private static CopyRetentionRule copy(String delays) {
-		return CopyRetentionRule.newPrincipal(asList("PA", "MD"), delays);
+	private CopyRetentionRule copy(String delays) {
+		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
 
 	private LocalDate calculateFor(int index, CopyRetentionRule copy) {

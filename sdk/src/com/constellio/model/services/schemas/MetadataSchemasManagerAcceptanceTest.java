@@ -21,6 +21,8 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnot
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsThirdSchemaType;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirementInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultValue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabelInCustomSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasNoDefaultRequirement;
@@ -890,7 +892,33 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(content).isEqualTo(builtContent);
 		assertThat(types.getSchema(UserDocument.DEFAULT_SCHEMA)).isEqualTo(
 				builtTypes.getSchema(UserDocument.DEFAULT_SCHEMA));
+
+		for (Metadata metadata : types.getAllMetadatasIncludingThoseWithInheritance()) {
+			Metadata builtMetadata = builtTypes.getMetadata(metadata.getCode());
+			assertThat(metadata).describedAs(metadata.getCode()).isEqualTo(builtMetadata);
+		}
+
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			MetadataSchemaType builtType = builtTypes.getSchemaType(type.getCode());
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				MetadataSchema builtSchema = builtTypes.getSchema(schema.getCode());
+
+				for (int i = 0; i < schema.getMetadatas().size(); i++) {
+					Metadata metadata = schema.getMetadatas().get(i);
+					Metadata builtMetadata = builtSchema.getMetadatas().get(i);
+					assertThat(metadata).describedAs(metadata.getCode()).isEqualTo(builtMetadata);
+				}
+
+				assertThat(schema.getMetadatas()).describedAs(schema.getCode()).isEqualTo(builtSchema.getMetadatas());
+				assertThat(schema).describedAs(schema.getCode()).isEqualTo(builtSchema);
+			}
+			assertThat(type.getAllMetadatas()).describedAs(type.getCode()).isEqualTo(builtType.getAllMetadatas());
+			assertThat(type.getAllSchemas()).describedAs(type.getCode()).isEqualTo(builtType.getAllSchemas());
+			assertThat(type).describedAs(type.getCode()).isEqualTo(builtType);
+		}
+
 		assertThat(types).isEqualTo(builtTypes);
+
 	}
 
 	@Test
@@ -1298,6 +1326,66 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(anotherSchemaLabel.isUniqueValue()).isFalse();
 		assertThat(anotherSchemaLabel.isUnmodifiable()).isFalse();
 
+	}
+
+	@Test
+	public void givenStringMetadataWithInputMaskThenValueSaved()
+			throws Exception {
+		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadata(whichHasInputMask("(###) ###-####")));
+
+		assertThat(zeSchema.stringMetadata().getInputMask()).isEqualTo("(###) ###-####");
+		assertThat(zeCustomSchema.stringMetadata().getInputMask()).isEqualTo("(###) ###-####");
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setInputMask("###.###.####");
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().getInputMask()).isEqualTo("###.###.####");
+		assertThat(zeCustomSchema.stringMetadata().getInputMask()).isEqualTo("###.###.####");
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeCustomSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
+						.setInputMask("(###) ### ####");
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().getInputMask()).isEqualTo("###.###.####");
+		assertThat(zeCustomSchema.stringMetadata().getInputMask()).isEqualTo("(###) ### ####");
+	}
+
+	@Test
+	public void givenStringMetadataWithDefaultValueThenValueSaved()
+			throws Exception {
+		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadata(whichHasDefaultValue("value1")));
+
+		assertThat(zeSchema.stringMetadata().getDefaultValue()).isEqualTo("value1");
+		assertThat(zeCustomSchema.stringMetadata().getDefaultValue()).isEqualTo("value1");
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(zeSchema.stringMetadata().getCode()).setDefaultValue("value2");
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().getDefaultValue()).isEqualTo("value2");
+		assertThat(zeCustomSchema.stringMetadata().getDefaultValue()).isEqualTo("value2");
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeCustomSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
+						.setDefaultValue("value3");
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().getDefaultValue()).isEqualTo("value2");
+		assertThat(zeCustomSchema.stringMetadata().getDefaultValue()).isEqualTo("value3");
 	}
 
 	private MetadataSchemaTypes createTwoSchemas()

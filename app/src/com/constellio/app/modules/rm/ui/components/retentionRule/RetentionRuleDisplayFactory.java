@@ -32,13 +32,13 @@ public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 		String metadataCode = MetadataVO.getCodeWithoutPrefix(metadataVO.getCode());
 		RetentionRuleVO retentionRuleVO = (RetentionRuleVO) recordVO;
 		if (COPY_RETENTION_RULES.equals(metadataCode)) {
-			component = new FolderCopyRetentionRuleTable(retentionRuleVO, false, openPeriodsDDVList);
+			component = new FolderCopyRetentionRuleTable(retentionRuleVO, false, presenter);
 			component.setVisible(presenter.shouldDisplayFolderRetentionRules());
 		} else if (DOCUMENT_COPY_RETENTION_RULES.equals(metadataCode)) {
-			component = new DocumentCopyRetentionRuleTable(retentionRuleVO, false, openPeriodsDDVList);
+			component = new DocumentCopyRetentionRuleTable(retentionRuleVO, false, presenter);
 			component.setVisible(presenter.shouldDisplayDocumentRetentionRules());
 		} else if (PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE.equals(metadataCode)) {
-			component = new DocumentDefaultCopyRetentionRuleTable(retentionRuleVO, false, openPeriodsDDVList);
+			component = new DocumentDefaultCopyRetentionRuleTable(retentionRuleVO, false, presenter);
 			component.setVisible(presenter.shouldDisplayDefaultDocumentRetentionRules());
 		} else if (SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE.equals(metadataCode)) {
 			component = null;
@@ -51,7 +51,7 @@ public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 		return component;
 	}
 
-	public interface RetentionRuleDisplayPresenter {
+	public interface RetentionRuleDisplayPresenter extends RetentionRuleTablePresenter {
 
 		List<VariableRetentionPeriodVO> getOpenActivePeriodsDDVList();
 

@@ -75,6 +75,7 @@ dependencies {
     compile "com.google.code.gson:gson:1.7.2"
     compile files("libs/jcifs_gcm_322.jar")
     compile files("libs/vaadin-breadcrumb-1.7.3.jar")
+    compile files("libs/vaadin-maskedtextfield-0.1.9.jar")
     compile "juh:juh:3.2.1"
     compile "jurt:jurt:3.2.1"
     compile "ridl:ridl:3.2.1"
@@ -86,7 +87,7 @@ dependencies {
 
 war {
     baseName = "constellio-app"
-    version = "6.1.1"
+    version = "6.1.3.1"
 
     webInf {
         from 'WebContent/'
@@ -114,7 +115,7 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '6.1.1'
+    version = '6.1.3.1'
 }
 
 configurations.archives.artifacts.with { archives ->

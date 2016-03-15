@@ -30,6 +30,8 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
 	LocalDate november4_2009 = new LocalDate(2009, 11, 4);
 	LocalDate november4_2010 = new LocalDate(2010, 11, 4);
 	LocalDate november4_2011 = new LocalDate(2011, 11, 4);
@@ -311,11 +313,11 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 	}
 
 	private CopyRetentionRule principal(String status, String... mediumTypes) {
-		return CopyRetentionRule.newPrincipal(asList(mediumTypes), status);
+		return copyBuilder.newPrincipal(asList(mediumTypes), status);
 	}
 
 	private CopyRetentionRule secondary(String status, String... mediumTypes) {
-		return CopyRetentionRule.newSecondary(asList(mediumTypes), status);
+		return copyBuilder.newSecondary(asList(mediumTypes), status);
 	}
 
 }

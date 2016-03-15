@@ -43,7 +43,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
-
 	private Map<String, String> parameters;
 	private String metadataCode;
 
@@ -152,7 +151,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			}
 		}
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
-
+		builder.setInputMask(formMetadataVO.getInputMask());
 		builder.setEnabled(formMetadataVO.isEnabled());
 		builder.setLabel(formMetadataVO.getLabel());
 		builder.setDefaultRequirement(formMetadataVO.isRequired());

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.constellio.sdk.tests.SDKViewNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -44,7 +45,7 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Mock AuthorizationsServices authorizationsServices;
 	@Mock PresenterService presenterService;
 	@Mock ListContentAccessAuthorizationsView view;
-	@Mock CoreViews navigator;
+	SDKViewNavigation sdkViewNavigation;
 	@Mock User user;
 	@Mock RecordVO object;
 	@Mock AuthorizationVO authorizationVO;
@@ -65,7 +66,7 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 		SessionContext context = FakeSessionContext.gandalfInCollection(zeCollection);
 		when(view.getSessionContext()).thenReturn(context);
 		when(view.getCollection()).thenReturn(zeCollection);
-		when(view.navigateTo()).thenReturn(navigator);
+		sdkViewNavigation = new SDKViewNavigation(view);
 
 		when(factories.getAppLayerFactory().newPresenterService()).thenReturn(presenterService);
 		when(presenterService.getRecordVO(ZE_SECURED_OBJECT, VIEW_MODE.DISPLAY, context)).thenReturn(object);
@@ -100,7 +101,7 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 		when(taxonomy.getCode()).thenReturn("taxo");
 
 		presenter.backButtonClicked(AdministrativeUnit.DEFAULT_SCHEMA);
-		verify(navigator, times(1)).taxonomyManagement("taxo", ZE_SECURED_OBJECT);
+		verify(sdkViewNavigation.coreViews, times(1)).taxonomyManagement("taxo", ZE_SECURED_OBJECT);
 	}
 
 	@Test
