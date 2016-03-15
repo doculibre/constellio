@@ -593,11 +593,12 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		FolderPreviewReturnDateField previewReturnDateField = (FolderPreviewReturnDateField) view.getForm()
 				.getCustomField(Folder.BORROW_PREVIEW_RETURN_DATE);
 		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
-		if (previewReturnDateField != null && folder.hasAnalogicalMedium() && folder.getBorrowed() != null
-				&& folder.getBorrowed() != false) {
-			setFieldVisible(previewReturnDateField, true, Folder.BORROW_PREVIEW_RETURN_DATE);
-		} else {
-			setFieldVisible(previewReturnDateField, false, Folder.BORROW_PREVIEW_RETURN_DATE);
+		if (previewReturnDateField != null) {
+			if (folder.hasAnalogicalMedium() && folder.getBorrowed() != null && folder.getBorrowed() != false) {
+				setFieldVisible(previewReturnDateField, true, Folder.BORROW_PREVIEW_RETURN_DATE);
+			} else {
+				setFieldVisible(previewReturnDateField, false, Folder.BORROW_PREVIEW_RETURN_DATE);
+			}
 		}
 	}
 
