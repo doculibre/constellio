@@ -50,6 +50,8 @@ public class BaseDateField extends DateField {
 			pattern = "dd-MM-yyyy";
 		} else if (dateString.matches("\\d{1,2}/\\d{1,2}/\\d{4}")) {
 			pattern = "dd/MM/yyyy";
+		} else if (dateString.matches("\\d{4}/\\d{1,2}/\\d{1,2}")) {
+			pattern = "yyyy/dd/MM";
 		} else {
 			return super.handleUnparsableDateString(dateString);
 		}
