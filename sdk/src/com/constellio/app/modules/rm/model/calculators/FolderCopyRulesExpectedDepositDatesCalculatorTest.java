@@ -20,10 +20,13 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
+import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends ConstellioTest {
 
+	@Mock DynamicDependencyValues dynamicDependencyValues;
 	@Spy FolderCopyRulesExpectedDepositDatesCalculator calculator;
 	@Mock CalculatorParameters params;
 
@@ -163,6 +166,8 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
+		//when(params.get(any(DynamicLocalDependency.class))).thenReturn(dynamicDependencyValues);
+		doReturn(dynamicDependencyValues).when(params).get(any(DynamicLocalDependency.class));
 
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
@@ -185,6 +190,8 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
+		//when(params.get(any(DynamicLocalDependency.class))).thenReturn(dynamicDependencyValues);
+		doReturn(dynamicDependencyValues).when(params).get(any(DynamicLocalDependency.class));
 
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
 	}

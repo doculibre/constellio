@@ -19,10 +19,12 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends ConstellioTest {
 
+	@Mock DynamicDependencyValues dynamicDependencyValues;
 	@Spy FolderCopyRulesExpectedTransferDatesCalculator calculator;
 	@Mock CalculatorParameters params;
 
@@ -137,6 +139,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
 				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
+		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
 
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
@@ -150,6 +153,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
+		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
 
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
 	}
