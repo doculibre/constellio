@@ -276,7 +276,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return returnList;
 	}
 
-
 	public Set<String> enableComplementaryModules(String collection) {
 		Set<String> returnList = new HashSet<>();
 		List<String> enabledModuleIds = new ArrayList<>();
@@ -347,6 +346,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 		if (module instanceof InstallableSystemModule) {
 			if (!startedModulesInAnyCollections.contains(module.getId())) {
+				registerI18n(collection, module);
 				((InstallableSystemModule) module).start(appLayerFactory);
 				startedModulesInAnyCollections.add(module.getId());
 			}
@@ -363,6 +363,10 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			}
 		}
 		return true;
+	}
+
+	private void registerI18n(String collection, Module module) {
+
 	}
 
 	boolean isPluginModule(Module module) {

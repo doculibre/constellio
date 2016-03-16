@@ -66,9 +66,9 @@ public class ModuleEnabler {
 		if (value == null && constellioPlugins.exists() && constellioPlugins.listFiles() != null) {
 			for (File subFolder : constellioPlugins.listFiles()) {
 				if (subFolder.getName().startsWith("plugin")) {
-					File resourcesFolder = new File(subFolder, moduleId + "_resources");
+					File resourcesFolder = new File(subFolder, "resources");
 					if (resourcesFolder.exists()) {
-						File i18nfolder = new File(resourcesFolder, "i18n");
+						File i18nfolder = new File(resourcesFolder, "grics" + File.separator + "i18n");
 
 						if (new File(i18nfolder, bundleName + ".properties").exists()) {
 							value = i18nfolder;

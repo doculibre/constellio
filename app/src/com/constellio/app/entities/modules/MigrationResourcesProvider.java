@@ -63,9 +63,9 @@ public class MigrationResourcesProvider {
 				if (constellioPlugins.exists() && constellioPlugins.listFiles() != null) {
 					for (File subFolder : constellioPlugins.listFiles()) {
 						if (subFolder.getName().startsWith("plugin")) {
-							File resourcesFolder = new File(subFolder, module + "_resources");
+							File resourcesFolder = new File(subFolder, "resources");
 							if (resourcesFolder.exists()) {
-								File migrationFolder = new File(resourcesFolder,
+								File migrationFolder = new File(resourcesFolder, module + File.separator +
 										"i18n" + File.separator + "migrations" + File.separator + versionWithUnderscores);
 
 								if (migrationFolder.exists()) {

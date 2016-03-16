@@ -432,6 +432,18 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getPluginI18nFolder() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			return new File(getConstellioWebinfFolder(), "resources_plugins_i18n");
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
+			return new File(getConstellioWebinfFolder(), "resources_plugins_i18n");
+
+		} else {
+			return new File(getConstellioWebappFolder(), "resources_plugins_i18n");
+		}
+	}
+
 	public File getReportsResourceFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			return new File(getWrapperInstallationFolder(), "resources" + File.separator + "reports");
