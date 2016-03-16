@@ -34,7 +34,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return id;
 	}
 
-	CopyRetentionRule() {
+	public CopyRetentionRule() {
 	}
 
 	public CopyRetentionRule setId(String id) {

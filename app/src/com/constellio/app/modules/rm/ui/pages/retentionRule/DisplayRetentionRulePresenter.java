@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleDisplayFactory.RetentionRuleDisplayPresenter;
@@ -62,7 +62,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	}
 
 	public String getFoldersNumber() {
-		return String.valueOf(decommissioningService.getFoldersForRetentionRule(retentionRuleVO.getId()).size());
+		return String.valueOf(decommissioningService.getFolderCountForRetentionRule(retentionRuleVO.getId()));
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	@Override
 	public boolean shouldDisplayFolderRetentionRules() {
-		return !areDocumentRetentionRulesEnabled() || retentionRuleVO.getScope() == RetentionRuleScope.DOCUMENTS_AND_FOLDER;
+		return !areDocumentRetentionRulesEnabled() || retentionRuleVO.getScope() != RetentionRuleScope.DOCUMENTS;
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	@Override
 	public boolean shouldDisplayDefaultDocumentRetentionRules() {
-		return areDocumentRetentionRulesEnabled() && retentionRuleVO.getScope() == RetentionRuleScope.DOCUMENTS;
+		return areDocumentRetentionRulesEnabled() && retentionRuleVO.getScope() != RetentionRuleScope.DOCUMENTS_AND_FOLDER;
 	}
 
 	@Override
@@ -125,17 +125,17 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	@Override
 	public CopyRetentionRule newDocumentCopyRetentionRule() {
-		throw new UnsupportedOperationException("Not supported in display");
+		return new CopyRetentionRule();
 	}
 
 	@Override
 	public CopyRetentionRule newFolderCopyRetentionRule(boolean principal) {
-		throw new UnsupportedOperationException("Not supported in display");
+		return new CopyRetentionRule();
 	}
 
 	@Override
 	public CopyRetentionRule newDocumentDefaultCopyRetentionRule(boolean principal) {
-		throw new UnsupportedOperationException("Not supported in display");
+		return new CopyRetentionRule();
 	}
 
 	@Override
