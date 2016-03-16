@@ -23,7 +23,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 
-@JavaScript({ "theme://iviewer/jquery-2.1.4.min.js", "theme://iviewer/jquery-ui.min.js", "theme://iviewer/jquery.mousewheel.min.js", "theme://iviewer/jquery.iviewer.min.js" })
+@JavaScript({ "theme://jquery/jquery-2.1.4.min.js", "theme://iviewer/jquery-ui.min.js", "theme://iviewer/jquery.mousewheel.min.js", "theme://iviewer/jquery.iviewer.min.js" })
 @StyleSheet("theme://iviewer/jquery.iviewer.css")
 public class ImageViewer extends CustomComponent {
 	
