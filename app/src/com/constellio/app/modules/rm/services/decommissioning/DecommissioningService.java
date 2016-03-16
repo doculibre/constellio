@@ -337,12 +337,11 @@ public class DecommissioningService {
 		return rm.wrapFolders(searchServices.search(query));
 	}
 
-	public List<Folder> getFoldersForRetentionRule(String retentionRuleId) {
+	public long getFolderCountForRetentionRule(String retentionRuleId) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(rm.folderSchemaType()).where(rm.folderRetentionRule()).is(retentionRuleId))
-				.filteredByStatus(StatusFilter.ACTIVES)
-				.sortAsc(Schemas.TITLE);
-		return rm.wrapFolders(searchServices.search(query));
+				.filteredByStatus(StatusFilter.ACTIVES);
+		return searchServices.getResultsCount(query);
 	}
 
 	public List<RetentionRule> getRetentionRulesForAdministrativeUnit(String administrativeUnitId) {

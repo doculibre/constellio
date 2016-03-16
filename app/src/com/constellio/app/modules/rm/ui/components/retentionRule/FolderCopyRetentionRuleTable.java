@@ -410,7 +410,6 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 					for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {
 						if (periodVO.getCode().equals(retentionPeriod.getVariablePeriodCode())) {
 							openRetentionPeriodDDVField.setValue(periodVO);
-							//openRetentionPeriodDDVField.setItemCaption(periodVO, periodVO.getCode() + " - " + periodVO.getTitle());
 							break;
 						}
 					}

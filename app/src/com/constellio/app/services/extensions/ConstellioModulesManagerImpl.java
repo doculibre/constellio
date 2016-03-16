@@ -62,7 +62,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		this.migrationServicesDelayed = migrationServicesDelayed;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.constellioPluginManager = constellioPluginManager;
-
 	}
 
 	@Override
@@ -276,7 +275,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return returnList;
 	}
 
-
 	public Set<String> enableComplementaryModules(String collection) {
 		Set<String> returnList = new HashSet<>();
 		List<String> enabledModuleIds = new ArrayList<>();
@@ -316,7 +314,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	private Set<String> applyModuleMigrations(String collection) {
-
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 
 		try {
@@ -482,5 +479,4 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			}
 		});
 	}
-
 }
