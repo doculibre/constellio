@@ -77,7 +77,10 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 		LocalDate calculatedInactiveDate = calculateExpectedInactiveDate(copyRule, baseTransferDate,
 				input.numberOfYearWhenVariableDelayPeriod);
 
-		if (input.archivisticStatus.isSemiActive()) {
+		if (calculatedInactiveDate == null) {
+			return null;
+
+		} else if (input.archivisticStatus.isSemiActive()) {
 			return LangUtils.max(calculatedInactiveDate, input.decommissioningDate);
 
 		} else {

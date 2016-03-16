@@ -2,6 +2,7 @@ package com.constellio.model.entities.calculators;
 
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
@@ -46,6 +47,12 @@ public class CalculatorParametersValidatingDependencies extends CalculatorParame
 
 	@Override
 	public <T> T get(ConfigDependency<T> dependency) {
+		ensureDependencyAvailable(dependency);
+		return parameters.get(dependency);
+	}
+
+	@Override
+	public DynamicDependencyValues get(DynamicLocalDependency dependency) {
 		ensureDependencyAvailable(dependency);
 		return parameters.get(dependency);
 	}
