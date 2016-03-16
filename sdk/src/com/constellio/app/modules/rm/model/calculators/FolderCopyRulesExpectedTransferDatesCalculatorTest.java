@@ -134,7 +134,8 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 	private LocalDate calculateFor(int index, CopyRetentionRule copy) {
 
 		when(params.get(calculator.actualTransferDateParam)).thenReturn(actualTransferDate);
-		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriod)).thenReturn(configNumberOfYearWhenVariableDelay);
+		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
+				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
@@ -144,7 +145,8 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 
 		when(params.get(calculator.actualTransferDateParam)).thenReturn(actualTransferDate);
 		when(params.get(calculator.applicableCopyRulesParam)).thenReturn(applicableCopyRules);
-		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriod)).thenReturn(configNumberOfYearWhenVariableDelay);
+		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
+				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
