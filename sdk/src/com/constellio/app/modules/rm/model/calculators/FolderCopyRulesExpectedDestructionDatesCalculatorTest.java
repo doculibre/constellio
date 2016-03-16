@@ -161,7 +161,8 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 	private LocalDate calculateFor(int index, CopyRetentionRule copy) {
 
 		when(params.get(calculator.archivisticStatusParam)).thenReturn(archivisticStatus);
-		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriod)).thenReturn(configNumberOfYearWhenVariableDelay);
+		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
+				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 
@@ -172,7 +173,8 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 
 		when(params.get(calculator.archivisticStatusParam)).thenReturn(archivisticStatus);
 		when(params.get(calculator.applicableCopyRulesParam)).thenReturn(applicableCopyRules);
-		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriod)).thenReturn(configNumberOfYearWhenVariableDelay);
+		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
+				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);

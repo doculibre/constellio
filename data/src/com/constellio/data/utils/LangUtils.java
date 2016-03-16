@@ -30,6 +30,16 @@ public class LangUtils {
 		return date1.isBefore(date2) ? date2 : date1;
 	}
 
+	public static LocalDate min(LocalDate date1, LocalDate date2) {
+		if (date1 == null) {
+			return date2;
+		}
+		if (date2 == null) {
+			return date1;
+		}
+		return date1.isAfter(date2) ? date2 : date1;
+	}
+
 	public static <V> boolean containsAny(Collection<V> firstCollection, Collection<V> secondCollection) {
 
 		for (V firstCollectionValue : firstCollection) {

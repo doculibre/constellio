@@ -77,4 +77,23 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 	protected abstract List<? extends Dependency> getCopyRuleDateCalculationDependencies();
 
 	protected abstract LocalDate calculateForCopyRule(int index, CopyRetentionRule copyRule, CalculatorParameters parameters);
+
+	protected class AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput {
+
+		protected List<CopyRetentionRule> applicableCopyRules;
+
+		protected Integer requiredDaysBeforeYearEnd;
+
+		protected String yearEnd;
+
+		public AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput(CalculatorParameters parameters) {
+			applicableCopyRules = parameters.get(applicableCopyRulesParam);
+			requiredDaysBeforeYearEnd = parameters.get(configRequiredDaysBeforeYearEndParam);
+			yearEnd = parameters.get(configYearEndParam);
+		}
+
+		LocalDate ajustToFinancialYear(LocalDate date) {
+			return CalculatorUtils.toNextEndOfYearDateIfNotAlready(date, yearEnd, requiredDaysBeforeYearEnd);
+		}
+	}
 }

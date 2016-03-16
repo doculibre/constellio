@@ -9,8 +9,10 @@ import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderDecomDatesDynamicLocalDependency;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -22,29 +24,61 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 
 	LocalDependency<LocalDate> decommissioningDateParam = LocalDependency.toADate(Folder.DECOMMISSIONING_DATE);
 	LocalDependency<LocalDate> actualTransferDateParam = LocalDependency.toADate(Folder.ACTUAL_TRANSFER_DATE);
+	FolderDecomDatesDynamicLocalDependency datesAndDateTimesParam = new FolderDecomDatesDynamicLocalDependency();
 
-	ConfigDependency<Integer> configNumberOfYearWhenVariableDelayPeriod =
+	ConfigDependency<Integer> configNumberOfYearWhenVariableDelayPeriodParam =
 			RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
 
 	@Override
 	protected List<? extends Dependency> getCopyRuleDateCalculationDependencies() {
-		return Arrays.asList(decommissioningDateParam, actualTransferDateParam,
-				configNumberOfYearWhenVariableDelayPeriod);
+		return Arrays.asList(decommissioningDateParam, actualTransferDateParam, datesAndDateTimesParam,
+				configNumberOfYearWhenVariableDelayPeriodParam);
 	}
 
 	@Override
 	protected LocalDate calculateForCopyRule(int index, CopyRetentionRule copyRule, CalculatorParameters parameters) {
 
-		LocalDate decommissioningDate = parameters.get(decommissioningDateParam);
-		LocalDate actualTransferDate = parameters.get(actualTransferDateParam);
+		CalculatorInput input = new CalculatorInput(parameters);
 
-		int numberOfYearWhenVariableDelay = parameters.get(configNumberOfYearWhenVariableDelayPeriod);
-
-		if (actualTransferDate != null) {
+		if (input.actualTransferDate != null) {
 			return null;
 		} else {
-			return calculateExpectedTransferDate(copyRule, decommissioningDate, numberOfYearWhenVariableDelay);
+			LocalDate date = getAjustedDateUsedToCalculation(input, copyRule);
+			return calculateExpectedTransferDate(copyRule, date, input.numberOfYearWhenVariableDelayPeriod);
 		}
 	}
 
+	private LocalDate getAjustedDateUsedToCalculation(CalculatorInput input, CopyRetentionRule copyRule) {
+		LocalDate activeDelayDate = input.getAjustedBaseDateFromActiveDelay(copyRule);
+
+		if (activeDelayDate != null && input.decommissioningDate != null) {
+			return activeDelayDate;
+		} else {
+			return input.decommissioningDate;
+		}
+
+	}
+
+	private class CalculatorInput extends AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput {
+
+		LocalDate decommissioningDate;
+		LocalDate actualTransferDate;
+		DynamicDependencyValues datesAndDateTimes;
+		Integer numberOfYearWhenVariableDelayPeriod;
+
+		public CalculatorInput(CalculatorParameters parameters) {
+			super(parameters);
+			this.decommissioningDate = parameters.get(decommissioningDateParam);
+			this.actualTransferDate = parameters.get(actualTransferDateParam);
+			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
+			this.numberOfYearWhenVariableDelayPeriod = parameters.get(configNumberOfYearWhenVariableDelayPeriodParam);
+		}
+
+		public LocalDate getAjustedBaseDateFromActiveDelay(CopyRetentionRule copy) {
+			String metadata = copy.getActiveDateMetadata();
+
+			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes);
+			return date == null ? null : ajustToFinancialYear(date);
+		}
+	}
 }
