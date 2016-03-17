@@ -236,6 +236,7 @@ public class AppLayerFactory extends LayerFactory {
 		}
 
 		try {
+			collectionsManager.initializeModulesResources();
 			invalidPlugins.addAll(newMigrationServices().migrate(null));
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);

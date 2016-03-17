@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.InstallableSystemModule;
+import com.constellio.app.entities.modules.locators.PropertiesLocatorFactory;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.extensions.ConstellioModulesManagerRuntimeException.ConstellioModulesManagerRuntimeException_ModuleIsNotInstalled;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -21,6 +22,7 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRun
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -46,6 +48,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	private final ModelLayerFactory modelLayerFactory;
 	private final ConstellioPluginManager constellioPluginManager;
 	private Set<String> startedModulesInAnyCollections = new HashSet<>();
+	private Set<String> initializedResources = new HashSet<>();
 
 	public ConstellioModulesManagerImpl(AppLayerFactory appLayerFactory,
 			ConstellioPluginManager constellioPluginManager, Delayed<MigrationServices> migrationServicesDelayed) {
@@ -344,12 +347,11 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public boolean startModule(String collection, Module module) {
 
-		if (module instanceof InstallableSystemModule) {
-			if (!startedModulesInAnyCollections.contains(module.getId())) {
-				registerI18n(collection, module);
+		if (!startedModulesInAnyCollections.contains(module.getId())) {
+			if (module instanceof InstallableSystemModule) {
 				((InstallableSystemModule) module).start(appLayerFactory);
-				startedModulesInAnyCollections.add(module.getId());
 			}
+			startedModulesInAnyCollections.add(module.getId());
 		}
 
 		try {
@@ -363,10 +365,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			}
 		}
 		return true;
-	}
-
-	private void registerI18n(String collection, Module module) {
-
 	}
 
 	boolean isPluginModule(Module module) {
@@ -487,4 +485,15 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		});
 	}
 
+	public void initializePluginResources(String collection) {
+		for (Module module : getEnabledModules(collection)) {
+			if (!initializedResources.contains(module.getId())) {
+				constellioPluginManager.copyPluginResourcesToPluginsResourceFolder(module.getId());
+				i18n.registerBundle(PropertiesLocatorFactory.get().getModuleI18nBundle(module.getId()));
+
+				initializedResources.add(module.getId());
+			}
+		}
+
+	}
 }
