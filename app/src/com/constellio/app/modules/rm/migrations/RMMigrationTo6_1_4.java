@@ -18,10 +18,10 @@ import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 
-public class RMMigrationTo6_1_3 implements MigrationScript {
+public class RMMigrationTo6_1_4 implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "6.1.3";
+		return "6.1.4";
 	}
 
 	@Override
@@ -37,6 +37,7 @@ public class RMMigrationTo6_1_3 implements MigrationScript {
 		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		final AtomicBoolean recordFixed = new AtomicBoolean(false);
+
 		new ActionExecutorInBatch(searchServices, "Set sub-folders entered values to null", 250) {
 
 			@Override
