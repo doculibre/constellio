@@ -66,6 +66,7 @@ import com.constellio.model.services.records.RecordServicesException.Unresolvabl
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
@@ -379,8 +380,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 					if (validations) {
 						validationServices.validateManualMetadatas(record, recordProvider, transaction);
 					}
-					automaticMetadataServices
-							.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
+					try {
+						automaticMetadataServices
+								.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
+					} catch (RuntimeException e) {
+						throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
+					}
 					if (validations) {
 						validationServices.validateCyclicReferences(record, recordProvider, transaction);
 						validationServices.validateAutomaticMetadatas(record, recordProvider, transaction);
