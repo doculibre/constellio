@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.vaadin.addons.maskedtextfield.MaskedTextField;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
@@ -206,7 +205,9 @@ public class MetadataFieldFactory implements Serializable {
 					field = new BasePasswordField();
 				} else {
 					String inputMask = metadata.getInputMask();
-					field = StringUtils.isEmpty(inputMask) ? new BaseTextField() : new MaskedTextField(null, inputMask);
+					BaseTextField textField = new BaseTextField();
+					textField.setInputMask(inputMask);
+					field = textField;
 				}
 				break;
 			case CONTENT:
