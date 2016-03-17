@@ -225,6 +225,9 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			CollectionsListManager collectionsListManager) {
 		Set<String> returnList = new HashSet<>();
 		markAsInstalled(module, collectionsListManager);
+
+		initializePluginResources(module);
+
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 		for (String collection : collectionsListManager.getCollections()) {
 			try {
@@ -485,13 +488,17 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public void initializePluginResources(String collection) {
 		for (Module module : getEnabledModules(collection)) {
-			if (!initializedResources.contains(module.getId())) {
-				constellioPluginManager.copyPluginResourcesToPluginsResourceFolder(module.getId());
-				i18n.registerBundle(PropertiesLocatorFactory.get().getModuleI18nBundle(module.getId()));
-
-				initializedResources.add(module.getId());
-			}
+			initializePluginResources(module);
 		}
 
+	}
+
+	private void initializePluginResources(Module module) {
+		if (!initializedResources.contains(module.getId())) {
+			constellioPluginManager.copyPluginResourcesToPluginsResourceFolder(module.getId());
+			i18n.registerBundle(PropertiesLocatorFactory.get().getModuleI18nBundle(module.getId()));
+
+			initializedResources.add(module.getId());
+		}
 	}
 }
