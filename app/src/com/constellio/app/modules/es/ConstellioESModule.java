@@ -21,6 +21,7 @@ import com.constellio.app.modules.es.constants.ESPermissionsTo;
 import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
 import com.constellio.app.modules.es.extensions.ESRecordExtension;
 import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
+import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
 import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
@@ -134,6 +135,7 @@ public class ConstellioESModule implements InstallableModule {
 		extensions.taxonomyAccessExtensions.add(new ESTaxonomyPageExtension(collection));
 		extensions.recordAppExtensions.add(new ESRecordAppExtension());
 		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
+		extensions.searchPageExtensions.add(new ESSearchPageExtension());
 
 	}
 
