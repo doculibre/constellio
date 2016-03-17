@@ -19,8 +19,8 @@ import com.constellio.app.api.pluginManagerTestResources.pluginImplementation.AP
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
 import com.constellio.sdk.tests.annotations.SlowTest;
 
@@ -30,16 +30,16 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 
 	static File pluginsDirectory;
 	@Mock AppLayerFactory appLayerFactory;
-	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock ConstellioPluginConfigurationManager pluginConfigManger;
 	JSPFConstellioPluginManager pluginManager;
 	@Mock CollectionsListManager collectionsListManager;
 
 	@Before
 	public void setUp() {
-		pluginManager = spy(new JSPFConstellioPluginManager(pluginsDirectory, modelLayerFactory, pluginConfigManger));
+		getAppLayerFactory();
+		IOServices ioServices = new IOServices(newTempFolder());
+		pluginManager = spy(new JSPFConstellioPluginManager(pluginsDirectory, ioServices, pluginConfigManger));
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList("firstCollection", "secondCollection"));
-		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
 		assertThat(APluginImplementation.isStarted()).isFalse();
 
 	}
@@ -47,7 +47,9 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 	@After
 	public void tearDown()
 			throws Exception {
-		pluginManager.close();
+		if (pluginManager != null) {
+			pluginManager.close();
+		}
 	}
 
 	@Test

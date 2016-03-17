@@ -56,7 +56,6 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.modules.Module;
-import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class JSPFConstellioPluginManager implements StatefulService, ConstellioPluginManager {
 	private static final Logger LOGGER = LogManager.getLogger(JSPFConstellioPluginManager.class);
@@ -69,7 +68,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	private Map<String, InstallableModule> validUploadedPlugins = new HashMap<>();
 	private IOServices ioServices;
 
-	public JSPFConstellioPluginManager(File pluginsDirectory, ModelLayerFactory modelLayerFactory,
+	public JSPFConstellioPluginManager(File pluginsDirectory, IOServices ioServices,
 			ConstellioPluginConfigurationManager pluginConfigManger) {
 		this.pluginConfigManger = pluginConfigManger;
 		this.pluginsDirectory = pluginsDirectory;
@@ -85,7 +84,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 				}
 			}
 		}
-		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+		this.ioServices = ioServices;
 		pluginConfigManger.createConfigFileIfNotExist();
 	}
 

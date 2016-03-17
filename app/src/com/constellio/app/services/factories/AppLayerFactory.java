@@ -47,6 +47,7 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
@@ -107,7 +108,8 @@ public class AppLayerFactory extends LayerFactory {
 		this.metadataSchemasDisplayManager = add(new SchemasDisplayManager(dataLayerFactory.getConfigManager(),
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager()));
 
-		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), modelLayerFactory,
+		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), ioServices,
 				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager())));
 		pluginManager.registerModule(new ConstellioRMModule());
 
