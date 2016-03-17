@@ -94,13 +94,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 				protected void buttonClick(ClickEvent event) {
 					CopyRetentionRule newCopy = presenter.newDocumentCopyRetentionRule();
 					List<CopyRetentionRule> copyRetentionRules = getCopyRetentionRules();
-					int indexOfNewCopy;
-					if (copyRetentionRules.size() > 1) {
-						indexOfNewCopy = copyRetentionRules.size() - 1;
-					} else {
-						indexOfNewCopy = 0;
-					}
-					copyRetentionRules.add(indexOfNewCopy, newCopy);
+					copyRetentionRules.add(newCopy);
 					addItems();
 				}
 			};
