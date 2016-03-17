@@ -21,6 +21,8 @@ public interface PluginServices {
 
 	File getPluginJar(File pluginsDirectory, String pluginId);
 
+	void extractPluginResources(File jar, String pluginId, File pluginsResources);
+
 	static class PluginsReplacementException extends IOException {
 		final List<String> pluginsWithReplacementExceptionIds;
 
