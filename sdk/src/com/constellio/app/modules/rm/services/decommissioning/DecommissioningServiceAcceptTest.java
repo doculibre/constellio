@@ -123,20 +123,15 @@ public class DecommissioningServiceAcceptTest extends ConstellioTest {
 
 	@Test
 	public void whenGetFoldersForRetentionRuleThenOk() {
-		List<Folder> folders = service.getFoldersForRetentionRule("ruleId_1");
-		assertThat(folders).extracting("title").containsExactly(
-				"Avocat", "Baleine", "Banane", "Belette", "Bison", "Brocoli", "Chat", "Chauve-souris", "Cheval", "Chou-fleur",
-				"Framboise", "Gorille", "Grenouille", "Hamster", "Maïs", "Panda", "Pêche", "Perroquet", "Phoque",
-				"Pomme de terre");
+		long folders = service.getFolderCountForRetentionRule("ruleId_1");
+		assertThat(folders).isEqualTo(20);
 	}
 
 	@Test
 	public void givenDeletedFolderWhenGetFoldersForRetentionRuleThenOk()
 			throws Exception {
 		recordServices.logicallyDelete(records.getFolder_A04().getWrappedRecord(), User.GOD);
-		List<Folder> folders = service.getFoldersForRetentionRule("ruleId_1");
-		assertThat(folders).extracting("title").containsExactly(
-				"Avocat", "Banane", "Belette", "Bison", "Brocoli", "Chat", "Chauve-souris", "Cheval", "Chou-fleur", "Framboise",
-				"Gorille", "Grenouille", "Hamster", "Maïs", "Panda", "Pêche", "Perroquet", "Phoque", "Pomme de terre");
+		long folders = service.getFolderCountForRetentionRule("ruleId_1");
+		assertThat(folders).isEqualTo(19);
 	}
 }
