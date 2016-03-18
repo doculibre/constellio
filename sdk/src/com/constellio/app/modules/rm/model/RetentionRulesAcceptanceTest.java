@@ -419,12 +419,12 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 				copyBuilder.newPrincipal(asList(pa), "1-0-D").setTypeId(type1),
 				copyBuilder.newPrincipal(asList(pa), "2-0-D").setTypeId(type2),
 				copyBuilder.newPrincipal(asList(pa), "3-0-D"),
-				copyBuilder.newPrincipal(asList(pa), "4-0-D").setTypeId(type3),
+				copyBuilder.newPrincipal(asList(pa), "4-0-D").setTypeId(type1),
 				copyBuilder.newSecondary(asList(pa), "5-0-D"));
 
 		recordServices.add(retentionRuleRecord);
 
-		assertThat(retentionRule.getFolderTypes()).containsOnly(type1, type2, type3).hasSize(3);
+		assertThat(retentionRule.getFolderTypes()).containsOnly(type1, type2).hasSize(2);
 	}
 
 	// ---------------------------------------------------------------
