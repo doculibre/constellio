@@ -93,7 +93,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 		docCopy1_principal.setCode("DocCopy1");
 		docCopy1_principal.setMediumTypeIds(Arrays.asList("type3", "type4"));
 		docCopy1_principal.setCopyType(CopyType.PRINCIPAL);
-		docCopy1_principal.setDocumentTypeId("docType1");
+		docCopy1_principal.setTypeId("docType1");
 		docCopy1_principal.setActiveRetentionPeriod(RetentionPeriod.OPEN_999);
 		docCopy1_principal.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(1));
 		docCopy1_principal.setInactiveDisposalType(DisposalType.DEPOSIT);
@@ -101,7 +101,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 		docCopy2_principal.setCode("DocCopy2");
 		docCopy2_principal.setMediumTypeIds(Arrays.asList("type5", "type6"));
 		docCopy2_principal.setCopyType(CopyType.PRINCIPAL);
-		docCopy2_principal.setDocumentTypeId("docType2");
+		docCopy2_principal.setTypeId("docType2");
 		docCopy2_principal.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
 		docCopy2_principal.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(4));
 		docCopy2_principal.setInactiveDisposalType(DisposalType.DEPOSIT);
@@ -549,8 +549,8 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	public void givenDocumentCopyRetentionRulesWithNoDocumentTypeThenErrors()
 			throws Exception {
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
-		docCopy1_principal.setDocumentTypeId(null);
-		docCopy2_principal.setDocumentTypeId(null);
+		docCopy1_principal.setTypeId(null);
+		docCopy2_principal.setTypeId(null);
 
 		validator.validate(retentionRule, schema, configProvider, errors);
 

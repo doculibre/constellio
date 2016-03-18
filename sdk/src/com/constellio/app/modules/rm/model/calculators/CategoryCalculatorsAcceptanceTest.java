@@ -72,37 +72,37 @@ public class CategoryCalculatorsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		CopyRetentionRule principal888_1_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-1-C")
-				.setDocumentTypeId(type1);
+				.setTypeId(type1);
 		CopyRetentionRule principal888_2_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-2-C")
-				.setDocumentTypeId(type2);
+				.setTypeId(type2);
 		CopyRetentionRule principal888_3_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-3-C")
-				.setDocumentTypeId(type3);
+				.setTypeId(type3);
 		CopyRetentionRule principal888_4_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-4-C");
 		CopyRetentionRule secondary888_5_C = copyBuilder.newSecondary(TestUtils.asList(records.PA), "888-5-C");
 		CopyRetentionRule principal888_8_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-8-C")
-				.setDocumentTypeId(type1);
+				.setTypeId(type1);
 		CopyRetentionRule principal888_9_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-9-C")
-				.setDocumentTypeId(type4);
+				.setTypeId(type4);
 		CopyRetentionRule principal888_10_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-10-C")
-				.setDocumentTypeId(type3);
+				.setTypeId(type3);
 
 		CopyRetentionRule principal888_16_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-16-C")
-				.setDocumentTypeId(type1);
+				.setTypeId(type1);
 		CopyRetentionRule principal888_17_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-17-C")
-				.setDocumentTypeId(type2);
+				.setTypeId(type2);
 		CopyRetentionRule principal888_19_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-19-C")
-				.setDocumentTypeId(type1);
+				.setTypeId(type1);
 		CopyRetentionRule principal888_20_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-20-C")
-				.setDocumentTypeId(type5);
+				.setTypeId(type5);
 
 		CopyRetentionRule principal888_21_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-21-C")
-				.setDocumentTypeId(type1);
+				.setTypeId(type1);
 		CopyRetentionRule principal888_22_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-22-C")
-				.setDocumentTypeId(type2);
+				.setTypeId(type2);
 		CopyRetentionRule principal888_23_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-23-C")
-				.setDocumentTypeId(type3);
+				.setTypeId(type3);
 		CopyRetentionRule principal888_24_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-24-C")
-				.setDocumentTypeId(type4);
+				.setTypeId(type4);
 
 		Transaction transaction = new Transaction();
 

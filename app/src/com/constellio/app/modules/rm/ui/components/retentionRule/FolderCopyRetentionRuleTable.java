@@ -543,7 +543,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		protected void addOptions() {
 			removeAllItems();
 
-			String documentTypeId = copyRetentionRule.getDocumentTypeId();
+			String documentTypeId = copyRetentionRule.getTypeId();
 			List<MetadataVO> dateMetadataVOs = getDateMetadataVOs(documentTypeId);
 
 			Locale locale = VaadinSession.getCurrent().getLocale();

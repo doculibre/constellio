@@ -98,7 +98,7 @@ public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalcu
 		if (input.rubricDocumentCopies != null) {
 			for (CopyRetentionRuleInRule copy : input.rubricDocumentCopies) {
 				if (copy != null) {
-					String copyDocumentTypeId = copy.getCopyRetentionRule().getDocumentTypeId();
+					String copyDocumentTypeId = copy.getCopyRetentionRule().getTypeId();
 					if (copyDocumentTypeId != null && copyDocumentTypeId.equals(documentType)) {
 						copiesFromDocumentRulesInCategoryHierarchy.add(copy);
 						copiesFromDocumentRulesInCategoryHierarchyLevel = copy.getCategoryLevel();
@@ -109,7 +109,7 @@ public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalcu
 
 		List<CopyRetentionRuleInRule> copiesFromInheritedRule = new ArrayList<>();
 		for (CopyRetentionRuleInRule copy : input.documentCopyRetentionRules) {
-			String copyDocumentTypeId = copy.getCopyRetentionRule().getDocumentTypeId();
+			String copyDocumentTypeId = copy.getCopyRetentionRule().getTypeId();
 			if (copyDocumentTypeId != null && copyDocumentTypeId.equals(documentType)) {
 				copiesFromInheritedRule.add(copy);
 				copiesFromInheritedRuleLevel = copy.getCategoryLevel();

@@ -23,10 +23,11 @@ public class CopyRetentionRule implements ModifiableStructure {
 	String semiActiveRetentionComment;
 	DisposalType inactiveDisposalType;
 	String inactiveDisposalComment;
-	String documentTypeId;
+	String typeId;
 	String semiActiveDateMetadata;
 	String activeDateMetadata;
 	Integer openActiveRetentionPeriod;
+	boolean essential;
 	boolean dirty;
 	private String id;
 
@@ -164,13 +165,23 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return this;
 	}
 
-	public String getDocumentTypeId() {
-		return documentTypeId;
+	public String getTypeId() {
+		return typeId;
 	}
 
-	public CopyRetentionRule setDocumentTypeId(String documentTypeId) {
+	public CopyRetentionRule setTypeId(String typeId) {
 		dirty = true;
-		this.documentTypeId = documentTypeId;
+		this.typeId = typeId;
+		return this;
+	}
+
+	public boolean isEssential() {
+		return essential;
+	}
+
+	public CopyRetentionRule setEssential(boolean essential) {
+		dirty = true;
+		this.essential = essential;
 		return this;
 	}
 

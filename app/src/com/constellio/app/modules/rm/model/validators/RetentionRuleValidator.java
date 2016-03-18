@@ -250,7 +250,7 @@ public class RetentionRuleValidator implements RecordValidator {
 
 		boolean valid = validateCopyRuleIntegrity(copyRetentionRule, index, schema, validationErrors);
 
-		if (copyRetentionRule.getDocumentTypeId() == null) {
+		if (copyRetentionRule.getTypeId() == null) {
 			valid = false;
 			addCopyRetentionRuleIntegrityError(index, DOCUMENT_COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD_DOCUMENT_TYPE, schema,
 					validationErrors);
