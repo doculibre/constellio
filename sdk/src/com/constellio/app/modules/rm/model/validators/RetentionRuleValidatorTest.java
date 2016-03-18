@@ -549,8 +549,8 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	public void givenDocumentCopyRetentionRulesWithNoDocumentTypeThenErrors()
 			throws Exception {
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
-		docCopy1_principal.setTypeId(null);
-		docCopy2_principal.setTypeId(null);
+		docCopy1_principal.setTypeId((String) null);
+		docCopy2_principal.setTypeId((String) null);
 
 		validator.validate(retentionRule, schema, configProvider, errors);
 
@@ -597,6 +597,38 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 
 		assertThat(errors).has(size(1))
 				.has(error(RetentionRuleValidator.DOCUMENT_RULE_MUST_HAVE_ONLY_DOCUMENT_COPY_RULES));
+	}
+
+	@Test
+	public void whenSavingRetentionRuleWithNoPrincipalCopyRuleWithoutTypeThenValidationException()
+			throws Exception {
+
+		copy0_analogicPrincipal.setTypeId("zeType");
+		copy1_numericPrincipal.setTypeId("zeType");
+		validator.validate(retentionRule, schema, configProvider, errors);
+		assertThat(errors).has(size(1))
+				.has(error(RetentionRuleValidator.PRINCIPAL_COPY_WITHOUT_TYPE_REQUIRED));
+
+	}
+
+	@Test
+	public void whenSavingRetentionRuleWithOnePrincipalCopyWithTypeAndOneWithoutThenOk()
+			throws Exception {
+
+		copy0_analogicPrincipal.setTypeId("zeType");
+		validator.validate(retentionRule, schema, configProvider, errors);
+		assertThat(errors.getValidationErrors()).extracting("code").isEmpty();
+
+	}
+
+	@Test
+	public void whenSavingRetentionRuleWithSecondaryCopyWithTypeThenException()
+			throws Exception {
+
+		copy2_secondary.setTypeId("zeType");
+		validator.validate(retentionRule, schema, configProvider, errors);
+		assertThat(errors).has(size(1))
+				.has(error(RetentionRuleValidator.SECONDARY_COPY_CANNOT_HAVE_A_TYPE));
 	}
 
 	public void givenValidDocumentScope() {
