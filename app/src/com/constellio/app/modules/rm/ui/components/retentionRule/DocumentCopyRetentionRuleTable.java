@@ -48,6 +48,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
+	private static final String CODE = "code";
 	private static final String DOCUMENT_TYPE = "documentTypeId";
 	private static final String MEDIUM_TYPES = "mediumTypeIds";
 	private static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
@@ -93,13 +94,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 				protected void buttonClick(ClickEvent event) {
 					CopyRetentionRule newCopy = presenter.newDocumentCopyRetentionRule();
 					List<CopyRetentionRule> copyRetentionRules = getCopyRetentionRules();
-					int indexOfNewCopy;
-					if (copyRetentionRules.size() > 1) {
-						indexOfNewCopy = copyRetentionRules.size() - 1;
-					} else {
-						indexOfNewCopy = 0;
-					}
-					copyRetentionRules.add(indexOfNewCopy, newCopy);
+					copyRetentionRules.add(newCopy);
 					addItems();
 				}
 			};
@@ -109,6 +104,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		table.setWidth("100%");
 		table.setPageLength(0);
 
+		table.setColumnHeader(CODE, $("FolderCopyRetentionRuleListTable.code"));
 		table.setColumnHeader(DOCUMENT_TYPE, $("DocumentCopyRetentionRuleListTable.documentTypeId"));
 		table.setColumnHeader(MEDIUM_TYPES, $("DocumentCopyRetentionRuleListTable.mediumTypes"));
 		table.setColumnHeader(CONTENT_TYPES_COMMENT, "");
@@ -121,6 +117,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		table.setColumnHeader(DELETE_BUTTON, "");
 
 		if (formMode) {
+			table.addContainerProperty(CODE, BaseTextField.class, null);
 			table.addContainerProperty(DOCUMENT_TYPE, LookupRecordField.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, MediumTypesField.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, MiniTextField.class, null);
@@ -132,6 +129,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			table.addContainerProperty(INACTIVE_DISPOSAL_COMMENT, MiniTextField.class, null);
 			table.addContainerProperty(DELETE_BUTTON, Button.class, null);
 		} else {
+			table.addContainerProperty(CODE, Label.class, null);
 			table.addContainerProperty(DOCUMENT_TYPE, Label.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, Label.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, Label.class, null);
@@ -212,6 +210,8 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		table.addItem(copyRetentionRule);
 
 		if (formMode) {
+			MiniTextField codeField = new MiniTextField();
+
 			LookupRecordField documentTypeField = new LookupRecordField(DocumentType.SCHEMA_TYPE);
 			documentTypeField.setRequired(true);
 
@@ -226,6 +226,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			InactiveDisposalTypeField inactiveDisposalTypeField = new InactiveDisposalTypeField(copyRetentionRule);
 			MiniTextField inactiveDisposalCommentField = new MiniTextField();
 
+			codeField.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CODE));
 			documentTypeField.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, DOCUMENT_TYPE));
 			activeRetentionCommentField
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, ACTIVE_RETENTION_COMMENT));
@@ -234,6 +235,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			inactiveDisposalCommentField
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
 
+			table.getContainerProperty(copyRetentionRule, CODE).setValue(codeField);
 			table.getContainerProperty(copyRetentionRule, DOCUMENT_TYPE).setValue(documentTypeField);
 			table.getContainerProperty(copyRetentionRule, MEDIUM_TYPES).setValue(mediumTypesField);
 			table.getContainerProperty(copyRetentionRule, CONTENT_TYPES_COMMENT).setValue(contentTypesCommentField);
@@ -265,6 +267,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 				}
 			});
 		} else {
+			Label codeLabel = new Label();
 			Label documentTypeLabel = new Label();
 			Label mediumTypesLabel = new Label();
 			Label contentTypesCommentLabel = new Label();
@@ -281,6 +284,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			mediumTypesLabel.setConverter(recordIdListToStringConverter);
 			inactiveDisposalTypeLabel.setConverter(disposalTypeConverter);
 
+			codeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CODE));
 			documentTypeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, DOCUMENT_TYPE));
 			mediumTypesLabel.setPropertyDataSource(new NestedMethodProperty<List<String>>(copyRetentionRule, MEDIUM_TYPES));
 			contentTypesCommentLabel
@@ -294,6 +298,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			inactiveDisposalCommentLabel
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
 
+			table.getContainerProperty(copyRetentionRule, CODE).setValue(codeLabel);
 			table.getContainerProperty(copyRetentionRule, DOCUMENT_TYPE).setValue(documentTypeLabel);
 			table.getContainerProperty(copyRetentionRule, MEDIUM_TYPES).setValue(mediumTypesLabel);
 			table.getContainerProperty(copyRetentionRule, CONTENT_TYPES_COMMENT).setValue(contentTypesCommentLabel);
