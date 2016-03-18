@@ -6,6 +6,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultival
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
@@ -118,7 +120,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		assertThat(record.get(zeSchema.metadata(calculatedMetadata))).isEqualTo("test,false");
 	}
 
-	@Test(expected = RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata.class)
+	@Test
 	public void givenACalculatorTryToObtainAMetadataWhichIsNotIncludedInADynamicDependencyThenException()
 			throws Exception {
 
@@ -133,7 +135,13 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		Record record = new TestRecord(zeSchema)
 				.set(zeSchema.stringMetadata(), "toto");
 
-		recordServices.add(record);
+		try {
+			recordServices.add(record);
+			fail("Exception expected");
+		} catch (RecordServicesRuntimeException_ExceptionWhileCalculating e) {
+			assertThat(e)
+					.hasRootCauseExactlyInstanceOf(RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata.class);
+		}
 	}
 
 	@Test
