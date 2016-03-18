@@ -15,18 +15,22 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.components.BooleanLabel;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.MetadataCodeToStringConverter;
 import com.constellio.app.ui.framework.components.converters.RecordIdListToStringConverter;
+import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.BeanItemContainer;
@@ -38,6 +42,7 @@ import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
@@ -48,6 +53,7 @@ import com.vaadin.ui.VerticalLayout;
 public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
 	private static final String CODE = "code";
 	private static final String COPY_TYPE = "copyType";
+	private static final String FOLDER_TYPE = "typeId";
 	private static final String MEDIUM_TYPES = "mediumTypeIds";
 	private static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
 	private static final String ACTIVE_RETENTION_PERIOD = "activeRetentionPeriod";
@@ -57,10 +63,12 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 	private static final String SEMI_ACTIVE_RETENTION_COMMENT = "semiActiveRetentionComment";
 	private static final String INACTIVE_DISPOSAL_TYPE = "inactiveDisposalType";
 	private static final String INACTIVE_DISPOSAL_COMMENT = "inactiveDisposalComment";
+	private static final String ESSENTIAL = "essential";
 	private static final String DELETE_BUTTON = "deleteButton";
+
 	private final List<VariableRetentionPeriodVO> variableRetentionPeriodVOList;
 
-	private EnumWithSmallCodeToCaptionConverter copyTypeConverter = new EnumWithSmallCodeToCaptionConverter(CopyType.class);
+	private RecordIdToCaptionConverter folderTypeConverter = new RecordIdToCaptionConverter();
 	private RecordIdListToStringConverter recordIdListToStringConverter = new RecordIdListToStringConverter();
 	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(
 			DisposalType.class);
@@ -107,6 +115,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		table = new Table();
 		table.setWidth("100%");
 		table.setPageLength(0);
+		table.setSelectable(false);
 
 		table.setColumnHeader(CODE, $("FolderCopyRetentionRuleListTable.code"));
 		table.setColumnHeader(COPY_TYPE, $("FolderCopyRetentionRuleListTable.copyType"));
@@ -118,11 +127,12 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		table.setColumnHeader(SEMI_ACTIVE_RETENTION_COMMENT, "");
 		table.setColumnHeader(INACTIVE_DISPOSAL_TYPE, $("FolderCopyRetentionRuleListTable.inactive"));
 		table.setColumnHeader(INACTIVE_DISPOSAL_COMMENT, "");
+		table.setColumnHeader(ESSENTIAL, $("FolderCopyRetentionRuleListTable.essential"));
 		table.setColumnHeader(DELETE_BUTTON, "");
 
 		if (formMode) {
 			table.addContainerProperty(CODE, BaseTextField.class, null);
-			table.addContainerProperty(COPY_TYPE, Label.class, null);
+			table.addContainerProperty(COPY_TYPE, CopyTypeFolderTypePanel.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, MediumTypesField.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, MiniTextField.class, null);
 			table.addContainerProperty(ACTIVE_RETENTION_PERIOD, ActiveRetentionPeriodFieldGroup.class, null);
@@ -131,10 +141,11 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.addContainerProperty(SEMI_ACTIVE_RETENTION_COMMENT, MiniTextField.class, null);
 			table.addContainerProperty(INACTIVE_DISPOSAL_TYPE, InactiveDisposalTypeField.class, null);
 			table.addContainerProperty(INACTIVE_DISPOSAL_COMMENT, MiniTextField.class, null);
+			table.addContainerProperty(ESSENTIAL, CheckBox.class, null);
 			table.addContainerProperty(DELETE_BUTTON, Button.class, null);
 		} else {
 			table.addContainerProperty(CODE, Label.class, null);
-			table.addContainerProperty(COPY_TYPE, Label.class, null);
+			table.addContainerProperty(COPY_TYPE, CopyTypeFolderTypePanel.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, Label.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, Label.class, null);
 			table.addContainerProperty(ACTIVE_RETENTION_PERIOD, ActiveRetentionPeriodFieldGroup.class, null);
@@ -142,6 +153,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			table.addContainerProperty(SEMI_ACTIVE_RETENTION_PERIOD, SemiActiveRetentionPeriodFieldGroup.class, null);
 			table.addContainerProperty(SEMI_ACTIVE_RETENTION_COMMENT, Label.class, null);
 			table.addContainerProperty(INACTIVE_DISPOSAL_TYPE, Label.class, null);
+			table.addContainerProperty(ESSENTIAL, Label.class, null);
 			table.addContainerProperty(INACTIVE_DISPOSAL_COMMENT, Label.class, null);
 		}
 
@@ -222,7 +234,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 		if (formMode) {
 			MiniTextField codeField = new MiniTextField();
-			Label copyTypeLabel = new Label();
+			CopyTypeFolderTypePanel copyTypeLabel = new CopyTypeFolderTypePanel(copyRetentionRule);
 			MediumTypesField mediumTypesField = new MediumTypesField(copyRetentionRule);
 			MiniTextField contentTypesCommentField = new MiniTextField();
 			ActiveRetentionPeriodFieldGroup activeRetentionPeriodFieldGroup = new ActiveRetentionPeriodFieldGroup(
@@ -233,11 +245,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			MiniTextField semiActiveRetentionCommentField = new MiniTextField();
 			InactiveDisposalTypeField inactiveDisposalTypeField = new InactiveDisposalTypeField(copyRetentionRule);
 			MiniTextField inactiveDisposalCommentField = new MiniTextField();
-
-			copyTypeLabel.setConverter(copyTypeConverter);
+			CheckBox essential = new CheckBox();
 
 			codeField.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CODE));
-			copyTypeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, COPY_TYPE + ".code"));
 			contentTypesCommentField
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CONTENT_TYPES_COMMENT));
 			activeRetentionCommentField
@@ -246,6 +256,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT));
 			inactiveDisposalCommentField
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
+			essential.setPropertyDataSource(new NestedMethodProperty(copyRetentionRule, ESSENTIAL));
 
 			table.getContainerProperty(copyRetentionRule, CODE).setValue(codeField);
 			table.getContainerProperty(copyRetentionRule, COPY_TYPE).setValue(copyTypeLabel);
@@ -259,6 +270,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 					.setValue(semiActiveRetentionCommentField);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_TYPE).setValue(inactiveDisposalTypeField);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT).setValue(inactiveDisposalCommentField);
+			table.getContainerProperty(copyRetentionRule, ESSENTIAL).setValue(essential);
 
 			if (copyRetentionRule.getCopyType() == CopyType.PRINCIPAL) {
 				Button removeButton = new DeleteButton() {
@@ -274,7 +286,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			}
 		} else {
 			Label codeLabel = new Label();
-			Label copyTypeLabel = new Label();
+			CopyTypeFolderTypePanel copyTypeLabel = new CopyTypeFolderTypePanel(copyRetentionRule);
 			Label mediumTypesLabel = new Label();
 			Label contentTypesCommentLabel = new Label();
 			ActiveRetentionPeriodFieldGroup activeRetentionPeriodFieldGroup = new ActiveRetentionPeriodFieldGroup(
@@ -285,13 +297,12 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			Label semiActiveRetentionCommentLabel = new Label();
 			Label inactiveDisposalTypeLabel = new Label();
 			Label inactiveDisposalCommentLabel = new Label();
+			Label essential = new BooleanLabel(copyRetentionRule.isEssential());
 
-			copyTypeLabel.setConverter(copyTypeConverter);
 			mediumTypesLabel.setConverter(recordIdListToStringConverter);
 			inactiveDisposalTypeLabel.setConverter(disposalTypeConverter);
 
 			codeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CODE));
-			copyTypeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, COPY_TYPE + ".code"));
 			mediumTypesLabel.setPropertyDataSource(new NestedMethodProperty<List<String>>(copyRetentionRule, MEDIUM_TYPES));
 			contentTypesCommentLabel
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CONTENT_TYPES_COMMENT));
@@ -316,6 +327,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 					.setValue(semiActiveRetentionCommentLabel);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_TYPE).setValue(inactiveDisposalTypeLabel);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT).setValue(inactiveDisposalCommentLabel);
+			table.getContainerProperty(copyRetentionRule, ESSENTIAL).setValue(essential);
 		}
 	}
 
@@ -366,7 +378,26 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		protected boolean isEditPossible() {
 			return false;
 		}
+	}
 
+	private class CopyTypeFolderTypePanel extends VerticalLayout {
+		public CopyTypeFolderTypePanel(CopyRetentionRule rule) {
+			Label copyType = new Label($("CopyType." + rule.getCopyType().getCode()));
+			addComponent(copyType);
+
+			if (formMode) {
+				LookupRecordField folderType = new LookupRecordField(FolderType.SCHEMA_TYPE);
+				folderType.setPropertyDataSource(new NestedMethodProperty<String>(rule, FOLDER_TYPE));
+				addComponent(folderType);
+			} else if (rule.getTypeId() != null) {
+				Label folderType = new Label();
+				folderType.setConverter(folderTypeConverter);
+				folderType.setPropertyDataSource(new NestedMethodProperty<String>(rule, FOLDER_TYPE));
+				addComponent(folderType);
+			}
+
+			setSpacing(true);
+		}
 	}
 
 	private class RetentionPeriodFieldGroup extends VerticalLayout {
