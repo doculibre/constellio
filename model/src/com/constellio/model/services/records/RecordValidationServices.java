@@ -20,6 +20,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.validators.AllowedReferencesValidator;
 import com.constellio.model.services.schemas.validators.CyclicHierarchyValidator;
+import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.schemas.validators.MetadataChildOfValidator;
 import com.constellio.model.services.schemas.validators.MetadataUniqueValidator;
 import com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator;
@@ -147,6 +148,7 @@ public class RecordValidationServices {
 		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors);
 		new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);
 		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
+		new MaskedMetadataValidator(metadatas).validate(record, validationErrors);
 		return validationErrors;
 	}
 
