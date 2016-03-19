@@ -98,11 +98,15 @@ public class MetadataVODataProvider implements Serializable {
 		if (types != null) {
 			MetadataSchema schema = types.getSchema(schemaCode);
 			for (Metadata meta : schema.getMetadatas()) {
-				if (!meta.isSystemReserved()) {
+				if (!meta.isSystemReserved() && isAccepted(meta)) {
 					result.add(voBuilder.build(meta));
 				}
 			}
 		}
 		return result;
+	}
+
+	protected boolean isAccepted(Metadata meta) {
+		return true;
 	}
 }
