@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class CopyRetentionRule implements ModifiableStructure {
@@ -173,6 +175,14 @@ public class CopyRetentionRule implements ModifiableStructure {
 		dirty = true;
 		this.typeId = typeId;
 		return this;
+	}
+
+	public CopyRetentionRule setTypeId(FolderType type) {
+		return setTypeId(type == null ? null : type.getId());
+	}
+
+	public CopyRetentionRule setTypeId(DocumentType type) {
+		return setTypeId(type == null ? null : type.getId());
 	}
 
 	public boolean isEssential() {

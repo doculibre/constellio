@@ -1371,6 +1371,110 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenMultipleRuleWithRetentionCopiesThenFolderOnlyCopiesOfSameTypeAreApplicable()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, false);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		RetentionRule rule2 = transaction.add(rm.getRetentionRule(records.ruleId_2));
+
+		FolderType type1 = transaction.add(rm.newFolderType().setCode("type1").setTitle("Type 1"));
+		FolderType type2 = transaction.add(rm.newFolderType().setCode("type2").setTitle("Type 2"));
+		FolderType type3 = transaction.add(rm.newFolderType().setCode("type3").setTitle("Type 3"));
+
+		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "1-0-D").setTypeId(type1);
+		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.MD), "2-0-D").setTypeId(type1);
+		CopyRetentionRule copy3 = copyBuilder.newPrincipal(records.PA_MD, "3-0-D").setTypeId(type1);
+
+		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "4-0-D").setTypeId(type2);
+		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.MD), "5-0-D").setTypeId(type2);
+		CopyRetentionRule copy6 = copyBuilder.newPrincipal(records.PA_MD, "6-0-D").setTypeId(type2);
+
+		CopyRetentionRule copy7 = copyBuilder.newPrincipal(asList(records.PA), "7-0-D");
+		CopyRetentionRule copy8 = copyBuilder.newPrincipal(asList(records.MD), "8-0-D");
+		CopyRetentionRule copy9 = copyBuilder.newPrincipal(records.PA_MD, "9-0-D");
+
+		CopyRetentionRule copy10 = copyBuilder.newSecondary(asList(records.MD), "10-0-D");
+
+		rule2.setCopyRetentionRules(asList(copy1, copy2, copy3, copy4, copy5, copy6, copy7, copy8, copy9, copy10));
+
+		recordServices.execute(transaction);
+		transaction = new Transaction();
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+				folder.setOpenDate(january1(1991));
+				return folder;
+			}
+		};
+
+		Folder folderType1 = transaction.add(folderBuilder.build()).setType(type1);
+		Folder folderType1_PA = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA);
+		Folder folderType1_MD = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.MD);
+		Folder folderType1_PA_MD = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD);
+
+		Folder folderType2 = transaction.add(folderBuilder.build()).setType(type2);
+		Folder folderType2_PA = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.PA);
+		Folder folderType2_MD = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.MD);
+		Folder folderType2_PA_MD = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.PA_MD);
+
+		Folder folderType3 = transaction.add(folderBuilder.build()).setType(type3);
+		Folder folderType3_PA = transaction.add(folderBuilder.build()).setType(type3).setMediumTypes(records.PA);
+		Folder folderType3_MD = transaction.add(folderBuilder.build()).setType(type3).setMediumTypes(records.MD);
+		Folder folderType3_PA_MD = transaction.add(folderBuilder.build()).setType(type3).setMediumTypes(records.PA_MD);
+
+		Folder folderWithoutType = transaction.add(folderBuilder.build());
+		Folder folderWithoutType_PA = transaction.add(folderBuilder.build()).setMediumTypes(records.PA);
+		Folder folderWithoutType_MD = transaction.add(folderBuilder.build()).setMediumTypes(records.MD);
+		Folder folderWithoutType_PA_MD = transaction.add(folderBuilder.build()).setMediumTypes(records.PA_MD);
+
+		Folder secondaryFolderType1 = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD)
+				.setCopyStatusEntered(CopyType.SECONDARY);
+		Folder secondaryFolderType2 = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.PA_MD)
+				.setCopyStatusEntered(CopyType.SECONDARY);
+		Folder secondaryFolder = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD)
+				.setCopyStatusEntered(CopyType.SECONDARY);
+
+		recordServices.execute(transaction);
+
+		assertThat(folderType1.getApplicableCopyRules()).containsOnly(copy1, copy2, copy3);
+		assertThat(folderType1_PA.getApplicableCopyRules()).containsOnly(copy1, copy3);
+		assertThat(folderType1_MD.getApplicableCopyRules()).containsOnly(copy2, copy3);
+		assertThat(folderType1_PA_MD.getApplicableCopyRules()).containsOnly(copy1, copy2, copy3);
+
+		assertThat(folderType2.getApplicableCopyRules()).containsOnly(copy4, copy5, copy6);
+		assertThat(folderType2_PA.getApplicableCopyRules()).containsOnly(copy4, copy6);
+		assertThat(folderType2_MD.getApplicableCopyRules()).containsOnly(copy5, copy6);
+		assertThat(folderType2_PA_MD.getApplicableCopyRules()).containsOnly(copy4, copy5, copy6);
+
+		assertThat(folderType3.getApplicableCopyRules()).containsOnly(copy7, copy8, copy9);
+		assertThat(folderType3_PA.getApplicableCopyRules()).containsOnly(copy7, copy9);
+		assertThat(folderType3_MD.getApplicableCopyRules()).containsOnly(copy8, copy9);
+		assertThat(folderType3_PA_MD.getApplicableCopyRules()).containsOnly(copy7, copy8, copy9);
+
+		assertThat(folderWithoutType.getApplicableCopyRules()).containsOnly(copy7, copy8, copy9);
+		assertThat(folderWithoutType_PA.getApplicableCopyRules()).containsOnly(copy7, copy9);
+		assertThat(folderWithoutType_MD.getApplicableCopyRules()).containsOnly(copy8, copy9);
+		assertThat(folderWithoutType_PA_MD.getApplicableCopyRules()).containsOnly(copy7, copy8, copy9);
+
+		assertThat(secondaryFolderType1.getApplicableCopyRules()).containsOnly(copy10);
+		assertThat(secondaryFolderType2.getApplicableCopyRules()).containsOnly(copy10);
+		assertThat(secondaryFolder.getApplicableCopyRules()).containsOnly(copy10);
+
+	}
+
 	// -------------------------------------------------------------------------
 
 	private LocalDate march1(int year) {

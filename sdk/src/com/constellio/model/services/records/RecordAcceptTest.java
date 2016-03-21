@@ -235,5 +235,5 @@ public class RecordAcceptTest extends ConstellioTest {
 				.hasMetadataValue(schema2.get("meta11"), asList("value1", "value2"));
 
 	}
-
+	
 }
