@@ -127,7 +127,7 @@ public class FoldersLocator {
 	}
 
 	public File getImportationProject() {
-		return new File(getConstellioWebappFolder(), "importation");
+		return new File(getPluginsRepository(), "importation");
 	}
 
 	public File getAppProject() {
