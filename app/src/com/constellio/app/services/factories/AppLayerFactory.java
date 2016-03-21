@@ -50,6 +50,7 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -187,7 +188,7 @@ public class AppLayerFactory extends LayerFactory {
 		configManager.initialize();
 		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(configManager);
 		boolean recoveryModeActive = constellioConfigs.isInUpdateProcess();
-		if (recoveryModeActive) {
+		if (Toggle.FORCE_ROLLBACK.isEnabled() || recoveryModeActive) {
 			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {
 			normalStartup();

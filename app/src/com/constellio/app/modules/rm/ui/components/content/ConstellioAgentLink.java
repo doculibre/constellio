@@ -37,15 +37,18 @@ public class ConstellioAgentLink extends HorizontalLayout {
 		public static final String STYLE_NAME = "download-content-version-link";
 
 		public AgentLink(String agentURL, ContentVersionVO contentVersionVO, String caption) {
-			this(agentURL, contentVersionVO.getFileName(), caption);
+			this(agentURL, contentVersionVO != null ? contentVersionVO.getFileName() : null, caption);
 		}
 
-		public AgentLink(String agentURL, String fileName, String caption) {
+		public AgentLink(String agentURL, String filename, String caption) {
 			super(caption, new ExternalResource(agentURL));
 			addStyleName(STYLE_NAME);
 			addStyleName(ValoTheme.BUTTON_LINK);
 
-			Resource icon = FileIconUtils.getIcon(fileName);
+			if (filename == null) {
+				filename = agentURL;
+			}
+			Resource icon = FileIconUtils.getIcon(filename);
 			if (icon != null) {
 				setIcon(icon);
 			}

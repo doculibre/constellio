@@ -198,9 +198,11 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		//		sb.append(copyType == null ? "?" : copyType.getCode());
-		//		sb.append(mediumTypeIds.toString());
-		//		sb.append(" ");
+		if (code != null) {
+			sb.append(code);
+			sb.append("  ");
+		}
+
 		sb.append(activeRetentionPeriod == null ? "?" : activeRetentionPeriod.getValue());
 		sb.append("-");
 		sb.append(semiActiveRetentionPeriod == null ? "?" : semiActiveRetentionPeriod.getValue());
