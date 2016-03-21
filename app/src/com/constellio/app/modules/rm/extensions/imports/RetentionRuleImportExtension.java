@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -28,6 +29,7 @@ import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.tools.ant.taskdefs.Copy;
 
 public class RetentionRuleImportExtension extends RecordImportExtension {
 
@@ -52,6 +54,11 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	public static final String MEDIUM_TYPES = "mediumTypes";
 	public static final String COPY_TYPE = "copyType";
 	public static final String CODE = "code";
+	public static final String COPY_RETENTION_RULE_ID = "id";
+	public static final String OPEN_ACTIVE_RETENTION_PERIOD = "openActiveRetentionPeriod";
+	public static final String ACTIVE_DATE_METADATA = "activeDateMetadata";
+	public static final String SEMI_ACTIVE_DATE_METADATA = "semiActiveDateMetadata";
+	public static final String DOCUMENT_TYPE_ID = "documentTypeId";
 
 	private final RMSchemasRecordsServices rm;
 
@@ -244,12 +251,32 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 
 		retentionRule.setDocumentTypesDetails(documentTypeList);
+
+		if(retentionRule.getScope() != null && retentionRule.getScope().equals(RetentionRuleScope.DOCUMENTS)) {
+			List<Map<String, String>> docCopyRetentionRules = buildParams.getImportRecord().getList(RetentionRule.DOCUMENT_COPY_RETENTION_RULES);
+			List<CopyRetentionRule> docCopyRetentionRulesBuilt = new ArrayList<>();
+			for (Map<String, String> docCopyRetentionRule : docCopyRetentionRules) {
+				docCopyRetentionRulesBuilt.add(buildCopyRetentionRule(mediumTypeResolver, docCopyRetentionRule));
+			}
+			retentionRule.setDocumentCopyRetentionRules(docCopyRetentionRulesBuilt);
+
+			Map<String, String> principalDefaultDocumentCopyRetentionRule = buildParams.getImportRecord().getMap(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
+			retentionRule.setPrincipalDefaultDocumentCopyRetentionRule(buildCopyRetentionRule(mediumTypeResolver, principalDefaultDocumentCopyRetentionRule));
+
+			Map<String, String> secondaryDefaultDocumentCopyRetentionRule = buildParams.getImportRecord().getMap(RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE);
+			retentionRule.setSecondaryDefaultDocumentCopyRetentionRule(buildCopyRetentionRule(mediumTypeResolver, secondaryDefaultDocumentCopyRetentionRule));
+		}
 	}
 
 	private CopyRetentionRule buildCopyRetentionRule(MediumTypeResolver resolver, Map<String, String> mapCopyRetentionRule) {
 
 		CopyRetentionRuleBuilder builder = CopyRetentionRuleBuilder.sequential(rm);
-		CopyRetentionRule copyRetentionRule = builder.newCopyRetentionRule();
+		CopyRetentionRule copyRetentionRule;
+		if(mapCopyRetentionRule.containsKey(COPY_RETENTION_RULE_ID) && StringUtils.isNotEmpty(mapCopyRetentionRule.get(COPY_RETENTION_RULE_ID))) {
+			copyRetentionRule = builder.newCopyRetentionRuleWithId(mapCopyRetentionRule.get(COPY_RETENTION_RULE_ID));
+		} else {
+			copyRetentionRule = builder.newCopyRetentionRule();
+		}
 
 		copyRetentionRule.setCode(mapCopyRetentionRule.get(CODE));
 
@@ -312,6 +339,22 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		if (StringUtils.isNotBlank(mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT))) {
 			//		if (!mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT).equals("")) {
 			copyRetentionRule.setInactiveDisposalComment(mapCopyRetentionRule.get(INACTIVE_DISPOSAL_COMMENT));
+		}
+
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(OPEN_ACTIVE_RETENTION_PERIOD))) {
+			copyRetentionRule.setOpenActiveRetentionPeriod(Integer.parseInt(mapCopyRetentionRule.get(OPEN_ACTIVE_RETENTION_PERIOD)));
+		}
+
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(ACTIVE_DATE_METADATA))) {
+			copyRetentionRule.setActiveDateMetadata(mapCopyRetentionRule.get(ACTIVE_DATE_METADATA));
+		}
+
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(SEMI_ACTIVE_DATE_METADATA))) {
+			copyRetentionRule.setSemiActiveDateMetadata(mapCopyRetentionRule.get(SEMI_ACTIVE_DATE_METADATA));
+		}
+
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(DOCUMENT_TYPE_ID))) {
+			copyRetentionRule.setDocumentTypeId(mapCopyRetentionRule.get(DOCUMENT_TYPE_ID));
 		}
 
 		return copyRetentionRule;
