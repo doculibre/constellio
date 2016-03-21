@@ -58,7 +58,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	public static final String OPEN_ACTIVE_RETENTION_PERIOD = "openActiveRetentionPeriod";
 	public static final String ACTIVE_DATE_METADATA = "activeDateMetadata";
 	public static final String SEMI_ACTIVE_DATE_METADATA = "semiActiveDateMetadata";
-	public static final String DOCUMENT_TYPE_ID = "documentTypeId";
+	public static final String TYPE_ID = "typeId";
 
 	private final RMSchemasRecordsServices rm;
 
@@ -353,8 +353,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 			copyRetentionRule.setSemiActiveDateMetadata(mapCopyRetentionRule.get(SEMI_ACTIVE_DATE_METADATA));
 		}
 
-		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(DOCUMENT_TYPE_ID))) {
-			copyRetentionRule.setDocumentTypeId(mapCopyRetentionRule.get(DOCUMENT_TYPE_ID));
+		if(StringUtils.isNotBlank(mapCopyRetentionRule.get(TYPE_ID))) {
+			copyRetentionRule.setTypeId(mapCopyRetentionRule.get(TYPE_ID));
 		}
 
 		return copyRetentionRule;

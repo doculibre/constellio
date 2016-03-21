@@ -37,7 +37,7 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
     public static final String OPEN_ACTIVE_RETENTION_PERIOD = "openActiveRetentionPeriod";
     public static final String ACTIVE_DATE_METADATA = "activeDateMetadata";
     public static final String SEMI_ACTIVE_DATE_METADATA = "semiActiveDateMetadata";
-    public static final String DOCUMENT_TYPE_ID = "documentTypeId";
+    public static final String TYPE_ID = "typeId";
 
     private RetentionRuleImportExtension importExtension;
     private RMSchemasRecordsServices rm;
@@ -72,7 +72,7 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
         //docCopyRetRule1.put(OPEN_ACTIVE_RETENTION_PERIOD,"2"); This is optional, testing case where it's absent.
         //docCopyRetRule1.put(ACTIVE_DATE_METADATA,""); This is optional, testing case where it's absent.
         //docCopyRetRule1.put(SEMI_ACTIVE_DATE_METADATA,""); This is optional, testing case where it's absent.
-        docCopyRetRule1.put(DOCUMENT_TYPE_ID,"DocType1");
+        docCopyRetRule1.put(TYPE_ID,"DocType1");
 
         Map<String,String> docCopyRetRule2 = new HashMap<>();
         docCopyRetRule2.put(COPY_RET_RULE_ID,"DCR002");
@@ -84,7 +84,7 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
         //docCopyRetRule2.put(OPEN_ACTIVE_RETENTION_PERIOD,"2"); This is optional, testing case where it's absent.
         //docCopyRetRule2.put(ACTIVE_DATE_METADATA,"dateMeta"); This is optional, testing case where it's absent.
         //docCopyRetRule2.put(SEMI_ACTIVE_DATE_METADATA,"dateMeta"); This is optional, testing case where it's absent.
-        docCopyRetRule2.put(DOCUMENT_TYPE_ID,"DocType2");
+        docCopyRetRule2.put(TYPE_ID,"DocType2");
 
         docCopyRetRules.add(docCopyRetRule1);
         docCopyRetRules.add(docCopyRetRule2);
@@ -100,7 +100,7 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
         princDefaultDocCopyRetRule.put(OPEN_ACTIVE_RETENTION_PERIOD,"2");
         princDefaultDocCopyRetRule.put(ACTIVE_DATE_METADATA,"dateMeta1");
         princDefaultDocCopyRetRule.put(SEMI_ACTIVE_DATE_METADATA,"dateMeta2");
-        princDefaultDocCopyRetRule.put(DOCUMENT_TYPE_ID,"DocType3");
+        princDefaultDocCopyRetRule.put(TYPE_ID,"DocType3");
 
         // One CopyRetRule for SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE
         Map<String,String> secDefaultDocCopyRetRule = new HashMap<>();
@@ -110,7 +110,7 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
         secDefaultDocCopyRetRule.put(ACTIVE_RETENTION_PERIOD, "2");
         secDefaultDocCopyRetRule.put(SEMI_ACTIVE_RETENTION_PERIOD, "3");
         secDefaultDocCopyRetRule.put(INACTIVE_DISPOSAL_TYPE, "D");
-        secDefaultDocCopyRetRule.put(DOCUMENT_TYPE_ID,"DocType4");
+        secDefaultDocCopyRetRule.put(TYPE_ID,"DocType4");
 
         importDataMap.put(RetentionRule.DOCUMENT_COPY_RETENTION_RULES,docCopyRetRules);
         importDataMap.put(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,princDefaultDocCopyRetRule);
@@ -131,13 +131,13 @@ public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
         assertThat(princCopyRetRuleBuilt.getOpenActiveRetentionPeriod()).isEqualTo(2);
         assertThat(princCopyRetRuleBuilt.getActiveDateMetadata()).isEqualTo("dateMeta1");
         assertThat(princCopyRetRuleBuilt.getSemiActiveDateMetadata()).isEqualTo("dateMeta2");
-        assertThat(princCopyRetRuleBuilt.getDocumentTypeId()).isEqualTo("DocType3");
+        assertThat(princCopyRetRuleBuilt.getTypeId()).isEqualTo("DocType3");
 
         CopyRetentionRule secCopyRetRuleBuilt = rule.getSecondaryDefaultDocumentCopyRetentionRule();
         assertThat(secCopyRetRuleBuilt.getId()).isNotNull();
         assertThat(secCopyRetRuleBuilt.getOpenActiveRetentionPeriod()).isNull();
         assertThat(secCopyRetRuleBuilt.getActiveDateMetadata()).isNull();
         assertThat(secCopyRetRuleBuilt.getSemiActiveDateMetadata()).isNull();
-        assertThat(secCopyRetRuleBuilt.getDocumentTypeId()).isEqualTo("DocType4");
+        assertThat(secCopyRetRuleBuilt.getTypeId()).isEqualTo("DocType4");
     }
 }
