@@ -75,6 +75,12 @@ public class CopyRetentionRuleBuilder {
 		return copyRetentionRule;
 	}
 
+	public CopyRetentionRule newCopyRetentionRuleWithId(String id) {
+		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
+		copyRetentionRule.setId(id);
+		return copyRetentionRule;
+	}
+
 	public static CopyRetentionRuleBuilder sequential(ConstellioFactories constellioFactories) {
 		return sequential(constellioFactories.getDataLayerFactory());
 	}
