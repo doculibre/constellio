@@ -17,6 +17,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -423,6 +425,130 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		}
 	}
 
+	public DocumentType wrapDocumentType(Record record) {
+		return record == null ? null : new DocumentType(record, getTypes());
+	}
+
+	public List<DocumentType> wrapDocumentTypes(List<Record> records) {
+		List<DocumentType> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new DocumentType(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<DocumentType> searchDocumentTypes(LogicalSearchQuery query) {
+		return wrapDocumentTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<DocumentType> searchDocumentTypes(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvDocumentType.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapDocumentTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public DocumentType getDocumentType(String id) {
+		return wrapDocumentType(get(id));
+	}
+
+	public List<DocumentType> getDocumentTypes(List<String> ids) {
+		return wrapDocumentTypes(get(ids));
+	}
+
+	public DocumentType getDocumentTypeWithCode(String code) {
+		return wrapDocumentType(getByCode(ddvDocumentType.schemaType(), code));
+	}
+
+	public DocumentType getDocumentTypeWithLegacyId(String legacyId) {
+		return wrapDocumentType(getByLegacyId(ddvDocumentType.schemaType(), legacyId));
+	}
+
+	public DocumentType newDocumentType() {
+		return wrapDocumentType(create(ddvDocumentType.schema()));
+	}
+
+	public DocumentType newDocumentTypeWithId(String id) {
+		return wrapDocumentType(create(ddvDocumentType.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_ddvDocumentType_default ddvDocumentType
+			= new SchemaTypeShortcuts_ddvDocumentType_default("ddvDocumentType_default");
+
+	public class SchemaTypeShortcuts_ddvDocumentType_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_ddvDocumentType_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata linkedSchema() {
+			return metadata("linkedSchema");
+		}
+
+		public Metadata templates() {
+			return metadata("templates");
+		}
+	}
+
+	public FolderType wrapFolderType(Record record) {
+		return record == null ? null : new FolderType(record, getTypes());
+	}
+
+	public List<FolderType> wrapFolderTypes(List<Record> records) {
+		List<FolderType> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new FolderType(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<FolderType> searchFolderTypes(LogicalSearchQuery query) {
+		return wrapFolderTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<FolderType> searchFolderTypes(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvFolderType.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapFolderTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public FolderType getFolderType(String id) {
+		return wrapFolderType(get(id));
+	}
+
+	public List<FolderType> getFolderTypes(List<String> ids) {
+		return wrapFolderTypes(get(ids));
+	}
+
+	public FolderType getFolderTypeWithCode(String code) {
+		return wrapFolderType(getByCode(ddvFolderType.schemaType(), code));
+	}
+
+	public FolderType getFolderTypeWithLegacyId(String legacyId) {
+		return wrapFolderType(getByLegacyId(ddvFolderType.schemaType(), legacyId));
+	}
+
+	public FolderType newFolderType() {
+		return wrapFolderType(create(ddvFolderType.schema()));
+	}
+
+	public FolderType newFolderTypeWithId(String id) {
+		return wrapFolderType(create(ddvFolderType.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_ddvFolderType_default ddvFolderType
+			= new SchemaTypeShortcuts_ddvFolderType_default("ddvFolderType_default");
+
+	public class SchemaTypeShortcuts_ddvFolderType_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_ddvFolderType_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata linkedSchema() {
+			return metadata("linkedSchema");
+		}
+	}
+
 	public DecommissioningList wrapDecommissioningList(Record record) {
 		return record == null ? null : new DecommissioningList(record, getTypes());
 	}
@@ -700,6 +826,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata borrowed() {
 			return metadata("borrowed");
+		}
+
+		public Metadata calendarYear() {
+			return metadata("calendarYear");
+		}
+
+		public Metadata calendarYearEntered() {
+			return metadata("calendarYearEntered");
 		}
 
 		public Metadata category() {
@@ -1022,6 +1156,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("borrowingType");
 		}
 
+		public Metadata calendarYear() {
+			return metadata("calendarYear");
+		}
+
+		public Metadata calendarYearEntered() {
+			return metadata("calendarYearEntered");
+		}
+
 		public Metadata category() {
 			return metadata("category");
 		}
@@ -1288,6 +1430,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata essentialDocuments() {
 			return metadata("essentialDocuments");
+		}
+
+		public Metadata folderTypes() {
+			return metadata("folderTypes");
 		}
 
 		public Metadata generalComment() {
