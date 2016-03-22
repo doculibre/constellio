@@ -92,6 +92,7 @@ public class AppLayerFactory extends LayerFactory {
 	private final AppLayerConfiguration appLayerConfiguration;
 
 	private final Map<String, StatefulService> moduleManagers = new HashMap<>();
+	final private NavigatorConfigurationService navigatorConfigService;
 
 	public AppLayerFactory(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator) {
@@ -133,7 +134,7 @@ public class AppLayerFactory extends LayerFactory {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
 		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager());
-
+		this.navigatorConfigService = new NavigatorConfigurationService();
 	}
 
 	private void setDefaultLocale() {
@@ -283,7 +284,7 @@ public class AppLayerFactory extends LayerFactory {
 	}
 
 	public NavigatorConfigurationService getNavigatorConfigurationService() {
-		return new NavigatorConfigurationService();
+		return navigatorConfigService;
 	}
 
 	public PresenterService newPresenterService() {

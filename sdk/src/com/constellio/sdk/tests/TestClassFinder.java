@@ -1,5 +1,8 @@
 package com.constellio.sdk.tests;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
 public class TestClassFinder {
 
 	private TestClassFinder() {
@@ -27,6 +30,31 @@ public class TestClassFinder {
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
+
+	}
+
+	public static String getTestClassName() {
+		StackTraceElement[] elements = new Throwable().fillInStackTrace().getStackTrace();
+
+		for (int i = 0; i < elements.length; i++) {
+			StackTraceElement element = elements[i];
+			try {
+				Class clz = Class.forName(element.getClassName());
+				Method method = clz.getMethod(element.getMethodName(), new Class[0]);
+				for (Annotation annotation : method.getAnnotations()) {
+					if (annotation.annotationType() == org.junit.Test.class
+							|| annotation.annotationType() == org.junit.Before.class) {
+						return element.getClassName();
+					}
+				}
+			} catch (NoSuchMethodException ex) {
+			} catch (SecurityException ex) {
+			} catch (ClassNotFoundException classNotFoundException) {
+			}
+
+		}
+
+		throw new RuntimeException("Test class not found");
 
 	}
 
