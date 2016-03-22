@@ -668,10 +668,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
 	}
 
-	public FolderType wrapFolderType(Record record) {
-		return new FolderType(record, getTypes());
-	}
-
 	public List<FolderType> wrapFolderTypes(List<Record> records) {
 		List<FolderType> folderTypes = new ArrayList<>();
 		for (Record record : records) {
