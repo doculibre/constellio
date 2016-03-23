@@ -133,7 +133,7 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 
 		taxonomiesManager
 				.addTaxonomy(Taxonomy.createPublic(CLASSIFICATION_PLAN, migrationResourcesProvider.getDefaultLanguageString(
-								"init.rm.plan"), collection,
+						"init.rm.plan"), collection,
 						Category.SCHEMA_TYPE), metadataSchemasManager);
 
 		Taxonomy unitTaxonomy = Taxonomy.createPublic(
@@ -142,7 +142,7 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		taxonomiesManager.addTaxonomy(unitTaxonomy, metadataSchemasManager);
 
 		Taxonomy storagesTaxonomy = Taxonomy.createHiddenInHomePage(STORAGES, migrationResourcesProvider.getDefaultLanguageString(
-						"init.rm.containers"), collection,
+				"init.rm.containers"), collection,
 				StorageSpace.SCHEMA_TYPE);
 		taxonomiesManager.addTaxonomy(storagesTaxonomy, metadataSchemasManager);
 
