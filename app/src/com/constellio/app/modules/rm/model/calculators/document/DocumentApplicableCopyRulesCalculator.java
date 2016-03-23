@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
+import static com.constellio.data.utils.LangUtils.withoutNulls;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -56,9 +57,9 @@ public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalcu
 		CopyRetentionRuleInRule folderMainCopyRule = input.folderMainCopyRule;
 
 		if (input.documentRetentionRulesEnabled) {
-			return findApplicableCopyRuleForDocument(input);
+			return withoutNulls(findApplicableCopyRuleForDocument(input));
 		} else {
-			return asList(folderMainCopyRule);
+			return withoutNulls(asList(folderMainCopyRule));
 		}
 	}
 
@@ -94,17 +95,21 @@ public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalcu
 
 		List<CopyRetentionRuleInRule> copiesFromDocumentRulesInCategoryHierarchy = new ArrayList<>();
 
-		for (CopyRetentionRuleInRule copy : input.rubricDocumentCopies) {
-			String copyDocumentTypeId = copy.getCopyRetentionRule().getDocumentTypeId();
-			if (copyDocumentTypeId != null && copyDocumentTypeId.equals(documentType)) {
-				copiesFromDocumentRulesInCategoryHierarchy.add(copy);
-				copiesFromDocumentRulesInCategoryHierarchyLevel = copy.getCategoryLevel();
+		if (input.rubricDocumentCopies != null) {
+			for (CopyRetentionRuleInRule copy : input.rubricDocumentCopies) {
+				if (copy != null) {
+					String copyDocumentTypeId = copy.getCopyRetentionRule().getTypeId();
+					if (copyDocumentTypeId != null && copyDocumentTypeId.equals(documentType)) {
+						copiesFromDocumentRulesInCategoryHierarchy.add(copy);
+						copiesFromDocumentRulesInCategoryHierarchyLevel = copy.getCategoryLevel();
+					}
+				}
 			}
 		}
 
 		List<CopyRetentionRuleInRule> copiesFromInheritedRule = new ArrayList<>();
 		for (CopyRetentionRuleInRule copy : input.documentCopyRetentionRules) {
-			String copyDocumentTypeId = copy.getCopyRetentionRule().getDocumentTypeId();
+			String copyDocumentTypeId = copy.getCopyRetentionRule().getTypeId();
 			if (copyDocumentTypeId != null && copyDocumentTypeId.equals(documentType)) {
 				copiesFromInheritedRule.add(copy);
 				copiesFromInheritedRuleLevel = copy.getCategoryLevel();

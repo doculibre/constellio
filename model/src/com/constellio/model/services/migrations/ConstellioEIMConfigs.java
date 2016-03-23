@@ -31,6 +31,9 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
 
+	public static final SystemConfiguration DATE_FORMAT;
+	public static final SystemConfiguration DATE_TIME_FORMAT;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
@@ -47,6 +50,9 @@ public class ConstellioEIMConfigs {
 				.createEnum("titleMetadataPopulatePriority", TitleMetadataPopulatePriority.class)
 				.withDefaultValue(TitleMetadataPopulatePriority.STYLES_FILENAME_PROPERTIES));
 		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:8080/constellio/"));
+
+		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));
+		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss"));
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
@@ -98,6 +104,14 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isInUpdateProcess() {
 		return manager.getValue(IN_UPDATE_PROCESS);
+	}
+
+	public String getDateFormat() {
+		return manager.getValue(DATE_FORMAT);
+	}
+
+	public String getDateTimeFormat() {
+		return manager.getValue(DATE_TIME_FORMAT);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {

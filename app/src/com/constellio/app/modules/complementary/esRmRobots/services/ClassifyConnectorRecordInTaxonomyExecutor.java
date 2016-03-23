@@ -238,6 +238,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			}
 			RecordUtils.copyMetadatas(connectorFolder, rmFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath);
+			try {
+				recordServices.validateRecordInTransaction(rmFolder.getWrappedRecord(), transaction);
+			} catch (ValidationException e) {
+				throw new RuntimeException(e);
+			}
 			classifyDocumentsFromFolder(rmFolder);
 		} else {
 			rmFolder = rm.wrapFolder(rmRecord);

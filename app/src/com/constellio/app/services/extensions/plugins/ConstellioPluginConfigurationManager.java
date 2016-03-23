@@ -256,7 +256,7 @@ public class ConstellioPluginConfigurationManager {
 				public void alter(Document document) {
 					Element pluginElement = document.getRootElement().getChild(pluginId);
 					if (pluginElement == null) {
-						throw new RuntimeException("Invalid plugin id " + pluginId);
+						throw new RuntimeException("Invalid plugin id " + pluginId, throwable);
 					}
 					pluginElement.setAttribute(STATUS_ATTRIBUTE, INVALID.toString());
 					if (cause != null) {

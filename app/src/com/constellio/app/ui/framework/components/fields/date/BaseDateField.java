@@ -7,7 +7,6 @@ import com.vaadin.data.Property;
 import com.vaadin.ui.DateField;
 
 public class BaseDateField extends DateField {
-	
 	public BaseDateField() {
 		super();
 		init();
@@ -35,7 +34,6 @@ public class BaseDateField extends DateField {
 	}
 
 	private void init() {
-		setDateFormat(DateFormatUtils.DATE_FORMAT);
+		setDateFormat(DateFormatUtils.getDateFormat());
 	}
-
 }

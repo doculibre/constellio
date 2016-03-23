@@ -137,6 +137,7 @@ public class SearchRetentionRulesViewImpl extends BaseViewImpl implements Search
 
 	private void buildSearch() {
 		searchLayout = new HorizontalLayout();
+		searchLayout.setSpacing(true);
 		final TextField searchField = new BaseTextField();
 		searchField.focus();
 		searchField.setValue(presenter.getQueryExpression());

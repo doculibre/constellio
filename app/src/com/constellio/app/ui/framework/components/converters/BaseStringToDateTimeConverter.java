@@ -11,7 +11,6 @@ public class BaseStringToDateTimeConverter extends StringToDateConverter {
 
 	@Override
 	protected DateFormat getFormat(Locale locale) {
-		return new SimpleDateFormat(DateFormatUtils.DATE_TIME_FORMAT);
+		return new SimpleDateFormat(DateFormatUtils.getDateTimeFormat());
 	}
-
 }

@@ -38,24 +38,23 @@ public class MetadataVO implements Serializable {
 	final StructureFactory structureFactory;
 	final String metadataGroup;
 	final Object defaultValue;
+	final String inputMask;
 
-	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema,
-			boolean required,
+	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
 			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
 			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
 			AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory, String metadataGroup,
 			Object defaultValue) {
-
 		this(code, null, type, collection, schema, required, multivalue, readOnly, labels, enumClass, taxonomyCodes,
-				schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory, metadataGroup, defaultValue);
+				schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory, metadataGroup, defaultValue,
+				null);
 	}
 
 	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
-			boolean required,
-			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
-			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
-			AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory, String metadataGroup,
-			Object defaultValue) {
+			boolean required, boolean multivalue, boolean readOnly, Map<Locale, String> labels,
+			Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
+			MetadataInputType metadataInputType, AllowedReferences allowedReferences, boolean enabled,
+			StructureFactory structureFactory, String metadataGroup, Object defaultValue, String inputMask) {
 		super();
 		this.code = code;
 		this.datastoreCode = datastoreCode;
@@ -75,6 +74,7 @@ public class MetadataVO implements Serializable {
 		this.structureFactory = structureFactory;
 		this.metadataGroup = metadataGroup;
 		this.defaultValue = defaultValue;
+		this.inputMask = inputMask;
 
 		if (schema != null && !schema.getMetadatas().contains(this)) {
 			schema.getMetadatas().add(this);
@@ -111,6 +111,7 @@ public class MetadataVO implements Serializable {
 		this.structureFactory = null;
 		this.metadataGroup = null;
 		this.defaultValue = null;
+		this.inputMask = null;
 	}
 
 	public String getCode() {
@@ -261,6 +262,10 @@ public class MetadataVO implements Serializable {
 
 	public Object getDefaultValue() {
 		return defaultValue;
+	}
+
+	public String getInputMask() {
+		return inputMask;
 	}
 
 	@Override

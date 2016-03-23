@@ -111,8 +111,14 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		globalGroupDisplay = new BaseDisplay(captionsAndComponents);
 
 		filterAndSearchButtonLayoutSubGroups = new HorizontalLayout();
+		filterAndSearchButtonLayoutSubGroups.setSpacing(true);
+		
 		filterAndSearchButtonLayoutGlobalGroupsUser = new HorizontalLayout();
+		filterAndSearchButtonLayoutGlobalGroupsUser.setSpacing(true);
+		
 		filterAndSearchButtonLayoutAvailableUsers = new HorizontalLayout();
+		filterAndSearchButtonLayoutAvailableUsers.setSpacing(true);
+		
 		filterAndSearchButtonLayoutSubGroups.setWidth("100%");
 		filterAndSearchButtonLayoutGlobalGroupsUser.setWidth("100%");
 		filterAndSearchButtonLayoutAvailableUsers.setWidth("100%");

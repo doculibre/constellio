@@ -53,10 +53,13 @@ import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
+import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.tools.ServerThrowableContext;
 import com.constellio.app.ui.tools.vaadin.TestContainerButtonListener;
@@ -81,8 +84,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -204,14 +205,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	private static void ensureNotUnitTest() {
 		if (isUnitTestStatic()) {
-			String message = "Unit tests '" + TestClassFinder.findCurrentTest().getSimpleName()
+			String message = "Unit tests '" + TestClassFinder.getTestClassName()
 					+ "' cannot use filesystem, rename this test to AcceptanceTest or IntegrationTest or RealTest";
 			throw new RuntimeException(message);
 		}
 	}
 
 	public static boolean isUnitTestStatic() {
-		return isUnitTest(TestClassFinder.findCurrentTest().getSimpleName()) && !notAUnitItest;
+		return isUnitTest(TestClassFinder.getTestClassName()) && !notAUnitItest;
 	}
 
 	protected String getTestName() {
@@ -1310,47 +1311,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
 		ensureNotUnitTest();
-		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
-		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-		InstallableModule module;
-		try {
-			module = installableModuleClass.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-
-		if (!getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
-			getAppLayerFactory().getPluginManager().registerModule(module);
-		}
-		constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
-
-		return new ModuleEnabler(module, collectionsListManager, constellioModulesManager);
-	}
-
-	public static class ModuleEnabler {
-
-		InstallableModule module;
-		CollectionsListManager collectionsListManager;
-		ConstellioModulesManager constellioModulesManager;
-
-		public ModuleEnabler(InstallableModule module,
-				CollectionsListManager collectionsListManager, ConstellioModulesManager constellioModulesManager) {
-			this.module = module;
-			this.collectionsListManager = collectionsListManager;
-			this.constellioModulesManager = constellioModulesManager;
-		}
-
-		public void enabledInEveryCollections() {
-			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-				enabledIn(collection);
-			}
-		}
-
-		public void enabledIn(String collection) {
-
-			constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
-
-		}
+		return ModuleEnabler.givenInstalledModule(getAppLayerFactory(), installableModuleClass);
 	}
 
 	public ToggleCondition onlyWhen(AvailableToggle toggle) {

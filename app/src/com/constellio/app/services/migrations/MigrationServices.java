@@ -15,6 +15,8 @@ import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.Migration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
+import com.constellio.app.entities.modules.locators.PropertiesLocatorFactory;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -43,6 +45,7 @@ public class MigrationServices {
 	ConstellioPluginManager constellioPluginManager;
 	DataLayerFactory dataLayerFactory;
 	ModelLayerFactory modelLayerFactory;
+	ModuleResourcesLocator moduleResourcesLocator;
 
 	public MigrationServices(ConstellioEIM constellioEIM, AppLayerFactory appLayerFactory,
 			ConstellioModulesManagerImpl constellioModulesManager, ConstellioPluginManager constellioPluginManager) {
@@ -55,6 +58,7 @@ public class MigrationServices {
 		this.constellioModulesManager = constellioModulesManager;
 		this.constellioPluginManager = constellioPluginManager;
 		this.configManager = dataLayerFactory.getConfigManager();
+		this.moduleResourcesLocator = PropertiesLocatorFactory.get();
 	}
 
 	private void addPropertiesFileWithVersion(String collection, String version, Map<String, String> properties) {
@@ -207,13 +211,15 @@ public class MigrationServices {
 				"' updating to version '" + script.getVersion() + "'");
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
-		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(
-				migration.getModuleId() == null ? "core" : migration.getModuleId(), language, migration.getVersion(), null,
-				ioServices);
+		String moduleId = migration.getModuleId() == null ? "core" : migration.getModuleId();
+		String version = migration.getVersion();
+		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language,
+				version, ioServices, moduleResourcesLocator);
+
 		try {
 			script.migrate(migration.getCollection(), migrationResourcesProvider, appLayerFactory);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Error when migrating collection '" + migration.getCollection() + "'", e);
 		}
 		setCurrentDataVersion(migration.getCollection(), migration.getVersion());
 		markMigrationAsCompleted(migration);

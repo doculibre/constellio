@@ -97,4 +97,12 @@ public class RecordRuntimeException extends RuntimeException {
 		}
 
 	}
+
+	public static class RecordRuntimeException_ValueHasBadFormat extends RecordRuntimeException {
+
+		public RecordRuntimeException_ValueHasBadFormat(String value, String format) {
+			super("Invalid value '" + value + "'. Expected format is '" + format + "'");
+		}
+
+	}
 }

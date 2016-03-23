@@ -204,7 +204,10 @@ public class MetadataFieldFactory implements Serializable {
 				if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
 					field = new BasePasswordField();
 				} else {
-					field = new BaseTextField();
+					String inputMask = metadata.getInputMask();
+					BaseTextField textField = new BaseTextField();
+					textField.setInputMask(inputMask);
+					field = textField;
 				}
 				break;
 			case CONTENT:
