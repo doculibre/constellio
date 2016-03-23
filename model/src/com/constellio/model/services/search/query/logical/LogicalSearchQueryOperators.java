@@ -47,6 +47,8 @@ import com.constellio.model.services.search.query.logical.ongoing.OngoingLogical
 
 public class LogicalSearchQueryOperators {
 
+	public static LogicalSearchCondition ALL = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).isNotNull();
+
 	public static OngoingLogicalSearchCondition from(MetadataSchema schema) {
 		return new OngoingLogicalSearchCondition(new SchemaFilters(schema));
 	}
