@@ -126,7 +126,6 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		presenter.deleteButtonClicked();
 		verify(factories.getRecordServices(), times(1)).logicallyDelete(record, user);
 		verify(factories.getRecordServices(), times(1)).physicallyDelete(record, user);
-		verify(navigator, times(1)).decommissioning();
 	}
 
 	@Test
@@ -141,7 +140,6 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		presenter.processButtonClicked();
 		verify(service, times(1)).decommission(list, user);
 		verify(view, times(1)).showMessage(anyString());
-		verify(navigator).displayDecommissioningList(ZE_LIST);
 	}
 
 	@Test
@@ -229,7 +227,6 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		presenter.approvalButtonClicked();
 		verify(service, times(1)).approveList(list, user);
 		verify(view, times(1)).showMessage(anyString());
-		verify(navigator).displayDecommissioningList(ZE_LIST);
 	}
 
 	@Test

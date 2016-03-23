@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.management;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
@@ -11,7 +12,7 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 	}
 
 	public void decommissioningButtonClicked() {
-		view.navigateTo().decommissioning();
+		view.navigate().to(RMViews.class).decommissioning();
 	}
 
 	public void newContainerButtonClicked() {
