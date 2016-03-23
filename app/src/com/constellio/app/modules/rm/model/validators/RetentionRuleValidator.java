@@ -48,6 +48,9 @@ public class RetentionRuleValidator implements RecordValidator {
 
 	public static final String DOCUMENT_TYPES_IN_DOCUMENT_RULE = "documentTypesInDocumentRule";
 
+	public static final String PRINCIPAL_COPY_WITHOUT_TYPE_REQUIRED = "principalCopyWithoutTypeRequired";
+	public static final String SECONDARY_COPY_CANNOT_HAVE_A_TYPE = "secondaryCopyCannotHaveAType";
+
 	//	public static final String PRINCIPAL_COPIES_MUST_HAVE_DIFFERENT_CONTENT_TYPES = "principalCopiesMustHaveDifferentContentTypes";
 	//	public static final String PRINCIPAL_COPIES_MUST_HAVE_DIFFERENT_CONTENT_TYPES_DUPLICATES = "duplicates";
 
@@ -71,7 +74,7 @@ public class RetentionRuleValidator implements RecordValidator {
 		}
 		validateAdministrativeUnits(retentionRule, schema, configProvider, validationErrors);
 		validateCopyRetentionRules(retentionRule, schema, validationErrors, configProvider);
-		validateDocumentCopyRetentionRules(retentionRule, schema, validationErrors, configProvider);
+		validateDocumentCopyRetentionRules(retentionRule, schema, validationErrors);
 		validateDefaultDocumentCopyRetentionRules(retentionRule, schema, validationErrors, configProvider);
 	}
 
@@ -134,25 +137,22 @@ public class RetentionRuleValidator implements RecordValidator {
 
 		if (validIntegrity) {
 			int principalCount = 0;
+			int principalCountWithoutType = 0;
 			int secondaryCount = 0;
-			//
-			//			List<String> duplicateContentTypes = new ArrayList<>();
-			//			List<String> mediumTypeIds = new ArrayList<>();
 
 			for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
 				if (copyRetentionRule.getCopyType() == CopyType.PRINCIPAL) {
 					principalCount++;
-
-					//					for (String mediumTypeId : copyRetentionRule.getMediumTypeIds()) {
-					//						if (mediumTypeIds.contains(mediumTypeId)) {
-					//							duplicateContentTypes.add(mediumTypeId);
-					//						} else {
-					//							mediumTypeIds.add(mediumTypeId);
-					//						}
-					//					}
+					if (copyRetentionRule.getTypeId() == null) {
+						principalCountWithoutType++;
+					}
 
 				} else {
 					secondaryCount++;
+
+					if (copyRetentionRule.getTypeId() != null) {
+						addCopyRetentionRuleError(SECONDARY_COPY_CANNOT_HAVE_A_TYPE, schema, validationErrors);
+					}
 				}
 			}
 
@@ -169,16 +169,16 @@ public class RetentionRuleValidator implements RecordValidator {
 			if (retentionRule.getScope() != RetentionRuleScope.DOCUMENTS && secondaryCount != 1) {
 				addCopyRetentionRuleError(MUST_SPECIFY_ONE_SECONDARY_COPY_RETENTON_RULE, schema, validationErrors);
 			}
-			//			if (!duplicateContentTypes.isEmpty()) {
-			//				addCopyRetentionRuleDuplicatedContentTypesError(duplicateContentTypes, schema, validationErrors);
-			//			}
 
+			if (principalCount != 0 && principalCountWithoutType == 0) {
+				addCopyRetentionRuleError(PRINCIPAL_COPY_WITHOUT_TYPE_REQUIRED, schema, validationErrors);
+			}
 		}
 
 	}
 
 	private void validateDocumentCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
-			ValidationErrors validationErrors, ConfigProvider configProvider) {
+			ValidationErrors validationErrors) {
 
 		List<CopyRetentionRule> copyRetentionRules = retentionRule.getDocumentCopyRetentionRules();
 
@@ -269,17 +269,6 @@ public class RetentionRuleValidator implements RecordValidator {
 		validationErrors.add(getClass(), COPY_RETENTION_RULE_FIELD_REQUIRED, parameters);
 
 	}
-
-	//	private void addCopyRetentionRuleDuplicatedContentTypesError(List<String> duplicatedContentTypes, MetadataSchema schema,
-	//			ValidationErrors validationErrors) {
-	//		Map<String, String> parameters = new HashMap<>();
-	//		parameters.put(PRINCIPAL_COPIES_MUST_HAVE_DIFFERENT_CONTENT_TYPES_DUPLICATES, StringUtils
-	//				.join(duplicatedContentTypes, ","));
-	//		parameters.put(RecordMetadataValidator.METADATA_CODE, RetentionRule.COPY_RETENTION_RULES);
-	//		parameters.put(RecordMetadataValidator.METADATA_LABEL, schema.getMetadata(RetentionRule.COPY_RETENTION_RULES).getLabel());
-	//		validationErrors.add(getClass(), PRINCIPAL_COPIES_MUST_HAVE_DIFFERENT_CONTENT_TYPES, parameters);
-	//
-	//	}Les a
 
 	private void addCopyRetentionRuleError(String code, MetadataSchema schema, ValidationErrors validationErrors) {
 		Map<String, String> parameters = new HashMap<>();

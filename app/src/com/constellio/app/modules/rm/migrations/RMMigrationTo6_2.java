@@ -12,10 +12,13 @@ import com.constellio.app.modules.rm.model.calculators.FolderCalendarYearCalcula
 import com.constellio.app.modules.rm.model.calculators.document.DocumentCalendarYearCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentMainCopyRuleCalculator2;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderMainCopyRuleCalculator2;
+import com.constellio.app.modules.rm.model.calculators.rule.RuleDocumentTypesCalculator2;
+import com.constellio.app.modules.rm.model.calculators.rule.RuleFolderTypesCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -26,6 +29,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.UnhandledRecordModificationImpactHandler;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 
@@ -92,7 +96,15 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			updateDocumentSchema(typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema());
 			updateFolderSchema(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema());
+			updateRetentionRuleSchema(typesBuilder.getSchema(RetentionRule.DEFAULT_SCHEMA));
+		}
 
+		private void updateRetentionRuleSchema(MetadataSchemaBuilder schema) {
+			MetadataSchemaTypeBuilder folderTypeSchemaType = types().getSchemaType(FolderType.SCHEMA_TYPE);
+			schema.get(RetentionRule.DOCUMENT_TYPES).defineDataEntry().asCalculated(RuleDocumentTypesCalculator2.class);
+			schema.create(RetentionRule.FOLDER_TYPES).setMultivalue(true)
+					.defineReferencesTo(folderTypeSchemaType)
+					.defineDataEntry().asCalculated(RuleFolderTypesCalculator.class);
 		}
 
 		private void updateDocumentSchema(MetadataSchemaBuilder documentSchemaType) {

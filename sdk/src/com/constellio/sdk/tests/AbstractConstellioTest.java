@@ -202,14 +202,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	private static void ensureNotUnitTest() {
 		if (isUnitTestStatic()) {
-			String message = "Unit tests '" + TestClassFinder.findCurrentTest().getSimpleName()
+			String message = "Unit tests '" + TestClassFinder.getTestClassName()
 					+ "' cannot use filesystem, rename this test to AcceptanceTest or IntegrationTest or RealTest";
 			throw new RuntimeException(message);
 		}
 	}
 
 	public static boolean isUnitTestStatic() {
-		return isUnitTest(TestClassFinder.findCurrentTest().getSimpleName()) && !notAUnitItest;
+		return isUnitTest(TestClassFinder.getTestClassName()) && !notAUnitItest;
 	}
 
 	protected String getTestName() {

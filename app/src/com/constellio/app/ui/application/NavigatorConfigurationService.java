@@ -51,6 +51,7 @@ import com.constellio.app.modules.tasks.ui.pages.workflow.AddEditWorkflowViewImp
 import com.constellio.app.modules.tasks.ui.pages.workflow.DisplayWorkflowViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.workflow.ListWorkflowsViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.workflowInstance.DisplayWorkflowInstanceViewImpl;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
@@ -430,5 +431,9 @@ public class NavigatorConfigurationService implements Serializable {
 		for (ViewProvider viewProvider : viewProviders) {
 			navigator.addProvider(viewProvider);
 		}
+	}
+
+	public void register(String code, Class<? extends BaseViewImpl> clazz) {
+		viewProviders.add(new ClassBasedViewProvider(code, clazz));
 	}
 }

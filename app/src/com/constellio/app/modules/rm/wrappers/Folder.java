@@ -171,6 +171,10 @@ public class Folder extends RMObject {
 		return get(ADMINISTRATIVE_UNIT);
 	}
 
+	public String getAdministrativeUnit() {
+		return get(ADMINISTRATIVE_UNIT);
+	}
+
 	public String getAdministrativeUnitEntered() {
 		return get(ADMINISTRATIVE_UNIT_ENTERED);
 	}
@@ -333,6 +337,10 @@ public class Folder extends RMObject {
 	public Folder setCloseDateEntered(LocalDate closeDate) {
 		set(ENTERED_CLOSING_DATE, closeDate);
 		return this;
+	}
+
+	public LocalDate getOpeningDate() {
+		return get(OPENING_DATE);
 	}
 
 	public LocalDate getOpenDate() {

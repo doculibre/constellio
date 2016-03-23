@@ -49,7 +49,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
 	private static final String CODE = "code";
-	private static final String DOCUMENT_TYPE = "documentTypeId";
+	private static final String DOCUMENT_TYPE = "typeId";
 	private static final String MEDIUM_TYPES = "mediumTypeIds";
 	private static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
 	private static final String ACTIVE_RETENTION_PERIOD = "activeRetentionPeriod";

@@ -101,6 +101,8 @@ public class ApplicationStarter {
 	}
 
 	public static void stopApplication() {
+		filters.clear();
+		servlets.clear();
 		try {
 			server.stop();
 		} catch (Exception e) {
