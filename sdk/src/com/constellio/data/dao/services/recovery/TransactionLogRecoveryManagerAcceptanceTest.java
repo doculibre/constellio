@@ -5,6 +5,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,13 +16,18 @@ import com.sun.star.uno.RuntimeException;
 public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest {
 	TransactionLogRecoveryManager transactionLogRecoveryManager;
 
+	DataLayerFactory dataLayerFactory;
+
 	@Before
 	public void setUp()
 			throws Exception {
+		notAUnitItest = true;
 		givenTransactionLogIsEnabled();
 		givenDisabledAfterTestValidations();
 
-		transactionLogRecoveryManager = spy(getDataLayerFactory().getTransactionLogRecoveryManager());
+		dataLayerFactory = getDataLayerFactory();
+		transactionLogRecoveryManager = spy(dataLayerFactory.getTransactionLogRecoveryManager());
+
 	}
 
 	@Test
@@ -70,7 +76,7 @@ public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest 
 
 	@After
 	public void afterTest() {
-		getDataLayerFactory().getRecordsVaultServer().unregisterListener(transactionLogRecoveryManager);
+		dataLayerFactory.getRecordsVaultServer().unregisterListener(transactionLogRecoveryManager);
 	}
 
 	@Override
