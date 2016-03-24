@@ -12,7 +12,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.utils.MaskUtils;
-import com.constellio.model.utils.MaskUtilsException;
 
 public class MaskedMetadataValidator implements Validator<Record> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MaskedMetadataValidator.class);
@@ -36,15 +35,8 @@ public class MaskedMetadataValidator implements Validator<Record> {
 				if (value != null && value instanceof String) {
 					String strValue = (String) value;
 					if (!MaskUtils.isValid(metadata.getInputMask(), strValue)) {
-
-						try {
-							String formattedValue = MaskUtils.format(metadata.getInputMask(), strValue);
-							record.set(metadata, formattedValue);
-						} catch (MaskUtilsException e) {
-							LOGGER.info("Failed to format value '" + strValue + "' using mask '" + metadata.getInputMask() + "'");
-							addValidationErrors(validationErrors, (String) value, metadata);
-						}
-
+						LOGGER.info("Failed to format value '" + strValue + "' using mask '" + metadata.getInputMask() + "'");
+						addValidationErrors(validationErrors, (String) value, metadata);
 					}
 				}
 			}

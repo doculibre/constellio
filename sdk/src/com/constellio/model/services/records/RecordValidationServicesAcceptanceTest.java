@@ -553,7 +553,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors).isEmpty();
 	}
 
-	@Test
+	//@Test
 	public void givenMetadataWithInputMaskWhenSavingRecordWithIncompatibleValueThenValidationException()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAStringMetadata(whichHasInputMask("(###) ###-####"), whichHasLabel("Ze meta!")));
@@ -609,7 +609,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	@Test
+	//@Test
 	public void givenMetadataWithInputMaskWhenSavingRecordWithValidUnformattedValueThenFormatted()
 			throws Exception {
 		defineSchemasManager().using(schemas);//.withATitle(whichHasInputMask("(###) ###-####"), whichHasLabel("Ze meta!")));
