@@ -41,8 +41,6 @@ import com.constellio.model.services.records.RecordImplRuntimeException.RecordIm
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
-import com.constellio.model.utils.MaskUtils;
-import com.constellio.model.utils.MaskUtilsException;
 
 public class RecordImpl implements Record {
 
@@ -162,16 +160,16 @@ public class RecordImpl implements Record {
 			convertedRecord = value;
 		}
 
-		if (metadata.getInputMask() != null) {
-			try {
-				convertedRecord = MaskUtils.format(metadata.getInputMask(), (String) convertedRecord);
-			} catch (MaskUtilsException e) {
-				//Cannot convert the value, setting the raw value (will fail in further validations)
-				LOGGER.info("Value '" + convertedRecord + "' in metadata '" + metadata.getCode() + "' is incompatible with mask '"
-						+ metadata.getInputMask() + "'");
-
-			}
-		}
+//		if (metadata.getInputMask() != null) {
+		//			try {
+		//				convertedRecord = MaskUtils.format(metadata.getInputMask(), (String) convertedRecord);
+		//			} catch (MaskUtilsException e) {
+		//				//Cannot convert the value, setting the raw value (will fail in further validations)
+		//				LOGGER.info("Value '" + convertedRecord + "' in metadata '" + metadata.getCode() + "' is incompatible with mask '"
+		//						+ metadata.getInputMask() + "'");
+		//
+		//			}
+		//		}
 
 		return setModifiedValue(metadata, convertedRecord);
 	}

@@ -680,6 +680,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new FolderType(get(id), getTypes());
 	}
 
+	public FolderType getFolderTypeByCode(String code) {
+		return wrapFolderType(getByCode(folderTypeSchemaType(),code));
+	}
+
 	public MetadataSchema defaultFolderTypeSchema() {
 		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
 	}

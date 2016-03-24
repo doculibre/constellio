@@ -250,7 +250,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String ROBOT_LOGS = "robotLogs";
 
 	public static final String TAXONOMY_SEARCH = "taxonomySearch";
-	public static final String RETENTION_RULES_SEARCH = "retentionRulesSearch";
+	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
 
 	public static final String ADD_WORKFLOW = "addWorkflow";

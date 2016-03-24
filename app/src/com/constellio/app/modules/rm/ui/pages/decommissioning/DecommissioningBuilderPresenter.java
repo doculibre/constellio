@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListParams;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
@@ -100,9 +101,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		try {
 			DecommissioningList decommissioningList = decommissioningService.createDecommissioningList(params, getCurrentUser());
 			if (decommissioningList.getDecommissioningListType().isFolderList()) {
-				view.navigateTo().displayDecommissioningList(decommissioningList.getId());
+				view.navigate().to(RMViews.class).displayDecommissioningList(decommissioningList.getId());
 			} else {
-				view.navigateTo().displayDocumentDecommissioningList(decommissioningList.getId());
+				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
 			}
 		} catch (Exception e) {
 			view.showErrorMessage($("DecommissioningBuilderView.unableToSave"));

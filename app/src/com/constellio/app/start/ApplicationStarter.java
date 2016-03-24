@@ -103,6 +103,7 @@ public class ApplicationStarter {
 	public static void stopApplication() {
 		filters.clear();
 		servlets.clear();
+		handler = null;
 		try {
 			server.stop();
 		} catch (Exception e) {

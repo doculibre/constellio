@@ -95,10 +95,32 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_RETENTION_RULES);
 	}
 
+	public void retentionRuleSearch(String queryExpression) {
+		navigator.navigateTo(NavigatorConfigurationService.RETENTION_RULES_SEARCH + "/" + queryExpression);
+	}
+
 	// ARCHIVE MANAGEMENT
 
 	public void archiveManagement() {
 		navigator.navigateTo(NavigatorConfigurationService.ARCHIVES_MANAGEMENT);
+	}
+
+	// DECOMMISSIONING
+
+	public void decommissioning() {
+		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING);
+	}
+
+	public void decommissioningListBuilder(String type) {
+		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_BUILDER + "/" + type);
+	}
+
+	public void displayDecommissioningList(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
+	}
+
+	public void displayDocumentDecommissioningList(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
 	}
 
 	// USER DOCUMENTS
