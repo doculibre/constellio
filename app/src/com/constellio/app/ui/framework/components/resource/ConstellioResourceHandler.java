@@ -143,5 +143,36 @@ public class ConstellioResourceHandler implements RequestHandler {
     	String resourcePath = ParamUtils.addParams(PATH, params);
         return new ExternalResource(resourcePath);
     }
+    
+    public static boolean hasContentPreview(String recordId, String metadataCode, String version) {
+    	boolean contentPreview;
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		UserServices userServices = modelLayerFactory.newUserServices();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		
+		VaadinSession vaadinSession = VaadinSession.getCurrent();
+		UserVO userVO = (UserVO) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_USER_ATTRIBUTE);
+		String collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
+		
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+		User user = userServices.getUserInCollection(userVO.getUsername(), collection);
+		Record record = recordServices.getDocumentById(recordId);
+		
+		if (user.hasReadAccess().on(record)) {
+			String schemaCode = record.getSchemaCode();
+			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
+			Content content = (Content) record.get(metadata);
+			ContentVersion contentVersion = content.getVersion(version);
+			
+			String hash = contentVersion.getHash();
+			contentPreview = contentManager.hasContentPreview(hash);
+		} else {
+			contentPreview = false;
+		}
+		return contentPreview;
+    }
 
 }

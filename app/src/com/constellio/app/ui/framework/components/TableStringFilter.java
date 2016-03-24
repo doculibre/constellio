@@ -24,6 +24,8 @@ public class TableStringFilter extends HorizontalLayout {
 	private Table table;
 
 	public TableStringFilter(final Table table) {
+		setSpacing(true);
+		
 		this.table = table;
 
 		filterField = new BaseTextField();

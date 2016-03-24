@@ -76,107 +76,6 @@ $popup-view-z-index: 3;
 		overflow: hidden !important;
 	}
 
-	.ui-with-top-menu {
-		padding-top: 37px;
-		-webkit-box-sizing: border-box;
-		box-sizing: border-box;
-	}
-	
-	.ui-with-top-menu .v-loading-indicator {
-		top: 37px;
-	}
-	
-	.ui-with-top-menu  > .v-widget {
-		position: relative !important;
-	}
-	
-	.ui-with-top-menu .valo-menu {
-		border-right: none;
-	}
-	
-	.ui-with-top-menu .valo-menu-part {
-		overflow: visible;
-	}
-	
-	.ui-with-top-menu .valo-menu-toggle {
-		display: inline-block;
-	}
-	
-	.ui-with-top-menu .valo-menu-title {
-		position: fixed;
-		z-index: 100;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 37px !important;
-		padding-top: 0;
-		padding-bottom: 0;
-		-webkit-backface-visibility: hidden;
-	}
-	
-	.ui-with-top-menu .valo-menu .v-menubar-user-menu {
-		position: fixed;
-		z-index: 100;
-		top: 0;
-		right: 0;
-		margin: 0;
-		padding: 0;
-		height: 37px;
-		color: #97bee5;
-		max-width: 30%;
-		-webkit-backface-visibility: hidden;
-	}
-	
-	.ui-with-top-menu .valo-menu .v-menubar-user-menu .v-menubar-menuitem {
-		line-height: 36px;
-		white-space: nowrap;
-	}
-	
-	.ui-with-top-menu .valo-menu .v-menubar-user-menu img.v-icon {
-		display: inline-block;
-		margin: 0 6px 0 0;
-		width: 19px;
-		height: 19px;
-		border-radius: 10px;
-		border: none;
-	}
-	
-	.ui-with-top-menu .valo-menuitems {
-		height: 100%;
-		background-color: #4b4b4b;
-		background-image: -webkit-linear-gradient(right, #414141 0%, #4b4b4b 9px);
-		background-image: linear-gradient(to left,#414141 0%, #4b4b4b 9px);
-		color: #a5a5a5;
-		font-size: 14px;
-		line-height: 30px;
-		border-right: 1px solid #3b3b3b;
-		white-space: nowrap;
-		position: fixed;
-		z-index: 2000;
-		top: 37px;
-		bottom: 0;
-		height: auto;
-		max-width: 100%;
-		overflow: auto;
-		padding: 19px 0;
-		-webkit-transform: translatex(-100%);
-		-moz-transform: translatex(-100%);
-		-ms-transform: translatex(-100%);
-		-o-transform: translatex(-100%);
-		transform: translatex(-100%);
-		-webkit-transition: all 300ms;
-		-moz-transition: all 300ms;
-		transition: all 300ms;
-	}
-	
-	.ui-with-top-menu .valo-menu-visible .valo-menuitems {
-		-webkit-transform: translatex(0%);
-		-moz-transform: translatex(0%);
-		-ms-transform: translatex(0%);
-		-o-transform: translatex(0%);
-		transform: translatex(0%);
-	}
-
     // Insert your own theme rules here
 
     .v-table-cell-content-file-icon-box {
@@ -603,6 +502,12 @@ $popup-view-z-index: 3;
 				margin-top: 5px;
 			}
 		}
+		
+		.v-table {
+			.v-scrollable {
+				overflow: auto;
+			}
+		}
 	}
 
 	.user-documents-window {
@@ -715,7 +620,7 @@ $popup-view-z-index: 3;
 	.back-button {
 		position: absolute;
 		margin-top: 20px;
-		right: 24px;
+		right: 20px;
 	}
 
 	.collection-menu {
@@ -1170,7 +1075,90 @@ $popup-view-z-index: 3;
 
     }
 
-    .v-ui[width-range~="1101px-"] {
+	.ui-with-top-menu {
+		padding-top: $v-unit-size;
+		-webkit-box-sizing: border-box;
+		box-sizing: border-box;
+		
+		.v-loading-indicator {
+			top: $v-unit-size;
+		}
+		
+		> .v-widget {
+			position: relative !important;
+		}
+		
+		.valo-menu {
+			border-right: none;
+		}
+		
+		.valo-menu-part {
+			overflow: visible;
+		}
+		
+		.valo-menu-toggle {
+			display: inline-block;
+		}
+		
+		.valo-menu-title {
+			position: fixed;
+			z-index: 100;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: $v-unit-size !important;
+			padding-top: 0;
+			padding-bottom: 0;
+			-webkit-backface-visibility: hidden;
+		}
+		
+		.valo-menu .v-menubar-user-menu {
+			position: fixed;
+			z-index: 100;
+			top: 0;
+			right: 0;
+			margin: 0;
+			padding: 0;
+			height: $v-unit-size;
+			color: #97bee5;
+			max-width: 30%;
+			-webkit-backface-visibility: hidden;
+			
+			.v-menubar-menuitem {
+				line-height: $v-unit-size - 1px;
+				white-space: nowrap;
+			}
+			
+			img.v-icon {
+	            display: inline-block;
+	            margin: 0 round($v-unit-size / 6) 0 0;
+	            width: round($v-unit-size / 2);
+	            height: round($v-unit-size / 2);
+	            border-radius: ceil($v-unit-size / 4);
+	            border: none;
+			}
+		}
+		
+		.valo-menuitems {
+	        @include valo-menu-style;
+	        position: fixed;
+	        z-index: 9000;
+	        top: $v-unit-size;
+	        bottom: 0;
+	        height: auto;
+	        max-width: 100%;
+	        overflow: auto;
+	        padding: round($v-unit-size / 2) 0;
+	        @include transform(translatex(-100%));
+	        @include transition(all 300ms);
+		}
+
+	    .valo-menu-visible .valo-menuitems {
+	        @include transform(translatex(0%));
+	    }
+	}
+
+    .ui-with-top-menu[width-range~="1101px-"] {
 	    .main-component-wrapper {
 	    	min-height: 700px;
 	    }
@@ -1223,7 +1211,7 @@ $popup-view-z-index: 3;
     	}
     }
 
-    .v-ui[width-range~="801-1100px"] {
+    .ui-with-top-menu[width-range~="801-1100px"] {
 
     	.valo-menu-title {
     		padding: 0;
@@ -1258,16 +1246,37 @@ $popup-view-z-index: 3;
 			}
     	}
 
-    	.v-slot-action-menu {
-	        padding: 10px;
-    	}
+        .action-menu-wrapper {
+            padding-right: 260px;
+
+			.back-button {
+				position: fixed;
+			}
+
+			.base-display {
+				.v-slot-display-value {
+            		padding-right: 260px;
+				}
+
+				.v-slot-list-add-remove-comment {
+					width: 100%;
+				}
+			}
+        }
+
+	    .action-menu {
+	        position: fixed;
+	        top: $header-height;
+	        right: 20px;
+	        margin-top: 120px;
+	    }
 
     	.v-slot-suggestions-summary-results {
             padding-right: 320px;
     	}
     }
 
-    .v-ui[width-range~="0-800px"] {
+    .ui-with-top-menu[width-range~="0-800px"] {
 
 		.base-display {
 		    .v-slot-display-caption {

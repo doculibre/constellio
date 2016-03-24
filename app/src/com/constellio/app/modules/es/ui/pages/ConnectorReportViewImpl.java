@@ -58,6 +58,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 
 	private HorizontalLayout buildFilterComponent() {
 		HorizontalLayout filterComponent = new HorizontalLayout();
+		filterComponent.setSpacing(true);
 		filterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
