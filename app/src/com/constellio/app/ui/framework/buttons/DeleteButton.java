@@ -21,6 +21,11 @@ public abstract class DeleteButton extends ConfirmDialogButton {
 		init();
 	}
 
+	public DeleteButton(Resource icon, String caption, boolean iconOnly) {
+		super(icon, caption, iconOnly);
+		init();
+	}
+
 	public DeleteButton(String caption) {
 		super(null, computeCaption(caption, false), false);
 		init();
