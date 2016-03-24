@@ -116,6 +116,7 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 		public final String SELECTOR = "selector";
 		public final String CODE = "code";
 		public final String TITLE = "title";
+		public final String DESCRIPTION = "description";
 
 		public Table attachedTo(Table table) {
 			table.addGeneratedColumn(SELECTOR, this);
@@ -127,7 +128,10 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 
 			table.addGeneratedColumn(TITLE, this);
 			table.setColumnHeader(TITLE, $("FolderRetentionRuleField.title"));
-			table.setColumnExpandRatio(TITLE, 1);
+
+			table.addGeneratedColumn(DESCRIPTION, this);
+			table.setColumnHeader(DESCRIPTION, $("FolderRetentionRuleField.description"));
+			table.setColumnExpandRatio(DESCRIPTION, 1);
 
 			return table;
 		}
@@ -145,6 +149,8 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 				return generateCodeCell(rule);
 			case TITLE:
 				return generateTitleCell(rule);
+			case DESCRIPTION:
+				return generateDescriptionCell(rule);
 			}
 			return null;
 		}
@@ -172,6 +178,10 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 
 		private Object generateTitleCell(RetentionRuleVO rule) {
 			return rule.getTitle();
+		}
+
+		private Object generateDescriptionCell(RetentionRuleVO rule) {
+			return rule.getDescription();
 		}
 	}
 }
