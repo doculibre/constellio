@@ -81,12 +81,12 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return wrappedRecord.getList(metadata);
 	}
 
-	public <T> RecordWrapper set(String localCode, T value) {
+	public <T, W extends RecordWrapper> W set(String localCode, T value) {
 		ensureConnected();
 		String code = wrappedRecord.getSchemaCode() + "_" + localCode;
 		Metadata metadata = types.getMetadata(code);
 		wrappedRecord.set(metadata, value);
-		return this;
+		return (W) this;
 	}
 
 	protected boolean getBooleanWithDefaultValue(String param, boolean defaultValue) {
