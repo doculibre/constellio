@@ -8,6 +8,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationError;
@@ -16,9 +19,13 @@ import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 public class i18n {
 
+	private static Logger LOGGER = LoggerFactory.getLogger(i18n.class);
+
 	private static Locale locale;
 
-	private static List<Utf8ResourceBundles> bundles = new ArrayList<>();
+	private static Utf8ResourceBundles defaultBundle = null;
+
+	private static List<Utf8ResourceBundles> registeredBundles = new ArrayList<>();
 
 	public static Locale getLocale() {
 		return locale;
@@ -38,11 +45,12 @@ public class i18n {
 		if (key == null) {
 			return "";
 		}
-
 		for (Utf8ResourceBundles bundle : getBundles()) {
+
 			ResourceBundle messages = bundle.getBundle(locale);
 
 			if (messages.containsKey(key)) {
+
 				message = messages.getString(key);
 				if (args != null) {
 					try {
@@ -67,10 +75,8 @@ public class i18n {
 		if (key == null) {
 			return "";
 		}
-
 		for (Utf8ResourceBundles bundle : getBundles()) {
 			ResourceBundle messages = bundle.getBundle(locale);
-
 			if (messages.containsKey(key)) {
 				message = messages.getString(key);
 				if (args != null) {
@@ -113,12 +119,17 @@ public class i18n {
 	}
 
 	private static List<Utf8ResourceBundles> getBundles() {
-
-		if (bundles.isEmpty()) {
-			registerBundle(new FoldersLocator().getI18nFolder(), "i18n");
-		}
-
+		List<Utf8ResourceBundles> bundles = new ArrayList<>();
+		bundles.add(getDefaultBundle());
+		bundles.addAll(registeredBundles);
 		return bundles;
+	}
+
+	public static Utf8ResourceBundles getDefaultBundle() {
+		if (defaultBundle == null) {
+			defaultBundle = Utf8ResourceBundles.forPropertiesFile(new FoldersLocator().getI18nFolder(), "i18n");
+		}
+		return defaultBundle;
 	}
 
 	public static void registerBundle(File bundleFolder, String bundleName) {
@@ -126,7 +137,13 @@ public class i18n {
 		if (!bundleProperties.exists()) {
 			throw new RuntimeException("No such file '" + bundleProperties.getAbsolutePath() + "'");
 		}
-		bundles.add(Utf8ResourceBundles.forPropertiesFile(bundleFolder, bundleName));
+		registeredBundles.add(Utf8ResourceBundles.forPropertiesFile(bundleFolder, bundleName));
+	}
+
+	public static void registerBundle(Utf8ResourceBundles bundle) {
+		if (bundle != null) {
+			registeredBundles.add(bundle);
+		}
 	}
 
 	public static List<String> getSupportedLanguages() {
@@ -142,6 +159,6 @@ public class i18n {
 	}
 
 	public static void clearBundles() {
-		bundles.clear();
+		registeredBundles.clear();
 	}
 }

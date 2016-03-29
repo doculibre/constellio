@@ -246,7 +246,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(category1.getDescription()).isEqualTo("earth, water, fire and wind");
 		assertThat(category1.getKeywords()).isEqualTo(asList("grass", "aqua", "torch", "gas"));
 		assertThat(category1.getRententionRules()).isEqualTo(asList(records.ruleId_1, records.ruleId_2));
-		assertThat(category1.getParentCategory()).isNullOrEmpty();
+		assertThat(category1.getParent()).isNullOrEmpty();
 
 		Category category2 = rm.wrapCategory(expectedRecordWithLegacyId("22230"));
 		assertThat(category2.getCode()).isEqualTo("X2223");
@@ -254,7 +254,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(category2.getDescription()).isEqualTo("It is so cold here...");
 		assertThat(category2.getKeywords()).isEqualTo(asList("aqua", "wet", "rain"));
 		assertThat(category2.getRententionRules()).isEmpty();
-		assertThat(category2.getParentCategory()).isEqualTo(category1.getId());
+		assertThat(category2.getParent()).isEqualTo(category1.getId());
 
 		Category category3 = rm.wrapCategory(expectedRecordWithLegacyId("22231"));
 		assertThat(category3.getCode()).isEqualTo("X22231");
@@ -262,7 +262,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(category3.getDescription()).isNull();
 		assertThat(category3.getKeywords()).isEqualTo(asList("àqûä", "%wet%", "a_p_o_c_a_l_y_p_s_e"));
 		assertThat(category3.getRententionRules()).isEqualTo(asList(records.ruleId_1));
-		assertThat(category3.getParentCategory()).isEqualTo(category2.getId());
+		assertThat(category3.getParent()).isEqualTo(category2.getId());
 
 		AdministrativeUnit administrativeUnit1 = rm.wrapAdministrativeUnit(expectedRecordWithLegacyId("40"));
 		assertThat(administrativeUnit1.getCode()).isEqualTo("2014AKA");
@@ -367,7 +367,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(category1.getDescription()).isEqualTo("earth, water, fire and wind");
 		assertThat(category1.getKeywords()).isEqualTo(asList("grass", "aqua", "torch", "gas"));
 		assertThat(category1.getRententionRules()).isEqualTo(asList(records.ruleId_1, records.ruleId_2));
-		assertThat(category1.getParentCategory()).isNullOrEmpty();
+		assertThat(category1.getParent()).isNullOrEmpty();
 
 		Category category2 = rm.wrapCategory(expectedRecordWithLegacyId("22230"));
 		assertThat(category2.getCode()).isEqualTo("X2223");
@@ -375,7 +375,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(category2.getDescription()).isEqualTo("It is so cold here...");
 		assertThat(category2.getKeywords()).isEqualTo(emptyList());
 		assertThat(category2.getRententionRules()).isEmpty();
-		assertThat(category2.getParentCategory()).isEqualTo(category1.getId());
+		assertThat(category2.getParent()).isEqualTo(category1.getId());
 
 		Category category3 = rm.wrapCategory(expectedRecordWithLegacyId("22231"));
 		assertThat(category3.getCode()).isEqualTo("X22231");
@@ -383,7 +383,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(category3.getDescription()).isNull();
 		assertThat(category3.getKeywords()).isEqualTo(asList("àqûä", "%wet%", "a_p_o_c_a_l_y_p_s_e"));
 		assertThat(category3.getRententionRules()).isEqualTo(asList(records.ruleId_1));
-		assertThat(category3.getParentCategory()).isEqualTo(category2.getId());
+		assertThat(category3.getParent()).isEqualTo(category2.getId());
 
 		AdministrativeUnit administrativeUnit1 = rm.wrapAdministrativeUnit(expectedRecordWithLegacyId("40"));
 		assertThat(administrativeUnit1.getCode()).isEqualTo("2014AKA");

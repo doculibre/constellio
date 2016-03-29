@@ -37,7 +37,7 @@ public class Category extends RecordWrapper {
 		return this;
 	}
 
-	public String getParentCategory() {
+	public String getParent() {
 		return get(PARENT);
 	}
 

@@ -18,8 +18,12 @@ public class SDKFoldersLocator extends FoldersLocator {
 		return new File(getSDKProject(), "pluginsJars");
 	}
 
-	File getConstellioProject() {
+	public File getConstellioProject() {
 		return getConstellioWebinfFolder().getParentFile();
+	}
+
+	public File getConstellioPluginsProject() {
+		return new File(getConstellioWebinfFolder().getParentFile().getParentFile(), "constellio-plugins");
 	}
 
 	public File getSDKProperties() {

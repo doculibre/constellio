@@ -154,10 +154,6 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
-	public void retentionRulesSearch(String queryExpression) {
-		navigator.navigateTo(NavigatorConfigurationService.RETENTION_RULES_SEARCH + "/" + queryExpression);
-	}
-
 	public void listGlobalGroups() {
 		navigator.navigateTo(NavigatorConfigurationService.GROUP_LIST);
 	}
@@ -242,22 +238,6 @@ public class CoreViews {
 
 	public void shareContent(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.SHARE_CONTENT + "/" + entityId);
-	}
-
-	public void decommissioning() {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING);
-	}
-
-	public void decommissioningListBuilder(String type) {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_BUILDER + "/" + type);
-	}
-
-	public void displayDecommissioningList(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
-	}
-
-	public void displayDocumentDecommissioningList(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
 	}
 
 	public void editDecommissioningList(String entityId) {

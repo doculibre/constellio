@@ -10,6 +10,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -78,7 +79,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().displayDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 	}
 
 	public void searchRequested() {
@@ -135,7 +136,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 		try {
 			recordServices().add(decommissioningList, getCurrentUser());
-			view.navigateTo().displayDecommissioningList(recordId);
+			view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 		} catch (Exception e) {
 			view.showErrorMessage($("AddExistingContainerView.failedToSave"));
 		}

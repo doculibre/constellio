@@ -28,6 +28,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
@@ -80,6 +82,8 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(Folder.DEFAULT_SCHEMA, Folder.class);
 		wrappers.put(Document.DEFAULT_SCHEMA, Document.class);
 		wrappers.put(Email.SCHEMA, Email.class);
+		wrappers.put(DocumentType.DEFAULT_SCHEMA, DocumentType.class);
+		wrappers.put(FolderType.DEFAULT_SCHEMA, FolderType.class);
 
 		wrappers.put(ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.class);
 		wrappers.put(StorageSpace.DEFAULT_SCHEMA, StorageSpace.class);

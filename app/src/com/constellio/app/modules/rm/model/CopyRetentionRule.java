@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class CopyRetentionRule implements ModifiableStructure {
@@ -23,10 +25,11 @@ public class CopyRetentionRule implements ModifiableStructure {
 	String semiActiveRetentionComment;
 	DisposalType inactiveDisposalType;
 	String inactiveDisposalComment;
-	String documentTypeId;
+	String typeId;
 	String semiActiveDateMetadata;
 	String activeDateMetadata;
 	Integer openActiveRetentionPeriod;
+	boolean essential;
 	boolean dirty;
 	private String id;
 
@@ -34,7 +37,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return id;
 	}
 
-	CopyRetentionRule() {
+	public CopyRetentionRule() {
 	}
 
 	public CopyRetentionRule setId(String id) {
@@ -164,13 +167,31 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return this;
 	}
 
-	public String getDocumentTypeId() {
-		return documentTypeId;
+	public String getTypeId() {
+		return typeId;
 	}
 
-	public CopyRetentionRule setDocumentTypeId(String documentTypeId) {
+	public CopyRetentionRule setTypeId(String typeId) {
 		dirty = true;
-		this.documentTypeId = documentTypeId;
+		this.typeId = typeId;
+		return this;
+	}
+
+	public CopyRetentionRule setTypeId(FolderType type) {
+		return setTypeId(type == null ? null : type.getId());
+	}
+
+	public CopyRetentionRule setTypeId(DocumentType type) {
+		return setTypeId(type == null ? null : type.getId());
+	}
+
+	public boolean isEssential() {
+		return essential;
+	}
+
+	public CopyRetentionRule setEssential(boolean essential) {
+		dirty = true;
+		this.essential = essential;
 		return this;
 	}
 
@@ -198,9 +219,11 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		//		sb.append(copyType == null ? "?" : copyType.getCode());
-		//		sb.append(mediumTypeIds.toString());
-		//		sb.append(" ");
+		if (code != null) {
+			sb.append(code);
+			sb.append("  ");
+		}
+
 		sb.append(activeRetentionPeriod == null ? "?" : activeRetentionPeriod.getValue());
 		sb.append("-");
 		sb.append(semiActiveRetentionPeriod == null ? "?" : semiActiveRetentionPeriod.getValue());

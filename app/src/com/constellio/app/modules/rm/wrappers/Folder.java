@@ -84,6 +84,9 @@ public class Folder extends RMObject {
 	public static final String PENDING_ALERTS = "pendingAlerts";
 	public static final String NEXT_ALERT_ON = "nextAlertOn";
 
+	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
+	public static final String CALENDAR_YEAR = "calendarYear";
+
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -165,6 +168,10 @@ public class Folder extends RMObject {
 	}
 
 	public String getApplicableAdministrative() {
+		return get(ADMINISTRATIVE_UNIT);
+	}
+
+	public String getAdministrativeUnit() {
 		return get(ADMINISTRATIVE_UNIT);
 	}
 
@@ -330,6 +337,10 @@ public class Folder extends RMObject {
 	public Folder setCloseDateEntered(LocalDate closeDate) {
 		set(ENTERED_CLOSING_DATE, closeDate);
 		return this;
+	}
+
+	public LocalDate getOpeningDate() {
+		return get(OPENING_DATE);
 	}
 
 	public LocalDate getOpenDate() {
@@ -624,5 +635,6 @@ public class Folder extends RMObject {
 		set(FORM_MODIFIED_ON, dateTime);
 		return this;
 	}
+
 }
 

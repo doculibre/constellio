@@ -26,6 +26,7 @@ public class RetentionRule extends RecordWrapper {
 	public static final String APPROVED = "approved";
 	public static final String APPROVAL_DATE = "approvalDate";
 	public static final String DOCUMENT_TYPES = "documentTypes";
+	public static final String FOLDER_TYPES = "folderTypes";
 	public static final String DOCUMENT_TYPES_DETAILS = "documentTypesDetails";
 	public static final String KEYWORDS = "keywords";
 	public static final String CORPUS = "corpus";
@@ -90,6 +91,10 @@ public class RetentionRule extends RecordWrapper {
 
 	public List<String> getDocumentTypes() {
 		return getList(DOCUMENT_TYPES);
+	}
+
+	public List<String> getFolderTypes() {
+		return getList(FOLDER_TYPES);
 	}
 
 	public List<RetentionRuleDocumentType> getDocumentTypesDetails() {

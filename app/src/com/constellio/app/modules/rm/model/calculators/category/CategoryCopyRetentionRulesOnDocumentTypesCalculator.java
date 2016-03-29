@@ -49,7 +49,7 @@ public class CategoryCopyRetentionRulesOnDocumentTypesCalculator
 		Set<String> documentTypesWithRetentionRule = getDocumentTypesWithRetentionRule(retentionRuleInRuleOfCategory);
 
 		for (CopyRetentionRuleInRule parentCopyRetentionRule : input.parentCopyRetentionRules) {
-			String documentType = parentCopyRetentionRule.getCopyRetentionRule().getDocumentTypeId();
+			String documentType = parentCopyRetentionRule.getCopyRetentionRule().getTypeId();
 			if (documentType != null && !documentTypesWithRetentionRule.contains(documentType)) {
 				retentionRuleInRuleOfCategory.add(parentCopyRetentionRule);
 			}
@@ -62,8 +62,8 @@ public class CategoryCopyRetentionRulesOnDocumentTypesCalculator
 		Set<String> documentTypes = new HashSet<>();
 
 		for (CopyRetentionRuleInRule copyRetentionRuleInRule : copyRetentionRuleInRules) {
-			if (copyRetentionRuleInRule.getCopyRetentionRule().getDocumentTypeId() != null) {
-				documentTypes.add(copyRetentionRuleInRule.getCopyRetentionRule().getDocumentTypeId());
+			if (copyRetentionRuleInRule.getCopyRetentionRule().getTypeId() != null) {
+				documentTypes.add(copyRetentionRuleInRule.getCopyRetentionRule().getTypeId());
 			}
 		}
 
@@ -78,7 +78,7 @@ public class CategoryCopyRetentionRulesOnDocumentTypesCalculator
 			RetentionRuleScope ruleScope = input.scopes.get(ruleId);
 			if (RetentionRuleScope.DOCUMENTS == ruleScope) {
 				for (CopyRetentionRule copyRetentionRule : copiesInRule.getValue()) {
-					if (copyRetentionRule.getDocumentTypeId() != null) {
+					if (copyRetentionRule.getTypeId() != null) {
 						copyRetentionRuleInRules.add(copyRetentionRule.in(ruleId, input.id, input.level));
 					}
 				}

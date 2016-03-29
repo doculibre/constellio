@@ -97,14 +97,14 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void creationRequested(SearchType type) {
-		view.navigateTo().decommissioningListBuilder(type.toString());
+		view.navigate().to(RMViews.class).decommissioningListBuilder(type.toString());
 	}
 
 	public void displayButtonClicked(RecordVO entity) {
 		if (rmRecordServices().getDecommissioningList(entity.getId()).getDecommissioningListType().isFolderList()) {
-			view.navigateTo().displayDecommissioningList(entity.getId());
+			view.navigate().to(RMViews.class).displayDecommissioningList(entity.getId());
 		} else {
-			view.navigateTo().displayDocumentDecommissioningList(entity.getId());
+			view.navigate().to(RMViews.class).displayDocumentDecommissioningList(entity.getId());
 		}
 	}
 

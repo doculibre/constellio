@@ -396,6 +396,13 @@ public class CollectionsManager implements StatefulService {
 		return returnList;
 	}
 
+	public void initializeModulesResources() {
+		Set<String> returnList = new HashSet<>();
+		for (String collection : getCollectionCodes()) {
+			constellioModulesManager.initializePluginResources(collection);
+		}
+	}
+
 	void initializeCollection(String collection) {
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
 		SchemasRecordsServices core = new SchemasRecordsServices(collection, modelLayerFactory);

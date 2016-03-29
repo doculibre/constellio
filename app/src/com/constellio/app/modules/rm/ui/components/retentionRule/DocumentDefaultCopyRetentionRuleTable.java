@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
@@ -254,20 +255,23 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 
 	private void addItems() {
 		table.removeAllItems();
-		CopyRetentionRule principalCopyRetentionRule = retentionRuleVO.getPrincipalDefaultDocumentCopyRetentionRule();
-		if (principalCopyRetentionRule == null) {
-			principalCopyRetentionRule = presenter.newDocumentDefaultCopyRetentionRule(true);
-			retentionRuleVO.setPrincipalDefaultDocumentCopyRetentionRule(principalCopyRetentionRule);
-		}
 
-		CopyRetentionRule secondaryCopyRetentionRule = retentionRuleVO.getSecondaryDefaultDocumentCopyRetentionRule();
-		if (secondaryCopyRetentionRule == null) {
-			secondaryCopyRetentionRule = presenter.newDocumentDefaultCopyRetentionRule(false);
-			retentionRuleVO.setSecondaryDefaultDocumentCopyRetentionRule(secondaryCopyRetentionRule);
-		}
+		if (retentionRuleVO.getScope() == RetentionRuleScope.DOCUMENTS) {
+			CopyRetentionRule principalCopyRetentionRule = retentionRuleVO.getPrincipalDefaultDocumentCopyRetentionRule();
+			if (principalCopyRetentionRule == null) {
+				principalCopyRetentionRule = presenter.newDocumentDefaultCopyRetentionRule(true);
+				retentionRuleVO.setPrincipalDefaultDocumentCopyRetentionRule(principalCopyRetentionRule);
+			}
 
-		addItem(principalCopyRetentionRule);
-		addItem(secondaryCopyRetentionRule);
+			CopyRetentionRule secondaryCopyRetentionRule = retentionRuleVO.getSecondaryDefaultDocumentCopyRetentionRule();
+			if (secondaryCopyRetentionRule == null) {
+				secondaryCopyRetentionRule = presenter.newDocumentDefaultCopyRetentionRule(false);
+				retentionRuleVO.setSecondaryDefaultDocumentCopyRetentionRule(secondaryCopyRetentionRule);
+			}
+
+			addItem(principalCopyRetentionRule);
+			addItem(secondaryCopyRetentionRule);
+		}
 	}
 
 	private void initFields() {

@@ -668,10 +668,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
 	}
 
-	public FolderType wrapFolderType(Record record) {
-		return new FolderType(record, getTypes());
-	}
-
 	public List<FolderType> wrapFolderTypes(List<Record> records) {
 		List<FolderType> folderTypes = new ArrayList<>();
 		for (Record record : records) {
@@ -682,6 +678,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public FolderType getFolderType(String id) {
 		return new FolderType(get(id), getTypes());
+	}
+
+	public FolderType getFolderTypeByCode(String code) {
+		return wrapFolderType(getByCode(folderTypeSchemaType(), code));
 	}
 
 	public MetadataSchema defaultFolderTypeSchema() {
@@ -1501,4 +1501,5 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public DocumentType emailDocumentType() {
 		return getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE);
 	}
+
 }

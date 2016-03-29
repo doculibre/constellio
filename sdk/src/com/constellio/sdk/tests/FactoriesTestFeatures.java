@@ -208,8 +208,8 @@ public class FactoriesTestFeatures {
 									} catch (IOException e) {
 										throw new RuntimeException(e);
 									}
-								} catch(Exception e) {
-									e.printStackTrace();
+								} catch (Exception e) {
+									//e.printStackTrace();
 								}
 							}
 

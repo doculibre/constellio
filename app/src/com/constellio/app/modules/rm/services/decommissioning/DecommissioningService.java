@@ -337,12 +337,11 @@ public class DecommissioningService {
 		return rm.wrapFolders(searchServices.search(query));
 	}
 
-	public List<Folder> getFoldersForRetentionRule(String retentionRuleId) {
+	public long getFolderCountForRetentionRule(String retentionRuleId) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(rm.folderSchemaType()).where(rm.folderRetentionRule()).is(retentionRuleId))
-				.filteredByStatus(StatusFilter.ACTIVES)
-				.sortAsc(Schemas.TITLE);
-		return rm.wrapFolders(searchServices.search(query));
+				.filteredByStatus(StatusFilter.ACTIVES);
+		return searchServices.getResultsCount(query);
 	}
 
 	public List<RetentionRule> getRetentionRulesForAdministrativeUnit(String administrativeUnitId) {
@@ -561,7 +560,8 @@ public class DecommissioningService {
 		recordServices.recalculate(folder);
 
 		boolean folderIsNotActive = folder.getArchivisticStatus().isSemiActiveOrInactive();
-		return folderIsNotActive && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
+		return user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder)
+				&& (folderIsNotActive || configs.areActiveInContainersAllowed());
 	}
 
 	public String getUniformRuleOf(ContainerRecord container) {
