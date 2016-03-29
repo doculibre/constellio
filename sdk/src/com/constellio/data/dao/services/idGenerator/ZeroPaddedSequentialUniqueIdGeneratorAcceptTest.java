@@ -21,6 +21,7 @@ public class ZeroPaddedSequentialUniqueIdGeneratorAcceptTest extends ConstellioT
 	@Before
 	public void setUp()
 			throws Exception {
+		notAUnitItest = true;
 		zeroPaddedSequentialUniqueIdGenerator = new ZeroPaddedSequentialUniqueIdGenerator(
 				getDataLayerFactory().getConfigManager(),
 				10);
