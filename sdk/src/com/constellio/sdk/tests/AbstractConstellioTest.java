@@ -565,9 +565,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getSeleniumTestFeatures().startApplication();
 	}
 
-	protected String startApplicationWithSSL() {
+	protected String startApplicationWithSSL(boolean keepAlive) {
 		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
-		return getCurrentTestSession().getSeleniumTestFeatures().startApplicationWithSSL();
+		return getCurrentTestSession().getSeleniumTestFeatures().startApplicationWithSSL(keepAlive);
 	}
 
 	protected void stopApplication() {
