@@ -213,6 +213,9 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Component buildCustomComponent(CustomItem tabSource) {
 		Component component = tabSource.buildCustomComponent(getConstellioFactories(), getSessionContext());
+		if (component instanceof BaseViewImpl) {
+			((BaseViewImpl) component).enter(null);
+		}
 		component.setSizeFull();
 		return component;
 	}
