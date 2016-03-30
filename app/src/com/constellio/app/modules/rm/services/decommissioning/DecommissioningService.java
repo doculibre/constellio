@@ -630,10 +630,10 @@ public class DecommissioningService {
 		return taxonomiesManager.getEnabledTaxonomyWithCode(collection, ADMINISTRATIVE_UNITS);
 	}
 
-	public Folder duplicateStructureAndSave(Folder folder) {
+	public Folder duplicateStructureAndSave(Folder folder, User currentUser) {
 
 		Transaction transaction = new Transaction();
-		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, transaction);
+		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction);
 		try {
 			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
@@ -642,23 +642,23 @@ public class DecommissioningService {
 		return duplicatedFolder;
 	}
 
-	private Folder duplicateStructureAndAddToTransaction(Folder folder, Transaction transaction) {
-		Folder duplicatedFolder = duplicate(folder);
+	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction) {
+		Folder duplicatedFolder = duplicate(folder, currentUser);
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.folderSchemaType()).where(rm.folderParentFolder()).isEqualTo(folder))));
 		for (Folder child : children) {
-			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, transaction);
+			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction);
 			duplicatedChild.setTitle(child.getTitle());
 			duplicatedChild.setParentFolder(duplicatedFolder);
 		}
 		return duplicatedFolder;
 	}
 
-	public Folder duplicateAndSave(Folder folder) {
+	public Folder duplicateAndSave(Folder folder, User currentUser) {
 		try {
-			Folder duplicatedFolder = duplicate(folder);
+			Folder duplicatedFolder = duplicate(folder, currentUser);
 			recordServices.add(duplicatedFolder);
 			return duplicatedFolder;
 		} catch (RecordServicesException e) {
@@ -666,7 +666,7 @@ public class DecommissioningService {
 		}
 	}
 
-	public Folder duplicate(Folder folder) {
+	public Folder duplicate(Folder folder, User currentUser) {
 		Folder newFolder = rm.newFolderWithType(folder.getType());
 		MetadataSchema schema = newFolder.getSchema();
 
@@ -674,6 +674,8 @@ public class DecommissioningService {
 			newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
 		}
 		newFolder.setTitle(folder.getTitle() + " (Copie)");
+		newFolder.setFormCreatedBy(currentUser);
+		newFolder.setFormCreatedOn(TimeProvider.getLocalDateTime());
 
 		return newFolder;
 	}
