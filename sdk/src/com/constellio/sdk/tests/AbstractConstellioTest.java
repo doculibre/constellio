@@ -53,13 +53,10 @@ import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
-import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
-import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.tools.ServerThrowableContext;
 import com.constellio.app.ui.tools.vaadin.TestContainerButtonListener;
@@ -566,6 +563,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String startApplication() {
 		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
 		return getCurrentTestSession().getSeleniumTestFeatures().startApplication();
+	}
+
+	protected String startApplicationWithSSL(boolean keepAlive) {
+		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
+		return getCurrentTestSession().getSeleniumTestFeatures().startApplicationWithSSL(keepAlive);
 	}
 
 	protected void stopApplication() {
