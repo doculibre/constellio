@@ -43,6 +43,7 @@ public class RMConfigs {
 			REQUIRE_APPROVAL_FOR_DESTRUCTION_OF_SEMIACTIVE,
 			CONTAINER_RECYCLING_ALLOWED,
 			MIXED_CONTAINERS_ALLOWED,
+			ACTIVES_IN_CONTAINER_ALLOWED,
 			BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
 			WORKFLOWS_ENABLED;
@@ -160,6 +161,8 @@ public class RMConfigs {
 		// Allow to put folders from different administrative units in a single container
 		add(MIXED_CONTAINERS_ALLOWED = decommissioning.createBooleanFalseByDefault("mixedContainersAllowed"));
 
+		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
+
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -271,6 +274,10 @@ public class RMConfigs {
 
 	public boolean areMixedContainersAllowed() {
 		return manager.getValue(MIXED_CONTAINERS_ALLOWED);
+	}
+
+	public boolean areActiveInContainersAllowed() {
+		return manager.getValue(ACTIVES_IN_CONTAINER_ALLOWED);
 	}
 
 	public boolean isAgentEnabled() {

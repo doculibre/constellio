@@ -560,7 +560,8 @@ public class DecommissioningService {
 		recordServices.recalculate(folder);
 
 		boolean folderIsNotActive = folder.getArchivisticStatus().isSemiActiveOrInactive();
-		return folderIsNotActive && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
+		return user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder)
+				&& (folderIsNotActive || configs.areActiveInContainersAllowed());
 	}
 
 	public String getUniformRuleOf(ContainerRecord container) {
