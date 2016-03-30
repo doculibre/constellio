@@ -101,6 +101,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 
 		private void updateRetentionRuleSchema(MetadataSchemaBuilder schema) {
 			MetadataSchemaTypeBuilder folderTypeSchemaType = types().getSchemaType(FolderType.SCHEMA_TYPE);
+			schema.get(RetentionRule.DESCRIPTION).setSchemaAutocomplete(true);
 			schema.get(RetentionRule.DOCUMENT_TYPES).defineDataEntry().asCalculated(RuleDocumentTypesCalculator2.class);
 			schema.create(RetentionRule.FOLDER_TYPES).setMultivalue(true)
 					.defineReferencesTo(folderTypeSchemaType)
