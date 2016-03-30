@@ -113,10 +113,10 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 	}
 
 	private class Generator implements ColumnGenerator {
-		public final String SELECTOR = "selector";
-		public final String CODE = "code";
-		public final String TITLE = "title";
-		public final String DESCRIPTION = "description";
+		public static final String SELECTOR = "selector";
+		public static final String CODE = "code";
+		public static final String TITLE = "title";
+		public static final String DESCRIPTION = "description";
 
 		public Table attachedTo(Table table) {
 			table.addGeneratedColumn(SELECTOR, this);
