@@ -2,7 +2,9 @@ package com.constellio.model.entities.schemas;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -23,6 +25,7 @@ public class MetadataSchemaTypes {
 	private final String collection;
 
 	private final List<MetadataSchemaType> schemaTypes;
+	private final Map<String, MetadataSchemaType> schemaTypesMap;
 
 	private final List<String> schemaTypesSortedByDependency;
 	private List<String> referenceDefaultValues;
@@ -37,6 +40,15 @@ public class MetadataSchemaTypes {
 		this.schemaTypesSortedByDependency = schemaTypesSortedByDependency;
 		this.referenceDefaultValues = referenceDefaultValues;
 		this.searchableMetadatas = getAllMetadatas().onlySearchable();
+		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
+	}
+
+	private Map<String, MetadataSchemaType> toUnmodifiableMap(List<MetadataSchemaType> schemaTypes) {
+		Map<String, MetadataSchemaType> types = new HashMap<>();
+		for (MetadataSchemaType type : schemaTypes) {
+			types.put(type.getCode(), type);
+		}
+		return Collections.unmodifiableMap(types);
 	}
 
 	public String getCollection() {
@@ -66,13 +78,13 @@ public class MetadataSchemaTypes {
 	}
 
 	public MetadataSchemaType getSchemaType(String schemaTypeCode) {
+		MetadataSchemaType schemaType = schemaTypesMap.get(schemaTypeCode);
 
-		for (MetadataSchemaType schemaType : schemaTypes) {
-			if (schemaTypeCode.equals(schemaType.getCode())) {
-				return schemaType;
-			}
+		if (schemaType == null) {
+			throw new MetadataSchemasRuntimeException.NoSuchSchemaType(schemaTypeCode);
 		}
-		throw new MetadataSchemasRuntimeException.NoSuchSchemaType(schemaTypeCode);
+
+		return schemaType;
 	}
 
 	public MetadataSchema getDefaultSchema(String schemaTypeCode) {

@@ -681,7 +681,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public FolderType getFolderTypeByCode(String code) {
-		return wrapFolderType(getByCode(folderTypeSchemaType(),code));
+		return wrapFolderType(getByCode(folderTypeSchemaType(), code));
 	}
 
 	public MetadataSchema defaultFolderTypeSchema() {
@@ -1501,4 +1501,5 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public DocumentType emailDocumentType() {
 		return getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE);
 	}
+
 }

@@ -48,7 +48,7 @@ public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 		List<CopyRetentionRule> secondaryCopyRetentionRules = new ArrayList<>();
 		for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
 			CopyType copyType = copyRetentionRule.getCopyType();
-			if (CopyType.PRINCIPAL.equals(copyType.getCode())) {
+			if (CopyType.PRINCIPAL.equals(copyType)) {
 				principalCopyRetentionRules.add(copyRetentionRule);
 			} else {
 				secondaryCopyRetentionRules.add(copyRetentionRule);
@@ -97,7 +97,7 @@ public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 		DisposalType inactiveDisposalType = copyRetentionRule.getInactiveDisposalType();
 
 		String copyTypeLabel;
-		if (CopyType.PRINCIPAL.equals(copyType.getCode())) {
+		if (CopyType.PRINCIPAL.equals(copyType)) {
 			copyTypeLabel = $("RetentionRuleReferenceDisplay.copyType.principal");
 		} else {
 			copyTypeLabel = $("RetentionRuleReferenceDisplay.copyType.secondary");
@@ -117,15 +117,16 @@ public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 		}
 		sb.append(" : ");
 
-		sb.append(activeRetentionPeriod.getRetentionType().getCode());
-		sb.append("-");
-		if (semiActiveRetentionPeriod != null) {
-			sb.append(semiActiveRetentionPeriod.getRetentionType().getCode());
-		} else {
-			sb.append("0");
-		}
-		sb.append("-");
-		sb.append(inactiveDisposalType.getCode());
+		//		sb.append(activeRetentionPeriod.getRetentionType().getCode());
+		//		sb.append("-");
+		//		if (semiActiveRetentionPeriod != null) {
+		//			sb.append(semiActiveRetentionPeriod.getRetentionType().getCode());
+		//		} else {
+		//			sb.append("0");
+		//		}
+		//		sb.append("-");
+		//		sb.append(inactiveDisposalType.getCode());
+		sb.append(copyRetentionRule.toString());
 	}
 
 }

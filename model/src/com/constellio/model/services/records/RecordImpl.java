@@ -160,7 +160,7 @@ public class RecordImpl implements Record {
 			convertedRecord = value;
 		}
 
-//		if (metadata.getInputMask() != null) {
+		//		if (metadata.getInputMask() != null) {
 		//			try {
 		//				convertedRecord = MaskUtils.format(metadata.getInputMask(), (String) convertedRecord);
 		//			} catch (MaskUtilsException e) {

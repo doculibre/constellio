@@ -62,11 +62,6 @@ public class ESNavigationConfiguration implements Serializable {
 				}
 
 				@Override
-				public int getDefaultTab() {
-					return defaultTab;
-				}
-
-				@Override
 				public BaseContextMenu getContextMenu() {
 					return new BaseContextMenu();
 				}
