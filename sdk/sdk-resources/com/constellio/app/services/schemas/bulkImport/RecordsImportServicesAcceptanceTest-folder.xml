@@ -29,6 +29,53 @@
         <retentionRuleEntered>code:3</retentionRuleEntered>
         <title>A Wonderful |#!/$%?*()_+ Folder</title>
     </record>
+    <record id="671">
+        <administrativeUnitEntered>code:2014AKA</administrativeUnitEntered>
+        <categoryEntered>code:X2223</categoryEntered>
+        <copyStatusEntered>S</copyStatusEntered>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords></keywords>
+        <mediumTypes>null</mediumTypes>
+        <actualTransferDate type="date">2010-05-29</actualTransferDate>
+        <retentionRuleEntered>code:111201</retentionRuleEntered>
+        <title>Folder with default copy</title>
+    </record>
+    <record id="672">
+        <administrativeUnitEntered>code:2014AKA</administrativeUnitEntered>
+        <categoryEntered>code:X2223</categoryEntered>
+        <copyStatusEntered>P</copyStatusEntered>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords></keywords>
+        <mediumTypes>null</mediumTypes>
+        <actualTransferDate type="date">2010-05-29</actualTransferDate>
+        <retentionRuleEntered>code:111201</retentionRuleEntered>
+        <mainCopyRuleIdEntered>123</mainCopyRuleIdEntered>
+        <title>Folder with bad entered copy</title>
+    </record>
+    <record id="673">
+        <administrativeUnitEntered>code:2014AKA</administrativeUnitEntered>
+        <categoryEntered>code:X2223</categoryEntered>
+        <copyStatusEntered>P</copyStatusEntered>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords></keywords>
+        <mediumTypes>null</mediumTypes>
+        <actualTransferDate type="date">2010-05-29</actualTransferDate>
+        <retentionRuleEntered>code:111201</retentionRuleEntered>
+        <mainCopyRuleIdEntered>456</mainCopyRuleIdEntered>
+        <title>Folder with copy 456</title>
+    </record>
+    <record id="674">
+        <administrativeUnitEntered>code:2014AKA</administrativeUnitEntered>
+        <categoryEntered>code:X2223</categoryEntered>
+        <copyStatusEntered>P</copyStatusEntered>
+        <openingDate type="date">2015-04-16</openingDate>
+        <keywords></keywords>
+        <mediumTypes>null</mediumTypes>
+        <actualTransferDate type="date">2010-05-29</actualTransferDate>
+        <retentionRuleEntered>code:111201</retentionRuleEntered>
+        <mainCopyRuleIdEntered>789</mainCopyRuleIdEntered>
+        <title>Folder with copy 789</title>
+    </record>
     <record id="661">
         <parentFolder>660</parentFolder>
         <title>A Wonderful and Cold (Sub)Folder</title>
