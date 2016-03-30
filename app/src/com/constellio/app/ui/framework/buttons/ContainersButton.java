@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ public class ContainersButton extends WindowButton {
 		formLayout.setSpacing(true);
 		containerLookup = new LookupRecordField(ContainerRecord.SCHEMA_TYPE);
 		containerLookup.setCaption($("ContainersButton.containerTitle"));
+		containerLookup.setRequired(true);
 		HorizontalLayout containerLayout = new HorizontalLayout();
 		containerLayout.addComponent(containerLookup);
 		containerLayout.setComponentAlignment(containerLookup, Alignment.MIDDLE_CENTER);
@@ -61,8 +63,10 @@ public class ContainersButton extends WindowButton {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				try{
-					selector.putRecordsInContainer(selector.getSelectedRecordIds(), containerLookup.getValue());
-					getWindow().close();
+					if(StringUtils.isNotBlank(containerLookup.getValue())){
+						selector.putRecordsInContainer(selector.getSelectedRecordIds(), containerLookup.getValue());
+						getWindow().close();
+					}
 				}catch(Throwable e){
 					showErrorMessage(e);
 				}
