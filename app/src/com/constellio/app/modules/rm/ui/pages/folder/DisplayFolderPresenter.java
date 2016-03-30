@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -364,7 +366,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder)) {
+		if (user.hasDeleteAccess().on(folder) && isDeletable(folderVO)) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
