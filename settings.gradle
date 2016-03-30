@@ -50,5 +50,5 @@ if (new File(rootDir, "../constellio-plugins").exists()) {
     project(":plugins:plugin012").projectDir = file("../constellio-plugins/plugin012")
     project(":plugins:plugin014").projectDir = file("../constellio-plugins/plugin014")
     project(":plugins:plugin666").projectDir = file("../constellio-plugins/plugin666")
-
+    project(":plugins:plugin014").projectDir = file("../constellio-plugins/plugin014")
 }
