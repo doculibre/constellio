@@ -33,7 +33,7 @@ allprojects {
     }
 
     configurations.all {
-        resolutionStrategy { 
+        resolutionStrategy {
             force "javax.validation:validation-api:1.0.0.GA"
             force "org.apache.james:apache-mime4j:${version_mime}"
         }
@@ -109,7 +109,7 @@ allprojects {
 
 war {
     baseName = "constellio"
-    version = "6.1.42.1"
+    version = "6.1.5"
 
     webInf {
         from("resources_i18n/") {

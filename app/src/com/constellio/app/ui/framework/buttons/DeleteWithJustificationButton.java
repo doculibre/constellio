@@ -23,7 +23,7 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 
 	public DeleteWithJustificationButton(String caption, boolean iconOnly) {
 		super((iconOnly ? DeleteButton.ICON_RESOURCE : null),
-				DeleteButton.computeCaption(caption, iconOnly), iconOnly, WindowConfiguration.modalDialog("35%", "30%"));
+				DeleteButton.computeCaption(caption, iconOnly), iconOnly, WindowConfiguration.modalDialog("35%", "290px"));
 	}
 
 	public DeleteWithJustificationButton(boolean iconOnly) {
