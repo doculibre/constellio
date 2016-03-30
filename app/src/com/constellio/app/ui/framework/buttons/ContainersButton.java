@@ -35,7 +35,7 @@ public class ContainersButton extends WindowButton {
 	}
 
 	public ContainersButton(String caption, String windowCaption, ContainersAssigner selector) {
-		super(caption, windowCaption, WindowConfiguration.modalDialog("65%", "25%"));
+		super(caption, windowCaption, WindowConfiguration.modalDialog("45%", "25%"));
 		this.selector = selector;
 	}
 
