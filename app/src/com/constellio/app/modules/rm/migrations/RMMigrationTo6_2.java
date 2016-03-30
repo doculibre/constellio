@@ -53,7 +53,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
 
 		transaction
-				.in(Folder.SCHEMA_TYPE).addToForm(Folder.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Folder.RETENTION_RULE_ENTERED)
+				.in(Folder.SCHEMA_TYPE).addToForm(Folder.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Folder.COPY_STATUS_ENTERED)
 				.in(Document.SCHEMA_TYPE).addToForm(Document.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Document.TITLE);
 
 		schemaDisplayManager.execute(transaction.build());

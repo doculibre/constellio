@@ -248,50 +248,6 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return dirty;
 	}
 
-	//	public static CopyRetentionRule newPrincipal(List<String> contentTypesCodes, String value) {
-	//		return copyBuilder.newRetentionRule(CopyType.PRINCIPAL, contentTypesCodes, value);
-	//	}
-	//
-	//	public static CopyRetentionRule newSecondary(List<String> contentTypesCodes, String value) {
-	//		return copyBuilder.newRetentionRule(CopyType.SECONDARY, contentTypesCodes, value);
-	//	}
-	//
-	//	public static CopyRetentionRule newPrincipal(List<String> contentTypesCodes) {
-	//		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
-	//		copyRetentionRule.setMediumTypeIds(contentTypesCodes);
-	//		copyRetentionRule.setCopyType(CopyType.PRINCIPAL);
-	//		return copyRetentionRule;
-	//	}
-	//
-	//	public static CopyRetentionRule newSecondary(List<String> contentTypesCodes) {
-	//		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
-	//		copyRetentionRule.setMediumTypeIds(contentTypesCodes);
-	//		copyRetentionRule.setCopyType(CopyType.SECONDARY);
-	//		return copyRetentionRule;
-	//	}
-	//
-	//	public static CopyRetentionRule copyBuilder.newRetentionRule(CopyType copyType, List<String> contentTypesCodes, String value) {
-	//		String[] parts = (" " + value + " ").split("-");
-	//		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
-	//		copyRetentionRule.setMediumTypeIds(contentTypesCodes);
-	//		copyRetentionRule.setCopyType(copyType);
-	//
-	//		String part0 = parts[0].trim();
-	//		String part1 = parts[1].trim();
-	//		String part2 = parts[2].trim();
-	//
-	//		if (!part0.isEmpty() && !part0.equals("0")) {
-	//			copyRetentionRule.setActiveRetentionPeriod(new RetentionPeriod(Integer.valueOf(part0)));
-	//		}
-	//		if (!part1.isEmpty() && !part1.equals("0")) {
-	//			copyRetentionRule.setSemiActiveRetentionPeriod(new RetentionPeriod(Integer.valueOf(part1)));
-	//		}
-	//		if (!part2.isEmpty()) {
-	//			copyRetentionRule.setInactiveDisposalType((DisposalType) EnumWithSmallCodeUtils.toEnum(DisposalType.class, part2));
-	//		}
-	//		return copyRetentionRule;
-	//	}
-
 	public boolean canTransferToSemiActive() {
 		return semiActiveRetentionPeriod != RetentionPeriod.ZERO;
 	}
