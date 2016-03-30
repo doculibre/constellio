@@ -16,8 +16,10 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
+	Users users = new Users();
 	DecommissioningService service;
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -30,13 +32,14 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		service = new DecommissioningService(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
+		users.setUp(getModelLayerFactory().newUserServices());
 	}
 
 	@Test
@@ -50,7 +53,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		recordServices.update(a13);
 
 		Folder a04 = records.getFolder_A04();
-		Folder duplicatedFolder = service.duplicateAndSave(records.getFolder_A04());
+		Folder duplicatedFolder = service.duplicateAndSave(records.getFolder_A04(), users.adminIn(zeCollection));
 
 		assertThat(duplicatedFolder.getDescription()).isEqualTo(a04.getDescription());
 		assertThat(duplicatedFolder.getTitle()).isEqualTo(a04.getTitle() + " (Copie)");
@@ -89,7 +92,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		recordServices.update(a13);
 
 		Folder a04 = records.getFolder_A04();
-		Folder duplicatedFolder = service.duplicateStructureAndSave(records.getFolder_A04());
+		Folder duplicatedFolder = service.duplicateStructureAndSave(records.getFolder_A04(), users.adminIn(zeCollection));
 
 		assertThat(duplicatedFolder.getDescription()).isEqualTo(a04.getDescription());
 		assertThat(duplicatedFolder.getTitle()).isEqualTo(a04.getTitle() + " (Copie)");
@@ -148,7 +151,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		a13.setAdministrativeUnitEntered((String) null);
 		recordServices.update(a13);
 
-		Folder duplicatedFolder = service.duplicateAndSave(a13);
+		Folder duplicatedFolder = service.duplicateAndSave(a13, users.adminIn(zeCollection));
 
 		assertThat(duplicatedFolder.getDescription()).isEqualTo(a13.getDescription());
 		assertThat(duplicatedFolder.getTitle()).isEqualTo(a13.getTitle() + " (Copie)");
