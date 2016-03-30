@@ -33,6 +33,7 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 	private final String collection;
 	private List<String> options;
 	private Table table;
+	private String value;
 
 	public FolderRetentionRuleFieldImpl(String collection) {
 		this.collection = collection;
@@ -69,12 +70,14 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 
 	@Override
 	public String getFieldValue() {
-		return getInternalValue();
+		return value;
 	}
 
 	@Override
 	public void setValue(String newFieldValue)
 			throws ReadOnlyException, ConversionException {
+		System.out.println("Setting value to: " + newFieldValue);
+		value = newFieldValue;
 		super.setValue(newFieldValue);
 		table.refreshRowCache();
 	}
