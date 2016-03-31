@@ -60,7 +60,8 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 
 			String validId = null;
 			for (CopyRetentionRule copy : rule.getCopyRetentionRules()) {
-				if (copy.getId().equals(enteredMainCopyId) || copy.getCode().equals(enteredMainCopyId)) {
+				if (copy.getId().equals(enteredMainCopyId) || (copy.getCode() != null && copy.getCode()
+						.equals(enteredMainCopyId))) {
 					validId = copy.getId();
 					break;
 				}
