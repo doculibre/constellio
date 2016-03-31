@@ -41,6 +41,8 @@ public class StartConstellioDevMain {
 
 		ApplicationStarter.startApplication(false, getWebContentDir(), 7070);
 
+
+
 		ReindexingServices reindexingServices = factory.getModelLayerFactory().newReindexingServices();
 		//reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
