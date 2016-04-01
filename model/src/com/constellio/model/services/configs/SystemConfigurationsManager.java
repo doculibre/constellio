@@ -227,7 +227,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 
 	List<BatchProcess> startBatchProcessesToReindex(SystemConfiguration config) {
 		List<BatchProcess> batchProcesses = new ArrayList<>();
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			for (String typeCode : types.getSchemaTypesSortedByDependency()) {
 				MetadataSchemaType type = types.getSchemaType(typeCode);

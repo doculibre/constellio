@@ -98,6 +98,7 @@ allprojects {
         compile "com.itextpdf:itextpdf:5.0.6"
         compile "javax.servlet.jsp:jsp-api:2.2"
         compile "com.auxilii.msgparser:msgparser-1.12"
+        compile "com.sun.messaging.mq:jaxm-api:4.4.1"
     }
 
     configurations {
@@ -109,7 +110,7 @@ allprojects {
 
 war {
     baseName = "constellio"
-    version = "6.1.42.1"
+    version = "6.1.42.3"
 
     webInf {
         from("resources_i18n/") {
