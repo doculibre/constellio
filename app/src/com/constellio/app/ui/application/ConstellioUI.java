@@ -122,7 +122,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		super.detach();
 		getSession().removeRequestHandler(requestHandler);
 	}
-	
+
 	private UserVO ssoAuthenticate() {
 		UserVO currentUserVO;
 
@@ -130,19 +130,19 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		
+
 		Principal userPrincipal = sessionContext.getUserPrincipal();
 		if (userPrincipal != null) {
 			String username = userPrincipal.getName();
-			
+
 			UserCredential userCredential = userServices.getUserCredential(username);
 			if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
 				List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
-				
+
 				String lastCollection = null;
 				User userInLastCollection = null;
 				LocalDateTime lastLogin = null;
-				
+
 				for (String collection : collections) {
 					User userInCollection = userServices.getUserInCollection(username, collection);
 					if (userInLastCollection == null) {
@@ -174,7 +174,8 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 					}
 
 					modelLayerFactory.newLoggingServices().login(userInLastCollection);
-					currentUserVO = new UserToVOBuilder().build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+					currentUserVO = new UserToVOBuilder()
+							.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 					sessionContext.setCurrentUser(currentUserVO);
 					sessionContext.setCurrentCollection(lastCollection);
 					sessionContext.setForcedSignOut(false);
@@ -321,17 +322,4 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		return (ConstellioUI) UI.getCurrent();
 	}
 
-	public class Navigation {
-		public CoreViews to() {
-			return to(CoreViews.class);
-		}
-
-		public <T extends CoreViews> T to(Class<T> navigatorClass) {
-			try {
-				return navigatorClass.getConstructor(Navigator.class).newInstance(getNavigator());
-			} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-				throw new ImpossibleRuntimeException("The navigator does not provide a valid constructor");
-			}
-		}
-	}
 }

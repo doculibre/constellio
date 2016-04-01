@@ -1,6 +1,6 @@
 package com.constellio.app.extensions.records.params;
 
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.server.Page;
 import com.vaadin.ui.AbstractComponent;

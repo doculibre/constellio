@@ -11,7 +11,7 @@ import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.BaseView;
 
