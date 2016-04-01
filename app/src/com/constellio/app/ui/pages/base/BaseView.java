@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.CoreViews;
 
 public interface BaseView extends Serializable, SessionContextProvider {

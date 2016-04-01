@@ -2,7 +2,7 @@ package com.constellio.app.ui.pages.base;
 
 import java.io.Serializable;
 
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.CoreViews;
 
 public interface MainLayout extends Serializable {
