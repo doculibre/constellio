@@ -210,6 +210,8 @@ public class UserServices {
 
 	public User getUserInCollection(String username, String collection) {
 		UserCredential userCredential = getUser(username);
+		// Case insensitive
+		username = userCredential.getUsername();
 		if (!userCredential.getCollections().contains(collection)) {
 			throw new UserServicesRuntimeException_UserIsNotInCollection(username, collection);
 		}
