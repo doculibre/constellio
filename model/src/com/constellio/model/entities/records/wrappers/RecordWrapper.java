@@ -70,6 +70,12 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return wrappedRecord.get(metadata);
 	}
 
+	public <T> T getOriginal(String localCode) {
+		String code = wrappedRecord.getSchemaCode() + "_" + localCode;
+		Metadata metadata = types.getMetadata(code);
+		return wrappedRecord.getCopyOfOriginalRecord().get(metadata);
+	}
+
 	public <T> List<T> getList(Metadata metadata) {
 		return wrappedRecord.getList(metadata);
 	}

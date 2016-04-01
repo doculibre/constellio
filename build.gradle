@@ -110,7 +110,7 @@ allprojects {
 
 war {
     baseName = "constellio"
-    version = "6.1.42.3"
+    version = "6.1.42.4"
 
     webInf {
         from("resources_i18n/") {
