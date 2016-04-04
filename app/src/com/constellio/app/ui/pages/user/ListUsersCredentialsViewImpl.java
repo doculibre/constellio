@@ -30,7 +30,6 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUsersCredentialsView {
-
 	public static final String ADMIN = "admin";
 	private ListUserCredentialsPresenter presenter;
 	private static final String PROPERTY_BUTTONS = "buttons";
