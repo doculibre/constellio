@@ -114,7 +114,7 @@ public class CollectionsManager implements StatefulService {
 				XmlGlobalGroupsManager xmlGlobalGroupsManager = new XmlGlobalGroupsManager(
 						dataLayerFactory.getConfigManager());
 				xmlGlobalGroupsManager.initialize();
-				new UserCredentialAndGlobalGroupsMigration(xmlUserCredentialsManager, xmlGlobalGroupsManager,
+				new UserCredentialAndGlobalGroupsMigration(modelLayerFactory, xmlUserCredentialsManager, xmlGlobalGroupsManager,
 						modelLayerFactory.newRecordServices(), schemas).migrateUserAndGroups();
 				xmlGlobalGroupsManager.close();
 			}
