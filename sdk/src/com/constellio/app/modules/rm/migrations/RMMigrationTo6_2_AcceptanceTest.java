@@ -48,9 +48,11 @@ public class RMMigrationTo6_2_AcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenSaveSateThenUsersCreated() throws Exception{
+	public void givenSaveSateThenUsersCreated()
+			throws Exception {
 		givenSystemInState("given_system_in_6.1_with_users.zip");
-		User user = getModelLayerFactory().newUserServices().getUserInCollection(admin, zeCollection);
+		User adminUser = getModelLayerFactory().newUserServices().getUserInCollection(admin, zeCollection);
+		User user1 = getModelLayerFactory().newUserServices().getUserInCollection("user1", zeCollection);
 	}
 
 	private void givenSystemInState(String systemState) {
