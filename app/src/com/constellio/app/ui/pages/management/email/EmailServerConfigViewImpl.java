@@ -104,6 +104,7 @@ public class EmailServerConfigViewImpl extends BaseViewImpl implements EmailServ
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 		HorizontalLayout hlayout = new HorizontalLayout(testButton, saveButton);
+		hlayout.setSpacing(true);
 		hlayout.addComponent(saveButton);
 		buttonsPanel.setContent(hlayout);
 		layout.addComponent(buttonsPanel);
