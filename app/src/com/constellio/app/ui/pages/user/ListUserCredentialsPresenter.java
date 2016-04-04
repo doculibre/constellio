@@ -9,14 +9,12 @@ import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 
 public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredentialsView> {
-
 	private transient UserServices userServices;
 
 	public ListUserCredentialsPresenter(ListUsersCredentialsView view) {
@@ -35,21 +33,21 @@ public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredent
 
 	public void addButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.USER_LIST, null);
-		view.navigateTo().addUserCredential(params);
+		view.navigate().to().addUserCredential(params);
 	}
 
 	public void editButtonClicked(UserCredentialVO entity) {
 		String parameters = getParameters(entity);
-		view.navigateTo().editUserCredential(parameters);
+		view.navigate().to().editUserCredential(parameters);
 	}
 
 	public void displayButtonClicked(UserCredentialVO entity) {
 		String parameters = getParameters(entity);
-		view.navigateTo().displayUserCredential(parameters);
+		view.navigate().to().displayUserCredential(parameters);
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	private String getParameters(UserCredentialVO entity) {
