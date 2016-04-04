@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
@@ -42,6 +43,22 @@ public class RMMigrationTo6_2_AcceptanceTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
 		File state = new File(statesFolder, "given_system_in_6.1_with_tasks,rm_modules__with_document_rules.zip");
+
+		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
+	}
+
+	@Test
+	public void givenSaveSateThenUsersCreated()
+			throws Exception {
+		givenSystemInState("given_system_in_6.1_with_users.zip");
+		User adminUser = getModelLayerFactory().newUserServices().getUserInCollection(admin, zeCollection);
+		User user1 = getModelLayerFactory().newUserServices().getUserInCollection("user1", zeCollection);
+	}
+
+	private void givenSystemInState(String systemState) {
+		givenTransactionLogIsEnabled();
+		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File state = new File(statesFolder, systemState);
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}

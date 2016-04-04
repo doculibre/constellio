@@ -42,15 +42,15 @@ public class UserCredentialAndGlobalGroupsMigration {
 			transaction.add(newGroup);
 		}
 
-		for (GlobalGroup globalGroup : oldGroupManager.getAllGroups()) {
-			SolrGlobalGroup newGroup = groupsCodeIdMap.get(globalGroup.getCode());
-			newGroup.setCode(globalGroup.getCode());
-			newGroup.setName(globalGroup.getName());
-			newGroup.setTitle(globalGroup.getName());
-			newGroup.setStatus(globalGroup.getStatus());
-			newGroup.setUsersAutomaticallyAddedToCollections(globalGroup.getUsersAutomaticallyAddedToCollections());
-			if (globalGroup.getParent() != null) {
-				newGroup.setParent(groupsCodeIdMap.get(globalGroup.getParent()).getId());
+		for (GlobalGroup oldGroup : oldGroupManager.getAllGroups()) {
+			SolrGlobalGroup newGroup = groupsCodeIdMap.get(oldGroup.getCode());
+			newGroup.setCode(oldGroup.getCode());
+			newGroup.setName(oldGroup.getName());
+			newGroup.setTitle(oldGroup.getName());
+			newGroup.setStatus(oldGroup.getStatus());
+			newGroup.setUsersAutomaticallyAddedToCollections(oldGroup.getUsersAutomaticallyAddedToCollections());
+			if (oldGroup.getParent() != null) {
+				newGroup.setParent(groupsCodeIdMap.get(oldGroup.getParent()).getCode());
 			}
 		}
 
