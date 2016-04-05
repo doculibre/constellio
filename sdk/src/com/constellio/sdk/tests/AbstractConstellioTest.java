@@ -183,6 +183,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return new LocalDateTime(year, zeroBasedMonth, day, 0, 0);
 	}
 
+	protected static LocalDateTime dateTime(int year, int zeroBasedMonth, int day, int hour, int min, int sec) {
+		return new LocalDateTime(year, zeroBasedMonth, day, hour, min, sec);
+	}
+
 	protected static LocalDate date(int year, int oneBasedMonth, int day) {
 		return new LocalDate(year, oneBasedMonth, day);
 	}
