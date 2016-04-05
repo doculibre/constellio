@@ -812,7 +812,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				"Document '" + documentAA4TaxoURL + "' supprimé suite à sa classification dans Constellio",
 				"Document '" + documentAA5TaxoURL + "' supprimé suite à sa classification dans Constellio",
 				"Document '" + documentAAA6TaxoURL + "' supprimé suite à sa classification dans Constellio",
-				"Document '" + documentB7JustDeletedTaxoURL + "' supprimé suite à sa classification dans Constellio"
+				"Document '" + documentB7JustDeletedTaxoURL + "' supprimé suite à sa classification dans Constellio",
+				"Execution terminée"
 		);
 
 		assertThat(deletedConnectorDocuments.getAllValues()).extracting("id")
@@ -947,7 +948,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		List<RobotLog> loggedErrors = getRobotLogsForRobot("terminator");
-		assertThat(loggedErrors.size()).isEqualTo(6);
+		assertThat(loggedErrors.size()).isEqualTo(7);
 		assertThat(es.getConnectorSmbInstance(es.getConnectorSmbFolder(folderA).getConnector()).getExclusions())
 				.isEmpty();
 
@@ -998,7 +999,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		List<RobotLog> loggedErrors = getRobotLogsForRobot("terminator");
-		assertThat(loggedErrors.size()).isEqualTo(6);
+		assertThat(loggedErrors.size()).isEqualTo(7);
 		assertThat(es.getConnectorSmbInstance(es.getConnectorSmbFolder(folderA).getConnector()).getExclusions())
 				.isEmpty();
 
@@ -1481,7 +1482,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		List<RobotLog> loggedErrors = getRobotLogsForRobot("terminator");
-		assertThat(loggedErrors.size()).isEqualTo(0);
+		assertThat(loggedErrors.size()).isEqualTo(1);
 
 		assertThatRecord(rm.getFolderByLegacyId("smb://AU1 Ze admin unit/")).isNull();
 		assertThatRecord(rm.getFolderByLegacyId("smb://AU1 Ze admin unit/AU11 Ze child admin unit/")).isNull();
