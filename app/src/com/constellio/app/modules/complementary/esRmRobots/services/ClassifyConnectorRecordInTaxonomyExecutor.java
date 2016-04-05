@@ -100,6 +100,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	public void execute() {
 		transaction = new Transaction();
 
+		//TODO Test
+		//transaction.setSkippingRequiredValuesValidation(true);
+
 		connectorFolder = es.wrapConnectorDocument(record);
 		classifyConnectorFolderInTaxonomy();
 		try {
@@ -153,16 +156,33 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 	}
 
+	//TODO Test
+	private List<String> getPathParts(String[] rawPathParts, Metadata codeMetadata) {
+		List<String> pathParts = new ArrayList<>();
+
+		boolean noLongerInTaxonomy = false;
+		for (String rawPathPart : rawPathParts) {
+
+			if (noLongerInTaxonomy || rawPathPart.indexOf(params.getDelimiter()) == -1) {
+				pathParts.add(rawPathPart);
+			} else {
+
+				String firstPart = rawPathPart.split(params.getDelimiter())[0];
+				boolean hasConceptWithCode = recordServices.getRecordByMetadata(codeMetadata, firstPart) != null;
+				pathParts.add(hasConceptWithCode ? firstPart : rawPathPart);
+				noLongerInTaxonomy = !hasConceptWithCode;
+			}
+		}
+
+		return pathParts;
+	}
+
 	private void classifyConnectorFolderInTaxonomy() {
 
 		String fullConnectorDocPath = connectorFolder.getURL();
 		if (params.getInTaxonomy() != null) {
 			String pathPrefix = params.getPathPrefix() == null ? null : params.getPathPrefix();
 			String[] rawPathParts = fullConnectorDocPath.replace(pathPrefix, "").split("/");
-			List<String> pathParts = new ArrayList<>();
-			for (String rawPathPart : rawPathParts) {
-				pathParts.add(rawPathPart.split(params.getDelimiter())[0]);
-			}
 
 			Taxonomy targetTaxonomy = modelLayerFactory.getTaxonomiesManager()
 					.getEnabledTaxonomyWithCode(connectorFolder.getCollection(), params.getInTaxonomy());
@@ -172,6 +192,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			String metadataCode = conceptType.getDefaultSchema().getCode() + "_" + Schemas.CODE.getLocalCode();
 			Metadata codeMetadata = conceptType.getMetadata(metadataCode);
 
+			List<String> pathParts = getPathParts(rawPathParts, codeMetadata);
 			classifyForPath(fullConnectorDocPath, pathParts, targetTaxonomy, codeMetadata);
 		} else {
 			processFolderWithoutTaxonomy(connectorFolder.getTitle(), fullConnectorDocPath);
@@ -199,6 +220,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	private void processFolder(String fullConnectorDocPath, Taxonomy targetTaxonomy,
 			Metadata codeMetadata, String parent, String folderName) {
+		LOGGER.info("processFolder(" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode() + ", "
+				+ parent + ", " + folderName + ")");
 		MetadataSchema folderSchema = rm.defaultFolderSchema();
 		Metadata legacyIdMetadata = folderSchema.getMetadata(Schemas.LEGACY_ID.getLocalCode());
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, fullConnectorDocPath);
@@ -215,6 +238,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			}
 			RecordUtils.copyMetadatas(connectorFolder, rmFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath);
+			try {
+				recordServices.validateRecordInTransaction(rmFolder.getWrappedRecord(), transaction);
+			} catch (ValidationException e) {
+				throw new RuntimeException(e);
+			}
 			classifyDocumentsFromFolder(rmFolder);
 		} else {
 			rmFolder = rm.wrapFolder(rmRecord);
@@ -232,8 +260,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, url);
 		Folder rmFolder;
 		if (rmRecord == null) {
+
+			String parentPath = getParentPath(url, folderName);
+			Folder parentFolder = rm.getFolderByLegacyId(parentPath);
+
 			rmFolder = rm.newFolder().setTitle(folderName);
 			rmFolder.setLegacyId(url);
+			rmFolder.setParentFolder(parentFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
 			classifyDocumentsFromFolder(rmFolder);
 		} else {
@@ -367,6 +400,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				markAsUnfetched(connectorDocument);
 			}
 		} catch (ValidationException e) {
+			e.printStackTrace();
 			transaction.remove(rmDocument);
 		}
 	}
@@ -406,7 +440,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	private String getParentPath(String fullPath, String pathPart) {
 		StringBuilder builder = new StringBuilder(fullPath);
-		builder.replace(fullPath.lastIndexOf(pathPart + "/"), fullPath.lastIndexOf(pathPart + "/") + pathPart.length() + 1, "");
+		int lastSlash = fullPath.lastIndexOf(pathPart + "/");
+
+		builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
 		return builder.toString();
 	}
 

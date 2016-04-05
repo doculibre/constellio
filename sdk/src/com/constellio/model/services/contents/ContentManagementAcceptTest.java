@@ -41,7 +41,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
@@ -58,6 +57,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
@@ -133,16 +133,17 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 					taxonomiesManager.addTaxonomy(taxonomy, metadataSchemasManager);
 					taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
-					getModelLayerFactory().newUserServices().addUpdateUserCredential(
-							new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
-									asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE, "domain", Arrays
-									.asList(""), null));
+					UserServices userServices = getModelLayerFactory().newUserServices();
+					userServices.addUpdateUserCredential(userServices.createUserCredential(
+							"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(),
+							asList(zeCollection, "anotherCollection"), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""),
+							null));
 
-					getModelLayerFactory().newUserServices().addUpdateUserCredential(
-							new UserCredential("alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
-									asList(zeCollection), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null));
+					userServices.addUpdateUserCredential(userServices.createUserCredential(
+							"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(),
+							asList(zeCollection), UserCredentialStatus.ACTIVE, "domain", Arrays.asList(""), null));
 
-					bob = spy(getModelLayerFactory().newUserServices().getUserInCollection("bob", zeCollection));
+					bob = spy(userServices.getUserInCollection("bob", zeCollection));
 					bob.setCollectionDeleteAccess(true);
 					recordServices.update(bob.getWrappedRecord());
 
@@ -1414,6 +1415,44 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		} catch (ContentManagerRuntimeException_ContentHasNoPreview e) {
 			//OK
 		}
+
+	}
+
+	@Test
+	public void givenOnlyAMinorVersionWhenGetLatestMajorThenReturnNull()
+			throws Exception {
+
+		doReturn(true).when(userPermissionsChecker).globally();
+		doReturn(userPermissionsChecker).when(bob).has(CorePermissions.DELETE_CONTENT_VERSION);
+		Content content = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStreamWithoutParsing());
+		givenRecord().withSingleValueContent(content).isSaved();
+
+		assertThat(content.getLastMajorContentVersion()).isNull();
+		assertThat(content.getCurrentVersion().getVersion()).isEqualTo("0.1");
+
+		when(theRecord()).hasItsContentUpdated(alice, uploadPdf2InputStream()).and().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion()).isNull();
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("0.2");
+
+		when(theRecord()).hasItsContentFinalized().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("1.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("1.0");
+
+		when(theRecord()).hasItsContentUpdated(alice, uploadPdf3InputStream()).and().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("1.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("1.1");
+
+		when(theRecord()).hasItsContentFinalized().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("2.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("2.0");
+
+		when(theRecord()).hasItsContentUpdated(alice, uploadDocx1InputStream()).and().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("2.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("2.1");
+
+		when(theRecord()).hasItsContentFinalized().isSaved();
+		assertThat(theRecordContent().getLastMajorContentVersion().getVersion()).isEqualTo("3.0");
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("3.0");
 
 	}
 

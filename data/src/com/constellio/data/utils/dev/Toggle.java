@@ -13,6 +13,8 @@ public class Toggle {
 	public static AvailableToggle NEW_USERCREDENTIAL_SERVICES = newToggle();
 	public static AvailableToggle AGREGATED_METADATAS = newToggle();
 	public static AvailableToggle ADD_EXISTING_TASK = newToggle();
+	public static AvailableToggle TESTING_ACTION_PAT = newToggle();
+	public static AvailableToggle FORCE_ROLLBACK = newToggle();
 
 	// ------------------------------------------------
 
@@ -43,6 +45,16 @@ public class Toggle {
 	}
 
 	private static List<AvailableToggle> toggles;
+
+	private static AvailableToggle newToggle(boolean value) {
+		if (toggles == null) {
+			toggles = new ArrayList<>();
+		}
+		AvailableToggle toggle = new AvailableToggle();
+		toggle.enabled = value;
+		toggles.add(toggle);
+		return toggle;
+	}
 
 	private static AvailableToggle newToggle() {
 		if (toggles == null) {

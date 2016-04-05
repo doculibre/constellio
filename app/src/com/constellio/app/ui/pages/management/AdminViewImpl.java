@@ -63,7 +63,7 @@ public class AdminViewImpl extends BaseViewImpl implements AdminView {
 		button.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				item.activate(navigateTo());
+				item.activate(navigate());
 			}
 		});
 		layout.addComponent(button);

@@ -115,7 +115,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 	void waitUntilNotified()
 			throws InterruptedException {
-		newEventSemaphore.tryAcquire(5, TimeUnit.SECONDS);
+		newEventSemaphore.tryAcquire(500, TimeUnit.MILLISECONDS);
 
 	}
 

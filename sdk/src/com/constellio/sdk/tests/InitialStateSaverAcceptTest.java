@@ -2,7 +2,9 @@ package com.constellio.sdk.tests;
 
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 
@@ -28,6 +30,9 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
 
 		getSaveStateFeature().saveStateAfterTestWithTitle("with_manual_modifications");
+
+		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+		modelLayerFactory.getSystemConfigurationsManager().setValue(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 
 		newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
@@ -71,12 +76,12 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 		RMTestRecords records = new RMTestRecords(zeCollection);
 		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
-		getSaveStateFeature().saveStateAfterTestWithTitle("with_unfinished_batch_processes");
+		getSaveStateFeature().saveStateAfterTestWithTitle("with_document_rules");
+
+		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+		modelLayerFactory.getSystemConfigurationsManager().setValue(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 
 		newWebDriver(loggedAsUserInCollection(admin, zeCollection));
-		getModelLayerFactory().getBatchProcessesController().close();
-
-		getModelLayerFactory().getBatchProcessesController().close();
 		waitUntilICloseTheBrowsers();
 
 	}

@@ -6,6 +6,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -71,7 +72,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	public void deleteButtonClicked() {
 		delete(decommissioningList().getWrappedRecord());
-		view.navigateTo().decommissioning();
+		view.navigate().to(RMViews.class).decommissioning();
 	}
 
 	public boolean isProcessable() {
@@ -81,7 +82,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	public void processButtonClicked() {
 		decommissioningService().decommission(decommissioningList(), getCurrentUser());
 		view.showMessage($("DecommissioningListView.processed"));
-		view.navigateTo().displayDocumentDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {

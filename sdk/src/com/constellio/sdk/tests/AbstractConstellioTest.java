@@ -81,8 +81,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -204,14 +202,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	private static void ensureNotUnitTest() {
 		if (isUnitTestStatic()) {
-			String message = "Unit tests '" + TestClassFinder.findCurrentTest().getSimpleName()
+			String message = "Unit tests '" + TestClassFinder.getTestClassName()
 					+ "' cannot use filesystem, rename this test to AcceptanceTest or IntegrationTest or RealTest";
 			throw new RuntimeException(message);
 		}
 	}
 
 	public static boolean isUnitTestStatic() {
-		return isUnitTest(TestClassFinder.findCurrentTest().getSimpleName()) && !notAUnitItest;
+		return !notAUnitItest && isUnitTest(TestClassFinder.getTestClassName());
 	}
 
 	protected String getTestName() {
@@ -565,6 +563,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String startApplication() {
 		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
 		return getCurrentTestSession().getSeleniumTestFeatures().startApplication();
+	}
+
+	protected String startApplicationWithSSL(boolean keepAlive) {
+		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
+		return getCurrentTestSession().getSeleniumTestFeatures().startApplicationWithSSL(keepAlive);
 	}
 
 	protected void stopApplication() {
@@ -1310,47 +1313,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
 		ensureNotUnitTest();
-		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
-		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-		InstallableModule module;
-		try {
-			module = installableModuleClass.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-
-//		if (!getAppLayerFactory().getPluginManager().isRegistered(module.getId())) {
-		//			getAppLayerFactory().getPluginManager().registerModule(module);
-		//		}
-		constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
-
-		return new ModuleEnabler(module, collectionsListManager, constellioModulesManager);
-	}
-
-	public static class ModuleEnabler {
-
-		InstallableModule module;
-		CollectionsListManager collectionsListManager;
-		ConstellioModulesManager constellioModulesManager;
-
-		public ModuleEnabler(InstallableModule module,
-				CollectionsListManager collectionsListManager, ConstellioModulesManager constellioModulesManager) {
-			this.module = module;
-			this.collectionsListManager = collectionsListManager;
-			this.constellioModulesManager = constellioModulesManager;
-		}
-
-		public void enabledInEveryCollections() {
-			for (String collection : collectionsListManager.getCollections()) {
-				enabledIn(collection);
-			}
-		}
-
-		public void enabledIn(String collection) {
-
-			constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
-
-		}
+		return ModuleEnabler.givenInstalledModule(getAppLayerFactory(), installableModuleClass);
 	}
 
 	public ToggleCondition onlyWhen(AvailableToggle toggle) {

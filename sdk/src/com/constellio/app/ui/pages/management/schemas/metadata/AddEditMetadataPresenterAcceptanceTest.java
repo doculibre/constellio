@@ -16,7 +16,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -33,7 +33,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	ZeCustomSchemaMetadatas zeCustomSchema = setup.new ZeCustomSchemaMetadatas();
 	AddEditMetadataPresenter presenter;
 	@Mock AddEditMetadataViewImpl view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 
 	@Before
 	public void setUp()
@@ -84,7 +84,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", "zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null);
+				null, null);
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -110,7 +110,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", "zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null);
+				null, null);
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -137,7 +137,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null);
+				null, null);
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 
@@ -164,7 +164,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null);
+				null, null);
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 

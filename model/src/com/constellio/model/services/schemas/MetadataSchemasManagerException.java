@@ -17,9 +17,9 @@ public class MetadataSchemasManagerException extends Exception {
 		super(cause);
 	}
 
-	public static class OptimistickLocking extends MetadataSchemasManagerException {
+	public static class OptimisticLocking extends MetadataSchemasManagerException {
 
-		public OptimistickLocking(ConfigManagerException.OptimisticLockingConfiguration exception) {
+		public OptimisticLocking(ConfigManagerException.OptimisticLockingConfiguration exception) {
 			super(exception.getMessage(), exception);
 		}
 

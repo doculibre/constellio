@@ -6,21 +6,21 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.constellio.app.ui.util.DateFormatUtils;
 import com.vaadin.data.util.converter.Converter;
 
 @SuppressWarnings("serial")
 public class ListToStringConverter implements Converter<String, List<String>> {
-	
+
 	private String separator;
-	
+
 	public ListToStringConverter() {
 		this(", ");
 	}
+
 	public ListToStringConverter(String separator) {
 		this.separator = separator;
 	}
-	
+
 	@Override
 	public List<String> convertToModel(String value, Class<? extends List<String>> targetType, Locale locale)
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
@@ -35,10 +35,6 @@ public class ListToStringConverter implements Converter<String, List<String>> {
 			listValue = null;
 		}
 		return listValue;
-	}
-	
-	protected String getPattern() {
-		return DateFormatUtils.DATE_TIME_FORMAT;
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
@@ -12,9 +13,10 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.vaadin.ui.Component;
 
 public abstract class PageItem implements CodedItem, Serializable {
-	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE}
+	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM}
 
 	private final String code;
 	private final Type type;
@@ -84,13 +86,17 @@ public abstract class PageItem implements CodedItem, Serializable {
 			super(code, Type.RECORD_TREE);
 		}
 
-		public int getDefaultTab() {
-			return 0;
-		}
-
 		public abstract List<RecordLazyTreeDataProvider> getDataProviders(
 				ModelLayerFactory modelLayerFactory, SessionContext sessionContext);
 
 		public abstract BaseContextMenu getContextMenu();
+	}
+
+	public static abstract class CustomItem extends PageItem {
+		public CustomItem(String code) {
+			super(code, Type.CUSTOM_ITEM);
+		}
+
+		public abstract Component buildCustomComponent(ConstellioFactories factories, SessionContext context);
 	}
 }

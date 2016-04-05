@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -63,10 +64,10 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 		tokens = new HashMap<String, LocalDateTime>();
 		endDate = new LocalDateTime(2014, 11, 04, 10, 30);
 		tokens.put("token1", endDate);
-		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", "serviceKeyChuck", false,
+		chuckUserCredential = new XmlUserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", "serviceKeyChuck", false,
 				Arrays.asList("group1"),
 				Arrays.asList(zeCollection), tokens, UserCredentialStatus.ACTIVE, "", msExchDelegateListBL, "dnChuck");
-		dakotaUserCredential = new UserCredential("dakota", "Dakota", "Lindien", "dakota.lindien@gmail.com",
+		dakotaUserCredential = new XmlUserCredential("dakota", "Dakota", "Lindien", "dakota.lindien@gmail.com",
 				Arrays.asList("group1"), Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "",
 				msExchDelegateListBL, "dakotaDN");
 	}
@@ -119,7 +120,7 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 
 		writer.addUpdate(chuckUserCredential);
 
-		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", Arrays.asList("group1"),
+		chuckUserCredential = new XmlUserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", Arrays.asList("group1"),
 				Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "", msExchDelegateListBL, "chuckDN");
 
 		writer.addUpdate(chuckUserCredential);
@@ -179,9 +180,9 @@ public class UserCredentialsWriterTest extends ConstellioTest {
 	public void givenUsersWithGroupWhenRemoveGroupThenItIsRemoved()
 			throws Exception {
 
-		chuckUserCredential = new UserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", Arrays.asList("group1",
+		chuckUserCredential = new XmlUserCredential("chuck", "Chuck", "Norris", "chuck.norris@gmail.com", Arrays.asList("group1",
 				"group2"), Arrays.asList(zeCollection), UserCredentialStatus.ACTIVE, "", msExchDelegateListBL, "chuckDN");
-		dakotaUserCredential = new UserCredential("dakota", "Dakota", "Lindien", "dakota.lindien@gmail.com", Arrays.asList(
+		dakotaUserCredential = new XmlUserCredential("dakota", "Dakota", "Lindien", "dakota.lindien@gmail.com", Arrays.asList(
 				"group1", "group2"), Arrays.asList(zeCollection, "collection1"), UserCredentialStatus.ACTIVE, "",
 				msExchDelegateListBL, "dakotaDN");
 		writer.addUpdate(chuckUserCredential);

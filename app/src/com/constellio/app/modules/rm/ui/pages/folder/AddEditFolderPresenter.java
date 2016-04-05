@@ -11,9 +11,12 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
@@ -24,6 +27,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualTra
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderAdministrativeUnitField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderContainerField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
@@ -166,12 +170,12 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		if (addView) {
 			String parentId = folderVO.getParentFolder();
 			if (parentId != null) {
-				view.navigateTo().displayFolder(parentId);
+				view.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
 				view.navigateTo().recordsManagement();
 			}
 		} else {
-			view.navigateTo().displayFolder(folderVO.getId());
+			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 		}
 	}
 
@@ -187,7 +191,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 		record.setFormModifiedBy(getCurrentUser()).setFormModifiedOn(time);
 		addOrUpdate(record.getWrappedRecord());
-		view.navigateTo().displayFolder(record.getId());
+		view.navigate().to(RMViews.class).displayFolder(record.getId());
 	}
 
 	public void customFieldValueChanged(CustomFolderField<?> customField) {
@@ -301,6 +305,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		adjustUniformSubdivisionField();
 		adjustRetentionRuleField();
 		adjustStatusCopyEnteredField();
+		adjustCopyRetentionRuleField();
 		adjustLinearSizeField();
 		adjustActualTransferDateField(customField);
 		adjustActualDepositDateField(customField);
@@ -461,8 +466,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	void adjustStatusCopyEnteredField() {
-		FolderCopyStatusEnteredField copyStatusEnteredField = (FolderCopyStatusEnteredField) view.getForm().getCustomField(
-				Folder.COPY_STATUS_ENTERED);
+		FolderCopyStatusEnteredField copyStatusEnteredField = (FolderCopyStatusEnteredField) view.getForm()
+				.getCustomField(Folder.COPY_STATUS_ENTERED);
 		if (copyStatusEnteredField != null) {
 			CopyType currentValue = copyStatusEnteredField.getFieldValue();
 			if (isCopyStatusInputPossible()) {
@@ -477,6 +482,24 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					setFieldVisible(copyStatusEnteredField, false, Folder.COPY_STATUS_ENTERED);
 				}
 			}
+		}
+	}
+
+	private void adjustCopyRetentionRuleField() {
+		FolderCopyRuleField field = (FolderCopyRuleField) view.getForm().getCustomField(Folder.MAIN_COPY_RULE_ID_ENTERED);
+		if (field == null) {
+			return;
+		}
+		if (areDocumentRetentionRulesEnabled()) {
+			commitForm();
+			Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+			recordServices().recalculate(folder);
+			List<CopyRetentionRule> rules = folder.getApplicableCopyRules();
+			folderVO.set(Folder.APPLICABLE_COPY_RULES, rules);
+			field.setFieldChoices(rules);
+			field.setVisible(rules.size() > 1);
+		} else {
+			field.setVisible(false);
 		}
 	}
 
@@ -593,11 +616,12 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		FolderPreviewReturnDateField previewReturnDateField = (FolderPreviewReturnDateField) view.getForm()
 				.getCustomField(Folder.BORROW_PREVIEW_RETURN_DATE);
 		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
-		if (previewReturnDateField != null && folder.hasAnalogicalMedium() && folder.getBorrowed() != null
-				&& folder.getBorrowed() != false) {
-			setFieldVisible(previewReturnDateField, true, Folder.BORROW_PREVIEW_RETURN_DATE);
-		} else {
-			setFieldVisible(previewReturnDateField, false, Folder.BORROW_PREVIEW_RETURN_DATE);
+		if (previewReturnDateField != null) {
+			if (folder.hasAnalogicalMedium() && folder.getBorrowed() != null && folder.getBorrowed() != false) {
+				setFieldVisible(previewReturnDateField, true, Folder.BORROW_PREVIEW_RETURN_DATE);
+			} else {
+				setFieldVisible(previewReturnDateField, false, Folder.BORROW_PREVIEW_RETURN_DATE);
+			}
 		}
 	}
 
@@ -644,4 +668,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		return new RMSchemasRecordsServices(collection, modelLayerFactory);
 	}
 
+	private boolean areDocumentRetentionRulesEnabled() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
 }

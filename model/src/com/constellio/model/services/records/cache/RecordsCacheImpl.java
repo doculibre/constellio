@@ -412,7 +412,7 @@ public class RecordsCacheImpl implements RecordsCache {
 			if (metadataMap != null) {
 				recordHolder = metadataMap.get(value);
 			}
-			return recordHolder == null ? null : recordHolder.record;
+			return recordHolder == null ? null : recordHolder.getCopy();
 		}
 
 		void insert(Record previousRecord, RecordHolder recordHolder) {

@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
@@ -24,6 +25,8 @@ public class DecomListIsUniformTest extends ConstellioTest {
 	@Mock CalculatorParameters parameters;
 	boolean isUniform;
 
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -34,7 +37,7 @@ public class DecomListIsUniformTest extends ConstellioTest {
 	public void givenNonNullsParamsWhenCalculateThenReturnTrue()
 			throws Exception {
 
-		copyRetentionRule = new CopyRetentionRule();
+		copyRetentionRule = copyBuilder.newCopyRetentionRule();
 		copyType = CopyType.PRINCIPAL;
 		uniformRuleParam = "uniformRule";
 		uniformCategoryParam = "uniformCategory";
@@ -48,7 +51,7 @@ public class DecomListIsUniformTest extends ConstellioTest {
 	public void givenOneNullParamWhenCalculateThenReturnFalse()
 			throws Exception {
 
-		copyRetentionRule = new CopyRetentionRule();
+		copyRetentionRule = copyBuilder.newCopyRetentionRule();
 		copyType = CopyType.PRINCIPAL;
 		uniformRuleParam = "uniformRule";
 		uniformCategoryParam = null;

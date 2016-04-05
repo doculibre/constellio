@@ -40,6 +40,7 @@ public class SeleniumTestFeatures {
 	private Map<String, String> sdkProperties;
 
 	private int port = 8080;
+	private int portSSL = 8443;
 
 	public static void afterAllTests() {
 		if (applicationStarted) {
@@ -258,6 +259,29 @@ public class SeleniumTestFeatures {
 		System.out.println("Application started in " + (new Date().getTime() - time) + "ms");
 
 		return "http://localhost:" + port + "/constellio/";
+	}
+
+	public String startApplicationWithSSL(boolean keepAlive) {
+		File webContent = new FoldersLocator().getAppProjectWebContent();
+		long time = new Date().getTime();
+
+		assertThat(webContent).exists().isDirectory();
+
+		File webInf = new File(webContent, "WEB-INF");
+		assertThat(webInf).exists().isDirectory();
+		assertThat(new File(webInf, "web.xml")).exists();
+		assertThat(new File(webInf, "sun-jaxws.xml")).exists();
+
+		File cmis11 = new File(webInf, "cmis11");
+		assertThat(cmis11).exists().isDirectory();
+		assertThat(cmis11.listFiles()).isNotEmpty();
+
+		ApplicationStarter.startApplication(keepAlive, webContent, portSSL, "ncix123$");
+
+		applicationStarted = true;
+		System.out.println("Application started in " + (new Date().getTime() - time) + "ms");
+
+		return "http://localhost:" + portSSL + "/constellio/";
 	}
 
 	public void stopApplication() {

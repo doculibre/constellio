@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.updates;
 
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -153,7 +154,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public boolean isUpdateEnabled() {
-		return isUpdateWithRecoveryPossible() == null;
+		UpdateRecoveryImpossibleCause updatePossible = isUpdateWithRecoveryPossible();
+		return updatePossible == null || updatePossible == UpdateRecoveryImpossibleCause.TOO_SHORT_MEMORY;
 	}
 
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
@@ -165,5 +167,13 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		UpgradeAppRecoveryService upgradeService = appLayerFactory
 				.newUpgradeAppRecoveryService();
 		return upgradeService.getLastUpgradeExceptionMessage();
+	}
+
+	public UpdateNotRecommendedReason getUpdateNotRecommendedReason() {
+		if (modelLayerFactory.getBatchProcessesManager().getCurrentBatchProcess() != null && !modelLayerFactory.getBatchProcessesManager().getPendingBatchProcesses().isEmpty()) {
+			return BATCH_PROCESS_IN_PROGRESS;
+		} else {
+			return null;
+		}
 	}
 }

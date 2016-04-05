@@ -28,6 +28,9 @@ import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoVersion;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.migrations.VersionsComparator;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
 
 public class JSPFPluginServices implements PluginServices {
 	private static final Logger LOGGER = LogManager.getLogger(JSPFPluginServices.class);
@@ -38,6 +41,16 @@ public class JSPFPluginServices implements PluginServices {
 	private static final String REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME = "Required-Constellio-Version";
 	private static final String REQUIRED_CONSTELLIO_VERSION_ATTRIBUTE_NAME_WITH_TYPO = "Requiered-Constellio-Version";
 	private static final String REQUIRED_CONSTELLIO_VERSION_NULL_VALUE = "null";
+
+	private static final String TEMP_UNZIP_FOLDER_FOR_I18N_EXTRACTION_RESOURCES = "JSPFPluginServices-tempUnzipFolderForI18nExtraction";
+
+	private IOServices ioServices;
+	private ZipService zipService;
+
+	public JSPFPluginServices(IOServices ioServices) {
+		this.ioServices = ioServices;
+		this.zipService = new ZipService(ioServices);
+	}
 
 	@Override
 	public ConstellioPluginInfo extractPluginInfo(File pluginJar)
@@ -189,6 +202,29 @@ public class JSPFPluginServices implements PluginServices {
 			return pluginFie;
 		}
 		return null;
+	}
+
+	@Override
+	public void extractPluginResources(File jar, String pluginId, File pluginsResources) {
+		File tempUnzipFolder = ioServices.newTemporaryFolder(TEMP_UNZIP_FOLDER_FOR_I18N_EXTRACTION_RESOURCES);
+
+		try {
+			zipService.unzip(jar, tempUnzipFolder);
+			File resourcesFolderInJar = new File(tempUnzipFolder, pluginId);
+			File deployedPluginResources = new File(pluginsResources, pluginId);
+			if (resourcesFolderInJar.exists()) {
+				ioServices.deleteDirectory(deployedPluginResources);
+				deployedPluginResources.mkdirs();
+				ioServices.moveFolder(resourcesFolderInJar, deployedPluginResources);
+			}
+
+		} catch (ZipServiceException | IOException e) {
+			throw new RuntimeException(e);
+
+		} finally {
+			ioServices.deleteQuietly(tempUnzipFolder);
+		}
+
 	}
 
 }

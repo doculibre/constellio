@@ -6,7 +6,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -82,7 +82,7 @@ public class CollectionManagementViewImpl extends BaseViewImpl
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId) {
-				DisplayButton button = new DisplayButton() {
+				EditButton button = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.editButtonClicked(provider, (Integer) itemId);

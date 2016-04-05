@@ -10,6 +10,7 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -228,7 +229,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 
 	public void tabElementClicked(RecordVO recordVO) {
 		//TODO Refactoring
-		view.navigateTo().displayFolder(recordVO.getId());
+		view.navigate().to(RMViews.class).displayFolder(recordVO.getId());
 	}
 
 	public List<TaxonomyManagementClassifiedType> getClassifiedTypes() {

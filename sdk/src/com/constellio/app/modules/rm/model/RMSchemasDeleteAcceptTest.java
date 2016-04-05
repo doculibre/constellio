@@ -20,6 +20,8 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
 	@Test
 	public void whenCallLogicallyThenPhysicallyDeletableCheckOnCategoriesThenGoodBehavior() {
 
@@ -180,11 +182,11 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		assertThat(recordServices.isLogicallyDeletable(period42.getWrappedRecord(), admin)).isTrue();
 		assertThat(recordServices.isLogicallyDeletable(period666.getWrappedRecord(), admin)).isTrue();
 
-		CopyRetentionRule principal42_666_T = CopyRetentionRule.newPrincipal(asList(rm.PA()))
+		CopyRetentionRule principal42_666_T = copyBuilder.newPrincipal(asList(rm.PA()))
 				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
 				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
 				.setInactiveDisposalType(DisposalType.SORT);
-		CopyRetentionRule secondary2_0_D = CopyRetentionRule.newSecondary(asList(rm.PA()), "2-0-D");
+		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA()), "2-0-D");
 		RetentionRule rule = rm.newRetentionRule().setCode("2").setTitle("Rule #2")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal42_666_T, secondary2_0_D));

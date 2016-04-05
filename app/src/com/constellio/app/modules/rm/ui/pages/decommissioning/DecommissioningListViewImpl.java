@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
 import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
 import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator;
@@ -22,7 +23,6 @@ import com.constellio.app.ui.framework.buttons.ContentButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
-import com.constellio.app.ui.framework.components.ContentViewer;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -85,7 +85,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				navigateTo().decommissioning();
+				navigate().to(RMViews.class).decommissioning();
 			}
 		};
 	}

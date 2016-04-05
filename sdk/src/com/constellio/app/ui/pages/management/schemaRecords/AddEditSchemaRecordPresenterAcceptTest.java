@@ -19,7 +19,7 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.OverrideMode;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -100,7 +100,7 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 	}
 
 	private void givenCustomSchemasFor(String schemaType)
-			throws OptimistickLocking {
+			throws OptimisticLocking {
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = manager.modify(zeCollection);
 		types.getSchemaType(schemaType).createCustomSchema("custom1").setLabel(schemaType + " custom 1");

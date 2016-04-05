@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordDepositReportViewImpl;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordTransferReportViewImpl;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -102,7 +103,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
-		view.navigateTo().displayFolder(folder.getId());
+		view.navigate().to(RMViews.class).displayFolder(folder.getId());
 	}
 
 	@Override

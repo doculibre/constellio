@@ -16,13 +16,16 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends ConstellioTest {
 
+	@Mock DynamicDependencyValues dynamicDependencyValues;
 	@Spy FolderCopyRulesExpectedDestructionDatesCalculator calculator;
 	@Mock CalculatorParameters params;
 
@@ -34,6 +37,8 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 	List<CopyRetentionRule> applicableCopyRules;
 	int confiRequiredDaysBeforeYearEnd = 0;
 	String configYearEnd;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Test
 	public void givenMultipleApplicableCopyRulesThenCalculateDateForEachAndReturnEndOFYearDates()
@@ -151,16 +156,18 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 		assertThat(calculateFor(1, copy("3-888-T"))).isEqualTo(new LocalDate(2005, 4, 5));
 	}
 
-	private static CopyRetentionRule copy(String delays) {
-		return CopyRetentionRule.newPrincipal(asList("PA", "MD"), delays);
+	private CopyRetentionRule copy(String delays) {
+		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
 
 	private LocalDate calculateFor(int index, CopyRetentionRule copy) {
 
 		when(params.get(calculator.archivisticStatusParam)).thenReturn(archivisticStatus);
-		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriod)).thenReturn(configNumberOfYearWhenVariableDelay);
+		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
+				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
+		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
 
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
@@ -169,11 +176,13 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 
 		when(params.get(calculator.archivisticStatusParam)).thenReturn(archivisticStatus);
 		when(params.get(calculator.applicableCopyRulesParam)).thenReturn(applicableCopyRules);
-		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriod)).thenReturn(configNumberOfYearWhenVariableDelay);
+		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
+				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
+		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
 
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
 	}

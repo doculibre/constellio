@@ -22,7 +22,7 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -42,7 +42,7 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 
 	RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 	@Mock ConnectorReportView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	SessionContext sessionContext;
 	RecordServices recordServices;
 	ConnectorInstance connectorInstance;

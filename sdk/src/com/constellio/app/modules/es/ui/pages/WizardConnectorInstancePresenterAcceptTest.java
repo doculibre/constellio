@@ -2,7 +2,6 @@ package com.constellio.app.modules.es.ui.pages;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.model.entities.schemas.Schemas;
@@ -28,12 +26,13 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
 
 public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
 	@Mock WizardConnectorInstanceView view;
-	@Mock ConstellioNavigator navigator;
+	SDKViewNavigation viewNavigation;
 	@Mock RecordVO recordVO;
 	Users users = new Users();
 	ConnectorManager connectorManager;
@@ -57,7 +56,7 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
-		when(view.navigateTo()).thenReturn(navigator);
+		viewNavigation = new SDKViewNavigation(view);
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -133,15 +132,6 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 		}
 
 		assertThat(titles).containsOnly("Connecteur HTTP", "Connecteur SMB", "Connecteur LDAP");
-	}
-
-	@Test
-	public void whenBackButtonClickedThenNavigateToList()
-			throws Exception {
-
-		presenter.backButtonClicked();
-
-		verify(view.navigateTo()).listConnectorInstances();
 	}
 
 	@Test

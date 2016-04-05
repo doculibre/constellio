@@ -1,6 +1,17 @@
 package com.constellio.model.entities.security.global;
 
-public enum GlobalGroupStatus {
+import com.constellio.model.entities.EnumWithSmallCode;
 
-	ACTIVE, INACTIVE
+public enum GlobalGroupStatus implements EnumWithSmallCode {
+	ACTIVE("a"), INACTIVE("d");
+
+	private String code;
+
+	GlobalGroupStatus(String code) {
+		this.code = code;
+	}
+
+	public String getCode() {
+		return code;
+	}
 }

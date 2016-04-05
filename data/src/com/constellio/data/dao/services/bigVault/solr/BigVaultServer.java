@@ -65,6 +65,7 @@ public class BigVaultServer implements Cloneable {
 	private final String name;
 	private final SolrServerFactory solrServerFactory;
 	private final SolrClient server;
+
 	private final AtomicFileSystem fileSystem;
 	private final List<BigVaultServerListener> listeners;
 
@@ -77,7 +78,10 @@ public class BigVaultServer implements Cloneable {
 			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
-		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
+
+		this.fileSystem = null;
+		//Doesn't work in production environments
+		//this.fileSystem = solrServerFactory.getConfigFileSystem(name);
 
 		this.bigVaultLogger = bigVaultLogger;
 		this.name = name;

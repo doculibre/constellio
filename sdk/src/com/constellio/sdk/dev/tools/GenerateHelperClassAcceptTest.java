@@ -17,6 +17,19 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocu
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
@@ -44,6 +57,36 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(ActionParameters.DEFAULT_SCHEMA, ActionParameters.class);
 		wrappers.put(Robot.DEFAULT_SCHEMA, Robot.class);
 		wrappers.put(RobotLog.DEFAULT_SCHEMA, RobotLog.class);
+
+		System.out.println(header());
+
+		printGeneratedSchemas(wrappers);
+
+		System.out.println(footer());
+	}
+
+	@Test
+	public void generateRMSchemas()
+			throws Exception {
+		givenCollection(zeCollection).withConstellioRMModule();
+
+		Map<String, Class<? extends RecordWrapper>> wrappers = new HashMap<>();
+
+		wrappers.put(AdministrativeUnit.DEFAULT_SCHEMA, AdministrativeUnit.class);
+		wrappers.put(Category.DEFAULT_SCHEMA, Category.class);
+		wrappers.put(UniformSubdivision.DEFAULT_SCHEMA, UniformSubdivision.class);
+
+		wrappers.put(DecommissioningList.DEFAULT_SCHEMA, DecommissioningList.class);
+		wrappers.put(Cart.DEFAULT_SCHEMA, Cart.class);
+		wrappers.put(RetentionRule.DEFAULT_SCHEMA, RetentionRule.class);
+		wrappers.put(Folder.DEFAULT_SCHEMA, Folder.class);
+		wrappers.put(Document.DEFAULT_SCHEMA, Document.class);
+		wrappers.put(Email.SCHEMA, Email.class);
+		wrappers.put(DocumentType.DEFAULT_SCHEMA, DocumentType.class);
+		wrappers.put(FolderType.DEFAULT_SCHEMA, FolderType.class);
+
+		wrappers.put(ContainerRecord.DEFAULT_SCHEMA, ContainerRecord.class);
+		wrappers.put(StorageSpace.DEFAULT_SCHEMA, StorageSpace.class);
 
 		System.out.println(header());
 

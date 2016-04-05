@@ -43,8 +43,10 @@ public class RMConfigs {
 			REQUIRE_APPROVAL_FOR_DESTRUCTION_OF_SEMIACTIVE,
 			CONTAINER_RECYCLING_ALLOWED,
 			MIXED_CONTAINERS_ALLOWED,
+			ACTIVES_IN_CONTAINER_ALLOWED,
 			BORROWING_DURATION_IN_DAYS,
-			DOCUMENTS_TYPES_CHOICE;
+			DOCUMENTS_TYPES_CHOICE,
+			WORKFLOWS_ENABLED;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -55,7 +57,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER;
@@ -159,6 +161,8 @@ public class RMConfigs {
 		// Allow to put folders from different administrative units in a single container
 		add(MIXED_CONTAINERS_ALLOWED = decommissioning.createBooleanFalseByDefault("mixedContainersAllowed"));
 
+		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
+
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -180,6 +184,8 @@ public class RMConfigs {
 		add(AGENT_EDIT_USER_DOCUMENTS = agent.createBooleanTrueByDefault("editUserDocuments"));
 
 		add(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS = agent.createInteger("backupRetentionPeriodInDays").withDefaultValue(30));
+		
+		add(AGENT_TOKEN_DURATION_IN_HOURS = agent.createInteger("tokenDurationInHours").withDefaultValue(10));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
@@ -189,6 +195,8 @@ public class RMConfigs {
 
 		add(DOCUMENTS_TYPES_CHOICE = others.createEnum("documentsTypeChoice", DocumentsTypeChoice.class)
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
+
+		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
 
 	}
 
@@ -270,6 +278,10 @@ public class RMConfigs {
 		return manager.getValue(MIXED_CONTAINERS_ALLOWED);
 	}
 
+	public boolean areActiveInContainersAllowed() {
+		return manager.getValue(ACTIVES_IN_CONTAINER_ALLOWED);
+	}
+
 	public boolean isAgentEnabled() {
 		return manager.getValue(AGENT_ENABLED);
 	}
@@ -290,12 +302,20 @@ public class RMConfigs {
 		return manager.getValue(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS);
 	}
 
+	public int getAgentTokenDurationInHours() {
+		return manager.getValue(AGENT_TOKEN_DURATION_IN_HOURS);
+	}
+
 	public int getBorrowingDurationDays() {
 		return manager.getValue(BORROWING_DURATION_IN_DAYS);
 	}
 
 	public boolean isOpenHolder() {
 		return manager.getValue(OPEN_HOLDER);
+	}
+
+	public boolean areWorkflowsEnabled() {
+		return manager.getValue(WORKFLOWS_ENABLED);
 	}
 
 	public DocumentsTypeChoice getDocumentsTypesChoice() {

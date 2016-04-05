@@ -2,6 +2,7 @@ package com.constellio.app.modules.es.ui.pages;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.model.entities.records.Record;
@@ -36,7 +37,7 @@ public class EditConnectorInstancePresenter extends AddEditConnectorInstancePres
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
-		view.navigateTo().listConnectorInstances();
+		view.navigate().to(ESViews.class).listConnectorInstances();
 	}
 
 	@Override

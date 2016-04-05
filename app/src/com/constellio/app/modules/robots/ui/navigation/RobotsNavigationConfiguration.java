@@ -7,7 +7,7 @@ import java.io.Serializable;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.model.entities.records.wrappers.User;
@@ -25,8 +25,8 @@ public class RobotsNavigationConfiguration implements Serializable {
 	private void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ROBOTS, ROBOTS_ICON) {
 			@Override
-			public void activate(ConstellioNavigator navigateTo) {
-				navigateTo.listRootRobots();
+			public void activate(Navigation navigate) {
+				navigate.to(RobotViews.class).listRootRobots();
 			}
 
 			@Override

@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
@@ -27,7 +28,6 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
-import com.constellio.app.ui.application.ConstellioNavigator;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -38,6 +38,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import com.constellio.sdk.tests.MockedNavigation;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.UI;
 
@@ -58,7 +59,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	@Mock FolderDetailVO packageable2;
 	@Mock ContainerVO containerVO;
 	@Mock DecomListFolderDetail folderDetail;
-	@Mock ConstellioNavigator navigator;
+	MockedNavigation navigator;
 	MockedFactories factories = new MockedFactories();
 
 	DecommissioningListPresenter presenter;
@@ -72,7 +73,9 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		when(presenterService.getCurrentUser(isA(SessionContext.class))).thenReturn(user);
 		factories.getRecordServices();
 
-		when(view.navigateTo()).thenReturn(navigator);
+		navigator = new MockedNavigation();
+		when(view.navigate()).thenReturn(navigator);
+		when(view.navigateTo()).thenReturn(navigator.to(RMViews.class));
 
 		when(rm.getDecommissioningList(ZE_LIST)).thenReturn(list);
 		when(list.getWrappedRecord()).thenReturn(record);
@@ -110,7 +113,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	@Test
 	public void givenEditButtonClickedThenNavigateToEditWindow() {
 		presenter.editButtonClicked();
-		verify(navigator, times(1)).editDecommissioningList(ZE_LIST);
+		verify(navigator.to(RMViews.class), times(1)).editDecommissioningList(ZE_LIST);
 	}
 
 	@Test
@@ -126,7 +129,6 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		presenter.deleteButtonClicked();
 		verify(factories.getRecordServices(), times(1)).logicallyDelete(record, user);
 		verify(factories.getRecordServices(), times(1)).physicallyDelete(record, user);
-		verify(navigator, times(1)).decommissioning();
 	}
 
 	@Test
@@ -141,19 +143,18 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		presenter.processButtonClicked();
 		verify(service, times(1)).decommission(list, user);
 		verify(view, times(1)).showMessage(anyString());
-		verify(navigator).displayDecommissioningList(ZE_LIST);
 	}
 
 	@Test
 	public void givenContainerCreationRequestedThenNavigateToContainerCreation() {
 		presenter.containerCreationRequested();
-		verify(navigator, times(1)).createContainerForDecommissioningList(ZE_LIST);
+		verify(navigator.to(RMViews.class), times(1)).createContainerForDecommissioningList(ZE_LIST);
 	}
 
 	@Test
 	public void givenContainerSearchRequestedThenNavigateToContainerSearch() {
 		presenter.containerSearchRequested();
-		verify(navigator, times(1)).searchContainerForDecommissioningList(ZE_LIST);
+		verify(navigator.to(RMViews.class), times(1)).searchContainerForDecommissioningList(ZE_LIST);
 	}
 
 	@Test
@@ -229,7 +230,6 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		presenter.approvalButtonClicked();
 		verify(service, times(1)).approveList(list, user);
 		verify(view, times(1)).showMessage(anyString());
-		verify(navigator).displayDecommissioningList(ZE_LIST);
 	}
 
 	@Test

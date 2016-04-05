@@ -87,7 +87,7 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	}
 
 	public void editButtonClicked(RecordVO entity) {
-		view.navigateTo().editConnectorInstances(entity.getId());
+		view.navigateTo().editConnectorInstance(entity.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO entity) {

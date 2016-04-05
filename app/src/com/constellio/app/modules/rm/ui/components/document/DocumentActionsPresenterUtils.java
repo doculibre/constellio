@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -119,7 +121,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void editDocumentButtonClicked() {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigateTo().editDocument(documentVO.getId());
+			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
 		}
 	}
 
@@ -135,7 +137,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void copyContentButtonClicked() {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigateTo().addDocumentWithContent(documentVO.getId());
+			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 		}
 	}
 
@@ -175,7 +177,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			String parentId = document.getFolder();
 			presenterUtils.delete(document.getWrappedRecord(), null);
 			if (parentId != null) {
-				actionsComponent.navigateTo().displayFolder(parentId);
+				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
 				actionsComponent.navigateTo().recordsManagement();
 			}
@@ -295,7 +297,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 				decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-				actionsComponent.navigateTo().displayDocument(document.getId());
+				actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
 			} catch (Exception e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			} finally {
@@ -482,6 +484,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void updateActionsComponent() {
+
+		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
+
 		updateBorrowedMessage();
 		actionsComponent.setEditDocumentButtonState(getEditButtonState());
 		// THIS IS WHERE I SHOULD USE THE ADD DOCUMENT PERMISSION INSTEAD
@@ -495,6 +500,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.setCheckOutButtonState(getCheckOutState());
 		actionsComponent.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState());
 		actionsComponent.setFinalizeButtonVisible(isFinalizePossible());
+		actionsComponent.setStartWorkflowButtonState(ComponentState.visibleIf(configs.areWorkflowsEnabled()));
 	}
 
 	protected void updateBorrowedMessage() {
@@ -582,4 +588,5 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		Record record = presenterUtils.getRecord(documentVO.getId());
 		return new Document(record, presenterUtils.types()).isPublished();
 	}
+
 }

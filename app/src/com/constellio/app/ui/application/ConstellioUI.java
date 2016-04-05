@@ -2,6 +2,7 @@ package com.constellio.app.ui.application;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
 import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -129,56 +131,59 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-		VaadinRequest vaadinRequest = VaadinService.getCurrentRequest();
-		Principal userPrincipal = vaadinRequest.getUserPrincipal();
-		String username = userPrincipal.getName();
+		Principal userPrincipal = sessionContext.getUserPrincipal();
+		if (userPrincipal != null) {
+			String username = userPrincipal.getName();
 
-		UserCredential userCredential = userServices.getUserCredential(username);
-		if (userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
-			List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
+			UserCredential userCredential = userServices.getUserCredential(username);
+			if (userCredential != null && userCredential.getStatus() == UserCredentialStatus.ACTIVE) {
+				List<String> collections = userCredential != null ? userCredential.getCollections() : new ArrayList<String>();
 
-			String lastCollection = null;
-			User userInLastCollection = null;
-			LocalDateTime lastLogin = null;
+				String lastCollection = null;
+				User userInLastCollection = null;
+				LocalDateTime lastLogin = null;
 
-			for (String collection : collections) {
-				User userInCollection = userServices.getUserInCollection(username, collection);
-				if (userInLastCollection == null) {
-					if (userInCollection != null) {
-						lastCollection = collection;
-						userInLastCollection = userInCollection;
-						lastLogin = userInCollection.getLastLogin();
+				for (String collection : collections) {
+					User userInCollection = userServices.getUserInCollection(username, collection);
+					if (userInLastCollection == null) {
+						if (userInCollection != null) {
+							lastCollection = collection;
+							userInLastCollection = userInCollection;
+							lastLogin = userInCollection.getLastLogin();
+						}
+					} else {
+						if (lastLogin == null && userInCollection.getLastLogin() != null) {
+							lastCollection = collection;
+							userInLastCollection = userInCollection;
+							lastLogin = userInCollection.getLastLogin();
+						} else if (lastLogin != null && userInCollection.getLastLogin() != null && userInCollection.getLastLogin()
+								.isAfter(lastLogin)) {
+							lastCollection = collection;
+							userInLastCollection = userInCollection;
+							lastLogin = userInCollection.getLastLogin();
+						}
 					}
+				}
+				if (userInLastCollection != null) {
+					try {
+						recordServices.update(userInLastCollection
+								.setLastLogin(TimeProvider.getLocalDateTime())
+								.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
+
+					modelLayerFactory.newLoggingServices().login(userInLastCollection);
+					currentUserVO = new UserToVOBuilder()
+							.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+					sessionContext.setCurrentUser(currentUserVO);
+					sessionContext.setCurrentCollection(lastCollection);
+					sessionContext.setForcedSignOut(false);
 				} else {
-					if (lastLogin == null && userInCollection.getLastLogin() != null) {
-						lastCollection = collection;
-						userInLastCollection = userInCollection;
-						lastLogin = userInCollection.getLastLogin();
-					} else if (lastLogin != null && userInCollection.getLastLogin() != null && userInCollection.getLastLogin()
-							.isAfter(lastLogin)) {
-						lastCollection = collection;
-						userInLastCollection = userInCollection;
-						lastLogin = userInCollection.getLastLogin();
-					}
+					currentUserVO = null;
 				}
-			}
-			if (userInLastCollection != null) {
-				try {
-					recordServices.update(userInLastCollection
-							.setLastLogin(TimeProvider.getLocalDateTime())
-							.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
-
-				modelLayerFactory.newLoggingServices().login(userInLastCollection);
-				currentUserVO = new UserToVOBuilder()
-						.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
-				sessionContext.setCurrentUser(currentUserVO);
-				sessionContext.setCurrentCollection(lastCollection);
-				sessionContext.setForcedSignOut(false);
 			} else {
-				throw new RuntimeException("User " + username + " doesn't exist in Constellio");
+				currentUserVO = null;
 			}
 		} else {
 			currentUserVO = null;
@@ -285,8 +290,20 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		return service.getDeploymentConfiguration().isProductionMode();
 	}
 
-	public ConstellioNavigator navigateTo() {
-		return new ConstellioNavigator(getNavigator());
+	public Navigation navigate() {
+		return new Navigation();
+	}
+
+	public CoreViews navigateTo() {
+		return navigateTo(CoreViews.class);
+	}
+
+	public <T extends CoreViews> T navigateTo(Class<T> navigatorClass) {
+		try {
+			return navigatorClass.getConstructor(Navigator.class).newInstance(getNavigator());
+		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+			throw new ImpossibleRuntimeException("The navigator does not provide a valid constructor");
+		}
 	}
 
 	public void addRecordContextMenuHandler(RecordContextMenuHandler recordContextMenuHandler) {

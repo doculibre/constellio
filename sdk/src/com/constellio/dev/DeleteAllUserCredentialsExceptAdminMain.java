@@ -81,7 +81,7 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 				}
 			}
 		}
-		
+
 		List<UserCredential> userCredentials = userServices.getAllUserCredentials();
 		for (UserCredential userCredential : userCredentials) {
 			String username = userCredential.getUsername();
@@ -91,18 +91,18 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 					userServices.removeUserFromGlobalGroup(username, globalGroup);
 				}
 				globalGroups = new ArrayList<>();
-				
+
 				List<String> userCollections = userCredential.getCollections();
 				for (String userCollection : userCollections) {
 					userServices.removeUserFromCollection(userCredential, userCollection);
 				}
 				userCollections = new ArrayList<>();
-				
+
 				System.out.println("Deleting user " + userCredential.getUsername());
-				UserCredential newUserCredential = new UserCredential(username, userCredential.getFirstName(),
+				UserCredential newUserCredential = userServices.createUserCredential(username, userCredential.getFirstName(),
 						userCredential.getLastName(), userCredential.getEmail(), userCredential.getServiceKey(),
-						userCredential.isSystemAdmin(), globalGroups, userCollections, 
-						userCredential.getTokens(), UserCredentialStatus.DELETED, 
+						userCredential.isSystemAdmin(), globalGroups, userCollections,
+						userCredential.getAccessTokens(), UserCredentialStatus.DELETED,
 						userCredential.getDomain(), Arrays.asList(""), null);
 				userCredential = newUserCredential;
 				userServices.removeUserCredentialAndUser(userCredential);
@@ -111,32 +111,32 @@ public class DeleteAllUserCredentialsExceptAdminMain {
 
 		ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
 		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-		
+
 		File tempXmlFile = File.createTempFile(DeleteAllUserCredentialsExceptAdminMain.class.getSimpleName(), ".xml");
-		
+
 		ConfigManager configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 
 		String userCredentialsXmlFilePath = "/userCredentialsConfig.xml";
 		Document userCredentialsDocument = configManager.getXML(userCredentialsXmlFilePath).getDocument();
 		Element rootElement = userCredentialsDocument.getRootElement();
-		for (Iterator<Element> it = rootElement.getChildren().iterator(); it.hasNext();) {
+		for (Iterator<Element> it = rootElement.getChildren().iterator(); it.hasNext(); ) {
 			Element userCredentialElement = it.next();
 			String username = userCredentialElement.getAttributeValue("username");
 			if (!username.equals(User.ADMIN)) {
 				it.remove();
 			}
 		}
-		
+
 		XMLOutputter xmlOutput = new XMLOutputter();
 		// display nice nice
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		xmlOutput.output(userCredentialsDocument, new FileWriter(tempXmlFile));
-		
+
 		String hash = configManager.getBinary(userCredentialsXmlFilePath).getHash();
 		InputStream tempXmlFileIn = new FileInputStream(tempXmlFile);
 		configManager.update(userCredentialsXmlFilePath, hash, tempXmlFileIn);
 		IOUtils.closeQuietly(tempXmlFileIn);
-		
+
 		System.out.println("End of script");
 	}
 

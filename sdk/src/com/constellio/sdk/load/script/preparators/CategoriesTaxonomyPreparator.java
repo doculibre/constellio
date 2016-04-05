@@ -3,6 +3,7 @@ package com.constellio.sdk.load.script.preparators;
 import static java.util.Arrays.asList;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -39,9 +40,9 @@ public class CategoriesTaxonomyPreparator extends BaseTaxonomyPreparator {
 	}
 
 	private void initRules(RMSchemasRecordsServices rm, Transaction transaction) {
-
-		CopyRetentionRule principal5_2_T = CopyRetentionRule.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
-		CopyRetentionRule secondary2_0_D = CopyRetentionRule.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
+		CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
 		RetentionRule rule = rm.newRetentionRule().setCode("2").setTitle("Rule #2")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D));

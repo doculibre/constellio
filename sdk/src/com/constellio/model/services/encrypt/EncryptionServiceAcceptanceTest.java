@@ -58,4 +58,14 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(encryptionService.decrypt(encryptedText)).isEqualTo(text);
 	}
+
+	@Test
+	public void givenNullEncryptedValueWhenEncryptThenNullReturned()
+			throws Exception {
+		String text = null;
+
+		String encryptedText = encryptionService.encrypt(text);
+
+		assertThat(encryptedText).isNull();
+	}
 }

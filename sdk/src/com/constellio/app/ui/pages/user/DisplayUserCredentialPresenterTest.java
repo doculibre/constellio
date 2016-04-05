@@ -17,7 +17,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
@@ -38,7 +38,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 
 	@Mock DisplayUserCredentialView userCredentialView;
 	@Mock UserServices userServices;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock UserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential, newDakotaCredential;
 	@Mock GlobalGroup heroesGlobalGroup;

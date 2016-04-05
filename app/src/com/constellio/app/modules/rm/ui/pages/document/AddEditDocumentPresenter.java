@@ -14,14 +14,18 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.ContentUploadedListener;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.NewFileClickListener;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentCopyRuleField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolderField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeField;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
@@ -119,6 +123,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (parentId != null) {
 			documentVO.set(Document.FOLDER, parentId);
 		}
+		if (areDocumentRetentionRulesEnabled()) {
+			Document record = rmSchemas().wrapDocument(toRecord(documentVO));
+			recordServices().recalculate(record);
+			documentVO.set(Document.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
+		}
 		String currentSchemaCode = documentVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
 		view.setRecord(documentVO);
@@ -178,7 +187,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 			return user.hasAll(requiredPermissions).on(restrictedRMObject) && user.hasWriteAccess().on(restrictedRMObject);
 		}
-
 	}
 
 	@Override
@@ -213,6 +221,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			Email email = rmSchemasRecordsServices.newEmail(filename, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 			contentVersionVO.setMajorVersion(true);
+		} else {
+			contentVersionVO.setMajorVersion(true);
 		}
 		if (StringUtils.isNotBlank(folderId)) {
 			documentVO.setFolder(folderId);
@@ -231,15 +241,15 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
-				view.navigateTo().displayFolder(parentId);
+				view.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
-				view.navigateTo().recordsManagement();
+				view.navigate().to().home();
 			}
 		} else {
-			view.navigateTo().displayDocument(documentVO.getId());
+			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
 		}
 	}
-	
+
 	private void setAsNewVersionOfContent(Document document) {
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		Document documentBeforeChange = rmSchemasRecordsServices.getDocument(document.getId());
@@ -248,7 +258,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String filename = contentVersionVO.getFileName();
 		InputStream in = contentVersionVO.getInputStreamProvider().getInputStream("AddEditDocumentPresenter.saveButtonClicked");
 		boolean majorVersion = Boolean.TRUE.equals(contentVersionVO.isMajorVersion());
-		
+
 		ContentVersionDataSummary contentVersionSummary;
 		try {
 			contentVersionSummary = contentManager.upload(in, filename);
@@ -262,8 +272,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	public void saveButtonClicked() {
 		Record record = toRecord(documentVO, newFile);
 		Document document = rmSchemas().wrapDocument(record);
-		
-		boolean editWithUserDocument = !addView && userDocumentId != null; 
+
+		boolean editWithUserDocument = !addView && userDocumentId != null;
 		if (editWithUserDocument) {
 			setAsNewVersionOfContent(document);
 		}
@@ -303,7 +313,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			User userDocumentUser = userServices.getUserInCollection(currentUser.getUsername(), userDocumentCollection);
 			userDocumentPresenterUtils.delete(userDocumentRecord, null, userDocumentUser);
 		}
-		view.navigateTo().displayDocument(record.getId());
+		view.navigate().to(RMViews.class).displayDocument(record.getId());
 	}
 
 	private void setRecordContent(Record record, DocumentVO documentVO) {
@@ -390,6 +400,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (valueChangeField instanceof DocumentFolderField) {
 			String folderId = (String) view.getForm().getCustomField(Document.FOLDER).getFieldValue();
 			documentVO.setFolder(folderId);
+			if (areDocumentRetentionRulesEnabled()) {
+				Document record = rmSchemas().wrapDocument(toRecord(documentVO));
+				recordServices().recalculate(record);
+				documentVO.set(Document.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
+			}
 			List<String> ignoredMetadataCodes = Arrays.asList(Document.FOLDER);
 			reloadFormAndPopulateCurrentMetadatasExcept(ignoredMetadataCodes);
 			view.getForm().getCustomField(Document.FOLDER).focus();
@@ -512,6 +527,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		return (DocumentContentField) view.getForm().getCustomField(Document.CONTENT);
 	}
 
+	private DocumentCopyRuleField getCopyRuleField() {
+		return (DocumentCopyRuleField) view.getForm().getCustomField(Document.MAIN_COPY_RULE_ID_ENTERED);
+	}
+
 	public void viewAssembled() {
 		addContentFieldListeners();
 	}
@@ -569,6 +588,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				addContentFieldListeners();
 			}
 		});
+
+		DocumentCopyRuleField copyRuleField = getCopyRuleField();
+		copyRuleField.setVisible(
+				areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1);
+		copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));
 	}
 
 	private boolean canSaveDocument(Document document, User user) {
@@ -585,5 +609,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		default:
 			return user.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder);
 		}
+	}
+
+	private boolean areDocumentRetentionRulesEnabled() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
 	}
 }

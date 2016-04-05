@@ -11,7 +11,6 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
-import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
@@ -49,7 +48,8 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
-	private static final String DOCUMENT_TYPE = "documentTypeId";
+	private static final String CODE = "code";
+	private static final String DOCUMENT_TYPE = "typeId";
 	private static final String MEDIUM_TYPES = "mediumTypeIds";
 	private static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
 	private static final String ACTIVE_RETENTION_PERIOD = "activeRetentionPeriod";
@@ -64,20 +64,23 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 
 	private RecordIdToCaptionConverter documentTypeConverter = new RecordIdToCaptionConverter();
 	private RecordIdListToStringConverter recordIdListToStringConverter = new RecordIdListToStringConverter();
-	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(DisposalType.class);
+	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(
+			DisposalType.class);
 	private MetadataCodeToStringConverter metadataCodeToStringConverter = new MetadataCodeToStringConverter();
 	private RetentionRuleVO retentionRuleVO;
 	private VerticalLayout mainLayout;
 	private AddButton addButton;
 	private Table table;
 	private Table variablePeriodTable;
+	private RetentionRuleTablePresenter presenter;
 	private boolean formMode;
 
 	public DocumentCopyRetentionRuleTable(RetentionRuleVO retentionRuleVO, boolean formMode,
-			List<VariableRetentionPeriodVO> variableRetentionPeriodVOList) {
+			final RetentionRuleTablePresenter presenter) {
 		this.retentionRuleVO = retentionRuleVO;
 		this.formMode = formMode;
-		this.variableRetentionPeriodVOList = variableRetentionPeriodVOList;
+		this.presenter = presenter;
+		this.variableRetentionPeriodVOList = presenter.getOpenPeriodsDDVList();
 
 		setSizeFull();
 
@@ -89,15 +92,9 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			addButton = new AddButton($("DocumentCopyRetentionRuleListTable.addCopy")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					CopyRetentionRule newCopy = newCopy();
+					CopyRetentionRule newCopy = presenter.newDocumentCopyRetentionRule();
 					List<CopyRetentionRule> copyRetentionRules = getCopyRetentionRules();
-					int indexOfNewCopy;
-					if (copyRetentionRules.size() > 1) {
-						indexOfNewCopy = copyRetentionRules.size() - 1;
-					} else {
-						indexOfNewCopy = 0;
-					}
-					copyRetentionRules.add(indexOfNewCopy, newCopy);
+					copyRetentionRules.add(newCopy);
 					addItems();
 				}
 			};
@@ -107,6 +104,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		table.setWidth("100%");
 		table.setPageLength(0);
 
+		table.setColumnHeader(CODE, $("FolderCopyRetentionRuleListTable.code"));
 		table.setColumnHeader(DOCUMENT_TYPE, $("DocumentCopyRetentionRuleListTable.documentTypeId"));
 		table.setColumnHeader(MEDIUM_TYPES, $("DocumentCopyRetentionRuleListTable.mediumTypes"));
 		table.setColumnHeader(CONTENT_TYPES_COMMENT, "");
@@ -119,6 +117,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		table.setColumnHeader(DELETE_BUTTON, "");
 
 		if (formMode) {
+			table.addContainerProperty(CODE, BaseTextField.class, null);
 			table.addContainerProperty(DOCUMENT_TYPE, LookupRecordField.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, MediumTypesField.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, MiniTextField.class, null);
@@ -130,6 +129,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			table.addContainerProperty(INACTIVE_DISPOSAL_COMMENT, MiniTextField.class, null);
 			table.addContainerProperty(DELETE_BUTTON, Button.class, null);
 		} else {
+			table.addContainerProperty(CODE, Label.class, null);
 			table.addContainerProperty(DOCUMENT_TYPE, Label.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, Label.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, Label.class, null);
@@ -176,25 +176,19 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			variablePeriodTable.addItem(variableRetentionPeriodVO);
 			Label activeRetentionCodeLabel = new Label("" + variableRetentionPeriodVO.getCode());
 			Label activeRetentionTitleLabel = new Label("" + variableRetentionPeriodVO.getTitle());
-			variablePeriodTable.getContainerProperty(variableRetentionPeriodVO, ACTIVE_RETENTION_PERIOD).setValue(activeRetentionCodeLabel);
-			variablePeriodTable.getContainerProperty(variableRetentionPeriodVO, ACTIVE_RETENTION_TITLE).setValue(activeRetentionTitleLabel);
+			variablePeriodTable.getContainerProperty(variableRetentionPeriodVO, ACTIVE_RETENTION_PERIOD)
+					.setValue(activeRetentionCodeLabel);
+			variablePeriodTable.getContainerProperty(variableRetentionPeriodVO, ACTIVE_RETENTION_TITLE)
+					.setValue(activeRetentionTitleLabel);
 		}
 		return variablePeriodTable;
 	}
 
 	protected void onDisposalTypeChange(CopyRetentionRule rule) {
 	}
-	
+
 	protected List<MetadataVO> getDateMetadataVOs(String documentTypeId) {
 		return new ArrayList<>();
-	}
-
-	private CopyRetentionRule newCopy() {
-		CopyRetentionRule newCopy = new CopyRetentionRule();
-		newCopy.setCopyType(CopyType.PRINCIPAL);
-		newCopy.setActiveRetentionPeriod(RetentionPeriod.ZERO);
-		newCopy.setSemiActiveRetentionPeriod(RetentionPeriod.ZERO);
-		return newCopy;
 	}
 
 	@Override
@@ -216,30 +210,41 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		table.addItem(copyRetentionRule);
 
 		if (formMode) {
+			MiniTextField codeField = new MiniTextField();
+
 			LookupRecordField documentTypeField = new LookupRecordField(DocumentType.SCHEMA_TYPE);
 			documentTypeField.setRequired(true);
-			
-			final ActiveRetentionPeriodFieldGroup activeRetentionPeriodFieldGroup = new ActiveRetentionPeriodFieldGroup(copyRetentionRule);
+
+			final ActiveRetentionPeriodFieldGroup activeRetentionPeriodFieldGroup = new ActiveRetentionPeriodFieldGroup(
+					copyRetentionRule);
 			MediumTypesField mediumTypesField = new MediumTypesField(copyRetentionRule);
 			MiniTextField contentTypesCommentField = new MiniTextField();
 			MiniTextField activeRetentionCommentField = new MiniTextField();
-			final SemiActiveRetentionPeriodFieldGroup semiActiveRetentionPeriodFieldGroup = new SemiActiveRetentionPeriodFieldGroup(copyRetentionRule);
+			final SemiActiveRetentionPeriodFieldGroup semiActiveRetentionPeriodFieldGroup = new SemiActiveRetentionPeriodFieldGroup(
+					copyRetentionRule);
 			MiniTextField semiActiveRetentionCommentField = new MiniTextField();
 			InactiveDisposalTypeField inactiveDisposalTypeField = new InactiveDisposalTypeField(copyRetentionRule);
 			MiniTextField inactiveDisposalCommentField = new MiniTextField();
 
+			codeField.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CODE));
 			documentTypeField.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, DOCUMENT_TYPE));
-			activeRetentionCommentField.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, ACTIVE_RETENTION_COMMENT));
-			semiActiveRetentionCommentField.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT));
-			inactiveDisposalCommentField.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
+			activeRetentionCommentField
+					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, ACTIVE_RETENTION_COMMENT));
+			semiActiveRetentionCommentField
+					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT));
+			inactiveDisposalCommentField
+					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
 
+			table.getContainerProperty(copyRetentionRule, CODE).setValue(codeField);
 			table.getContainerProperty(copyRetentionRule, DOCUMENT_TYPE).setValue(documentTypeField);
 			table.getContainerProperty(copyRetentionRule, MEDIUM_TYPES).setValue(mediumTypesField);
 			table.getContainerProperty(copyRetentionRule, CONTENT_TYPES_COMMENT).setValue(contentTypesCommentField);
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_PERIOD).setValue(activeRetentionPeriodFieldGroup);
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_COMMENT).setValue(activeRetentionCommentField);
-			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_PERIOD).setValue(semiActiveRetentionPeriodFieldGroup);
-			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT).setValue(semiActiveRetentionCommentField);
+			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_PERIOD)
+					.setValue(semiActiveRetentionPeriodFieldGroup);
+			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT)
+					.setValue(semiActiveRetentionCommentField);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_TYPE).setValue(inactiveDisposalTypeField);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT).setValue(inactiveDisposalCommentField);
 
@@ -251,7 +256,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 				}
 			};
 			table.getContainerProperty(copyRetentionRule, DELETE_BUTTON).setValue(removeButton);
-			
+
 			documentTypeField.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
@@ -262,12 +267,15 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 				}
 			});
 		} else {
+			Label codeLabel = new Label();
 			Label documentTypeLabel = new Label();
 			Label mediumTypesLabel = new Label();
 			Label contentTypesCommentLabel = new Label();
-			ActiveRetentionPeriodFieldGroup activeRetentionPeriodFieldGroup = new ActiveRetentionPeriodFieldGroup(copyRetentionRule);
+			ActiveRetentionPeriodFieldGroup activeRetentionPeriodFieldGroup = new ActiveRetentionPeriodFieldGroup(
+					copyRetentionRule);
 			Label activeRetentionCommentLabel = new Label();
-			SemiActiveRetentionPeriodFieldGroup semiActiveRetentionPeriodFieldGroup = new SemiActiveRetentionPeriodFieldGroup(copyRetentionRule);
+			SemiActiveRetentionPeriodFieldGroup semiActiveRetentionPeriodFieldGroup = new SemiActiveRetentionPeriodFieldGroup(
+					copyRetentionRule);
 			Label semiActiveRetentionCommentLabel = new Label();
 			Label inactiveDisposalTypeLabel = new Label();
 			Label inactiveDisposalCommentLabel = new Label();
@@ -276,21 +284,30 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			mediumTypesLabel.setConverter(recordIdListToStringConverter);
 			inactiveDisposalTypeLabel.setConverter(disposalTypeConverter);
 
+			codeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CODE));
 			documentTypeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, DOCUMENT_TYPE));
 			mediumTypesLabel.setPropertyDataSource(new NestedMethodProperty<List<String>>(copyRetentionRule, MEDIUM_TYPES));
-			contentTypesCommentLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CONTENT_TYPES_COMMENT));
-			activeRetentionCommentLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, ACTIVE_RETENTION_COMMENT));
-			semiActiveRetentionCommentLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT));
-			inactiveDisposalTypeLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_TYPE + ".code"));
-			inactiveDisposalCommentLabel.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
+			contentTypesCommentLabel
+					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, CONTENT_TYPES_COMMENT));
+			activeRetentionCommentLabel
+					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, ACTIVE_RETENTION_COMMENT));
+			semiActiveRetentionCommentLabel
+					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT));
+			inactiveDisposalTypeLabel
+					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_TYPE + ".code"));
+			inactiveDisposalCommentLabel
+					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
 
+			table.getContainerProperty(copyRetentionRule, CODE).setValue(codeLabel);
 			table.getContainerProperty(copyRetentionRule, DOCUMENT_TYPE).setValue(documentTypeLabel);
 			table.getContainerProperty(copyRetentionRule, MEDIUM_TYPES).setValue(mediumTypesLabel);
 			table.getContainerProperty(copyRetentionRule, CONTENT_TYPES_COMMENT).setValue(contentTypesCommentLabel);
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_PERIOD).setValue(activeRetentionPeriodFieldGroup);
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_COMMENT).setValue(activeRetentionCommentLabel);
-			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_PERIOD).setValue(semiActiveRetentionPeriodFieldGroup);
-			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT).setValue(semiActiveRetentionCommentLabel);
+			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_PERIOD)
+					.setValue(semiActiveRetentionPeriodFieldGroup);
+			table.getContainerProperty(copyRetentionRule, SEMI_ACTIVE_RETENTION_COMMENT)
+					.setValue(semiActiveRetentionCommentLabel);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_TYPE).setValue(inactiveDisposalTypeLabel);
 			table.getContainerProperty(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT).setValue(inactiveDisposalCommentLabel);
 		}
@@ -348,7 +365,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 	}
 
 	private class RetentionPeriodFieldGroup extends VerticalLayout {
-		
+
 		private MetadataField dateMetadataField;
 
 		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule, final boolean activeRetentionPeriod) {
@@ -358,7 +375,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 					copyRetentionRule.getActiveRetentionPeriod() :
 					copyRetentionRule.getSemiActiveRetentionPeriod();
 
-			Property<String> dateMetadataProperty;	
+			Property<String> dateMetadataProperty;
 			if (activeRetentionPeriod) {
 				dateMetadataProperty = new MethodProperty<>(copyRetentionRule, "activeDateMetadata");
 			} else {
@@ -367,8 +384,9 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 			if (formMode) {
 				dateMetadataField = new MetadataField(copyRetentionRule);
 				dateMetadataField.setPropertyDataSource(dateMetadataProperty);
-				
-				BeanItemContainer<VariableRetentionPeriodVO> container = new BeanItemContainer<>(VariableRetentionPeriodVO.class, getVariablePeriods());
+
+				BeanItemContainer<VariableRetentionPeriodVO> container = new BeanItemContainer<>(VariableRetentionPeriodVO.class,
+						getVariablePeriods());
 				final ComboBox openRetentionPeriodDDVField = new ComboBox("", container);
 				openRetentionPeriodDDVField.setInputPrompt($("fixedPeriod"));
 				openRetentionPeriodDDVField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
@@ -387,25 +405,33 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 					for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {
 						if (periodVO.getCode().equals(retentionPeriod.getVariablePeriodCode())) {
 							openRetentionPeriodDDVField.setValue(periodVO);
-							openRetentionPeriodDDVField.setItemCaption(periodVO, periodVO.getCode() + " - " + periodVO.getTitle());
 							break;
 						}
 					}
-					yearsField.setEnabled(false);
+					if (activeRetentionPeriod && retentionPeriod.getRetentionType() == RetentionType.OPEN) {
+						yearsField.setConvertedValue(copyRetentionRule.getOpenActiveRetentionPeriod());
+						yearsField.setEnabled(true);
+					} else {
+						yearsField.setEnabled(false);
+					}
 				}
 
 				openRetentionPeriodDDVField.addValueChangeListener(new ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
+						RetentionPeriod newRetentionPeriod;
 						VariableRetentionPeriodVO newValue = (VariableRetentionPeriodVO) openRetentionPeriodDDVField.getValue();
 						if (newValue != null) {
-							yearsField.setValue(null);
-							yearsField.setEnabled(false);
 							if (activeRetentionPeriod) {
 								copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.variable(newValue.getCode()));
+								newRetentionPeriod = copyRetentionRule.getActiveRetentionPeriod();
 							} else {
 								copyRetentionRule.setSemiActiveRetentionPeriod(RetentionPeriod.variable(newValue.getCode()));
+								newRetentionPeriod = copyRetentionRule.getSemiActiveRetentionPeriod();
 							}
+							yearsField.setValue(null);
+							yearsField.setEnabled(activeRetentionPeriod &&
+									newRetentionPeriod.getRetentionType() == RetentionType.OPEN);
 						} else {
 							yearsField.setEnabled(true);
 						}
@@ -418,7 +444,12 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 						try {
 							yearsField.validate();
 							Integer newValue = (Integer) yearsField.getConvertedValue();
-							if (newValue != null) {
+							RetentionPeriod period = activeRetentionPeriod ?
+									copyRetentionRule.getActiveRetentionPeriod() :
+									copyRetentionRule.getSemiActiveRetentionPeriod();
+							if (activeRetentionPeriod && period.getRetentionType() == RetentionType.OPEN) {
+								copyRetentionRule.setOpenActiveRetentionPeriod(newValue);
+							} else if (newValue != null) {
 								openRetentionPeriodDDVField.setValue(null);
 								if (activeRetentionPeriod) {
 									copyRetentionRule.setActiveRetentionPeriod(RetentionPeriod.fixed(newValue));
@@ -439,8 +470,9 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 					metadataCode = copyRetentionRule.getActiveDateMetadata();
 				} else {
 					metadataCode = copyRetentionRule.getSemiActiveDateMetadata();
-				}	
-				String metadataLabelStr = metadataCodeToStringConverter.convertToPresentation(metadataCode, String.class, getLocale());
+				}
+				String metadataLabelStr = metadataCodeToStringConverter
+						.convertToPresentation(metadataCode, String.class, getLocale());
 				Label metadataLabel = new Label(metadataLabelStr);
 				Label retentionPeriodLabel = new Label("" + retentionPeriod.getValue());
 				addComponents(metadataLabel, retentionPeriodLabel);
@@ -492,23 +524,23 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		}
 
 	}
-	
+
 	private class MetadataField extends BaseComboBox {
-		
+
 		private CopyRetentionRule copyRetentionRule;
-		
+
 		public MetadataField(CopyRetentionRule copyRetentionRule) {
 			super();
 			this.copyRetentionRule = copyRetentionRule;
 			addOptions();
 		}
-		
+
 		protected void addOptions() {
 			removeAllItems();
-			
-			String documentTypeId = copyRetentionRule.getDocumentTypeId();
+
+			String documentTypeId = copyRetentionRule.getTypeId();
 			List<MetadataVO> dateMetadataVOs = getDateMetadataVOs(documentTypeId);
-			
+
 			Locale locale = VaadinSession.getCurrent().getLocale();
 			for (MetadataVO metadataVO : dateMetadataVOs) {
 				String metatadaCode = metadataVO.getCode();
@@ -516,7 +548,5 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 				setItemCaption(metatadaCode, metadataVO.getLabel(locale));
 			}
 		}
-
 	}
-
 }
