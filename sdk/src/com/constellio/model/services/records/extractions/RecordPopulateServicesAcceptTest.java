@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.constellio.model.services.records.RecordServicesException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -1004,6 +1005,61 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenAMetadataPopulatorConfiguredWithRegexWhenAddUpdateRecordThenUpdateValues() throws RecordServicesException {
+		defineSchemasManager().using(schemas.with(fourMetadatas()
+				.withStringMeta(
+						populatedByRegex("Édouard").onMetadata("requiredContent")
+								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).convertToMetatdataPopulator(),
+						populatedByRegex("Gandalf").onMetadata("requiredContent")
+								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).convertToMetatdataPopulator()
+				)
+				.withTextMeta(
+						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
+								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).convertToMetatdataPopulator()
+				)
+				.withStringsMeta(
+						populatedByRegex("Édouard").onMetadata("requiredContent")
+								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).convertToMetatdataPopulator(),
+						populatedByRegex("Gandalf").onMetadata("requiredContent")
+								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).convertToMetatdataPopulator()
+				)
+				.withTextsMeta(
+						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
+								"Formulaire $1").settingType(RegexConfigType.TRANSFORMATION).convertToMetatdataPopulator()
+				)
+		));
+
+		Record record = new TestRecord(zeSchemas)
+				.set(Schemas.TITLE, "Ze A-39!")
+				.set(zeSchemas.requiredContent(), createContent(documentWithStylesAndProperties1));
+		services.populate(record);
+		assertThatRecord(record)
+				.hasMetadataValue(Schemas.TITLE, "Ze A-39!")
+				.hasMetadataValue(zeSchemas.stringMeta(), "Édouard Lechat")
+				.hasMetadataValue(zeSchemas.textMeta(), "Formulaire A-39")
+				.hasMetadataValue(zeSchemas.stringsMeta(), asList("Édouard Lechat"))
+				.hasMetadataValue(zeSchemas.textsMeta(), asList("Formulaire A-39"));
+		recordServices.add(record);
+
+		services.populate(record
+				.set(zeSchemas.requiredContent(), createContent(documentWithStylesAndProperties2)));
+		assertThatRecord(record)
+				.hasMetadataValue(Schemas.TITLE, "Ze A-39!")
+				.hasMetadataValue(zeSchemas.stringMeta(), "Gandalf Leblanc")
+				.hasMetadataValue(zeSchemas.textMeta(), "Formulaire A-39")
+				.hasMetadataValue(zeSchemas.stringsMeta(), asList("Gandalf Leblanc"))
+				.hasMetadataValue(zeSchemas.textsMeta(), asList("Formulaire A-39"));
+
+		services.populate(record.set(Schemas.TITLE, "Ze A-38!"));
+		assertThatRecord(record)
+				.hasMetadataValue(Schemas.TITLE, "Ze A-38!")
+				.hasMetadataValue(zeSchemas.stringMeta(), "Gandalf Leblanc")
+				.hasMetadataValue(zeSchemas.textMeta(), "Formulaire A-38")
+				.hasMetadataValue(zeSchemas.stringsMeta(), asList("Gandalf Leblanc"))
+				.hasMetadataValue(zeSchemas.textsMeta(), asList("Formulaire A-38"));
+	}
+
+	@Test
 	public void givenARecordWithRegexExtractorsWhenAddUpdateRecordsThenUpdateValues()
 			throws Exception {
 
@@ -1334,6 +1390,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		}
 	}
 
+
 	private static class OngoingRegexConfig {
 		String regex;
 		String metadata;
@@ -1363,6 +1420,11 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 			return this;
 		}
 
+		public OngoingRegexConfig settingType(RegexConfigType regexConfigType){
+			this.type = regexConfigType;
+			return this;
+		}
+
 		public MetadataBuilderConfigurator settingRegexConfigType(RegexConfigType regexConfigType) {
 			this.type = regexConfigType;
 			return build();
@@ -1378,6 +1440,22 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				}
 			};
 		}
+
+		public MetadataBuilderConfigurator convertToMetatdataPopulator(){
+			final RegexConfig config = new RegexConfig(metadata, Pattern.compile(regex), value, type);
+			final DefaultMetadataPopulator metadataPopulator = new DefaultMetadataPopulator(
+					new RegexExtractor(config.getRegex().pattern(), config.getRegexConfigType() == RegexConfigType.TRANSFORMATION,
+							config.getValue()),
+					new MetadataToText(metadata));
+			return new MetadataBuilderConfigurator() {
+				@Override
+				public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+					builder.getPopulateConfigsBuilder().getMetadataPopulators().add(metadataPopulator);
+				}
+			};
+		}
+
+
 	}
 
 	private static class RecordPopulateServicesAcceptTest_ZeSchemaMetadatas extends ZeSchemaMetadatasAdapter {

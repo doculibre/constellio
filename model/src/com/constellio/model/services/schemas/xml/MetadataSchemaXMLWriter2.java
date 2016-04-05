@@ -1,8 +1,12 @@
 package com.constellio.model.services.schemas.xml;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.data.dao.services.DataLayerLogger;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
@@ -24,11 +28,17 @@ import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.builders.ClassListBuilder;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetadataSchemaXMLWriter2 {
 
 	public static final String FORMAT_ATTRIBUTE = "format";
 	public static final String FORMAT_VERSION = MetadataSchemaXMLReader2.FORMAT_VERSION;
+	private  SAXBuilder saxBuilder = new SAXBuilder();
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
 
 	public void writeEmptyDocument(String collection, Document document) {
 		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
@@ -412,7 +422,30 @@ public class MetadataSchemaXMLWriter2 {
 		if (!populateConfigs.getRegexes().isEmpty()) {
 			populateConfigsElement.addContent(regexConfigsElement);
 		}
+
+		Element metadataPopulatorsElement = new Element("metadataPopulators");
+		for (MetadataPopulator metadataPopulator: populateConfigs.getMetadataPopulators()) {
+			try {
+				Element element = xmlToElement(metadataPopulator.toXml());
+				metadataPopulatorsElement.addContent(element);
+			} catch (JDOMException | IOException e) {
+				e.printStackTrace();
+				LOGGER.error("Cannot save a metadata populator", e);
+			}
+		}
+		if (!populateConfigs.getMetadataPopulators().isEmpty()) {
+			populateConfigsElement.addContent(metadataPopulatorsElement);
+		}
+
+
 		return populateConfigsElement;
+	}
+
+	private Element xmlToElement(String xml) throws JDOMException, IOException {
+		Document document = saxBuilder.build(new ByteArrayInputStream(xml.getBytes()));
+		Element element = document.getRootElement();
+		element.detach();
+		return element;
 	}
 
 	private Element toRegexElement(RegexConfig regexConfig) {

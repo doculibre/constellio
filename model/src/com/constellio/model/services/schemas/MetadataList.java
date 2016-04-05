@@ -269,9 +269,7 @@ public class MetadataList implements List<Metadata> {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 
-			if (!metadata.getPopulateConfigs().getProperties().isEmpty() ||
-					!metadata.getPopulateConfigs().getStyles().isEmpty() ||
-					!metadata.getPopulateConfigs().getRegexes().isEmpty()) {
+			if (!metadata.getPopulateConfigs().isEmpty()) {
 				filteredMetadatasList.add(metadata);
 			}
 		}

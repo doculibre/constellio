@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import com.constellio.model.services.records.extractions.DefaultMetadataPopulator;
+import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorFactory;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -33,6 +36,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
+
+import javax.xml.bind.JAXBException;
 
 public class MetadataSchemaXMLReader2 {
 
@@ -324,6 +329,7 @@ public class MetadataSchemaXMLReader2 {
 		List<String> styles = new ArrayList<>();
 		List<String> properties = new ArrayList<>();
 		List<RegexConfig> regexes = new ArrayList<>();
+		List<MetadataPopulator> metadataPopulators = new ArrayList<>();
 
 		Element populateConfigsElement = metadataElement.getChild("populateConfigs");
 		if (populateConfigsElement != null) {
@@ -337,12 +343,30 @@ public class MetadataSchemaXMLReader2 {
 				Element regexConfigsElement = populateConfigsElement.getChild("regexConfigs");
 				addRegexConfigElementsToList(regexConfigsElement, regexes);
 			}
+			if (populateConfigsElement.getChild("metadataPopulators") != null){
+				Element metadataPopulatorsElement = populateConfigsElement.getChild("metadataPopulators");
+				addMetadataPopulateElementsToList(metadataPopulatorsElement, metadataPopulators);
+			}
+
 		}
 		MetadataPopulateConfigsBuilder metadataPopulateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
 		metadataPopulateConfigsBuilder.setStyles(styles);
 		metadataPopulateConfigsBuilder.setProperties(properties);
 		metadataPopulateConfigsBuilder.setRegexes(regexes);
+		metadataPopulateConfigsBuilder.setMetadataPopulators(metadataPopulators);
 		metadataBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
+	}
+
+	private void addMetadataPopulateElementsToList(Element metadataPopulatorsElement, List<MetadataPopulator> metadataPopulators) {
+		DefaultMetadataPopulatorFactory factory;
+		factory = new DefaultMetadataPopulatorFactory();
+		for (Element metadataPopulatorElement: metadataPopulatorsElement.getChildren()){
+			try {
+				metadataPopulators.add(factory.createAnInstance(metadataPopulatorElement));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private void addRegexConfigElementsToList(Element element, List<RegexConfig> listToAdd) {

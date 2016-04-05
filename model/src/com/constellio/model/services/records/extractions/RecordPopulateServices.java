@@ -1,13 +1,10 @@
 package com.constellio.model.services.records.extractions;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static java.util.Arrays.asList;
 
 import java.util.*;
-import java.util.Collection;
 import java.util.regex.Matcher;
 
-import com.constellio.model.entities.records.wrappers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,34 +153,13 @@ public class RecordPopulateServices {
 
 	private Object emptyListToNull(Object value) {
 		if (value instanceof List) {
-			List list = (List) value;
+			List<?> list = (List<?>) value;
 			return list.isEmpty() ? null : list;
 		}
 		return value;
 	}
 
-	private static class ParsedContentProvider {
-
-		Map<String, ParsedContent> cache = new HashMap<>();
-
-		ContentManager contentManager;
-
-		private ParsedContentProvider(ContentManager contentManager) {
-			this.contentManager = contentManager;
-		}
-
-		public ParsedContent getParsedContentParsingIfNotYetDone(String hash) {
-			ParsedContent parsedContent = cache.get(hash);
-			if (parsedContent == null) {
-				parsedContent = contentManager.getParsedContentParsingIfNotYetDone(hash);
-				cache.put(hash, parsedContent);
-			}
-
-			return parsedContent;
-		}
-	}
-
-	private static class RecordMetadataPopulator {
+	private class RecordMetadataPopulator {
 
 		MetadataSchema schema;
 		TitleMetadataPopulatePriority titlePriority;
@@ -221,12 +197,28 @@ public class RecordPopulateServices {
 						case "regex":
 							value = populateUsingRegex(record);
 							break;
+
+						case "plugin":
+							value = populateUsingMetatdataPopulator(record);
+							break;
 						}
+
+
 					}
 				}
 				return value;
 			}
 
+		}
+
+		private Object populateUsingMetatdataPopulator(Record record) {
+			for (MetadataPopulator metadataPopulator: metadata.getPopulateConfigs().getMetadataPopulators()){
+				metadataPopulator.init(contentManager, schema, metadata.isMultivalue());
+				Object value = metadataPopulator.getPopulationValue(record);
+				if (value != null)
+					return value;
+			}
+			return null;
 		}
 
 		private Object populateUsingRegex(Record record) {
@@ -421,6 +413,7 @@ public class RecordPopulateServices {
 			return values;
 		}
 
+		@SuppressWarnings("unchecked")
 		private List<String> populateUsingProperties(ParsedContent parsedContent) {
 			List<String> values = new ArrayList<>();
 
@@ -492,6 +485,27 @@ public class RecordPopulateServices {
 				return code1.compareTo(code2);
 			}
 
+		}
+	}
+
+	private static class ParsedContentProvider {
+
+		Map<String, ParsedContent> cache = new HashMap<>();
+
+		ContentManager contentManager;
+
+		private ParsedContentProvider(ContentManager contentManager) {
+			this.contentManager = contentManager;
+		}
+
+		public ParsedContent getParsedContentParsingIfNotYetDone(String hash) {
+			ParsedContent parsedContent = cache.get(hash);
+			if (parsedContent == null) {
+				parsedContent = contentManager.getParsedContentParsingIfNotYetDone(hash);
+				cache.put(hash, parsedContent);
+			}
+
+			return parsedContent;
 		}
 	}
 }

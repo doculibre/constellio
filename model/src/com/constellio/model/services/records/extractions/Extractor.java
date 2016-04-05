@@ -1,8 +1,10 @@
 package com.constellio.model.services.records.extractions;
 
 /**
- * @author Majid
+ * This class extracts information from its feeds provided by {@link ExtractorSupplier<T>}
+ * Note that the class should be abstract so that JAXB library can convert it
+ * to the xml (JAXB does not support interface).
  */
-public interface Extractor<T>{
-	Object extractFrom(T feed);
+public abstract class Extractor<T>{
+	public abstract Object extractFrom(T feed);
 }
