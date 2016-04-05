@@ -175,7 +175,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 				try {
 					return defaultClassProvider.loadClass(name);
 
-				} catch (ClassNotFoundException e) {
+				} catch (Throwable e) {
 					return modulesManagerDelayed.get().getModuleClass(name);
 				}
 
