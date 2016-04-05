@@ -209,7 +209,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	public static boolean isUnitTestStatic() {
-		return isUnitTest(TestClassFinder.getTestClassName()) && !notAUnitItest;
+		return !notAUnitItest && isUnitTest(TestClassFinder.getTestClassName());
 	}
 
 	protected String getTestName() {

@@ -164,6 +164,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	public void setUp()
 			throws Exception {
 
+		notAUnitItest = true;
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
 
