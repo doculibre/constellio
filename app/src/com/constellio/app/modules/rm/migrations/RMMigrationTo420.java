@@ -24,7 +24,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -93,7 +92,7 @@ public class RMMigrationTo420 extends MigrationHelper implements MigrationScript
 		types.createNewSchemaType("Schema420");
 		try {
 			schemaManager.saveUpdateSchemaTypes(types);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (Throwable optimistickLocking) {
 			throw new java.lang.RuntimeException(optimistickLocking);
 		}
 		modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType("Schema420");
