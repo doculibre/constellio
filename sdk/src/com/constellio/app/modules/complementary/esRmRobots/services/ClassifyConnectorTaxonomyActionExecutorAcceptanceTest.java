@@ -500,7 +500,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	}
 
 	@Test
-	public void whenClassifyingFoldersDirectlyInThePlanMultipleTimeThenReactivateLogicallyDeletedFoldersAndDocuments()
+	public void whenClassifyingFoldersDirectlyInThePlanMultipleTimeThenReactivateLogicallyDeleted()
 			throws Exception {
 		notAUnitItest = true;
 		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
