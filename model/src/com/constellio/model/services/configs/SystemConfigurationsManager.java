@@ -162,7 +162,11 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			if (!errors.getValidationErrors().isEmpty()) {
 				throw new SystemConfigurationsManagerRuntimeException_InvalidConfigValue(config.getCode(), newValue);
 			}
-			reindex(config, newValue, oldValue);
+			if (config.equals(ConstellioEIMConfigs.IN_UPDATE_PROCESS)) {
+				configManager.updateProperties(CONFIG_FILE_PATH, updateConfigValueAlteration(config, newValue));
+			} else {
+				reindex(config, newValue, oldValue);
+			}
 
 		}
 	}

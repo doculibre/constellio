@@ -268,9 +268,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			rmFolder.setLegacyId(url);
 			rmFolder.setParentFolder(parentFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
+			recordServices.recalculate(rmFolder);
 			classifyDocumentsFromFolder(rmFolder);
 		} else {
 			rmFolder = rm.wrapFolder(rmRecord);
+			recordServices.recalculate(rmFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
 			classifyDocumentsFromFolder(rmFolder);
 		}
