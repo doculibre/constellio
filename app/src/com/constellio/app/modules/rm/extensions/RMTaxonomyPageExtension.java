@@ -81,25 +81,25 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	public List<TaxonomyExtraField> getTaxonomyExtraFieldsFor(GetTaxonomyExtraFieldsParam params) {
 		List<TaxonomyExtraField> fields = new ArrayList<>();
 
-		if (params.isTaxonomy(RMTaxonomies.ADMINISTRATIVE_UNITS)) {
-			final List<String> retentionRules = getRetentionRules(params.getRecord().getId(), params.getSessionContextProvider());
-			fields.add(new TaxonomyExtraField() {
-				@Override
-				public String getCode() {
-					return "retentionRules";
-				}
-
-				@Override
-				public String getLabel() {
-					return $("TaxonomyManagementView.retentionRules");
-				}
-
-				@Override
-				public Component buildComponent() {
-					return buildDisplayList(retentionRules);
-				}
-			});
-		}
+//		if (params.isTaxonomy(RMTaxonomies.ADMINISTRATIVE_UNITS)) {
+		//			final List<String> retentionRules = getRetentionRules(params.getRecord().getId(), params.getSessionContextProvider());
+		//			fields.add(new TaxonomyExtraField() {
+		//				@Override
+		//				public String getCode() {
+		//					return "retentionRules";
+		//				}
+		//
+		//				@Override
+		//				public String getLabel() {
+		//					return $("TaxonomyManagementView.retentionRules");
+		//				}
+		//
+		//				@Override
+		//				public Component buildComponent() {
+		//					return buildDisplayList(retentionRules);
+		//				}
+		//			});
+		//		}
 
 		return fields;
 	}

@@ -150,6 +150,8 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 				if (!(event.getNewView() instanceof AdvancedSearchView || event.getNewView() instanceof SimpleSearchView)) {
 					searchField.setValue(null);
 					types.setValue(null);
+					criteria.clear();
+					criteria.addEmptyCriterion().addEmptyCriterion();
 					clearAdvancedSearch.setEnabled(false);
 					adjustSearchFieldContent();
 				}
@@ -205,6 +207,8 @@ public class ConstellioHeaderImpl extends HorizontalLayout implements Constellio
 			@Override
 			public void buttonClick(ClickEvent event) {
 				types.setValue(null);
+				criteria.clear();
+				criteria.addEmptyCriterion().addEmptyCriterion();
 				clearAdvancedSearch.setEnabled(false);
 			}
 		});

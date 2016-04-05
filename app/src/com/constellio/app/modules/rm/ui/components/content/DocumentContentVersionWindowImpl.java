@@ -3,7 +3,7 @@ package com.constellio.app.modules.rm.ui.components.content;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;

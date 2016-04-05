@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -99,27 +98,6 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		RecordVODataProvider dataProvider = dataProviders.get(0);
 		assertThat(dataProvider.getSchema().getCode()).isEqualTo(Category.DEFAULT_SCHEMA);
 		assertThat(getRecordIdsFromDataProvider(dataProvider)).containsOnly(records.categoryId_X, records.categoryId_Z);
-	}
-
-	@Test
-	public void whenGetRetentionRulesThenOk()
-			throws Exception {
-
-		Map<String, String> paramsMap = new HashMap<>();
-		paramsMap.put(TaxonomyManagementPresenter.TAXONOMY_CODE, RMTaxonomies.ADMINISTRATIVE_UNITS);
-		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, "unitId_12");
-		String params = ParamUtils.addParams(null, paramsMap);
-		presenter.forParams(params);
-
-		List<TaxonomyExtraField> extraFields = presenter.getExtraFields();
-		assertThat(extraFields).extracting("code").isEqualTo(asList("retentionRules"));
-
-		//		VerticalLayout component = (VerticalLayout) extraFields.get(0).buildComponent();
-		//		assertThat(component.getComponentCount()).isEqualTo(3);
-		//		assertThat(((Label) component.getComponent(0)).getValue()).isEqualTo("e");
-
-		//assertThat().hasSize(3);
-		//assertThat(presenter.getRetentionRules()).containsOnly("ruleId_1", "ruleId_2", "ruleId_4");
 	}
 
 	@Test

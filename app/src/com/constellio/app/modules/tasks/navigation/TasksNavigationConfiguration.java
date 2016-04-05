@@ -7,7 +7,7 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.ui.pages.viewGroups.TasksViewGroup;
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.home.HomeView;

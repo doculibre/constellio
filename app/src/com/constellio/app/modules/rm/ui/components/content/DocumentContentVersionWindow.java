@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
