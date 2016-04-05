@@ -6,6 +6,7 @@ import static com.constellio.app.modules.complementary.esRmRobots.model.enums.Ac
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import com.constellio.model.entities.records.wrappers.User;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
@@ -493,6 +495,85 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 						tuple("1.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.1"),
 						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
 						tuple("3.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.1"),
+						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+				);
+	}
+
+	@Test
+	public void whenClassifyingFoldersDirectlyInThePlanMultipleTimeThenReactivateLogicallyDeletedFoldersAndDocuments()
+			throws Exception {
+		notAUnitItest = true;
+		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
+		ClassifyConnectorFolderDirectlyInThePlanActionParameters parameters = ClassifyConnectorFolderDirectlyInThePlanActionParameters
+				.wrap(robotsSchemas
+						.newActionParameters(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setActionAfterClassification(DO_NOTHING)
+				.setDefaultCategory(records.categoryId_X)
+				.setDefaultAdminUnit(records.unitId_10)
+				.setDefaultCopyStatus(CopyType.PRINCIPAL)
+				.setDefaultRetentionRule(records.ruleId_1)
+				.setDefaultOpenDate(squatreNovembre));
+
+		recordServices.add(robotsSchemas.newRobotWithId(robotId).setActionParameters(parameters)
+				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
+						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+								.where(es.connectorSmbFolder.url()).isContainingText("/"))
+				.setAction(ClassifyConnectorFolderDirectlyInThePlanActionExecutor.ID).setCode("terminator")
+				.setTitle("terminator"));
+
+		//1- First execution
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderAANoTaxoURL, "AA"),
+				tuple(folderABNoTaxoURL, "AB"),
+				tuple(folderAAANoTaxoURL, "AAA"),
+				tuple(folderAABNoTaxoURL, "AAB"),
+				tuple(folderBNoTaxoURL, "B")
+		);
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
+						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+				);
+
+		//2- Logically delete two folders and one document
+		recordServices.logicallyDelete(rm.getFolderByLegacyId(folderAANoTaxoURL).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(rm.getFolderByLegacyId(folderBNoTaxoURL).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(rm.getDocumentByLegacyId(documentA1NoTaxoURL).getWrappedRecord(), User.GOD);
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderABNoTaxoURL, "AB")
+		);
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0")
+				);
+
+		//3- Start the robot again, folders and documents are back alive
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderAANoTaxoURL, "AA"),
+				tuple(folderABNoTaxoURL, "AB"),
+				tuple(folderAAANoTaxoURL, "AAA"),
+				tuple(folderAABNoTaxoURL, "AAB"),
+				tuple(folderBNoTaxoURL, "B")
+		);
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
 						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
 				);
 	}
