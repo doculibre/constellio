@@ -65,7 +65,7 @@ public class BatchProcessTestFeature {
 	}
 
 	public void afterTest() {
-		if (waitForBatchProcessAfterTest) {
+		if (waitForBatchProcessAfterTest && factoriesTestFeatures.isInitialized()) {
 			waitForAllBatchProcesses(null, false);
 		}
 		//		if (started) {

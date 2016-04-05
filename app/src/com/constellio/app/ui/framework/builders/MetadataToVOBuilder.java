@@ -121,9 +121,8 @@ public class MetadataToVOBuilder implements Serializable {
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 
 		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
-				enumClass,
-				taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
-				metadataGroup, metadata.getDefaultValue());
+				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
+				metadataGroup, metadata.getDefaultValue(), metadata.getInputMask());
 	}
 
 	protected MetadataVO newMetadataVO(

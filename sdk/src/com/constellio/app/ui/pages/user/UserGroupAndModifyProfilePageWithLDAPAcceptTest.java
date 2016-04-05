@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.DemoTestRecords;
-import com.constellio.app.modules.rm.RMNavigationConfiguration;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;

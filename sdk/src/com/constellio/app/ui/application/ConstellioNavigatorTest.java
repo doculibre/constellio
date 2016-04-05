@@ -13,11 +13,11 @@ import com.vaadin.navigator.Navigator;
 public class ConstellioNavigatorTest extends ConstellioTest {
 
 	@Mock Navigator theVaadinNavigator;
-	ConstellioNavigator navigator;
+	CoreViews navigator;
 
 	@Before
 	public void setup() {
-		navigator = new ConstellioNavigator(theVaadinNavigator);
+		navigator = new CoreViews(theVaadinNavigator);
 	}
 
 	@Test

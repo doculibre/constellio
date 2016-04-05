@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
@@ -21,7 +21,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	@Mock
 	TaskManagementView view;
 	@Mock
-	ConstellioNavigator navigator;
+	CoreViews navigator;
 	SessionContext sessionContext;
 	private RecordServices recordServices;
 	private SearchServices searchServices;

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.ui.pages;
 
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.ui.entities.RecordVO;
@@ -40,11 +41,11 @@ public abstract class AddEditConnectorInstancePresenter extends SingleSchemaBase
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listConnectorInstances();
+		view.navigate().to(ESViews.class).listConnectorInstances();
 	}
 
 	public void cancelButtonClicked() {
-		view.navigateTo().listConnectorInstances();
+		view.navigate().to(ESViews.class).listConnectorInstances();
 	}
 
 	public abstract void saveButtonClicked(RecordVO recordVO);
@@ -60,22 +61,6 @@ public abstract class AddEditConnectorInstancePresenter extends SingleSchemaBase
 	public void setCurrentSchemaCode(String currentSchemaCode) {
 		this.currentSchemaCode = currentSchemaCode;
 	}
-
-	//	public String getConnectorTypeId() {
-	//		return connectorTypeId;
-	//	}
-	//
-	//	public RecordVO getRecordVO() {
-	//		return recordVO;
-	//	}
-	//
-	//	public String getCurrentSchemaCode() {
-	//		return currentSchemaCode;
-	//	}
-	//
-	//	public RecordToVOBuilder getVoBuilder() {
-	//		return voBuilder;
-	//	}
 
 	public abstract String getTitle();
 }

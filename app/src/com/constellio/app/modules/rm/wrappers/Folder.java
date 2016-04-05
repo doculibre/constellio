@@ -34,6 +34,7 @@ public class Folder extends RMObject {
 	public static final String CATEGORY = "category";
 	public static final String CATEGORY_CODE = "categoryCode";
 	public static final String MAIN_COPY_RULE = "mainCopyRule";
+	public static final String MAIN_COPY_RULE_ID_ENTERED = "mainCopyRuleIdEntered";
 	public static final String APPLICABLE_COPY_RULES = "applicableCopyRule";
 	public static final String COPY_STATUS = "copyStatus";
 	public static final String COPY_STATUS_ENTERED = "copyStatusEntered";
@@ -82,6 +83,9 @@ public class Folder extends RMObject {
 	public static final String ALERT_USERS_WHEN_AVAILABLE = "alertUsersWhenAvailable";
 	public static final String PENDING_ALERTS = "pendingAlerts";
 	public static final String NEXT_ALERT_ON = "nextAlertOn";
+
+	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
+	public static final String CALENDAR_YEAR = "calendarYear";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -164,6 +168,10 @@ public class Folder extends RMObject {
 	}
 
 	public String getApplicableAdministrative() {
+		return get(ADMINISTRATIVE_UNIT);
+	}
+
+	public String getAdministrativeUnit() {
 		return get(ADMINISTRATIVE_UNIT);
 	}
 
@@ -331,6 +339,10 @@ public class Folder extends RMObject {
 		return this;
 	}
 
+	public LocalDate getOpeningDate() {
+		return get(OPENING_DATE);
+	}
+
 	public LocalDate getOpenDate() {
 		return get(OPENING_DATE);
 	}
@@ -452,6 +464,15 @@ public class Folder extends RMObject {
 
 	public CopyRetentionRule getMainCopyRule() {
 		return get(MAIN_COPY_RULE);
+	}
+
+	public String getMainCopyRuleIdEntered() {
+		return get(MAIN_COPY_RULE_ID_ENTERED);
+	}
+
+	public Folder setMainCopyRuleEntered(String mainCopyRuleIdEntered) {
+		set(MAIN_COPY_RULE_ID_ENTERED, mainCopyRuleIdEntered);
+		return this;
 	}
 
 	public List<CopyRetentionRule> getApplicableCopyRules() {
@@ -614,5 +635,6 @@ public class Folder extends RMObject {
 		set(FORM_MODIFIED_ON, dateTime);
 		return this;
 	}
+
 }
 

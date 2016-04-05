@@ -8,7 +8,7 @@ import com.vaadin.shared.ui.datefield.Resolution;
 import com.vaadin.ui.DateField;
 
 public class BaseDateTimeField extends DateField {
-	
+
 	public BaseDateTimeField() {
 		super();
 		init();
@@ -34,10 +34,9 @@ public class BaseDateTimeField extends DateField {
 		super(caption);
 		init();
 	}
-	
+
 	private void init() {
-		setDateFormat(DateFormatUtils.DATE_TIME_FORMAT);
+		setDateFormat(DateFormatUtils.getDateTimeFormat());
 		setResolution(Resolution.SECOND);
 	}
-	
 }

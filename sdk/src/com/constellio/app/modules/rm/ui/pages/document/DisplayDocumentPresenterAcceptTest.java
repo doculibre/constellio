@@ -16,7 +16,7 @@ import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -35,7 +35,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
 	Users users = new Users();
 	@Mock DisplayDocumentView displayDocumentView;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices schemasRecordsServices;
 	DisplayDocumentPresenter presenter;

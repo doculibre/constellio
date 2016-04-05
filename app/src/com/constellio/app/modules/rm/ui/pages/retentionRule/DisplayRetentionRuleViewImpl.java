@@ -95,7 +95,7 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
+		List<Button> actionMenuButtons = super.buildActionMenuButtons(event);
 
 		editButton = new EditButton(false) {
 			@Override

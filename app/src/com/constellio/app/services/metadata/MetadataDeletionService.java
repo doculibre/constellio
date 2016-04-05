@@ -38,9 +38,8 @@ import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -242,7 +241,7 @@ public class MetadataDeletionService {
 		//typesBuilder.deleteMetadataFromInheretedSchemas(metadata);
 		try {
 			schemasManager.saveUpdateSchemaTypes(typesBuilder);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
 		}
 	}

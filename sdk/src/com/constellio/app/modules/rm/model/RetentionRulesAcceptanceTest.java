@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.model;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,9 +11,11 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -54,6 +57,8 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 
 	RMSchemasRecordsServices rm;
 
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -79,7 +84,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		transaction.add(rm.newDocumentTypeWithId(anotherType).setCode("Another code").setTitle("A title"));
 		recordServices.execute(transaction);
 
-		principalAnalogicRetentionRule = new CopyRetentionRule();
+		principalAnalogicRetentionRule = copyBuilder.newCopyRetentionRule();
 		principalAnalogicRetentionRule.setCode("rule1");
 		principalAnalogicRetentionRule.setCopyType(CopyType.PRINCIPAL);
 		principalAnalogicRetentionRule.setMediumTypeIds(asList(rm.PA(), rm.FI()));
@@ -91,7 +96,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		principalAnalogicRetentionRule.setInactiveDisposalType(DisposalType.DESTRUCTION);
 		principalAnalogicRetentionRule.setCode("R4");
 
-		principalNumericRetentionRule = new CopyRetentionRule();
+		principalNumericRetentionRule = copyBuilder.newCopyRetentionRule();
 		principalNumericRetentionRule.setCode("rule2");
 		principalNumericRetentionRule.setCopyType(CopyType.PRINCIPAL);
 		principalNumericRetentionRule.setMediumTypeIds(asList(rm.DM()));
@@ -103,7 +108,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		principalNumericRetentionRule.setInactiveDisposalType(DisposalType.SORT);
 		principalNumericRetentionRule.setCode("R8");
 
-		secondaryRetentionRule = new CopyRetentionRule();
+		secondaryRetentionRule = copyBuilder.newCopyRetentionRule();
 		secondaryRetentionRule.setCode("rule3");
 		secondaryRetentionRule.setCopyType(CopyType.SECONDARY);
 		secondaryRetentionRule.setMediumTypeIds(asList(rm.PA(), rm.FI(), rm.DM()));
@@ -124,12 +129,12 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		VariableRetentionPeriod period42 = rm.newVariableRetentionPeriod().setCode("42").setTitle("Ze 42");
 		VariableRetentionPeriod period666 = rm.newVariableRetentionPeriod().setCode("666").setTitle("Ze 666");
 
-		CopyRetentionRule principal = CopyRetentionRule.newPrincipal(asList("PA"))
+		CopyRetentionRule principal = copyBuilder.newPrincipal(asList("PA"))
 				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
 				.setSemiActiveRetentionPeriod(RetentionPeriod.variable(period666))
 				.setInactiveDisposalType(DisposalType.DEPOSIT);
 
-		CopyRetentionRule secondary = CopyRetentionRule.newSecondary(asList("PA"))
+		CopyRetentionRule secondary = copyBuilder.newSecondary(asList("PA"))
 				.setActiveRetentionPeriod(RetentionPeriod.fixed(42))
 				.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(666))
 				.setInactiveDisposalType(DisposalType.DEPOSIT);
@@ -247,7 +252,7 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 		retentionRule.setCode("zeCode");
 		retentionRule.setTitle("zeTitle");
 		retentionRule.setResponsibleAdministrativeUnits(true);
-		retentionRule.setCopyRetentionRules(asList(new CopyRetentionRule()));
+		retentionRule.setCopyRetentionRules(asList(copyBuilder.newCopyRetentionRule()));
 
 		try {
 			recordServices.add(retentionRuleRecord);
@@ -255,6 +260,171 @@ public class RetentionRulesAcceptanceTest extends ConstellioTest {
 			List<ValidationError> errors = e.getErrors().getValidationErrors();
 			assertThat(errors).hasSize(4);
 		}
+
+	}
+
+	@Test
+	public void whenSavingRetentionRuleWithDocumentTypeInFolderCopyRuleThenValidationException()
+			throws Exception {
+
+		String pa = rm.getMediumTypeByCode("PA").getId();
+		String dm = rm.getMediumTypeByCode("DM").getId();
+
+		Transaction transaction = new Transaction();
+		String type1 = transaction.add(rm.newDocumentType().setCode("code1").setTitle("title1")).getId();
+		String type2 = transaction.add(rm.newDocumentType().setCode("code2").setTitle("title2")).getId();
+
+		recordServices.execute(transaction);
+
+		Record retentionRuleRecord = recordServices.newRecordWithSchema(retentionRuleSchema);
+		RetentionRule retentionRule = new RetentionRule(retentionRuleRecord, types);
+		assertThat(retentionRule.isApproved()).isFalse();
+		assertThat(retentionRule.isResponsibleAdministrativeUnits()).isFalse();
+		retentionRule.setAdministrativeUnits(asList(anAdministrativeUnitId, anotherAdministrativeUnitId));
+		retentionRule.setApproved(true);
+		retentionRule.setApprovalDate(january31_2014);
+		retentionRule.setCode("zeCode");
+		retentionRule.setTitle("zeTitle");
+
+		retentionRule.setCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(pa), "1-0-D").setTypeId(type1),
+				copyBuilder.newPrincipal(asList(pa), "2-0-D"),
+				copyBuilder.newSecondary(asList(pa), "3-0-D")
+		));
+
+		try {
+			recordServices.add(retentionRuleRecord);
+			fail("exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).extracting("code").containsOnly(
+					"com.constellio.model.services.schemas.validators.AllowedReferencesValidator_unallowedReferenceForMetadata");
+		}
+
+	}
+
+	@Test
+	public void whenSavingDocumentRetentionRuleWithFolderTypeInDocumentCopyRuleThenValidationException()
+			throws Exception {
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+
+		String pa = rm.getMediumTypeByCode("PA").getId();
+
+		Transaction transaction = new Transaction();
+		String type1 = transaction.add(rm.newFolderType().setCode("code1").setTitle("title1")).getId();
+		String type2 = transaction.add(rm.newFolderType().setCode("code2").setTitle("title2")).getId();
+
+		recordServices.execute(transaction);
+
+		Record retentionRuleRecord = recordServices.newRecordWithSchema(retentionRuleSchema);
+		RetentionRule retentionRule = new RetentionRule(retentionRuleRecord, types);
+		assertThat(retentionRule.isApproved()).isFalse();
+		assertThat(retentionRule.isResponsibleAdministrativeUnits()).isFalse();
+		retentionRule.setAdministrativeUnits(asList(anAdministrativeUnitId, anotherAdministrativeUnitId));
+		retentionRule.setApproved(true);
+		retentionRule.setApprovalDate(january31_2014);
+		retentionRule.setCode("zeCode");
+		retentionRule.setTitle("zeTitle");
+		retentionRule.setScope(RetentionRuleScope.DOCUMENTS);
+
+		retentionRule.setPrincipalDefaultDocumentCopyRetentionRule(copyBuilder.newPrincipal(asList(pa), "2-0-D"));
+		retentionRule.setSecondaryDefaultDocumentCopyRetentionRule(copyBuilder.newSecondary(asList(pa), "2-0-D"));
+
+		retentionRule.setDocumentCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(pa), "2-0-D").setTypeId(type1),
+				copyBuilder.newPrincipal(asList(pa), "3-0-D").setTypeId(type2)
+		));
+
+		try {
+			recordServices.add(retentionRuleRecord);
+			fail("exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).extracting("code").containsOnly(
+					"com.constellio.model.services.schemas.validators.AllowedReferencesValidator_unallowedReferenceForMetadata");
+		}
+
+	}
+
+	@Test
+	public void whenSavingDocumentRetentionRuleWithDocumentTypeInDocumentCopyRulesAndManuallySpecifiedDocumentTypesThenMergedInCalculatedMetadata()
+			throws Exception {
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+
+		String pa = rm.getMediumTypeByCode("PA").getId();
+
+		Transaction transaction = new Transaction();
+		String type1 = transaction.add(rm.newDocumentType().setCode("code1").setTitle("title1")).getId();
+		String type2 = transaction.add(rm.newDocumentType().setCode("code2").setTitle("title2")).getId();
+		String type3 = transaction.add(rm.newDocumentType().setCode("code3").setTitle("title3")).getId();
+
+		recordServices.execute(transaction);
+
+		Record retentionRuleRecord = recordServices.newRecordWithSchema(retentionRuleSchema);
+		RetentionRule retentionRule = new RetentionRule(retentionRuleRecord, types);
+		assertThat(retentionRule.isApproved()).isFalse();
+		assertThat(retentionRule.isResponsibleAdministrativeUnits()).isFalse();
+		retentionRule.setAdministrativeUnits(asList(anAdministrativeUnitId, anotherAdministrativeUnitId));
+		retentionRule.setApproved(true);
+		retentionRule.setApprovalDate(january31_2014);
+		retentionRule.setCode("zeCode");
+		retentionRule.setTitle("zeTitle");
+		retentionRule.setScope(RetentionRuleScope.DOCUMENTS_AND_FOLDER);
+		retentionRule.setDocumentTypesDetails(asList(
+				new RetentionRuleDocumentType(type2),
+				new RetentionRuleDocumentType(type3)
+		));
+
+		retentionRule.setCopyRetentionRules(
+				copyBuilder.newPrincipal(asList(pa), "2-0-D"),
+				copyBuilder.newSecondary(asList(pa), "2-0-D"));
+
+		retentionRule.setDocumentCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(pa), "2-0-D").setTypeId(type1),
+				copyBuilder.newPrincipal(asList(pa), "3-0-D").setTypeId(type2)
+		));
+
+		recordServices.add(retentionRuleRecord);
+
+		assertThat(retentionRule.getDocumentTypes()).containsOnly(type1, type2, type3).hasSize(3);
+	}
+
+	@Test
+	public void whenSavingRetentionRuleWithFolderTypeInCopyRulesThenCopiedInCalculatedMetadata()
+			throws Exception {
+
+		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
+
+		String pa = rm.getMediumTypeByCode("PA").getId();
+
+		Transaction transaction = new Transaction();
+		String type1 = transaction.add(rm.newFolderType().setCode("code1").setTitle("title1")).getId();
+		String type2 = transaction.add(rm.newFolderType().setCode("code2").setTitle("title2")).getId();
+		String type3 = transaction.add(rm.newFolderType().setCode("code3").setTitle("title3")).getId();
+
+		recordServices.execute(transaction);
+
+		Record retentionRuleRecord = recordServices.newRecordWithSchema(retentionRuleSchema);
+		RetentionRule retentionRule = new RetentionRule(retentionRuleRecord, types);
+		assertThat(retentionRule.isApproved()).isFalse();
+		assertThat(retentionRule.isResponsibleAdministrativeUnits()).isFalse();
+		retentionRule.setAdministrativeUnits(asList(anAdministrativeUnitId, anotherAdministrativeUnitId));
+		retentionRule.setApproved(true);
+		retentionRule.setApprovalDate(january31_2014);
+		retentionRule.setCode("zeCode");
+		retentionRule.setTitle("zeTitle");
+		retentionRule.setScope(RetentionRuleScope.DOCUMENTS_AND_FOLDER);
+
+		retentionRule.setCopyRetentionRules(
+				copyBuilder.newPrincipal(asList(pa), "1-0-D").setTypeId(type1),
+				copyBuilder.newPrincipal(asList(pa), "2-0-D").setTypeId(type2),
+				copyBuilder.newPrincipal(asList(pa), "3-0-D"),
+				copyBuilder.newPrincipal(asList(pa), "4-0-D").setTypeId(type1),
+				copyBuilder.newSecondary(asList(pa), "5-0-D"));
+
+		recordServices.add(retentionRuleRecord);
+
+		assertThat(retentionRule.getFolderTypes()).containsOnly(type1, type2).hasSize(2);
 	}
 
 	// ---------------------------------------------------------------

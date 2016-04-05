@@ -42,7 +42,7 @@ public class MetadataSchemaTypesBuilder {
 	private static final String UNDERSCORE = "_";
 	private static final String DEFAULT = "default";
 	private final int version;
-	private final Set<MetadataSchemaTypeBuilder> schemaTypes = new HashSet<MetadataSchemaTypeBuilder>();
+	private final List<MetadataSchemaTypeBuilder> schemaTypes = new ArrayList<>();
 	private final String collection;
 	private ClassProvider classProvider;
 
@@ -327,6 +327,8 @@ public class MetadataSchemaTypesBuilder {
 						.getCalculator().getClass().getName());
 			}
 			if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
+				System.out.println(metadataBuilder.getType());
+				System.out.println(valueTypeMetadataCalculated);
 				throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
 						metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 			}

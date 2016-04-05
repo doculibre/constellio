@@ -1,22 +1,21 @@
 package com.constellio.app.extensions.records.params;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.server.Page;
 import com.vaadin.ui.AbstractComponent;
 
 public class NavigationParams {
-
-	private ConstellioNavigator constellioNavigator;
+	private Navigation navigate;
 	private String recordId;
 	private RecordVO recordVO;
 	private String schemaTypeCode;
 	private Page page;
 	private AbstractComponent component;
 
-	public NavigationParams(ConstellioNavigator constellioNavigator, RecordVO recordVO, String schemaTypeCode, Page page,
+	public NavigationParams(Navigation navigate, RecordVO recordVO, String schemaTypeCode, Page page,
 			AbstractComponent component) {
-		this.constellioNavigator = constellioNavigator;
+		this.navigate = navigate;
 		this.recordId = recordVO.getId();
 		this.recordVO = recordVO;
 		this.schemaTypeCode = schemaTypeCode;
@@ -24,21 +23,17 @@ public class NavigationParams {
 		this.component = component;
 	}
 
-	public NavigationParams(ConstellioNavigator constellioNavigator, String recordId, String schemaTypeCode, Page page,
+	public NavigationParams(Navigation navigate, String recordId, String schemaTypeCode, Page page,
 			AbstractComponent component) {
-		this.constellioNavigator = constellioNavigator;
+		this.navigate = navigate;
 		this.recordId = recordId;
 		this.schemaTypeCode = schemaTypeCode;
 		this.page = page;
 		this.component = component;
 	}
 
-	public ConstellioNavigator getConstellioNavigator() {
-		return constellioNavigator;
-	}
-
-	public void setConstellioNavigator(ConstellioNavigator constellioNavigator) {
-		this.constellioNavigator = constellioNavigator;
+	public Navigation navigate() {
+		return navigate;
 	}
 
 	public String getRecordId() {

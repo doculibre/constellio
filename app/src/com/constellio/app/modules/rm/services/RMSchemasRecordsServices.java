@@ -75,11 +75,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class RMSchemasRecordsServices extends SchemasRecordsServices {
+public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public static final String EMAIL_MIME_TYPES = "mimeTypes";
 	public static final String EMAIL_ATTACHMENTS = "attachments";
@@ -669,10 +668,6 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 		return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
 	}
 
-	public FolderType wrapFolderType(Record record) {
-		return new FolderType(record, getTypes());
-	}
-
 	public List<FolderType> wrapFolderTypes(List<Record> records) {
 		List<FolderType> folderTypes = new ArrayList<>();
 		for (Record record : records) {
@@ -683,6 +678,10 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 
 	public FolderType getFolderType(String id) {
 		return new FolderType(get(id), getTypes());
+	}
+
+	public FolderType getFolderTypeByCode(String code) {
+		return wrapFolderType(getByCode(folderTypeSchemaType(), code));
 	}
 
 	public MetadataSchema defaultFolderTypeSchema() {
@@ -1502,4 +1501,5 @@ public class RMSchemasRecordsServices extends SchemasRecordsServices {
 	public DocumentType emailDocumentType() {
 		return getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE);
 	}
+
 }

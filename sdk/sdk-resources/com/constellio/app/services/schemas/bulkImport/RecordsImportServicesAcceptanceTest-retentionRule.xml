@@ -24,7 +24,7 @@
             <item code="123" copyType="S" mediumTypes="DM" contentTypesComment="" activeRetentionPeriod="999"
                   activeRetentionPeriodComment="" semiActiveRetentionPeriod="0" semiActiveRetentionPeriodComment=""
                   inactiveDisposalType="D" inactiveDisposalComment=""/>
-            <item code="123" copyType="P" mediumTypes="PA" contentTypesComment="" activeRetentionPeriod="999"
+            <item code="456" copyType="P" mediumTypes="PA" contentTypesComment="" activeRetentionPeriod="999"
                   activeRetentionPeriodComment="R1" semiActiveRetentionPeriod="0" semiActiveRetentionPeriodComment=""
                   inactiveDisposalType="C" inactiveDisposalComment=""/>
         </copyRetentionRules>
@@ -58,10 +58,10 @@
             <item code="123" copyType="S" mediumTypes="DM,PA" contentTypesComment="" activeRetentionPeriod="999"
                   activeRetentionPeriodComment="" semiActiveRetentionPeriod="0" semiActiveRetentionPeriodComment=""
                   inactiveDisposalType="D" inactiveDisposalComment=""/>
-            <item code="123" copyType="P" mediumTypes="PA" contentTypesComment="" activeRetentionPeriod="999"
+            <item code="456" copyType="P" mediumTypes="PA" contentTypesComment="" activeRetentionPeriod="999"
                   activeRetentionPeriodComment="R1" semiActiveRetentionPeriod="1" semiActiveRetentionPeriodComment=""
                   inactiveDisposalType="C" inactiveDisposalComment=""/>
-            <item code="123" copyType="P" mediumTypes="DM" contentTypesComment="Some content" activeRetentionPeriod="3"
+            <item code="789" copyType="P" mediumTypes="DM" contentTypesComment="Some content" activeRetentionPeriod="3"
                   activeRetentionPeriodComment="R2" semiActiveRetentionPeriod="5" semiActiveRetentionPeriodComment="R3"
                   inactiveDisposalType="T" inactiveDisposalComment=""/>
         </copyRetentionRules>

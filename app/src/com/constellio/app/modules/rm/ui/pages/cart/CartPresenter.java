@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
@@ -51,7 +52,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 			break;
 		}
 		addOrUpdate(cart.getWrappedRecord());
-		view.navigateTo().cart();
+		view.navigate().to(RMViews.class).cart();
 	}
 
 	public boolean canEmptyCart() {
@@ -60,7 +61,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 
 	public void cartEmptyingRequested() {
 		addOrUpdate(cart().empty().getWrappedRecord());
-		view.navigateTo().cart();
+		view.navigate().to(RMViews.class).cart();
 	}
 
 	public boolean canPrepareEmail() {
@@ -84,7 +85,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 		}
 		DecommissioningService service = new DecommissioningService(view.getCollection(), modelLayerFactory);
 		for (Folder folder : getCartFolders()) {
-			service.duplicateStructureAndSave(folder);
+			service.duplicateStructureAndSave(folder, getCurrentUser());
 		}
 		view.showMessage($("CartView.duplicated"));
 	}

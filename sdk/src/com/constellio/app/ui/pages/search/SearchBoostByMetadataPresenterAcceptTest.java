@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.builders.SearchBoostToVOBuilder;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
@@ -31,7 +31,7 @@ public class SearchBoostByMetadataPresenterAcceptTest extends ConstellioTest {
 
 	public static final String METADATA = "metadata";
 	@Mock SearchBoostView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	UserServices userServices;
 	SearchBoost searchBoostTitle, searchBoostCode;
 	SearchBoostVO searchBoostVOTitle, searchBoostVOCode;

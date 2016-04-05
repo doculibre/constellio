@@ -12,7 +12,6 @@ import com.vaadin.data.util.converter.Converter;
 
 @SuppressWarnings("serial")
 public class JodaDateTimeToStringConverter implements Converter<String, LocalDateTime> {
-	
 	@Override
 	public LocalDateTime convertToModel(String value, Class<? extends LocalDateTime> targetType, Locale locale)
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
@@ -28,15 +27,15 @@ public class JodaDateTimeToStringConverter implements Converter<String, LocalDat
 		}
 		return value != null ? new LocalDateTime(utilDate) : null;
 	}
-	
+
 	protected String getPattern() {
-		return DateFormatUtils.DATE_TIME_FORMAT;
+		return DateFormatUtils.getDateTimeFormat();
 	}
 
 	@Override
 	public String convertToPresentation(LocalDateTime value, Class<? extends String> targetType, Locale locale)
-			throws com.vaadin.data.util.converter.Converter.ConversionException {
-		return value != null ? value.toString(getPattern()) : null;
+			throws ConversionException {
+		return DateFormatUtils.format(value);
 	}
 
 	@Override
@@ -48,5 +47,4 @@ public class JodaDateTimeToStringConverter implements Converter<String, LocalDat
 	public Class<String> getPresentationType() {
 		return String.class;
 	}
-
 }

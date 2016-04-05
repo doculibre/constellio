@@ -9,6 +9,7 @@ import java.io.InputStream;
 
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.reports.DryRunReportBuilderFactory;
+import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.vaadin.server.StreamResource.StreamSource;
@@ -43,11 +44,11 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	}
 
 	public void addButtonClicked(RecordVO robot) {
-		view.navigateTo().addRobot(robot.getId());
+		view.navigate().to(RobotViews.class).addRobot(robot.getId());
 	}
 
 	public void editButtonClicked(RecordVO robot) {
-		view.navigateTo().editRobot(robot.getId());
+		view.navigate().to(RobotViews.class).editRobot(robot.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO robot) {
@@ -55,11 +56,11 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	}
 
 	public void robotNavigationRequested(String robotId) {
-		view.navigateTo().robotConfiguration(robotId);
+		view.navigate().to(RobotViews.class).robotConfiguration(robotId);
 	}
 
 	public void viewLogsButtonClicked() {
-		view.navigateTo().displayRobotLogs(rootRobotId);
+		view.navigate().to(RobotViews.class).displayLogs(rootRobotId);
 	}
 
 	public String getReportTitle() {

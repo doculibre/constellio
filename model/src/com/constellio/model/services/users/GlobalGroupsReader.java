@@ -2,6 +2,8 @@ package com.constellio.model.services.users;
 
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.XmlGlobalGroup;
+
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -57,7 +59,7 @@ public class GlobalGroupsReader {
 			status = GlobalGroupStatus.ACTIVE;
 		}
 
-		globalGroup = new GlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status);
+		globalGroup = new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status);
 		return globalGroup;
 	}
 }

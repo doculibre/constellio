@@ -29,7 +29,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpact;
 import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpactsCalculator;
@@ -72,7 +72,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	@Override
 	public void initialize() {
-		this.oneXmlConfigPerCollectionManager = newOneXMLManager(configManager, collectionsListManager);
+		oneXmlConfigPerCollectionManager();
 	}
 
 	/**
@@ -143,7 +143,14 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public MetadataSchemaTypes getSchemaTypes(String collection) {
-		return oneXmlConfigPerCollectionManager.get(collection);
+		return oneXmlConfigPerCollectionManager().get(collection);
+	}
+
+	private OneXMLConfigPerCollectionManager<MetadataSchemaTypes> oneXmlConfigPerCollectionManager() {
+		if (oneXmlConfigPerCollectionManager == null) {
+			this.oneXmlConfigPerCollectionManager = newOneXMLManager(configManager, collectionsListManager);
+		}
+		return oneXmlConfigPerCollectionManager;
 	}
 
 	public List<MetadataSchemaTypes> getAllCollectionsSchemaTypes() {
@@ -183,7 +190,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 		try {
 			saveUpdateSchemaTypes(builder);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			modify(collection, alteration);
 		}
 
@@ -220,7 +227,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public MetadataSchemaTypes saveUpdateSchemaTypes(MetadataSchemaTypesBuilder schemaTypesBuilder)
-			throws OptimistickLocking {
+			throws OptimisticLocking {
 		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, modelLayerFactory);
 
 		Document document = new MetadataSchemaXMLWriter2().write(schemaTypes);

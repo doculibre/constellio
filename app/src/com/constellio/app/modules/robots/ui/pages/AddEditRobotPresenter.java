@@ -14,6 +14,7 @@ import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotsManager;
 import com.constellio.app.modules.robots.ui.components.actionParameters.DynamicParametersField.DynamicParametersPresenter;
+import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -108,19 +109,19 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 			view.showErrorMessage(e.getMessage());
 			return;
 		}
-		view.navigateTo().robotConfiguration(recordVO.getId());
+		view.navigate().to(RobotViews.class).robotConfiguration(recordVO.getId());
 	}
 
 	public void backButtonClicked(RecordVO recordVO) {
 		if (isAddMode()) {
 			String parentId = recordVO.get(Robot.PARENT);
 			if (parentId == null) {
-				view.navigateTo().listRootRobots();
+				view.navigate().to(RobotViews.class).listRootRobots();
 			} else {
-				view.navigateTo().robotConfiguration(parentId);
+				view.navigate().to(RobotViews.class).robotConfiguration(parentId);
 			}
 		} else {
-			view.navigateTo().robotConfiguration(recordVO.getId());
+			view.navigate().to(RobotViews.class).robotConfiguration(recordVO.getId());
 		}
 	}
 

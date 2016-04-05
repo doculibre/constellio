@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -49,9 +50,9 @@ public class EditDecommissioningListPresenter extends SingleSchemaBasePresenter<
 			Record record = toRecord(recordVO);
 			addOrUpdate(record);
 			if (rmRecordsServices().wrapDecommissioningList(record).getDecommissioningListType().isFolderList()) {
-				view.navigateTo().displayDecommissioningList(recordId);
+				view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 			} else {
-				view.navigateTo().displayDocumentDecommissioningList(recordId);
+				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
 			}
 		} catch (Exception e) {
 			view.showErrorMessage("Failed to save");
@@ -67,6 +68,6 @@ public class EditDecommissioningListPresenter extends SingleSchemaBasePresenter<
 	}
 
 	public void cancelButtonClicked(RecordVO recordVO) {
-		view.navigateTo().displayDecommissioningList(recordVO.getId());
+		view.navigate().to(RMViews.class).displayDecommissioningList(recordVO.getId());
 	}
 }

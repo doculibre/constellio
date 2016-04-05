@@ -20,7 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -34,7 +34,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 	public static final String DAKOTA = "dakota";
 
 	@Mock AddEditUserCredentialView userCredentialView;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	UserServices userServices;
 	UserCredential dakotaCredential, newUserCredential;
 	UserCredentialVO dakotaCredentialVO, newUserCredentialVO;

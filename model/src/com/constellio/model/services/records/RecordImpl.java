@@ -160,6 +160,17 @@ public class RecordImpl implements Record {
 			convertedRecord = value;
 		}
 
+		//		if (metadata.getInputMask() != null) {
+		//			try {
+		//				convertedRecord = MaskUtils.format(metadata.getInputMask(), (String) convertedRecord);
+		//			} catch (MaskUtilsException e) {
+		//				//Cannot convert the value, setting the raw value (will fail in further validations)
+		//				LOGGER.info("Value '" + convertedRecord + "' in metadata '" + metadata.getCode() + "' is incompatible with mask '"
+		//						+ metadata.getInputMask() + "'");
+		//
+		//			}
+		//		}
+
 		return setModifiedValue(metadata, convertedRecord);
 	}
 
@@ -232,6 +243,9 @@ public class RecordImpl implements Record {
 	public <T> T get(Metadata metadata) {
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
+		}
+		if (Schemas.IDENTIFIER.getLocalCode().equals(metadata.getLocalCode())) {
+			return (T) id;
 		}
 		String codeAndType = metadata.getDataStoreCode();
 		T returnedValue;

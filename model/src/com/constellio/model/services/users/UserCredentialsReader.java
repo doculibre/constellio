@@ -1,6 +1,6 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.model.services.users.UserUtils.toCacheKey;
+import static com.constellio.model.services.users.UserUtils.cleanUsername;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +14,7 @@ import org.joda.time.LocalDateTime;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
@@ -52,7 +53,7 @@ public class UserCredentialsReader {
 		for (Element userCredentialElement : usersCredentialsElements.getChildren()) {
 			userCredential = createUserCredentialObject(userCredentialElement, collections);
 
-			usersCredentials.put(toCacheKey(userCredential.getUsername()), userCredential);
+			usersCredentials.put(cleanUsername(userCredential.getUsername()), userCredential);
 		}
 		return usersCredentials;
 	}
@@ -123,7 +124,7 @@ public class UserCredentialsReader {
 			status = UserCredentialStatus.ACTIVE;
 		}
 		String domain = userCredentialElement.getChildText(DOMAIN);
-		userCredential = new UserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups,
+		userCredential = new XmlUserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups,
 				collections, tokens, status, domain, msExchDelegateListBL, dn);
 		return userCredential;
 	}

@@ -13,7 +13,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -35,7 +35,7 @@ public class ListCollectionUserPresenterTest extends ConstellioTest {
 	@Mock UserCredentialVO dakotaCredentialVO;
 	@Mock RecordVO dakotaRecordVO;
 	@Mock UserCredential dakotaCredential;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock UserServices userServices;
 	@Mock GlobalGroupToVOBuilder globalGroupToVOBuilder;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;

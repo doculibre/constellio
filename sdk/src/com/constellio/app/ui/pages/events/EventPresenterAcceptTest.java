@@ -18,7 +18,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -32,7 +32,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 
 public class EventPresenterAcceptTest extends ConstellioTest {
 	@Mock EventView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	SearchServices searchServices;
 	EventPresenter presenter;

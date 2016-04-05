@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
@@ -50,7 +51,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 		return new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				navigateTo().decommissioning();
+				navigate().to(RMViews.class).decommissioning();
 			}
 		};
 	}

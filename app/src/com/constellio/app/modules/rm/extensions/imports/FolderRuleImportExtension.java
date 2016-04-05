@@ -4,8 +4,10 @@ import java.util.Map;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
@@ -51,6 +53,22 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 			LocalDateTime modifiedOn = (LocalDateTime) fields.get(Schemas.MODIFIED_ON.getLocalCode());
 			folder.setFormModifiedOn(modifiedOn);
 		}
+
+		String enteredMainCopyId = folder.getMainCopyRuleIdEntered();
+		if (enteredMainCopyId != null && folder.getRetentionRuleEntered() != null) {
+			RetentionRule rule = rm.getRetentionRule(folder.getRetentionRuleEntered());
+
+			String validId = null;
+			for (CopyRetentionRule copy : rule.getCopyRetentionRules()) {
+				if (copy.getId().equals(enteredMainCopyId) || (copy.getCode() != null && copy.getCode()
+						.equals(enteredMainCopyId))) {
+					validId = copy.getId();
+					break;
+				}
+			}
+			folder.setMainCopyRuleEntered(validId);
+		}
+
 	}
 
 }

@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleDisplayFactory.RetentionRuleDisplayPresenter;
@@ -47,7 +48,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listRetentionRules();
+		view.navigate().to(RMViews.class).listRetentionRules();
 	}
 
 	public void editButtonClicked() {
@@ -57,11 +58,11 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	public void deleteButtonClicked() {
 		Record record = getRecord(retentionRuleVO.getId());
 		delete(record, false);
-		view.navigateTo().listRetentionRules();
+		view.navigate().to(RMViews.class).listRetentionRules();
 	}
 
 	public String getFoldersNumber() {
-		return String.valueOf(decommissioningService.getFoldersForRetentionRule(retentionRuleVO.getId()).size());
+		return String.valueOf(decommissioningService.getFolderCountForRetentionRule(retentionRuleVO.getId()));
 	}
 
 	@Override
@@ -95,7 +96,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	@Override
 	public boolean shouldDisplayFolderRetentionRules() {
-		return !areDocumentRetentionRulesEnabled() || retentionRuleVO.getScope() == RetentionRuleScope.DOCUMENTS_AND_FOLDER;
+		return !areDocumentRetentionRulesEnabled() || retentionRuleVO.getScope() != RetentionRuleScope.DOCUMENTS;
 	}
 
 	@Override
@@ -105,7 +106,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	@Override
 	public boolean shouldDisplayDefaultDocumentRetentionRules() {
-		return areDocumentRetentionRulesEnabled() && retentionRuleVO.getScope() == RetentionRuleScope.DOCUMENTS;
+		return areDocumentRetentionRulesEnabled() && retentionRuleVO.getScope() != RetentionRuleScope.DOCUMENTS_AND_FOLDER;
 	}
 
 	@Override
@@ -120,5 +121,25 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	private boolean areDocumentRetentionRulesEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
+
+	@Override
+	public CopyRetentionRule newDocumentCopyRetentionRule() {
+		return new CopyRetentionRule();
+	}
+
+	@Override
+	public CopyRetentionRule newFolderCopyRetentionRule(boolean principal) {
+		return new CopyRetentionRule();
+	}
+
+	@Override
+	public CopyRetentionRule newDocumentDefaultCopyRetentionRule(boolean principal) {
+		return new CopyRetentionRule();
+	}
+
+	@Override
+	public List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
+		return getOpenActivePeriodsDDVList();
 	}
 }

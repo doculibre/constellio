@@ -19,7 +19,6 @@ import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
@@ -355,6 +354,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 			searchResultsTable = new Table();
 			searchResultsTable.setWidth("100%");
+			searchResultsTable.setHeight("98%");
 			searchResultsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 
 			addComponent(searchFieldLayout);

@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.params.ParamUtils;
@@ -35,7 +35,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	MetadataSchemasManager metadataSchemasManager;
 	Map<String, String> parameters;
 	@Mock AddEditSchemaView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 
 	@Before
 	public void setUp()

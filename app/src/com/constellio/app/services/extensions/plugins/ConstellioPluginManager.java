@@ -17,6 +17,9 @@ public interface ConstellioPluginManager extends StatefulService {
 	void registerModule(InstallableModule plugin)
 			throws InvalidId;
 
+	void registerPluginOnlyForTests(InstallableModule plugin)
+			throws InvalidId;
+
 	List<InstallableModule> getRegistredModulesAndActivePlugins();
 
 	List<InstallableModule> getRegisteredModules();
@@ -38,6 +41,8 @@ public interface ConstellioPluginManager extends StatefulService {
 	List<ConstellioPluginInfo> getPlugins(ConstellioPluginStatus... statuses);
 
 	boolean isRegistered(String id);
+
+	void copyPluginResourcesToPluginsResourceFolder(String moduleId);
 
 	<T> Class<T> getModuleClass(String name)
 			throws ClassNotFoundException;

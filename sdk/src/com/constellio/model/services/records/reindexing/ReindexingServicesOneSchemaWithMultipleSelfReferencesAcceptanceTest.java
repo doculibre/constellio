@@ -20,7 +20,6 @@ import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
-import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -33,7 +32,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -269,7 +268,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 
 		try {
 			metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
 		}
 	}
@@ -376,7 +375,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		transaction = transaction.withDeletedByQueries(new ModifiableSolrParams().set("q", "id:idx_rfc_" + recordId));
 		try {
 			recordDao.execute(transaction);
-		} catch (OptimisticLocking optimisticLocking) {
+		} catch (com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking optimisticLocking) {
 			throw new RuntimeException(optimisticLocking);
 		}
 	}
@@ -386,7 +385,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		transaction = transaction.withDeletedByQueries(new ModifiableSolrParams().set("q", "id:idx_act_" + recordId));
 		try {
 			recordDao.execute(transaction);
-		} catch (OptimisticLocking optimisticLocking) {
+		} catch (com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking optimisticLocking) {
 			throw new RuntimeException(optimisticLocking);
 		}
 	}

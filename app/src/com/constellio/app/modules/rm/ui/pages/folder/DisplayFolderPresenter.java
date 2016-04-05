@@ -14,12 +14,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -38,6 +40,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -65,6 +68,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -237,6 +241,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private void disableMenuItems(Folder folder) {
+
+		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+
 		User user = getCurrentUser();
 		view.setLogicallyDeletable(getDeleteButtonState(user, folder));
 		view.setEditButtonState(getEditButtonState(user, folder));
@@ -251,6 +258,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setReminderReturnFolderButtonState(getReminderReturnFolderButtonState(user, folder));
 		view.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState(user, folder));
 		view.setBorrowedMessage(getBorrowMessageState(folder));
+		view.setStartWorkflowButtonState(ComponentState.visibleIf(rmConfigs.areWorkflowsEnabled()));
 	}
 
 	String getBorrowMessageState(Folder folder) {
@@ -358,7 +366,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder)) {
+		if (user.hasDeleteAccess().on(folder) && isDeletable(folderVO)) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -479,15 +487,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addDocumentButtonClicked() {
-		view.navigateTo().addDocument(folderVO.getId(), null);
+		view.navigate().to(RMViews.class).addDocument(folderVO.getId());
 	}
 
 	public void addSubFolderButtonClicked() {
-		view.navigateTo().addFolder(folderVO.getId(), null);
+		view.navigate().to(RMViews.class).addFolder(folderVO.getId());
 	}
 
 	public void editFolderButtonClicked() {
-		view.navigateTo().editFolder(folderVO.getId());
+		view.navigate().to(RMViews.class).editFolder(folderVO.getId());
 	}
 
 	public void deleteFolderButtonClicked(String reason) {
@@ -495,22 +503,22 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Record record = toRecord(folderVO);
 		delete(record, reason);
 		if (parentId != null) {
-			view.navigateTo().displayFolder(parentId);
+			view.navigate().to(RMViews.class).displayFolder(parentId);
 		} else {
-			view.navigateTo().recordsManagement();
+			view.navigate().to().home();
 		}
 	}
 
 	public void duplicateFolderButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		Folder duplicatedFolder = decommissioningService().duplicateAndSave(folder);
-		view.navigateTo().editFolder(duplicatedFolder.getId());
+		Folder duplicatedFolder = decommissioningService().duplicateAndSave(folder, getCurrentUser());
+		view.navigate().to(RMViews.class).editFolder(duplicatedFolder.getId());
 	}
 
 	public void duplicateStructureButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		Folder duplicatedFolder = decommissioningService().duplicateStructureAndSave(folder);
-		view.navigateTo().displayFolder(duplicatedFolder.getId());
+		Folder duplicatedFolder = decommissioningService().duplicateStructureAndSave(folder, getCurrentUser());
+		view.navigate().to(RMViews.class).displayFolder(duplicatedFolder.getId());
 		view.showMessage($("DisplayFolderView.duplicated"));
 	}
 
@@ -528,7 +536,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editDocumentButtonClicked(RecordVO recordVO) {
-		view.navigateTo().editDocument(recordVO.getId());
+		view.navigate().to(RMViews.class).editDocument(recordVO.getId());
 	}
 
 	public void downloadDocumentButtonClicked(RecordVO recordVO) {
@@ -537,29 +545,29 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void displayDocumentButtonClicked(RecordVO record) {
-		view.navigateTo().displayDocument(record.getId());
+		view.navigate().to(RMViews.class).displayDocument(record.getId());
 	}
 
 	public void documentClicked(RecordVO recordVO) {
 		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 		if (contentVersionVO == null) {
-			view.navigateTo().displayDocument(recordVO.getId());
+			view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
 			return;
 		}
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
 			view.openAgentURL(agentURL);
 		} else {
-			view.navigateTo().displayDocument(recordVO.getId());
+			view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
 		}
 	}
 
 	public void subFolderClicked(RecordVO subFolderVO) {
-		view.navigateTo().displayFolder(subFolderVO.getId());
+		view.navigate().to(RMViews.class).displayFolder(subFolderVO.getId());
 	}
 
 	public void taskClicked(RecordVO taskVO) {
-		view.navigateTo().displayTask(taskVO.getId());
+		view.navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
 	private DecommissioningService decommissioningService() {
@@ -632,7 +640,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				borrowingServices
 						.borrowFolder(folderVO.getId(), borrowingDate, previewReturnDate, getCurrentUser(), borrowerEntered,
 								borrowingType);
-				view.navigateTo().displayFolder(folderVO.getId());
+				view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 				borrowed = true;
 			} catch (RecordServicesException e) {
 				LOGGER.error(e.getMessage(), e);
@@ -658,7 +666,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 		try {
 			borrowingServices.returnFolder(folderVO.getId(), getCurrentUser(), returnDate);
-			view.navigateTo().displayFolder(folderVO.getId());
+			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
 			return true;
 		} catch (RecordServicesException e) {
 			view.showErrorMessage($("DisplayFolderView.cannotReturnFolder"));

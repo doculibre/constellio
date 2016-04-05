@@ -1,5 +1,7 @@
 package com.constellio.app.modules.robots.services;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.List;
 
 import com.constellio.app.modules.robots.model.ActionExecutor;
@@ -12,7 +14,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class RobotBatchProcessAction implements BatchProcessAction {
-
 	private String robotId;
 	private String action;
 
@@ -32,15 +33,14 @@ public class RobotBatchProcessAction implements BatchProcessAction {
 
 		ActionExecutor actionExecutor = robotsManager.getActionExecutorFor(action);
 		ActionParameters actionParameters = null;
-		if(actionParametersId != null) {
+		if (actionParametersId != null) {
 			actionParameters = schemas.getActionParameters(actionParametersId);
 		}
 
-		if (actionExecutor == null) { // There was a null check on params here.
-			return new Transaction();
-		} else {
-			return actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch);
-		}
+		Transaction transaction = actionExecutor != null ?
+				actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch) : new Transaction();
+		transaction.add(schemas.newRobotLog().setRobot(robotId).setTitle($("RobotBatchProcessAction.completed")));
+		return transaction;
 	}
 
 	@Override

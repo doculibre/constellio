@@ -10,6 +10,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportViewImpl;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
@@ -84,7 +85,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void deleteButtonClicked() {
 		delete(decommissioningList().getWrappedRecord());
-		view.navigateTo().decommissioning();
+		view.navigate().to(RMViews.class).decommissioning();
 	}
 
 	public boolean isProcessable() {
@@ -95,13 +96,13 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		decommissioningService().decommission(decommissioningList(), getCurrentUser());
 		view.showMessage($(mayContainAnalogicalMedia() ?
 				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
-		view.navigateTo().displayDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 	}
 
 	public void validateButtonClicked() {
 		decommissioningList().getValidationFor(getCurrentUser().getId()).setValidationDate(TimeProvider.getLocalDate());
 		addOrUpdate(decommissioningList().getWrappedRecord());
-		view.navigateTo().decommissioning();
+		view.navigate().to(RMViews.class).decommissioning();
 	}
 
 	public void approvalButtonClicked() {
@@ -178,7 +179,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		addOrUpdate(decommissioningList().removeValidationRequest(validation).getWrappedRecord());
 		// TODO: Do not hard-refresh the whole page
 		view.showMessage($("DecommissioningListView.validatorRemoved"));
-		view.navigateTo().displayDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 	}
 
 	public void containerStatusChanged(DecomListContainerDetail detail, boolean full) {
@@ -363,7 +364,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void refreshView() {
-		view.navigateTo().displayDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 	}
 
 	public boolean canRemoveValidationRequest() {
