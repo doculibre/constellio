@@ -73,6 +73,7 @@ dependencies {
     compile "com.vaadin:vaadin-themes:7.6.1"
     compile "com.vaadin:vaadin-sass-compiler:0.9.11"
     compile "com.google.code.gson:gson:1.7.2"
+    compile "com.sun.messaging.mq:jaxm-api:4.4.1"
     compile files("libs/jcifs_gcm_322.jar")
     compile files("libs/vaadin-breadcrumb-1.7.3.jar")
     compile "juh:juh:3.2.1"
@@ -86,7 +87,7 @@ dependencies {
 
 war {
     baseName = "constellio-app"
-    version = "6.1.42.1"
+    version = "6.2"
 
     webInf {
         from 'WebContent/'
@@ -114,7 +115,7 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '6.1.42.1'
+    version = '6.2'
 }
 
 configurations.archives.artifacts.with { archives ->

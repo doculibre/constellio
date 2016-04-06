@@ -16,6 +16,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -219,6 +220,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			InputStream messageInputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromUserDocument");
 			Email email = rmSchemasRecordsServices.newEmail(filename, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+			contentVersionVO.setMajorVersion(true);
+		} else {
 			contentVersionVO.setMajorVersion(true);
 		}
 		if (StringUtils.isNotBlank(folderId)) {
@@ -586,8 +589,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 		});
 
-		getCopyRuleField().setVisible(
+		DocumentCopyRuleField copyRuleField = getCopyRuleField();
+		copyRuleField.setVisible(
 				areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1);
+		copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));
 	}
 
 	private boolean canSaveDocument(Document document, User user) {

@@ -149,6 +149,8 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 
 	private void buildSearch() {
 		searchLayout = new HorizontalLayout();
+		searchLayout.setSpacing(true);
+		
 		final TextField searchField = new BaseTextField();
 		searchField.focus();
 		searchField.setNullRepresentation("");

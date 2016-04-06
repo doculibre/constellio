@@ -491,10 +491,12 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			return;
 		}
 		if (areDocumentRetentionRulesEnabled()) {
+			commitForm();
 			Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
-			recordServices().refresh(folder);
+			recordServices().recalculate(folder);
 			List<CopyRetentionRule> rules = folder.getApplicableCopyRules();
 			folderVO.set(Folder.APPLICABLE_COPY_RULES, rules);
+			field.setFieldChoices(rules);
 			field.setVisible(rules.size() > 1);
 		} else {
 			field.setVisible(false);

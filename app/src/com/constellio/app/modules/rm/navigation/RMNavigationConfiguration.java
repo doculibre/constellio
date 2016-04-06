@@ -25,7 +25,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
@@ -129,11 +129,6 @@ public class RMNavigationConfiguration implements Serializable {
 				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(modelLayerFactory, sessionContext);
 				defaultTab = tabSheet.getDefaultTab();
 				return tabSheet.getDataProviders();
-			}
-
-			@Override
-			public int getDefaultTab() {
-				return defaultTab;
 			}
 
 			@Override

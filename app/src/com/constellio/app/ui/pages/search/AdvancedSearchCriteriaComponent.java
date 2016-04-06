@@ -101,6 +101,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		setPageLength(criteria.size());
 	}
 
+	public void clear() {
+		setSearchCriteria(new ArrayList<Criterion>());
+	}
+
 	public static class MetadataFieldGenerator implements ColumnGenerator {
 		private SearchCriteriaPresenter presenter;
 

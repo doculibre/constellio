@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
+import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
@@ -135,6 +136,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			return buildRecordTable((RecordTable) tabSource);
 		case RECORD_TREE:
 			return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
+		case CUSTOM_ITEM:
+			return buildCustomComponent((CustomItem) tabSource);
 		default:
 			throw new RuntimeException("Unsupported tab type : " + tabSource.getType());
 		}
@@ -187,7 +190,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTree(recordTree, dataProvider);
 			}
 		};
-		//tabSheet.setSelectedTab(recordTree.getDefaultTab());
 		return tabSheet;
 	}
 
@@ -207,6 +209,15 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			menu.setAsTreeContextMenu(tree.getNestedTree());
 		}
 		return tree;
+	}
+
+	private Component buildCustomComponent(CustomItem tabSource) {
+		Component component = tabSource.buildCustomComponent(getConstellioFactories(), getSessionContext());
+		if (component instanceof BaseViewImpl) {
+			((BaseViewImpl) component).enter(null);
+		}
+		component.setSizeFull();
+		return component;
 	}
 
 	private static class PlaceHolder extends CustomComponent {

@@ -573,7 +573,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		service.decommission(approved(records.getList03()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList03());
-		verifyFoldersClosed(processingUser, processingDate, records.getFolder_A01(), records.getFolder_A02(),
+		verifyFoldersClosed(processingDate, records.getFolder_A01(), records.getFolder_A02(),
 				records.getFolder_A03());
 	}
 
@@ -585,9 +585,9 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		service.decommission(approved(records.getList16()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList16());
-		verifyFoldersTransferred(processingDate, processingUser, records.containerId_bac14,
+		verifyFoldersTransferred(processingDate, records.containerId_bac14,
 				records.getFolder_A22(), records.getFolder_A23(), records.getFolder_A24());
-		verifyContainersTransferred(processingDate, processingUser, records.getContainerBac14());
+		verifyContainersTransferred(processingDate, records.getContainerBac14());
 	}
 
 	@Test
@@ -616,11 +616,11 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		service.decommission(approved(records.getList17()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList17());
-		verifyFoldersDeposited(processingDate, processingUser, records.containerId_bac11,
+		verifyFoldersDeposited(processingDate, records.containerId_bac11,
 				records.getFolder_A49(), records.getFolder_A50());
 		// Electronic only: not in container
-		verifyFoldersDeposited(processingDate, processingUser, null, records.getFolder_A48());
-		verifyContainersDeposited(processingDate, processingUser, records.getContainerBac11());
+		verifyFoldersDeposited(processingDate, null, records.getFolder_A48());
+		verifyContainersDeposited(processingDate, records.getContainerBac11());
 	}
 
 	@Test
@@ -667,7 +667,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		service.decommission(approved(records.getList02()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList02());
-		verifyFoldersDestroyed(processingDate, processingUser,
+		verifyFoldersDestroyed(processingDate,
 				records.getFolder_A54(), records.getFolder_A55(), records.getFolder_A56());
 		assertThat(records.getContainerBac10().isFull()).isFalse();
 	}
@@ -697,7 +697,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		service.decommission(approved(records.getList02()), records.getChuckNorris());
 		verifyProcessed(processingDate, processingUser, records.getList02());
-		verifyFoldersDestroyed(processingDate, processingUser,
+		verifyFoldersDestroyed(processingDate,
 				records.getFolder_A54(), records.getFolder_A55(), records.getFolder_A56());
 		assertThat(records.getContainerBac10().isFull()).isFalse();
 		assertThat(records.getFolder_A54().isLogicallyDeletedStatus()).isTrue();
@@ -713,9 +713,9 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		service.decommission(approved(records.getList18()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList18());
-		verifyFoldersDeposited(processingDate, processingUser, records.containerId_bac08, records.getFolder_B30());
-		verifyFoldersDestroyed(processingDate, processingUser, records.getFolder_B33());
-		verifyContainersDeposited(processingDate, processingUser, records.getContainerBac08(), records.getContainerBac09());
+		verifyFoldersDeposited(processingDate, records.containerId_bac08, records.getFolder_B30());
+		verifyFoldersDestroyed(processingDate, records.getFolder_B33());
+		verifyContainersDeposited(processingDate, records.getContainerBac08(), records.getContainerBac09());
 	}
 
 	@Test
@@ -726,9 +726,9 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		service.decommission(approved(records.getList19()), processingUser);
 		verifyProcessed(processingDate, processingUser, records.getList19());
-		verifyFoldersDeposited(processingDate, processingUser, records.containerId_bac09, records.getFolder_B33());
-		verifyFoldersDestroyed(processingDate, processingUser, records.getFolder_B30());
-		verifyContainersDeposited(processingDate, processingUser, records.getContainerBac08(), records.getContainerBac09());
+		verifyFoldersDeposited(processingDate, records.containerId_bac09, records.getFolder_B33());
+		verifyFoldersDestroyed(processingDate, records.getFolder_B30());
+		verifyContainersDeposited(processingDate, records.getContainerBac08(), records.getContainerBac09());
 	}
 
 	private void verifyFolderProcessabilityForAllFoldersIn(DecommissioningList list, boolean expected) {
@@ -742,50 +742,44 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 		assertThat(decommissioningList.getProcessingUser()).isEqualTo(processingUser.getId());
 	}
 
-	private void verifyFoldersClosed(User processingUser, LocalDate processingDate, Folder... folders) {
+	private void verifyFoldersClosed(LocalDate processingDate, Folder... folders) {
 		for (Folder folder : folders) {
 			assertThat(folder.getCloseDateEntered()).isEqualTo(processingDate);
-			assertThat(folder.getModifiedBy()).isEqualTo(processingUser.getId());
 		}
 	}
 
 	private void verifyFoldersTransferred(
-			LocalDate processingDate, User processingUser, String containerId, Folder... folders) {
+			LocalDate processingDate, String containerId, Folder... folders) {
 		for (Folder folder : folders) {
 			assertThat(folder.getActualTransferDate()).isEqualTo(processingDate);
-			assertThat(folder.getModifiedBy()).isEqualTo(processingUser.getId());
 			assertThat(folder.getContainer()).isEqualTo(containerId);
 		}
 	}
 
-	private void verifyContainersTransferred(LocalDate processingDate, User processingUser, ContainerRecord... containers) {
+	private void verifyContainersTransferred(LocalDate processingDate, ContainerRecord... containers) {
 		for (ContainerRecord container : containers) {
 			assertThat(container.getRealTransferDate()).isEqualTo(processingDate);
-			assertThat(container.getModifiedBy()).isEqualTo(processingUser.getId());
 			assertThat(container.getDecommissioningType()).isEqualTo(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
 		}
 	}
 
-	private void verifyFoldersDeposited(LocalDate processingDate, User processingUser, String containerId, Folder... folders) {
+	private void verifyFoldersDeposited(LocalDate processingDate, String containerId, Folder... folders) {
 		for (Folder folder : folders) {
 			assertThat(folder.getActualDepositDate()).isEqualTo(processingDate);
-			assertThat(folder.getModifiedBy()).isEqualTo(processingUser.getId());
 			assertThat(folder.getContainer()).isEqualTo(containerId);
 		}
 	}
 
-	private void verifyContainersDeposited(LocalDate processingDate, User processingUser, ContainerRecord... containers) {
+	private void verifyContainersDeposited(LocalDate processingDate, ContainerRecord... containers) {
 		for (ContainerRecord container : containers) {
 			assertThat(container.getRealDepositDate()).isEqualTo(processingDate);
-			assertThat(container.getModifiedBy()).isEqualTo(processingUser.getId());
 			assertThat(container.getDecommissioningType()).isEqualTo(DecommissioningType.DEPOSIT);
 		}
 	}
 
-	private void verifyFoldersDestroyed(LocalDate processingDate, User processingUser, Folder... folders) {
+	private void verifyFoldersDestroyed(LocalDate processingDate, Folder... folders) {
 		for (Folder folder : folders) {
 			assertThat(folder.getActualDestructionDate()).isEqualTo(processingDate);
-			assertThat(folder.getModifiedBy()).isEqualTo(processingUser.getId());
 			assertThat(folder.getContainer()).isNull();
 		}
 	}
