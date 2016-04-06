@@ -47,17 +47,4 @@ public class RMMigrationTo6_2_AcceptanceTest extends ConstellioTest {
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}
 
-	@Test
-	public void givenSaveSateThenUsersCreated() throws Exception{
-		givenSystemInState("given_system_in_6.1_with_users.zip");
-		User user = getModelLayerFactory().newUserServices().getUserInCollection(admin, zeCollection);
-	}
-
-	private void givenSystemInState(String systemState) {
-		givenTransactionLogIsEnabled();
-		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder, systemState);
-
-		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
-	}
 }

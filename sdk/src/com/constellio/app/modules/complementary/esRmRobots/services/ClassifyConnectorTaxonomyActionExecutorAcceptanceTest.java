@@ -5,7 +5,10 @@ import static com.constellio.app.modules.complementary.esRmRobots.model.enums.Ac
 import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.EXCLUDE_DOCUMENTS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import com.constellio.model.entities.records.wrappers.User;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
@@ -164,6 +168,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	public void setUp()
 			throws Exception {
 
+		notAUnitItest = true;
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
 
@@ -388,6 +393,192 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	}
 
 	@Test
+	public void whenClassifyingFoldersDirectlyInThePlanMultipleTimeThenOverwrite()
+			throws Exception {
+		notAUnitItest = true;
+		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
+		ClassifyConnectorFolderDirectlyInThePlanActionParameters parameters = ClassifyConnectorFolderDirectlyInThePlanActionParameters
+				.wrap(robotsSchemas
+						.newActionParameters(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setActionAfterClassification(DO_NOTHING)
+				.setDefaultCategory(records.categoryId_X)
+				.setDefaultAdminUnit(records.unitId_10)
+				.setDefaultCopyStatus(CopyType.PRINCIPAL)
+				.setDefaultRetentionRule(records.ruleId_1)
+				.setDefaultOpenDate(squatreNovembre));
+
+		recordServices.add(robotsSchemas.newRobotWithId(robotId).setActionParameters(parameters)
+				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
+						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+								.where(es.connectorSmbFolder.url()).isContainingText("/"))
+				.setAction(ClassifyConnectorFolderDirectlyInThePlanActionExecutor.ID).setCode("terminator")
+				.setTitle("terminator"));
+
+		//1- First execution
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderAANoTaxoURL, "AA"),
+				tuple(folderABNoTaxoURL, "AB"),
+				tuple(folderAAANoTaxoURL, "AAA"),
+				tuple(folderAABNoTaxoURL, "AAB"),
+				tuple(folderBNoTaxoURL, "B")
+		);
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
+						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+				);
+
+		//2- Start the robot again, nothing happens
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderAANoTaxoURL, "AA"),
+				tuple(folderABNoTaxoURL, "AB"),
+				tuple(folderAAANoTaxoURL, "AAA"),
+				tuple(folderAABNoTaxoURL, "AAB"),
+				tuple(folderBNoTaxoURL, "B")
+		);
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
+						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+				);
+
+		//2- Start the robot again, with a modified connector document
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation)
+					throws Throwable {
+				ConnectorSmbDocument connectorSmbDocument = (ConnectorSmbDocument) invocation.getArguments()[0];
+				String resourceName = (String) invocation.getArguments()[1];
+				String name = connectorSmbDocument.getTitle();
+				try {
+					//We simulate a modification of content by downloading the content of another file
+					if ("1.txt".equals(name)) {
+						name = "2.txt";
+					}
+					if ("3.txt".equals(name)) {
+						name = "4.txt";
+					}
+					File file = getTestResourceFile(name);
+					return getIOLayerFactory().newIOServices().newFileInputStream(file, resourceName);
+				} catch (RuntimeException e) {
+					throw new ConnectorSmbRuntimeException_CannotDownloadSmbDocument(connectorSmbDocument, e);
+				}
+			}
+		}).when(connectorSmb).getInputStream(any(ConnectorSmbDocument.class), anyString());
+		waitForBatchProcess();
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderAANoTaxoURL, "AA"),
+				tuple(folderABNoTaxoURL, "AB"),
+				tuple(folderAAANoTaxoURL, "AAA"),
+				tuple(folderAABNoTaxoURL, "AAB"),
+				tuple(folderBNoTaxoURL, "B")
+		);
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("1.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.1"),
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("3.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.1"),
+						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+				);
+	}
+
+	@Test
+	public void whenClassifyingFoldersDirectlyInThePlanMultipleTimeThenReactivateLogicallyDeleted()
+			throws Exception {
+		notAUnitItest = true;
+		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
+		ClassifyConnectorFolderDirectlyInThePlanActionParameters parameters = ClassifyConnectorFolderDirectlyInThePlanActionParameters
+				.wrap(robotsSchemas
+						.newActionParameters(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setActionAfterClassification(DO_NOTHING)
+				.setDefaultCategory(records.categoryId_X)
+				.setDefaultAdminUnit(records.unitId_10)
+				.setDefaultCopyStatus(CopyType.PRINCIPAL)
+				.setDefaultRetentionRule(records.ruleId_1)
+				.setDefaultOpenDate(squatreNovembre));
+
+		recordServices.add(robotsSchemas.newRobotWithId(robotId).setActionParameters(parameters)
+				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
+						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+								.where(es.connectorSmbFolder.url()).isContainingText("/"))
+				.setAction(ClassifyConnectorFolderDirectlyInThePlanActionExecutor.ID).setCode("terminator")
+				.setTitle("terminator"));
+
+		//1- First execution
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderAANoTaxoURL, "AA"),
+				tuple(folderABNoTaxoURL, "AB"),
+				tuple(folderAAANoTaxoURL, "AAA"),
+				tuple(folderAABNoTaxoURL, "AAB"),
+				tuple(folderBNoTaxoURL, "B")
+		);
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
+						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+				);
+
+		//2- Logically delete two folders and one document
+		recordServices.logicallyDelete(rm.getFolderByLegacyId(folderAANoTaxoURL).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(rm.getFolderByLegacyId(folderBNoTaxoURL).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(rm.getDocumentByLegacyId(documentA1NoTaxoURL).getWrappedRecord(), User.GOD);
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderABNoTaxoURL, "AB")
+		);
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0")
+				);
+
+		//3- Start the robot again, folders and documents are back alive
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull())).extracting("legacyId", "title").containsOnly(
+				tuple(folderANoTaxoURL, "A"),
+				tuple(folderAANoTaxoURL, "AA"),
+				tuple(folderABNoTaxoURL, "AB"),
+				tuple(folderAAANoTaxoURL, "AAA"),
+				tuple(folderAABNoTaxoURL, "AAB"),
+				tuple(folderBNoTaxoURL, "B")
+		);
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
+				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
+				.containsOnly(
+						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
+						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+				);
+	}
+
+	@Test
 	public void givenNoMappingNoTargetTaxonomyAdnInvalidHierarchyThenCreateRMFolderInDefaultParent()
 			throws Exception {
 		notAUnitItest = true;
@@ -534,9 +725,9 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		assertThat(getFolderByLegacyId(folderATaxoURL).getTitle()).isEqualTo("Le dossier A");
 		assertThat(getFolderByLegacyId(folderAATaxoURL).get(Folder.ADMINISTRATIVE_UNIT)).isEqualTo(adminUnit11);
-		assertThat(rm.getFolder(getFolderByLegacyId(folderABTaxoURL).getParentFolder()).get(Schemas.LEGACY_ID.getLocalCode()))
+		assertThat(rm.getFolder(getFolderByLegacyId(folderABTaxoURL).getParentFolder()).get(LEGACY_ID.getLocalCode()))
 				.isEqualTo(folderATaxoURL);
-		assertThat(rm.getFolder(getFolderByLegacyId(folderAAATaxoURL).getParentFolder()).get(Schemas.LEGACY_ID.getLocalCode()))
+		assertThat(rm.getFolder(getFolderByLegacyId(folderAAATaxoURL).getParentFolder()).get(LEGACY_ID.getLocalCode()))
 				.isEqualTo(folderAATaxoURL);
 		assertThat(getFolderByLegacyId(folderBTaxoURL).getTitle()).isEqualTo("Le dossier B");
 		assertThat(getFolderByLegacyId(folderBTaxoURL).get(Folder.ADMINISTRATIVE_UNIT)).isEqualTo(adminUnit21);
@@ -811,7 +1002,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				"Document '" + documentAA4TaxoURL + "' supprimé suite à sa classification dans Constellio",
 				"Document '" + documentAA5TaxoURL + "' supprimé suite à sa classification dans Constellio",
 				"Document '" + documentAAA6TaxoURL + "' supprimé suite à sa classification dans Constellio",
-				"Document '" + documentB7JustDeletedTaxoURL + "' supprimé suite à sa classification dans Constellio"
+				"Document '" + documentB7JustDeletedTaxoURL + "' supprimé suite à sa classification dans Constellio",
+				"Execution terminée"
 		);
 
 		assertThat(deletedConnectorDocuments.getAllValues()).extracting("id")
@@ -946,7 +1138,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		List<RobotLog> loggedErrors = getRobotLogsForRobot("terminator");
-		assertThat(loggedErrors.size()).isEqualTo(6);
+		assertThat(loggedErrors.size()).isEqualTo(7);
 		assertThat(es.getConnectorSmbInstance(es.getConnectorSmbFolder(folderA).getConnector()).getExclusions())
 				.isEmpty();
 
@@ -997,7 +1189,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		List<RobotLog> loggedErrors = getRobotLogsForRobot("terminator");
-		assertThat(loggedErrors.size()).isEqualTo(6);
+		assertThat(loggedErrors.size()).isEqualTo(7);
 		assertThat(es.getConnectorSmbInstance(es.getConnectorSmbFolder(folderA).getConnector()).getExclusions())
 				.isEmpty();
 
@@ -1388,7 +1580,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		Record folderARecord = recordServices.getDocumentById(folderA);
 		classifyConnectorFolderInTaxonomy(folderARecord, parameters);
 
-		Metadata legacyIdMetadata = rm.defaultFolderSchema().get(Schemas.LEGACY_ID.getLocalCode());
+		Metadata legacyIdMetadata = rm.defaultFolderSchema().get(LEGACY_ID.getLocalCode());
 		Metadata titleMetadata = rm.defaultFolderSchema().get(Schemas.TITLE.getLocalCode());
 		assertThat(recordServices.getRecordByMetadata(legacyIdMetadata, "smb://AU1 Admin Unit1/A/").get(titleMetadata))
 				.isEqualTo("Le dossier A");
@@ -1419,7 +1611,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		assertThat(getFolderByLegacyId(folderATaxoURL).getTitle()).isEqualTo("Le dossier A");
 		assertThat(getFolderByLegacyId(folderAATaxoURL).get(Folder.ADMINISTRATIVE_UNIT)).isEqualTo(adminUnit11);
-		assertThat(rm.getFolder(getFolderByLegacyId(folderABTaxoURL).getParentFolder()).get(Schemas.LEGACY_ID.getLocalCode()))
+		assertThat(rm.getFolder(getFolderByLegacyId(folderABTaxoURL).getParentFolder()).get(LEGACY_ID.getLocalCode()))
 				.isEqualTo(folderATaxoURL);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
@@ -1480,7 +1672,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		List<RobotLog> loggedErrors = getRobotLogsForRobot("terminator");
-		assertThat(loggedErrors.size()).isEqualTo(0);
+		assertThat(loggedErrors.size()).isEqualTo(1);
 
 		assertThatRecord(rm.getFolderByLegacyId("smb://AU1 Ze admin unit/")).isNull();
 		assertThatRecord(rm.getFolderByLegacyId("smb://AU1 Ze admin unit/AU11 Ze child admin unit/")).isNull();
@@ -1521,7 +1713,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	// ---------------------------------------
 
 	private Document getDocumentByLegacyId(String path) {
-		Metadata legacyIdMetadata = rm.defaultDocumentSchema().get(Schemas.LEGACY_ID.getLocalCode());
+		Metadata legacyIdMetadata = rm.defaultDocumentSchema().get(LEGACY_ID.getLocalCode());
 		return rm.wrapDocument(recordServices.getRecordByMetadata(legacyIdMetadata, path));
 	}
 
@@ -1573,7 +1765,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	}
 
 	private Folder getFolderByLegacyId(String path) {
-		Metadata legacyIdMetadata = rm.defaultFolderSchema().get(Schemas.LEGACY_ID.getLocalCode());
+		Metadata legacyIdMetadata = rm.defaultFolderSchema().get(LEGACY_ID.getLocalCode());
 		return rm.wrapFolder(recordServices.getRecordByMetadata(legacyIdMetadata, path));
 	}
 

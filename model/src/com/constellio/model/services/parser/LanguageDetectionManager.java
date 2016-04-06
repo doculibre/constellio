@@ -27,6 +27,7 @@ public class LanguageDetectionManager implements StatefulService {
 	public void initialize() {
 		if (!schemasLoaded) {
 			try {
+				LOGGER.info("Loading profiles " + languageProfiles.getAbsolutePath());
 				DetectorFactory.loadProfile(languageProfiles);
 
 				//Langdetect uses random sampling for avoiding local noises(person name, place name and so on),
@@ -34,7 +35,7 @@ public class LanguageDetectionManager implements StatefulService {
 				//This feature is disabled since it cause to much random behaviors
 				DetectorFactory.setSeed(0);
 
-			} catch (LangDetectException e) {
+			} catch (Throwable e) {
 				throw new LanguageDetectionServicesRuntimeException("Cannot load schemas", e);
 			}
 			schemasLoaded = true;
