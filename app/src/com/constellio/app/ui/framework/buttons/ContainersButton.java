@@ -64,7 +64,7 @@ public class ContainersButton extends WindowButton {
 			public void buttonClick(ClickEvent event) {
 				try{
 					if(StringUtils.isNotBlank(containerLookup.getValue())){
-						selector.putRecordsInContainer(selector.getSelectedRecordIds(), containerLookup.getValue());
+						selector.putRecordsInContainer(containerLookup.getValue());
 						getWindow().close();
 					}
 				}catch(Throwable e){
@@ -95,8 +95,7 @@ public class ContainersButton extends WindowButton {
 	}
 
 	public static interface ContainersAssigner extends Serializable, RecordSelector {
-		List<String> getSelectedRecordIds();
-		void putRecordsInContainer(List<String> recordsIds, String containerId);
+		void putRecordsInContainer(String containerId);
 	}
 
 }
