@@ -28,6 +28,9 @@ public class EncryptionServices {
 	}
 
 	public String encrypt(String toEncrypt, String algorithm) {
+		if (toEncrypt == null) {
+			return null;
+		}
 		try {
 			Cipher cipher = Cipher.getInstance(algorithm);
 			cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));

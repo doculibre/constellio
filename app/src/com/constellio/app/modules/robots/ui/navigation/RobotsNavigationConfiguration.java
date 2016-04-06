@@ -7,7 +7,7 @@ import java.io.Serializable;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.model.entities.records.wrappers.User;

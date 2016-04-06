@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
@@ -45,4 +46,5 @@ public class RMMigrationTo6_2_AcceptanceTest extends ConstellioTest {
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}
+
 }
