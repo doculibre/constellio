@@ -48,7 +48,7 @@ public class UserServicesAPI {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String addUpdateGlobalGroup(GlobalGroupResource globalGroupResource) {
-		GlobalGroup group = new GlobalGroup(globalGroupResource.getCode(), globalGroupResource.getName(),
+		GlobalGroup group = userServices().createGlobalGroup(globalGroupResource.getCode(), globalGroupResource.getName(),
 				globalGroupResource.getUsersAutomaticallyAddedToCollections(), globalGroupResource.getParent(),
 				globalGroupResource.getStatus());
 		userServices().addUpdateGlobalGroup(group);
@@ -189,17 +189,16 @@ public class UserServicesAPI {
 	}
 
 	private UserCredential toCredential(UserResource userResource) {
-
-		Map<String, LocalDateTime> tokens = new HashMap<String, LocalDateTime>();
+		Map<String, LocalDateTime> tokens = new HashMap<>();
 		for (Entry<String, String> token : userResource.getTokens().entrySet()) {
 			tokens.put(token.getKey(), LocalDateTime.parse(token.getValue()));
 
 		}
-		return new UserCredential(userResource.getUsername(), userResource.getFirstName(), userResource.getLastName(),
-				userResource
-						.getEmail(),
+		return userServices().createUserCredential(
+				userResource.getUsername(), userResource.getFirstName(), userResource.getLastName(), userResource.getEmail(),
 				userResource.getServiceKey(), userResource.isSystemAdmin(), userResource.getGlobalGroups(),
-				userResource.getCollections(), tokens, userResource.getStatus(), userResource.getDomain(), Arrays.asList(""), null);
+				userResource.getCollections(), tokens, userResource.getStatus(), userResource.getDomain(), Arrays.asList(""),
+				null);
 	}
 
 	private UserResource toData(UserCredential userCredential) {
@@ -213,7 +212,7 @@ public class UserServicesAPI {
 		userResource.setServiceKey(userCredential.getServiceKey());
 		userResource.setSystemAdmin(userCredential.isSystemAdmin());
 		Map<String, String> tokens = new HashMap<String, String>();
-		for (Entry<String, LocalDateTime> token : userCredential.getTokens().entrySet()) {
+		for (Entry<String, LocalDateTime> token : userCredential.getAccessTokens().entrySet()) {
 			tokens.put(token.getKey(), token.getValue().toString());
 		}
 		userResource.setTokens(tokens);

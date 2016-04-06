@@ -58,7 +58,6 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 public class TaxonomyManagementViewImpl extends BaseViewImpl implements TaxonomyManagementView {
-
 	VerticalLayout layout;
 	private HorizontalLayout searchLayout;
 	private TaxonomyManagementPresenter presenter;
@@ -199,8 +198,10 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	private Component buildRootConceptsTables() {
-
 		layout = new VerticalLayout();
+		layout.setSizeFull();
+		layout.setSpacing(true);
+
 		for (final RecordVODataProvider dataProvider : presenter.getDataProviders()) {
 			Container recordsContainer = new RecordVOLazyContainer(dataProvider);
 			TaxonomyConceptsWithChildrenCountContainer adaptedContainer = new TaxonomyConceptsWithChildrenCountContainer(
@@ -337,8 +338,9 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	public void setTabs(List<TaxonomyManagementClassifiedType> classifiedTypes) {
 		for (TaxonomyManagementClassifiedType classifiedType : classifiedTypes) {
 			MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
-			Table table = new RecordVOTable(classifiedType.getDataProvider());
-			table.setSizeFull();
+			RecordVODataProvider provider = classifiedType.getDataProvider();
+			Table table = new RecordVOTable(provider);
+			table.setWidth("100%");
 			table.addItemClickListener(new ItemClickListener() {
 				@Override
 				public void itemClick(ItemClickEvent event) {
@@ -347,6 +349,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 					presenter.tabElementClicked(recordVO);
 				}
 			});
+			table.setPageLength(Math.min(15, provider.size()));
 
 			table.addStyleName(classifiedType.getSchemaType().getCode() + "Table");
 

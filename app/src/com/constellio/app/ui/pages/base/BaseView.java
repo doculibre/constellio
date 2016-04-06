@@ -4,13 +4,15 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.application.CoreViews;
 
 public interface BaseView extends Serializable, SessionContextProvider {
 
 	String getCollection();
 
-	ConstellioNavigator navigateTo();
+	@Deprecated
+	CoreViews navigateTo();
 
 	void showMessage(String message);
 
@@ -24,6 +26,8 @@ public interface BaseView extends Serializable, SessionContextProvider {
 
 	List<ViewEnterListener> getViewEnterListeners();
 
+	Navigation navigate();
+
 	void updateUI();
 
 	void invalidate();
@@ -35,7 +39,5 @@ public interface BaseView extends Serializable, SessionContextProvider {
 		void viewEntered(String params);
 
 		void afterInit(String parameters);
-
 	}
-
 }

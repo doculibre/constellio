@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -20,7 +20,7 @@ import com.constellio.sdk.tests.MockedFactories;
 public class ListTaxonomyPresenterTest extends ConstellioTest {
 
 	@Mock ListTaxonomyViewImpl view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock ValueListServices valueListServices;
 	@Mock Taxonomy taxonomy1;
 	@Mock TaxonomyVO taxonomyVO;

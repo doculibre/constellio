@@ -13,19 +13,27 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.RetentionPeriod;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentDecomDatesDynamicLocalDependency;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
+import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleTablePresenter;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
@@ -38,13 +46,15 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<AddEditRetentionRuleView> {
+public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<AddEditRetentionRuleView>
+		implements RetentionRuleTablePresenter {
 
 	private boolean addView;
 
@@ -128,7 +138,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			addOrUpdate(record);
 			saveCategories(record.getId(), rule.getCategories());
 			saveUniformSubdivisions(record.getId(), rule.getUniformSubdivisions());
-			view.navigateTo().listRetentionRules();
+			view.navigate().to(RMViews.class).listRetentionRules();
 		} catch (ValidationRuntimeException e) {
 			view.showErrorMessage($(e.getValidationErrors()));
 		}
@@ -136,7 +146,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 	public void cancelButtonClicked() {
 		if (addView) {
-			view.navigateTo().listRetentionRules();
+			view.navigate().to(RMViews.class).listRetentionRules();
 		} else {
 			view.navigateTo().displayRetentionRule(rule.getId());
 		}
@@ -293,6 +303,73 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		});
 
 		return dateMetadataVOs;
+	}
+
+	public List<MetadataVO> getFolderMetadataVOs() {
+		MetadataSchemaType folder = schemaType(Folder.SCHEMA_TYPE);
+
+		List<MetadataVO> dateMetadataVOs = new ArrayList<>();
+
+		MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
+		SessionContext sessionContext = view.getSessionContext();
+
+		for (Metadata metadata : folder.getAllMetadatas().onlyWithType(DATE_TIME, DATE)) {
+			if (!Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, sessionContext);
+				dateMetadataVOs.add(metadataVO);
+			}
+		}
+
+		Collections.sort(dateMetadataVOs, new Comparator<MetadataVO>() {
+			@Override
+			public int compare(MetadataVO o1, MetadataVO o2) {
+				String label1 = AccentApostropheCleaner.cleanAll(o1.getLabel());
+				String label2 = AccentApostropheCleaner.cleanAll(o2.getLabel());
+				return label1.compareTo(label2);
+			}
+		});
+
+		return dateMetadataVOs;
+	}
+
+	@Override
+	public CopyRetentionRule newDocumentCopyRetentionRule() {
+		CopyRetentionRuleBuilder builder = CopyRetentionRuleBuilder.sequential(ConstellioFactories.getInstance());
+		CopyRetentionRule newCopy = builder.newCopyRetentionRule();
+		newCopy.setCopyType(CopyType.PRINCIPAL);
+		newCopy.setActiveRetentionPeriod(RetentionPeriod.ZERO);
+		newCopy.setSemiActiveRetentionPeriod(RetentionPeriod.ZERO);
+		return newCopy;
+	}
+
+	@Override
+	public CopyRetentionRule newFolderCopyRetentionRule(boolean principal) {
+		CopyRetentionRuleBuilder builder = CopyRetentionRuleBuilder.sequential(ConstellioFactories.getInstance());
+		CopyRetentionRule newCopy = builder.newCopyRetentionRule();
+		if (principal) {
+			newCopy.setCopyType(CopyType.PRINCIPAL);
+		} else {
+			newCopy.setCopyType(CopyType.SECONDARY);
+			newCopy.setInactiveDisposalType(DisposalType.DESTRUCTION);
+		}
+		newCopy.setActiveRetentionPeriod(RetentionPeriod.ZERO);
+		newCopy.setSemiActiveRetentionPeriod(RetentionPeriod.ZERO);
+		return newCopy;
+	}
+
+	@Override
+	public CopyRetentionRule newDocumentDefaultCopyRetentionRule(boolean principal) {
+		CopyRetentionRuleBuilder builder = CopyRetentionRuleBuilder.sequential(ConstellioFactories.getInstance());
+		CopyRetentionRule newCopy = builder.newCopyRetentionRule();
+		if (principal) {
+			newCopy.setCopyType(CopyType.PRINCIPAL);
+		} else {
+			newCopy.setCopyType(CopyType.SECONDARY);
+			newCopy.setInactiveDisposalType(DisposalType.DESTRUCTION);
+		}
+		newCopy.setActiveRetentionPeriod(RetentionPeriod.ZERO);
+		newCopy.setSemiActiveRetentionPeriod(RetentionPeriod.ZERO);
+		return newCopy;
 	}
 
 }

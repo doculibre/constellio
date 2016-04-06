@@ -3,7 +3,8 @@ package com.constellio.app.modules.rm.ui.components.content;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -22,41 +23,41 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DocumentContentVersionWindowImpl extends VerticalLayout implements DocumentContentVersionWindow {
-	
+
 	private RecordVO recordVO;
-	
+
 	private ContentVersionVO contentVersionVO;
-	
+
 	private String readOnlyMessage;
-	
+
 	private String agentURL;
-	
+
 	private Label readOnlyLabel;
-	
+
 	private Button displayDocumentLink;
 
 	private Component openOrDownloadLink;
-	
+
 	private Button checkOutLink;
-	
+
 	private boolean checkOutLinkVisible;
-	
+
 	private DocumentContentVersionPresenter presenter;
 
 	public DocumentContentVersionWindowImpl(RecordVO recordVO, ContentVersionVO contentVersionVO) {
 		this.recordVO = recordVO;
 		this.contentVersionVO = contentVersionVO;
-		
+
 		this.presenter = new DocumentContentVersionPresenter(this);
-		
+
 		setSpacing(true);
 		setWidth("90%");
 		addStyleName("document-window-content");
-		
+
 		readOnlyLabel = new Label(readOnlyMessage);
 		readOnlyLabel.addStyleName(ValoTheme.LABEL_H2);
 		readOnlyLabel.setVisible(readOnlyMessage != null);
-		
+
 		displayDocumentLink = new Button($("DocumentContentVersionWindow.displayDocumentLinkCaption"), new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -64,7 +65,7 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 			}
 		});
 		displayDocumentLink.addStyleName(ValoTheme.BUTTON_LINK);
-		
+
 		if (agentURL != null) {
 			Resource icon = FileIconUtils.getIcon(recordVO);
 			openOrDownloadLink = new Button($("DocumentContentVersionWindow.openLinkCaption"), new ClickListener() {
@@ -76,9 +77,10 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 			openOrDownloadLink.setIcon(icon);
 			openOrDownloadLink.addStyleName(ValoTheme.BUTTON_LINK);
 		} else {
-			openOrDownloadLink = new DownloadContentVersionLink(contentVersionVO, $("DocumentContentVersionWindow.downloadLinkCaption"));
+			openOrDownloadLink = new DownloadContentVersionLink(contentVersionVO,
+					$("DocumentContentVersionWindow.downloadLinkCaption"));
 		}
-		
+
 		checkOutLink = new Button($("DocumentContentVersionWindow.checkOutLinkCaption"), new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -87,7 +89,7 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		});
 		checkOutLink.addStyleName(ValoTheme.BUTTON_LINK);
 		checkOutLink.setVisible(checkOutLinkVisible);
-		
+
 		addComponents(readOnlyLabel, displayDocumentLink, openOrDownloadLink, checkOutLink);
 	}
 
@@ -138,8 +140,12 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 	}
 
 	@Override
-	public ConstellioNavigator navigateTo() {
+	public CoreViews navigateTo() {
 		return ConstellioUI.getCurrent().navigateTo();
 	}
 
+	@Override
+	public Navigation navigate() {
+		return ConstellioUI.getCurrent().navigate();
+	}
 }

@@ -17,12 +17,9 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
-	
+	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
-
 	private DocumentFormImpl recordForm;
-	
-	private AddEditDocumentPresenter presenter;
 
 	public AddEditDocumentViewImpl() {
 		presenter = new AddEditDocumentPresenter(this);
@@ -99,7 +96,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 				});
 			}
 		}
-		
+
 		return recordForm;
 	}
 
@@ -107,5 +104,4 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	public DocumentForm getForm() {
 		return recordForm;
 	}
-
 }

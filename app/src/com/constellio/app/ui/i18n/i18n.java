@@ -1,13 +1,15 @@
 package com.constellio.app.ui.i18n;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
@@ -17,9 +19,13 @@ import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 public class i18n {
 
+	private static Logger LOGGER = LoggerFactory.getLogger(i18n.class);
+
 	private static Locale locale;
 
-	private static Utf8ResourceBundles bundles;
+	private static Utf8ResourceBundles defaultBundle = null;
+
+	private static List<Utf8ResourceBundles> registeredBundles = new ArrayList<>();
 
 	public static Locale getLocale() {
 		return locale;
@@ -34,56 +40,60 @@ public class i18n {
 	}
 
 	public static String $(String key, Object... args) {
-		String message;
-		//		try {
-		//			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		//		} catch (Exception e) {
-		//			locale = getLocale();
-		//		}
+		String message = null;
 
-		ResourceBundle messages = getBundle(locale);
-
-		if(key == null) {
+		if (key == null) {
 			return "";
 		}
+		for (Utf8ResourceBundles bundle : getBundles()) {
 
-		if (messages.containsKey(key)) {
-			message = messages.getString(key);
-			if (args != null) {
-				try {
-					message = MessageFormat.format(message, args);
-				} catch (Exception e) {
-					// Ignore, return the original message before the formatting attempt
+			ResourceBundle messages = bundle.getBundle(locale);
+
+			if (messages.containsKey(key)) {
+
+				message = messages.getString(key);
+				if (args != null) {
+					try {
+						message = MessageFormat.format(message, args);
+					} catch (Exception e) {
+						// Ignore, return the original message before the formatting attempt
+					}
 				}
 			}
-		} else {
+		}
+
+		if (message == null) {
 			message = key;
 		}
+
 		return message;
 	}
 
 	public static String $(String key, Map<String, String> args) {
-		String message;
-		//		try {
-		//			locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		//		} catch (Exception e) {
-		//			locale = getLocale();
-		//		}
+		String message = null;
 
-		ResourceBundle messages = getBundle(locale);
-
-		if (messages.containsKey(key)) {
-			message = messages.getString(key);
-			if (args != null) {
-				for (String argName : args.keySet()) {
-					String argValue = args.get(argName);
-					message = message.replace("{" + argName + "}", argValue);
+		if (key == null) {
+			return "";
+		}
+		for (Utf8ResourceBundles bundle : getBundles()) {
+			ResourceBundle messages = bundle.getBundle(locale);
+			if (messages.containsKey(key)) {
+				message = messages.getString(key);
+				if (args != null) {
+					for (String argName : args.keySet()) {
+						String argValue = args.get(argName);
+						message = message.replace("{" + argName + "}", argValue);
+					}
 				}
 			}
-		} else {
+		}
+
+		if (message == null) {
 			message = key;
 		}
+
 		return message;
+
 	}
 
 	public static String $(ValidationErrors errors) {
@@ -108,19 +118,32 @@ public class i18n {
 		return $(throwable.getMessage(), args);
 	}
 
-	private static ResourceBundle getBundle(Locale locale) {
+	private static List<Utf8ResourceBundles> getBundles() {
+		List<Utf8ResourceBundles> bundles = new ArrayList<>();
+		bundles.add(getDefaultBundle());
+		bundles.addAll(registeredBundles);
+		return bundles;
+	}
 
-		if (bundles == null) {
-			URL[] urls;
-			try {
-				urls = new URL[] { new FoldersLocator().getI18nFolder().toURI().toURL() };
-			} catch (MalformedURLException e) {
-				throw new RuntimeException(e);
-			}
-			bundles = new Utf8ResourceBundles("i18n", urls);
+	public static Utf8ResourceBundles getDefaultBundle() {
+		if (defaultBundle == null) {
+			defaultBundle = Utf8ResourceBundles.forPropertiesFile(new FoldersLocator().getI18nFolder(), "i18n");
 		}
+		return defaultBundle;
+	}
 
-		return bundles.getBundle(locale);
+	public static void registerBundle(File bundleFolder, String bundleName) {
+		File bundleProperties = new File(bundleFolder, bundleName + ".properties");
+		if (!bundleProperties.exists()) {
+			throw new RuntimeException("No such file '" + bundleProperties.getAbsolutePath() + "'");
+		}
+		registeredBundles.add(Utf8ResourceBundles.forPropertiesFile(bundleFolder, bundleName));
+	}
+
+	public static void registerBundle(Utf8ResourceBundles bundle) {
+		if (bundle != null) {
+			registeredBundles.add(bundle);
+		}
 	}
 
 	public static List<String> getSupportedLanguages() {
@@ -135,4 +158,7 @@ public class i18n {
 		return localeCodes;
 	}
 
+	public static void clearBundles() {
+		registeredBundles.clear();
+	}
 }

@@ -37,6 +37,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.DriverTest;
@@ -94,19 +95,19 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 		taxonomiesManager.addTaxonomy(taxonomy, metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(taxonomy, metadataSchemasManager);
 
-		getModelLayerFactory().newUserServices().addUpdateUserCredential(
-				new UserCredential("bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection),
-						ACTIVE, null, Arrays.asList(""), null).withServiceKey("bob-key").withSystemAdminPermission());
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		userServices.addUpdateUserCredential(userServices.createUserCredential(
+				"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE, null,
+				Arrays.asList(""), null).withServiceKey("bob-key").withSystemAdminPermission());
 
-		getModelLayerFactory().newUserServices().addUpdateUserCredential(new UserCredential("alice", "alice", "wonderland",
-				"alice@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE, null, Arrays.asList(""), null)
-				.withServiceKey("alice-key")
-				.withSystemAdminPermission());
+		userServices.addUpdateUserCredential(userServices.createUserCredential(
+				"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE,
+				null, Arrays.asList(""), null).withServiceKey("alice-key").withSystemAdminPermission());
 
-		alice = getModelLayerFactory().newUserServices().getUserInCollection("alice", zeCollection);
-		bob = getModelLayerFactory().newUserServices().getUserInCollection("bob", zeCollection);
-		aliceToken = getModelLayerFactory().newUserServices().generateToken("alice");
-		bobToken = getModelLayerFactory().newUserServices().generateToken("bob");
+		alice = userServices.getUserInCollection("alice", zeCollection);
+		bob = userServices.getUserInCollection("bob", zeCollection);
+		aliceToken = userServices.generateToken("alice");
+		bobToken = userServices.generateToken("bob");
 
 		aliceId = alice.getId();
 		bobId = bob.getId();

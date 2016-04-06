@@ -127,7 +127,7 @@ public class FoldersLocator {
 	}
 
 	public File getImportationProject() {
-		return new File(getConstellioWebappFolder(), "importation");
+		return new File(getPluginsRepository(), "importation");
 	}
 
 	public File getAppProject() {
@@ -187,7 +187,7 @@ public class FoldersLocator {
 		}
 	}
 
-	private File getConstellioProject() {
+	public File getConstellioProject() {
 		return getConstellioWebappFolder();
 	}
 
@@ -396,16 +396,20 @@ public class FoldersLocator {
 		}
 	}
 
-	public File getModuleResourcesFolder(String module) {
+	public File getModulesResourcesFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			return new File(getConstellioWebinfFolder(), "modules-resources" + File.separator + module);
+			return new File(getConstellioWebinfFolder(), "modules-resources");
 
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
-			return new File(getConstellioWebinfFolder(), "modules-resources" + File.separator + module);
+			return new File(getConstellioWebinfFolder(), "modules-resources");
 
 		} else {
-			return new File(getConstellioWebappFolder(), "modules-resources" + File.separator + module);
+			return new File(getConstellioWebappFolder(), "modules-resources");
 		}
+	}
+
+	public File getModuleResourcesFolder(String module) {
+		return new File(getModulesResourcesFolder() + File.separator + module);
 	}
 
 	public File getDict() {
@@ -429,6 +433,18 @@ public class FoldersLocator {
 
 		} else {
 			return new File(getConstellioWebappFolder(), "resources_i18n");
+		}
+	}
+
+	public File getPluginsResourcesFolder() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			return new File(getConstellioWebinfFolder(), "plugins-modules-resources");
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
+			return new File(getConstellioWebinfFolder(), "plugins-modules-resources");
+
+		} else {
+			return new File(getConstellioWebappFolder(), "plugins-modules-resources");
 		}
 	}
 

@@ -60,6 +60,8 @@ public class Metadata implements DataStoreField {
 
 	final Factory<EncryptionServices> encryptionServicesFactory;
 
+	final String inputMask;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue);
 	}
@@ -78,6 +80,7 @@ public class Metadata implements DataStoreField {
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
 		this.accessRestriction = new MetadataAccessRestriction();
+		this.inputMask = null;
 
 		if (datastoreCode.contains("_") && !datastoreCode.equals("_version_")) {
 			int firstUnderscoreIndex = datastoreCode.indexOf("_");
@@ -111,7 +114,8 @@ public class Metadata implements DataStoreField {
 			AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
 			MetadataAccessRestriction accessRestriction, StructureFactory structureFactory, Class<? extends Enum<?>> enumClass,
-			Object defaultValue, MetadataPopulateConfigs populateConfigs, Factory<EncryptionServices> encryptionServices) {
+			Object defaultValue, String inputMask, MetadataPopulateConfigs populateConfigs,
+			Factory<EncryptionServices> encryptionServices) {
 		super();
 
 		this.inheritance = null;
@@ -131,12 +135,13 @@ public class Metadata implements DataStoreField {
 		this.structureFactory = structureFactory;
 		this.enumClass = enumClass;
 		this.defaultValue = defaultValue;
+		this.inputMask = inputMask;
 		this.populateConfigs = populateConfigs;
 		this.encryptionServicesFactory = encryptionServices;
 	}
 
 	public Metadata(Metadata inheritance, String label, boolean enabled, boolean defaultRequirement, String code,
-			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue,
+			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
 			MetadataPopulateConfigs populateConfigs) {
 		super();
 
@@ -154,11 +159,11 @@ public class Metadata implements DataStoreField {
 		this.dataStoreType = inheritance.getDataStoreType();
 		this.accessRestriction = inheritance.getAccessRestrictions();
 		this.recordMetadataValidators = combine(inheritance.recordMetadataValidators, recordMetadataValidators);
-
+		this.populateConfigs = populateConfigs;
 		this.structureFactory = inheritance.structureFactory;
 		this.enumClass = inheritance.enumClass;
 		this.defaultValue = defaultValue;
-		this.populateConfigs = populateConfigs;
+		this.inputMask = inputMask;
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
 	}
 
@@ -398,5 +403,9 @@ public class Metadata implements DataStoreField {
 		}
 
 		return sameValue;
+	}
+
+	public String getInputMask() {
+		return inputMask;
 	}
 }

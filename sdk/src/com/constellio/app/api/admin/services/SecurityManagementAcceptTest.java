@@ -152,8 +152,8 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	private void givenGroupInCollectionAndCollectionPermissionToLegendsWhenGetGroupCollectionPermissionsThenReturnIt() {
 
-		GlobalGroup globalGroup = new GlobalGroup("legends", "legends", Arrays.asList(zeCollection), null,
-				GlobalGroupStatus.ACTIVE);
+		GlobalGroup globalGroup = userServices.createGlobalGroup(
+				"legends", "legends", Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE);
 		userServices.addUpdateGlobalGroup(globalGroup);
 
 		GroupCollectionPermissionsResource resource = new GroupCollectionPermissionsResource();
@@ -418,7 +418,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 			//			status = (UserCredentialStatus) EnumWithSmallCodeUtils
 			//					.toEnumWithSmallCode(UserCredentialStatus.class, wrappedUser.getStatus());
 		}
-		return new UserCredential(wrappedUser.getUsername(), wrappedUser.getFirstName(), wrappedUser.getLastName(),
+		return userServices.createUserCredential(wrappedUser.getUsername(), wrappedUser.getFirstName(), wrappedUser.getLastName(),
 				wrappedUser.getEmail(), wrappedUser.getGroupsAuthorizations(), Arrays.asList(wrappedUser.getCollection()),
 				status, null, Arrays.asList(""), null);
 	}

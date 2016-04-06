@@ -43,8 +43,8 @@ public class RMUserAcceptanceTest extends ConstellioTest {
 	}
 
 	private UserCredential newJackBauerUserCredential() {
-		return new UserCredential("jack.bauer", "Jack", "Bauer", "jack.bauer@constellio.com", new ArrayList<String>(),
-				asList(zeCollection), UserCredentialStatus.ACTIVE);
+		return userServices.createUserCredential("jack.bauer", "Jack", "Bauer", "jack.bauer@constellio.com",
+				new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE);
 	}
 
 	@Test

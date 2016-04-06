@@ -116,7 +116,12 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 				collectionCode, asList(setupLocaleCode));
 		Collection collection = new Collection(collectionRecord,
 				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
-		collection.setTitle(collectionTitle);
+		collection.setName(collectionTitle).setTitle(collectionTitle);
+		try {
+			recordServices().update(collection);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
 
 		ConstellioModulesManager modulesManager = factories.getAppLayerFactory().getModulesManager();
 
@@ -137,9 +142,8 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential adminCredential = new UserCredential("admin", "System", "Admin", "admin@administration.com",
-				new ArrayList<String>(), asList(collectionCode),
-				UserCredentialStatus.ACTIVE).withSystemAdminPermission();
+		UserCredential adminCredential = userServices.createUserCredential("admin", "System", "Admin", "admin@administration.com",
+				new ArrayList<String>(), asList(collectionCode), UserCredentialStatus.ACTIVE).withSystemAdminPermission();
 		userServices.addUpdateUserCredential(adminCredential);
 		userServices.addUserToCollection(adminCredential, collectionCode);
 		User user = userServices.getUserRecordInCollection("admin", collectionCode);

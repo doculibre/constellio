@@ -49,7 +49,7 @@ public class DocumentViewer extends CustomComponent {
 	
 	public static String[] SUPPORTED_EXTENSIONS = { "doc", "docx", "pdf", "odt" };
 	
-	private static final int DEFAULT_WIDTH = 800;
+	private static final int DEFAULT_WIDTH = 750;
 	
 	private static final int DEFAULT_HEIGHT = 600;
 	
@@ -122,9 +122,13 @@ public class DocumentViewer extends CustomComponent {
 				} else {
 					boolean preview = Arrays.asList(CONVERSION_EXTENSIONS).contains(extension);
 					if (preview) {
-						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename + ".pdf", preview);
+						if (ConstellioResourceHandler.hasContentPreview(recordVO.getId(), metadataCode, version)) {
+							contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename + ".pdf", true);
+						} else {
+							contentResource = null;
+						}
 					} else {
-						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename, preview);
+						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename, false);
 					}
 				}
 			} else if (file != null) {

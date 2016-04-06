@@ -31,7 +31,9 @@ public class ConversionManagerAcceptTest extends ConstellioTest {
 
 	@After
 	public void tearDown() {
-		manager.close();
+		if (manager != null) {
+			manager.close();
+		}
 	}
 
 	@Test

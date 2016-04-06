@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -35,7 +35,7 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 	MetadataSchemasManager metadataSchemasManager;
 	Map<String, String> parameters;
 	@Mock AddEditSchemaMetadataView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	SessionContext sessionContext;
 
 	@Before

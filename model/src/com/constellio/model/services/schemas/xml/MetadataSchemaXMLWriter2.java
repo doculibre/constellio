@@ -233,6 +233,9 @@ public class MetadataSchemaXMLWriter2 {
 		if (metadata.getEnumClass() != null) {
 			metadataElement.setAttribute("enumClass", metadata.getEnumClass().getName());
 		}
+		if (metadata.getInputMask() != null) {
+			metadataElement.setAttribute("inputMask", metadata.getInputMask());
+		}
 		if (!metadata.getAccessRestrictions().isEmpty()) {
 			metadataElement.addContent(toAccessRestrictionsElement(metadata.getAccessRestrictions()));
 		}
@@ -326,6 +329,11 @@ public class MetadataSchemaXMLWriter2 {
 			different = true;
 		}
 
+		if (metadata.getInputMask() != null && !metadata.getInputMask().equals(globalMetadataInCollection.getInputMask())) {
+			metadataElement.setAttribute("inputMask", metadata.getInputMask());
+			different = true;
+		}
+
 		if (globalMetadataInCollection.isDefaultRequirement() != metadata.isDefaultRequirement()) {
 			metadataElement.setAttribute("defaultRequirement", writeBoolean(metadata.isDefaultRequirement()));
 			different = true;
@@ -394,8 +402,18 @@ public class MetadataSchemaXMLWriter2 {
 			metadataElement.addContent(toPopulateConfigsElement(metadata.getPopulateConfigs()));
 			differentFromInheritance = true;
 		}
+		if (metadata.getInputMask() != null && !metadata.getInputMask().equals(metadata.getInheritance().getInputMask())) {
+			metadataElement.setAttribute("inputMask", metadata.getInputMask());
+			differentFromInheritance = true;
+		}
 		if (metadata.getLabel() != null && !metadata.getLabel().equals(metadata.getInheritance().getLabel())) {
 			metadataElement.setAttribute("label", metadata.getLabel());
+			differentFromInheritance = true;
+		}
+		if (metadata.getDefaultValue() != null && !metadata.getDefaultValue()
+				.equals(metadata.getInheritance().getDefaultValue())) {
+			ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
+			utils.toElement(metadata.getDefaultValue(), metadataElement, "defaultValue");
 			differentFromInheritance = true;
 		}
 		return differentFromInheritance;

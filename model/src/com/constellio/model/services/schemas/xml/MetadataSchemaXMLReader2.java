@@ -129,6 +129,7 @@ public class MetadataSchemaXMLReader2 {
 	private void parseMetadataWithInheritance(Element metadataElement, MetadataBuilder metadataBuilder) {
 		String enabledStringValue = metadataElement.getAttributeValue("enabled");
 		String defaultRequirementStringValue = metadataElement.getAttributeValue("defaultRequirement");
+		String inputMask = metadataElement.getAttributeValue("inputMask");
 
 		List<String> validatorsClassNames = parseValidators(metadataElement, null);
 		for (String validatorsClassName : validatorsClassNames) {
@@ -141,6 +142,16 @@ public class MetadataSchemaXMLReader2 {
 
 		if (defaultRequirementStringValue != null) {
 			metadataBuilder.setDefaultRequirement(readBoolean(defaultRequirementStringValue));
+		}
+
+		if (inputMask != null) {
+			metadataBuilder.setInputMask(inputMask);
+		}
+
+		if (metadataElement.getChild("defaultValue") != null) {
+			ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
+			Object defaultValue = utils.toObject(metadataElement.getChild("defaultValue"));
+			metadataBuilder.setDefaultValue(defaultValue);
 		}
 
 		setPopulateConfigs(metadataBuilder, metadataElement);
@@ -254,6 +265,13 @@ public class MetadataSchemaXMLReader2 {
 			metadataBuilder.setSearchable(globalMetadataInCollectionSchema.isSearchable());
 		} else {
 			metadataBuilder.setSearchable(readBooleanWithDefaultValue(searchableStringValue, false));
+		}
+
+		String inputMaskStringValue = metadataElement.getAttributeValue("inputMask");
+		if (inheriteGlobalMetadata && inputMaskStringValue == null) {
+			metadataBuilder.setInputMask(globalMetadataInCollectionSchema.getInputMask());
+		} else {
+			metadataBuilder.setInputMask(inputMaskStringValue);
 		}
 
 		String sortableStringValue = metadataElement.getAttributeValue("sortable");

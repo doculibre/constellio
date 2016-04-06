@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.LangUtils;
@@ -48,12 +49,12 @@ public class ListContentRoleAuthorizationsPresenter extends ListAuthorizationsPr
 	@Override
 	public void backButtonClicked(String schemaCode) {
 		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
-			view.navigateTo().displayFolder(recordId);
+			view.navigate().to(RMViews.class).displayFolder(recordId);
 		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
-			view.navigateTo().displayDocument(recordId);
+			view.navigate().to(RMViews.class).displayDocument(recordId);
 		} else {
 			Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(view.getCollection());
-			view.navigateTo().taxonomyManagement(taxonomy.getCode(), recordId);
+			view.navigate().to().taxonomyManagement(taxonomy.getCode(), recordId);
 		}
 	}
 

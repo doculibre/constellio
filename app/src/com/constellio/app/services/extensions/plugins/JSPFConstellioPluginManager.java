@@ -52,8 +52,10 @@ import com.constellio.app.services.extensions.plugins.PluginServices.PluginsRepl
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.modules.Module;
-import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class JSPFConstellioPluginManager implements StatefulService, ConstellioPluginManager {
 	private static final Logger LOGGER = LogManager.getLogger(JSPFConstellioPluginManager.class);
@@ -64,8 +66,9 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	private final ConstellioPluginConfigurationManager pluginConfigManger;
 	private Map<String, InstallableModule> registeredModules = new HashMap<>();
 	private Map<String, InstallableModule> validUploadedPlugins = new HashMap<>();
+	private IOServices ioServices;
 
-	public JSPFConstellioPluginManager(File pluginsDirectory, ModelLayerFactory modelLayerFactory,
+	public JSPFConstellioPluginManager(File pluginsDirectory, IOServices ioServices,
 			ConstellioPluginConfigurationManager pluginConfigManger) {
 		this.pluginConfigManger = pluginConfigManger;
 		this.pluginsDirectory = pluginsDirectory;
@@ -81,6 +84,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 				}
 			}
 		}
+		this.ioServices = ioServices;
 		pluginConfigManger.createConfigFileIfNotExist();
 	}
 
@@ -89,7 +93,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 
 		if (pluginsDirectory != null && pluginsDirectory.isDirectory()) {
 			try {
-				new JSPFPluginServices().replaceOldPluginVersionsByNewOnes(pluginsDirectory,
+				newPluginServices().replaceOldPluginVersionsByNewOnes(pluginsDirectory,
 						new File(pluginsDirectory, PREVIOUS_PLUGINS));
 			} catch (PluginsReplacementException e) {
 				for (String pluginId : e.getPluginsWithReplacementExceptionIds()) {
@@ -130,7 +134,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	private void installInvalidPlugin(String pluginId) {
-		PluginServices helperService = new JSPFPluginServices();
+		PluginServices helperService = newPluginServices();
 		File pluginJar = helperService.getPluginJar(pluginsDirectory, pluginId);
 		if (pluginJar == null) {
 			LOGGER.error("Invalid plugin " + pluginId + " not found in plugins directory");
@@ -144,7 +148,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	void installValidPlugin(ConstellioPluginInfo existingInfo) {
-		PluginServices helperService = new JSPFPluginServices();
+		PluginServices helperService = newPluginServices();
 		String pluginId = existingInfo.getCode();
 		File pluginJar = helperService.getPluginJar(pluginsDirectory, pluginId);
 		if (pluginJar == null) {
@@ -205,6 +209,17 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		}
 	}
 
+	@Override
+	public void registerPluginOnlyForTests(InstallableModule plugin)
+			throws InvalidId {
+		if (plugin != null) {
+			validateId(plugin.getId());
+			this.pluginConfigManger.addOrUpdatePlugin(
+					new ConstellioPluginInfo().setCode(plugin.getId()).setPluginStatus(ENABLED).setTitle(plugin.getName()));
+			validUploadedPlugins.put(plugin.getId(), plugin);
+		}
+	}
+
 	void validateId(String id)
 			throws InvalidId {
 		if (StringUtils.isBlank(id)) {
@@ -256,7 +271,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 
 	@Override
 	public PluginActivationFailureCause prepareInstallablePlugin(File jarFile) {
-		JSPFPluginServices helperService = new JSPFPluginServices();
+		PluginServices helperService = newPluginServices();
 		ConstellioPluginInfo newPluginInfo;
 		try {
 			newPluginInfo = helperService.extractPluginInfo(jarFile);
@@ -359,6 +374,19 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	@Override
+	public void copyPluginResourcesToPluginsResourceFolder(String moduleId) {
+		FoldersLocator foldersLocator = new FoldersLocator();
+		if (foldersLocator.getFoldersLocatorMode() != FoldersLocatorMode.PROJECT) {
+			File jar = newPluginServices().getPluginJar(pluginsDirectory, moduleId);
+			if (jar != null && jar.exists()) {
+				File resourceFolder = foldersLocator.getPluginsResourcesFolder();
+				newPluginServices().extractPluginResources(jar, moduleId, resourceFolder);
+			}
+		}
+
+	}
+
+	@Override
 	public <T> Class<T> getModuleClass(String name)
 			throws ClassNotFoundException {
 		for (InstallableModule module : getActivePluginModules()) {
@@ -375,6 +403,10 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		if (pluginManager == null) {
 			throw new ConstellioPluginManagerRuntimeException("Cannot use plugin manager until it has been started");
 		}
+	}
+
+	private PluginServices newPluginServices() {
+		return new JSPFPluginServices(ioServices);
 	}
 
 	@Override

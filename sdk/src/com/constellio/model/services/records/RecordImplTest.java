@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
 import static com.constellio.sdk.tests.TestUtils.unmodifiableCollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1186,6 +1187,78 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(unserializedRecord.getRecordDTO().getFields()).isEqualTo(fields);
 		assertThat(unserializedRecord.getRecordDTO().getCopyFields()).isEqualTo(copyFields);
 		assertThat(unserializedRecord.getLoadedStructuredValues()).isNull();
+	}
+
+	//TODO @Test
+	public void whenSettingCompatibleRawValueInMetadataWithInputMaskThenConvertIt()
+			throws Exception {
+
+		Metadata telephoneNumber = mockManualMetadata("zeType_default_telephoneNumber", MetadataValueType.STRING);
+		Metadata postalCode = mockManualMetadata("zeType_default_postalCode", MetadataValueType.STRING);
+		when(telephoneNumber.getDataStoreCode()).thenReturn("telephoneNumber_s");
+		when(telephoneNumber.getInputMask()).thenReturn("(###) ###-####");
+		when(postalCode.getDataStoreCode()).thenReturn("postalCode_s");
+		when(postalCode.getInputMask()).thenReturn("U#U #U#");
+		RecordImpl record = new RecordImpl("zeType_default", "zeCollection", "zeId");
+
+		record.set(telephoneNumber, "4183533390");
+		record.set(postalCode, "G1N2C9");
+		assertThat(record.get(telephoneNumber)).isEqualTo("(418) 353-3390");
+		assertThat(record.get(postalCode)).isEqualTo("G1N 2C9");
+
+		record.set(telephoneNumber, "4186664242");
+		record.set(postalCode, "H0H0H0");
+		assertThat(record.get(telephoneNumber)).isEqualTo("(418) 666-4242");
+		assertThat(record.get(postalCode)).isEqualTo("H0H 0H0");
+
+	}
+
+	@Test
+	public void whenSettingIncompatibleRawValueInMetadataWithInputMaskThenSetTheRawValue()
+			throws Exception {
+
+		Metadata telephoneNumber = mockManualMetadata("zeType_default_telephoneNumber", MetadataValueType.STRING);
+		Metadata postalCode = mockManualMetadata("zeType_default_postalCode", MetadataValueType.STRING);
+		when(telephoneNumber.getDataStoreCode()).thenReturn("telephoneNumber_s");
+		when(telephoneNumber.getInputMask()).thenReturn("(###) ###-####");
+		when(postalCode.getDataStoreCode()).thenReturn("postalCode_s");
+		when(postalCode.getInputMask()).thenReturn("U#U #U#");
+		RecordImpl record = new RecordImpl("zeType_default", "zeCollection", "zeId");
+
+		record.set(telephoneNumber, "418-353-3390");
+		record.set(postalCode, "G1Nyyy2C9");
+		assertThat(record.get(telephoneNumber)).isEqualTo("418-353-3390");
+		assertThat(record.get(postalCode)).isEqualTo("G1Nyyy2C9");
+
+		record.set(telephoneNumber, "(418y 666-4242");
+		record.set(postalCode, "H0H:0H0");
+		assertThat(record.get(telephoneNumber)).isEqualTo("(418y 666-4242");
+		assertThat(record.get(postalCode)).isEqualTo("H0H:0H0");
+
+	}
+
+	@Test
+	public void whenSettingFormattedValueInMetadataWithInputMaskThenSetTheValue()
+			throws Exception {
+
+		Metadata telephoneNumber = mockManualMetadata("zeType_default_telephoneNumber", MetadataValueType.STRING);
+		Metadata postalCode = mockManualMetadata("zeType_default_postalCode", MetadataValueType.STRING);
+		when(telephoneNumber.getDataStoreCode()).thenReturn("telephoneNumber_s");
+		when(telephoneNumber.getInputMask()).thenReturn("(###) ###-####");
+		when(postalCode.getDataStoreCode()).thenReturn("postalCode_s");
+		when(postalCode.getInputMask()).thenReturn("U#U #U#");
+		RecordImpl record = new RecordImpl("zeType_default", "zeCollection", "zeId");
+
+		record.set(telephoneNumber, "(418) 353-3390");
+		record.set(postalCode, "G1N 2C9");
+		assertThat(record.get(telephoneNumber)).isEqualTo("(418) 353-3390");
+		assertThat(record.get(postalCode)).isEqualTo("G1N 2C9");
+
+		record.set(telephoneNumber, "(418) 666-4242");
+		record.set(postalCode, "H0H 0H0");
+		assertThat(record.get(telephoneNumber)).isEqualTo("(418) 666-4242");
+		assertThat(record.get(postalCode)).isEqualTo("H0H 0H0");
+
 	}
 
 	Map<String, Object> newSchemaFields() {

@@ -1,6 +1,7 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import java.text.SimpleDateFormat;
+import static com.constellio.data.utils.SimpleDateFormatSingleton.getSimpleDateFormat;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -183,7 +184,7 @@ public class SolrUtils {
 		if (localDateTime != null && localDateTime.getYear() < 1900) {
 			return localDateTime.withTime(12, 0, 0, 0).toString(SOLR_DATE_FORMATTER_PATTERN);
 		} else {
-			return new SimpleDateFormat(SOLR_DATE_FORMATTER_PATTERN).format(localDateTime.toDate());
+			return getSimpleDateFormat(SOLR_DATE_FORMATTER_PATTERN).format(localDateTime.toDate());
 		}
 	}
 

@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.WorkflowServices;
 import com.constellio.app.modules.tasks.services.WorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
 import com.constellio.app.modules.tasks.ui.builders.WorkflowToVoBuilder;
@@ -90,7 +91,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	}
 
 	void backButtonClicked() {
-		view.navigateTo().listWorkflows();
+		view.navigate().to(TaskViews.class).listWorkflows();
 	}
 
 	void editButtonClicked() {
@@ -100,7 +101,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	void deleteButtonClicked() {
 		try {
 			delete(toRecord(workflowVO), false);
-			view.navigateTo().listWorkflows();
+			view.navigate().to(TaskViews.class).listWorkflows();
 		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
 			view.showErrorMessage(MessageUtils.toMessage(exception));
 		}
@@ -185,7 +186,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 				workflowServices.createModelTaskAfter(workflow, workflowTaskVO, taskType, taskTitle, sessionContext);
 			}
 			view.closeAddTaskWindow();
-			view.navigateTo().displayWorkflow(workflow.getId());
+			view.navigate().to(TaskViews.class).displayWorkflow(workflow.getId());
 		} catch (WorkflowServicesRuntimeException_UnsupportedAddAtPosition e) {
 			e.printStackTrace();
 			view.showMessage($("DisplayWorkflowView.addTaskWindow.cannotAdd"));
@@ -228,7 +229,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 			try {
 				workflowServices.addAfter(existingItemId, targetItemId, sessionContext);
 				view.closeAddTaskWindow();
-				view.navigateTo().displayWorkflow(workflowVO.getId());
+				view.navigate().to(TaskViews.class).displayWorkflow(workflowVO.getId());
 			} catch (Exception e) {
 				e.printStackTrace();
 				allow = false;

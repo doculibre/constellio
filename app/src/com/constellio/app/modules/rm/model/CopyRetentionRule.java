@@ -10,8 +10,9 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class CopyRetentionRule implements ModifiableStructure {
 	String code;
@@ -24,10 +25,29 @@ public class CopyRetentionRule implements ModifiableStructure {
 	String semiActiveRetentionComment;
 	DisposalType inactiveDisposalType;
 	String inactiveDisposalComment;
-	String documentTypeId;
+	String typeId;
 	String semiActiveDateMetadata;
 	String activeDateMetadata;
+	Integer openActiveRetentionPeriod;
+	boolean essential;
 	boolean dirty;
+	private String id;
+
+	public String getId() {
+		return id;
+	}
+
+	public CopyRetentionRule() {
+	}
+
+	public CopyRetentionRule setId(String id) {
+		if (this.id != null) {
+			throw new CopyRetentionRuleFactoryRuntimeException.CopyRetentionRuleFactoryRuntimeException_CannotModifyId(this.id);
+		}
+		dirty = true;
+		this.id = id;
+		return this;
+	}
 
 	public String getCode() {
 		return code;
@@ -36,6 +56,16 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRule setCode(String code) {
 		dirty = true;
 		this.code = code;
+		return this;
+	}
+
+	public Integer getOpenActiveRetentionPeriod() {
+		return openActiveRetentionPeriod;
+	}
+
+	public CopyRetentionRule setOpenActiveRetentionPeriod(Integer openActiveRetentionPeriod) {
+		dirty = true;
+		this.openActiveRetentionPeriod = openActiveRetentionPeriod;
 		return this;
 	}
 
@@ -137,13 +167,31 @@ public class CopyRetentionRule implements ModifiableStructure {
 		return this;
 	}
 
-	public String getDocumentTypeId() {
-		return documentTypeId;
+	public String getTypeId() {
+		return typeId;
 	}
 
-	public CopyRetentionRule setDocumentTypeId(String documentTypeId) {
+	public CopyRetentionRule setTypeId(String typeId) {
 		dirty = true;
-		this.documentTypeId = documentTypeId;
+		this.typeId = typeId;
+		return this;
+	}
+
+	public CopyRetentionRule setTypeId(FolderType type) {
+		return setTypeId(type == null ? null : type.getId());
+	}
+
+	public CopyRetentionRule setTypeId(DocumentType type) {
+		return setTypeId(type == null ? null : type.getId());
+	}
+
+	public boolean isEssential() {
+		return essential;
+	}
+
+	public CopyRetentionRule setEssential(boolean essential) {
+		dirty = true;
+		this.essential = essential;
 		return this;
 	}
 
@@ -171,9 +219,11 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		//		sb.append(copyType == null ? "?" : copyType.getCode());
-		//		sb.append(mediumTypeIds.toString());
-		//		sb.append(" ");
+		if (code != null) {
+			sb.append(code);
+			sb.append("  ");
+		}
+
 		sb.append(activeRetentionPeriod == null ? "?" : activeRetentionPeriod.getValue());
 		sb.append("-");
 		sb.append(semiActiveRetentionPeriod == null ? "?" : semiActiveRetentionPeriod.getValue());
@@ -196,50 +246,6 @@ public class CopyRetentionRule implements ModifiableStructure {
 	@Override
 	public boolean isDirty() {
 		return dirty;
-	}
-
-	public static CopyRetentionRule newPrincipal(List<String> contentTypesCodes, String value) {
-		return newRetentionRule(CopyType.PRINCIPAL, contentTypesCodes, value);
-	}
-
-	public static CopyRetentionRule newSecondary(List<String> contentTypesCodes, String value) {
-		return newRetentionRule(CopyType.SECONDARY, contentTypesCodes, value);
-	}
-
-	public static CopyRetentionRule newPrincipal(List<String> contentTypesCodes) {
-		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
-		copyRetentionRule.setMediumTypeIds(contentTypesCodes);
-		copyRetentionRule.setCopyType(CopyType.PRINCIPAL);
-		return copyRetentionRule;
-	}
-
-	public static CopyRetentionRule newSecondary(List<String> contentTypesCodes) {
-		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
-		copyRetentionRule.setMediumTypeIds(contentTypesCodes);
-		copyRetentionRule.setCopyType(CopyType.SECONDARY);
-		return copyRetentionRule;
-	}
-
-	public static CopyRetentionRule newRetentionRule(CopyType copyType, List<String> contentTypesCodes, String value) {
-		String[] parts = (" " + value + " ").split("-");
-		CopyRetentionRule copyRetentionRule = new CopyRetentionRule();
-		copyRetentionRule.setMediumTypeIds(contentTypesCodes);
-		copyRetentionRule.setCopyType(copyType);
-
-		String part0 = parts[0].trim();
-		String part1 = parts[1].trim();
-		String part2 = parts[2].trim();
-
-		if (!part0.isEmpty() && !part0.equals("0")) {
-			copyRetentionRule.setActiveRetentionPeriod(new RetentionPeriod(Integer.valueOf(part0)));
-		}
-		if (!part1.isEmpty() && !part1.equals("0")) {
-			copyRetentionRule.setSemiActiveRetentionPeriod(new RetentionPeriod(Integer.valueOf(part1)));
-		}
-		if (!part2.isEmpty()) {
-			copyRetentionRule.setInactiveDisposalType((DisposalType) EnumWithSmallCodeUtils.toEnum(DisposalType.class, part2));
-		}
-		return copyRetentionRule;
 	}
 
 	public boolean canTransferToSemiActive() {
@@ -265,4 +271,5 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRuleInRule in(String ruleId, String category, int categoryLevel) {
 		return new CopyRetentionRuleInRule(ruleId, category, categoryLevel, this);
 	}
+
 }

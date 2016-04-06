@@ -76,7 +76,7 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.DemoTestRecords;
-import com.constellio.app.modules.rm.RMNavigationConfiguration;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -16,7 +17,6 @@ import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
-import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -27,7 +27,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
-	private RecordVO record;
 
 	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
 		super(searchResultVO, componentFactory);
@@ -35,11 +34,12 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
 	@Override
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
-		record = searchResultVO.getRecordVO();
+		final RecordVO record = searchResultVO.getRecordVO();
 
 		String schemaCode = record.getSchema().getCode();
 		Component titleComponent;
-		if (ConstellioAgentUtils.isAgentSupported() && new SchemaUtils().getSchemaTypeCode(schemaCode).equals(Document.SCHEMA_TYPE)) {
+		if (ConstellioAgentUtils.isAgentSupported() && new SchemaUtils().getSchemaTypeCode(schemaCode)
+				.equals(Document.SCHEMA_TYPE)) {
 			ContentVersionVO contentVersionVO = record.get(Document.CONTENT);
 			String agentURL = ConstellioAgentUtils.getAgentURL(record, contentVersionVO);
 			if (agentURL != null) {
@@ -54,7 +54,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		Button edit = new EditButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				ConstellioUI.getCurrent().navigateTo().editDocument(record.getId());
+				ConstellioUI.getCurrent().navigate().to(RMViews.class).editDocument(record.getId());
 			}
 		};
 
@@ -73,7 +73,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		Button open = new DisplayButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				ConstellioUI.getCurrent().navigateTo().displayDocument(record.getId());
+				ConstellioUI.getCurrent().navigate().to(RMViews.class).displayDocument(record.getId());
 			}
 		};
 

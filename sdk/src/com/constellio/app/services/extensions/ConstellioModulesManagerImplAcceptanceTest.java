@@ -263,10 +263,14 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenInstallModuleWithDependenciesThenInstallDependencies()
 			throws Exception {
+		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getRegisteredModules();
 		doReturn(Arrays.asList(moduleA, moduleB, moduleC)).when(pluginManager).getRegistredModulesAndActivePlugins();
 		when(moduleC.getDependencies()).thenReturn(asList("moduleB_Id"));
 		givenCollection("zeCollection");
 		givenCollection("anotherCollection");
+		manager.markAsInstalled(moduleC, collectionsListManager);
+		manager.markAsEnabled(moduleC, zeCollection);
+		manager.markAsEnabled(moduleC, "anotherCollection");
 		migrationServices.setCurrentDataVersion("zeCollection", "11.1.2");
 		migrationServices.setCurrentDataVersion("anotherCollection", "11.1.2");
 

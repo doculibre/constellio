@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.app.modules.rm.model.CopyRetentionRule.newPrincipal;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
@@ -53,6 +52,8 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 	ContainerRecord containerRecord;
 	Folder folder;
 	DecommissioningList decommissioningList;
+
+	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Before
 	public void setUp()
@@ -157,7 +158,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getStatus()).isEqualTo(DecomListStatus.GENERATED);
 		assertThat(decommissioningList.getUniformCategory()).isEqualTo(records.categoryId_X110);
 		assertThat(decommissioningList.getUniformCopyRule().toString())
-				.isEqualTo(newPrincipal(records.PA_MD, "42-5-C").toString());
+				.isEqualTo(copyBuilder.newPrincipal(records.PA_MD, "42-5-C").toString());
 		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
 		assertThat(decommissioningList.isUniform()).isEqualTo(true);
@@ -169,7 +170,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getStatus()).isEqualTo(DecomListStatus.GENERATED);
 		assertThat(decommissioningList.getUniformCategory()).isNull();
 		assertThat(decommissioningList.getUniformCopyRule().toString())
-				.isEqualTo(newPrincipal(records.PA_MD, "42-5-C").toString());
+				.isEqualTo(copyBuilder.newPrincipal(records.PA_MD, "42-5-C").toString());
 		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
 		assertThat(decommissioningList.isUniform()).isEqualTo(false);
@@ -206,7 +207,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 		assertThat(decommissioningList.getList(DecommissioningList.DOCUMENTS)).hasSize(9);
 		assertThat(decommissioningList.getUniformCategory()).isEqualTo(records.categoryId_X110);
 		assertThat(decommissioningList.getUniformCopyRule().toString())
-				.isEqualTo(newPrincipal(records.PA_MD, "42-5-C").toString());
+				.isEqualTo(copyBuilder.newPrincipal(records.PA_MD, "42-5-C").toString());
 		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
 		assertThat(decommissioningList.isUniform()).isEqualTo(true);
@@ -215,7 +216,7 @@ public class DecommissioningListAcceptanceTest extends ConstellioTest {
 				.set(DecommissioningList.DOCUMENTS, documentIn(records.folders("A04-A06, A16-A18"))));
 		assertThat(decommissioningList.getUniformCategory()).isNull();
 		assertThat(decommissioningList.getUniformCopyRule().toString())
-				.isEqualTo(newPrincipal(records.PA_MD, "42-5-C").toString());
+				.isEqualTo(copyBuilder.newPrincipal(records.PA_MD, "42-5-C").toString());
 		assertThat(decommissioningList.getUniformCopyType()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(decommissioningList.getUniformRule()).isEqualTo(records.ruleId_1);
 		assertThat(decommissioningList.isUniform()).isEqualTo(false);

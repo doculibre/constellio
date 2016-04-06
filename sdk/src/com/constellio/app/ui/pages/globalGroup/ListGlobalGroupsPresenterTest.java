@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
@@ -45,7 +45,7 @@ public class ListGlobalGroupsPresenterTest extends ConstellioTest {
 	@Mock LogicalSearchQuery query;
 	@Mock GlobalGroupVODataProvider dataProvider;
 	@Mock GlobalGroupVO heroesGlobalGroupVO, legendsGlobalGroupVO;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	@Mock UserCredentialsManager userCredentialsManager;
 	@Mock GlobalGroupsManager globalGroupsManager;
 	@Mock UserCredential dakotaCredential;

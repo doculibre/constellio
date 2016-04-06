@@ -3,6 +3,7 @@ package com.constellio.app.modules.robots.ui.pages;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -33,15 +34,15 @@ public class ListRootRobotsPresenter extends BaseRobotPresenter<ListRootRobotsVi
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().robotConfiguration(recordVO.getId());
+		view.navigate().to(RobotViews.class).robotConfiguration(recordVO.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
 		robotsService().deleteRobotHierarchy(recordVO.getId());
-		view.navigateTo().listRootRobots();
+		view.navigate().to(RobotViews.class).listRootRobots();
 	}
 
 	public void addButtonClicked() {
-		view.navigateTo().addRobot(null);
+		view.navigate().to(RobotViews.class).addRobot(null);
 	}
 }

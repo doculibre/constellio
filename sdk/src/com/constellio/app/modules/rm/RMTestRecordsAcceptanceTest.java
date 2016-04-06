@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.model.CopyRetentionRule.newPrincipal;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
 import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
@@ -18,6 +17,8 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilderWithDefinedIds;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
@@ -41,6 +42,8 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 	Users users = new Users();
 	RMTestRecords records = new RMTestRecords(zeCollection);
+
+	CopyRetentionRuleBuilder copyBuilder = new CopyRetentionRuleBuilderWithDefinedIds();
 
 	@Before
 	public void setUp()
@@ -89,7 +92,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat("_M_3cd468d8-ddc4-46ae-b7ab-9bdf5d9d5a7a".split("_").length).isEqualTo(3);
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+				.withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 
@@ -103,7 +106,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
-						.withFoldersAndContainersOfEveryStatus()
+				.withFoldersAndContainersOfEveryStatus()
 		);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
@@ -548,7 +551,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_A22())
 				.has(openDate(2000, 5, 4))
 				.has(closeDate(2002, 10, 31))
-				.has(copyRule(newPrincipal(asList(records.PA), "3-888-D")))
+				.has(copyRule(copyBuilder.newPrincipal(asList(records.PA), "3-888-D")))
 				.has(planifiedTransferDate(2005, 10, 31))
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2006, 10, 31));
@@ -556,7 +559,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_A23())
 				.has(openDate(2000, 7, 4))
 				.has(closeDate(2002, 10, 31))
-				.has(copyRule(newPrincipal(asList(records.PA), "3-888-D")))
+				.has(copyRule(copyBuilder.newPrincipal(asList(records.PA), "3-888-D")))
 				.has(planifiedTransferDate(2005, 10, 31))
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2006, 10, 31));
@@ -564,7 +567,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_A24())
 				.has(openDate(2000, 7, 5))
 				.has(closeDate(2003, 10, 31))
-				.has(copyRule(newPrincipal(asList(records.PA), "3-888-D")))
+				.has(copyRule(copyBuilder.newPrincipal(asList(records.PA), "3-888-D")))
 				.has(planifiedTransferDate(2006, 10, 31))
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2007, 10, 31));
@@ -572,7 +575,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_A25())
 				.has(openDate(2000, 6, 4))
 				.has(closeDate(2002, 10, 31))
-				.has(copyRule(newPrincipal(asList(records.MD), "3-888-C")))
+				.has(copyRule(copyBuilder.newPrincipal(asList(records.MD), "3-888-C")))
 				.has(planifiedTransferDate(2005, 10, 31))
 				.has(planifiedDepositDate(2006, 10, 31))
 				.has(noPlanifiedDestructionDate());
@@ -580,7 +583,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_A26())
 				.has(openDate(2000, 7, 4))
 				.has(closeDate(2002, 10, 31))
-				.has(copyRule(newPrincipal(asList(records.MD), "3-888-C")))
+				.has(copyRule(copyBuilder.newPrincipal(asList(records.MD), "3-888-C")))
 				.has(planifiedTransferDate(2005, 10, 31))
 				.has(planifiedDepositDate(2006, 10, 31))
 				.has(noPlanifiedDestructionDate());
@@ -588,7 +591,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_A27())
 				.has(openDate(2000, 7, 5))
 				.has(closeDate(2003, 10, 31))
-				.has(copyRule(newPrincipal(asList(records.MD), "3-888-C")))
+				.has(copyRule(copyBuilder.newPrincipal(asList(records.MD), "3-888-C")))
 				.has(planifiedTransferDate(2006, 10, 31))
 				.has(planifiedDepositDate(2007, 10, 31))
 				.has(noPlanifiedDestructionDate());
@@ -1252,7 +1255,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		return new Condition<Folder>() {
 			@Override
 			public boolean matches(Folder value) {
-				assertThat(value.getMainCopyRule()).isEqualTo(rule);
+				assertThat(value.getMainCopyRule()).isEqualToIgnoringGivenFields(rule, "id", "dirty");
 				return true;
 			}
 		};

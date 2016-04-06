@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
@@ -18,13 +19,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class TaskBreadcrumbTrailPresenter implements Serializable {
-	
 	private String recordId;
-	
 	private BreadcrumbTrail breadcrumbTrail;
-	
 	private transient SchemaPresenterUtils folderPresenterUtils;
-	
 	private transient TasksSchemasRecordsServices tasksSchemasRecordsServices;
 
 	public TaskBreadcrumbTrailPresenter(String recordId, BreadcrumbTrail breadcrumbTrail) {
@@ -33,10 +30,10 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
-	
+
 	private void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
-		
+
 		String currentRecordId = recordId;
 		while (currentRecordId != null) {
 			breadcrumbItems.add(0, new TaskBreadcrumbItem(currentRecordId));
@@ -65,13 +62,12 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 
 	public void itemClicked(BreadcrumbItem item) {
 		String taskId = ((TaskBreadcrumbItem) item).getTaskId();
-		breadcrumbTrail.navigateTo().displayTask(taskId);
+		breadcrumbTrail.navigate().to(TaskViews.class).displayTask(taskId);
 	}
-	
+
 	class TaskBreadcrumbItem implements BreadcrumbItem {
-		
 		private String itemTaskId;
-		
+
 		TaskBreadcrumbItem(String itemTaskId) {
 			this.itemTaskId = itemTaskId;
 		}
@@ -97,7 +93,5 @@ public class TaskBreadcrumbTrailPresenter implements Serializable {
 			}
 			return enabled;
 		}
-		
 	}
-
 }

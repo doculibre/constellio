@@ -10,6 +10,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.artofsolving.jodconverter.office.OfficeException;
 
 public class ContentConversionManager implements AutoCloseable {
 	private final ContentManager contentManager;
@@ -83,7 +84,12 @@ public class ContentConversionManager implements AutoCloseable {
 	private ConversionManager conversionManager() {
 		if (conversionManager == null) {
 			workingFolder = ioServices.newTemporaryFolder("ContentConversionManager");
-			conversionManager = new ConversionManager(ioServices, 1, workingFolder);
+			try {
+				conversionManager = new ConversionManager(ioServices, 1, workingFolder);
+			} catch(OfficeException e) {
+				ioServices.deleteQuietly(workingFolder);
+				throw e;
+			}
 		}
 		return conversionManager;
 	}

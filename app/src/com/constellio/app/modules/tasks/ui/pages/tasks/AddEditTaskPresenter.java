@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
@@ -98,9 +99,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public void cancelButtonClicked() {
 		if (StringUtils.isNotBlank(workflowId)) {
-			view.navigateTo().displayWorkflow(workflowId);
+			view.navigate().to(TaskViews.class).displayWorkflow(workflowId);
 		} else {
-			view.navigateTo().tasksManagement();
+			view.navigate().to(TaskViews.class).taskManagement();
 		}
 	}
 
@@ -120,11 +121,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 		addOrUpdate(task.getWrappedRecord());
 		if (StringUtils.isNotBlank(workflowId)) {
-			view.navigateTo().displayWorkflow(workflowId);
+			view.navigate().to(TaskViews.class).displayWorkflow(workflowId);
 		} else if (StringUtils.isNotBlank(parentId)) {
-			view.navigateTo().displayTask(parentId);
+			view.navigate().to(TaskViews.class).displayTask(parentId);
 		} else {
-			view.navigateTo().tasksManagement();
+			view.navigate().to(TaskViews.class).taskManagement();
 		}
 	}
 

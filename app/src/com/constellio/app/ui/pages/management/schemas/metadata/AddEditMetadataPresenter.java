@@ -34,7 +34,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
@@ -43,7 +43,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
-
 	private Map<String, String> parameters;
 	private String metadataCode;
 
@@ -152,14 +151,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			}
 		}
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
-
+		builder.setInputMask(formMetadataVO.getInputMask());
 		builder.setEnabled(formMetadataVO.isEnabled());
 		builder.setLabel(formMetadataVO.getLabel());
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);
-		} catch (OptimistickLocking optimistickLocking) {
+		} catch (OptimisticLocking optimistickLocking) {
 			// TODO exception gestion
 			throw new RuntimeException(optimistickLocking);
 		} catch (EssentialMetadataCannotBeDisabled | EssentialMetadataInSummaryCannotBeDisabled e) {

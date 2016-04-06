@@ -12,7 +12,7 @@ import com.vaadin.data.util.converter.Converter;
 
 @SuppressWarnings("serial")
 public class JodaDateToStringConverter implements Converter<String, LocalDate> {
-	
+
 	@Override
 	public LocalDate convertToModel(String value, Class<? extends LocalDate> targetType, Locale locale)
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
@@ -28,15 +28,15 @@ public class JodaDateToStringConverter implements Converter<String, LocalDate> {
 		}
 		return value != null ? new LocalDate(utilDate) : null;
 	}
-	
+
 	protected String getPattern() {
-		return DateFormatUtils.DATE_FORMAT;
+		return DateFormatUtils.getDateFormat();
 	}
 
 	@Override
 	public String convertToPresentation(LocalDate value, Class<? extends String> targetType, Locale locale)
-			throws com.vaadin.data.util.converter.Converter.ConversionException {
-		return value != null ? value.toString(getPattern()) : null;
+			throws ConversionException {
+		return DateFormatUtils.format(value);
 	}
 
 	@Override

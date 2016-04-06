@@ -93,7 +93,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton;
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, startWorkflowButton;
 	private Label borrowedLabel;
 
 	private Window documentVersionWindow;
@@ -324,6 +324,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 
+		startWorkflowButton = new StartWorkflowButton();
+
 		actionMenuButtons.add(addDocumentButton);
 		actionMenuButtons.add(addSubFolderButton);
 		actionMenuButtons.add(editFolderButton);
@@ -338,7 +340,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(returnFolderButton);
 		actionMenuButtons.add(reminderReturnFolderButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
-		actionMenuButtons.add(new StartWorkflowButton());
+		actionMenuButtons.add(startWorkflowButton);
 
 		return actionMenuButtons;
 	}
@@ -543,6 +545,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void setAlertWhenAvailableButtonState(ComponentState state) {
 		alertWhenAvailableButton.setVisible(state.isVisible());
 		alertWhenAvailableButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setStartWorkflowButtonState(ComponentState state) {
+		startWorkflowButton.setVisible(state.isVisible());
+		startWorkflowButton.setEnabled(state.isEnabled());
 	}
 
 	@Override

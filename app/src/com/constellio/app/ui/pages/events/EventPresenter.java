@@ -8,10 +8,12 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -220,13 +222,13 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		try {
 			recordServices().getDocumentById(recordId);
 			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
-				view.navigateTo().displayDecommissioningList(recordId);
+				view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 			} else if (getEventType().contains("folder")) {
-				view.navigateTo().displayFolder(recordId);
+				view.navigate().to(RMViews.class).displayFolder(recordId);
 			} else if (getEventType().contains("document")) {
-				view.navigateTo().displayDocument(recordId);
+				view.navigate().to(RMViews.class).displayDocument(recordId);
 			} else {
-				view.navigateTo().displayTask(recordId);
+				view.navigate().to(TaskViews.class).displayTask(recordId);
 			}
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			return;

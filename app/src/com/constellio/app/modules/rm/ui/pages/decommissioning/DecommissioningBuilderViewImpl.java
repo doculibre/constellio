@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -59,7 +60,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		return new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				navigateTo().decommissioning();
+				navigate().to(RMViews.class).decommissioning();
 			}
 		};
 	}

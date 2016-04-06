@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.ui.application.ConstellioNavigator;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -24,7 +24,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 
 public class AddEditFacetConfigurationPresenterAcceptTest extends ConstellioTest {
 	@Mock AddEditFacetConfigurationView view;
-	@Mock ConstellioNavigator navigator;
+	@Mock CoreViews navigator;
 	AddEditFacetConfigurationPresenter presenter;
 
 	RMTestRecords records = new RMTestRecords(zeCollection);

@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -125,7 +126,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					sessionContext.setCurrentUser(currentUser);
 					sessionContext.setCurrentCollection(userInLastCollection.getCollection());
 					sessionContext.setForcedSignOut(false);
-					
+
 					view.updateUIContent();
 					String currentState = view.navigateTo().getState();
 					if (StringUtils.contains(currentState, "/")) {
@@ -133,7 +134,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					}
 					boolean homePage = NavigatorConfigurationService.HOME.equals(currentState);
 					if (homePage && hasUserDocuments(userInLastCollection, lastCollection)) {
-						view.navigateTo().listUserDocuments();
+						view.navigate().to(RMViews.class).listUserDocuments();
 					}
 				}
 			} else {

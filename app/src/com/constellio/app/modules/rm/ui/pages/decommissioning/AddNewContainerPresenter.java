@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -59,7 +60,7 @@ public class AddNewContainerPresenter extends AddEditContainerPresenter {
 		transaction.addAll(container, decommissioningList);
 		try {
 			recordServices().execute(transaction);
-			view.navigateTo().displayDecommissioningList(listId);
+			view.navigate().to(RMViews.class).displayDecommissioningList(listId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			view.showErrorMessage($("AddNewContainerView.failedToSave"));

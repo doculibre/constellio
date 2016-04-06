@@ -16,7 +16,7 @@ import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -349,7 +349,7 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 				.setType(MetadataValueType.STRING);
 		try {
 			metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
-		} catch (OptimistickLocking e) {
+		} catch (OptimisticLocking e) {
 			throw new RuntimeException(e);
 		}
 

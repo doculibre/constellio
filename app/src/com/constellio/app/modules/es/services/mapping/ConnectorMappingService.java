@@ -28,7 +28,7 @@ import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimistickLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -326,7 +326,7 @@ public class ConnectorMappingService {
 		private void saveSchemas() {
 			try {
 				metadataSchemasManager.saveUpdateSchemaTypes(types);
-			} catch (OptimistickLocking optimistickLocking) {
+			} catch (OptimisticLocking optimistickLocking) {
 				saveSchemas();
 			}
 		}
