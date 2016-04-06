@@ -6,7 +6,6 @@ include "data",
 
 if (new File(rootDir, "../constellio-plugins").exists()) {
     // Add new plugins below with the right name
-    /*
     include "plugins",
             "plugins:sdk",
             "plugins:importation",
@@ -25,7 +24,6 @@ if (new File(rootDir, "../constellio-plugins").exists()) {
             "plugins:plugin014",
             "plugins:plugin016",
             "plugins:plugin666"
-            */
 }
 
 project(":data").projectDir = file("./data")
