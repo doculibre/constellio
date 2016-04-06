@@ -326,7 +326,7 @@ public class ConnectorMappingService {
 		private void saveSchemas() {
 			try {
 				metadataSchemasManager.saveUpdateSchemaTypes(types);
-			} catch (OptimisticLocking optimistickLocking) {
+			} catch (OptimisticLocking e) {
 				saveSchemas();
 			}
 		}

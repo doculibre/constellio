@@ -34,6 +34,7 @@ public final class MainConstellio {
 		if (isInInstallationMode()) {
 			installApplication(constellioInstallationDir);
 		} else {
+			//TODO
 			runApplication();
 		}
 	}
