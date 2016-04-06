@@ -154,7 +154,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public boolean isUpdateEnabled() {
-		return isUpdateWithRecoveryPossible() == null;
+		UpdateRecoveryImpossibleCause updatePossible = isUpdateWithRecoveryPossible();
+		return updatePossible == null || updatePossible == UpdateRecoveryImpossibleCause.TOO_SHORT_MEMORY;
 	}
 
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {

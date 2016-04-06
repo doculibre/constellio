@@ -5,27 +5,36 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 
 public class UserCredentialAndGlobalGroupsMigration {
 
+	private final ModelLayerFactory modelLayerFactory;
 	XmlUserCredentialsManager oldUserManager;
 	XmlGlobalGroupsManager oldGroupManager;
 	RecordServices recordServices;
 	SchemasRecordsServices schemasRecordsServices;
 
-	public UserCredentialAndGlobalGroupsMigration(XmlUserCredentialsManager oldUserManager,
+	public UserCredentialAndGlobalGroupsMigration(ModelLayerFactory modelLayerFactory, XmlUserCredentialsManager oldUserManager,
 			XmlGlobalGroupsManager oldGroupManager, RecordServices recordServices,
 			SchemasRecordsServices schemasRecordsServices) {
+		this.modelLayerFactory = modelLayerFactory;
 		this.oldUserManager = oldUserManager;
 		this.oldGroupManager = oldGroupManager;
 		this.recordServices = recordServices;
@@ -33,25 +42,20 @@ public class UserCredentialAndGlobalGroupsMigration {
 	}
 
 	public void migrateUserAndGroups() {
-
-		Map<String, SolrGlobalGroup> groupsCodeIdMap = new HashMap<>();
 		Transaction transaction = new Transaction();
-		for (GlobalGroup globalGroup : oldGroupManager.getAllGroups()) {
-			SolrGlobalGroup newGroup = (SolrGlobalGroup) schemasRecordsServices.newGlobalGroup();
-			groupsCodeIdMap.put(globalGroup.getCode(), newGroup);
-			transaction.add(newGroup);
-		}
 
-		for (GlobalGroup globalGroup : oldGroupManager.getAllGroups()) {
-			SolrGlobalGroup newGroup = groupsCodeIdMap.get(globalGroup.getCode());
-			newGroup.setCode(globalGroup.getCode());
-			newGroup.setName(globalGroup.getName());
-			newGroup.setTitle(globalGroup.getName());
-			newGroup.setStatus(globalGroup.getStatus());
-			newGroup.setUsersAutomaticallyAddedToCollections(globalGroup.getUsersAutomaticallyAddedToCollections());
-			if (globalGroup.getParent() != null) {
-				newGroup.setParent(groupsCodeIdMap.get(globalGroup.getParent()).getId());
+		for (GlobalGroup oldGroup : oldGroupManager.getAllGroups()) {
+			SolrGlobalGroup newGroup = (SolrGlobalGroup) schemasRecordsServices.newGlobalGroup();
+			newGroup.setCode(oldGroup.getCode());
+			newGroup.setCode(oldGroup.getCode());
+			newGroup.setName(oldGroup.getName());
+			newGroup.setTitle(oldGroup.getName());
+			newGroup.setStatus(oldGroup.getStatus());
+			newGroup.setUsersAutomaticallyAddedToCollections(oldGroup.getUsersAutomaticallyAddedToCollections());
+			if (oldGroup.getParent() != null) {
+				newGroup.setParent(oldGroup.getParent());
 			}
+			transaction.add(newGroup);
 		}
 
 		try {
@@ -63,10 +67,19 @@ public class UserCredentialAndGlobalGroupsMigration {
 		Iterator<List<UserCredential>> userCredentialBatchesIterator = new BatchBuilderIterator<>(
 				oldUserManager.getUserCredentials().iterator(), 100);
 
+		Map<String, List<String>> invalidUsernameListMappedByCollection = newCollectionMapExceptSystem();
 		while (userCredentialBatchesIterator.hasNext()) {
 			transaction = new Transaction();
 			for (UserCredential userCredential : userCredentialBatchesIterator.next()) {
-				transaction.add(toSolrUserCredential(userCredential, groupsCodeIdMap));
+				String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
+				if (!correctedUsername.equals(userCredential.getUsername())) {
+					for(String collection : userCredential.getCollections()){
+						List<String> invalidUsersForCollection = invalidUsernameListMappedByCollection.get(collection);
+						invalidUsersForCollection.add(userCredential.getUsername());
+						invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
+					}
+				}
+				transaction.add(toSolrUserCredential(userCredential));
 			}
 
 			try {
@@ -75,14 +88,51 @@ public class UserCredentialAndGlobalGroupsMigration {
 				throw new RuntimeException(e);
 			}
 		}
+		correctUsernameInAllCollections(invalidUsernameListMappedByCollection);
 
 	}
 
-	private SolrUserCredential toSolrUserCredential(UserCredential userCredential, Map<String, SolrGlobalGroup> groupsCodeMap) {
+	private Map<String, List<String>> newCollectionMapExceptSystem() {
+		Map<String, List<String>> returnMap = new HashMap<>();
+		CollectionsListManager collectionManager = modelLayerFactory
+				.getCollectionsListManager();
+		for (String collection : collectionManager.getCollections()) {
+			if (!collection.equals(Collection.SYSTEM_COLLECTION)) {
+				returnMap.put(collection, new ArrayList<String>());
+			}
+		}
+		return returnMap;
+	}
+
+	private void correctUsernameInAllCollections(Map<String, List<String>> invalidUsernameListMappedByCollection) {
+		for (Entry<String, List<String>> entry : invalidUsernameListMappedByCollection.entrySet()) {
+			String collection = entry.getKey();
+			List<String> usersWithInvalidNamesInCollection = entry.getValue();
+			if(!usersWithInvalidNamesInCollection.isEmpty()){
+				UserServices userServices = modelLayerFactory.newUserServices();
+				Transaction transaction = new Transaction();
+				for(String username : usersWithInvalidNamesInCollection){
+					User user = userServices
+							.getUserInCollectionCaseSensitive(username, collection);
+					user.setUsername(UserUtils.cleanUsername(user.getUsername()));
+					transaction.add(user);
+				}
+				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+				transaction.setOptions(transaction.getRecordUpdateOptions().setValidationsEnabled(false));
+				try {
+					recordServices.execute(transaction);
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
+
+	private SolrUserCredential toSolrUserCredential(UserCredential userCredential) {
 		SolrUserCredential newUserCredential = (SolrUserCredential) schemasRecordsServices.newCredential();
 		newUserCredential.setFirstName(userCredential.getFirstName());
 		newUserCredential.setLastName(userCredential.getLastName());
-		newUserCredential.setUsername(userCredential.getUsername());
+		newUserCredential.setUsername(UserUtils.cleanUsername(userCredential.getUsername()));
 		newUserCredential.setDn(userCredential.getDn());
 		newUserCredential.setDomain(userCredential.getDomain());
 		newUserCredential.setEmail(userCredential.getEmail());
@@ -93,11 +143,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 		newUserCredential.setServiceKey(userCredential.getServiceKey());
 		newUserCredential.setSystemAdmin(userCredential.isSystemAdmin());
 
-		List<String> groupIds = new ArrayList<>();
-		for (String groupCode : userCredential.getGlobalGroups()) {
-			groupIds.add(groupsCodeMap.get(groupCode).getId());
-		}
-		newUserCredential.setGlobalGroups(groupIds);
+		newUserCredential.setGlobalGroups(userCredential.getGlobalGroups());
 
 		return newUserCredential;
 	}

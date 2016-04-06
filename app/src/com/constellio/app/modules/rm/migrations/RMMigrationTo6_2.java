@@ -53,7 +53,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
 
 		transaction
-				.in(Folder.SCHEMA_TYPE).addToForm(Folder.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Folder.RETENTION_RULE_ENTERED)
+				.in(Folder.SCHEMA_TYPE).addToForm(Folder.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Folder.COPY_STATUS_ENTERED)
 				.in(Document.SCHEMA_TYPE).addToForm(Document.MAIN_COPY_RULE_ID_ENTERED).afterMetadata(Document.TITLE);
 
 		schemaDisplayManager.execute(transaction.build());
@@ -101,6 +101,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 
 		private void updateRetentionRuleSchema(MetadataSchemaBuilder schema) {
 			MetadataSchemaTypeBuilder folderTypeSchemaType = types().getSchemaType(FolderType.SCHEMA_TYPE);
+			schema.get(RetentionRule.DESCRIPTION).setSchemaAutocomplete(true);
 			schema.get(RetentionRule.DOCUMENT_TYPES).defineDataEntry().asCalculated(RuleDocumentTypesCalculator2.class);
 			schema.create(RetentionRule.FOLDER_TYPES).setMultivalue(true)
 					.defineReferencesTo(folderTypeSchemaType)

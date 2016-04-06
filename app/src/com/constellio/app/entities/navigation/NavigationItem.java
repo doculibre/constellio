@@ -2,7 +2,7 @@ package com.constellio.app.entities.navigation;
 
 import java.io.Serializable;
 
-import com.constellio.app.ui.application.ConstellioUI.Navigation;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.model.entities.records.wrappers.User;

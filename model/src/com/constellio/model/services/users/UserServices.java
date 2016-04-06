@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+import org.joda.time.ReadableDuration;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
@@ -210,9 +211,15 @@ public class UserServices {
 
 	public User getUserInCollection(String username, String collection) {
 		UserCredential userCredential = getUser(username);
+		// Case insensitive
+		username = userCredential.getUsername();
 		if (!userCredential.getCollections().contains(collection)) {
 			throw new UserServicesRuntimeException_UserIsNotInCollection(username, collection);
 		}
+		return getUserRecordInCollection(username, collection);
+	}
+
+	public User getUserInCollectionCaseSensitive(String username, String collection) {
 		return getUserRecordInCollection(username, collection);
 	}
 
@@ -661,9 +668,13 @@ public class UserServices {
 	}
 
 	public String getToken(String serviceKey, String username, String password) {
-		if (authenticationService.authenticate(username, password) && serviceKey
-				.equals(getUser(username).getServiceKey())) {
-			String token = generateToken(username);
+		ReadableDuration tokenDuration = modelLayerConfiguration.getTokenDuration();
+		return getToken(serviceKey, username, password, tokenDuration);
+	}
+
+	public String getToken(String serviceKey, String username, String password, ReadableDuration duration) {
+		if (authenticationService.authenticate(username, password) && serviceKey.equals(getUser(username).getServiceKey())) {
+			String token = generateToken(username, duration);
 			return token;
 		} else {
 			throw new UserServicesRuntimeException_InvalidUserNameOrPassword(username);
@@ -682,8 +693,13 @@ public class UserServices {
 	}
 
 	public String generateToken(String username) {
+		ReadableDuration duration = modelLayerConfiguration.getTokenDuration();
+		return generateToken(username, duration);
+	}
+
+	public String generateToken(String username, ReadableDuration duration) {
 		String token = UUID.randomUUID().toString();
-		LocalDateTime expiry = TimeProvider.getLocalDateTime().plus(modelLayerConfiguration.getTokenDuration());
+		LocalDateTime expiry = TimeProvider.getLocalDateTime().plus(duration);
 		UserCredential userCredential = getUser(username).withAccessToken(token, expiry);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;

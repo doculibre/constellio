@@ -338,8 +338,9 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	public void setTabs(List<TaxonomyManagementClassifiedType> classifiedTypes) {
 		for (TaxonomyManagementClassifiedType classifiedType : classifiedTypes) {
 			MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
-			Table table = new RecordVOTable(classifiedType.getDataProvider());
-			table.setSizeFull();
+			RecordVODataProvider provider = classifiedType.getDataProvider();
+			Table table = new RecordVOTable(provider);
+			table.setWidth("100%");
 			table.addItemClickListener(new ItemClickListener() {
 				@Override
 				public void itemClick(ItemClickEvent event) {
@@ -348,6 +349,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 					presenter.tabElementClicked(recordVO);
 				}
 			});
+			table.setPageLength(Math.min(15, provider.size()));
 
 			table.addStyleName(classifiedType.getSchemaType().getCode() + "Table");
 

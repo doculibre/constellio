@@ -502,6 +502,12 @@ $popup-view-z-index: 3;
 				margin-top: 5px;
 			}
 		}
+		
+		.v-table {
+			.v-scrollable {
+				overflow: auto;
+			}
+		}
 	}
 
 	.user-documents-window {

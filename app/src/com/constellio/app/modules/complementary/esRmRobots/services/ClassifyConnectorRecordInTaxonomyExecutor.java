@@ -268,9 +268,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			rmFolder.setLegacyId(url);
 			rmFolder.setParentFolder(parentFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
+			recordServices.recalculate(rmFolder);
 			classifyDocumentsFromFolder(rmFolder);
 		} else {
 			rmFolder = rm.wrapFolder(rmRecord);
+			rmFolder.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, false);
+			recordServices.recalculate(rmFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
 			classifyDocumentsFromFolder(rmFolder);
 		}
@@ -560,22 +563,36 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		ContentVersionDataSummary newVersionDataSummary = null;
 		try {
-			Document document = rm.newDocument();
+			Document document = rm.getDocumentByLegacyId(connectorDocument.getUrl());
+
+			if (document == null) {
+				document = rm.newDocument();
+				document.setLegacyId(connectorDocument.getUrl());
+			}
+			document.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			document.setTitle(connectorDocument.getTitle());
 			document.setFolder(inRmFolder);
-			document.setLegacyId(connectorDocument.getUrl());
+
 			RecordUtils.copyMetadatas(connectorDocument, document);
-			InputStream inputStream = connectorServices(connectorDocument)
-					.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT);
+			InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
+					connectorDocument, CLASSIFY_DOCUMENT);
 
 			newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
-			Content content;
-			if (majorVersions) {
-				content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
+			if (document.getContent() != null) {
+				if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
+					document.getContent().updateContentWithName(
+							currentUser, newVersionDataSummary, majorVersions, connectorDocument.getTitle());
+					document.setContent(document.getContent());
+				}
 			} else {
-				content = contentManager.createMinor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
+				Content content;
+				if (majorVersions) {
+					content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
+				} else {
+					content = contentManager.createMinor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
+				}
+				document.setContent(content);
 			}
-			document.setContent(content);
 
 			return new ClassifiedDocument(connectorDocument, document);
 		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument e) {

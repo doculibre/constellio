@@ -9,7 +9,6 @@ import com.constellio.model.entities.records.Transaction;
 
 public interface ActionExecutor {
 
-	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
+	Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
 			List<Record> records);
-
 }

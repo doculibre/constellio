@@ -99,12 +99,12 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	@Override
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
-		if (this.systemPropertiesServices.isAvailableMemoryLowerThan(REQUIRED_MEMORY_IN_MO)) {
-			return TOO_SHORT_MEMORY;
-		}
 		if (this.systemPropertiesServices
 				.isFreeSpaceInTempFolderLowerThan(getTransactionLogFileSizeInGig() + REQUIRED_SPACE_IN_GIG)) {
 			return TOO_SHORT_SPACE;
+		}
+		if (this.systemPropertiesServices.isAvailableMemoryLowerThan(REQUIRED_MEMORY_IN_MO)) {
+			return TOO_SHORT_MEMORY;
 		}
 		return null;
 	}
