@@ -1089,11 +1089,11 @@ public class RMTestRecords {
 
 		//contrat
 		CopyRetentionRule principal1_2_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "2-0-C")
-				.setDocumentTypeId(documentTypeId_9);
+				.setTypeId(documentTypeId_9);
 
 		//proces-verbal
 		CopyRetentionRule principal1_2_D = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "1-2-D")
-				.setDocumentTypeId(documentTypeId_10);
+				.setTypeId(documentTypeId_10);
 
 		CopyRetentionRule principal5_5_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-5-C");
 		CopyRetentionRule secondary5_5_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "5-5-D");

@@ -91,7 +91,7 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 	}
 
 	public void search(String freeText) {
-		view.navigateTo().retentionRulesSearch(freeText);
+		view.navigate().to(RMViews.class).retentionRuleSearch(freeText);
 	}
 
 	public String getQueryExpression() {

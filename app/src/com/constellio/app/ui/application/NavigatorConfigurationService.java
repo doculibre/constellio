@@ -51,6 +51,7 @@ import com.constellio.app.modules.tasks.ui.pages.workflow.AddEditWorkflowViewImp
 import com.constellio.app.modules.tasks.ui.pages.workflow.DisplayWorkflowViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.workflow.ListWorkflowsViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.workflowInstance.DisplayWorkflowInstanceViewImpl;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
@@ -122,7 +123,6 @@ import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.Navigator.ClassBasedViewProvider;
-import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 
 public class NavigatorConfigurationService implements Serializable {
@@ -249,7 +249,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String ROBOT_LOGS = "robotLogs";
 
 	public static final String TAXONOMY_SEARCH = "taxonomySearch";
-	public static final String RETENTION_RULES_SEARCH = "retentionRulesSearch";
+	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
 
 	public static final String ADD_WORKFLOW = "addWorkflow";
@@ -261,21 +261,8 @@ public class NavigatorConfigurationService implements Serializable {
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
 	public NavigatorConfigurationService() {
-		//		viewProviders.add(new ClassBasedViewProvider(SIMPLE_SEARCH, SimpleSearchViewImpl.class));
-		//		viewProviders.add(new ClassBasedViewProvider(ADVANCED_SEARCH, AdvancedSearchViewImpl.class));
-		viewProviders.add(new OneInstanceViewProvider(SIMPLE_SEARCH) {
-			@Override
-			protected View newView(String viewName) {
-				return new SimpleSearchViewImpl();
-			}
-		});
-		viewProviders.add(new OneInstanceViewProvider(ADVANCED_SEARCH) {
-			@Override
-			protected View newView(String viewName) {
-				return new AdvancedSearchViewImpl();
-			}
-		});
-
+		viewProviders.add(new ClassBasedViewProvider(SIMPLE_SEARCH, SimpleSearchViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADVANCED_SEARCH, AdvancedSearchViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(HOME, HomeViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(APP_MANAGEMENT, AppManagementView.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_MANAGEMENT, TaxonomyManagementViewImpl.class));
@@ -430,5 +417,9 @@ public class NavigatorConfigurationService implements Serializable {
 		for (ViewProvider viewProvider : viewProviders) {
 			navigator.addProvider(viewProvider);
 		}
+	}
+
+	public void register(String code, Class<? extends BaseViewImpl> clazz) {
+		viewProviders.add(new ClassBasedViewProvider(code, clazz));
 	}
 }

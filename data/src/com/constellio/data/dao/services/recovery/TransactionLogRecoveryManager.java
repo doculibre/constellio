@@ -268,6 +268,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		//query solr to load non loaded
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		//field:(value1 OR value2 OR value3)
+		solrParams.set("rows", "999999999");
 		solrParams.set("q", "id:(" + StringUtils.join(recordsToLoadIds, " OR ") + ")");
 		try {
 			dataLayerFactory.getRecordsVaultServer().query(solrParams);

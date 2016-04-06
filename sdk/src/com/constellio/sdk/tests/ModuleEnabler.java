@@ -7,8 +7,6 @@ import java.util.Map;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 
@@ -57,30 +55,30 @@ public class ModuleEnabler {
 		//			getAppLayerFactory().getPluginManager().registerPluginOnlyForTests(module);
 		//		}
 
-		FoldersLocator foldersLocator = new FoldersLocator();
-		File constellioPlugins = foldersLocator.getPluginsRepository();
-		String moduleId = module.getId();
-		String bundleName = moduleId + "_i18n";
-
-		File value = pluginsBundlesCache.get(bundleName);
-		if (value == null && constellioPlugins.exists() && constellioPlugins.listFiles() != null) {
-			for (File subFolder : constellioPlugins.listFiles()) {
-				if (subFolder.getName().startsWith("plugin")) {
-					File resourcesFolder = new File(subFolder, moduleId + "_resources");
-					if (resourcesFolder.exists()) {
-						File i18nfolder = new File(resourcesFolder, "i18n");
-
-						if (new File(i18nfolder, bundleName + ".properties").exists()) {
-							value = i18nfolder;
-							break;
-						}
-					}
-				}
-			}
-		}
-		if (value != null) {
-			i18n.registerBundle(value, bundleName);
-		}
+		//		FoldersLocator foldersLocator = new FoldersLocator();
+		//		File constellioPlugins = foldersLocator.getPluginsRepository();
+		//		String moduleId = module.getId();
+		//		String bundleName = moduleId + "_i18n";
+		//
+		//		File value = pluginsBundlesCache.get(bundleName);
+		//		if (value == null && constellioPlugins.exists() && constellioPlugins.listFiles() != null) {
+		//			for (File subFolder : constellioPlugins.listFiles()) {
+		//				if (subFolder.getName().startsWith("plugin")) {
+		//					File resourcesFolder = new File(subFolder, "resources");
+		//					if (resourcesFolder.exists()) {
+		//						File i18nfolder = new File(resourcesFolder, "grics" + File.separator + "i18n");
+		//
+		//						if (new File(i18nfolder, bundleName + ".properties").exists()) {
+		//							value = i18nfolder;
+		//							break;
+		//						}
+		//					}
+		//				}
+		//			}
+		//		}
+		//		if (value != null) {
+		//			i18n.registerBundle(value, bundleName);
+		//		}
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
 

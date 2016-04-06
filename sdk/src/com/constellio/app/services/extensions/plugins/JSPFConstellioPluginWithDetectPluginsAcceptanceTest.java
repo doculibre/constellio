@@ -30,6 +30,7 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 	@Before
 	public void setUp()
 			throws Exception {
+		notAUnitItest = true;
 		File stateFile = getTestResourceFile("saveStateWithPlugins.zip");
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFile).withFakeEncryptionServices()
 				.withPasswordsReset()
@@ -75,7 +76,6 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 		);
 
 	}
-
 
 	@After
 	public void deletePreviousPluginsFolder() {

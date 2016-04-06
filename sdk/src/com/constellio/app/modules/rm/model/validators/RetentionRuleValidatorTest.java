@@ -93,7 +93,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 		docCopy1_principal.setCode("DocCopy1");
 		docCopy1_principal.setMediumTypeIds(Arrays.asList("type3", "type4"));
 		docCopy1_principal.setCopyType(CopyType.PRINCIPAL);
-		docCopy1_principal.setDocumentTypeId("docType1");
+		docCopy1_principal.setTypeId("docType1");
 		docCopy1_principal.setActiveRetentionPeriod(RetentionPeriod.OPEN_999);
 		docCopy1_principal.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(1));
 		docCopy1_principal.setInactiveDisposalType(DisposalType.DEPOSIT);
@@ -101,7 +101,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 		docCopy2_principal.setCode("DocCopy2");
 		docCopy2_principal.setMediumTypeIds(Arrays.asList("type5", "type6"));
 		docCopy2_principal.setCopyType(CopyType.PRINCIPAL);
-		docCopy2_principal.setDocumentTypeId("docType2");
+		docCopy2_principal.setTypeId("docType2");
 		docCopy2_principal.setActiveRetentionPeriod(RetentionPeriod.OPEN_888);
 		docCopy2_principal.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(4));
 		docCopy2_principal.setInactiveDisposalType(DisposalType.DEPOSIT);
@@ -549,8 +549,8 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	public void givenDocumentCopyRetentionRulesWithNoDocumentTypeThenErrors()
 			throws Exception {
 		when(configProvider.get(RMConfigs.DOCUMENT_RETENTION_RULES)).thenReturn(true);
-		docCopy1_principal.setDocumentTypeId(null);
-		docCopy2_principal.setDocumentTypeId(null);
+		docCopy1_principal.setTypeId((String) null);
+		docCopy2_principal.setTypeId((String) null);
 
 		validator.validate(retentionRule, schema, configProvider, errors);
 
@@ -597,6 +597,38 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 
 		assertThat(errors).has(size(1))
 				.has(error(RetentionRuleValidator.DOCUMENT_RULE_MUST_HAVE_ONLY_DOCUMENT_COPY_RULES));
+	}
+
+	@Test
+	public void whenSavingRetentionRuleWithNoPrincipalCopyRuleWithoutTypeThenValidationException()
+			throws Exception {
+
+		copy0_analogicPrincipal.setTypeId("zeType");
+		copy1_numericPrincipal.setTypeId("zeType");
+		validator.validate(retentionRule, schema, configProvider, errors);
+		assertThat(errors).has(size(1))
+				.has(error(RetentionRuleValidator.PRINCIPAL_COPY_WITHOUT_TYPE_REQUIRED));
+
+	}
+
+	@Test
+	public void whenSavingRetentionRuleWithOnePrincipalCopyWithTypeAndOneWithoutThenOk()
+			throws Exception {
+
+		copy0_analogicPrincipal.setTypeId("zeType");
+		validator.validate(retentionRule, schema, configProvider, errors);
+		assertThat(errors.getValidationErrors()).extracting("code").isEmpty();
+
+	}
+
+	@Test
+	public void whenSavingRetentionRuleWithSecondaryCopyWithTypeThenException()
+			throws Exception {
+
+		copy2_secondary.setTypeId("zeType");
+		validator.validate(retentionRule, schema, configProvider, errors);
+		assertThat(errors).has(size(1))
+				.has(error(RetentionRuleValidator.SECONDARY_COPY_CANNOT_HAVE_A_TYPE));
 	}
 
 	public void givenValidDocumentScope() {

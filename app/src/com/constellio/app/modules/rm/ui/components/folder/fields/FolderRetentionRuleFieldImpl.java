@@ -33,6 +33,7 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 	private final String collection;
 	private List<String> options;
 	private Table table;
+	private String value;
 
 	public FolderRetentionRuleFieldImpl(String collection) {
 		this.collection = collection;
@@ -69,12 +70,14 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 
 	@Override
 	public String getFieldValue() {
-		return getInternalValue();
+		return value;
 	}
 
 	@Override
 	public void setValue(String newFieldValue)
 			throws ReadOnlyException, ConversionException {
+		System.out.println("Setting value to: " + newFieldValue);
+		value = newFieldValue;
 		super.setValue(newFieldValue);
 		table.refreshRowCache();
 	}
@@ -113,9 +116,10 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 	}
 
 	private class Generator implements ColumnGenerator {
-		public final String SELECTOR = "selector";
-		public final String CODE = "code";
-		public final String TITLE = "title";
+		public static final String SELECTOR = "selector";
+		public static final String CODE = "code";
+		public static final String TITLE = "title";
+		public static final String DESCRIPTION = "description";
 
 		public Table attachedTo(Table table) {
 			table.addGeneratedColumn(SELECTOR, this);
@@ -127,7 +131,10 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 
 			table.addGeneratedColumn(TITLE, this);
 			table.setColumnHeader(TITLE, $("FolderRetentionRuleField.title"));
-			table.setColumnExpandRatio(TITLE, 1);
+
+			table.addGeneratedColumn(DESCRIPTION, this);
+			table.setColumnHeader(DESCRIPTION, $("FolderRetentionRuleField.description"));
+			table.setColumnExpandRatio(DESCRIPTION, 1);
 
 			return table;
 		}
@@ -145,6 +152,8 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 				return generateCodeCell(rule);
 			case TITLE:
 				return generateTitleCell(rule);
+			case DESCRIPTION:
+				return generateDescriptionCell(rule);
 			}
 			return null;
 		}
@@ -172,6 +181,10 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 
 		private Object generateTitleCell(RetentionRuleVO rule) {
 			return rule.getTitle();
+		}
+
+		private Object generateDescriptionCell(RetentionRuleVO rule) {
+			return rule.getDescription();
 		}
 	}
 }

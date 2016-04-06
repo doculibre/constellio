@@ -53,13 +53,10 @@ import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
-import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
-import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.tools.ServerThrowableContext;
 import com.constellio.app.ui.tools.vaadin.TestContainerButtonListener;
@@ -186,6 +183,10 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return new LocalDateTime(year, zeroBasedMonth, day, 0, 0);
 	}
 
+	protected static LocalDateTime dateTime(int year, int zeroBasedMonth, int day, int hour, int min, int sec) {
+		return new LocalDateTime(year, zeroBasedMonth, day, hour, min, sec);
+	}
+
 	protected static LocalDate date(int year, int oneBasedMonth, int day) {
 		return new LocalDate(year, oneBasedMonth, day);
 	}
@@ -205,14 +206,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	private static void ensureNotUnitTest() {
 		if (isUnitTestStatic()) {
-			String message = "Unit tests '" + TestClassFinder.findCurrentTest().getSimpleName()
+			String message = "Unit tests '" + TestClassFinder.getTestClassName()
 					+ "' cannot use filesystem, rename this test to AcceptanceTest or IntegrationTest or RealTest";
 			throw new RuntimeException(message);
 		}
 	}
 
 	public static boolean isUnitTestStatic() {
-		return isUnitTest(TestClassFinder.findCurrentTest().getSimpleName()) && !notAUnitItest;
+		return !notAUnitItest && isUnitTest(TestClassFinder.getTestClassName());
 	}
 
 	protected String getTestName() {
@@ -566,6 +567,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String startApplication() {
 		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
 		return getCurrentTestSession().getSeleniumTestFeatures().startApplication();
+	}
+
+	protected String startApplicationWithSSL(boolean keepAlive) {
+		getCurrentTestSession().getSeleniumTestFeatures().disableAllServices();
+		return getCurrentTestSession().getSeleniumTestFeatures().startApplicationWithSSL(keepAlive);
 	}
 
 	protected void stopApplication() {

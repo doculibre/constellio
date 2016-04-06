@@ -222,7 +222,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		try {
 			recordServices().getDocumentById(recordId);
 			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
-				view.navigateTo().displayDecommissioningList(recordId);
+				view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 			} else if (getEventType().contains("folder")) {
 				view.navigate().to(RMViews.class).displayFolder(recordId);
 			} else if (getEventType().contains("document")) {

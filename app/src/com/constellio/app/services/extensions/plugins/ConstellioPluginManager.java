@@ -42,6 +42,8 @@ public interface ConstellioPluginManager extends StatefulService {
 
 	boolean isRegistered(String id);
 
+	void copyPluginResourcesToPluginsResourceFolder(String moduleId);
+
 	<T> Class<T> getModuleClass(String name)
 			throws ClassNotFoundException;
 }

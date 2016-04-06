@@ -55,7 +55,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 			copyRetentionRule.setInactiveDisposalType(DisposalType.DESTRUCTION);
 			copyRetentionRule.setInactiveDisposalComment(disposalType);
 		}
-		copyRetentionRule.setDocumentTypeId(readString(stringTokenizer));
+		copyRetentionRule.setTypeId(readString(stringTokenizer));
 		copyRetentionRule.setActiveDateMetadata(readString(stringTokenizer));
 		copyRetentionRule.setSemiActiveDateMetadata(readString(stringTokenizer));
 
@@ -74,6 +74,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		copyRetentionRule.setId(readString(stringTokenizer));
 		copyRetentionRule.setCode(readString(stringTokenizer));
 		copyRetentionRule.setCopyType((CopyType) EnumWithSmallCodeUtils.toEnum(CopyType.class, readString(stringTokenizer)));
+		copyRetentionRule.setEssential(readBoolean(stringTokenizer));
 		copyRetentionRule.setContentTypesComment(readString(stringTokenizer));
 		copyRetentionRule.setOpenActiveRetentionPeriod(readInteger(stringTokenizer));
 		copyRetentionRule.setActiveRetentionPeriod(readRetentionPeriod(stringTokenizer));
@@ -89,7 +90,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 			copyRetentionRule.setInactiveDisposalType(DisposalType.DESTRUCTION);
 			copyRetentionRule.setInactiveDisposalComment(disposalType);
 		}
-		copyRetentionRule.setDocumentTypeId(readString(stringTokenizer));
+		copyRetentionRule.setTypeId(readString(stringTokenizer));
 		copyRetentionRule.setActiveDateMetadata(readString(stringTokenizer));
 		copyRetentionRule.setSemiActiveDateMetadata(readString(stringTokenizer));
 
@@ -153,6 +154,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		writeString(stringBuilder, rule.getId());
 		writeString(stringBuilder, rule.getCode());
 		writeString(stringBuilder, rule.getCopyType() == null ? "" : rule.getCopyType().getCode());
+		writeBoolean(stringBuilder, rule.isEssential());
 		writeString(stringBuilder, rule.getContentTypesComment());
 		writeString(stringBuilder, write(rule.getOpenActiveRetentionPeriod()));
 		writeString(stringBuilder, write(rule.getActiveRetentionPeriod()));
@@ -162,7 +164,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		writeString(stringBuilder, rule.getInactiveDisposalType() == null ? NULL : rule.getInactiveDisposalType().getCode());
 		writeString(stringBuilder, rule.getInactiveDisposalComment());
 
-		writeString(stringBuilder, rule.getDocumentTypeId());
+		writeString(stringBuilder, rule.getTypeId());
 		writeString(stringBuilder, rule.getActiveDateMetadata());
 		writeString(stringBuilder, rule.getSemiActiveDateMetadata());
 
@@ -171,6 +173,14 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		}
 
 		return stringBuilder.toString();
+	}
+
+	private boolean readBoolean(StringTokenizer stringTokenizer) {
+		return "true".equals(readString(stringTokenizer));
+	}
+
+	private void writeBoolean(StringBuilder stringBuilder, boolean value) {
+		writeString(stringBuilder, value ? "true" : "false");
 	}
 
 	private String write(Integer value) {

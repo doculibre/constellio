@@ -32,6 +32,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.data.utils.Builder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -124,6 +125,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		PA = records.PA;
 		MV = records.MV;
 		MD = records.MD;
+
 	}
 
 	@Test
@@ -874,7 +876,614 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folderStatusUpdateCounter.get()).isEqualTo(3);
 	}
 
+	@Test
+	public void givenRuleBasedOnCustomActiveMetadataThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateA").setType(MetadataValueType.DATE);
+			}
+		});
+
+		//Scénario #1 : Délai “5-25-C”. Actif basée sur année financière, semi-actif laissé vide
+
+		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
+		rule2.setCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA"),
+				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
+		));
+
+		recordServices.update(rule2);
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+				folder.setMediumTypes(MD, PA);
+				return folder;
+			}
+		};
+
+		Folder folder1 = transaction.add(folderBuilder.build());
+		folder1.set("dateA", january1(2000));
+		folder1.setOpenDate(january1(1999));
+
+		Folder folder2 = transaction.add(folderBuilder.build());
+		folder2.set("dateA", january1(2010));
+		folder2.setOpenDate(january1(2000));
+
+		Folder folder3 = transaction.add(folderBuilder.build());
+		folder3.set("dateA", january1(1990));
+		folder3.setOpenDate(january1(2000));
+
+		Folder folder4 = transaction.add(folderBuilder.build());
+		folder4.set("dateA", january1(2001));
+		folder4.setOpenDate(january1(2001));
+
+		Folder folder5 = transaction.add(folderBuilder.build());
+		folder5.set("dateA", march1(2010));
+		folder5.setOpenDate(march1(2000));
+
+		Folder folder6 = transaction.add(folderBuilder.build());
+		folder6.set("dateA", march1(1990));
+		folder6.setOpenDate(march1(2000));
+
+		Folder folder7 = transaction.add(folderBuilder.build());
+		folder7.set("dateA", january1(1990));
+		folder7.setOpenDate(march1(2000));
+		folder7.setActualTransferDate(january1(1997));
+
+		Folder folder8 = transaction.add(folderBuilder.build());
+		folder8.set("dateA", march1(1990));
+		folder8.setOpenDate(march1(2000));
+		folder8.setActualTransferDate(january1(2010));
+
+		Folder folder9 = transaction.add(folderBuilder.build());
+		folder9.set("dateA", january1(1990));
+		folder9.setOpenDate(march1(2000));
+		folder9.setActualTransferDate(march1(2010));
+
+		recordServices.execute(transaction);
+
+		assertThat(folder1.getCloseDate()).isEqualTo(march31(2000));
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(march31(2005));
+		assertThat(folder1.getExpectedDepositDate()).isEqualTo(march31(2030));
+
+		assertThat(folder2.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(march31(2015));
+		assertThat(folder2.getExpectedDepositDate()).isEqualTo(march31(2040));
+
+		assertThat(folder3.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder3.getExpectedDepositDate()).isEqualTo(march31(2020));
+
+		assertThat(folder4.getCloseDate()).isEqualTo(march31(2002));
+		assertThat(folder4.getExpectedTransferDate()).isEqualTo(march31(2006));
+		assertThat(folder4.getExpectedDepositDate()).isEqualTo(march31(2031));
+
+		assertThat(folder5.getCloseDate()).isEqualTo(march31(2002));
+		assertThat(folder5.getExpectedTransferDate()).isEqualTo(march31(2016));
+		assertThat(folder5.getExpectedDepositDate()).isEqualTo(march31(2041));
+
+		assertThat(folder6.getCloseDate()).isEqualTo(march31(2002));
+		assertThat(folder6.getExpectedTransferDate()).isEqualTo(march31(1996));
+		assertThat(folder6.getExpectedDepositDate()).isEqualTo(march31(2021));
+
+		assertThat(folder7.getCloseDate()).isEqualTo(march31(2002));
+		assertThat(folder7.getExpectedTransferDate()).isNull();
+		assertThat(folder7.getExpectedDepositDate()).isEqualTo(march31(2022));
+
+		assertThat(folder8.getCloseDate()).isEqualTo(march31(2002));
+		assertThat(folder8.getExpectedTransferDate()).isNull();
+		assertThat(folder8.getExpectedDepositDate()).isEqualTo(march31(2035));
+
+		assertThat(folder9.getCloseDate()).isEqualTo(march31(2002));
+		assertThat(folder9.getExpectedTransferDate()).isNull();
+		assertThat(folder9.getExpectedDepositDate()).isEqualTo(march31(2036));
+	}
+
+	@Test
+	public void givenRuleBasedOnSameActiveAndSemiActiveMetadataThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateA").setType(MetadataValueType.DATE);
+			}
+		});
+
+		//Scénario #2 : Délai “5-25-C”. Actif basée sur année financière, semi-actif laissé vide
+
+		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
+		rule2.setCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
+						.setSemiActiveDateMetadata("dateA"),
+				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
+		));
+
+		recordServices.update(rule2);
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+				folder.setMediumTypes(MD, PA);
+				return folder;
+			}
+		};
+
+		Folder folder1 = transaction.add(folderBuilder.build());
+		folder1.set("dateA", january1(2000));
+		folder1.setOpenDate(january1(1999));
+
+		Folder folder2 = transaction.add(folderBuilder.build());
+		folder2.set("dateA", january1(2010));
+		folder2.setOpenDate(january1(2000));
+
+		Folder folder3 = transaction.add(folderBuilder.build());
+		folder3.set("dateA", january1(1990));
+		folder3.setOpenDate(january1(2000));
+
+		Folder folder4 = transaction.add(folderBuilder.build());
+		folder4.set("dateA", january1(2001));
+		folder4.setOpenDate(january1(2001));
+
+		Folder folder5 = transaction.add(folderBuilder.build());
+		folder5.set("dateA", march1(2010));
+		folder5.setOpenDate(january1(2000));
+
+		Folder folder6 = transaction.add(folderBuilder.build());
+		folder6.set("dateA", january1(1990));
+		folder6.setOpenDate(march1(2000));
+
+		recordServices.execute(transaction);
+
+		assertThat(folder1.getCloseDate()).isEqualTo(march31(2000));
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(march31(2005));
+		assertThat(folder1.getExpectedDepositDate()).isEqualTo(march31(2030));
+
+		assertThat(folder2.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(march31(2015));
+		assertThat(folder2.getExpectedDepositDate()).isEqualTo(march31(2040));
+
+		assertThat(folder3.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder3.getExpectedDepositDate()).isEqualTo(march31(2020));
+
+		assertThat(folder4.getCloseDate()).isEqualTo(march31(2002));
+		assertThat(folder4.getExpectedTransferDate()).isEqualTo(march31(2006));
+		assertThat(folder4.getExpectedDepositDate()).isEqualTo(march31(2031));
+
+		assertThat(folder5.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder5.getExpectedTransferDate()).isEqualTo(march31(2016));
+		assertThat(folder5.getExpectedDepositDate()).isEqualTo(march31(2041));
+
+		assertThat(folder6.getCloseDate()).isEqualTo(march31(2002));
+		assertThat(folder6.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder6.getExpectedDepositDate()).isEqualTo(march31(2020));
+	}
+
+	@Test
+	public void givenRuleBasedOnDifferentActiveAndSemiActiveMetadataThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateA").setType(MetadataValueType.DATE);
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateB").setType(MetadataValueType.DATE);
+			}
+		});
+
+		//Scénario #3 : Délai “5-25-C”. Actif basée sur année financière, semi-actif laissé vide
+
+		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
+		rule2.setCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
+						.setSemiActiveDateMetadata("dateB"),
+				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
+		));
+
+		recordServices.update(rule2);
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+				folder.setMediumTypes(MD, PA);
+				return folder;
+			}
+		};
+
+		Folder folder1 = transaction.add(folderBuilder.build());
+		folder1.set("dateA", january1(1990));
+		folder1.setOpenDate(january1(2000));
+
+		Folder folder2 = transaction.add(folderBuilder.build());
+		folder2.set("dateA", january1(1990));
+		folder2.set("dateB", january1(1960));
+		folder2.setOpenDate(january1(2000));
+
+		Folder folder3 = transaction.add(folderBuilder.build());
+		folder3.set("dateA", january1(1990));
+		folder3.set("dateB", january1(2020));
+		folder3.setOpenDate(january1(2000));
+
+		Folder folder4 = transaction.add(folderBuilder.build());
+		folder4.set("dateA", january1(1990));
+		folder4.set("dateB", january1(1990));
+		folder4.setOpenDate(january1(2000));
+
+		recordServices.execute(transaction);
+
+		assertThat(folder1.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder1.getExpectedDepositDate()).isEqualTo(march31(2020));
+
+		assertThat(folder2.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder2.getExpectedDepositDate()).isEqualTo(march31(1995));
+
+		assertThat(folder3.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder3.getExpectedDepositDate()).isEqualTo(march31(2045));
+
+		assertThat(folder4.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder4.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder4.getExpectedDepositDate()).isEqualTo(march31(2015));
+
+	}
+
+	@Test
+	public void givenRuleBasedOnSemiActiveMetadataThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateA").setType(MetadataValueType.DATE);
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateB").setType(MetadataValueType.DATE);
+			}
+		});
+
+		//Scénario #4 : Délai “5-25-C”. Actif basée sur année financière, semi-actif laissé vide
+
+		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
+
+		rule2.setCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setSemiActiveDateMetadata("dateA"),
+				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
+		));
+
+		recordServices.update(rule2);
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+				folder.setMediumTypes(MD, PA);
+				return folder;
+			}
+		};
+
+		Folder folder1 = transaction.add(folderBuilder.build());
+		folder1.set("dateA", january1(1990));
+		folder1.setOpenDate(january1(2000));
+
+		Folder folder2 = transaction.add(folderBuilder.build());
+		folder2.setOpenDate(january1(2000));
+
+		Folder folder3 = transaction.add(folderBuilder.build());
+		folder3.set("dateA", january1(2000));
+		folder3.setOpenDate(january1(2000));
+
+		Folder folder4 = transaction.add(folderBuilder.build());
+		folder4.set("dateA", january1(2010));
+		folder4.setOpenDate(january1(2000));
+
+		Folder folder5 = transaction.add(folderBuilder.build());
+		folder5.set("dateA", january1(2010));
+		folder5.setOpenDate(january1(2000));
+		folder5.setActualTransferDate(january1(2030));
+
+		Folder folder6 = transaction.add(folderBuilder.build());
+		folder6.set("dateA", january1(2010));
+		folder6.setOpenDate(january1(2000));
+		folder6.setActualTransferDate(january1(2060));
+
+		Folder folder7 = transaction.add(folderBuilder.build());
+		folder7.set("dateA", january1(2005));
+		folder7.setOpenDate(january1(2000));
+		folder7.setActualTransferDate(january1(2030));
+
+		Folder folder8 = transaction.add(folderBuilder.build());
+		folder8.set("dateA", january1(2004));
+		folder8.setOpenDate(january1(2000));
+		folder8.setActualTransferDate(january1(2030));
+
+		Folder folder9 = transaction.add(folderBuilder.build());
+		folder9.set("dateA", january1(2010));
+		folder9.setOpenDate(january1(2000));
+		folder9.setActualTransferDate(january1(2060));
+		folder9.setActualDepositDate(january1(2065));
+
+		recordServices.execute(transaction);
+
+		assertThat(folder1.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(march31(2006));
+		assertThat(folder1.getExpectedDepositDate()).isEqualTo(march31(2015));
+
+		assertThat(folder2.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(march31(2006));
+		assertThat(folder2.getExpectedDepositDate()).isEqualTo(march31(2031));
+
+		assertThat(folder3.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(march31(2006));
+		assertThat(folder3.getExpectedDepositDate()).isEqualTo(march31(2025));
+
+		assertThat(folder4.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder4.getExpectedTransferDate()).isEqualTo(march31(2006));
+		assertThat(folder4.getExpectedDepositDate()).isEqualTo(march31(2035));
+
+		assertThat(folder5.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder5.getExpectedTransferDate()).isNull();
+		assertThat(folder5.getExpectedDepositDate()).isEqualTo(march31(2035));
+
+		assertThat(folder6.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder6.getExpectedTransferDate()).isNull();
+		assertThat(folder6.getExpectedDepositDate()).isEqualTo(march31(2060));
+
+		assertThat(folder7.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder7.getExpectedTransferDate()).isNull();
+		assertThat(folder7.getExpectedDepositDate()).isEqualTo(march31(2030));
+
+		assertThat(folder8.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder8.getExpectedTransferDate()).isNull();
+		assertThat(folder8.getExpectedDepositDate()).isEqualTo(march31(2030));
+
+		assertThat(folder9.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder9.getExpectedTransferDate()).isNull();
+		assertThat(folder9.getExpectedDepositDate()).isNull();
+	}
+
+	@Test
+	public void givenConcreteUseCaseThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, false);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateNaiss").setType(MetadataValueType.DATE);
+			}
+		});
+
+		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
+
+		rule2.setCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(records.PA), "888-75-D").setSemiActiveDateMetadata("dateNaiss"),
+				copyBuilder.newPrincipal(asList(records.MD), "75-0-D").setActiveDateMetadata("dateNaiss"),
+				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
+		));
+		recordServices.update(rule2);
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+
+				return folder;
+			}
+		};
+
+		Folder folder1 = transaction.add(folderBuilder.build());
+		folder1.setMediumTypes(records.PA);
+		folder1.set("dateNaiss", january1(1986));
+		folder1.setOpenDate(january1(1991));
+		folder1.setCloseDateEntered(january1(1997));
+
+		Folder folder2 = transaction.add(folderBuilder.build());
+		folder2.setMediumTypes(records.MD);
+		folder2.setOpenDate(january1(1991));
+		folder2.setCloseDateEntered(january1(1997));
+
+		Folder folder3 = transaction.add(folderBuilder.build());
+		folder3.setMediumTypes(records.PA);
+		folder3.set("dateNaiss", january1(1986));
+		folder3.setOpenDate(january1(2000));
+		folder3.setCloseDateEntered(january1(2001));
+
+		Folder folder4 = transaction.add(folderBuilder.build());
+		folder4.setMediumTypes(records.PA);
+		folder4.set("dateNaiss", january1(1986));
+		folder4.setOpenDate(january1(2000));
+
+		recordServices.execute(transaction);
+		//
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(march31(1998));
+		assertThat(folder1.getExpectedDestructionDate()).isEqualTo(march31(1986 + 75));
+
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(march31(1997 + 75));
+		assertThat(folder2.getExpectedDestructionDate()).isEqualTo(march31(1997 + 75));
+
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(march31(2002));
+		assertThat(folder3.getExpectedDestructionDate()).isEqualTo(march31(1986 + 75));
+
+		assertThat(folder4.getExpectedTransferDate()).isNull();
+		assertThat(folder4.getExpectedDestructionDate()).isNull();
+
+	}
+
+	@Test
+	public void givenMultipleRuleWithRetentionCopiesThenFolderOnlyCopiesOfSameTypeAreApplicable()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, false);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		RetentionRule rule2 = transaction.add(rm.getRetentionRule(records.ruleId_2));
+
+		FolderType type1 = transaction.add(rm.newFolderType().setCode("type1").setTitle("Type 1"));
+		FolderType type2 = transaction.add(rm.newFolderType().setCode("type2").setTitle("Type 2"));
+		FolderType type3 = transaction.add(rm.newFolderType().setCode("type3").setTitle("Type 3"));
+
+		CopyRetentionRule copy1 = copyBuilder.newPrincipal(asList(records.PA), "1-0-D").setTypeId(type1);
+		CopyRetentionRule copy2 = copyBuilder.newPrincipal(asList(records.MD), "2-0-D").setTypeId(type1);
+		CopyRetentionRule copy3 = copyBuilder.newPrincipal(records.PA_MD, "3-0-D").setTypeId(type1);
+
+		CopyRetentionRule copy4 = copyBuilder.newPrincipal(asList(records.PA), "4-0-D").setTypeId(type2);
+		CopyRetentionRule copy5 = copyBuilder.newPrincipal(asList(records.MD), "5-0-D").setTypeId(type2);
+		CopyRetentionRule copy6 = copyBuilder.newPrincipal(records.PA_MD, "6-0-D").setTypeId(type2);
+
+		CopyRetentionRule copy7 = copyBuilder.newPrincipal(asList(records.PA), "7-0-D");
+		CopyRetentionRule copy8 = copyBuilder.newPrincipal(asList(records.MD), "8-0-D");
+		CopyRetentionRule copy9 = copyBuilder.newPrincipal(records.PA_MD, "9-0-D");
+
+		CopyRetentionRule copy10 = copyBuilder.newSecondary(asList(records.MD), "10-0-D");
+
+		rule2.setCopyRetentionRules(asList(copy1, copy2, copy3, copy4, copy5, copy6, copy7, copy8, copy9, copy10));
+
+		recordServices.execute(transaction);
+		transaction = new Transaction();
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+				folder.setOpenDate(january1(1991));
+				return folder;
+			}
+		};
+
+		Folder folderType1 = transaction.add(folderBuilder.build()).setType(type1);
+		Folder folderType1_PA = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA);
+		Folder folderType1_MD = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.MD);
+		Folder folderType1_PA_MD = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD);
+
+		Folder folderType2 = transaction.add(folderBuilder.build()).setType(type2);
+		Folder folderType2_PA = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.PA);
+		Folder folderType2_MD = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.MD);
+		Folder folderType2_PA_MD = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.PA_MD);
+
+		Folder folderType3 = transaction.add(folderBuilder.build()).setType(type3);
+		Folder folderType3_PA = transaction.add(folderBuilder.build()).setType(type3).setMediumTypes(records.PA);
+		Folder folderType3_MD = transaction.add(folderBuilder.build()).setType(type3).setMediumTypes(records.MD);
+		Folder folderType3_PA_MD = transaction.add(folderBuilder.build()).setType(type3).setMediumTypes(records.PA_MD);
+
+		Folder folderWithoutType = transaction.add(folderBuilder.build());
+		Folder folderWithoutType_PA = transaction.add(folderBuilder.build()).setMediumTypes(records.PA);
+		Folder folderWithoutType_MD = transaction.add(folderBuilder.build()).setMediumTypes(records.MD);
+		Folder folderWithoutType_PA_MD = transaction.add(folderBuilder.build()).setMediumTypes(records.PA_MD);
+
+		Folder secondaryFolderType1 = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD)
+				.setCopyStatusEntered(CopyType.SECONDARY);
+		Folder secondaryFolderType2 = transaction.add(folderBuilder.build()).setType(type2).setMediumTypes(records.PA_MD)
+				.setCopyStatusEntered(CopyType.SECONDARY);
+		Folder secondaryFolder = transaction.add(folderBuilder.build()).setType(type1).setMediumTypes(records.PA_MD)
+				.setCopyStatusEntered(CopyType.SECONDARY);
+
+		recordServices.execute(transaction);
+
+		assertThat(folderType1.getApplicableCopyRules()).containsOnly(copy1, copy2, copy3);
+		assertThat(folderType1_PA.getApplicableCopyRules()).containsOnly(copy1, copy3);
+		assertThat(folderType1_MD.getApplicableCopyRules()).containsOnly(copy2, copy3);
+		assertThat(folderType1_PA_MD.getApplicableCopyRules()).containsOnly(copy1, copy2, copy3);
+
+		assertThat(folderType2.getApplicableCopyRules()).containsOnly(copy4, copy5, copy6);
+		assertThat(folderType2_PA.getApplicableCopyRules()).containsOnly(copy4, copy6);
+		assertThat(folderType2_MD.getApplicableCopyRules()).containsOnly(copy5, copy6);
+		assertThat(folderType2_PA_MD.getApplicableCopyRules()).containsOnly(copy4, copy5, copy6);
+
+		assertThat(folderType3.getApplicableCopyRules()).containsOnly(copy7, copy8, copy9);
+		assertThat(folderType3_PA.getApplicableCopyRules()).containsOnly(copy7, copy9);
+		assertThat(folderType3_MD.getApplicableCopyRules()).containsOnly(copy8, copy9);
+		assertThat(folderType3_PA_MD.getApplicableCopyRules()).containsOnly(copy7, copy8, copy9);
+
+		assertThat(folderWithoutType.getApplicableCopyRules()).containsOnly(copy7, copy8, copy9);
+		assertThat(folderWithoutType_PA.getApplicableCopyRules()).containsOnly(copy7, copy9);
+		assertThat(folderWithoutType_MD.getApplicableCopyRules()).containsOnly(copy8, copy9);
+		assertThat(folderWithoutType_PA_MD.getApplicableCopyRules()).containsOnly(copy7, copy8, copy9);
+
+		assertThat(secondaryFolderType1.getApplicableCopyRules()).containsOnly(copy10);
+		assertThat(secondaryFolderType2.getApplicableCopyRules()).containsOnly(copy10);
+		assertThat(secondaryFolder.getApplicableCopyRules()).containsOnly(copy10);
+
+	}
+
 	// -------------------------------------------------------------------------
+
+	private LocalDate march1(int year) {
+		return new LocalDate(year, 3, 1);
+	}
+
+	private LocalDate january1(int year) {
+		return new LocalDate(year, 1, 1);
+	}
 
 	private void givenRuleHasNoPrincipalCopyType(String id)
 			throws Exception {

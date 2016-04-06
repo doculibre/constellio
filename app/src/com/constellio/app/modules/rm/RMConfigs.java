@@ -43,6 +43,7 @@ public class RMConfigs {
 			REQUIRE_APPROVAL_FOR_DESTRUCTION_OF_SEMIACTIVE,
 			CONTAINER_RECYCLING_ALLOWED,
 			MIXED_CONTAINERS_ALLOWED,
+			ACTIVES_IN_CONTAINER_ALLOWED,
 			BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
 			WORKFLOWS_ENABLED;
@@ -56,7 +57,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER;
@@ -160,6 +161,8 @@ public class RMConfigs {
 		// Allow to put folders from different administrative units in a single container
 		add(MIXED_CONTAINERS_ALLOWED = decommissioning.createBooleanFalseByDefault("mixedContainersAllowed"));
 
+		add(ACTIVES_IN_CONTAINER_ALLOWED = decommissioning.createBooleanFalseByDefault("activesInContainerAllowed"));
+
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -181,6 +184,8 @@ public class RMConfigs {
 		add(AGENT_EDIT_USER_DOCUMENTS = agent.createBooleanTrueByDefault("editUserDocuments"));
 
 		add(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS = agent.createInteger("backupRetentionPeriodInDays").withDefaultValue(30));
+		
+		add(AGENT_TOKEN_DURATION_IN_HOURS = agent.createInteger("tokenDurationInHours").withDefaultValue(10));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
@@ -273,6 +278,10 @@ public class RMConfigs {
 		return manager.getValue(MIXED_CONTAINERS_ALLOWED);
 	}
 
+	public boolean areActiveInContainersAllowed() {
+		return manager.getValue(ACTIVES_IN_CONTAINER_ALLOWED);
+	}
+
 	public boolean isAgentEnabled() {
 		return manager.getValue(AGENT_ENABLED);
 	}
@@ -291,6 +300,10 @@ public class RMConfigs {
 
 	public int getAgentBackupRetentionPeriodInDays() {
 		return manager.getValue(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS);
+	}
+
+	public int getAgentTokenDurationInHours() {
+		return manager.getValue(AGENT_TOKEN_DURATION_IN_HOURS);
 	}
 
 	public int getBorrowingDurationDays() {

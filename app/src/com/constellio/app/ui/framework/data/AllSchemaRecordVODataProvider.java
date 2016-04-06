@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 
@@ -45,7 +46,7 @@ public class AllSchemaRecordVODataProvider extends RecordVODataProvider {
 		String collection = schemaVO.getCollection();
 		MetadataSchema schema = getSchema(schemaCode, collection, modelLayerFactory);
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(LogicalSearchQueryOperators.from(schema).returnAll());
+		query.setCondition(LogicalSearchQueryOperators.from(schema).returnAll()).filteredByStatus(StatusFilter.ACTIVES);
 		query.sortAsc(Schemas.TITLE);
 		return query;
 	}

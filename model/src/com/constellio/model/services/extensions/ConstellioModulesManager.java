@@ -31,4 +31,6 @@ public interface ConstellioModulesManager {
 
 	<T> Class<T> getModuleClass(String name)
 			throws ClassNotFoundException;
+
+	public void initializePluginResources(String collection);
 }

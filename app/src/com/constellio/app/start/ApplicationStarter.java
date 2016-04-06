@@ -43,6 +43,11 @@ public class ApplicationStarter {
 				.setPort(port));
 	}
 
+	public static void startApplication(boolean joinServerThread, File webContentDir, int port, String sslPassword) {
+		startApplication(new ApplicationStarterParams().setJoinServerThread(joinServerThread).setWebContentDir(webContentDir)
+				.setPort(port).setSSLWithKeystorePassword(sslPassword));
+	}
+
 	public static void startApplication(ApplicationStarterParams params) {
 
 		List<String> resources = new ArrayList<String>();
@@ -96,6 +101,9 @@ public class ApplicationStarter {
 	}
 
 	public static void stopApplication() {
+		filters.clear();
+		servlets.clear();
+		handler = null;
 		try {
 			server.stop();
 		} catch (Exception e) {

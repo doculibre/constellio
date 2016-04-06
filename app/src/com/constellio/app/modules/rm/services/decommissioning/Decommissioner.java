@@ -148,7 +148,7 @@ public abstract class Decommissioner {
 		this.decommissioningList = decommissioningList;
 		this.processingDate = processingDate;
 		this.user = user;
-		transaction = new Transaction().setUser(user);
+		transaction = new Transaction();
 		recordsToDelete = new ArrayList<>();
 	}
 

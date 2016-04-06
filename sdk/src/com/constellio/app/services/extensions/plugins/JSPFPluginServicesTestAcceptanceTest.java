@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_InvalidJar;
@@ -20,16 +21,25 @@ import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoCode;
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoVersion;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class JSPFPluginServicesTestAcceptanceTest extends ConstellioTest {
-	JSPFPluginServices services = new JSPFPluginServices();
+
 	File notAJar, nonExistingJar, jarWithInvalidVersion, jarWithoutCode, jarWithoutManifest, jarWithoutVersion,
 			jarWithValidManifest, jarWithoutConstellioVersionValue;
 	ConstellioPluginInfo infoWithBlankVersion, infoWithNullVersion, infoWithInvalidVersion1, infoWithInvalidVersion2, infoWithInvalidVersion3,
 			infoWithBlankCode, infoWithNullCode,
 			validInfoWithVersionA, validInfoWithVersionBeforeA, validInfoWithVersionAfterA, validInfoWithVersionAfterAWithDisabledStatus;
+
+	JSPFPluginServices services;
+
+	@Before
+	public void setUp()
+			throws Exception {
+		services = new JSPFPluginServices(new IOServices(newTempFolder()));
+	}
 
 	@Test
 	public void whenExtractPluginInfoThenBehavesAsExpected()
@@ -150,6 +160,33 @@ public class JSPFPluginServicesTestAcceptanceTest extends ConstellioTest {
 		File jarCopy = FileUtils.getFile(tempDir, info.getCode() + "." + NEW_JAR_EXTENSION);
 		assertThat(jarCopy.exists()).isTrue();
 		assertThat(FileUtils.readLines(jar2)).containsExactlyElementsOf(FileUtils.readLines(jarCopy));
+	}
+
+	@Test
+	public void whenExtractI18nFromPluginsWithoutI18nThenExtractNothing()
+			throws IOException {
+		loadJars();
+		File tempDir = newTempFolder();
+
+		services.extractPluginResources(jarWithValidManifest, "zePlugin", tempDir);
+
+		assertThat(tempDir.listFiles()).isEmpty();
+	}
+
+	@Test
+	public void whenExtractI18nFromPluginsWithI18nThenExtracted()
+			throws IOException {
+		File tempDir = newTempFolder();
+
+		File jarWithI18n = getTestResourceFile("zePluginWithI18n.zip");
+		services.extractPluginResources(jarWithI18n, "zePlugin", tempDir);
+
+		File zePluginsI18n = new File(tempDir,
+				"zePlugin" + File.separator + "i18n" + File.separator + "zePlugin_i18n.properties");
+
+		assertThat(zePluginsI18n).exists();
+		assertThat(zePluginsI18n.length()).isGreaterThan(0);
+
 	}
 
 	@Test

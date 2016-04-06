@@ -27,7 +27,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
-	private RecordVO record;
 
 	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
 		super(searchResultVO, componentFactory);
@@ -35,7 +34,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
 	@Override
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
-		record = searchResultVO.getRecordVO();
+		final RecordVO record = searchResultVO.getRecordVO();
 
 		String schemaCode = record.getSchema().getCode();
 		Component titleComponent;
