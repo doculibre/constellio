@@ -57,6 +57,7 @@ public class MetadataBuilder {
 	private boolean sortable = false;
 	private boolean encrypted = false;
 	private boolean essentialInSummary = false;
+	private boolean multiLingual;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
 	private ClassListBuilder<RecordMetadataValidator<?>> recordMetadataValidators;
@@ -87,6 +88,7 @@ public class MetadataBuilder {
 		builder.defaultValue = copy(defaultMetadata.defaultValue);
 		builder.recordMetadataValidators = new ClassListBuilder<>(builder.classProvider, RecordMetadataValidator.class);
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(defaultMetadata.getPopulateConfigsBuilder());
+		builder.multiLingual = defaultMetadata.multiLingual;
 
 		return builder;
 	}
@@ -156,6 +158,7 @@ public class MetadataBuilder {
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(builder.classProvider,
 				RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadata.getAccessRestrictions());
+		builder.multiLingual = metadata.isMultiLingual();
 		if (metadata.getStructureFactory() != null) {
 			builder.structureFactoryClass = (Class) metadata.getStructureFactory().getClass();
 		}
@@ -192,6 +195,7 @@ public class MetadataBuilder {
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
 				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = null;
+		builder.multiLingual = metadata.isMultiLingual();
 
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);
@@ -290,6 +294,16 @@ public class MetadataBuilder {
 			throw new MetadataCannotBeUniqueAndMultivalue(localCode);
 		}
 		this.multivalue = multivalue;
+		return this;
+	}
+
+	public boolean isMultiLingual() {
+		return inheritance == null ? multiLingual : inheritance.isMultiLingual();
+	}
+
+	public MetadataBuilder setMultiLingual(boolean multiLingual) {
+		ensureCanModify("multiLingual");
+		this.multiLingual = multiLingual;
 		return this;
 	}
 
@@ -596,7 +610,7 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary);
+				essential, encrypted, essentialInSummary, multiLingual);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 

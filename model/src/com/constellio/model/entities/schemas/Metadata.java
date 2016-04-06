@@ -63,10 +63,14 @@ public class Metadata implements DataStoreField {
 	final String inputMask;
 
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
-		this("global_default", localCode, type, multivalue);
+		this("global_default", localCode, type, multivalue, false);
 	}
 
-	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue) {
+	Metadata(String localCode, MetadataValueType type, boolean multivalue, boolean multiLingual) {
+		this("global_default", localCode, type, multivalue, multiLingual);
+	}
+
+	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue, boolean multiLingual) {
 		this.inheritance = null;
 
 		this.label = null;
@@ -75,7 +79,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false);
+				false, false, false, false, false, false, multiLingual);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -231,6 +235,10 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isMultivalue();
 	}
 
+	public boolean isMultiLingual() {
+		return getInheritedMetadataBehaviors().isMultiLingual();
+	}
+
 	public boolean isUndeletable() {
 		return getInheritedMetadataBehaviors().isUndeletable();
 	}
@@ -328,17 +336,20 @@ public class Metadata implements DataStoreField {
 		return enumClass;
 	}
 
-	public static Metadata newDummyMetadata(String schemaCode, String localCode, MetadataValueType type, boolean multivalue) {
-		return new Metadata(schemaCode, localCode, type, multivalue);
+	public static Metadata newDummyMetadata(String schemaCode, String localCode, MetadataValueType type, boolean multivalue,
+			boolean multiLingual) {
+		return new Metadata(schemaCode, localCode, type, multivalue, multiLingual);
 	}
 
-	public static Metadata newGlobalMetadata(String dataStoreCode, MetadataValueType type, boolean multivalue) {
-		return new Metadata("global_default", dataStoreCode, type, multivalue);
+	public static Metadata newGlobalMetadata(String dataStoreCode, MetadataValueType type, boolean multivalue,
+			boolean multiLingual) {
+		return new Metadata("global_default", dataStoreCode, type, multivalue, multiLingual);
 	}
 
 	public Metadata getSearchableMetadataWithLanguage(String language) {
 		String schemaCode = code.replace("_" + localCode, "");
-		return new Metadata(schemaCode, getDataStoreCode().replace("_s", "_t") + "_" + language, type, isMultivalue());
+		return new Metadata(schemaCode, getDataStoreCode().replace("_s", "_t") + "_" + language, type, isMultivalue(),
+				isMultiLingual());
 	}
 
 	public boolean isSameLocalCode(Metadata metadata) {
