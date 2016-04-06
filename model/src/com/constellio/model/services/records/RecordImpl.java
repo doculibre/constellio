@@ -126,6 +126,10 @@ public class RecordImpl implements Record {
 			value = null;
 		}
 
+		if (metadata.getDataStoreCode().equals("id")) {
+			throw new RecordImplRuntimeException("Cannot modify id");
+		}
+
 		// Get may parse some metadata, and this is required later
 		get(metadata);
 		validateMetadata(metadata);
