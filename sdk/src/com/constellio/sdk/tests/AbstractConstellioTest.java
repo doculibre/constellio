@@ -579,10 +579,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected ConstellioWebDriver newWebDriver() {
-		return newWebDriver(null);
+		return newWebDriver(null, false);
+	}
+
+	protected ConstellioWebDriver newWebDriverSSL() {
+		return newWebDriver(null, true);
 	}
 
 	protected ConstellioWebDriver newWebDriver(SessionContext sessionContext) {
+		return newWebDriver(sessionContext, false);
+	}
+
+	protected ConstellioWebDriver newWebDriver(SessionContext sessionContext, boolean useSSL) {
 		ensureNotUnitTest();
 		ensureUITest();
 		if (sessionContext instanceof FakeSessionContext) {
@@ -599,7 +607,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ServerThrowableContext.LAST_THROWABLE.set(null);
 
 		return getCurrentTestSession().getSeleniumTestFeatures()
-				.newWebDriver(skipTestRule.isInDevelopmentTest() || skipTestRule.isMainTest());
+				.newWebDriver(skipTestRule.isInDevelopmentTest() || skipTestRule.isMainTest(), useSSL);
 	}
 
 	private void ensureUITest() {
