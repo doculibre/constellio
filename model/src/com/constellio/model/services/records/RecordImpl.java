@@ -23,6 +23,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordRuntimeException.InvalidMetadata;
 import com.constellio.model.entities.records.RecordRuntimeException.RecordIsAlreadySaved;
+import com.constellio.model.entities.records.RecordRuntimeException.RecordRuntimeException_CannotModifyId;
 import com.constellio.model.entities.records.RecordRuntimeException.RequiredMetadataArgument;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
@@ -126,10 +127,6 @@ public class RecordImpl implements Record {
 			value = null;
 		}
 
-		if (metadata.getDataStoreCode().equals("id")) {
-			throw new RecordImplRuntimeException("Cannot modify id");
-		}
-
 		// Get may parse some metadata, and this is required later
 		get(metadata);
 		validateMetadata(metadata);
@@ -194,6 +191,9 @@ public class RecordImpl implements Record {
 		}
 		if (metadata.getDataEntry().getType() != DataEntryType.MANUAL) {
 			throw new RecordRuntimeException.CannotSetManualValueInAutomaticField(metadata);
+		}
+		if (metadata.getLocalCode().equals("id")) {
+			throw new RecordRuntimeException_CannotModifyId();
 		}
 	}
 

@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
+import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static com.constellio.sdk.tests.TestUtils.unmodifiableCollection;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -626,8 +627,7 @@ public class RecordImplTest extends ConstellioTest {
 	public void givenRecordOfSchemaTypeA_CustomWhenSetB_CustomMetadataThenException()
 			throws Exception {
 
-		Metadata metadata = mock(Metadata.class);
-		when(metadata.getCode()).thenReturn("b_custom_m");
+		Metadata metadata = mockMetadata("b_custom_m");
 
 		RecordImpl record = new TestRecord("a_custom", "zeCollection");
 		record.set(metadata, "1");
@@ -638,8 +638,7 @@ public class RecordImplTest extends ConstellioTest {
 	public void givenRecordOfSchemaTypeA_DefaultWhenSetA_CustomMetadataThenException()
 			throws Exception {
 
-		Metadata metadata = mock(Metadata.class);
-		when(metadata.getCode()).thenReturn("a_custom_m");
+		Metadata metadata = mockMetadata("b_custom_m");
 
 		RecordImpl record = new TestRecord("a_default", "zeCollection");
 		record.set(metadata, "1");

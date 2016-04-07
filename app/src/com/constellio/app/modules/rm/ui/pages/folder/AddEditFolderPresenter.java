@@ -241,7 +241,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
-				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
 					Object metadataValue = folderVO.get(metadataVO);
 					Object defaultValue = metadataVO.getDefaultValue();
 					if (metadataValue == null || !metadataValue.equals(defaultValue)) {
