@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -107,11 +106,7 @@ public class ZipServiceAcceptanceTest extends ConstellioTest {
 		ZipFile zipFile = null;
 		try {
 			zipFile = new ZipFile(newZipFile);
-			Enumeration<ZipEntry> enumeration = (Enumeration<ZipEntry>) zipFile.entries();
-			while(enumeration.hasMoreElements())  {
-				System.out.println(enumeration.nextElement());
-			}
-			System.out.println("===" + emptyFolder.getPath());
+
 			ZipEntry entry = zipFile.getEntry(emptyFolder.getName());
 			assertThat(entry).isNotNull();
 		} finally {
@@ -143,10 +138,8 @@ public class ZipServiceAcceptanceTest extends ConstellioTest {
 		zipService.zip(newZipFile, files);
 
 		assertEquals(5, zipService.size(newZipFile));
-		assertTrue(zipService.contains(newZipFile, aFileInFolder.getAbsolutePath()));
-		assertTrue(zipService.contains(newZipFile, aFileInSubFolder.getAbsolutePath()));
-		assertTrue(zipService.contains(newZipFile, aFileInFolder.getPath()));
-		assertTrue(zipService.contains(newZipFile, aFileInSubFolder.getPath()));
+		assertTrue(zipService.contains(newZipFile, "aFolder/fileInFolder.txt"));
+		assertTrue(zipService.contains(newZipFile, "aFolder/subFolder/fileInSubFolder.txt"));
 
 		zipService.unzip(newZipFile, unzipTempFolder);
 
