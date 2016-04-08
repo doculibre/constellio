@@ -123,7 +123,6 @@ import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.Navigator.ClassBasedViewProvider;
-import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 
 public class NavigatorConfigurationService implements Serializable {
@@ -262,21 +261,8 @@ public class NavigatorConfigurationService implements Serializable {
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
 	public NavigatorConfigurationService() {
-		//		viewProviders.add(new ClassBasedViewProvider(SIMPLE_SEARCH, SimpleSearchViewImpl.class));
-		//		viewProviders.add(new ClassBasedViewProvider(ADVANCED_SEARCH, AdvancedSearchViewImpl.class));
-		viewProviders.add(new OneInstanceViewProvider(SIMPLE_SEARCH) {
-			@Override
-			protected View newView(String viewName) {
-				return new SimpleSearchViewImpl();
-			}
-		});
-		viewProviders.add(new OneInstanceViewProvider(ADVANCED_SEARCH) {
-			@Override
-			protected View newView(String viewName) {
-				return new AdvancedSearchViewImpl();
-			}
-		});
-
+		viewProviders.add(new ClassBasedViewProvider(SIMPLE_SEARCH, SimpleSearchViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(ADVANCED_SEARCH, AdvancedSearchViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(HOME, HomeViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(APP_MANAGEMENT, AppManagementView.class));
 		viewProviders.add(new ClassBasedViewProvider(TAXONOMY_MANAGEMENT, TaxonomyManagementViewImpl.class));

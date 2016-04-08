@@ -221,6 +221,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			Email email = rmSchemasRecordsServices.newEmail(filename, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 			contentVersionVO.setMajorVersion(true);
+		} else {
+			contentVersionVO.setMajorVersion(true);
 		}
 		if (StringUtils.isNotBlank(folderId)) {
 			documentVO.setFolder(folderId);

@@ -46,4 +46,6 @@ public interface ConstellioPluginManager extends StatefulService {
 
 	<T> Class<T> getModuleClass(String name)
 			throws ClassNotFoundException;
+
+	void removePlugin(String code);
 }

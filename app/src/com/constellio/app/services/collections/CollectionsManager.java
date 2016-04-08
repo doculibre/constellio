@@ -94,29 +94,33 @@ public class CollectionsManager implements StatefulService {
 	public void initialize() {
 		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
 			createSystemCollection();
+
+		}
+		if (!modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
+				.hasType(SolrUserCredential.SCHEMA_TYPE)) {
 			initializeSystemCollection();
+		}
 
-			try {
-				modelLayerFactory.newUserServices().getUser("admin");
-			} catch (UserServicesRuntimeException_NoSuchUser e) {
-				XmlUserCredentialsManager xmlUserCredentialsManager = new XmlUserCredentialsManager(dataLayerFactory,
-						modelLayerFactory, modelLayerFactory.getConfiguration());
-				xmlUserCredentialsManager.initialize();
-				if (xmlUserCredentialsManager.getUserCredentials().isEmpty()) {
-					createAdminUser();
-				} else {
-					SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
-					XmlGlobalGroupsManager xmlGlobalGroupsManager = new XmlGlobalGroupsManager(
-							dataLayerFactory.getConfigManager());
-					xmlGlobalGroupsManager.initialize();
-					new UserCredentialAndGlobalGroupsMigration(xmlUserCredentialsManager, xmlGlobalGroupsManager,
-							modelLayerFactory.newRecordServices(), schemas).migrateUserAndGroups();
-					xmlGlobalGroupsManager.close();
-				}
-
-				xmlUserCredentialsManager.close();
-
+		try {
+			modelLayerFactory.newUserServices().getUser("admin");
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			XmlUserCredentialsManager xmlUserCredentialsManager = new XmlUserCredentialsManager(dataLayerFactory,
+					modelLayerFactory, modelLayerFactory.getConfiguration());
+			xmlUserCredentialsManager.initialize();
+			if (xmlUserCredentialsManager.getUserCredentials().isEmpty()) {
+				createAdminUser();
+			} else {
+				SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+				XmlGlobalGroupsManager xmlGlobalGroupsManager = new XmlGlobalGroupsManager(
+						dataLayerFactory.getConfigManager());
+				xmlGlobalGroupsManager.initialize();
+				new UserCredentialAndGlobalGroupsMigration(modelLayerFactory, xmlUserCredentialsManager, xmlGlobalGroupsManager,
+						modelLayerFactory.newRecordServices(), schemas).migrateUserAndGroups();
+				xmlGlobalGroupsManager.close();
 			}
+
+			xmlUserCredentialsManager.close();
+
 		}
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);

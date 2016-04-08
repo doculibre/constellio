@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -397,6 +398,12 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			}
 		}
 		throw new ClassNotFoundException(name);
+	}
+
+	@Override
+	public void removePlugin(String code) {
+		this.validUploadedPlugins.remove(code);
+		this.pluginConfigManger.removePlugin(code);
 	}
 
 	private void ensureStarted() {
