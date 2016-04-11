@@ -22,11 +22,11 @@ import static com.constellio.app.services.extensions.plugins.pluginInfo.Constell
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,6 +52,7 @@ import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.
 import com.constellio.app.services.extensions.plugins.PluginServices.PluginsReplacementException;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
+import com.constellio.app.start.MainConstellio;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
@@ -68,11 +69,13 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	private Map<String, InstallableModule> registeredModules = new HashMap<>();
 	private Map<String, InstallableModule> validUploadedPlugins = new HashMap<>();
 	private IOServices ioServices;
+	private final File pluginsManagementOnStartupFile;
 
-	public JSPFConstellioPluginManager(File pluginsDirectory, IOServices ioServices,
+	public JSPFConstellioPluginManager(File pluginsDirectory, File pluginsManagementOnStartupFile, IOServices ioServices,
 			ConstellioPluginConfigurationManager pluginConfigManger) {
 		this.pluginConfigManger = pluginConfigManger;
 		this.pluginsDirectory = pluginsDirectory;
+		this.pluginsManagementOnStartupFile = pluginsManagementOnStartupFile;
 		if (pluginsDirectory != null && pluginsDirectory.isDirectory()) {
 			//FIXME see Cis
 			File saveOldPluginsDestination = new File(pluginsDirectory, PREVIOUS_PLUGINS);
@@ -294,11 +297,26 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			helperService.saveNewPlugin(pluginsDirectory, jarFile, newPluginInfo.getCode());
 			pluginConfigManger.installPlugin(newPluginInfo.getCode(), newPluginInfo.getTitle(),
 					newPluginInfo.getVersion(), newPluginInfo.getRequiredConstellioVersion());
+			addPluginToManageOnStartupList(newPluginInfo.getCode());
 		} catch (IOException e) {
 			LOGGER.error("Exception when saving new plugin", e);
 			return JAR_NOT_SAVED_CORRECTLY;
 		}
 		return null;
+	}
+
+	//TODO test me
+	void addPluginToManageOnStartupList(String code) {
+		try {
+			if (!this.pluginsManagementOnStartupFile.exists()) {
+				MainConstellio.fillFileWithAllPlugins(this.pluginsDirectory, this.pluginsManagementOnStartupFile);
+			} else {
+				FileUtils.writeLines(this.pluginsManagementOnStartupFile, Arrays.asList(code));
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 	private PluginActivationFailureCause getAdequateFailureCause(InvalidPluginJarException e) {
@@ -367,6 +385,11 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			returnList.addAll(pluginConfigManger.getPlugins(status));
 		}
 		return returnList;
+	}
+
+	@Override
+	public List<String> getPluginsOfEveryStatus() {
+		return pluginConfigManger.getAllPluginsCodes();
 	}
 
 	@Override

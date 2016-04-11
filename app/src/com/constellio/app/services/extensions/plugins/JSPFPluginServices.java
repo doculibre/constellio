@@ -34,7 +34,7 @@ import com.constellio.data.io.services.zip.ZipServiceException;
 
 public class JSPFPluginServices implements PluginServices {
 	private static final Logger LOGGER = LogManager.getLogger(JSPFPluginServices.class);
-	static final String NEW_JAR_EXTENSION = "jar.new";
+	public static final String NEW_JAR_EXTENSION = "jar.new";
 	private static final String CODE_ATTRIBUTE_NAME = "code";
 	private static final String VERSION_ATTRIBUTE_NAME = "version";
 	private static final String IMPLEMENTATION_TITLE = "Implementation-Title";

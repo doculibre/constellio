@@ -1,5 +1,7 @@
 package com.constellio.app.services.appManagement;
 
+import static com.constellio.app.services.extensions.plugins.JSPFPluginServices.NEW_JAR_EXTENSION;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -152,6 +154,7 @@ public class AppManagementService {
 			File updatedWarPlugins = new File(tempFolder, "updated-plugins");
 			installNewOrUpdatedPlugins(updatedWarPlugins);
 			copyCurrentPlugins(foldersLocator.getPluginsJarsFolder(), tempFolder);
+			movePluginsToNewLib(tempFolder);
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
 			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
@@ -190,11 +193,30 @@ public class AppManagementService {
 
 	}
 
+	//TODO test me
+	private void movePluginsToNewLib(File newWebAppFolder)
+			throws CannotSaveOldPlugins {
+		File newLibsFolder = foldersLocator.getLibFolder(newWebAppFolder);
+		try {
+			for (String plugin : pluginManager.getPluginsOfEveryStatus()) {
+				File pluginFile = new File(plugin, "." + NEW_JAR_EXTENSION);
+				if (!pluginFile.exists()) {
+					pluginFile = new File(plugin, ".jar");
+				}
+				FileUtils.copyFile(pluginFile, newLibsFolder);
+			}
+			//mark all plugins are moved
+			File pluginsToMoveFile = new FoldersLocator().getPluginsToMoveOnStartupFile(newWebAppFolder);
+			FileUtils.write(pluginsToMoveFile, "", false);
+		} catch (IOException e) {
+			throw new CannotSaveOldPlugins(e);
+		}
+	}
+
 	private void installNewOrUpdatedPlugins(File warPlugins) {
 		if (warPlugins.exists()) {
 			File[] updatedPlugins = warPlugins.listFiles();
 			if (updatedPlugins != null) {
-
 				for (File warPlugin : warPlugins.listFiles()) {
 					if (warPlugin.getName().toLowerCase().endsWith(".jar")) {
 						pluginManager.prepareInstallablePlugin(warPlugin);
