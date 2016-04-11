@@ -110,7 +110,7 @@ allprojects {
 
 war {
     baseName = "constellio"
-    version = "6.2"
+    version = "6.2.0.3"
 
     webInf {
         from("resources_i18n/") {
@@ -141,7 +141,7 @@ task compileApp() {
 
 task compilePlugin() {
     if (new File("./jarProject").exists()) {
-        String projectName = new File("./jarProject").text
+        String projectName = new File("./jarProject").text.trim()
         dependsOn project(projectName).build
     }
 }

@@ -287,4 +287,16 @@ public class ConstellioPluginConfigurationManager {
 		sb.append("\n");
 		return sb.toString();
 	}
+
+	public void removePlugin(final String pluginId) {
+		if (pluginId != null) {
+			configManager.updateXML(PLUGINS_CONFIG_PATH, new DocumentAlteration() {
+				@Override
+				public void alter(Document document) {
+					Element rootElement = document.getRootElement();
+					rootElement.removeChild(pluginId);
+				}
+			});
+		}
+	}
 }

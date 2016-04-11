@@ -106,6 +106,7 @@ public class ZipServiceAcceptanceTest extends ConstellioTest {
 		ZipFile zipFile = null;
 		try {
 			zipFile = new ZipFile(newZipFile);
+
 			ZipEntry entry = zipFile.getEntry(emptyFolder.getName());
 			assertThat(entry).isNotNull();
 		} finally {
@@ -137,8 +138,8 @@ public class ZipServiceAcceptanceTest extends ConstellioTest {
 		zipService.zip(newZipFile, files);
 
 		assertEquals(5, zipService.size(newZipFile));
-		assertTrue(zipService.contains(newZipFile, aFileInFolder.getPath()));
-		assertTrue(zipService.contains(newZipFile, aFileInSubFolder.getPath()));
+		assertTrue(zipService.contains(newZipFile, "aFolder/fileInFolder.txt".replace("/", File.separator)));
+		assertTrue(zipService.contains(newZipFile, "aFolder/subFolder/fileInSubFolder.txt".replace("/", File.separator)));
 
 		zipService.unzip(newZipFile, unzipTempFolder);
 
