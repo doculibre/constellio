@@ -10,16 +10,12 @@ import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-@XmlRootElement
 public class DefaultMetadataPopulator implements MetadataPopulator {
-	private static DefaultMetadataPopulatorFactory factory = new DefaultMetadataPopulatorFactory();
+	private static DefaultMetadataPopulatorPersistenceManager factory = new DefaultMetadataPopulatorPersistenceManager();
 
 	private Extractor extractor;
 
@@ -36,7 +32,6 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 		this.extractor = extractor;
 	}
 
-	@XmlElement
 	public Extractor getExtractor() {
 		return extractor;
 	}
@@ -45,7 +40,6 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 		this.extractor = extractor;
 	}
 
-	@XmlElement
 	public ExtractorSupplier getFeedsExtractor() {
 		return feedsExtractor;
 	}
@@ -72,22 +66,12 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 		List<Object> results = new ArrayList<>();
 
 		for (Object feed: feedsExtractor.getFeeds(record)){
-			Object value = extractor.extractFrom(feed);
+			Collection<? extends Object> value = extractor.extractFrom(feed);
 			if (value != null)
-				results.add(value);
+				results.addAll(value);
 		}
 
 		return convert(results);
-	}
-
-	@Override
-	public String toXml() {
-		try {
-			return factory.convertToXml(this);
-		} catch (JAXBException | IOException e) {
-			throw new RuntimeException(e);
-		}
-
 	}
 
 	private Object convert(List<Object> contentPopulatedValues) {

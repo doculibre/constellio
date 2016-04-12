@@ -1,31 +1,26 @@
 package com.constellio.model.services.records.extractions;
 
-import com.constellio.model.entities.schemas.RegexConfig;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * @author Majid
  */
-@XmlRootElement
-public class RegexExtractor extends Extractor<String> {
+public class RegexExtractor implements Extractor<String> {
 	private String regexPattern;
 	private Pattern pattern;
-	@XmlElement
 	private String value;
-	@XmlElement
 	private boolean substitute;
 
 	public RegexExtractor() {
 	}
 
 
-	@XmlElement
 	public String getRegexPattern() {
 		return regexPattern;
 	}
@@ -35,6 +30,22 @@ public class RegexExtractor extends Extractor<String> {
 		this.pattern = Pattern.compile(regexPattern);
 	}
 
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	public boolean isSubstitute() {
+		return substitute;
+	}
+
+	public void setSubstitute(boolean substitute) {
+		this.substitute = substitute;
+	}
+
 	public RegexExtractor(String regexPattern, boolean substitute, String value) {
 		setRegexPattern(regexPattern);
 		this.substitute = substitute;
@@ -42,14 +53,14 @@ public class RegexExtractor extends Extractor<String> {
 	}
 
 	@Override
-	public Object extractFrom(String feed) {
+	public List<? extends Object> extractFrom(String feed) {
 		Matcher matcher = pattern.matcher(feed);
 		if (matcher.find()) {
 			if (substitute) {
 				String match = matcher.group();
-				return pattern.matcher(match).replaceAll(value);
+				return Collections.singletonList(pattern.matcher(match).replaceAll(value));
 			} else {
-				return value;
+				return Collections.singletonList(value);
 			}
 		}
 		return null;

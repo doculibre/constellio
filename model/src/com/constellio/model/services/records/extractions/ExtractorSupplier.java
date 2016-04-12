@@ -3,19 +3,16 @@ package com.constellio.model.services.records.extractions;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import java.util.Collection;
 
 /**
  * This class supplies content (such as text) to {@link Extractor}
- * Note that the class should be abstract so that JAXB library can convert it
- * to the xml (JAXB does not support interface).
- * @param <T>
+ * Note that the class will be serialized in the XML format (check {@link DefaultMetadataPopulator} for
+ * how the concrete class will be serialized to the XML format).
  */
-public abstract class ExtractorSupplier<T>{
-	public abstract void init(LoadingCache<String, ParsedContent> cachedParsedContentProvider, MetadataSchema schema);
-	public abstract Collection<T> getFeeds(Record record);
+public interface ExtractorSupplier<T>{
+	void init(LoadingCache<String, ParsedContent> cachedParsedContentProvider, MetadataSchema schema);
+	Collection<T> getFeeds(Record record);
 }

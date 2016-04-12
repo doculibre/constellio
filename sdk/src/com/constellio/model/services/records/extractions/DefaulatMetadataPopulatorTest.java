@@ -3,11 +3,13 @@ package com.constellio.model.services.records.extractions;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.XMLOutputter;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Created by Majid on 2016-03-29.
@@ -16,11 +18,15 @@ import static org.assertj.core.api.Assertions.*;
 public class DefaulatMetadataPopulatorTest {
     @Test
     public void whenSavingRegexMetadataPopulatorIntoXMLAndLoadingItBackThenTheyAreEqual() throws Exception {
+        MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
         DefaultMetadataPopulator metadataPopulator = new DefaultMetadataPopulator(
                 new RegexExtractor("regex pattern", false, "toReplaceValue"), new MetadataToText("test"));
-        String xml = metadataPopulator.toXml();
-
+        XMLOutputter converter = new XMLOutputter();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        converter.output(metadataPopulatorXMLSerializer.toXml(metadataPopulator), buffer);
+        String xml = new String(buffer.toByteArray());
+        System.out.println(xml);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes());
         //parsing xml as we do in com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2
         SAXBuilder saxBuilder = new SAXBuilder();
@@ -31,7 +37,7 @@ public class DefaulatMetadataPopulatorTest {
         element.detach();
         populateConfigsElement.addContent(element);
 
-        MetadataPopulator returnedObject = new DefaultMetadataPopulatorFactory().createAnInstance(element);
+        MetadataPopulator returnedObject = new DefaultMetadataPopulatorPersistenceManager().fromXML(element);
 
         assertThat(returnedObject).isEqualTo(metadataPopulator);
     }

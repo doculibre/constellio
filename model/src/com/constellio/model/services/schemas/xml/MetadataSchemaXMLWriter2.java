@@ -1,37 +1,27 @@
 package com.constellio.model.services.schemas.xml;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.dao.services.DataLayerLogger;
-import com.constellio.model.services.records.extractions.MetadataPopulator;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataAccessRestriction;
-import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.RegexConfig;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorPersistenceManager;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
+import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.builders.ClassListBuilder;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
-import org.jdom2.JDOMException;
+import org.jdom2.Document;
+import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MetadataSchemaXMLWriter2 {
 
@@ -39,6 +29,8 @@ public class MetadataSchemaXMLWriter2 {
 	public static final String FORMAT_VERSION = MetadataSchemaXMLReader2.FORMAT_VERSION;
 	private  SAXBuilder saxBuilder = new SAXBuilder();
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
+
+	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
 	public void writeEmptyDocument(String collection, Document document) {
 		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
@@ -444,9 +436,9 @@ public class MetadataSchemaXMLWriter2 {
 		Element metadataPopulatorsElement = new Element("metadataPopulators");
 		for (MetadataPopulator metadataPopulator: populateConfigs.getMetadataPopulators()) {
 			try {
-				Element element = xmlToElement(metadataPopulator.toXml());
+				Element element = metadataPopulatorXMLSerializer.toXml(metadataPopulator);
 				metadataPopulatorsElement.addContent(element);
-			} catch (JDOMException | IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 				LOGGER.error("Cannot save a metadata populator", e);
 			}
@@ -457,13 +449,6 @@ public class MetadataSchemaXMLWriter2 {
 
 
 		return populateConfigsElement;
-	}
-
-	private Element xmlToElement(String xml) throws JDOMException, IOException {
-		Document document = saxBuilder.build(new ByteArrayInputStream(xml.getBytes()));
-		Element element = document.getRootElement();
-		element.detach();
-		return element;
 	}
 
 	private Element toRegexElement(RegexConfig regexConfig) {

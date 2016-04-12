@@ -6,14 +6,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,14 +21,13 @@ import java.util.List;
  * @author Majid
  */
 @XmlRootElement
-public class MetadataToText extends ExtractorSupplier<String> {
+public class MetadataToText implements ExtractorSupplier<String> {
 	public static boolean LOG_CONTENT_MISSING = true;
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataToText.class);
 
 	private LoadingCache<String, ParsedContent> cachedParsedContentProvider;
 	private Metadata inputMetadata;
 
-	@XmlElement
 	private String metadataCode;
 
 	public MetadataToText(String metadataCode) {
@@ -38,6 +35,14 @@ public class MetadataToText extends ExtractorSupplier<String> {
 	}
 
 	public MetadataToText() {
+	}
+
+	public String getMetadataCode() {
+		return metadataCode;
+	}
+
+	public void setMetadataCode(String metadataCode) {
+		this.metadataCode = metadataCode;
 	}
 
 	@Override
