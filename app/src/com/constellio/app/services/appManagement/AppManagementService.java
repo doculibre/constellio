@@ -1,7 +1,5 @@
 package com.constellio.app.services.appManagement;
 
-import static com.constellio.app.services.extensions.plugins.JSPFPluginServices.NEW_JAR_EXTENSION;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -42,6 +40,7 @@ import com.constellio.app.services.appManagement.AppManagementServiceRuntimeExce
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.app.services.migrations.VersionValidator;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
@@ -153,8 +152,9 @@ public class AppManagementService {
 
 			File updatedWarPlugins = new File(tempFolder, "updated-plugins");
 			installNewOrUpdatedPlugins(updatedWarPlugins);
-			copyCurrentPlugins(foldersLocator.getPluginsJarsFolder(), tempFolder);
-			movePluginsToNewLib(tempFolder);
+			File oldPluginsFolder = foldersLocator.getPluginsJarsFolder();
+			copyCurrentPlugins(oldPluginsFolder, tempFolder);
+			movePluginsToNewLib(oldPluginsFolder, tempFolder);
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
 			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
@@ -193,21 +193,15 @@ public class AppManagementService {
 
 	}
 
-	//TODO test me
-	private void movePluginsToNewLib(File newWebAppFolder)
+	private void movePluginsToNewLib(File oldPluginsFolder, File newWebAppFolder)
 			throws CannotSaveOldPlugins {
 		File newLibsFolder = foldersLocator.getLibFolder(newWebAppFolder);
+		LOGGER.info("plugins : copy to lib " + newLibsFolder.getPath());
+		File pluginsToMoveFile = foldersLocator.getPluginsToMoveOnStartupFile(newWebAppFolder);
+		PluginManagementUtils utils = new PluginManagementUtils(oldPluginsFolder, newLibsFolder, pluginsToMoveFile);
+
 		try {
-			for (String plugin : pluginManager.getPluginsOfEveryStatus()) {
-				File pluginFile = new File(plugin, "." + NEW_JAR_EXTENSION);
-				if (!pluginFile.exists()) {
-					pluginFile = new File(plugin, ".jar");
-				}
-				FileUtils.copyFile(pluginFile, newLibsFolder);
-			}
-			//mark all plugins are moved
-			File pluginsToMoveFile = new FoldersLocator().getPluginsToMoveOnStartupFile(newWebAppFolder);
-			FileUtils.write(pluginsToMoveFile, "", false);
+			utils.movePluginsAndSetNoPluginToMove(pluginManager.getPluginsOfEveryStatus());
 		} catch (IOException e) {
 			throw new CannotSaveOldPlugins(e);
 		}

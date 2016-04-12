@@ -52,6 +52,7 @@ import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.
 import com.constellio.app.services.extensions.plugins.PluginServices.PluginsReplacementException;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
+import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.app.start.MainConstellio;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.io.services.facades.IOServices;
@@ -305,14 +306,10 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		return null;
 	}
 
-	//TODO test me
 	void addPluginToManageOnStartupList(String code) {
+		PluginManagementUtils utils = new PluginManagementUtils(pluginsDirectory, null, pluginsManagementOnStartupFile);
 		try {
-			if (!this.pluginsManagementOnStartupFile.exists()) {
-				MainConstellio.fillFileWithAllPlugins(this.pluginsDirectory, this.pluginsManagementOnStartupFile);
-			} else {
-				FileUtils.writeLines(this.pluginsManagementOnStartupFile, Arrays.asList(code));
-			}
+			utils.addPluginToMove(code);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
