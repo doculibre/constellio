@@ -1,13 +1,5 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Test;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
@@ -16,7 +8,16 @@ import com.constellio.model.services.search.Elevations.QueryElevation;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.services.ElevationServiceImpl;
 import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Test;
 
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SlowTest
 public class ElevationFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	Record relevantDoc, elevatedDoc;
 
