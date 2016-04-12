@@ -1,15 +1,5 @@
 package com.constellio.model.services.search.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -18,7 +8,15 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.Elevations;
 import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class ElevationServiceImplAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
@@ -101,7 +99,11 @@ public class ElevationServiceImplAcceptanceTest extends SolrSafeConstellioAccept
 		assertThat(elevationService.getCollectionElevation(zeCollection, "*:*").get(0).getId()).isEqualTo(zeRecord.getId());
 	}
 
-    //TODO
+    //TODO:
+	/* Currently, because the all the Constellio collections store in one solr collection, it is not possible
+	 * to change one Constellio collection configurations for the Elevation feature without any side effect on the
+	 * other Constellio collections.
+	 */
     @Ignore
 	@Test
 	public void whenRemoveZeCollectionElevationForQuery1ThenQuery1RecordElevationRemovedOnlyForQuery1AndZeCollection()
@@ -122,7 +124,11 @@ public class ElevationServiceImplAcceptanceTest extends SolrSafeConstellioAccept
 
 
     //TODO
-    @Ignore
+	/* Currently, because the all the Constellio collections store in one solr collection, it is not possible
+	 * to change one Constellio collection configurations for the Elevation feature without any side effect on the
+	 * other Constellio collections.
+	 */
+	@Ignore
     @Test
 	public void whenRemoveZeCollectionElevationThenAllZeCollectionElevationsRemoved()
 			throws Exception {
