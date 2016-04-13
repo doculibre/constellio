@@ -214,8 +214,8 @@ public class JSPFPluginServices implements PluginServices {
 			File deployedPluginResources = new File(pluginsResources, pluginId);
 			if (resourcesFolderInJar.exists()) {
 				ioServices.deleteDirectory(deployedPluginResources);
-				deployedPluginResources.mkdirs();
-				ioServices.moveFolder(resourcesFolderInJar, deployedPluginResources);
+				//deployedPluginResources.mkdirs();
+				ioServices.copyDirectory(resourcesFolderInJar, deployedPluginResources);
 			}
 
 		} catch (ZipServiceException | IOException e) {
