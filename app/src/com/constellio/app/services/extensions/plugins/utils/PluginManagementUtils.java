@@ -38,6 +38,7 @@ public class PluginManagementUtils {
 		}
 		if (jarFile.exists()) {
 			File jarInLibs = new File(libFolder, pluginName + ".jar");
+			LOGGER.info("Moving plugin " + jarFile.getPath() + " to " + jarInLibs.getPath());
 			FileUtils.copyFile(jarFile, jarInLibs);
 		} else {
 			LOGGER.error("Plugin file listed but not found " + jarFile.getPath());
