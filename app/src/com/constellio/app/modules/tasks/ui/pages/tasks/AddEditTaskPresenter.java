@@ -280,7 +280,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
-				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
 					Object metadataValue = taskVO.get(metadataVO);
 					Object defaultValue = metadataVO.getDefaultValue();
 					if (metadataValue == null || !metadataValue.equals(defaultValue)) {

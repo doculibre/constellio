@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.DependencyUtils;
@@ -196,6 +199,8 @@ public class RecordUtils {
 		copyMetadatas(source.getWrappedRecord(), destination.getWrappedRecord(), source.getMetadataSchemaTypes());
 	}
 
+	private static List<String> excludedMetadatas = asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.LEGACY_ID.getLocalCode());
+
 	public static void copyMetadatas(Record source, Record destination, MetadataSchemaTypes types) {
 		MetadataSchema sourceRecordSchema = types.getSchema(source.getSchemaCode());
 		MetadataSchema destinationRecordSchema = types.getSchema(destination.getSchemaCode());
@@ -211,7 +216,9 @@ public class RecordUtils {
 					if (destinationMetadata.getDataEntry().getType() == DataEntryType.MANUAL
 							&& destinationMetadata.getType() == sourceMetadata.getType()
 							&& destinationMetadata.isMultivalue() == sourceMetadata.isMultivalue()
-							&& value != null) {
+							&& !destinationMetadata.isSystemReserved()
+							&& value != null
+							&& !excludedMetadatas.contains(destinationMetadata.getLocalCode())) {
 
 						destination.set(destinationMetadata, value);
 					}

@@ -460,7 +460,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
-				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
 					Object metadataValue = documentVO.get(metadataVO);
 					Object defaultValue = metadataVO.getDefaultValue();
 					if (metadataValue instanceof ContentVersionVO) {

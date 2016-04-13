@@ -28,7 +28,7 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGlobalContext {
 
-	static File pluginsDirectory;
+	static File pluginsDirectory, pluginsManagementFile;
 	@Mock AppLayerFactory appLayerFactory;
 	@Mock ConstellioPluginConfigurationManager pluginConfigManger;
 	JSPFConstellioPluginManager pluginManager;
@@ -38,7 +38,8 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 	public void setUp() {
 		getAppLayerFactory();
 		IOServices ioServices = new IOServices(newTempFolder());
-		pluginManager = spy(new JSPFConstellioPluginManager(pluginsDirectory, ioServices, pluginConfigManger));
+		pluginManager = spy(new JSPFConstellioPluginManager(pluginsDirectory,
+				getAppLayerFactory().getAppLayerConfiguration().getPluginsManagementOnStartupFile(), ioServices, pluginConfigManger));
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList("firstCollection", "secondCollection"));
 		assertThat(APluginImplementation.isStarted()).isFalse();
 

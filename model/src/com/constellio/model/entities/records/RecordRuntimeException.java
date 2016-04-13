@@ -98,6 +98,14 @@ public class RecordRuntimeException extends RuntimeException {
 
 	}
 
+	public static class RecordRuntimeException_CannotModifyId extends RecordRuntimeException {
+
+		public RecordRuntimeException_CannotModifyId() {
+			super("Cannot modify id");
+		}
+
+	}
+
 	public static class RecordRuntimeException_ValueHasBadFormat extends RecordRuntimeException {
 
 		public RecordRuntimeException_ValueHasBadFormat(String value, String format) {

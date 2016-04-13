@@ -280,7 +280,7 @@ public class FactoriesTestFeatures {
 			decorator.setConfigManagerFolder(configManagerFolder);
 			decorator.setAppTempFolder(fileSystemTestFeatures.newTempFolderWithName("appTempFolder"));
 			decorator.setContentFolder(contentFolder);
-			decorator.setPluginsFolder(pluginsFolder);
+			decorator.setPluginsFolder(pluginsFolder).setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
 			decorator.setSystemLanguage(systemLanguage);
 
 			if (initialState != null) {

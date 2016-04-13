@@ -36,6 +36,11 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 	}
 
 	@Override
+	public File getPluginsManagementOnStartupFile() {
+		return new FoldersLocator().getPluginsToMoveOnStartupFile();
+	}
+
+	@Override
 	public File getSetupProperties() {
 		return foldersLocator.getConstellioSetupProperties();
 	}
