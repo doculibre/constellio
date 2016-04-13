@@ -117,6 +117,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.UNIFORM_SUBDIVISION_ENTERED);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED);
+		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.OPENING_DATE);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.ENTERED_CLOSING_DATE);
 		assertThat(metadataCodes.get(i++)).isEqualTo(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED);
@@ -148,11 +149,13 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 
 		assertThat(metadataCodes.size()).isNotZero();
 
-		assertThat(metadataCodes.get(0)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER);
-		assertThat(metadataCodes.get(1)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.TYPE);
-		assertThat(metadataCodes.get(2)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode());
-		assertThat(metadataCodes.get(3)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.KEYWORDS);
-		assertThat(metadataCodes.get(4)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.CONTENT);
+		int i = 0;
+		assertThat(metadataCodes.get(i++)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER);
+		assertThat(metadataCodes.get(i++)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.TYPE);
+		assertThat(metadataCodes.get(i++)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Schemas.TITLE.getLocalCode());
+		assertThat(metadataCodes.get(i++)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.MAIN_COPY_RULE_ID_ENTERED);
+		assertThat(metadataCodes.get(i++)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.KEYWORDS);
+		assertThat(metadataCodes.get(i++)).isEqualTo(Document.DEFAULT_SCHEMA + "_" + Document.CONTENT);
 
 		assertThereIsNotSystemReservedIn(metadataCodes);
 	}

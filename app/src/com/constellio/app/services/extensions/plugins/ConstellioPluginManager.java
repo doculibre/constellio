@@ -40,10 +40,14 @@ public interface ConstellioPluginManager extends StatefulService {
 
 	List<ConstellioPluginInfo> getPlugins(ConstellioPluginStatus... statuses);
 
+	List<String> getPluginsOfEveryStatus();
+
 	boolean isRegistered(String id);
 
 	void copyPluginResourcesToPluginsResourceFolder(String moduleId);
 
 	<T> Class<T> getModuleClass(String name)
 			throws ClassNotFoundException;
+
+	void removePlugin(String code);
 }
