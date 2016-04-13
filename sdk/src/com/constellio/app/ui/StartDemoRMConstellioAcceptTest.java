@@ -19,6 +19,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -80,9 +81,9 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE).setLabel("Date metadata 1");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE).setLabel("Date metadata 2");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME).setLabel("Datetime metadata");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE).addLabel(Language.French,"Date metadata 1");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE).addLabel(Language.French,"Date metadata 2");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME).addLabel(Language.French,"Datetime metadata");
 			}
 		});
 

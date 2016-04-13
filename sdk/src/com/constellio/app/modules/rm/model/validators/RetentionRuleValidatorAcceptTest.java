@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.assertj.core.api.Condition;
 import org.junit.Before;
@@ -21,6 +22,8 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -28,11 +31,12 @@ import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
 
-public class RetentionRuleValidatorTest extends ConstellioTest {
+public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
-	RetentionRuleValidator validator = new RetentionRuleValidator();
-
+	//	RetentionRuleValidator validator = new RetentionRuleValidator();
+	RetentionRuleValidator validator;
 	@Mock Metadata uniformSubdivisionMetadata, categoriesMetadata, copyRetentionRuleMetadata;
 	@Mock MetadataSchema schema;
 
@@ -50,9 +54,20 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 	ValidationErrors errors = new ValidationErrors();
 	private List<RetentionRuleDocumentType> types;
 
+	SessionContext sessionContext;
+
 	@Before
 	public void setUp()
 			throws Exception {
+
+		prepareSystem(
+				withZeCollection()
+		);
+
+		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+
+		validator = new RetentionRuleValidator();
 
 		when(retentionRule.getCode()).thenReturn("zeCode");
 		when(retentionRule.getAdministrativeUnits())
@@ -107,7 +122,7 @@ public class RetentionRuleValidatorTest extends ConstellioTest {
 		docCopy2_principal.setInactiveDisposalType(DisposalType.DEPOSIT);
 
 		when(schema.getMetadata(RetentionRule.COPY_RETENTION_RULES)).thenReturn(copyRetentionRuleMetadata);
-		when(copyRetentionRuleMetadata.getLabel()).thenReturn("zeCopyRules");
+		when(copyRetentionRuleMetadata.getLabel(Language.French)).thenReturn("zeCopyRules");
 	}
 
 	@Test

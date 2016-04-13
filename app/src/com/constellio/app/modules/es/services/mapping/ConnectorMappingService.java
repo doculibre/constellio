@@ -21,6 +21,8 @@ import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -299,7 +301,8 @@ public class ConnectorMappingService {
 			for (Alteration alteration : alterations) {
 				types.getSchemaType(new SchemaUtils().getSchemaTypeCode(alteration.schema)).getSchema(alteration.schema)
 						.create(alteration.localCode)
-						.setLabel(alteration.params.getLabel())
+						.addLabel(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()),
+								alteration.params.getLabel())
 						.setType(alteration.params.getType())
 						.setMultivalue(alteration.params.isMultivalue())
 						.setSearchable(alteration.params.isSearchable());

@@ -4,6 +4,8 @@ import static com.constellio.model.entities.schemas.Schemas.TITLE;
 
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
@@ -35,7 +37,9 @@ public class ESRecordExtension extends RecordExtension {
 						String schema = connectorInstance.getDocumentsCustomSchemaCode();
 						for (MetadataSchemaTypeBuilder type : types.getTypes()) {
 							if (type.hasSchema(schema)) {
-								type.getSchema(schema).setLabel(connectorInstance.getTitle());
+								type.getSchema(schema).addLabel(Language.withCode(
+										ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()),
+										connectorInstance.getTitle());
 							}
 						}
 					}

@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.WorkflowTask;
@@ -37,11 +38,11 @@ public class PrintRMSchemasAcceptTest extends ConstellioTest {
 		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getSchemaTypes()) {
 			if (!restrictedTypes.contains(type.getCode())) {
-				System.out.println("\n\n## " + type.getCode() + " '" + type.getLabel() + "' ");
+				System.out.println("\n\n## " + type.getCode() + " '" + type.getLabel(Language.French) + "' ");
 				for (Metadata metadata : type.getAllMetadatas().onlyManuals()) {
 					if (!restrictedMetadatasCode.contains(metadata.getLocalCode())) {
 						StringBuilder stringBuilder = new StringBuilder();
-						stringBuilder.append(metadata.getLocalCode() + " '" + metadata.getLabel() + "' : ");
+						stringBuilder.append(metadata.getLocalCode() + " '" + metadata.getLabel(Language.French) + "' : ");
 						stringBuilder.append(metadata.getType().name().toLowerCase());
 
 						if (metadata.isMultivalue()) {

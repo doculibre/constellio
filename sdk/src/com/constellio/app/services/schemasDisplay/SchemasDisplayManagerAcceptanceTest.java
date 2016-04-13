@@ -23,6 +23,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -392,11 +393,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder schemaBuilder = types.createNewSchemaType("mySchemaType").getDefaultSchema();
 				schemaBuilder.create("aMetadataThatWillOneDayBeEssential").setType(TEXT).setEssential(false)
-						.setLabel("zeMetadataThatWillOneDayBeEssential");
-				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true).setLabel("zeEssentialMetadata");
-				schemaBuilder.create("aTrivialMetadata").setType(TEXT).setEssential(false).setLabel("ZeTrivialMetadata");
-				schemaBuilder.create("code").setType(TEXT).setLabel("Ze code");
-				schemaBuilder.get("title").setLabel("Ze title");
+						.addLabel(Language.French,"zeMetadataThatWillOneDayBeEssential");
+				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true).addLabel(Language.French,"zeEssentialMetadata");
+				schemaBuilder.create("aTrivialMetadata").setType(TEXT).setEssential(false).addLabel(Language.French,"ZeTrivialMetadata");
+				schemaBuilder.create("code").setType(TEXT).addLabel(Language.French,"Ze code");
+				schemaBuilder.get("title").addLabel(Language.French,"Ze title");
 			}
 		});
 

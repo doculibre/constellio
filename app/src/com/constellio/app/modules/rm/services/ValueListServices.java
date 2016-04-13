@@ -15,6 +15,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -22,6 +23,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -137,8 +139,14 @@ public class ValueListServices {
 
 		String localCode = taxonomy.getCode() + "Ref";
 		MetadataSchemaTypeBuilder taxonomyType = types.getSchemaType(taxonomy.getSchemaTypes().get(0));
-		types.getSchemaType(schemaType).getDefaultSchema().create(localCode).defineTaxonomyRelationshipToType(taxonomyType)
-				.setMultivalue(true).setLabel(taxonomy.getTitle());
+		MetadataBuilder metadataBuilder = types.getSchemaType(schemaType).getDefaultSchema().create(localCode)
+				.defineTaxonomyRelationshipToType(taxonomyType)
+				.setMultivalue(true);
+
+		//TODO Thiago
+		for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
+			metadataBuilder.addLabel(language, taxonomy.getTitle());
+		}
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);
 		} catch (OptimisticLocking optimistickLocking) {

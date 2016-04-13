@@ -155,9 +155,9 @@ public class SchemasDisplayManagerCache {
 				for (MetadataSchema schema : type.getAllSchemas()) {
 					SchemaDisplayConfig schemaDisplayConfig = getSchema(schema.getCode(), metadataSchemasManager);
 					List<String> metadatas = new ArrayList<>();
-					if ("search" .equals(viewMode)) {
+					if ("search".equals(viewMode)) {
 						metadatas = schemaDisplayConfig.getSearchResultsMetadataCodes();
-					} else if ("table" .equals(viewMode)) {
+					} else if ("table".equals(viewMode)) {
 						metadatas = schemaDisplayConfig.getTableMetadataCodes();
 					}
 					for (String displayedMetadata : metadatas) {

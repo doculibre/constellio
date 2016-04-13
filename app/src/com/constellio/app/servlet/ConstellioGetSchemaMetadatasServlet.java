@@ -13,6 +13,7 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -45,7 +46,7 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 			Element metadataElement = new Element("metadata");
 			schemaElement.addContent(metadataElement);
 			metadataElement.setAttribute("code", metadata.getLocalCode());
-			metadataElement.setAttribute("title", metadata.getLabel());
+			metadataElement.setAttribute("title", metadata.getLabel(Language.withCode(language)));
 			metadataElement.setAttribute("multivalue", "" + metadata.isMultivalue());
 			metadataElement.setAttribute("type", metadata.getType().name());
 			metadataElement.setAttribute("solr-field", metadata.getDataStoreCode());

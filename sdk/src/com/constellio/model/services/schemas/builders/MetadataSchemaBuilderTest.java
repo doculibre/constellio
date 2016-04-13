@@ -9,12 +9,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.model.utils.DefaultClassProvider;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -22,6 +22,7 @@ import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -31,6 +32,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator1;
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator2;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -59,6 +61,7 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 	public void setUp() {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
+		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
 		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
 		metadataSchemaTypeBuilder = MetadataSchemaTypeBuilder
 				.createNewSchemaType("zeUltimateCollection", "aSchemaType", typesBuilder);
@@ -209,68 +212,68 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 
 	@Test
 	public void givenLabelOfDefaultSchemaIsNullAndLabelOfSchemaTypeIsDefinedWhenBuildingThenSetToSchemaTypeLabel() {
-		defaultSchemaBuilder.setLabel(null);
-		metadataSchemaTypeBuilder.setLabel("Type");
+		defaultSchemaBuilder.addLabel(Language.French, null);
+		metadataSchemaTypeBuilder.addLabel(Language.French, "Type");
 
 		build();
 
-		assertThat(defaultSchema.getLabel()).isEqualTo("Type");
+		assertThat(defaultSchema.getLabel(Language.French)).isEqualTo("Type");
 	}
 
 	@Test
 	public void givenLabelOfDefaultSchemaIsNullAndLabelOfSchemaTypeIsNullWhenBuildingThenSetToSchemaTypeCode() {
-		defaultSchemaBuilder.setLabel(null);
+		defaultSchemaBuilder.addLabel(Language.French, null);
 
 		build();
 
-		assertThat(defaultSchema.getLabel()).isEqualTo("aSchemaType");
+		assertThat(defaultSchema.getLabel(Language.French)).isEqualTo("aSchemaType");
 	}
 
 	@Test
 	public void givenLabelOfCustomSchemaIsNullWhenBuildingThenSetToSchemaCode() {
-		customSchemaBuilder.setLabel(null);
+		customSchemaBuilder.addLabel(Language.French, null);
 
 		build();
 
-		assertThat(customSchema.getLabel()).isEqualTo("custom");
+		assertThat(customSchema.getLabel(Language.French)).isEqualTo("custom");
 	}
 
 	@Test
 	public void givenLabelOfDefaultSchemaIsDefinedWhenBuildingThenSetToDefinedValue() {
-		defaultSchemaBuilder.setLabel("aName");
+		defaultSchemaBuilder.addLabel(Language.French, "aName");
 
 		build();
 
-		assertThat(defaultSchema.getLabel()).isEqualTo("aName");
+		assertThat(defaultSchema.getLabel(Language.French)).isEqualTo("aName");
 	}
 
 	@Test
 	public void givenLabelOfDefaultSchemaIsDefinedWhenModifyingThenSetToDefinedValue() {
-		defaultSchemaBuilder.setLabel("aName");
+		defaultSchemaBuilder.addLabel(Language.French, "aName");
 
 		buildAndModify();
 
-		assertThat(defaultSchemaBuilder.getLabel()).isEqualTo("aName");
+		assertThat(defaultSchemaBuilder.getLabel(Language.French)).isEqualTo("aName");
 	}
 
 	@Test
 	public void givenLabelOfCustomSchemaIsDefinedWhenBuildingThenSetToDefinedValue() {
-		defaultSchemaBuilder.setLabel("zeDefaultSchemaName");
-		customSchemaBuilder.setLabel("aName");
+		defaultSchemaBuilder.addLabel(Language.French, "zeDefaultSchemaName");
+		customSchemaBuilder.addLabel(Language.French, "aName");
 
 		build();
 
-		assertThat(customSchema.getLabel()).isEqualTo("aName");
+		assertThat(customSchema.getLabel(Language.French)).isEqualTo("aName");
 	}
 
 	@Test
 	public void givenLabelOfCustomSchemaIsDefinedWhenModifyingThenSetToDefinedValue() {
-		defaultSchemaBuilder.setLabel("zeDefaultSchemaName");
-		customSchemaBuilder.setLabel("aName");
+		defaultSchemaBuilder.addLabel(Language.French, "zeDefaultSchemaName");
+		customSchemaBuilder.addLabel(Language.French, "aName");
 
 		buildAndModify();
 
-		assertThat(customSchemaBuilder.getLabel()).isEqualTo("aName");
+		assertThat(customSchemaBuilder.getLabel(Language.French)).isEqualTo("aName");
 	}
 
 	@Test(expected = MetadataSchemaBuilderRuntimeException.InvalidAttribute.class)
@@ -490,7 +493,8 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 			throws Exception {
 		buildAndModify();
 		defaultSchemaBuilder.create("zeMetadata").setMultivalue(true).setUndeletable(true).setEnabled(false)
-				.setSystemReserved(true).setDefaultRequirement(true).setLabel("zeLabel").setType(MetadataValueType.BOOLEAN)
+				.setSystemReserved(true).setDefaultRequirement(true).addLabel(Language.French, "zeLabel")
+				.setType(MetadataValueType.BOOLEAN)
 				.setUnmodifiable(true);
 
 		MetadataSchemaBuilder builder = MetadataSchemaBuilder.createSchema(defaultSchemaBuilder, "zeCustom2");

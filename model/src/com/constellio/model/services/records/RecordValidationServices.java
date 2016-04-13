@@ -194,7 +194,8 @@ public class RecordValidationServices {
 			@Override
 			public void add(Class<?> validatorClass, String code, Map<String, String> parameters) {
 				parameters.put("metadataCode", metadata.getCode());
-				parameters.put("metadataLabel", metadata.getLabel());
+				//TODO Thiago
+				//				parameters.put("metadataLabel", metadata.getLabel());
 				parameters.put("metadataValue", value.toString());
 				validationErrors.add(validatorClass, code, parameters);
 			}
@@ -209,7 +210,8 @@ public class RecordValidationServices {
 			@Override
 			public void add(Class<?> validatorClass, String code, Map<String, String> parameters) {
 				parameters.put("schemaCode", schema.getCode());
-				parameters.put("schemaLabel", schema.getLabel());
+				//TODO Thiago
+				//				parameters.put("schemaLabel", schema.getLabel());
 				validationErrors.add(validatorClass, code, parameters);
 			}
 		});

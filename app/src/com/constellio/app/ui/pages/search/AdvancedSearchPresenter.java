@@ -30,6 +30,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_EmptyCondition;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_TooManyClosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
@@ -138,7 +139,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas().sortAscTitle()) {
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas().sortAscTitle(language)) {
 			if (isBatchEditable(metadata)) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}

@@ -158,7 +158,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 					.setType(MetadataValueType.NUMBER);
 
 			ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
-			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, null, REQUIRED_AND_UNIQUE);
+			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, (String) null, REQUIRED_AND_UNIQUE);
 
 			typesBuilder.getSchema(VariableRetentionPeriod.DEFAULT_SCHEMA)
 					.get(VariableRetentionPeriod.CODE).setUnmodifiable(true).addValidator(IntegerStringValidator.class);

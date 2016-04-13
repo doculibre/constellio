@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.schema;
 
 import java.util.Map;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
@@ -10,6 +11,7 @@ import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -64,7 +66,8 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 			builder = types.getSchema(code);
 		}
 
-		builder.setLabel(schemaVO.getLabel());
+		Language language = Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage());
+		builder.addLabel(language, schemaVO.getLabel());
 
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);

@@ -7,8 +7,10 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
@@ -28,7 +30,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		MetadataValueType type = metadata.getType();
 		boolean required = metadata.isDefaultRequirement();
 		boolean multivalue = metadata.isMultivalue();
-		String label = metadata.getLabel();
+		String label = metadata.getLabel(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));
 		MetadataInputType entry = config.getInputType();
 		boolean sortable = metadata.isSortable();
 		boolean searchable = metadata.isSearchable();

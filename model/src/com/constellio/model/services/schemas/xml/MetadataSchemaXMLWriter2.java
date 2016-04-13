@@ -1,11 +1,15 @@
 package com.constellio.model.services.schemas.xml;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
@@ -28,11 +32,13 @@ import com.constellio.model.utils.ParametrizedInstanceUtils;
 public class MetadataSchemaXMLWriter2 {
 
 	public static final String FORMAT_ATTRIBUTE = "format";
-	public static final String FORMAT_VERSION = MetadataSchemaXMLReader2.FORMAT_VERSION;
+	//TODO Thiago
+	public static final String FORMAT_VERSION = MetadataSchemaXMLReader3.FORMAT_VERSION;
+	public static final String LABEL_SEPARATOR = ";;";
 
 	public void writeEmptyDocument(String collection, Document document) {
 		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
-				new ArrayList<String>()), document);
+				new ArrayList<String>(), Arrays.asList(Language.French)), document);
 	}
 
 	public Document write(MetadataSchemaTypes schemaTypes) {
@@ -55,7 +61,9 @@ public class MetadataSchemaXMLWriter2 {
 		MetadataSchema defaultSchema = schemaType.getDefaultSchema();
 		Element defaultSchemaElement = new Element("defaultSchema");
 		defaultSchemaElement.setAttribute("code", "" + defaultSchema.getLocalCode());
-		defaultSchemaElement.setAttribute("label", "" + defaultSchema.getLabel());
+
+		defaultSchemaElement.setAttribute("label", labelToSemiColonStringSeparated(defaultSchema.getLabels()));
+		//		defaultSchemaElement.setAttribute("label", "" + defaultSchema.getLabel());
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			Metadata metadataInCollectionSchema = null;
 			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode())
@@ -85,6 +93,7 @@ public class MetadataSchemaXMLWriter2 {
 		Element schemaTypesElement = new Element("types");
 		document.setRootElement(schemaTypesElement);
 		schemaTypesElement.setAttribute("version", "" + schemaTypes.getVersion());
+		schemaTypesElement.setAttribute("languages", "" + toCommaSeparatedString(toLanguagesCodes(schemaTypes)));
 
 		MetadataSchema collectionSchema = null;
 		if (schemaTypes.hasType(Collection.SCHEMA_TYPE)) {
@@ -102,10 +111,20 @@ public class MetadataSchemaXMLWriter2 {
 		return schemaTypesElement;
 	}
 
+	private List<String> toLanguagesCodes(MetadataSchemaTypes schemaTypes) {
+		List<String> languages = new ArrayList<>();
+		for (Language language : schemaTypes.getLanguages()) {
+			languages.add(language.getCode());
+		}
+		return languages;
+	}
+
+	//TODO Thiago
 	private Element writeSchemaType(MetadataSchemaType schemaType, MetadataSchema collectionSchema) {
 		Element schemaTypeElement = new Element("type");
 		schemaTypeElement.setAttribute("code", schemaType.getCode());
-		schemaTypeElement.setAttribute("label", schemaType.getLabel());
+
+		schemaTypeElement.setAttribute("label", labelToSemiColonStringSeparated(schemaType.getLabels()));
 		if (schemaType.hasSecurity()) {
 			schemaTypeElement.setAttribute("security", writeBoolean(schemaType.hasSecurity()));
 		}
@@ -115,10 +134,18 @@ public class MetadataSchemaXMLWriter2 {
 		return schemaTypeElement;
 	}
 
+	private String labelToSemiColonStringSeparated(Map<Language, String> labels) {
+		StringBuilder stringBuilder = new StringBuilder();
+		for (Entry<Language, String> entry : labels.entrySet()) {
+			stringBuilder.append(entry.getKey().getCode() + "=" + entry.getValue() + LABEL_SEPARATOR);
+		}
+		return stringBuilder.toString();
+	}
+
 	private Element toXMLElement(MetadataSchema schema, MetadataSchema collectionSchema) {
 		Element schemaElement = new Element("schema");
 		schemaElement.setAttribute("code", schema.getLocalCode());
-		schemaElement.setAttribute("label", schema.getLabel());
+		schemaElement.setAttribute("label", labelToSemiColonStringSeparated(schema.getLabels()));
 		schemaElement.setAttribute("undeletable", writeBoolean(schema.isUndeletable()));
 		for (Metadata metadata : schema.getMetadatas()) {
 			Metadata globalMetadataInCollectionSchema = null;
@@ -166,7 +193,7 @@ public class MetadataSchemaXMLWriter2 {
 
 	private void writeMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils, Element metadataElement,
 			boolean notUserDefinedMetadata) {
-		metadataElement.setAttribute("label", metadata.getLabel());
+		metadataElement.setAttribute("label", labelToSemiColonStringSeparated(metadata.getLabels()));
 
 		if (!metadata.isEnabled()) {
 			metadataElement.setAttribute("enabled", writeBoolean(metadata.isEnabled()));
@@ -253,8 +280,8 @@ public class MetadataSchemaXMLWriter2 {
 			Element metadataElement, boolean notUserDefinedMetadata, Metadata globalMetadataInCollection) {
 
 		boolean different = false;
-		if (!globalMetadataInCollection.getLabel().equals(metadata.getLabel())) {
-			metadataElement.setAttribute("label", metadata.getLabel());
+		if (!globalMetadataInCollection.getLabels().equals(metadata.getLabels())) {
+			metadataElement.setAttribute("label", labelToSemiColonStringSeparated(metadata.getLabels()));
 			different = true;
 		}
 
@@ -396,8 +423,9 @@ public class MetadataSchemaXMLWriter2 {
 			metadataElement.setAttribute("inputMask", metadata.getInputMask());
 			differentFromInheritance = true;
 		}
-		if (metadata.getLabel() != null && !metadata.getLabel().equals(metadata.getInheritance().getLabel())) {
-			metadataElement.setAttribute("label", metadata.getLabel());
+		if (metadata.getLabels() != null && !metadata.getLabels().isEmpty() && !metadata.getLabels()
+				.equals(metadata.getInheritance().getLabels())) {
+			metadataElement.setAttribute("label", labelToSemiColonStringSeparated(metadata.getLabels()));
 			differentFromInheritance = true;
 		}
 		if (metadata.getDefaultValue() != null && !metadata.getDefaultValue()

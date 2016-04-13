@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -43,7 +44,7 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		when(view.navigateTo()).thenReturn(navigator);
 
 		newValueDomainTitle = "new value domain";
-		when(valueDomainType1.getLabel()).thenReturn(newValueDomainTitle);
+		when(valueDomainType1.getLabel(Language.French)).thenReturn(newValueDomainTitle);
 
 		presenter = spy(new ListValueDomainPresenter(view));
 

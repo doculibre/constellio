@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -119,7 +120,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 		when(allowedReferences.getAllowedSchemas()).thenReturn(allowedSchemas);
 		when(aMetadata.getType()).thenReturn(MetadataValueType.REFERENCE);
 
-		doReturn(parameters).when(validator).createMapWithCodeAndLabel(aMetadata);
+		doReturn(parameters).when(validator).createMapWithCode(aMetadata);
 		validator.validateReferenceMetadata(aMetadata, validationErrors);
 
 		verify(validationErrors, times(1)).add(validator.getClass(), "NoAllowedReferencesInReferenceMetadata", parameters);
@@ -180,7 +181,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 
 	@Test
 	public void givenMetadataHasLabelWhenValidatingLabelThenNoErrorAdded() {
-		when(aMetadata.getLabel()).thenReturn(aMetadataLabel);
+		when(aMetadata.getLabel(Language.French)).thenReturn(aMetadataLabel);
 
 		validator.validateMetadataLabelNotNull(aMetadata, validationErrors);
 
@@ -189,7 +190,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 
 	@Test
 	public void givenMetadataHasNoLabelWhenValidatingLabelThenCorrectErrorAdded() {
-		doReturn(parameters).when(validator).createMapWithCodeAndLabel(aMetadata);
+		doReturn(parameters).when(validator).createMapWithCode(aMetadata);
 
 		validator.validateMetadataLabelNotNull(aMetadata, validationErrors);
 
@@ -198,7 +199,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 
 	@Test
 	public void givenMetadataHasNoTypeWhenValidatingTypeThenCorrectErrorAdded() {
-		doReturn(parameters).when(validator).createMapWithCodeAndLabel(aMetadata);
+		doReturn(parameters).when(validator).createMapWithCode(aMetadata);
 
 		validator.validateMetadataTypeNotNull(aMetadata, validationErrors);
 
@@ -217,9 +218,9 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 	@Test
 	public void whenCreatingMapWithCodeAndLabelThenContentIsCorrect() {
 		when(aMetadata.getLocalCode()).thenReturn(aMetadataCode);
-		when(aMetadata.getLabel()).thenReturn(aMetadataLabel);
+		when(aMetadata.getLabel(Language.French)).thenReturn(aMetadataLabel);
 
-		Map<String, String> returnedMap = validator.createMapWithCodeAndLabel(aMetadata);
+		Map<String, String> returnedMap = validator.createMapWithCode(aMetadata);
 
 		assertEquals(aMetadataCode, returnedMap.get("localCode"));
 		assertEquals(aMetadataLabel, returnedMap.get("label"));
@@ -229,7 +230,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 	@Test
 	public void whenCreatingMapWithCodeLabelAndTypeThenContentIsCorrect() {
 		when(aMetadata.getLocalCode()).thenReturn(aMetadataCode);
-		when(aMetadata.getLabel()).thenReturn(aMetadataLabel);
+		when(aMetadata.getLabel(Language.French)).thenReturn(aMetadataLabel);
 		when(aMetadata.getType()).thenReturn(MetadataValueType.STRING);
 
 		Map<String, String> returnedMap = validator.createMapWithCodeLabelAndType(aMetadata);

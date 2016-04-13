@@ -2,13 +2,16 @@ package com.constellio.model.services.schemas.builders;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.InheritedMetadataBehaviors;
@@ -42,7 +45,7 @@ public class MetadataBuilder {
 	private String localCode;
 	private String collection;
 	private String code;
-	private String label;
+	private Map<Language, String> labels = new HashMap<>();
 	private Boolean enabled;
 	private MetadataValueType type;
 	private boolean undeletable = false;
@@ -105,7 +108,7 @@ public class MetadataBuilder {
 		builder.classProvider = schemaBuilder.getClassProvider();
 		builder.setCollection(schemaBuilder.getCollection());
 		builder.setLocalCode(localCode);
-		builder.setLabel(localCode);
+		//		builder.setLabels(schemaBuilder.getLabels());
 		builder.setEnabled(true);
 		builder.setDefaultRequirement(false);
 		builder.setCode(schemaBuilder.getCode() + UNDERSCORE + localCode);
@@ -135,7 +138,7 @@ public class MetadataBuilder {
 		builder.setCollection(metadata.getCollection());
 		builder.setCode(metadata.getCode());
 		builder.originalMetadata = metadata;
-		builder.label = metadata.getLabel();
+		builder.setLabels(metadata.getLabels());
 		builder.enabled = metadata.isEnabled();
 		builder.type = metadata.getType();
 		builder.undeletable = metadata.isUndeletable();
@@ -200,8 +203,9 @@ public class MetadataBuilder {
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);
 		}
-		if (inheritanceMetadata.getLabel() != null && !inheritanceMetadata.getLabel().equals(metadata.getLabel())) {
-			builder.label = metadata.getLabel();
+		if (inheritanceMetadata.getLabels() != null && !inheritanceMetadata.getLabels().isEmpty() && !inheritanceMetadata
+				.getLabels().equals(metadata.getLabels())) {
+			builder.setLabels(metadata.getLabels());
 		}
 		if (metadata.getInputMask() != null && !metadata.getInputMask().equals(inheritanceMetadata.getInputMask())) {
 			builder.inputMask = metadata.getInputMask();
@@ -256,12 +260,21 @@ public class MetadataBuilder {
 		return this;
 	}
 
-	public String getLabel() {
-		return label;
+	public String getLabel(Language language) {
+		return labels.get(language);
 	}
 
-	public MetadataBuilder setLabel(String label) {
-		this.label = label;
+	public Map<Language, String> getLabels() {
+		return labels;
+	}
+
+	public MetadataBuilder setLabels(Map<Language, String> labels) {
+		this.labels = new HashMap<>(labels);
+		return this;
+	}
+
+	public MetadataBuilder addLabel(Language language, String label) {
+		this.labels.put(language, label);
 		return this;
 	}
 
@@ -543,8 +556,9 @@ public class MetadataBuilder {
 
 	Metadata buildWithInheritance(Metadata inheritance) {
 
-		if (this.getLabel() == null || this.getLabel().equals(localCode)) {
-			this.label = inheritance.getLabel();
+		//TODO Thiago
+		if (this.getLabels() == null || this.getLabels().isEmpty() /*|| this.getLabel().equals(localCode)*/) {
+			setLabels(inheritance.getLabels());
 		}
 		if (this.getEnabled() == null) {
 			this.enabled = inheritance.isEnabled();
@@ -576,7 +590,7 @@ public class MetadataBuilder {
 			}
 		}
 
-		return new Metadata(inheritance, this.getLabel(), this.getEnabled(), this.getDefaultRequirement(), this.code,
+		return new Metadata(inheritance, this.getLabels(), this.getEnabled(), this.getDefaultRequirement(), this.code,
 				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs);
 	}
 
@@ -621,7 +635,7 @@ public class MetadataBuilder {
 			}
 		};
 
-		return new Metadata(localCode, this.getCode(), collection, this.getLabel(), this.getEnabled(), behaviors,
+		return new Metadata(localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), behaviors,
 				this.type, references, this.getDefaultRequirement(), this.dataEntry, validators, dataStoreType,
 				accessRestriction, structureFactory, enumClass, defaultValue, inputMask, populateConfigsBuilder.build(),
 				encryptionServicesFactory);
@@ -682,8 +696,8 @@ public class MetadataBuilder {
 
 	@Override
 	public String toString() {
-		return "MetadataBuilder [inheritance=" + inheritance + ", localCode=" + localCode + ", code=" + code + ", label="
-				+ label + ", enabled=" + enabled + ", type=" + type + ", allowedReferencesBuilder=" + allowedReferencesBuilder
+		return "MetadataBuilder [inheritance=" + inheritance + ", localCode=" + localCode + ", code=" + code + ", enabled="
+				+ enabled + ", type=" + type + ", allowedReferencesBuilder=" + allowedReferencesBuilder
 				+ ", undeletable=" + undeletable + ", defaultRequirement=" + defaultRequirement + ", dataEntry=" + dataEntry
 				+ "]";
 	}
@@ -717,7 +731,7 @@ public class MetadataBuilder {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "inheritance");
 		}
 		validateCode(inheritance.getLocalCode());
-		if (builder.getLabel() == null) {
+		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
 		}
 		if (builder.getEnabled() == null) {
@@ -740,9 +754,10 @@ public class MetadataBuilder {
 		if (builder.code == null) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "code");
 		}
-		if (builder.getLabel() == null) {
+		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
 		}
+
 		if (builder.getEnabled() == null) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "enabled");
 		}

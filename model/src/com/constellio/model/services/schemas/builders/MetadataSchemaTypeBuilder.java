@@ -4,14 +4,18 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
@@ -30,7 +34,7 @@ public class MetadataSchemaTypeBuilder {
 	private final Set<MetadataSchemaBuilder> allSchemas = new HashSet<MetadataSchemaBuilder>();
 	private String code;
 	private String collection;
-	private String label;
+	private Map<Language, String> labels;
 	private boolean security = true;
 	private boolean inTransactionLog = true;
 	private MetadataSchemaBuilder defaultSchema;
@@ -52,10 +56,19 @@ public class MetadataSchemaTypeBuilder {
 		builder.classProvider = typesBuilder.getClassProvider();
 		builder.code = code;
 		builder.collection = collection;
-		builder.label = code;
+		builder.setLabels(configureLabels(code, typesBuilder));
 		builder.customSchemas = new HashSet<>();
 		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(builder, typesBuilder, initialize);
+
 		return builder;
+	}
+
+	private static Map<Language, String> configureLabels(String code, MetadataSchemaTypesBuilder typesBuilder) {
+		Map<Language, String> label = new HashMap<>();
+		for (Language language : typesBuilder.getLanguages()) {
+			label.put(language, code);
+		}
+		return label;
 	}
 
 	public static MetadataSchemaTypeBuilder modifySchemaType(MetadataSchemaType schemaType, ClassProvider classProvider) {
@@ -63,7 +76,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.classProvider = classProvider;
 		builder.code = schemaType.getCode();
 		builder.collection = schemaType.getCollection();
-		builder.label = schemaType.getLabel();
+		builder.setLabels(schemaType.getLabels());
 		builder.undeletable = schemaType.isUndeletable();
 		builder.defaultSchema = MetadataSchemaBuilder.modifyDefaultSchema(schemaType.getDefaultSchema(), builder);
 		builder.security = schemaType.hasSecurity();
@@ -83,12 +96,21 @@ public class MetadataSchemaTypeBuilder {
 		return collection;
 	}
 
-	public String getLabel() {
-		return label;
+	public Map<Language, String> getLabels() {
+		return labels;
 	}
 
-	public MetadataSchemaTypeBuilder setLabel(String label) {
-		this.label = label;
+	public String getLabel(Language language) {
+		return labels.get(language);
+	}
+
+	public MetadataSchemaTypeBuilder setLabels(Map<Language, String> labels) {
+		this.labels = new HashMap<>(labels);
+		return this;
+	}
+
+	public MetadataSchemaTypeBuilder addLabel(Language language, String label) {
+		this.labels.put(language, label);
 		return this;
 	}
 
@@ -146,12 +168,18 @@ public class MetadataSchemaTypeBuilder {
 			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory));
 		}
 
-		if (StringUtils.isBlank(label)) {
+		if (labels == null || labels.isEmpty()) {
 			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
+		} else {
+			for (Entry<Language, String> entry : labels.entrySet()) {
+				if (StringUtils.isBlank(entry.getValue())) {
+					throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage(entry.getKey(), code);
+				}
+			}
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
-		return new MetadataSchemaType(code, collection, label, schemas, defaultSchema, undeletable, security, inTransactionLog);
+		return new MetadataSchemaType(code, collection, labels, schemas, defaultSchema, undeletable, security, inTransactionLog);
 	}
 
 	public MetadataBuilder getMetadata(String metadataCode) {
@@ -207,7 +235,7 @@ public class MetadataSchemaTypeBuilder {
 
 	@Override
 	public String toString() {
-		return "MetadataSchemaTypeBuilder [code=" + code + ", label=" + label + ", defaultSchema=" + defaultSchema
+		return "MetadataSchemaTypeBuilder [code=" + code + ", label=" + labels + ", defaultSchema=" + defaultSchema
 				+ ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
 	}
 

@@ -265,7 +265,8 @@ public class RetentionRuleValidator implements RecordValidator {
 		parameters.put(COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD, field);
 		parameters.put(COPY_RETENTION_RULE_FIELD_REQUIRED_INDEX, "" + index);
 		parameters.put(RecordMetadataValidator.METADATA_CODE, RetentionRule.COPY_RETENTION_RULES);
-		parameters.put(RecordMetadataValidator.METADATA_LABEL, schema.getMetadata(RetentionRule.COPY_RETENTION_RULES).getLabel());
+		parameters.put(RecordMetadataValidator.METADATA_LABEL,
+				schema.getMetadata(RetentionRule.COPY_RETENTION_RULES).getCode());
 		validationErrors.add(getClass(), COPY_RETENTION_RULE_FIELD_REQUIRED, parameters);
 
 	}
@@ -273,7 +274,9 @@ public class RetentionRuleValidator implements RecordValidator {
 	private void addCopyRetentionRuleError(String code, MetadataSchema schema, ValidationErrors validationErrors) {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put(RecordMetadataValidator.METADATA_CODE, RetentionRule.COPY_RETENTION_RULES);
-		parameters.put(RecordMetadataValidator.METADATA_LABEL, schema.getMetadata(RetentionRule.COPY_RETENTION_RULES).getLabel());
+
+		parameters.put(RecordMetadataValidator.METADATA_LABEL,
+				schema.getMetadata(RetentionRule.COPY_RETENTION_RULES).getCode());
 		validationErrors.add(getClass(), code, parameters);
 
 	}

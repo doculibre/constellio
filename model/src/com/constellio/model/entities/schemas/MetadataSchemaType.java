@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -24,7 +25,7 @@ public class MetadataSchemaType {
 
 	private final String collection;
 
-	private final String label;
+	private final Map<Language, String> labels;
 
 	private final MetadataSchema defaultSchema;
 
@@ -39,12 +40,12 @@ public class MetadataSchemaType {
 	private final Boolean undeletable;
 	private Collection<? extends Metadata> allMetadatas;
 
-	public MetadataSchemaType(String code, String collection, String label, List<MetadataSchema> customSchemas,
+	public MetadataSchemaType(String code, String collection, Map<Language, String> labels, List<MetadataSchema> customSchemas,
 			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog) {
 		super();
 		this.code = code;
 		this.collection = collection;
-		this.label = label;
+		this.labels = Collections.unmodifiableMap(labels);
 		this.customSchemas = Collections.unmodifiableList(customSchemas);
 		this.defaultSchema = defaultSchema;
 		this.undeletable = undeletable;
@@ -62,8 +63,12 @@ public class MetadataSchemaType {
 		return code;
 	}
 
-	public String getLabel() {
-		return label;
+	public Map<Language, String> getLabels() {
+		return labels;
+	}
+
+	public String getLabel(Language language) {
+		return labels.get(language);
 	}
 
 	public boolean isInTransactionLog() {
@@ -260,9 +265,10 @@ public class MetadataSchemaType {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
+	//TODO Thiago
 	@Override
 	public String toString() {
-		return "MetadataSchemaType [code=" + code + ", label=" + label + ", defaultSchema=" + defaultSchema
+		return "MetadataSchemaType [code=" + code + ", label=" + labels + ", defaultSchema=" + defaultSchema
 				+ ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
 	}
 

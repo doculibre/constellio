@@ -58,7 +58,8 @@ public class MetadataUniqueValidator implements Validator<Record> {
 	private void addValidationErrors(ValidationErrors validationErrors, String value, String errorCode, Metadata metadata) {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL, metadata.getLabel());
+		//TODO Thiago
+		//		parameters.put(METADATA_LABEL, metadata.getLabels());
 		parameters.put(VALUE, value);
 		validationErrors.add(getClass(), errorCode, parameters);
 	}

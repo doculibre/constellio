@@ -108,7 +108,8 @@ public class SchemasDisplayManager
 			if (!config.getFormMetadataCodes().contains(metadata.getCode())) {
 				Map<String, String> params = new HashMap<>();
 				params.put("code", metadata.getCode());
-				params.put("label", metadata.getLabel());
+				//TODO Thiago
+				//				params.put("label", metadata.getLabel());
 				errors.add(SchemasDisplayManager.class, REQUIRED_METADATA_IN_FORM_LIST, params);
 			}
 		}
@@ -265,7 +266,7 @@ public class SchemasDisplayManager
 		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
 		List<MetadataValueType> restrictedTypes = asList(MetadataValueType.CONTENT, MetadataValueType.STRUCTURE);
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
-			if ("id" .equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
+			if ("id".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
 					&& !restrictedTypes
 					.contains(metadata.getType()) && !metadata
 					.isSystemReserved())) {

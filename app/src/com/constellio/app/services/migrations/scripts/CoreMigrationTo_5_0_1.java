@@ -10,6 +10,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.ApprovalTask;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -90,7 +91,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		defaultSchema.createUndeletable(Event.PERMISSION_ROLES).setType(STRING);
 		defaultSchema.createUndeletable(Event.PERMISSION_USERS).setType(STRING);
 		defaultSchema.createUndeletable(Event.IP).setType(STRING);
-		defaultSchema.createUndeletable(Event.REASON).setType(STRING).setLabel("Justification");
+		defaultSchema.createUndeletable(Event.REASON).setType(STRING).addLabel(Language.French, "Justification");
 
 		return type;
 	}

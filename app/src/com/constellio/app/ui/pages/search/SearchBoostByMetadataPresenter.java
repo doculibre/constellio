@@ -10,6 +10,7 @@ import java.util.List;
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.builders.SearchBoostToVOBuilder;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataListFilter;
@@ -61,7 +62,8 @@ public class SearchBoostByMetadataPresenter extends SearchBoostPresenter {
 		for (Metadata metadata : list) {
 			SearchBoostVO searchBoostVO = new SearchBoostVO();
 			searchBoostVO.setType(TYPE);
-			searchBoostVO.setLabel(metadata.getLabel());
+			searchBoostVO
+					.setLabel(metadata.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage())));
 			String analyzedField = metadata.getAnalyzedField(view.getSessionContext().getCurrentLocale().getLanguage())
 					.getDataStoreCode();
 			searchBoostVO.setKey(analyzedField);

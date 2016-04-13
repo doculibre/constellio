@@ -35,15 +35,15 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
 
-public class MetadataSchemaXMLReader2 {
+public class MetadataSchemaXMLReader3 {
 
 	private static Map<String, Class<? extends RecordMetadataValidator<?>>> validatorsCache = new HashMap<>();
 
-	public static final String FORMAT_VERSION = "2";
+	public static final String FORMAT_VERSION = "3";
 
 	ClassProvider classProvider;
 
-	public MetadataSchemaXMLReader2(ClassProvider classProvider) {
+	public MetadataSchemaXMLReader3(ClassProvider classProvider) {
 		this.classProvider = classProvider;
 	}
 
@@ -52,23 +52,30 @@ public class MetadataSchemaXMLReader2 {
 
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
+		List<Language> languages = getLanguages(rootElement);
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collection, version, classProvider, Arrays.asList(Language.French));
+				.createWithVersion(collection, version, classProvider, languages);
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
 			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
 		return typesBuilder;
 	}
 
+	private List<Language> getLanguages(Element rootElement) {
+		List<Language> languages = new ArrayList<>();
+		List<String> languagesCodes = Arrays.asList(rootElement.getAttributeValue("languages").split(","));
+		for (String code : languagesCodes) {
+			languages.add(Language.withCode(code));
+		}
+		return languages;
+	}
+
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
-		//TODO Thiago
-		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false);
-
-		for (Language language : typesBuilder.getLanguages()) {
-			schemaTypeBuilder = schemaTypeBuilder.addLabel(language, getLabelValue(element));
-		}
+		Map<Language, String> labels = getLabels(element);
+		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
+				.setLabels(labels);
 
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
 				null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
@@ -78,6 +85,23 @@ public class MetadataSchemaXMLReader2 {
 		parseDefaultSchema(element, schemaTypeBuilder, typesBuilder, collectionSchema);
 		parseCustomSchemas(element, schemaTypeBuilder, collectionSchema);
 		return schemaTypeBuilder.build(typesFactory, modelLayerFactory);
+	}
+
+	private Map<Language, String> getLabels(Element element) {
+		Map<Language, String> labels = new HashMap<>();
+		String labelValue = element.getAttributeValue("label");
+		String codeValue = element.getAttributeValue("code");
+		//TODO Thiago
+		if (StringUtils.isNotBlank(labelValue)) {
+			List<String> languagesLabels = Arrays
+					.asList(element.getAttributeValue("label").split(MetadataSchemaXMLWriter2.LABEL_SEPARATOR));
+			for (String languagesLabel : languagesLabels) {
+				String[] keyValue = languagesLabel.split("=");
+				Language language = Language.withCode(keyValue[0]);
+				labels.put(language, keyValue[1]);
+			}
+		}
+		return labels;
 	}
 
 	private void parseCustomSchemas(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
@@ -91,7 +115,7 @@ public class MetadataSchemaXMLReader2 {
 	private void parseSchema(MetadataSchemaTypeBuilder schemaTypeBuilder, Element schemaElement,
 			MetadataSchemaBuilder collectionSchema) {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
-		schemaBuilder.addLabel(Language.French, getLabelValue(schemaElement));
+		schemaBuilder.setLabels(getLabels(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
@@ -113,7 +137,11 @@ public class MetadataSchemaXMLReader2 {
 			metadataBuilder = schemaBuilder.create(codeValue);
 		}
 
-		metadataBuilder.addLabel(Language.French, getLabelValue(metadataElement));
+		metadataBuilder.setLabels(getLabels(metadataElement));
+		//TODO Thiago
+		if (metadataBuilder.getLabels().isEmpty()) {
+			System.out.println(metadataBuilder.getCode());
+		}
 
 		String localCode = metadataBuilder.getLocalCode();
 
@@ -187,11 +215,11 @@ public class MetadataSchemaXMLReader2 {
 			inheriteGlobalMetadata = true;
 		}
 
-		String xmlLabel = getLabelValue(metadataElement);
-		if (inheriteGlobalMetadata && xmlLabel == null) {
+		Map<Language, String> xmlLabels = getLabels(metadataElement);
+		if (inheriteGlobalMetadata && xmlLabels == null && xmlLabels.isEmpty()) {
 			metadataBuilder.setLabels(globalMetadataInCollectionSchema.getLabels());
 		} else {
-			metadataBuilder.addLabel(Language.French, xmlLabel);
+			metadataBuilder.setLabels(xmlLabels);
 		}
 
 		List<String> validatorsClassNames = parseValidators(metadataElement, globalMetadataInCollectionSchema);
@@ -504,7 +532,7 @@ public class MetadataSchemaXMLReader2 {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
 
-		defaultSchemaBuilder.addLabel(Language.French, getLabelValue(defaultSchemaElement));
+		defaultSchemaBuilder.setLabels(getLabels(defaultSchemaElement));
 		//	new CommonMetadataBuilder().addCommonMetadataToExistingSchema(defaultSchemaBuilder, typesBuilder);
 		for (Element metadataElement : defaultSchemaElement.getChildren("m")) {
 			parseMetadata(defaultSchemaBuilder, metadataElement, collectionSchema);
@@ -519,10 +547,11 @@ public class MetadataSchemaXMLReader2 {
 		return element.getAttributeValue("code");
 	}
 
-	private String getLabelValue(Element metadata) {
-		String labelValue = metadata.getAttributeValue("label");
-		return StringUtils.isBlank(labelValue) ? null : labelValue;
-	}
+	//TODO Thiago
+	//	private String getLabelValue(Element metadata) {
+	//		String labelValue = metadata.getAttributeValue("label");
+	//		return StringUtils.isBlank(labelValue) ? null : labelValue;
+	//	}
 
 	private MetadataValueType getTypeValue(Element element) {
 		String stringValue = element.getAttributeValue("type");

@@ -21,6 +21,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportSchemaTypesDataProvider;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -180,7 +181,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 			Metadata metadata = it.next();
 			if (metadata.getLocalCode().equals("USRmdRefFolder")) {
 				assertThat(metadata.getType()).isEqualTo(MetadataValueType.REFERENCE);
-				assertThat(metadata.getLabel()).isEqualTo("ref folder");
+				assertThat(metadata.getLabel(Language.French)).isEqualTo("ref folder");
 				assertThat(metadata.isDefaultRequirement()).isTrue();
 				assertThat(metadata.isEnabled()).isTrue();
 				assertThat(metadata.isTaxonomyRelationship()).isFalse();
@@ -232,12 +233,12 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 			if (metadata.getLocalCode().equals("USRcat1")) {
 				//<element code="regex" label="Regex" required="true" type="string"/>
 				assertThat(metadata.getType()).isEqualTo(MetadataValueType.STRING);
-				assertThat(metadata.getLabel()).isEqualTo("cat 1");
+				assertThat(metadata.getLabel(Language.French)).isEqualTo("cat 1");
 				assertThat(metadata.isDefaultRequirement()).isFalse();
 				assertThat(metadata.isEnabled()).isFalse();
 			} else if (metadata.getLocalCode().equals("USRmd2Papier")) {
 				assertThat(metadata.getType()).isEqualTo(MetadataValueType.STRING);
-				assertThat(metadata.getLabel()).isEqualTo("md2 papier");
+				assertThat(metadata.getLabel(Language.French)).isEqualTo("md2 papier");
 				assertThat(metadata.isDefaultRequirement()).isTrue();
 			}
 			metadataLocalCodes.add((metadata.getLocalCode()));
@@ -255,7 +256,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 			if (metadata.getLocalCode().equals("USRcat1")) {
 				//<element code="regex" label="Regex" required="true" type="string"/>
 				assertThat(metadata.getType()).isEqualTo(MetadataValueType.STRING);
-				assertThat(metadata.getLabel()).isEqualTo("cat 1");
+				assertThat(metadata.getLabel(Language.French)).isEqualTo("cat 1");
 				assertThat(metadata.isDefaultRequirement()).isFalse();
 				assertThat(metadata.isEnabled()).isTrue();
 			}
@@ -283,7 +284,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 	private void validateDDVWithMetadata(MetadataSchemaTypes types) {
 		MetadataSchemaType schemaType = types.getSchemaType("ddvMasqueSaisieLocalisation");
 		assertThat(schemaType).isNotNull();
-		assertThat(schemaType.getLabel()).isEqualTo("Masque saisie");
+		assertThat(schemaType.getLabel(Language.French)).isEqualTo("Masque saisie");
 		MetadataList metadataList = schemaType.getAllMetadatas();
 		ListIterator<Metadata> it = metadataList.listIterator();
 		List<String> metadataLocalCodes = new ArrayList<>();
@@ -292,7 +293,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 			if (metadata.getLocalCode().equals("USRregex")) {
 				//<element code="regex" label="Regex" required="true" type="string"/>
 				assertThat(metadata.getType()).isEqualTo(MetadataValueType.STRING);
-				assertThat(metadata.getLabel()).isEqualTo("Regex");
+				assertThat(metadata.getLabel(Language.French)).isEqualTo("Regex");
 				assertThat(metadata.isDefaultRequirement()).isTrue();
 			}
 			metadataLocalCodes.add((metadata.getLocalCode()));
@@ -303,13 +304,13 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 	private void validateDDVImport(MetadataSchemaTypes types) {
 		MetadataSchemaType schemaType = types.getSchemaType("ddvCategoriesOrganisations");
 		assertThat(schemaType).isNotNull();
-		assertThat(schemaType.getLabel()).isEqualTo("Catégories d'organisations");
+		assertThat(schemaType.getLabel(Language.French)).isEqualTo("Catégories d'organisations");
 	}
 
 	private void validateTaxonomyImport(MetadataSchemaTypes types) {
 		MetadataSchemaType schemaType = types.getSchemaType("taxoDomaineHierarchiqueType");
 		assertThat(schemaType).isNotNull();
-		assertThat(schemaType.getLabel()).isEqualTo("Nouvelle taxo");
+		assertThat(schemaType.getLabel(Language.French)).isEqualTo("Nouvelle taxo");
 		MetadataList metadataList = schemaType.getAllMetadatas();
 		List<String> taxoDomaineHierarchiqueTypeLocalCodes = new ArrayList<>();
 		ListIterator<Metadata> it = metadataList.listIterator();
