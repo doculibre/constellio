@@ -27,7 +27,7 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	File configManagerFolder;
 	File appTempFolder;
 	File contentFolder;
-	File pluginsFolder;
+	File pluginsFolder, pluginsToMoveOnStartup;
 	List<DataLayerConfigurationAlteration> dataLayerConfigurationAlterations = new ArrayList<>();
 	List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
@@ -83,6 +83,7 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 		doReturn(setupProperties).when(spiedAppLayerConfiguration).getSetupProperties();
 		doReturn(pluginsFolder).when(spiedAppLayerConfiguration).getPluginsFolder();
+		doReturn(pluginsToMoveOnStartup).when(spiedAppLayerConfiguration).getPluginsManagementOnStartupFile();
 
 		for (AppLayerConfigurationAlteration alteration : appLayerConfigurationAlterations) {
 			alteration.alter(spiedAppLayerConfiguration);
@@ -137,6 +138,11 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 	public TestConstellioFactoriesDecorator setPluginsFolder(File pluginsFolder) {
 		this.pluginsFolder = pluginsFolder;
+		return this;
+	}
+
+	public TestConstellioFactoriesDecorator setPluginsToMoveOnStartupFile(File pluginsFolder) {
+		this.pluginsToMoveOnStartup = pluginsFolder;
 		return this;
 	}
 
