@@ -299,4 +299,13 @@ public class ConstellioPluginConfigurationManager {
 			});
 		}
 	}
+
+	public List<String> getAllPluginsCodes() {
+		List<String> returnList = new ArrayList<>();
+		XMLConfiguration xmlConfig = configManager.getXML(PLUGINS_CONFIG_PATH);
+		for (Element pluginInfoElement : xmlConfig.getDocument().getRootElement().getChildren()) {
+			returnList.add(pluginInfoElement.getName());
+		}
+		return returnList;
+	}
 }
