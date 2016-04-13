@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.LocalDateTime;
 
@@ -24,6 +25,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
@@ -191,7 +193,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		private Component buildReferenceValueComponent(final Criterion criterion) {
 
 			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
-			final LookupRecordField value = new LookupRecordField(metadata.getAllowedReferences().getAllowedSchemaType());
+			AllowedReferences allowedReferences = metadata.getAllowedReferences();
+			String allowedSchemaType = allowedReferences.getAllowedSchemaType();
+			Set<String> allowedSchemas = allowedReferences.getAllowedSchemas();
+			String[] allowedSchemasArray = allowedSchemas != null ? allowedSchemas.toArray(new String[0]) : null;
+			final LookupRecordField value = new LookupRecordField(allowedSchemaType, allowedSchemasArray[0]);
 			value.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			value.setWidth("100%");
 			value.setValue((String) criterion.getValue());
