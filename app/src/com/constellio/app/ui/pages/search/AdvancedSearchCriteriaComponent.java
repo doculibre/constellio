@@ -19,6 +19,7 @@ import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.lookup.PathLookupField;
+import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
@@ -38,6 +39,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
@@ -191,7 +193,6 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildReferenceValueComponent(final Criterion criterion) {
-
 			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
 			AllowedReferences allowedReferences = metadata.getAllowedReferences();
 			String allowedSchemaType = allowedReferences.getAllowedSchemaType();
@@ -208,7 +209,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 
-			//
+			final Field<?> value = buildReferenceEntryField(metadata.getAllowedReferences(), criterion);
+
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
 			operator.setNullSelectionAllowed(false);
 			operator.addValueChangeListener(new ValueChangeListener() {
@@ -231,6 +233,33 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			component.setSpacing(true);
 
 			return component;
+		}
+
+		private Field<?> buildReferenceEntryField(AllowedReferences references, final Criterion criterion) {
+			if (references.getAllowedSchemaType() != null) {
+				final LookupRecordField field = new LookupRecordField(references.getAllowedSchemaType());
+				field.setWidth("100%");
+				field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
+				field.setValue((String) criterion.getValue());
+				field.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(Property.ValueChangeEvent event) {
+						criterion.setValue(field.getValue());
+					}
+				});
+				return field;
+			} else {
+				final RecordComboBox field = new RecordComboBox(references.getAllowedSchemas().iterator().next());
+				field.setWidth("100%");
+				field.setValue(criterion.getValue());
+				field.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(Property.ValueChangeEvent event) {
+						criterion.setValue(field.getValue());
+					}
+				});
+				return field;
+			}
 		}
 
 		private Component buildStringValueComponent(final Criterion criterion) {
