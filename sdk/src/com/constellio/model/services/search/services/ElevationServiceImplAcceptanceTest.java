@@ -1,12 +1,5 @@
 package com.constellio.model.services.search.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -15,9 +8,18 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.Elevations;
 import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.SolrSafeConstellioAcceptanceTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
-public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SlowTest
+public class ElevationServiceImplAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	ElevationService elevationService;
 	private RecordServices recordServices;
 	private SearchServices searchServices;
@@ -62,24 +64,18 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 		elevationService.elevate(query1RecordElevationInBusinessCollection, query1);
 	}
 
-	//TODO Majid - Broken @Test
+	@Test
 	public void whenGetZeCollectionElevationForQuery1ThenReturnQuery1RecordElevationInZeCollection()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		List<DocElevation> elevation = elevationService
 				.getCollectionElevation(zeCollection, query1);
 		assertThat(elevation.size()).isEqualTo(1);
 		assertThat(elevation.get(0).getId()).isEqualTo(query1RecordElevationInZeCollection.getId());
 	}
 
-	//TODO Majid - Broken @Test
+	@Test
 	public void whenGetZeCollectionElevationThenReturnQuery1RecordElevationInZeCollectionAndQuery2RecordElevationInZeCollection()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		Elevations elevations = elevationService.getCollectionElevations(zeCollection);
 		assertThat(elevations.getQueryElevation(query1).getDocElevations().size()).isEqualTo(1);
 		assertThat(elevations.getQueryElevation(query1).getDocElevations().get(0).getId())
@@ -89,12 +85,9 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 				.isEqualTo(query2RecordElevationInZeCollection.getId());
 	}
 
-	//TODO Majid - Broken @Test
+	@Test
 	public void givenEmptyQueryWhenElevateRecordThenRecordElevatedForSearchAllQuery()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		Record zeRecord;
 		recordServices.add(zeRecord = recordServices.newRecordWithSchema(zeSchema));
 		elevationService.elevate(zeRecord, null);
@@ -106,12 +99,15 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 		assertThat(elevationService.getCollectionElevation(zeCollection, "*:*").get(0).getId()).isEqualTo(zeRecord.getId());
 	}
 
-	//TODO Majid - Broken @Test
+    //TODO:
+	/* Currently, because the all the Constellio collections store in one solr collection, it is not possible
+	 * to change one Constellio collection configurations for the Elevation feature without any side effect on the
+	 * other Constellio collections.
+	 */
+    @Ignore
+	@Test
 	public void whenRemoveZeCollectionElevationForQuery1ThenQuery1RecordElevationRemovedOnlyForQuery1AndZeCollection()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		elevationService.removeCollectionElevation(zeCollection, query1);
 		List<DocElevation> elevation = elevationService
 				.getCollectionElevation(zeCollection, query1);
@@ -126,12 +122,16 @@ public class ElevationServiceImplAcceptanceTest extends ConstellioTest {
 		assertThat(elevation.get(0).getId()).isEqualTo(query2RecordElevationInZeCollection.getId());
 	}
 
-	//TODO Majid - Broken @Test
+
+    //TODO
+	/* Currently, because the all the Constellio collections store in one solr collection, it is not possible
+	 * to change one Constellio collection configurations for the Elevation feature without any side effect on the
+	 * other Constellio collections.
+	 */
+	@Ignore
+    @Test
 	public void whenRemoveZeCollectionElevationThenAllZeCollectionElevationsRemoved()
 			throws Exception {
-		if (!getDataLayerFactory().getDataLayerConfiguration().isLocalHttpSolrServer()) {
-			return;
-		}
 		elevationService.removeCollectionElevations(zeCollection);
 		List<DocElevation> elevation = elevationService
 				.getCollectionElevation(zeCollection, query1);
