@@ -11,6 +11,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -80,7 +81,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 	}
 
 	public void editConnectorInstanceButtonClicked() {
-		view.navigateTo().editConnectorInstance(recordVO.getId());
+		view.navigate().to(ESViews.class).editConnectorInstance(recordVO.getId());
 	}
 
 	public String getTitle() {
@@ -114,7 +115,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		connectorInstance.setEnabled(true);
 		try {
 			recordServices.update(connectorInstance.getWrappedRecord());
-			view.navigateTo().displayConnectorInstance(recordVO.getId());
+			view.navigate().to(ESViews.class).displayConnectorInstance(recordVO.getId());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -124,7 +125,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		connectorInstance.setEnabled(false);
 		try {
 			recordServices.update(connectorInstance.getWrappedRecord());
-			view.navigateTo().displayConnectorInstance(recordVO.getId());
+			view.navigate().to(ESViews.class).displayConnectorInstance(recordVO.getId());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -139,7 +140,10 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 	}
 
 	public void editSchemasButtonClicked() {
-		view.navigateTo().displayConnectorMappings(recordVO.getId());
+		Navigation navigate = view.navigate();
+		ESViews esViews = navigate.to(ESViews.class);
+		String recordVOId = recordVO.getId();
+		esViews.displayConnectorMappings(recordVOId);
 	}
 
 	public void backgroundViewMonitor() {
@@ -169,6 +173,6 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		esSchemasRecordsServices.getConnectorManager()
 				.totallyDeleteConnectorRecordsSkippingValidation(modelLayerFactory.getDataLayerFactory().newRecordDao(),
 						connectorInstance);
-		view.navigateTo().displayConnectorInstance(recordVO.getId());
+		view.navigate().to(ESViews.class).displayConnectorInstance(recordVO.getId());
 	}
 }

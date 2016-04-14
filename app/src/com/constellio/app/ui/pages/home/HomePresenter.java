@@ -50,7 +50,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 			} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 				view.navigate().to(RMViews.class).displayDocument(id);
 			} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-				view.navigateTo().displayContainer(id);
+				view.navigate().to(RMViews.class).displayContainer(id);
 			}
 		}
 	}

@@ -109,7 +109,7 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 	}
 
 	public void displayButtonClicked(String tabName, RecordVO entity) {
-		view.navigateTo().displayAdminUnitWithContainers(tabName, entity.getId());
+		view.navigate().to(RMViews.class).displayAdminUnitWithContainers(tabName, entity.getId());
 	}
 
 	public void backButtonClicked() {

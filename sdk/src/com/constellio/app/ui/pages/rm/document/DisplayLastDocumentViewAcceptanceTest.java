@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -378,7 +379,7 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 
 	private void addPoivronToLastViewedDocuments() {
 		String id = recordIdWithTitleInCollection("Poivron - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 		getModelLayerFactory().newRecordServices().flush();
 
 		navigateToLastViewDocuments();
@@ -386,14 +387,14 @@ public class DisplayLastDocumentViewAcceptanceTest extends ConstellioTest {
 
 	private void addPoisToLastViewedDocuments() {
 		String id = recordIdWithTitleInCollection("Pois - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 		getModelLayerFactory().newRecordServices().flush();
 		navigateToLastViewDocuments();
 	}
 
 	private void addMaisToLastViewedDocuments() {
 		String id = recordIdWithTitleInCollection("Maïs - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 		getModelLayerFactory().newRecordServices().flush();
 		navigateToLastViewDocuments();
 	}

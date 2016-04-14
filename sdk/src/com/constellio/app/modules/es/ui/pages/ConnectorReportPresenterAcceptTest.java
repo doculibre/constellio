@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,7 +24,6 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -104,7 +104,7 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 		Map<String, String> params = new HashMap<>();
 		params.put(ConnectorReportView.CONNECTOR_ID, connectorInstance.getId());
 		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.INDEXATION);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.CONNECTOR_REPORT, params);
+		String viewPath = ParamUtils.addParams(ESNavigationConfiguration.CONNECTOR_REPORT, params);
 		presenter.forParams(viewPath);
 		dataProvider = presenter.getDataProvider();
 	}

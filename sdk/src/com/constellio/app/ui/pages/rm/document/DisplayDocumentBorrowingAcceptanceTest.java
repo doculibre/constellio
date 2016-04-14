@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -11,7 +12,6 @@ import org.openqa.selenium.By;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.model.services.records.RecordServices;
@@ -139,17 +139,17 @@ public class DisplayDocumentBorrowingAcceptanceTest extends ConstellioTest {
 	}
 
 	private void navigateToADocumentInZeCollection() {
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + idDocument);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + idDocument);
 	}
 
 	private void navigateToSemiActiveDocument() {
 		String id = recordIdWithTitleInCollection("Grenouille.odt", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToInactiveDocument() {
 		String id = recordIdWithTitleInCollection("Lynx.odt", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void borrowTheDocument()

@@ -95,7 +95,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	}
 
 	void editButtonClicked() {
-		view.navigateTo().editWorkflow(workflowVO.getId());
+		view.navigate().to(TaskViews.class).editWorkflow(workflowVO.getId());
 	}
 
 	void deleteButtonClicked() {

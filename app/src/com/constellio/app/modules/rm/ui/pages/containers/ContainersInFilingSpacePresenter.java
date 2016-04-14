@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -70,6 +71,6 @@ public class ContainersInFilingSpacePresenter extends BasePresenter<ContainersIn
 	}
 
 	public void displayContainerButtonClicked(RecordVO container) {
-		view.navigateTo().displayContainer(container.getId());
+		view.navigate().to(RMViews.class).displayContainer(container.getId());
 	}
 }

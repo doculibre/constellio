@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.assertj.core.api.StringAssert;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -23,7 +24,6 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.tools.AdvancedResearchWebElement;
 import com.constellio.app.ui.tools.RecordDisplayWebElement;
@@ -3415,12 +3415,12 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 	private void navigateToAddFolderFormLoggedAs(String user) {
 		driver = newWebDriver(loggedAsUserInCollection(user, zeCollection));
-		driver.navigateTo().url(NavigatorConfigurationService.ADD_FOLDER);
+		driver.navigateTo().url(RMNavigationConfiguration.ADD_FOLDER);
 		zeForm = new RecordFormWebElement(driver.findElement(By.className(BaseForm.BASE_FORM)));
 	}
 
 	private void navigateToEditFolder(String folderId) {
-		driver.navigateTo().url(NavigatorConfigurationService.EDIT_FOLDER + "/id%253D" + folderId);
+		driver.navigateTo().url(RMNavigationConfiguration.EDIT_FOLDER + "/id%253D" + folderId);
 		zeForm = new RecordFormWebElement(driver.findElement(By.className(BaseForm.BASE_FORM)));
 	}
 

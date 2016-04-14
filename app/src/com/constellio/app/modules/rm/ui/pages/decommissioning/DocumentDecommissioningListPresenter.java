@@ -63,7 +63,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public void editButtonClicked() {
-		view.navigateTo().editDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).editDecommissioningList(recordId);
 	}
 
 	public boolean isDeletable() {

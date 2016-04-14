@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -19,7 +20,6 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.RecordFormWebElement;
@@ -332,67 +332,67 @@ public class DisplayDocumentMenuAcceptanceTest extends ConstellioTest {
 
 	private void navigateToSemiActiveDocumentInUA10() {
 		String id = recordIdWithTitleInCollection("Orange - Petit guide", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToSemiActiveDocumentInUA11() {
 		String id = recordIdWithTitleInCollection("Poire - Typologie", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToSemiActiveDocumentInUA12() {
 		String id = recordIdWithTitleInCollection("Pomme - Petit guide", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToSemiActiveDocumentInUA30() {
 		String id = recordIdWithTitleInCollection("Laitue - Petit guide", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToDestroyedDocumentInUA30() {
 		String id = recordIdWithTitleInCollection("Epinard - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToDestroyedDocumentInUA10() {
 		String id = recordIdWithTitleInCollection("Souris - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToDestroyedDocumentInUA11() {
 		String id = recordIdWithTitleInCollection("Cerise - Typologie", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToDestroyedDocumentInUA12() {
 		String id = recordIdWithTitleInCollection("Avocat - Petit guide", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToDepositedFolderInUA30() {
 		String id = recordIdWithTitleInCollection("Pois - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToADocumentInUA10() {
 		String id = recordIdWithTitleInCollection("Abeille - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToADocumentInUA11() {
 		String id = recordIdWithTitleInCollection("Abricot - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToADocumentInUA12() {
 		String id = recordIdWithTitleInCollection("Banane - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private void navigateToADocumentInUA30() {
 		String id = recordIdWithTitleInCollection("Chou - Livre de recettes", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	private org.assertj.core.api.ObjectAssert<ComponentState> assertThatModifyButtonState() {
