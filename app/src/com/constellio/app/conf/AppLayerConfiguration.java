@@ -10,6 +10,8 @@ public interface AppLayerConfiguration {
 
 	File getPluginsFolder();
 
+	File getPluginsManagementOnStartupFile();
+
 	File getSetupProperties();
 
 }

@@ -221,6 +221,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			Email email = rmSchemasRecordsServices.newEmail(filename, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 			contentVersionVO.setMajorVersion(true);
+		} else {
+			contentVersionVO.setMajorVersion(true);
 		}
 		if (StringUtils.isNotBlank(folderId)) {
 			documentVO.setFolder(folderId);
@@ -458,7 +460,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
-				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
 					Object metadataValue = documentVO.get(metadataVO);
 					Object defaultValue = metadataVO.getDefaultValue();
 					if (metadataValue instanceof ContentVersionVO) {

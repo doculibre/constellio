@@ -499,9 +499,26 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getPluginsToMoveOnStartupFile() {
+		File pluginManagementFolder;
+		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER || getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
+			pluginManagementFolder = new File(getConstellioWebinfFolder(), "pluginsManagement");
+
+		} else {
+			pluginManagementFolder = new File(getConstellioWebappFolder(), "pluginsManagement");
+		}
+		return new File(pluginManagementFolder, "toMoveOnStartup");
+	}
+
 	public File getPluginsJarsFolder(File webAppFolder) {
 		File webInf = new File(webAppFolder, "WEB-INF");
 		return new File(webInf, "plugins");
+	}
+
+	public File getPluginsToMoveOnStartupFile(File webAppFolder) {
+		File webInf = new File(webAppFolder, "WEB-INF");
+		File pluginManagementFolder = new File(webInf, "pluginsManagement");
+		return new File(pluginManagementFolder, "toMoveOnStartup");
 	}
 
 	public File getUploadLicenseFile() {

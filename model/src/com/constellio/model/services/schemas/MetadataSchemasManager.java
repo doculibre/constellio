@@ -72,7 +72,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	@Override
 	public void initialize() {
-		this.oneXmlConfigPerCollectionManager = newOneXMLManager(configManager, collectionsListManager);
+		oneXmlConfigPerCollectionManager();
 	}
 
 	/**
@@ -143,7 +143,14 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public MetadataSchemaTypes getSchemaTypes(String collection) {
-		return oneXmlConfigPerCollectionManager.get(collection);
+		return oneXmlConfigPerCollectionManager().get(collection);
+	}
+
+	private OneXMLConfigPerCollectionManager<MetadataSchemaTypes> oneXmlConfigPerCollectionManager() {
+		if (oneXmlConfigPerCollectionManager == null) {
+			this.oneXmlConfigPerCollectionManager = newOneXMLManager(configManager, collectionsListManager);
+		}
+		return oneXmlConfigPerCollectionManager;
 	}
 
 	public List<MetadataSchemaTypes> getAllCollectionsSchemaTypes() {
@@ -168,7 +175,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 				try {
 					return defaultClassProvider.loadClass(name);
 
-				} catch (ClassNotFoundException e) {
+				} catch (Throwable e) {
 					return modulesManagerDelayed.get().getModuleClass(name);
 				}
 

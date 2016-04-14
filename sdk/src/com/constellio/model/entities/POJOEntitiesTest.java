@@ -12,6 +12,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 
+import com.constellio.model.services.records.extractions.DefaultMetadataPopulator;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
+import com.constellio.model.services.records.extractions.MetadataToText;
+import com.constellio.model.services.records.extractions.RegexExtractor;
 import org.junit.Test;
 
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
@@ -104,8 +108,12 @@ public class POJOEntitiesTest extends ConstellioTest {
 	public void testThatMetadataPopulateConfigsHasValidEqualsHashcodeAndToStringBehaviors() {
 		Pattern regex = Pattern.compile("regex");
 		RegexConfig regexConfig = new RegexConfig("inpuptMetadata", regex, "value", RegexConfigType.SUBSTITUTION);
-		MetadataPopulateConfigs o = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig));
-		MetadataPopulateConfigs o2 = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig));
+		MetadataPopulator metadataPopulator = new DefaultMetadataPopulator(
+				new RegexExtractor(regexConfig.getRegex().pattern(),
+						regexConfig.getRegexConfigType() == RegexConfigType.TRANSFORMATION, regexConfig.getValue()),
+				new MetadataToText(regexConfig.getInputMetadata()));
+		MetadataPopulateConfigs o = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig), asList(metadataPopulator));
+		MetadataPopulateConfigs o2 = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig), asList(metadataPopulator));
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 	}
 

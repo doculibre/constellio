@@ -44,7 +44,7 @@ public class ZipService {
 
 		validateFilesInSameFolder(zippedFiles);
 
-		String parent = zippedFiles.get(0).getParentFile().getName();
+		String parent = zippedFiles.get(0).getParentFile().getAbsolutePath();
 
 		ZipOutputStream zipOutputStream;
 		try {
@@ -226,7 +226,7 @@ public class ZipService {
 		prevalidateFile(zippedFile);
 
 		try {
-			zipOutputStream.putNextEntry(new ZipEntry(getRelativePath(zippedFile.getPath(), parent) + "/"));
+			zipOutputStream.putNextEntry(new ZipEntry(getRelativePath(zippedFile.getAbsolutePath(), parent) + "/"));
 
 		} catch (IOException e) {
 			throw new ZipServiceException.CannotAddFileToZipException(zippedFile, e);
@@ -244,7 +244,7 @@ public class ZipService {
 		InputStream fileInputStream = null;
 		try {
 			fileInputStream = ioServices.newFileInputStream(zippedFile, ZIP_FILE_STREAM);
-			zipOutputStream.putNextEntry(new ZipEntry(getRelativePath(zippedFile.getPath(), parent)));
+			zipOutputStream.putNextEntry(new ZipEntry(getRelativePath(zippedFile.getAbsolutePath(), parent)));
 
 			ioServices.copy(fileInputStream, zipOutputStream);
 
@@ -265,8 +265,7 @@ public class ZipService {
 	}
 
 	private String getRelativePath(String filePath, String startPath) {
-		int startPathLength = startPath.length() + 1;
-		return filePath.substring(filePath.indexOf(startPath) + startPathLength, filePath.length());
+		return filePath.replace(startPath + File.separator, "");
 	}
 
 }

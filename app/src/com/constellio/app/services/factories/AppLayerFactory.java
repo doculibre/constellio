@@ -111,7 +111,7 @@ public class AppLayerFactory extends LayerFactory {
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager()));
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), ioServices,
+		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), appLayerConfiguration.getPluginsManagementOnStartupFile(), ioServices,
 				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager())));
 		pluginManager.registerModule(new ConstellioRMModule());
 

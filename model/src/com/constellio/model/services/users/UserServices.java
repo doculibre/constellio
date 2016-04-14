@@ -219,6 +219,10 @@ public class UserServices {
 		return getUserRecordInCollection(username, collection);
 	}
 
+	public User getUserInCollectionCaseSensitive(String username, String collection) {
+		return getUserRecordInCollection(username, collection);
+	}
+
 	public User getUserRecordInCollection(String username, String collection) {
 		return User.wrapNullable(recordServices.getRecordByMetadata(usernameMetadata(collection), username),
 				schemaTypes(collection), rolesManager.getCollectionRoles(collection));

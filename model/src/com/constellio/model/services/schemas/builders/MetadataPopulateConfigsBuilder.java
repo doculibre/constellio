@@ -5,18 +5,21 @@ import java.util.List;
 
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
 
 public class MetadataPopulateConfigsBuilder {
 
 	private List<String> styles = new ArrayList<>();
 	private List<String> properties = new ArrayList<>();
 	private List<RegexConfig> regexes = new ArrayList<>();
+	private List<MetadataPopulator> metadataPopulators = new ArrayList<>();
 
 	public static MetadataPopulateConfigsBuilder modify(MetadataPopulateConfigs populateConfigs) {
 		MetadataPopulateConfigsBuilder builder = new MetadataPopulateConfigsBuilder();
 		builder.styles.addAll(populateConfigs.getStyles());
 		builder.properties.addAll(populateConfigs.getProperties());
 		builder.regexes.addAll(populateConfigs.getRegexes());
+		builder.metadataPopulators.addAll(populateConfigs.getMetadataPopulators());
 		return builder;
 	}
 
@@ -25,8 +28,10 @@ public class MetadataPopulateConfigsBuilder {
 		builder.styles.addAll(populateConfigsBuilder.getStyles());
 		builder.properties.addAll(populateConfigsBuilder.getProperties());
 		builder.regexes.addAll(populateConfigsBuilder.getRegexes());
+		builder.metadataPopulators.addAll(populateConfigsBuilder.getMetadataPopulators());
 		return builder;
 	}
+
 
 	public static MetadataPopulateConfigsBuilder create() {
 		return new MetadataPopulateConfigsBuilder();
@@ -42,6 +47,10 @@ public class MetadataPopulateConfigsBuilder {
 
 	public List<RegexConfig> getRegexes() {
 		return regexes;
+	}
+
+	public List<MetadataPopulator> getMetadataPopulators() {
+		return metadataPopulators;
 	}
 
 	public MetadataPopulateConfigsBuilder setStyles(List<String> styles) {
@@ -68,6 +77,10 @@ public class MetadataPopulateConfigsBuilder {
 
 	public void setRegexes(List<RegexConfig> regexes) {
 		this.regexes = regexes;
+	}
+
+	public void setMetadataPopulators(List<MetadataPopulator> metadataPopulators) {
+		this.metadataPopulators = metadataPopulators;
 	}
 
 	public MetadataPopulateConfigsBuilder addStyle(String style) {
@@ -100,7 +113,7 @@ public class MetadataPopulateConfigsBuilder {
 	}
 
 	public boolean isEmpty() {
-		if (styles.isEmpty() && properties.isEmpty() && regexes.isEmpty()) {
+		if (styles.isEmpty() && properties.isEmpty() && regexes.isEmpty() && metadataPopulators.isEmpty()) {
 			return true;
 		} else {
 			return false;
@@ -108,12 +121,13 @@ public class MetadataPopulateConfigsBuilder {
 	}
 
 	public MetadataPopulateConfigs build() {
-		return new MetadataPopulateConfigs(styles, properties, regexes);
+		return new MetadataPopulateConfigs(styles, properties, regexes, metadataPopulators);
 	}
 
 	@Override
 	public String toString() {
-		return "MetadataPopulateConfigsBuilder [styles=" + styles + ", properties=" + properties + ", regexes=" + regexes + "]";
+		return "MetadataPopulateConfigsBuilder [styles=" + styles + ", properties=" + properties
+				+ ", regexes=" + regexes + "metadata_populator=" + metadataPopulators +  "]";
 	}
 
 }
