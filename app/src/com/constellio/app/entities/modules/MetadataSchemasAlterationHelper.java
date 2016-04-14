@@ -80,7 +80,8 @@ public abstract class MetadataSchemasAlterationHelper {
 				String specificKey = "init." + metadataBuilder.getCode().replace("_", ".");
 				String label = migrationResourcesProvider.getDefaultLanguageString(specificKey);
 				if (label.equals(specificKey)) {
-					overwrite = false;
+					//TODO Thiago
+					//					overwrite = false;
 					String globalKey = "init.allTypes.allSchemas." + metadataBuilder.getLocalCode();
 					label = migrationResourcesProvider.getDefaultLanguageString(globalKey);
 					if (label.equals(globalKey)) {
@@ -92,6 +93,11 @@ public abstract class MetadataSchemasAlterationHelper {
 				}
 
 				setLabel(metadataBuilder, label, overwrite, language);
+				//TODO Thiago
+				if (metadataBuilder.getLabels().isEmpty()) {
+					System.out.println("i18n " + metadataBuilder.getCode());
+				}
+
 			}
 		}
 		return schemaType;
@@ -102,9 +108,13 @@ public abstract class MetadataSchemasAlterationHelper {
 				metadataBuilder.getLabel(language) != null && !metadataBuilder.getLabel(language)
 						.equals(metadataBuilder.getLocalCode()));
 		boolean newLabelIsHumanFriendly = label != null && !label.startsWith("init.");
-		if (!labelDefined || (newLabelIsHumanFriendly && overwrite)) {
+		//TODO Thiago
+		if ((newLabelIsHumanFriendly && overwrite)) {
 			metadataBuilder.addLabel(language, label);
 		}
+		//		if (!labelDefined || (newLabelIsHumanFriendly && overwrite)) {
+		//			metadataBuilder.addLabel(language, label);
+		//		}
 	}
 
 	private void setLabel(MetadataSchemaTypeBuilder schemaType, String label, boolean overwrite, Language language) {

@@ -392,6 +392,7 @@ public class MetadataSchemaBuilder {
 
 		}
 
+		//TODO Thiago
 		Map<Language, String> newLabels = configureLabels(localCode, getDefaultSchema(), this.getLabels());
 
 		Collections.sort(newMetadatas, SchemaComparators.METADATA_COMPARATOR_BY_ASC_LOCAL_CODE);

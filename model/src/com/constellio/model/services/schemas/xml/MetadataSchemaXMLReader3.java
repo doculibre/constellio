@@ -92,7 +92,7 @@ public class MetadataSchemaXMLReader3 {
 		String labelValue = element.getAttributeValue("label");
 		String codeValue = element.getAttributeValue("code");
 		//TODO Thiago
-		if (StringUtils.isNotBlank(labelValue)) {
+		if (StringUtils.isBlank(labelValue)) {
 			List<String> languagesLabels = Arrays
 					.asList(element.getAttributeValue("label").split(MetadataSchemaXMLWriter2.LABEL_SEPARATOR));
 			for (String languagesLabel : languagesLabels) {

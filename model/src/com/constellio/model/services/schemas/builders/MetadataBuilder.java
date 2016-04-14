@@ -108,6 +108,10 @@ public class MetadataBuilder {
 		builder.classProvider = schemaBuilder.getClassProvider();
 		builder.setCollection(schemaBuilder.getCollection());
 		builder.setLocalCode(localCode);
+		//TODO Thiago
+		for (Language language : schemaBuilder.getLabels().keySet()) {
+			builder.addLabel(language, localCode);
+		}
 		//		builder.setLabels(schemaBuilder.getLabels());
 		builder.setEnabled(true);
 		builder.setDefaultRequirement(false);
