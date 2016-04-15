@@ -27,7 +27,7 @@ public class RobotsNavigationConfiguration implements Serializable {
     public static final String ROBOT_CONFIGURATION = "robotConfiguration";
     public static final String ROBOT_LOGS = "robotLogs";
 
-    public void configureNavigation(NavigationConfig config) {
+    public static void configureNavigation(NavigationConfig config) {
 		configureCollectionAdmin(config);
 	}
 
@@ -38,7 +38,7 @@ public class RobotsNavigationConfiguration implements Serializable {
         service.register(ROBOT_LOGS, RobotLogsViewImpl.class);
     }
 
-    private void configureCollectionAdmin(NavigationConfig config) {
+    private static void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ROBOTS, ROBOTS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {

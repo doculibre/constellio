@@ -40,7 +40,7 @@ public class ESNavigationConfiguration implements Serializable {
     public static final String LIST_CONNECTOR_INSTANCES = "connectorInstances";
     public static final String WIZARD_CONNECTOR_INSTANCE = "wizardConnectorInstance";
 
-    public void configureNavigation(NavigationConfig config) {
+    public static void configureNavigation(NavigationConfig config) {
 		configureCollectionAdmin(config);
 		configureHomeFragments(config);
 	}
@@ -56,7 +56,7 @@ public class ESNavigationConfiguration implements Serializable {
         service.register(WIZARD_CONNECTOR_INSTANCE, WizardConnectorInstanceViewImpl.class);
 	}
 
-	private void configureCollectionAdmin(NavigationConfig config) {
+	private static void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(CONNECTORS, CONNECTORS_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -71,7 +71,7 @@ public class ESNavigationConfiguration implements Serializable {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Inactive(SEARCH_ENGINE, SEARCH_ENGINE_ICON));
 	}
 
-	private void configureHomeFragments(NavigationConfig config) {
+	private static void configureHomeFragments(NavigationConfig config) {
 		if (!config.hasNavigationItem(HomeView.TABS, TAXONOMIES)) {
 			config.add(HomeView.TABS, new RecordTree(TAXONOMIES) {
 				private int defaultTab;

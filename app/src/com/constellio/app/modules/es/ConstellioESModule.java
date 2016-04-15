@@ -96,7 +96,7 @@ public class ConstellioESModule implements InstallableModule {
 
 	@Override
 	public void configureNavigation(NavigationConfig config) {
-		new ESNavigationConfiguration().configureNavigation(config);
+		ESNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override

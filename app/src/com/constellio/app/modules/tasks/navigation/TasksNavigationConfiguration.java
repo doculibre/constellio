@@ -38,7 +38,7 @@ public class TasksNavigationConfiguration implements Serializable {
     public static final String LIST_TASKS_LOGS = "listTaksLogs";
     public static final String DISPLAY_WORKFLOW_INSTANCE = "displayWorkflowInstance";
 
-    public void configureNavigation(NavigationConfig config) {
+    public static void configureNavigation(NavigationConfig config) {
 		configureMainLayoutNavigation(config);
 		configureHomeActionMenu(config);
 		configureCollectionAdmin(config);
@@ -57,7 +57,7 @@ public class TasksNavigationConfiguration implements Serializable {
         service.register(DISPLAY_WORKFLOW_INSTANCE, DisplayWorkflowInstanceViewImpl.class);
     }
 
-    private void configureHomeActionMenu(NavigationConfig config) {
+    private static void configureHomeActionMenu(NavigationConfig config) {
 		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_TASK) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -71,7 +71,7 @@ public class TasksNavigationConfiguration implements Serializable {
 		});
 	}
 
-	private void configureMainLayoutNavigation(NavigationConfig config) {
+	private static void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(TASK_MANAGEMENT, TasksViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -90,7 +90,7 @@ public class TasksNavigationConfiguration implements Serializable {
 		});
 	}
 
-	private void configureCollectionAdmin(NavigationConfig config) {
+	private static void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(WORKFLOW_MANAGEMENT, WORKFLOW_MANAGEMENT_ICON) {
 			@Override
 			public void activate(Navigation navigate) {

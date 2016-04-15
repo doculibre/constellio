@@ -118,7 +118,7 @@ public class RMNavigationConfiguration implements Serializable {
     public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
     public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
 
-    public void configureNavigation(NavigationConfig config) {
+    public static void configureNavigation(NavigationConfig config) {
 		configureHomeActionMenu(config);
 		configureHomeFragments(config);
 		configureCollectionAdmin(config);
@@ -159,7 +159,7 @@ public class RMNavigationConfiguration implements Serializable {
         service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
     }
 
-	private void configureHomeActionMenu(NavigationConfig config) {
+	private static void configureHomeActionMenu(NavigationConfig config) {
 		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_FOLDER) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -184,7 +184,7 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 	}
 
-	private void configureHomeFragments(NavigationConfig config) {
+	private static void configureHomeFragments(NavigationConfig config) {
 		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
 			@Override
 			public List<RecentItem> getItems(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
@@ -235,7 +235,7 @@ public class RMNavigationConfiguration implements Serializable {
 		}
 	}
 
-	private void configureCollectionAdmin(NavigationConfig config) {
+	private static void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ADMINISTRATIVE_UNIT, ADMINISTRATIVE_UNIT_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -306,7 +306,7 @@ public class RMNavigationConfiguration implements Serializable {
 		);
 	}
 
-	private void configureMainLayoutNavigation(NavigationConfig config) {
+	private static void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(ARCHIVES_MANAGEMENT, ArchivesManagementViewGroup.class) {
 					@Override
@@ -394,7 +394,7 @@ public class RMNavigationConfiguration implements Serializable {
 		});
 	}
 
-	private NavigationItem getTaxonomyItem(NavigationConfig config) {
+	private static NavigationItem getTaxonomyItem(NavigationConfig config) {
 		return config.getNavigationItem(AdminView.COLLECTION_SECTION, CoreNavigationConfiguration.TAXONOMIES);
 	}
 }
