@@ -138,12 +138,11 @@ public class MetadataSchemaXMLReader3 {
 
 		metadataBuilder.setLabels(getLabels(metadataElement));
 		//TODO Thiago
-		if (metadataBuilder.getLabels().isEmpty()) {
-			for (Language language : schemaBuilder.getLabels().keySet()) {
-				metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-			}
-			System.out.println(metadataBuilder.getCode() + metadataBuilder.getLabels().toString());
-		}
+		//		if (metadataBuilder.getLabels().isEmpty()) {
+		//			for (Language language : schemaBuilder.getLabels().keySet()) {
+		//				metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+		//			}
+		//		}
 
 		String localCode = metadataBuilder.getLocalCode();
 

@@ -50,7 +50,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		String collection = schema.getCollection();
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
-		Language language = Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage());
+		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 		labels.put(sessionContext.getCurrentLocale(), schema.getLabel(language));
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();

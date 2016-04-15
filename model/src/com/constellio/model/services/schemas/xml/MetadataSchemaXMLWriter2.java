@@ -1,6 +1,5 @@
 package com.constellio.model.services.schemas.xml;
 
-import com.constellio.data.dao.services.DataLayerLogger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +8,11 @@ import java.util.Map.Entry;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.AllowedReferences;
@@ -32,25 +35,15 @@ import com.constellio.model.services.records.extractions.MetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.builders.ClassListBuilder;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MetadataSchemaXMLWriter2 {
 
 	public static final String FORMAT_ATTRIBUTE = "format";
-	public static final String FORMAT_VERSION = MetadataSchemaXMLReader2.FORMAT_VERSION;
-	private  SAXBuilder saxBuilder = new SAXBuilder();
-	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
-
-	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 	public static final String FORMAT_VERSION = MetadataSchemaXMLReader3.FORMAT_VERSION;
+	private SAXBuilder saxBuilder = new SAXBuilder();
+	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
 	public static final String LABEL_SEPARATOR = ";;";
+	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
 	public void writeEmptyDocument(String collection, Document document) {
 		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
@@ -475,7 +468,7 @@ public class MetadataSchemaXMLWriter2 {
 		}
 
 		Element metadataPopulatorsElement = new Element("metadataPopulators");
-		for (MetadataPopulator metadataPopulator: populateConfigs.getMetadataPopulators()) {
+		for (MetadataPopulator metadataPopulator : populateConfigs.getMetadataPopulators()) {
 			try {
 				Element element = metadataPopulatorXMLSerializer.toXml(metadataPopulator);
 				metadataPopulatorsElement.addContent(element);
@@ -487,7 +480,6 @@ public class MetadataSchemaXMLWriter2 {
 		if (!populateConfigs.getMetadataPopulators().isEmpty()) {
 			populateConfigsElement.addContent(metadataPopulatorsElement);
 		}
-
 
 		return populateConfigsElement;
 	}
