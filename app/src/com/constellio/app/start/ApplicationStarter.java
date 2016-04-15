@@ -60,7 +60,7 @@ public class ApplicationStarter {
 		handler.setConfigurations(new Configuration[] { new WebXmlConfiguration(), new WebInfConfiguration(),
 				new TagLibConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration() });
 		handler.setContextPath("/constellio");
-		handler.setMaxFormContentSize(104857600);
+
 		handler.setBaseResource(new ResourceCollection(resources.toArray(new String[0])));
 
 		handler.setParentLoaderPriority(true);
