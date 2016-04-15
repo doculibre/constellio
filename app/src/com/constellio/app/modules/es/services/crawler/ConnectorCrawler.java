@@ -264,10 +264,12 @@ public class ConnectorCrawler {
 		}
 	}
 
-	public void crawlNTimes(int times) {
+	public boolean crawlNTimes(int times) {
+		boolean hasJobs = false;
 		for (int i = 0; i < times; i++) {
-			crawlAllConnectors();
+			hasJobs = crawlAllConnectors();
 		}
+		return hasJobs;
 	}
 
 	public void crawlUntil(Factory<Boolean> condition) {
