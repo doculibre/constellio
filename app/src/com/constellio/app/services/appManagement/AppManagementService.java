@@ -40,6 +40,7 @@ import com.constellio.app.services.appManagement.AppManagementServiceRuntimeExce
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.app.services.migrations.VersionValidator;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
@@ -151,7 +152,9 @@ public class AppManagementService {
 
 			File updatedWarPlugins = new File(tempFolder, "updated-plugins");
 			installNewOrUpdatedPlugins(updatedWarPlugins);
-			copyCurrentPlugins(foldersLocator.getPluginsJarsFolder(), tempFolder);
+			File oldPluginsFolder = foldersLocator.getPluginsJarsFolder();
+			copyCurrentPlugins(oldPluginsFolder, tempFolder);
+			movePluginsToNewLib(oldPluginsFolder, tempFolder);
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
 			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
@@ -190,11 +193,24 @@ public class AppManagementService {
 
 	}
 
+	private void movePluginsToNewLib(File oldPluginsFolder, File newWebAppFolder)
+			throws CannotSaveOldPlugins {
+		File newLibsFolder = foldersLocator.getLibFolder(newWebAppFolder);
+		LOGGER.info("plugins : copy to lib " + newLibsFolder.getPath());
+		File pluginsToMoveFile = foldersLocator.getPluginsToMoveOnStartupFile(newWebAppFolder);
+		PluginManagementUtils utils = new PluginManagementUtils(oldPluginsFolder, newLibsFolder, pluginsToMoveFile);
+
+		try {
+			utils.movePluginsAndSetNoPluginToMove(pluginManager.getPluginsOfEveryStatus());
+		} catch (IOException e) {
+			throw new CannotSaveOldPlugins(e);
+		}
+	}
+
 	private void installNewOrUpdatedPlugins(File warPlugins) {
 		if (warPlugins.exists()) {
 			File[] updatedPlugins = warPlugins.listFiles();
 			if (updatedPlugins != null) {
-
 				for (File warPlugin : warPlugins.listFiles()) {
 					if (warPlugin.getName().toLowerCase().endsWith(".jar")) {
 						pluginManager.prepareInstallablePlugin(warPlugin);

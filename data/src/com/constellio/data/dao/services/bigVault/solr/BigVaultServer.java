@@ -79,9 +79,7 @@ public class BigVaultServer implements Cloneable {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
 
-		this.fileSystem = null;
-		//Doesn't work in production environments
-		//this.fileSystem = solrServerFactory.getConfigFileSystem(name);
+		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
 
 		this.bigVaultLogger = bigVaultLogger;
 		this.name = name;

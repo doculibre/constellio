@@ -228,7 +228,8 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenMarkPluginAsDisabledThenConfigManagerCalledWithAppropriateParameter() {
 		ConstellioPluginConfigurationManager mockedPluginManager = mock(ConstellioPluginConfigurationManager.class);
-		JSPFConstellioPluginManager newPluginManager = new JSPFConstellioPluginManager(null, null, mockedPluginManager);
+		JSPFConstellioPluginManager newPluginManager = new JSPFConstellioPluginManager(null,
+				getAppLayerFactory().getAppLayerConfiguration().getPluginsManagementOnStartupFile(), null, mockedPluginManager);
 		newPluginManager.markPluginAsDisabled("id");
 		verify(mockedPluginManager, times(1)).markPluginAsDisabled("id");
 	}
@@ -236,7 +237,8 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenMarkPluginAsEnabledThenConfigManagerCalledWithAppropriateParameter() {
 		ConstellioPluginConfigurationManager mockedPluginManager = mock(ConstellioPluginConfigurationManager.class);
-		JSPFConstellioPluginManager newPluginManager = new JSPFConstellioPluginManager(null, null, mockedPluginManager);
+		JSPFConstellioPluginManager newPluginManager = new JSPFConstellioPluginManager(null,
+				getAppLayerFactory().getAppLayerConfiguration().getPluginsManagementOnStartupFile(), null, mockedPluginManager);
 		newPluginManager.markPluginAsEnabled("id");
 		verify(mockedPluginManager, times(1)).markPluginAsEnabled("id");
 	}
@@ -244,7 +246,8 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenHandleModuleNotStartedCorrectlyThenConfigManagerCalledWithAppropriateParameter() {
 		ConstellioPluginConfigurationManager mockedPluginManager = mock(ConstellioPluginConfigurationManager.class);
-		JSPFConstellioPluginManager newPluginManager = new JSPFConstellioPluginManager(null, null, mockedPluginManager);
+		JSPFConstellioPluginManager newPluginManager = new JSPFConstellioPluginManager(null,
+				getAppLayerFactory().getAppLayerConfiguration().getPluginsManagementOnStartupFile(), null, mockedPluginManager);
 		TestInstallableModule module = new TestInstallableModule("id");
 		newPluginManager.handleModuleNotStartedCorrectly(module, zeCollection, null);
 		verify(mockedPluginManager, times(1)).invalidateModule("id", INVALID_START, null);
@@ -253,7 +256,8 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenHandleModuleNotMigratedCorrectlyThenConfigManagerCalledWithAppropriateParameter() {
 		ConstellioPluginConfigurationManager mockedPluginManager = mock(ConstellioPluginConfigurationManager.class);
-		JSPFConstellioPluginManager newPluginManager = new JSPFConstellioPluginManager(null, null, mockedPluginManager);
+		JSPFConstellioPluginManager newPluginManager = new JSPFConstellioPluginManager(null,
+				getAppLayerFactory().getAppLayerConfiguration().getPluginsManagementOnStartupFile(), null, mockedPluginManager);
 		newPluginManager.handleModuleNotMigratedCorrectly("id", zeCollection, null);
 		verify(mockedPluginManager, times(1)).invalidateModule("id", INVALID_MIGRATION_SCRIPT, null);
 	}
