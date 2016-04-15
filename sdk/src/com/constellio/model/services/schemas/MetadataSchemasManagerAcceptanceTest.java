@@ -58,6 +58,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBeforeOrEqualToLastModificationDateValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -409,7 +410,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichHasLabel("aLabel")));
 
-		assertThat(zeSchema.stringMetadata().getLabel()).isEqualTo("aLabel");
+		assertThat(zeSchema.stringMetadata().getLabel(Language.French)).isEqualTo("aLabel");
 	}
 
 	@Test
@@ -742,8 +743,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(
 				defaultSchema.andCustomSchema().withAStringMetadata(whichHasLabelInCustomSchema("customLabel")));
 
-		assertThat(zeSchema.stringMetadata().getLabel()).isNotEqualTo("customLabel");
-		assertThat(zeCustomSchema.stringMetadata().getLabel()).isEqualTo("customLabel");
+		assertThat(zeSchema.stringMetadata().getLabel(Language.French)).isNotEqualTo("customLabel");
+		assertThat(zeCustomSchema.stringMetadata().getLabel(Language.French)).isEqualTo("customLabel");
 	}
 
 	@Test
@@ -831,9 +832,9 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSavingDefaultSchemaThenLabelConserved()
 			throws Exception {
-		defineSchemasManager().using(defaultSchema.withSchemaLabel("zeLabel"));
+		defineSchemasManager().using(defaultSchema.withSchemaFrenchLabel("zeLabel"));
 
-		assertThat(zeSchema.instance().getLabel()).isEqualTo("zeLabel");
+		assertThat(zeSchema.instance().getLabel(Language.French)).isEqualTo("zeLabel");
 	}
 
 	@Test
@@ -855,9 +856,9 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSavingCustomSchemaThenLabelConserved()
 			throws Exception {
-		defineSchemasManager().using(defaultSchema.andCustomSchema().withCustomSchemaLabel("zeLabel"));
+		defineSchemasManager().using(defaultSchema.andCustomSchema().withCustomSchemaFrenchLabel("zeLabel"));
 
-		assertThat(zeCustomSchema.instance().getLabel()).isEqualTo("zeLabel");
+		assertThat(zeCustomSchema.instance().getLabel(Language.French)).isEqualTo("zeLabel");
 	}
 
 	@Test
@@ -934,7 +935,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withAModifiedStringMetadata().andCustomSchema());
 
-		assertThat(zeSchema.stringMetadata().getLabel()).isEqualTo(zeCustomSchema.stringMetadata().getLabel());
+		assertThat(zeSchema.stringMetadata().getLabel(Language.French))
+				.isEqualTo(zeCustomSchema.stringMetadata().getLabel(Language.French));
 	}
 
 	@Test(expected = MetadataSchemasRuntimeException.NoSuchMetadata.class)
@@ -952,8 +954,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(types.getMetadata("folder_default_rule").isEnabled()).isEqualTo(
 				types.getMetadata("folder_employee_rule").isEnabled()).isTrue();
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo(
-				types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("Rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo(
+				types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("Rule");
 		assertThat(types.getMetadata("folder_default_rule").getAllowedReferences()).isEqualTo(
 				types.getMetadata("folder_employee_rule").getAllowedReferences());
 		assertThat(types.getMetadata("folder_default_rule").isDefaultRequirement()).isEqualTo(
@@ -971,8 +973,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(types.getMetadata("folder_default_rule").isEnabled()).isEqualTo(
 				types.getMetadata("folder_employee_rule").isEnabled()).isFalse();
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo(
-				types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("Ze Rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo(
+				types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
 		assertThat(types.getMetadata("folder_default_rule").getAllowedReferences()).isEqualTo(
 				types.getMetadata("folder_employee_rule").getAllowedReferences());
 		assertThat(types.getMetadata("folder_default_rule").isDefaultRequirement()).isEqualTo(
@@ -1029,25 +1031,25 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes types = createTwoSchemas();
 
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
-		typesBuilder.getMetadata("folder_employee_rule").setLabel("a custom rule");
+		typesBuilder.getMetadata("folder_employee_rule").addLabel(Language.French, "a custom rule");
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo("Rule");
-		assertThat(types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("a custom rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Rule");
+		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("a custom rule");
 
 		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
-		typesBuilder.getMetadata("folder_default_rule").setLabel("Ze Rule");
+		typesBuilder.getMetadata("folder_default_rule").addLabel(Language.French, "Ze Rule");
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo("Ze Rule");
-		assertThat(types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("a custom rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
+		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("a custom rule");
 
 		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
-		typesBuilder.getMetadata("folder_employee_rule").setLabel(null);
+		typesBuilder.getMetadata("folder_employee_rule").addLabel(Language.French, null);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo("Ze Rule");
-		assertThat(types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("Ze Rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
+		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
 	}
 
 	@Test(expected = MetadataSchemaBuilderRuntimeException.CannotModifyAttributeOfInheritingMetadata.class)
@@ -1262,13 +1264,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		schemas.modify(new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(zeSchema.code()).create("customString").setType(MetadataValueType.STRING).setLabel("zeUltimate");
+				types.getSchema(zeSchema.code()).create("customString").setType(MetadataValueType.STRING)
+						.addLabel(Language.French, "zeUltimate");
 			}
 		});
 
 		assertThat(zeSchema.instance().hasMetadataWithCode("customString")).isTrue();
 		assertThat(zeSchema.instance().get("customString").getType()).isEqualTo(MetadataValueType.STRING);
-		assertThat(zeSchema.instance().get("customString").getLabel()).isEqualTo("zeUltimate");
+		assertThat(zeSchema.instance().get("customString").getLabel(Language.French)).isEqualTo("zeUltimate");
 
 		assertThat(zeCustomSchema.instance().hasMetadataWithCode("customString")).isTrue();
 		assertThat(zeCustomSchema.instance().get("customString").getType()).isEqualTo(MetadataValueType.STRING);
@@ -1286,12 +1289,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder zeSchemaType = types.getSchemaType(ZE_SCHEMA_TYPE_CODE).getDefaultSchema();
 				MetadataSchemaBuilder anotherSchema = types.getSchemaType(ANOTHER_SCHEMA_TYPE_CODE).getDefaultSchema();
-				zeSchemaType.get(TITLE.getCode()).setLabel("ze title label").setSortable(true)
+				zeSchemaType.get(TITLE.getCode()).addLabel(Language.French, "ze title label").setSortable(true)
 						.setEssentialInSummary(true).setEssential(true).setDefaultRequirement(true).setDefaultValue("toto")
 						.setEnabled(true).setSchemaAutocomplete(true).setSearchable(true).setSystemReserved(true)
 						.setUniqueValue(true).setUnmodifiable(true);
 
-				anotherSchema.get(TITLE.getCode()).setLabel("another title label").setSortable(false)
+				anotherSchema.get(TITLE.getCode()).addLabel(Language.French, "another title label").setSortable(false)
 						.setEssentialInSummary(false).setEssential(false).setDefaultRequirement(false).setDefaultValue("tata")
 						.setEnabled(false).setSchemaAutocomplete(false).setSearchable(false).setSystemReserved(false)
 						.setUniqueValue(false).setUnmodifiable(false);
@@ -1299,7 +1302,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		});
 
 		Metadata zeSchemaLabel = schemas.getTypes().getDefaultSchema(ZE_SCHEMA_TYPE_CODE).get(TITLE.getCode());
-		assertThat(zeSchemaLabel.getLabel()).isEqualTo("ze title label");
+		assertThat(zeSchemaLabel.getLabel(Language.French)).isEqualTo("ze title label");
 		assertThat(zeSchemaLabel.isSortable()).isTrue();
 		assertThat(zeSchemaLabel.isEssentialInSummary()).isTrue();
 		assertThat(zeSchemaLabel.isEssential()).isTrue();
@@ -1313,7 +1316,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(zeSchemaLabel.isUnmodifiable()).isTrue();
 
 		Metadata anotherSchemaLabel = schemas.getTypes().getDefaultSchema(ANOTHER_SCHEMA_TYPE_CODE).get(TITLE.getCode());
-		assertThat(anotherSchemaLabel.getLabel()).isEqualTo("another title label");
+		assertThat(anotherSchemaLabel.getLabel(Language.French)).isEqualTo("another title label");
 		assertThat(anotherSchemaLabel.isSortable()).isFalse();
 		assertThat(anotherSchemaLabel.isEssentialInSummary()).isFalse();
 		assertThat(anotherSchemaLabel.isEssential()).isFalse();
@@ -1405,7 +1408,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws MetadataSchemasManagerException {
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 		MetadataBuilder rule = typesBuilder.getMetadata("folder_default_rule");
-		rule.setEnabled(false).setLabel("Ze Rule").setDefaultRequirement(true);
+		rule.setEnabled(false).addLabel(Language.French, "Ze Rule").setDefaultRequirement(true);
 		// rule.defineReferences().add(types.getDefaultSchema("rule"));
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 		return types;
@@ -1418,11 +1421,11 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypeBuilder folderType = addFolderSchemaTypeBuilderWithoutRuleMetadatas(typesBuilder);
 		MetadataSchemaTypeBuilder ruleType = addRuleSchemaTypeBuilder(typesBuilder);
 
-		MetadataBuilder rule = folderType.getDefaultSchema().create("rule").setLabel("Rule").setType(REFERENCE)
+		MetadataBuilder rule = folderType.getDefaultSchema().create("rule").addLabel(Language.French, "Rule").setType(REFERENCE)
 				.setMultivalue(false);
 		rule.defineReferences().set(ruleType);
 
-		folderType.getDefaultSchema().create("ruleCode").setLabel("Rule code").setType(STRING).defineDataEntry()
+		folderType.getDefaultSchema().create("ruleCode").addLabel(Language.French, "Rule code").setType(STRING).defineDataEntry()
 				.asCopied(rule, ruleType.getDefaultSchema().getMetadata("code"));
 
 		return typesBuilder;
@@ -1431,10 +1434,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	private MetadataSchemaTypeBuilder addFolderSchemaTypeBuilderWithoutRuleMetadatas(MetadataSchemaTypesBuilder types)
 			throws Exception {
 
-		MetadataSchemaTypeBuilder folderBuilder = types.createNewSchemaType("folder").setLabel("Folder").setSecurity(true);
-		folderBuilder.getDefaultSchema().create("zetitle").setType(STRING).setLabel("Title").setUndeletable(true)
+		MetadataSchemaTypeBuilder folderBuilder = types.createNewSchemaType("folder").addLabel(Language.French, "Folder")
+				.setSecurity(true);
+		folderBuilder.getDefaultSchema().create("zetitle").setType(STRING).addLabel(Language.French, "Title").setUndeletable(true)
 				.setUnmodifiable(true);
-		folderBuilder.createCustomSchema("employee").create("employeeName").setType(STRING).setLabel("Name of employee")
+		folderBuilder.createCustomSchema("employee").create("employeeName").setType(STRING)
+				.addLabel(Language.French, "Name of employee")
 				.setUndeletable(true).setSystemReserved(true).setMultivalue(false).setUniqueValue(true);
 
 		return folderBuilder;
@@ -1442,9 +1447,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	private MetadataSchemaTypeBuilder addRuleSchemaTypeBuilder(MetadataSchemaTypesBuilder types) {
 
-		MetadataSchemaTypeBuilder ruleBuilder = types.createNewSchemaType("rule").setLabel("Rule").setSecurity(false);
-		ruleBuilder.getDefaultSchema().create("zetitle").setType(STRING).setLabel("Title").setUndeletable(true);
-		ruleBuilder.getDefaultSchema().create("code").setType(STRING).setLabel("Code").setUndeletable(true);
+		MetadataSchemaTypeBuilder ruleBuilder = types.createNewSchemaType("rule").addLabel(Language.French, "Rule")
+				.setSecurity(false);
+		ruleBuilder.getDefaultSchema().create("zetitle").setType(STRING).addLabel(Language.French, "Title").setUndeletable(true);
+		ruleBuilder.getDefaultSchema().create("code").setType(STRING).addLabel(Language.French, "Code").setUndeletable(true);
 
 		return ruleBuilder;
 

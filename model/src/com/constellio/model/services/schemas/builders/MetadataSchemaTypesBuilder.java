@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -45,25 +46,28 @@ public class MetadataSchemaTypesBuilder {
 	private final List<MetadataSchemaTypeBuilder> schemaTypes = new ArrayList<>();
 	private final String collection;
 	private ClassProvider classProvider;
+	private List<Language> languages = new ArrayList<>();
 
-	private MetadataSchemaTypesBuilder(String collection, int version, ClassProvider classProvider) {
+	private MetadataSchemaTypesBuilder(String collection, int version, ClassProvider classProvider, List<Language> languages) {
 		super();
 		this.collection = collection;
 		this.version = version;
 		this.classProvider = classProvider;
+		this.languages = Collections.unmodifiableList(languages);
 	}
 
 	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ClassProvider classProvider) {
 		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollection(), types.getVersion(),
-				classProvider);
+				classProvider, types.getLanguages());
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
 			typesBuilder.schemaTypes.add(MetadataSchemaTypeBuilder.modifySchemaType(type, classProvider));
 		}
 		return typesBuilder;
 	}
 
-	public static MetadataSchemaTypesBuilder createWithVersion(String collection, int version, ClassProvider classProvider) {
-		return new MetadataSchemaTypesBuilder(collection, version, classProvider);
+	public static MetadataSchemaTypesBuilder createWithVersion(String collection, int version, ClassProvider classProvider,
+			List<Language> languages) {
+		return new MetadataSchemaTypesBuilder(collection, version, classProvider, languages);
 	}
 
 	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
@@ -90,7 +94,8 @@ public class MetadataSchemaTypesBuilder {
 
 		Collections.sort(buildedSchemaTypes, SchemaComparators.SCHEMA_TYPE_COMPARATOR_BY_ASC_CODE);
 
-		return new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies, referenceDefaultValues);
+		return new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies, referenceDefaultValues,
+				languages);
 	}
 
 	public MetadataSchemaTypeBuilder createNewSchemaType(String code) {
@@ -103,7 +108,7 @@ public class MetadataSchemaTypesBuilder {
 			throw new MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent(code);
 		}
 
-		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collection, code, this, initialize).setLabel(code);
+		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collection, code, this, initialize);
 
 		schemaTypes.add(typeBuilder);
 		return typeBuilder;
@@ -203,6 +208,10 @@ public class MetadataSchemaTypesBuilder {
 
 	public int getVersion() {
 		return version;
+	}
+
+	public List<Language> getLanguages() {
+		return languages;
 	}
 
 	@Override

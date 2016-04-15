@@ -16,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
@@ -129,7 +130,10 @@ public class SearchPresenterService {
 			String value = facetValueVO.getValue();
 
 			if (datastoreCode.equals(Schemas.SCHEMA.getDataStoreCode())) {
-				facetValueVO.setLabel(types.getSchema(value).getLabel());
+				List<Language> languages = metadataSchemasManager.getSchemaTypes(facet.getCollection()).getLanguages();
+				for (Language language : languages) {
+					facetValueVO.setLabel(types.getSchema(value).getLabel(language));
+				}
 			} else if (datastoreCode.endsWith("Id_s") || datastoreCode.endsWith("Id_ss")) {
 				Record record = recordServices.getDocumentById(value);
 				facetValueVO.setLabel(record.<String>get(Schemas.TITLE));

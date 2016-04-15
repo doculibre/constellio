@@ -79,7 +79,6 @@ public class AllowedReferencesValidator implements Validator<Record> {
 	public void addValidationErrors(ValidationErrors validationErrors, String code, Metadata metadata, String unallowedSchema) {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL, metadata.getLabel());
 		parameters.put(UNALLOWED_CODE, unallowedSchema);
 		validationErrors.add(getClass(), code, parameters);
 	}

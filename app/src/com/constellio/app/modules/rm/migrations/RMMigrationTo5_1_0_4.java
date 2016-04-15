@@ -9,8 +9,10 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -50,10 +52,13 @@ public class RMMigrationTo5_1_0_4 implements MigrationScript {
 			MetadataSchemaTypeBuilder ddvDocumentTypeSchemaTypeBuilder = typesBuilder.getSchemaType(DocumentType.SCHEMA_TYPE);
 
 			MetadataSchemaBuilder ddvDocumentDefaultSchemaBuilder = ddvDocumentTypeSchemaTypeBuilder.getDefaultSchema();
-			ddvDocumentDefaultSchemaBuilder.createUndeletable(DocumentType.TEMPLATES)
-					.setLabel($("DocumentType.templates"))
+			MetadataBuilder metadataBuilder = ddvDocumentDefaultSchemaBuilder.createUndeletable(DocumentType.TEMPLATES)
 					.setType(MetadataValueType.CONTENT)
 					.setMultivalue(true);
+
+			for (Language language : typesBuilder.getLanguages()) {
+				metadataBuilder.addLabel(language, $("DocumentType.templates"));
+			}
 		}
 	}
 

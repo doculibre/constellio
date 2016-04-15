@@ -14,6 +14,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -76,8 +77,8 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 			}
 		}
 		assertThat(newDomainTypes).hasSize(2);
-		assertThat(newDomainTypes.get(0).getLabel()).isEqualTo("Domain 1");
-		assertThat(newDomainTypes.get(1).getLabel()).isEqualTo("Zé domaine de valeur 2!");
+		assertThat(newDomainTypes.get(0).getLabel(Language.French)).isEqualTo("Domain 1");
+		assertThat(newDomainTypes.get(1).getLabel(Language.French)).isEqualTo("Zé domaine de valeur 2!");
 
 		Metadata code = newDomainTypes.get(0).getDefaultSchema().getMetadata(ValueListItem.CODE);
 		Metadata description = newDomainTypes.get(0).getDefaultSchema().getMetadata(ValueListItem.DESCRIPTION);
@@ -116,8 +117,8 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		MetadataSchemaType taxo1Type = types.getSchemaType(taxonomy1.getSchemaTypes().get(0));
 		MetadataSchemaType taxo2Type = types.getSchemaType(taxonomy2.getSchemaTypes().get(0));
 
-		assertThat(taxo1Type.getLabel()).isEqualTo("My ultimate taxonomy!");
-		assertThat(taxo2Type.getLabel()).isEqualTo("Another taxonomy!");
+		assertThat(taxo1Type.getLabel(Language.French)).isEqualTo("My ultimate taxonomy!");
+		assertThat(taxo2Type.getLabel(Language.French)).isEqualTo("Another taxonomy!");
 
 		Metadata code = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.CODE);
 		Metadata description = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.DESCRIPTION);
@@ -203,7 +204,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 
 		String metadataCode = "folder_default_" + zeTaxo.getCode() + "Ref";
 		Metadata metadata = schemasManager.getSchemaTypes(zeCollection).getMetadata(metadataCode);
-		assertThat(metadata.getLabel()).isEqualTo("Ze ultimate taxo!");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze ultimate taxo!");
 		assertThat(metadata.isTaxonomyRelationship()).isTrue();
 		assertThat(metadata.isMultivalue()).isTrue();
 		assertThat(metadata.getAllowedReferences().getAllowedSchemaType()).isEqualTo(zeTaxo.getSchemaTypes().get(0));

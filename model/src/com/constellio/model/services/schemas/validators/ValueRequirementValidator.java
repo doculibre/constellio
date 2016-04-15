@@ -40,7 +40,6 @@ public class ValueRequirementValidator implements Validator<Record> {
 	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Metadata metadata) {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL, metadata.getLabel());
 		if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			List<String> basedOnMetadatas = new ArrayList<>();
 			CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadata.getDataEntry();

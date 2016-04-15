@@ -19,6 +19,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -69,7 +70,8 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(formMetadataSchemaVO, false);
 
-		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema").getLabel())
+		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema")
+				.getLabel(Language.French))
 				.isEqualTo(
 						"new schema Label");
 
@@ -87,7 +89,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(formMetadataSchemaVO, true);
 
-		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code()).getLabel())
+		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code()).getLabel(Language.French))
 				.isEqualTo(
 						"new schema Label");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);

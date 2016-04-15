@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -102,7 +103,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public String getMetadataTypesCaption(String code) {
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(code);
-		return type.getLabel();
+		return type.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
 	}
 
 	private boolean isAllowedReferenceType(MetadataSchemaType type) {
@@ -153,7 +154,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 		builder.setInputMask(formMetadataVO.getInputMask());
 		builder.setEnabled(formMetadataVO.isEnabled());
-		builder.setLabel(formMetadataVO.getLabel());
+		builder.addLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()), formMetadataVO.getLabel());
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 
 		try {

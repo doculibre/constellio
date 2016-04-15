@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -504,11 +505,11 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
-	public MetadataList sortAscTitle() {
+	public MetadataList sortAscTitle(final Language language) {
 		return sortedUsing(new Comparator<Metadata>() {
 			@Override
 			public int compare(Metadata o1, Metadata o2) {
-				return compareStrings(o1.getLabel(), o2.getLabel());
+				return compareStrings(o1.getLabel(language), o2.getLabel(language));
 			}
 		});
 	}

@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.FormMetadataVO;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -73,7 +74,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		assertThat(resultVO).isNotNull();
 		assertThat(resultVO.getCode()).isEqualTo(stringDefault.getCode());
-		assertThat(resultVO.getLabel()).isEqualTo(stringDefault.getLabel());
+		assertThat(resultVO.getLabel()).isEqualTo(stringDefault.getLabel(Language.French));
 	}
 
 	@Test
@@ -93,7 +94,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getCode()).isEqualTo(zeSchema.code() + "_USRzeMetadataCode");
-		assertThat(result.getLabel()).isEqualTo("zeTitle");
+		assertThat(result.getLabel(Language.French)).isEqualTo("zeTitle");
 		assertThat(result.getType()).isEqualTo(MetadataValueType.BOOLEAN);
 		assertThat(result.isDefaultRequirement()).isFalse();
 		assertThat(result.isEnabled()).isTrue();
@@ -119,7 +120,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getCode()).isEqualTo(zeCustomSchema.code() + "_USRzeMetadataCode");
-		assertThat(result.getLabel()).isEqualTo("zeTitle");
+		assertThat(result.getLabel(Language.French)).isEqualTo("zeTitle");
 		assertThat(result.getType()).isEqualTo(MetadataValueType.BOOLEAN);
 		assertThat(result.isDefaultRequirement()).isFalse();
 		assertThat(result.isEnabled()).isTrue();
@@ -146,7 +147,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getCode()).isEqualTo(stringMeta.getCode());
-		assertThat(result.getLabel()).isEqualTo("zeTitleChanged");
+		assertThat(result.getLabel(Language.French)).isEqualTo("zeTitleChanged");
 		assertThat(result.getType()).isEqualTo(MetadataValueType.STRING);
 		assertThat(result.isDefaultRequirement()).isFalse();
 		assertThat(result.isEnabled()).isTrue();
@@ -173,7 +174,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		assertThat(result).isNotNull();
 		assertThat(result.getCode()).isEqualTo(stringMeta.getCode());
-		assertThat(result.getLabel()).isEqualTo("zeTitleChanged");
+		assertThat(result.getLabel(Language.French)).isEqualTo("zeTitleChanged");
 		assertThat(result.getType()).isEqualTo(MetadataValueType.STRING);
 		assertThat(result.isDefaultRequirement()).isFalse();
 		assertThat(result.isEnabled()).isTrue();

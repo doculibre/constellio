@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -172,6 +173,6 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		assertThat(validationErrors.getValidationErrors().get(0).getParameters().get(METADATA_CODE)).isEqualTo(
 				requiredMetadata1.getCode());
 		assertThat(validationErrors.getValidationErrors().get(0).getParameters().get(METADATA_LABEL)).isEqualTo(
-				requiredMetadata1.getLabel());
+				requiredMetadata1.getLabel(Language.French));
 	}
 }

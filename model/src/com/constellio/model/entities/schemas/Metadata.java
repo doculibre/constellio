@@ -7,12 +7,15 @@ import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.schemas.builders.ClassListBuilder.combine;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.sort.DefaultStringSortFieldNormalizer;
 import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
@@ -30,7 +33,7 @@ public class Metadata implements DataStoreField {
 
 	final String code;
 
-	final String label;
+	final Map<Language, String> labels;
 
 	final String dataStoreType;
 
@@ -63,19 +66,23 @@ public class Metadata implements DataStoreField {
 	final String inputMask;
 
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
-		this("global_default", localCode, type, multivalue);
+		this("global_default", localCode, type, multivalue, false);
 	}
 
-	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue) {
+	Metadata(String localCode, MetadataValueType type, boolean multivalue, boolean multiLingual) {
+		this("global_default", localCode, type, multivalue, multiLingual);
+	}
+
+	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue, boolean multiLingual/*,
+			Language language, Map<Language, String> labels*/) {
 		this.inheritance = null;
 
-		this.label = null;
 		this.enabled = false;
 		this.collection = null;
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false);
+				false, false, false, false, false, false, multiLingual);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -100,7 +107,8 @@ public class Metadata implements DataStoreField {
 			this.dataStoreType = null;
 			this.code = schemaCode + "_" + localCode;
 		}
-
+		//TODO Thiago
+		this.labels = new HashMap<>();
 		this.recordMetadataValidators = null;
 		this.structureFactory = null;
 		this.enumClass = null;
@@ -109,7 +117,7 @@ public class Metadata implements DataStoreField {
 
 	}
 
-	public Metadata(String localCode, String code, String collection, String label, Boolean enabled,
+	public Metadata(String localCode, String code, String collection, Map<Language, String> labels, Boolean enabled,
 			InheritedMetadataBehaviors inheritedMetadataBehaviors, MetadataValueType type,
 			AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
@@ -122,7 +130,7 @@ public class Metadata implements DataStoreField {
 		this.localCode = localCode;
 		this.code = code;
 		this.collection = collection;
-		this.label = label;
+		this.labels = new HashMap<>(labels);
 		this.enabled = enabled;
 		this.type = type;
 		this.allowedReferences = allowedReferences;
@@ -140,7 +148,7 @@ public class Metadata implements DataStoreField {
 		this.encryptionServicesFactory = encryptionServices;
 	}
 
-	public Metadata(Metadata inheritance, String label, boolean enabled, boolean defaultRequirement, String code,
+	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
 			MetadataPopulateConfigs populateConfigs) {
 		super();
@@ -149,7 +157,7 @@ public class Metadata implements DataStoreField {
 		this.code = code;
 		this.collection = inheritance.collection;
 		this.inheritance = inheritance;
-		this.label = label;
+		this.labels = new HashMap<>(labels);
 		this.enabled = enabled;
 		this.type = inheritance.getType();
 		this.allowedReferences = inheritance.getAllowedReferences();
@@ -187,8 +195,12 @@ public class Metadata implements DataStoreField {
 		}
 	}
 
-	public String getLabel() {
-		return label;
+	public String getLabel(Language language) {
+		return labels.get(language);
+	}
+
+	public Map<Language, String> getLabels() {
+		return labels;
 	}
 
 	public boolean isEnabled() {
@@ -229,6 +241,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isMultivalue() {
 		return getInheritedMetadataBehaviors().isMultivalue();
+	}
+
+	public boolean isMultiLingual() {
+		return getInheritedMetadataBehaviors().isMultiLingual();
 	}
 
 	public boolean isUndeletable() {
@@ -328,17 +344,20 @@ public class Metadata implements DataStoreField {
 		return enumClass;
 	}
 
-	public static Metadata newDummyMetadata(String schemaCode, String localCode, MetadataValueType type, boolean multivalue) {
-		return new Metadata(schemaCode, localCode, type, multivalue);
+	public static Metadata newDummyMetadata(String schemaCode, String localCode, MetadataValueType type, boolean multivalue,
+			boolean multiLingual) {
+		return new Metadata(schemaCode, localCode, type, multivalue, multiLingual);
 	}
 
-	public static Metadata newGlobalMetadata(String dataStoreCode, MetadataValueType type, boolean multivalue) {
-		return new Metadata("global_default", dataStoreCode, type, multivalue);
+	public static Metadata newGlobalMetadata(String dataStoreCode, MetadataValueType type, boolean multivalue,
+			boolean multiLingual) {
+		return new Metadata("global_default", dataStoreCode, type, multivalue, multiLingual);
 	}
 
 	public Metadata getSearchableMetadataWithLanguage(String language) {
 		String schemaCode = code.replace("_" + localCode, "");
-		return new Metadata(schemaCode, getDataStoreCode().replace("_s", "_t") + "_" + language, type, isMultivalue());
+		return new Metadata(schemaCode, getDataStoreCode().replace("_s", "_t") + "_" + language, type, isMultivalue(),
+				isMultiLingual());
 	}
 
 	public boolean isSameLocalCode(Metadata metadata) {

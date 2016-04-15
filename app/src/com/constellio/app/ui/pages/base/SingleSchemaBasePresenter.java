@@ -6,6 +6,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -36,7 +37,8 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	}
 
 	public final String getLabel() {
-		return schema().getLabel();
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		return schema().getLabel(language);
 	}
 
 	public final void setSchemaCode(String schemaCode) {

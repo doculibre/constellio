@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -87,7 +88,8 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		MetadataSchemaType type = types().getSchemaType(schemaTypeCode);
 		List<Choice> result = new ArrayList<>();
 		for (MetadataSchema schema : type.getCustomSchemas()) {
-			result.add(new Choice(schema.getCode(), schema.getLabel()));
+			//TODO Thiago
+			result.add(new Choice(schema.getCode(), schema.getLabel(Language.French)));
 		}
 		return result;
 	}
