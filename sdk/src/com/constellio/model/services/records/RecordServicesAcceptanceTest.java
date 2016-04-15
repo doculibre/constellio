@@ -1,7 +1,6 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
-import static com.constellio.model.frameworks.validation.Validator.METADATA_LABEL;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedReferenceFromDummyCalculatorUsingOtherMetadata;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculator;
@@ -747,8 +746,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		} catch (ValidationException e) {
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
-							METADATA_LABEL, "A toAString metadata"))
+					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata"))
 			);
 		}
 
@@ -758,8 +756,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		} catch (ValidationException e) {
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
-							METADATA_LABEL, "A toAString metadata"))
+					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata"))
 			);
 		}
 

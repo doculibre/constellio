@@ -56,11 +56,9 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 		}
 	}
 
-	//TODO Thiago
 	Map<String, String> createMapWithCode(Metadata metadata) {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("localCode", metadata.getLocalCode());
-		//		parameters.put("label", metadata.getLabel());
 		return parameters;
 	}
 

@@ -46,8 +46,6 @@ public class MaskedMetadataValidator implements Validator<Record> {
 	private void addValidationErrors(ValidationErrors validationErrors, String value, Metadata metadata) {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		//TODO Thiago
-//		parameters.put(METADATA_LABEL, metadata.getLabel());
 		parameters.put(MASK, metadata.getInputMask());
 		parameters.put(VALUE, value);
 		validationErrors.add(getClass(), VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK, parameters);

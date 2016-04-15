@@ -108,11 +108,9 @@ public class MetadataBuilder {
 		builder.classProvider = schemaBuilder.getClassProvider();
 		builder.setCollection(schemaBuilder.getCollection());
 		builder.setLocalCode(localCode);
-		//TODO Thiago
 		for (Language language : schemaBuilder.getLabels().keySet()) {
 			builder.addLabel(language, localCode);
 		}
-		//		builder.setLabels(schemaBuilder.getLabels());
 		builder.setEnabled(true);
 		builder.setDefaultRequirement(false);
 		builder.setCode(schemaBuilder.getCode() + UNDERSCORE + localCode);
@@ -207,9 +205,14 @@ public class MetadataBuilder {
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);
 		}
-		if (inheritanceMetadata.getLabels() != null && !inheritanceMetadata.getLabels().isEmpty() && !inheritanceMetadata
-				.getLabels().equals(metadata.getLabels())) {
-			builder.setLabels(metadata.getLabels());
+		//TODO Thiago
+		if (inheritanceMetadata.getLabels() != null && !inheritanceMetadata.getLabels().isEmpty()) {
+			for (Language language : inheritanceMetadata.getLabels().keySet()) {
+				if (inheritanceMetadata.getLabel(language).equals(metadata.getLabel(language))) {
+					builder.addLabel(language, metadata.getLabel(language));
+				}
+			}
+
 		}
 		if (metadata.getInputMask() != null && !metadata.getInputMask().equals(inheritanceMetadata.getInputMask())) {
 			builder.inputMask = metadata.getInputMask();
@@ -560,9 +563,14 @@ public class MetadataBuilder {
 
 	Metadata buildWithInheritance(Metadata inheritance) {
 
-		//TODO Thiago
 		if (this.getLabels() == null || this.getLabels().isEmpty() /*|| this.getLabel().equals(localCode)*/) {
-			setLabels(inheritance.getLabels());
+			this.setLabels(inheritance.getLabels());
+		} else {
+			for (Language language : inheritance.getLabels().keySet()) {
+				if (this.getLabel(language).equals(localCode)) {
+					addLabel(language, inheritance.getLabel(language));
+				}
+			}
 		}
 		if (this.getEnabled() == null) {
 			this.enabled = inheritance.isEnabled();
@@ -759,7 +767,9 @@ public class MetadataBuilder {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "code");
 		}
 		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
-			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
+			//			TODO Thiago
+			builder.addLabel(Language.French, builder.getCode());
+			//			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
 		}
 
 		if (builder.getEnabled() == null) {

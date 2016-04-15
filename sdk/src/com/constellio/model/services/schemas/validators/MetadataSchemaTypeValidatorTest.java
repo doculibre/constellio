@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -181,7 +182,9 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 
 	@Test
 	public void givenMetadataHasLabelWhenValidatingLabelThenNoErrorAdded() {
-		when(aMetadata.getLabel(Language.French)).thenReturn(aMetadataLabel);
+		Map<Language, String> labels = new HashMap<Language, String>();
+		labels.put(Language.French, aMetadataLabel);
+		when(aMetadata.getLabels()).thenReturn(labels);
 
 		validator.validateMetadataLabelNotNull(aMetadata, validationErrors);
 
@@ -223,8 +226,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 		Map<String, String> returnedMap = validator.createMapWithCode(aMetadata);
 
 		assertEquals(aMetadataCode, returnedMap.get("localCode"));
-		assertEquals(aMetadataLabel, returnedMap.get("label"));
-		assertEquals(2, returnedMap.size());
+		assertEquals(1, returnedMap.size());
 	}
 
 	@Test
@@ -236,9 +238,8 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 		Map<String, String> returnedMap = validator.createMapWithCodeLabelAndType(aMetadata);
 
 		assertEquals(aMetadataCode, returnedMap.get("localCode"));
-		assertEquals(aMetadataLabel, returnedMap.get("label"));
 		assertEquals("STRING", returnedMap.get("type"));
-		assertEquals(3, returnedMap.size());
+		assertEquals(2, returnedMap.size());
 	}
 
 	private void configureSchemas() {

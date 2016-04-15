@@ -63,7 +63,6 @@ public class MetadataSchemaXMLReader2 {
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
-		//TODO Thiago
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false);
 
 		for (Language language : typesBuilder.getLanguages()) {

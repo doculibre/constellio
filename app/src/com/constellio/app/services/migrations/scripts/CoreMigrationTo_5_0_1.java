@@ -6,6 +6,8 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -81,19 +83,39 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 
 		//FIXME labels
-		defaultSchema.createUndeletable(Event.RECORD_ID).setType(STRING);
-		defaultSchema.createUndeletable(Event.TYPE).setType(STRING);
-		defaultSchema.createUndeletable(Event.USERNAME).setType(STRING);
-		defaultSchema.createUndeletable(Event.EVENT_PRINCIPAL_PATH).setType(STRING);
-		defaultSchema.createUndeletable(Event.USER_ROLES).setType(STRING);
-		defaultSchema.createUndeletable(Event.DELTA).setType(STRING);
-		defaultSchema.createUndeletable(Event.PERMISSION_DATE_RANGE).setType(STRING);
-		defaultSchema.createUndeletable(Event.PERMISSION_ROLES).setType(STRING);
-		defaultSchema.createUndeletable(Event.PERMISSION_USERS).setType(STRING);
-		defaultSchema.createUndeletable(Event.IP).setType(STRING);
-		defaultSchema.createUndeletable(Event.REASON).setType(STRING).addLabel(Language.French, "Justification");
+		MetadataBuilder metadataBuilder = defaultSchema.createUndeletable(Event.RECORD_ID).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.TYPE).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.USERNAME).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.EVENT_PRINCIPAL_PATH).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.USER_ROLES).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.DELTA).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.PERMISSION_DATE_RANGE).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.PERMISSION_ROLES).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.PERMISSION_USERS).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.IP).setType(STRING);
+		configureLabels(typesBuilder, metadataBuilder);
+		metadataBuilder = defaultSchema.createUndeletable(Event.REASON).setType(STRING)
+				.addLabel(Language.French, "Justification");
+		configureLabels(typesBuilder, metadataBuilder);
 
 		return type;
+	}
+
+	private void configureLabels(MetadataSchemaTypesBuilder typesBuilder, MetadataBuilder metadataBuilder) {
+		for (Language language : typesBuilder.getLanguages()) {
+			if (StringUtils.isBlank(metadataBuilder.getLabel(language))) {
+				metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+			}
+		}
 	}
 
 	private void createCollectionSchemaType(MetadataSchemaTypesBuilder typesBuilder) {

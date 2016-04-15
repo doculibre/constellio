@@ -32,7 +32,6 @@ import com.constellio.model.utils.ParametrizedInstanceUtils;
 public class MetadataSchemaXMLWriter2 {
 
 	public static final String FORMAT_ATTRIBUTE = "format";
-	//TODO Thiago
 	public static final String FORMAT_VERSION = MetadataSchemaXMLReader3.FORMAT_VERSION;
 	public static final String LABEL_SEPARATOR = ";;";
 
@@ -119,7 +118,6 @@ public class MetadataSchemaXMLWriter2 {
 		return languages;
 	}
 
-	//TODO Thiago
 	private Element writeSchemaType(MetadataSchemaType schemaType, MetadataSchema collectionSchema) {
 		Element schemaTypeElement = new Element("type");
 		schemaTypeElement.setAttribute("code", schemaType.getCode());

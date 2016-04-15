@@ -90,17 +90,16 @@ public class MetadataSchemaXMLReader3 {
 	private Map<Language, String> getLabels(Element element) {
 		Map<Language, String> labels = new HashMap<>();
 		String labelValue = element.getAttributeValue("label");
-		String codeValue = element.getAttributeValue("code");
-		//TODO Thiago
-		if (StringUtils.isBlank(labelValue)) {
+		if (StringUtils.isNotBlank(labelValue)) {
 			List<String> languagesLabels = Arrays
-					.asList(element.getAttributeValue("label").split(MetadataSchemaXMLWriter2.LABEL_SEPARATOR));
+					.asList(labelValue.split(MetadataSchemaXMLWriter2.LABEL_SEPARATOR));
 			for (String languagesLabel : languagesLabels) {
 				String[] keyValue = languagesLabel.split("=");
 				Language language = Language.withCode(keyValue[0]);
 				labels.put(language, keyValue[1]);
 			}
 		}
+		//TODO Thiago
 		return labels;
 	}
 
@@ -140,7 +139,10 @@ public class MetadataSchemaXMLReader3 {
 		metadataBuilder.setLabels(getLabels(metadataElement));
 		//TODO Thiago
 		if (metadataBuilder.getLabels().isEmpty()) {
-			System.out.println(metadataBuilder.getCode());
+			for (Language language : schemaBuilder.getLabels().keySet()) {
+				metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+			}
+			System.out.println(metadataBuilder.getCode() + metadataBuilder.getLabels().toString());
 		}
 
 		String localCode = metadataBuilder.getLocalCode();
@@ -546,12 +548,6 @@ public class MetadataSchemaXMLReader3 {
 	private String getCodeValue(Element element) {
 		return element.getAttributeValue("code");
 	}
-
-	//TODO Thiago
-	//	private String getLabelValue(Element metadata) {
-	//		String labelValue = metadata.getAttributeValue("label");
-	//		return StringUtils.isBlank(labelValue) ? null : labelValue;
-	//	}
 
 	private MetadataValueType getTypeValue(Element element) {
 		String stringValue = element.getAttributeValue("type");

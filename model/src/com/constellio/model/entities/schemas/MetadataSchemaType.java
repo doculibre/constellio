@@ -265,7 +265,6 @@ public class MetadataSchemaType {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
-	//TODO Thiago
 	@Override
 	public String toString() {
 		return "MetadataSchemaType [code=" + code + ", label=" + labels + ", defaultSchema=" + defaultSchema

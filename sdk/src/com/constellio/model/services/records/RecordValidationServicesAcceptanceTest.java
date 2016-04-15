@@ -36,7 +36,6 @@ import org.mockito.MockitoAnnotations.Mock;
 import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBeforeOrEqualToLastModificationDateValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMultivalueMetadataValidator;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -120,7 +119,6 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(Maximum50CharsRecordMetadataValidator.class, VALUE_LENGTH_TOO_LONG));
 		assertThat(errors.get(0).getParameters()).containsEntry(MAX_SIZE, "50").containsEntry(WAS_SIZE, "51")
-				.containsEntry(RecordMetadataValidator.METADATA_LABEL, zeSchema.stringMetadata().getLabel(Language.French))
 				.containsEntry(RecordMetadataValidator.METADATA_CODE, zeSchema.stringMetadata().getCode())
 				.containsEntry(RecordMetadataValidator.METADATA_VALUE, titleTooLong);
 
@@ -151,7 +149,6 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(Maximum50CharsRecordMultivalueMetadataValidator.class, VALUE_LENGTH_TOO_LONG));
 		assertThat(errors.get(0).getParameters()).containsEntry(MAX_SIZE, "50").containsEntry(WAS_SIZE, "51")
-				.containsEntry(RecordMetadataValidator.METADATA_LABEL, zeSchema.stringMetadata().getLabel(Language.French))
 				.containsEntry(RecordMetadataValidator.METADATA_CODE, zeSchema.stringMetadata().getCode())
 				.containsEntry(RecordMetadataValidator.METADATA_VALUE, expectedConcatenatedStringValues);
 
@@ -421,8 +418,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(ValueRequirementValidator.class, ValueRequirementValidator.REQUIRED_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(ValueRequirementValidator.METADATA_CODE,
-				zeSchema.booleanMetadata().getCode()).containsEntry(ValueRequirementValidator.METADATA_LABEL,
-				zeSchema.booleanMetadata().getLabel(Language.French));
+				zeSchema.booleanMetadata().getCode());
 	}
 
 	@Test
@@ -451,8 +447,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(ValueRequirementValidator.class, ValueRequirementValidator.REQUIRED_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(ValueRequirementValidator.METADATA_CODE,
-				zeSchema.booleanMetadata().getCode()).containsEntry(ValueRequirementValidator.METADATA_LABEL,
-				zeSchema.booleanMetadata().getLabel(Language.French));
+				zeSchema.booleanMetadata().getCode());
 	}
 
 	@Test
@@ -469,8 +464,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(ValueRequirementValidator.class, ValueRequirementValidator.REQUIRED_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(ValueRequirementValidator.METADATA_CODE,
-				zeSchema.booleanMetadata().getCode()).containsEntry(ValueRequirementValidator.METADATA_LABEL,
-				zeSchema.booleanMetadata().getLabel(Language.French));
+				zeSchema.booleanMetadata().getCode());
 	}
 
 	@Test
@@ -501,8 +495,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(AllowedReferencesValidator.class, AllowedReferencesValidator.UNALLOWED_REFERENCE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(AllowedReferencesValidator.METADATA_CODE,
-				zeSchema.referenceMetadata().getCode()).containsEntry(AllowedReferencesValidator.METADATA_LABEL,
-				zeSchema.referenceMetadata().getLabel(Language.French));
+				zeSchema.referenceMetadata().getCode());
 	}
 
 	@Test
@@ -521,8 +514,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(AllowedReferencesValidator.class, AllowedReferencesValidator.UNALLOWED_REFERENCE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(AllowedReferencesValidator.METADATA_CODE,
-				zeSchema.referenceMetadata().getCode()).containsEntry(AllowedReferencesValidator.METADATA_LABEL,
-				zeSchema.referenceMetadata().getLabel(Language.French));
+				zeSchema.referenceMetadata().getCode());
 	}
 
 	@Test

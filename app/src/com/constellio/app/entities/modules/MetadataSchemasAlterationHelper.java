@@ -80,7 +80,6 @@ public abstract class MetadataSchemasAlterationHelper {
 				String specificKey = "init." + metadataBuilder.getCode().replace("_", ".");
 				String label = migrationResourcesProvider.getDefaultLanguageString(specificKey);
 				if (label.equals(specificKey)) {
-					//TODO Thiago
 					//					overwrite = false;
 					String globalKey = "init.allTypes.allSchemas." + metadataBuilder.getLocalCode();
 					label = migrationResourcesProvider.getDefaultLanguageString(globalKey);

@@ -105,7 +105,11 @@ public class MetadataSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder setLabels(Map<Language, String> labels) {
-		this.labels = new HashMap<>(labels);
+		if (labels != null) {
+			this.labels = new HashMap<>(labels);
+		} else {
+			this.labels = new HashMap<>();
+		}
 		return this;
 	}
 

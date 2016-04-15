@@ -94,7 +94,6 @@ public class MetadataSchemaTypesBuilder {
 
 		Collections.sort(buildedSchemaTypes, SchemaComparators.SCHEMA_TYPE_COMPARATOR_BY_ASC_CODE);
 
-		//TODO Thiago
 		return new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies, referenceDefaultValues,
 				languages);
 	}
