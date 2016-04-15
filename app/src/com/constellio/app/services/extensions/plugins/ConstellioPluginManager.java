@@ -40,6 +40,8 @@ public interface ConstellioPluginManager extends StatefulService {
 
 	List<ConstellioPluginInfo> getPlugins(ConstellioPluginStatus... statuses);
 
+	List<String> getPluginsOfEveryStatus();
+
 	boolean isRegistered(String id);
 
 	void copyPluginResourcesToPluginsResourceFolder(String moduleId);
