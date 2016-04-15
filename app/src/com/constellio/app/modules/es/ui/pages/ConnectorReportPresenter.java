@@ -15,6 +15,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -145,8 +146,10 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 	public Long getTotalDocumentsCount() {
 
 		final List<MetadataSchemaType> types = getMetadataSchemaTypes();
+		
 
 		LogicalSearchCondition condition = from(types).returnAll();
+		condition = condition.andWhere(es.connectorDocument.connector()).isEqualTo(connectorId);
 		if (ConnectorReportView.ERRORS.equals(reportMode)) {
 			condition = condition.andWhere(es.connectorDocument.errorsCount()).isGreaterOrEqualThan(1);
 		}
@@ -164,6 +167,7 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 		final List<MetadataSchemaType> types = getMetadataSchemaTypes();
 
 		LogicalSearchCondition condition = from(types).where(es.connectorDocument.fetched()).isTrue();
+		condition = condition.andWhere(es.connectorDocument.connector()).isEqualTo(connectorId);
 		if (ConnectorReportView.ERRORS.equals(reportMode)) {
 			condition = condition.andWhere(es.connectorDocument.errorsCount()).isGreaterOrEqualThan(1);
 		}
@@ -183,5 +187,9 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 
 	public void filterButtonClicked() {
 		view.filterTable();
+	}
+	
+	public void backButtonClicked() {
+		view.navigate().to(ESViews.class).displayConnectorInstance(connectorId);
 	}
 }

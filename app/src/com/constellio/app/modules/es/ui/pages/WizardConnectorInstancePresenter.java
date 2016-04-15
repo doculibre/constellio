@@ -65,7 +65,7 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 		Record record = toRecord(recordVO);
 		ConnectorInstance<?> connectorInstance = esSchemasRecordsServices.wrapConnectorInstance(record);
 		esSchemasRecordsServices.getConnectorManager().createConnector(connectorInstance);
-		view.navigate().to(ESViews.class).listConnectorInstances();
+		view.navigate().to(ESViews.class).displayConnectorInstance(connectorInstance.getId());
 	}
 
 	public void connectorTypeSelected(String id) {
