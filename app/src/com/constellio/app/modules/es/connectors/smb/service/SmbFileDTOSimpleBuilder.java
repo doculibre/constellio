@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.es.connectors.spi.LoggedException;
-import jcifs.smb.SmbFile;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -20,6 +16,8 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
+
+import jcifs.smb.SmbFile;
 
 public class SmbFileDTOSimpleBuilder {
 	private static final long MAX_FILE_SIZE_IN_BYTES = 1024 * 1024 * 1024;
@@ -75,12 +73,14 @@ public class SmbFileDTOSimpleBuilder {
 
 					if (withContent) {
 						if (smbFileDTO.getLength() > 0 && smbFileDTO.getLength() <= MAX_FILE_SIZE_IN_BYTES) {
-
 							inputStream = smbFile.getInputStream();
-
-							ParsedContent parsedContent = updateParsedContent(smbFileDTO, inputStream);
-							smbFileDTO.setLanguage(parsedContent.getLanguage());
-
+							try {
+								ParsedContent parsedContent = updateParsedContent(smbFileDTO, inputStream);
+								smbFileDTO.setLanguage(parsedContent.getLanguage());
+							} catch (Throwable t) {
+								smbFileDTO.setParsedContent("");
+								smbFileDTO.setLanguage("");
+							}
 						} else {
 							if (smbFileDTO.getLength() > MAX_FILE_SIZE_IN_BYTES) {
 								smbFileDTO.setErrorMessage(ERROR_TOO_BIG);
@@ -103,10 +103,10 @@ public class SmbFileDTOSimpleBuilder {
 			logger.error(new SmbLoggedException(url, e));
 			smbFileDTO.setStatus(SmbFileDTOStatus.FAILED_DTO);
 			smbFileDTO.setErrorMessage(e.getMessage());
-		} catch (Exception e) {
-			logger.errorUnexpected(e);
+		} catch (Throwable t) {
+			logger.errorUnexpected(t);
 			smbFileDTO.setStatus(SmbFileDTOStatus.FAILED_DTO);
-			smbFileDTO.setErrorMessage(e.getMessage());
+			smbFileDTO.setErrorMessage(t.getMessage());
 		} finally {
 			es.getIOServices()
 					.closeQuietly(inputStream);

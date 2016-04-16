@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.navigation.ESViews;
@@ -23,6 +26,9 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 
 public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConnectorInstanceView> {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(DisplayConnectorInstancePresenter.class);
+	
 	private RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 	private RecordVO recordVO;
 	private ConnectorInstance connectorInstance;
@@ -80,7 +86,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 	}
 
 	public void editConnectorInstanceButtonClicked() {
-		view.navigateTo().editConnectorInstance(recordVO.getId());
+		view.navigate().to(ESViews.class).editConnectorInstance(recordVO.getId());
 	}
 
 	public String getTitle() {
@@ -114,7 +120,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		connectorInstance.setEnabled(true);
 		try {
 			recordServices.update(connectorInstance.getWrappedRecord());
-			view.navigateTo().displayConnectorInstance(recordVO.getId());
+			view.navigate().to(ESViews.class).displayConnectorInstance(recordVO.getId());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -124,7 +130,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		connectorInstance.setEnabled(false);
 		try {
 			recordServices.update(connectorInstance.getWrappedRecord());
-			view.navigateTo().displayConnectorInstance(recordVO.getId());
+			view.navigate().to(ESViews.class).displayConnectorInstance(recordVO.getId());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -139,7 +145,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 	}
 
 	public void editSchemasButtonClicked() {
-		view.navigateTo().displayConnectorMappings(recordVO.getId());
+		view.navigate().to(ESViews.class).displayConnectorMappings(recordVO.getId());
 	}
 
 	public void backgroundViewMonitor() {
@@ -155,20 +161,24 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 
 	public void indexationReportButtonClicked() {
 		try {
-			view.navigateTo().connectorIndexationReport(connectorInstance.getId());
+			view.navigate().to(ESViews.class).connectorIndexationReport(connectorInstance.getId());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 
 	public void errorsReportButtonClicked() {
-		view.navigateTo().connectorErrorsReport(connectorInstance.getId());
+		view.navigate().to(ESViews.class).connectorErrorsReport(connectorInstance.getId());
 	}
 
 	public void deleteDocumentsButtonClicked() {
-		esSchemasRecordsServices.getConnectorManager()
-				.totallyDeleteConnectorRecordsSkippingValidation(modelLayerFactory.getDataLayerFactory().newRecordDao(),
-						connectorInstance);
-		view.navigateTo().displayConnectorInstance(recordVO.getId());
+		try {
+			esSchemasRecordsServices.getConnectorManager()
+			.totallyDeleteConnectorRecordsSkippingValidation(modelLayerFactory.getDataLayerFactory().newRecordDao(),
+					connectorInstance);
+		} catch (Throwable t) {
+			LOGGER.warn("Error while deleting connector records", t);
+		}
+		view.navigate().to(ESViews.class).displayConnectorInstance(recordVO.getId());
 	}
 }

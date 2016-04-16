@@ -41,6 +41,8 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+		
 		BaseDisplay statsDisplay = buildStatsDisplay();
 		HorizontalLayout filterComponent = buildFilterComponent();
 		table = buildTable();
