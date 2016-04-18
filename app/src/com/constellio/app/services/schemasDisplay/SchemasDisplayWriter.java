@@ -36,8 +36,12 @@ public class SchemasDisplayWriter {
 	private static final String HIGHLIGHT = "Highlight";
 	private static final String METADATA_GROUP_LABEL = "MetadataGroupLabel";
 	private static final String METADATA_GROUPS_LABELS = "MetadataGroupsLabels";
-	private static final String METADATA_GROUP_NAME = "name";
+	//TODO Thiago
+	private static final String METADATA_GROUP_CODE = "name";
 	private static final String METADATA_GROUP = "metadataGroup";
+
+	public static final String FORMAT_ATTRIBUTE = "format";
+	public static final String FORMAT_VERSION = SchemasDisplayReader2.FORMAT_VERSION;
 
 	Document document;
 
@@ -48,6 +52,7 @@ public class SchemasDisplayWriter {
 	public void writeEmptyDocument() {
 		Element display = new Element(ROOT);
 		document.setRootElement(display);
+		document.getRootElement().setAttribute(FORMAT_ATTRIBUTE, FORMAT_VERSION);
 	}
 
 	public void saveTypes(SchemaTypesDisplayConfig config) {
@@ -149,7 +154,7 @@ public class SchemasDisplayWriter {
 		}
 
 		for (String group : config.getMetadataGroup()) {
-			createAndAddElement(metadataGroups, METADATA_GROUP_LABEL, METADATA_GROUP_NAME, group);
+			createAndAddElement(metadataGroups, METADATA_GROUP_LABEL, METADATA_GROUP_CODE, group);
 		}
 	}
 
