@@ -2,6 +2,7 @@ package com.constellio.app.modules.robots.services;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.robots.model.ActionExecutor;
@@ -36,9 +37,10 @@ public class RobotBatchProcessAction implements BatchProcessAction {
 		if (actionParametersId != null) {
 			actionParameters = schemas.getActionParameters(actionParametersId);
 		}
-
+		
+		List<Record> processedRecord = new ArrayList<Record>();
 		Transaction transaction = actionExecutor != null ?
-				actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch) : new Transaction();
+				actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch, processedRecord) : new Transaction();
 		transaction.add(schemas.newRobotLog().setRobot(robotId).setTitle($("RobotBatchProcessAction.completed")));
 		return transaction;
 	}
