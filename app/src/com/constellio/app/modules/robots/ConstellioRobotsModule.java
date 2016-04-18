@@ -11,6 +11,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo5_1_2;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo5_1_3;
+import com.constellio.app.modules.robots.migrations.RobotsMigrationTo6_3;
 import com.constellio.app.modules.robots.model.actions.RunExtractorsActionExecutor;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.modules.robots.services.RobotsManager;
@@ -41,7 +42,8 @@ public class ConstellioRobotsModule implements InstallableModule {
 	public List<MigrationScript> getMigrationScripts() {
 		return Arrays.asList(
 				new RobotsMigrationTo5_1_2(),
-				new RobotsMigrationTo5_1_3()
+				new RobotsMigrationTo5_1_3(),
+				new RobotsMigrationTo6_3()
 		);
 	}
 
@@ -58,7 +60,6 @@ public class ConstellioRobotsModule implements InstallableModule {
 
 		RunExtractorsActionExecutor.registerIn(robotsManager);
 	}
-
 
 	@Override
 	public void stop(String collection, AppLayerFactory appLayerFactory) {
