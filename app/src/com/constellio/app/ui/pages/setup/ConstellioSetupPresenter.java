@@ -117,6 +117,9 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 				collectionCode, languages);
 		Collection collection = new Collection(collectionRecord,
 				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
+		if (StringUtils.isBlank(collectionTitle)) {
+			collectionTitle = collectionCode;
+		}
 		collection.setName(collectionTitle).setTitle(collectionTitle);
 		try {
 			recordServices().update(collection);

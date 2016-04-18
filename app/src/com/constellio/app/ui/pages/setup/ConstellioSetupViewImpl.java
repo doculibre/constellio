@@ -5,8 +5,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
@@ -188,16 +191,18 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		if (!loadSaveState) {
 			languagesField = new ListOptionGroup($("ConstellioSetupView.languages"));
 			languagesField.setMultiSelect(true);
+			languagesField.setRequired(true);
 
 			for (String languageCode : this.localeCodes) {
 				languagesField.addItem(languageCode);
-				languagesField.setItemEnabled(languageCode, setupLocaleCode.equals(languageCode));
+				languagesField.setItemEnabled(languageCode, !setupLocaleCode.equals(languageCode));
 				languagesField.setItemCaption(languageCode, $("Language." + languageCode));
 			}
-			languagesField.select(setupLocaleCode);
+			bean.setLanguages(Arrays.asList(setupLocaleCode));
 
 			modulesField = new ListOptionGroup($("ConstellioSetupView.modules"));
 			modulesField.setMultiSelect(true);
+			modulesField.setRequired(true);
 
 			for (String moduleId : moduleIds) {
 				String moduleName = $("ConstellioSetupView.module." + moduleId);
@@ -206,14 +211,14 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			}
 
 			collectionTitleField = new BaseTextField($("ConstellioSetupView.collectionTitle"));
-			collectionTitleField.setRequired(true);
 
 			collectionCodeField = new BaseTextField($("ConstellioSetupView.collectionCode"));
 			collectionCodeField.setRequired(true);
 
 			adminPasswordField = new BasePasswordField($("ConstellioSetupView.adminPassword"));
 
-			formFields = new Field[] {languagesField, modulesField, collectionCodeField, collectionTitleField, adminPasswordField };
+			formFields = new Field[] { languagesField, modulesField, collectionCodeField, collectionTitleField,
+					adminPasswordField };
 		} else {
 			saveStateField = new BaseUploadField();
 			saveStateField.setCaption($("ConstellioSetupView.saveState"));
@@ -236,7 +241,8 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 							String adminPassword = bean.getAdminPassword();
 
 							try {
-								presenter.saveRequested(setupLocaleCode, languages, modules, collectionTitle, collectionCode, adminPassword);
+								presenter.saveRequested(setupLocaleCode, languages, modules, collectionTitle, collectionCode,
+										adminPassword);
 							} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
 								showMessage(constellioSetupPresenterException.getMessage());
 

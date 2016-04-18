@@ -161,6 +161,9 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		Set<String> modules = entity.getModules();
 		String collectionCode = entity.getCode();
 		String collectionName = entity.getName();
+		if (StringUtils.isBlank(collectionName)) {
+			collectionName = collectionCode;
+		}
 		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
 				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
