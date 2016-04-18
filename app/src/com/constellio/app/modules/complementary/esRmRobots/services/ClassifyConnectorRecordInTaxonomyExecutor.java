@@ -554,6 +554,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			try {
 				ClassifiedDocument classifiedDocument = classifyDocument(document, inRmFolder, majorVersions);
 				createdRecordsByUrls.put(document.getUrl(), classifiedDocument);
+				processedRecords.add(document.getWrappedRecord());
 			} catch (ClassifyServicesRuntimeException_CannotClassifyAsDocument e) {
 				LOGGER.warn("Cannot classify '" + document.getUrl() + "'", e);
 			}

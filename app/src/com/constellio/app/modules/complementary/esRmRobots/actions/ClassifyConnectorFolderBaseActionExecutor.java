@@ -45,7 +45,7 @@ public abstract class ClassifyConnectorFolderBaseActionExecutor implements Actio
 			try {
 				new ClassifyConnectorRecordInTaxonomyExecutor(
 						record, params, appLayerFactory, user, robotId, processedRecords).execute();
-
+				processedRecords.add(record);
 			} catch (Throwable e) {
 				LOGGER.warn("Cannot classify record", e);
 				try {

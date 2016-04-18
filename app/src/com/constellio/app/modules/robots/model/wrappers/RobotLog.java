@@ -9,6 +9,7 @@ public class RobotLog extends RecordWrapper {
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 
 	public static final String ROBOT = "robot";
+	public static final String COUNT = "count";
 
 	public RobotLog(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -17,6 +18,15 @@ public class RobotLog extends RecordWrapper {
 	public RobotLog setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	public RobotLog setProcessRecordsCount(int process) {
+		super.set(COUNT, process);
+		return this;
+	}
+
+	public int getProcessRecordsCount() {
+		return get(COUNT);
 	}
 
 	public String getRobot() {

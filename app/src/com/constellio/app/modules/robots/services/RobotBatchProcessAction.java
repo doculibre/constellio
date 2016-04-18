@@ -38,10 +38,11 @@ public class RobotBatchProcessAction implements BatchProcessAction {
 			actionParameters = schemas.getActionParameters(actionParametersId);
 		}
 		
-		List<Record> processedRecord = new ArrayList<Record>();
+		List<Record> processedRecords = new ArrayList<>();
 		Transaction transaction = actionExecutor != null ?
-				actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch, processedRecord) : new Transaction();
-		transaction.add(schemas.newRobotLog().setRobot(robotId).setTitle($("RobotBatchProcessAction.completed")));
+				actionExecutor.execute(robotId, actionParameters, appLayerFactory, batch, processedRecords) : new Transaction();
+		transaction.add(schemas.newRobotLog().setRobot(robotId).setTitle($("RobotBatchProcessAction.completed"))
+				.setProcessRecordsCount(processedRecords.size()));
 		return transaction;
 	}
 
