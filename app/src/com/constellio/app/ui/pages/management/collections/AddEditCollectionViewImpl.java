@@ -32,8 +32,8 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 	private TextField name;
 	@PropertyId("modules")
 	private OptionGroup modules;
-	//@PropertyId("language")
-	//private OptionGroup language;
+	@PropertyId("supportedLanguages")
+	private OptionGroup supportedLanguages;
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
@@ -90,13 +90,15 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 		name.addStyleName("name");
 		name.addStyleName("name-" + collectionVO.getName());
 
-		/*language = new OptionGroup($("AddEditCollectionView.language"));
-		language.setRequired(true);
-		for (String languageCode : presenter.getSupportedLanguages()) {
-			language.addItem(languageCode);
-			language.setItemCaption(languageCode, $("Language." + languageCode));
+		supportedLanguages = new OptionGroup($("AddEditCollectionView.language"));
+		supportedLanguages.setMultiSelect(true);
+		for (String languageCode : presenter.getAllLanguages()) {
+			supportedLanguages.addItem(languageCode);
+			supportedLanguages.setItemEnabled(languageCode, presenter.isLanguageEnabled(languageCode));
+			supportedLanguages.setItemCaption(languageCode, $("Language." + languageCode));
 		}
-		language.setEnabled(!presenter.getActionEdit());*/
+		supportedLanguages.select(presenter.getMainDataLanguage());
+		//supportedLanguages.setEnabled(!presenter.getActionEdit());
 
 		modules = new OptionGroup($("AddEditCollectionView.modules"));
 		modules.setMultiSelect(true);
@@ -107,7 +109,8 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 		}
 		//modules.setEnabled(!presenter.getActionEdit());
 
-		BaseForm<CollectionVO> baseFormComponent = new BaseForm<CollectionVO>(collectionVO, this, code, name, modules) {
+		BaseForm<CollectionVO> baseFormComponent = new BaseForm<CollectionVO>(collectionVO, this, code, name, supportedLanguages,
+				modules) {
 			@Override
 			protected void saveButtonClick(CollectionVO viewObject)
 					throws ValidationException {
