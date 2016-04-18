@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeCodeChangeForbidden;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeShouldNotContainDash;
@@ -246,7 +247,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	public List<String> getAllLanguages() {
-		return Language.getKnownAvailableLanguagesCodes();
+		return i18n.getSupportedLanguages();
 	}
 
 	public boolean isLanguageEnabled(String languageCode) {

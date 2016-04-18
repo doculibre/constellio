@@ -26,7 +26,7 @@ public class ConstellioSetupPresenterAcceptanceTest extends ConstellioTest {
 		ConstellioFactories constellioFactories = getConstellioFactories();
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
 		ConstellioSetupPresenter presenter = new ConstellioSetupPresenter(view);
-		presenter.saveRequested("fr", Arrays.asList("rm"), "ZerCollection", "zeColl", "supertimor");
+		presenter.saveRequested("fr", Arrays.asList("fr"), Arrays.asList("rm"), "ZerCollection", "zeColl", "supertimor");
 		newWebDriver();
 		waitUntilICloseTheBrowsers();
 	}

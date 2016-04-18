@@ -39,4 +39,5 @@ public class Collection extends RecordWrapper {
 	public List<String> getLanguages() {
 		return get(LANGUAGES);
 	}
+
 }

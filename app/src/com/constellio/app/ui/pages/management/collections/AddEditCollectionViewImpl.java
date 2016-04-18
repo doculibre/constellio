@@ -92,13 +92,14 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 
 		supportedLanguages = new OptionGroup($("AddEditCollectionView.language"));
 		supportedLanguages.setMultiSelect(true);
+		supportedLanguages.setRequired(true);
 		for (String languageCode : presenter.getAllLanguages()) {
 			supportedLanguages.addItem(languageCode);
 			supportedLanguages.setItemEnabled(languageCode, presenter.isLanguageEnabled(languageCode));
 			supportedLanguages.setItemCaption(languageCode, $("Language." + languageCode));
 		}
 		supportedLanguages.select(presenter.getMainDataLanguage());
-		//supportedLanguages.setEnabled(!presenter.getActionEdit());
+		supportedLanguages.setEnabled(!presenter.getActionEdit());
 
 		modules = new OptionGroup($("AddEditCollectionView.modules"));
 		modules.setMultiSelect(true);
