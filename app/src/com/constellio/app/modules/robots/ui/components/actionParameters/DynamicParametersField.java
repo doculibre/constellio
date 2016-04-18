@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -15,14 +16,18 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DynamicParametersField extends CustomField<String> {
+	
 	private final DynamicParametersPresenter presenter;
 	private VerticalLayout layout;
 	private Button button;
 
 	private RecordVO record;
+	
+	private MetadataFieldFactory metadataFieldFactory;
 
-	public DynamicParametersField(DynamicParametersPresenter presenter) {
+	public DynamicParametersField(DynamicParametersPresenter presenter, MetadataFieldFactory metadataFieldFactory) {
 		this.presenter = presenter;
+		this.metadataFieldFactory = metadataFieldFactory;
 	}
 
 	@Override
@@ -73,7 +78,13 @@ public class DynamicParametersField extends CustomField<String> {
 				WindowConfiguration.modalDialog("75%", "75%")) {
 			@Override
 			protected Component buildWindowContent() {
-				return new RecordForm(record != null ? record : presenter.newDynamicParametersRecord()) {
+				RecordVO effectiveRecord;
+				if (record != null) {
+					effectiveRecord = record;
+				} else {
+					effectiveRecord = presenter.newDynamicParametersRecord();
+				}
+				return new RecordForm(effectiveRecord, metadataFieldFactory) {
 					@Override
 					protected void saveButtonClick(RecordVO viewObject)
 							throws ValidationException {
