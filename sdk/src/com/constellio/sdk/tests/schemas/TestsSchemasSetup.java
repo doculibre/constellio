@@ -322,7 +322,6 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 			@Override
 			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
-				//TODO Thiago
 				builder.addLabel(Language.French, label);
 			}
 

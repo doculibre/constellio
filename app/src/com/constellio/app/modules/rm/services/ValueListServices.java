@@ -3,7 +3,9 @@ package com.constellio.app.modules.rm.services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
@@ -143,7 +145,6 @@ public class ValueListServices {
 				.defineTaxonomyRelationshipToType(taxonomyType)
 				.setMultivalue(true);
 
-		//TODO Thiago
 		for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
 			metadataBuilder.addLabel(language, taxonomy.getTitle());
 		}
@@ -155,8 +156,14 @@ public class ValueListServices {
 
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(taxonomy.getCollection(), schemaType);
-		if (!typeDisplayConfig.getMetadataGroup().contains(groupLabel)) {
-			transaction.add(typeDisplayConfig.withNewMetadataGroup(groupLabel));
+		if (!typeDisplayConfig.getMetadataGroup().keySet().contains(groupLabel)) {
+			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
+				Map<String, Map<Language, String>> groups = new HashMap<>();
+				Map<Language, String> labels = new HashMap<>();
+				labels.put(language, groupLabel);
+				groups.put("init.robot.tabs.action", labels);
+				transaction.add(typeDisplayConfig.withNewMetadataGroup(groups));
+			}
 		}
 
 		for (MetadataSchema schema : schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(schemaType)

@@ -76,7 +76,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (types != null) {
 			Metadata metadata = types.getMetadata(metadataCode);
 
-			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder();
+			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
 			found = voBuilder.build(metadata, displayManager, parameters.get("schemaTypeCode"));
 		}
 
@@ -271,7 +271,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public List<String> getMetadataGroupList() {
 		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, parameters.get("schemaTypeCode"));
-		return schemaConfig.getMetadataGroup();
+		return new ArrayList<>(schemaConfig.getMetadataGroup().keySet());
 	}
 
 	public void cancelButtonClicked() {

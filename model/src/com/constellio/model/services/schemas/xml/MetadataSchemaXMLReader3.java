@@ -99,7 +99,6 @@ public class MetadataSchemaXMLReader3 {
 				labels.put(language, keyValue[1]);
 			}
 		}
-		//TODO Thiago
 		return labels;
 	}
 
@@ -137,14 +136,6 @@ public class MetadataSchemaXMLReader3 {
 		}
 
 		metadataBuilder.setLabels(getLabels(metadataElement));
-		//TODO Thiago
-		//		if (metadataBuilder.getLabels().isEmpty()) {
-		//			for (Language language : schemaBuilder.getLabels().keySet()) {
-		//				metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-		//			}
-		//		}
-
-		String localCode = metadataBuilder.getLocalCode();
 
 		if (metadataBuilder.getInheritance() != null && !metadataBuilder.getCode().contains("default")) {
 			parseMetadataWithInheritance(metadataElement, metadataBuilder);

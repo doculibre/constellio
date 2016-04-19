@@ -1,7 +1,7 @@
 package com.constellio.app.services.migrations.scripts;
 
-
-import static java.util.Arrays.asList;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -10,6 +10,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -50,16 +51,30 @@ public class CoreMigrationTo_5_1_6 implements MigrationScript {
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
+		Language language = migrationResourcesProvider.getLanguage();
+		Map<String, Map<Language, String>> groups = new HashMap<>();
+
 		String configurationTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.configuration");
+		Map<Language, String> labels = new HashMap<>();
+		labels.put(language, configurationTab);
+		groups.put("init.facetConfiguration.configuration", labels);
+
 		String valeursTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.values");
+		labels = new HashMap<>();
+		labels.put(language, valeursTab);
+		groups.put("init.facetConfiguration.values", labels);
+
 		String queryTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.query");
+		labels = new HashMap<>();
+		labels.put(language, queryTab);
+		groups.put("init.facetConfiguration.query", labels);
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		SchemaTypeDisplayConfig facetSchemaType = manager.getType(collection, Facet.SCHEMA_TYPE);
 
 		transaction.add(facetSchemaType
-				.withMetadataGroup(asList(configurationTab, valeursTab, queryTab)));
+				.withMetadataGroup(groups));
 
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.TITLE)
 				.withMetadataGroup(configurationTab));
@@ -85,6 +100,4 @@ public class CoreMigrationTo_5_1_6 implements MigrationScript {
 		manager.execute(transaction);
 	}
 
-
-	
 }

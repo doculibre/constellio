@@ -105,10 +105,18 @@ public class MetadataToVOBuilder implements Serializable {
 			metadataInputType = metadataDisplayConfig.getInputType();
 			metadataGroup = metadataDisplayConfig.getMetadataGroup();
 
+			//TODO Thiago
+			//			if (StringUtils.isBlank(metadataGroup)) {
+			//				String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
+			//				List<String> groups = schemasDisplayManager.getType(collection, typeCode).getMetadataGroup();
+			//				metadataGroup = groups.isEmpty() ? null : groups.get(0);
+			//			}
 			if (StringUtils.isBlank(metadataGroup)) {
 				String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
-				List<String> groups = schemasDisplayManager.getType(collection, typeCode).getMetadataGroup();
-				metadataGroup = groups.isEmpty() ? null : groups.get(0);
+				Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(collection, typeCode)
+						.getMetadataGroup();
+				Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+				metadataGroup = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
 			}
 		} else {
 			taxonomyCodes = new String[0];

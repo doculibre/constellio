@@ -1,11 +1,13 @@
 package com.constellio.app.services.schemasDisplay;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
@@ -19,8 +21,10 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2;
 
-public class SchemasDisplayReader1 {
+//TODO Thiago
+public class SchemasDisplayReader2 {
 	private static final String ROOT = "display";
 	private static final String SCHEMA_TYPES_DISPLAY_CONFIG = "SchemaTypesDisplayConfig";
 	private static final String COLLECTION = "collection";
@@ -41,13 +45,16 @@ public class SchemasDisplayReader1 {
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
 	private static final String HIGHLIGHT = "Highlight";
 	private static final String METADATA_GROUPS_LABELS = "MetadataGroupsLabels";
-	private static final String METADATA_GROUP_NAME = "name";
+	private static final String LABELS = "labels";
+	private static final String METADATA_GROUP_CODE = "code";
 	private static final String METADATA_GROUP = "metadataGroup";
+
+	public static final String FORMAT_VERSION = "2";
 
 	MetadataSchemaTypes types;
 	Document document;
 
-	public SchemasDisplayReader1(Document document, MetadataSchemaTypes types) {
+	public SchemasDisplayReader2(Document document, MetadataSchemaTypes types) {
 		this.document = document;
 		this.types = types;
 	}
@@ -110,23 +117,37 @@ public class SchemasDisplayReader1 {
 				boolean advancedSearch = new Boolean(child.getAttributeValue(ADVANCED_SEARCH));
 				String schemaType = child.getName();
 
-				Map<String, Map<Language, String>> metadataGroups = new HashMap<>();
-
+				Map<String, Map<Language, String>> groups = new HashMap<>();
 				for (Element metadataGroup : child.getChild(METADATA_GROUPS_LABELS).getChildren()) {
+					String code = metadataGroup.getAttributeValue(METADATA_GROUP_CODE);
 					Map<Language, String> labels = new HashMap<>();
-					//TODO Thiago get language
-					labels.put(Language.French, metadataGroup.getAttributeValue(METADATA_GROUP_NAME));
-					metadataGroups.put(metadataGroup.getAttributeValue(METADATA_GROUP_NAME), labels);
+					labels.putAll(getLabels(metadataGroup));
+					groups.put(code, labels);
 				}
 
 				SchemaTypeDisplayConfig schemaTypeDisplayConfig = new SchemaTypeDisplayConfig(collection, schemaType, manageable,
-						advancedSearch, simpleSearch, metadataGroups);
+						advancedSearch, simpleSearch, groups);
 				schemaTypeDisplayConfigMap.put(schemaType, schemaTypeDisplayConfig);
 			}
 			return schemaTypeDisplayConfigMap;
 		} else {
 			return new HashMap<>();
 		}
+	}
+
+	private Map<Language, String> getLabels(Element element) {
+		Map<Language, String> labels = new HashMap<>();
+		String labelValue = element.getAttributeValue(LABELS);
+		if (StringUtils.isNotBlank(labelValue)) {
+			List<String> languagesLabels = Arrays
+					.asList(labelValue.split(MetadataSchemaXMLWriter2.LABEL_SEPARATOR));
+			for (String languagesLabel : languagesLabels) {
+				String[] keyValue = languagesLabel.split("=");
+				Language language = Language.withCode(keyValue[0]);
+				labels.put(language, keyValue[1]);
+			}
+		}
+		return labels;
 	}
 
 	private void setSchemaDisplayConfigs(String collection, Element rootElement,
@@ -244,17 +265,12 @@ public class SchemasDisplayReader1 {
 		String metadataGroup = metadataDisplayConfigElement.getAttributeValue(METADATA_GROUP);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
-		Map<String, Map<Language, String>> groups = schemasDisplayManagerCache.getType(typeCode).getMetadataGroup();
-
-		if (groups.get(metadataGroup) != null) {
-			//TODO Thiago
-			Language language = Language.French;
-			metadataGroup = groups.get(metadataGroup).get(language);
-		}
 		//TODO Thiago
-		//				if (StringUtils.isBlank(metadataGroup) || !groups.contains(metadataGroup)) {
-		//					metadataGroup = groups.isEmpty() ? null : groups.get(0);
-		//				}
+		List<String> groups = new ArrayList<>(schemasDisplayManagerCache.getType(typeCode).getMetadataGroup().keySet());
+
+		if (StringUtils.isBlank(metadataGroup) || !groups.contains(metadataGroup)) {
+			metadataGroup = groups.isEmpty() ? null : groups.get(0);
+		}
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);

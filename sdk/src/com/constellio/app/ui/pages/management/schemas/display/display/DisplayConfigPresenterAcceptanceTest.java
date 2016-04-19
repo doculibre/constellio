@@ -165,7 +165,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	private List<FormMetadataVO> getFormVO(List<Metadata> metadatas) {
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(FakeSessionContext.adminInCollection(zeCollection));
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		for (Metadata metadata : metadatas) {
 			formMetadataVOs.add(builder.build(metadata, getAppLayerFactory().getMetadataSchemasDisplayManager(),
