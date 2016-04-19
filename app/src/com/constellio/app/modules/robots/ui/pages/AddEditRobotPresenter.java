@@ -165,6 +165,10 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		}
 	}
 
+	public boolean canAutoExecute() {
+		return robot.get(Robot.PARENT) == null;
+	}
+
 	@Override
 	public void addCriterionRequested() {
 		view.addEmptyCriterion();
