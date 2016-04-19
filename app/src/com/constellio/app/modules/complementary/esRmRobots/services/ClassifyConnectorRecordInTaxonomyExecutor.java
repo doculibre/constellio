@@ -80,9 +80,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	List<String> newExclusions = new ArrayList<>();
 	User currentUser;
 	String robotId;
+	List<Record> processedRecords;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-			AppLayerFactory appLayerFactory, User currentUser, String robotId) {
+			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -95,6 +96,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.robotId = robotId;
+		this.processedRecords = processedRecords;
 	}
 
 	public void execute() {
@@ -552,6 +554,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			try {
 				ClassifiedDocument classifiedDocument = classifyDocument(document, inRmFolder, majorVersions);
 				createdRecordsByUrls.put(document.getUrl(), classifiedDocument);
+				processedRecords.add(document.getWrappedRecord());
 			} catch (ClassifyServicesRuntimeException_CannotClassifyAsDocument e) {
 				LOGGER.warn("Cannot classify '" + document.getUrl() + "'", e);
 			}

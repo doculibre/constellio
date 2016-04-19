@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -1847,7 +1848,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 	void classifyConnectorFolderInTaxonomy(Record connectorFolder, ClassifyConnectorFolderInTaxonomyActionParameters params) {
 		ClassifyConnectorRecordInTaxonomyExecutor builder = new ClassifyConnectorRecordInTaxonomyExecutor(
-				connectorFolder, params, es.getAppLayerFactory(), users.adminIn(zeCollection), robotId);
+				connectorFolder, params, es.getAppLayerFactory(), users.adminIn(zeCollection), robotId, new ArrayList<Record>());
 		builder.execute();
 
 	}
