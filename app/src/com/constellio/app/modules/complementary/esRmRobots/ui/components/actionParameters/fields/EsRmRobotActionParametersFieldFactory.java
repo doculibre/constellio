@@ -22,6 +22,8 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 
 	private ActionParametersRetentionRuleFieldImpl retentionRuleField;
 	
+	private EsRmRobotActionParametersPresenter presenter;
+	
 	private static final String[] CUSTOM_FIELDS = {
 			ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_CATEGORY,
 			ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY,
@@ -30,7 +32,7 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 	};
 
 	public EsRmRobotActionParametersFieldFactory() {
-		new EsRmRobotActionParametersPresenter(this);
+		this.presenter = new EsRmRobotActionParametersPresenter(this);
 	}
 	
 	@Override
@@ -41,6 +43,7 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 			if (categoryField == null) {
 				categoryField = new ActionParametersCategoryFieldImpl();
 				retentionRuleField = new ActionParametersRetentionRuleFieldImpl();
+				presenter.rmFieldsCreated();
 			}
 			if (ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_CATEGORY.equals(code) || 
 					ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY.equals(code)) {

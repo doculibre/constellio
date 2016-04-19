@@ -19,7 +19,9 @@ public class EsRmRobotActionParametersPresenter {
 
 	public EsRmRobotActionParametersPresenter(EsRmRobotActionParametersFields fields) {
 		this.fields = fields;
-		
+	}
+	
+	void rmFieldsCreated() {
 		ActionParametersCategoryField categoryField = fields.getCategoryField();
 		if (categoryField != null) {
 			categoryField.addValueChangeListener(new ActionParametersCategoryField.CategoryValueChangeListener() {
