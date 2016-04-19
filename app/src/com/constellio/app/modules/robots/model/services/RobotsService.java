@@ -89,6 +89,10 @@ public class RobotsService {
 		return robots.searchRobots(where(robots.robot.parent()).isNull());
 	}
 
+	public List<Robot> getAutoExecutingRootRobots() {
+		return robots.searchRobots(where(robots.robot.parent()).isNull().andWhere(robots.robot.autoExecute()).isTrue());
+	}
+
 	public List<Robot> getChildRobots(String robotId) {
 		return robots.searchRobots(where(robots.robot.parent()).isEqualTo(robotId));
 	}
